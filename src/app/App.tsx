@@ -3860,6 +3860,7 @@ export default function App() {
   const [currentLocation, setCurrentLocation] = useState('Sin ubicación seleccionada');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
+  const [currentLocation, setCurrentLocation] = useState('San Bernardo');
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -4292,6 +4293,7 @@ export default function App() {
               }}
               className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
             >
+            <button className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors">
               Cambiar
             </button>
           </div>
