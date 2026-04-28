@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 
@@ -3226,7 +3226,21 @@ function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: {
   );
 }
 
-function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: { onBack: () => void; initialQuery: string; activeTab: string; setActiveTab: (tab: string) => void }) {
+function GlobalSearchScreen({
+  onBack,
+  initialQuery,
+  activeTab,
+  setActiveTab,
+  onSelectBusiness,
+  onSelectService
+}: {
+  onBack: () => void;
+  initialQuery: string;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  onSelectBusiness: (business: any) => void;
+  onSelectService: (service: any) => void;
+}) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos'); // 'todos', 'negocios', 'servicios'
@@ -3753,6 +3767,13 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
             return (
               <div
                 key={result.id}
+                onClick={() => {
+                  if (isNegocio) {
+                    onSelectBusiness(result);
+                    return;
+                  }
+                  onSelectService(result);
+                }}
                 className={`backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 ${
                   isNegocio
                     ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200'
@@ -3835,7 +3856,10 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
-  const [currentLocation, setCurrentLocation] = useState('San Bernardo');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState('Sin ubicación seleccionada');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -3850,6 +3874,17 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('zipco-theme');
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const categories = [
     {
@@ -3869,6 +3904,25 @@ export default function App() {
       textColor: 'text-white'
     }
   ];
+
+  const chileLocations = [
+    'San Bernardo',
+    'Santiago',
+    'Maipú',
+    'Coronel',
+    'Concepción',
+    'Chiguayante',
+    'Valparaíso',
+    'Viña del Mar',
+    'Talcahuano',
+    'Las Condes',
+    'Providencia',
+    'Ñuñoa'
+  ];
+
+  const locationSuggestions = chileLocations.filter((city) =>
+    city.toLowerCase().includes(locationSearch.toLowerCase().trim())
+  );
 
   // Splash Screen
   if (showSplash) {
@@ -4139,6 +4193,14 @@ export default function App() {
             initialQuery={globalSearchQuery}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSelectBusiness={(business) => {
+              setSelectedBusiness(business);
+              setCurrentScreen('profile');
+            }}
+            onSelectService={(service) => {
+              setSelectedService(service);
+              setCurrentScreen('service-profile');
+            }}
           />
         </div>
       </div>
@@ -4148,7 +4210,23 @@ export default function App() {
   return (
     <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
       {/* Mobile Frame */}
-      <div className="w-full max-w-md h-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative overflow-hidden backdrop-blur-sm">
+      <div className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800'
+          : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
+      }`}>
+
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`absolute top-6 right-6 z-20 p-2.5 rounded-full border transition-all shadow-md ${
+            isDarkMode
+              ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700'
+              : 'bg-white/90 border-white text-slate-700 hover:bg-white'
+          }`}
+          aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+        >
+          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
 
         {/* Header */}
         <div className="px-6 pt-8 pb-6">
@@ -4156,12 +4234,13 @@ export default function App() {
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-2">
               <MapPin className="w-8 h-8 text-teal-600" strokeWidth={2.5} />
-              <h1 className="text-3xl tracking-tight text-teal-700">ZIPCCO</h1>
+              <h1 className={`text-3xl tracking-tight ${isDarkMode ? 'text-teal-400' : 'text-teal-700'}`}>ZIPCCO</h1>
             </div>
           </div>
 
           {/* Primary Action Button */}
           <button
+            onClick={() => setCurrentLocation('San Bernardo')}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
           >
             <MapPinned className="w-5 h-5" />
@@ -4183,7 +4262,11 @@ export default function App() {
                 }
               }}
               placeholder="Qué buscas? ej: torta, gásfiter, hielo"
-              className="w-full bg-white border border-gray-200 rounded-full py-3 pl-11 pr-12 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+              className={`w-full border rounded-full py-3 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm ${
+                isDarkMode
+                  ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                  : 'bg-white border-gray-200 placeholder:text-gray-400'
+              }`}
             />
             <button
               onClick={() => {
@@ -4200,9 +4283,15 @@ export default function App() {
           {/* Location Indicator */}
           <div className="mt-4 flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-teal-600" />
-            <span className="text-gray-600">Ubicación actual:</span>
-            <span className="font-medium text-gray-900">{currentLocation}</span>
-            <button className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors">
+            <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
+            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation}</span>
+            <button
+              onClick={() => {
+                setLocationSearch('');
+                setShowLocationModal(true);
+              }}
+              className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
+            >
               Cambiar
             </button>
           </div>
@@ -4252,6 +4341,72 @@ export default function App() {
             }
           }}
         />
+
+        {showLocationModal && (
+          <div
+            className="absolute inset-0 bg-black/40 z-40 flex items-end"
+            onClick={() => setShowLocationModal(false)}
+          >
+            <div
+              className={`w-full rounded-t-3xl p-5 border-t shadow-2xl ${
+                isDarkMode
+                  ? 'bg-slate-900 border-slate-700'
+                  : 'bg-white border-blue-100'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={`w-12 h-1.5 rounded-full mx-auto mb-4 ${isDarkMode ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
+              <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Cambiar ubicación
+              </h3>
+
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <Search className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={locationSearch}
+                  onChange={(e) => setLocationSearch(e.target.value)}
+                  placeholder="Escribe una comuna o ciudad"
+                  className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${
+                    isDarkMode
+                      ? 'bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
+                  }`}
+                />
+              </div>
+
+              <div className="max-h-60 overflow-auto space-y-2 pb-2">
+                {locationSuggestions.length > 0 ? (
+                  locationSuggestions.map((city) => {
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setCurrentLocation(city);
+                          setShowLocationModal(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                          isDarkMode
+                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-100'
+                            : 'bg-blue-50 hover:bg-blue-100 text-gray-800'
+                        }`}
+                      >
+                        {city}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className={`text-sm text-center py-6 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    No hay coincidencias para esa ubicación.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
