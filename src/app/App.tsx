@@ -4381,22 +4381,25 @@ export default function App() {
 
               <div className="max-h-60 overflow-auto space-y-2 pb-2">
                 {locationSuggestions.length > 0 ? (
-                  locationSuggestions.map((city) => (
-                    <button
-                      key={city}
-                      onClick={() => {
-                        setCurrentLocation(city);
-                        setShowLocationModal(false);
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
-                        isDarkMode
-                          ? 'bg-slate-800 hover:bg-slate-700 text-slate-100'
-                          : 'bg-blue-50 hover:bg-blue-100 text-gray-800'
-                      }`}
-                    >
-                      {city}
-                    </button>
-                  ))
+                  locationSuggestions.map((city) => {
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setCurrentLocation(city);
+                          setShowLocationModal(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                          isDarkMode
+                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-100'
+                            : 'bg-blue-50 hover:bg-blue-100 text-gray-800'
+                        }`}
+                      >
+                        {city}
+                      </button>
+                    );
+                  })
                 ) : (
                   <p className={`text-sm text-center py-6 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
                     No hay coincidencias para esa ubicación.
