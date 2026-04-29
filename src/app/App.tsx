@@ -3226,7 +3226,21 @@ function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: {
   );
 }
 
-function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: { onBack: () => void; initialQuery: string; activeTab: string; setActiveTab: (tab: string) => void }) {
+function GlobalSearchScreen({
+  onBack,
+  initialQuery,
+  activeTab,
+  setActiveTab,
+  onSelectBusiness,
+  onSelectService
+}: {
+  onBack: () => void;
+  initialQuery: string;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  onSelectBusiness: (business: any) => void;
+  onSelectService: (service: any) => void;
+}) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos'); // 'todos', 'negocios', 'servicios'
@@ -3753,6 +3767,13 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
             return (
               <div
                 key={result.id}
+                onClick={() => {
+                  if (isNegocio) {
+                    onSelectBusiness(result);
+                    return;
+                  }
+                  onSelectService(result);
+                }}
                 className={`backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 ${
                   isNegocio
                     ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200'
@@ -3885,6 +3906,25 @@ export default function App() {
       textColor: 'text-white'
     }
   ];
+
+  const chileLocations = [
+    'San Bernardo',
+    'Santiago',
+    'Maipú',
+    'Coronel',
+    'Concepción',
+    'Chiguayante',
+    'Valparaíso',
+    'Viña del Mar',
+    'Talcahuano',
+    'Las Condes',
+    'Providencia',
+    'Ñuñoa'
+  ];
+
+  const locationSuggestions = chileLocations.filter((city) =>
+    city.toLowerCase().includes(locationSearch.toLowerCase().trim())
+  );
 
   // Splash Screen
   if (showSplash) {
@@ -4155,6 +4195,14 @@ export default function App() {
             initialQuery={globalSearchQuery}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSelectBusiness={(business) => {
+              setSelectedBusiness(business);
+              setCurrentScreen('profile');
+            }}
+            onSelectService={(service) => {
+              setSelectedService(service);
+              setCurrentScreen('service-profile');
+            }}
           />
         </div>
       </div>
@@ -4194,6 +4242,7 @@ export default function App() {
 
           {/* Primary Action Button */}
           <button
+            onClick={() => setCurrentLocation('San Bernardo')}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
           >
             <MapPinned className="w-5 h-5" />
@@ -4288,6 +4337,72 @@ export default function App() {
             }
           }}
         />
+
+        {showLocationModal && (
+          <div
+            className="absolute inset-0 bg-black/40 z-40 flex items-end"
+            onClick={() => setShowLocationModal(false)}
+          >
+            <div
+              className={`w-full rounded-t-3xl p-5 border-t shadow-2xl ${
+                isDarkMode
+                  ? 'bg-slate-900 border-slate-700'
+                  : 'bg-white border-blue-100'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={`w-12 h-1.5 rounded-full mx-auto mb-4 ${isDarkMode ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
+              <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                Cambiar ubicación
+              </h3>
+
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <Search className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={locationSearch}
+                  onChange={(e) => setLocationSearch(e.target.value)}
+                  placeholder="Escribe una comuna o ciudad"
+                  className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${
+                    isDarkMode
+                      ? 'bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
+                  }`}
+                />
+              </div>
+
+              <div className="max-h-60 overflow-auto space-y-2 pb-2">
+                {locationSuggestions.length > 0 ? (
+                  locationSuggestions.map((city) => {
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setCurrentLocation(city);
+                          setShowLocationModal(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                          isDarkMode
+                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-100'
+                            : 'bg-blue-50 hover:bg-blue-100 text-gray-800'
+                        }`}
+                      >
+                        {city}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className={`text-sm text-center py-6 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    No hay coincidencias para esa ubicación.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
