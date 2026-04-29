@@ -3857,9 +3857,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState('Sin ubicación seleccionada');
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [locationSearch, setLocationSearch] = useState('');
   const [currentLocation, setCurrentLocation] = useState('San Bernardo');
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
@@ -4286,13 +4283,6 @@ export default function App() {
             <MapPin className="w-4 h-4 text-teal-600" />
             <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
             <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation}</span>
-            <button
-              onClick={() => {
-                setLocationSearch('');
-                setShowLocationModal(true);
-              }}
-              className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
-            >
             <button className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors">
               Cambiar
             </button>
