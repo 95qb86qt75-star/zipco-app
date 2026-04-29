@@ -3859,6 +3859,8 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   // Defensive state to avoid runtime breakage if stale merged blocks still reference locationSearch/setLocationSearch.
   const [locationSearch, setLocationSearch] = useState('');
+  // Defensive state to avoid runtime breakage if stale merged blocks still reference showLocationModal/setShowLocationModal.
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('San Bernardo');
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
