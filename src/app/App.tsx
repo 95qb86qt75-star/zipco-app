@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 
@@ -3835,6 +3835,11 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  // Defensive state to avoid runtime breakage if stale merged blocks still reference locationSearch/setLocationSearch.
+  const [locationSearch, setLocationSearch] = useState('');
+  // Defensive state to avoid runtime breakage if stale merged blocks still reference showLocationModal/setShowLocationModal.
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('San Bernardo');
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
@@ -3850,6 +3855,17 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('zipco-theme');
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const categories = [
     {
@@ -4148,7 +4164,23 @@ export default function App() {
   return (
     <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
       {/* Mobile Frame */}
-      <div className="w-full max-w-md h-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative overflow-hidden backdrop-blur-sm">
+      <div className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800'
+          : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
+      }`}>
+
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`absolute top-6 right-6 z-20 p-2.5 rounded-full border transition-all shadow-md ${
+            isDarkMode
+              ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700'
+              : 'bg-white/90 border-white text-slate-700 hover:bg-white'
+          }`}
+          aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+        >
+          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
 
         {/* Header */}
         <div className="px-6 pt-8 pb-6">
@@ -4156,7 +4188,7 @@ export default function App() {
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-2">
               <MapPin className="w-8 h-8 text-teal-600" strokeWidth={2.5} />
-              <h1 className="text-3xl tracking-tight text-teal-700">ZIPCCO</h1>
+              <h1 className={`text-3xl tracking-tight ${isDarkMode ? 'text-teal-400' : 'text-teal-700'}`}>ZIPCCO</h1>
             </div>
           </div>
 
@@ -4183,7 +4215,11 @@ export default function App() {
                 }
               }}
               placeholder="Qué buscas? ej: torta, gásfiter, hielo"
-              className="w-full bg-white border border-gray-200 rounded-full py-3 pl-11 pr-12 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+              className={`w-full border rounded-full py-3 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm ${
+                isDarkMode
+                  ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                  : 'bg-white border-gray-200 placeholder:text-gray-400'
+              }`}
             />
             <button
               onClick={() => {
@@ -4200,8 +4236,8 @@ export default function App() {
           {/* Location Indicator */}
           <div className="mt-4 flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-teal-600" />
-            <span className="text-gray-600">Ubicación actual:</span>
-            <span className="font-medium text-gray-900">{currentLocation}</span>
+            <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
+            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation}</span>
             <button className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors">
               Cambiar
             </button>
