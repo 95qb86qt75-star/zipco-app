@@ -3857,10 +3857,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  // Defensive state to avoid runtime breakage if stale merged blocks still reference locationSearch/setLocationSearch.
   const [locationSearch, setLocationSearch] = useState('');
-  // Defensive state to avoid runtime breakage if stale merged blocks still reference showLocationModal/setShowLocationModal.
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState('');
   const [currentLocation, setCurrentLocation] = useState('San Bernardo');
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
@@ -3907,7 +3906,7 @@ export default function App() {
     }
   ];
 
-  const chileLocations = [
+  const chileLocationBase = [
     'San Bernardo',
     'Santiago',
     'Maipú',
@@ -3922,7 +3921,7 @@ export default function App() {
     'Ñuñoa'
   ];
 
-  const locationSuggestions = chileLocations.filter((city) =>
+  const locationSuggestions = chileLocationBase.filter((city) =>
     city.toLowerCase().includes(locationSearch.toLowerCase().trim())
   );
 
@@ -4287,7 +4286,14 @@ export default function App() {
             <MapPin className="w-4 h-4 text-teal-600" />
             <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
             <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation}</span>
-            <button className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors">
+            <button
+              onClick={() => {
+                setLocationSearch(currentLocation);
+                setPendingLocation(currentLocation);
+                setShowLocationModal(true);
+              }}
+              className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
+            >
               Cambiar
             </button>
           </div>
@@ -4339,32 +4345,31 @@ export default function App() {
         />
 
         {showLocationModal && (
-          <div
-            className="absolute inset-0 bg-black/40 z-40 flex items-end"
-            onClick={() => setShowLocationModal(false)}
-          >
+          <div className="absolute inset-0 z-40 bg-black/40 flex items-end" onClick={() => setShowLocationModal(false)}>
             <div
-              className={`w-full rounded-t-3xl p-5 border-t shadow-2xl ${
-                isDarkMode
-                  ? 'bg-slate-900 border-slate-700'
-                  : 'bg-white border-blue-100'
-              }`}
               onClick={(e) => e.stopPropagation()}
+              className={`w-full rounded-t-3xl p-5 shadow-2xl border-t ${
+                isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'
+              }`}
             >
               <div className={`w-12 h-1.5 rounded-full mx-auto mb-4 ${isDarkMode ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
-              <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Cambiar ubicación
-              </h3>
+              <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Cambiar ubicación</h3>
+              <p className={`text-xs mb-3 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                Simulación tipo Google Maps: escribe una comuna/ciudad y selecciona una sugerencia.
+              </p>
 
-              <div className="relative mb-4">
+              <div className="relative mb-3">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                   <Search className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`} />
                 </div>
                 <input
                   type="text"
                   value={locationSearch}
-                  onChange={(e) => setLocationSearch(e.target.value)}
-                  placeholder="Escribe una comuna o ciudad"
+                  onChange={(e) => {
+                    setLocationSearch(e.target.value);
+                    setPendingLocation(e.target.value);
+                  }}
+                  placeholder="Ej: Coronel, Santiago, Providencia..."
                   className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${
                     isDarkMode
                       ? 'bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-400'
@@ -4373,33 +4378,48 @@ export default function App() {
                 />
               </div>
 
-              <div className="max-h-60 overflow-auto space-y-2 pb-2">
+              <div className="max-h-44 overflow-auto space-y-2 mb-4">
                 {locationSuggestions.length > 0 ? (
-                  locationSuggestions.map((city) => {
-                    return (
-                      <button
-                        key={city}
-                        type="button"
-                        onClick={() => {
-                          setCurrentLocation(city);
-                          setShowLocationModal(false);
-                        }}
-                        className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
-                          isDarkMode
-                            ? 'bg-slate-800 hover:bg-slate-700 text-slate-100'
-                            : 'bg-blue-50 hover:bg-blue-100 text-gray-800'
-                        }`}
-                      >
-                        {city}
-                      </button>
-                    );
-                  })
+                  locationSuggestions.map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => {
+                        setPendingLocation(city);
+                        setLocationSearch(city);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                        pendingLocation === city
+                          ? isDarkMode
+                            ? 'bg-teal-700 text-white'
+                            : 'bg-teal-100 text-teal-900'
+                          : isDarkMode
+                          ? 'bg-slate-800 text-slate-100 hover:bg-slate-700'
+                          : 'bg-blue-50 text-gray-800 hover:bg-blue-100'
+                      }`}
+                    >
+                      {city}
+                    </button>
+                  ))
                 ) : (
-                  <p className={`text-sm text-center py-6 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                    No hay coincidencias para esa ubicación.
+                  <p className={`text-sm text-center py-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    Sin coincidencias. Prueba otra comuna o ciudad.
                   </p>
                 )}
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (pendingLocation.trim()) {
+                    setCurrentLocation(pendingLocation.trim());
+                  }
+                  setShowLocationModal(false);
+                }}
+                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+              >
+                Guardar ubicación
+              </button>
             </div>
           </div>
         )}
