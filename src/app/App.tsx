@@ -3226,7 +3226,21 @@ function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: {
   );
 }
 
-function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: { onBack: () => void; initialQuery: string; activeTab: string; setActiveTab: (tab: string) => void }) {
+function GlobalSearchScreen({
+  onBack,
+  initialQuery,
+  activeTab,
+  setActiveTab,
+  onSelectBusiness,
+  onSelectService
+}: {
+  onBack: () => void;
+  initialQuery: string;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  onSelectBusiness: (business: any) => void;
+  onSelectService: (service: any) => void;
+}) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos'); // 'todos', 'negocios', 'servicios'
@@ -3753,6 +3767,13 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
             return (
               <div
                 key={result.id}
+                onClick={() => {
+                  if (isNegocio) {
+                    onSelectBusiness(result);
+                    return;
+                  }
+                  onSelectService(result);
+                }}
                 className={`backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 ${
                   isNegocio
                     ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200'
@@ -4173,6 +4194,14 @@ export default function App() {
             initialQuery={globalSearchQuery}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSelectBusiness={(business) => {
+              setSelectedBusiness(business);
+              setCurrentScreen('profile');
+            }}
+            onSelectService={(service) => {
+              setSelectedService(service);
+              setCurrentScreen('service-profile');
+            }}
           />
         </div>
       </div>
@@ -4212,6 +4241,7 @@ export default function App() {
 
           {/* Primary Action Button */}
           <button
+            onClick={() => setCurrentLocation('San Bernardo')}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
           >
             <MapPinned className="w-5 h-5" />
