@@ -3814,6 +3814,13 @@ function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, 
             return (
               <div
                 key={result.id}
+                onClick={() => {
+                  if (isNegocio) {
+                    onSelectBusiness(result);
+                    return;
+                  }
+                  onSelectService(result);
+                }}
                 className={`backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all cursor-pointer border-2 ${
                   isNegocio
                     ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200'
@@ -4329,6 +4336,14 @@ export default function App() {
             currentLocation={currentLocation}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSelectBusiness={(business) => {
+              setSelectedBusiness(business);
+              setCurrentScreen('profile');
+            }}
+            onSelectService={(service) => {
+              setSelectedService(service);
+              setCurrentScreen('service-profile');
+            }}
           />
         </div>
       </div>
