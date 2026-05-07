@@ -3940,6 +3940,249 @@ function EmptyFavorites({ isDarkMode, onExplore }: { isDarkMode: boolean; onExpl
   );
 }
 
+function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
+  const [step, setStep] = useState<'welcome' | 'phone' | 'verify' | 'name' | 'business-question' | 'business-form'>('welcome');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [userName, setUserName] = useState('');
+  const [businessData, setBusinessData] = useState({
+    name: '',
+    type: '',
+    address: '',
+    description: ''
+  });
+
+  const completeRegistration = () => {
+    localStorage.setItem('zipco-registration-complete', 'true');
+    onComplete();
+  };
+
+  const handleVerifyCode = () => {
+    if (verificationCode === '123456') {
+      setVerificationError('');
+      setStep('name');
+      return;
+    }
+
+    setVerificationError('Código incorrecto. Para esta simulación usa 123456.');
+  };
+
+  const screenTitle = {
+    welcome: 'Bienvenido a ZIPCO',
+    phone: 'Ingresa tu celular',
+    verify: 'Verifica tu número',
+    name: '¿Cómo te llamas?',
+    'business-question': 'Una última pregunta',
+    'business-form': 'Datos de tu negocio o servicio'
+  }[step];
+
+  return (
+    <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
+      <div className="w-full max-w-md h-full bg-gradient-to-b from-white via-teal-50/20 to-blue-50/50 flex flex-col relative overflow-hidden">
+        {step !== 'welcome' && (
+          <button
+            type="button"
+            onClick={() => {
+              if (step === 'phone') setStep('welcome');
+              if (step === 'verify') setStep('phone');
+              if (step === 'name') setStep('verify');
+              if (step === 'business-question') setStep('name');
+              if (step === 'business-form') setStep('business-question');
+            }}
+            className="absolute top-6 left-5 z-10 p-2 rounded-full hover:bg-white/80 transition-colors"
+            aria-label="Volver"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+        )}
+
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="flex-1 flex flex-col px-6 pt-16 pb-8"
+        >
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="flex flex-col items-center text-center mb-8">
+              <div className="relative mb-5">
+                <div className="absolute inset-0 bg-[#00BFA5]/25 rounded-full blur-2xl"></div>
+                <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-[#00BFA5] to-emerald-500 shadow-xl shadow-teal-500/30 flex items-center justify-center">
+                  <MapPin className="w-12 h-12 text-white" strokeWidth={2.5} />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold text-teal-700 tracking-tight mb-2">ZIPCO</h1>
+              <h2 className="text-2xl font-bold text-gray-900">{screenTitle}</h2>
+            </div>
+
+            {step === 'welcome' && (
+              <div className="space-y-6">
+                <p className="text-center text-gray-600 leading-relaxed px-4">
+                  Descubre negocios y servicios cercanos en pocos pasos.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setStep('phone')}
+                  className="w-full bg-[#00BFA5] text-white py-4 px-5 rounded-2xl font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-500 hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-5 h-5" />
+                  Ingresar con número de celular
+                </button>
+              </div>
+            )}
+
+            {step === 'phone' && (
+              <div className="space-y-5">
+                <p className="text-center text-sm text-gray-600">
+                  Te enviaremos un código de verificación. Por ahora lo simularemos dentro de la app.
+                </p>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Número de celular</label>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="+56 9 XXXX XXXX"
+                    className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-4 text-base focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  disabled={phoneNumber.trim().length < 8}
+                  onClick={() => setStep('verify')}
+                  className="w-full bg-[#00BFA5] disabled:bg-gray-300 disabled:shadow-none text-white py-4 rounded-2xl font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-500 transition-all"
+                >
+                  Enviar código
+                </button>
+              </div>
+            )}
+
+            {step === 'verify' && (
+              <div className="space-y-5">
+                <p className="text-center text-sm text-gray-600">
+                  Ingresa el código de 6 dígitos enviado a {phoneNumber || 'tu celular'}. Código demo: <strong>123456</strong>
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-4 text-center text-3xl tracking-[0.35em] font-bold focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm"
+                />
+                {verificationError && <p className="text-sm text-red-600 text-center">{verificationError}</p>}
+                <button
+                  type="button"
+                  disabled={verificationCode.length !== 6}
+                  onClick={handleVerifyCode}
+                  className="w-full bg-[#00BFA5] disabled:bg-gray-300 disabled:shadow-none text-white py-4 rounded-2xl font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-500 transition-all"
+                >
+                  Verificar
+                </button>
+              </div>
+            )}
+
+            {step === 'name' && (
+              <div className="space-y-5">
+                <div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center mx-auto">
+                  <User className="w-8 h-8 text-[#00BFA5]" />
+                </div>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Tu nombre"
+                  className="w-full bg-white border border-gray-200 rounded-2xl py-4 px-4 text-base focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm"
+                />
+                <button
+                  type="button"
+                  disabled={!userName.trim()}
+                  onClick={() => setStep('business-question')}
+                  className="w-full bg-[#00BFA5] disabled:bg-gray-300 disabled:shadow-none text-white py-4 rounded-2xl font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-500 transition-all"
+                >
+                  Continuar
+                </button>
+              </div>
+            )}
+
+            {step === 'business-question' && (
+              <div className="space-y-5">
+                <p className="text-center text-gray-600">
+                  ¿Tienes un negocio o servicio que quieras mostrar en ZIPCO?
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStep('business-form')}
+                    className="bg-gradient-to-br from-[#00BFA5] to-emerald-500 text-white rounded-3xl p-6 shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex flex-col items-center gap-3"
+                  >
+                    <Building2 className="w-8 h-8" />
+                    <span className="font-bold">Sí</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={completeRegistration}
+                    className="bg-white text-gray-800 border border-gray-200 rounded-3xl p-6 shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex flex-col items-center gap-3"
+                  >
+                    <Home className="w-8 h-8 text-[#00BFA5]" />
+                    <span className="font-bold">No</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 'business-form' && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 text-center">
+                  Completa estos datos básicos. Luego podrás editar y mejorar tu perfil.
+                </p>
+                <input
+                  type="text"
+                  value={businessData.name}
+                  onChange={(e) => setBusinessData({ ...businessData, name: e.target.value })}
+                  placeholder="Nombre del negocio o servicio"
+                  className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm"
+                />
+                <input
+                  type="text"
+                  value={businessData.type}
+                  onChange={(e) => setBusinessData({ ...businessData, type: e.target.value })}
+                  placeholder="Categoría (ej: pastelería, gasfitería)"
+                  className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm"
+                />
+                <input
+                  type="text"
+                  value={businessData.address}
+                  onChange={(e) => setBusinessData({ ...businessData, address: e.target.value })}
+                  placeholder="Dirección o comuna"
+                  className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm"
+                />
+                <textarea
+                  value={businessData.description}
+                  onChange={(e) => setBusinessData({ ...businessData, description: e.target.value })}
+                  placeholder="Describe brevemente lo que ofreces"
+                  className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#00BFA5]/20 focus:border-[#00BFA5] transition-all shadow-sm resize-none"
+                  rows={3}
+                />
+                <button
+                  type="button"
+                  disabled={!businessData.name.trim() || !businessData.type.trim()}
+                  onClick={completeRegistration}
+                  className="w-full bg-[#00BFA5] disabled:bg-gray-300 disabled:shadow-none text-white py-4 rounded-2xl font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-500 transition-all"
+                >
+                  Guardar y entrar a ZIPCO
+                </button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
@@ -3955,6 +4198,7 @@ export default function App() {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems] = useState<any[]>([]);
+  const [isRegistrationComplete, setIsRegistrationComplete] = useState(() => localStorage.getItem('zipco-registration-complete') === 'true');
 
   // Splash screen timer
   useEffect(() => {
@@ -4013,6 +4257,17 @@ export default function App() {
   const locationSuggestions = chileLocationBase.filter((city) =>
     city.name.toLowerCase().includes(locationSearch.toLowerCase().trim())
   );
+
+  if (!isRegistrationComplete) {
+    return (
+      <RegistrationFlow
+        onComplete={() => {
+          setIsRegistrationComplete(true);
+          setShowSplash(false);
+        }}
+      />
+    );
+  }
 
   // Splash Screen
   if (showSplash) {
