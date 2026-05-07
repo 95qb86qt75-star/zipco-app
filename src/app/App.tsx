@@ -3226,26 +3226,15 @@ function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: {
   );
 }
 
-function GlobalSearchScreen({
-  onBack,
-  initialQuery,
-  activeTab,
-  setActiveTab,
-  onSelectBusiness,
-  onSelectService
-}: {
-  onBack: () => void;
-  initialQuery: string;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  onSelectBusiness: (business: any) => void;
-  onSelectService: (service: any) => void;
-}) {
+function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, setActiveTab }: { onBack: () => void; initialQuery: string; currentLocation: any; activeTab: string; setActiveTab: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos'); // 'todos', 'negocios', 'servicios'
   const [maxDistance, setMaxDistance] = useState(10);
   const [showDistanceModal, setShowDistanceModal] = useState(false);
+  const [backendResults, setBackendResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const filters = [
     { id: 'todos', label: 'Todos' },
@@ -3610,20 +3599,62 @@ function GlobalSearchScreen({
     }
   ];
 
-  // Filtrar resultados
-  const filteredResults = allResults.filter((result) => {
-    // Filtro por búsqueda
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchesName = result.name.toLowerCase().includes(query);
-      const matchesDescription = result.description.toLowerCase().includes(query);
-      const matchesKeywords = result.keywords?.toLowerCase().includes(query) || false;
+  const normalizeBackendResult = (result: any) => {
+    const rawCategory = result.category ?? result.kind ?? result.resultType ?? 'negocios';
+    const normalizedCategory = String(rawCategory).toLowerCase().includes('serv') ? 'servicios' : 'negocios';
+    const normalizedType = result.type ?? (normalizedCategory === 'servicios' ? 'Servicio' : 'Negocio');
 
-      if (!matchesName && !matchesDescription && !matchesKeywords) {
-        return false;
+    return {
+      ...result,
+      id: result.id ?? result._id ?? result.businessId ?? result.name,
+      name: result.name ?? result.businessName ?? result.title ?? 'Negocio sin nombre',
+      description: result.description ?? result.subtitle ?? result.address ?? 'Sin descripción disponible',
+      distance: Number(result.distance ?? result.distanceKm ?? result.distance_km ?? 0),
+      type: normalizedType,
+      category: normalizedCategory,
+      isOpen: result.isOpen ?? result.open ?? true,
+      image: result.image ?? result.imageUrl ?? result.logoUrl ?? 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=80'
+    };
+  };
+
+  const fetchNearbyBusinesses = async (query = searchQuery, radius = maxDistance) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    setIsSearching(true);
+    setSearchError('');
+
+    try {
+      const params = new URLSearchParams({
+        lat: String(currentLocation.lat),
+        lng: String(currentLocation.lng),
+        radius: String(radius),
+        search: trimmedQuery
+      });
+
+      const response = await fetch(`http://localhost:3000/businesses/nearby?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error('No se pudo conectar con la búsqueda');
       }
-    }
 
+      const data = await response.json();
+      const rawResults = Array.isArray(data) ? data : data.businesses ?? data.results ?? [];
+      setBackendResults(rawResults.map(normalizeBackendResult));
+    } catch (error) {
+      setBackendResults([]);
+      setSearchError(error instanceof Error ? error.message : 'No se pudo realizar la búsqueda');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNearbyBusinesses(initialQuery, maxDistance);
+  }, [initialQuery]);
+
+  // Filtrar resultados entregados por el backend
+  const filteredResults = backendResults.filter((result) => {
     // Filtro por distancia
     if (result.distance > maxDistance) return false;
 
@@ -3661,11 +3692,16 @@ function GlobalSearchScreen({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  fetchNearbyBusinesses();
+                }
+              }}
               placeholder="Ej: tortas, gasfiter, clases de inglés..."
               className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             />
-            <button className="absolute inset-y-0 right-4 flex items-center">
-              <Mic className="w-4 h-4 text-gray-400 hover:text-teal-600 transition-colors" />
+            <button onClick={() => fetchNearbyBusinesses()} className="absolute inset-y-0 right-4 flex items-center" aria-label="Buscar negocios cercanos">
+              <Send className="w-4 h-4 text-gray-400 hover:text-teal-600 transition-colors" />
             </button>
           </div>
         </div>
@@ -3744,7 +3780,10 @@ function GlobalSearchScreen({
             </div>
 
             <button
-              onClick={() => setShowDistanceModal(false)}
+              onClick={() => {
+                setShowDistanceModal(false);
+                fetchNearbyBusinesses(searchQuery, maxDistance);
+              }}
               className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               Aplicar
@@ -3756,8 +3795,16 @@ function GlobalSearchScreen({
       {/* Results */}
       <div className="flex-1 overflow-auto px-4 pt-4 pb-24">
         <p className="text-sm text-gray-600 mb-4">
-          {filteredResults.length} {filteredResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
+          {isSearching
+            ? 'Buscando negocios cercanos...'
+            : `${filteredResults.length} ${filteredResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`}
         </p>
+
+        {searchError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm mb-4">
+            {searchError}
+          </div>
+        )}
 
         <div className="space-y-3">
           {filteredResults.map((result) => {
@@ -3834,7 +3881,7 @@ function GlobalSearchScreen({
           })}
         </div>
 
-        {filteredResults.length === 0 && (
+        {!isSearching && filteredResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Search className="w-10 h-10 text-gray-400" />
@@ -3901,7 +3948,7 @@ export default function App() {
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [pendingLocation, setPendingLocation] = useState('');
-  const [currentLocation, setCurrentLocation] = useState('San Bernardo');
+  const [currentLocation, setCurrentLocation] = useState({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 });
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -3949,22 +3996,22 @@ export default function App() {
   ];
 
   const chileLocationBase = [
-    'San Bernardo',
-    'Santiago',
-    'Maipú',
-    'Coronel',
-    'Concepción',
-    'Chiguayante',
-    'Valparaíso',
-    'Viña del Mar',
-    'Talcahuano',
-    'Las Condes',
-    'Providencia',
-    'Ñuñoa'
+    { name: 'San Bernardo', lat: -33.5922, lng: -70.6996 },
+    { name: 'Santiago', lat: -33.4489, lng: -70.6693 },
+    { name: 'Maipú', lat: -33.5110, lng: -70.7567 },
+    { name: 'Coronel', lat: -37.0333, lng: -73.1333 },
+    { name: 'Concepción', lat: -36.8270, lng: -73.0503 },
+    { name: 'Chiguayante', lat: -36.9256, lng: -73.0286 },
+    { name: 'Valparaíso', lat: -33.0472, lng: -71.6127 },
+    { name: 'Viña del Mar', lat: -33.0153, lng: -71.5500 },
+    { name: 'Talcahuano', lat: -36.7248, lng: -73.1169 },
+    { name: 'Las Condes', lat: -33.4088, lng: -70.5674 },
+    { name: 'Providencia', lat: -33.4263, lng: -70.6171 },
+    { name: 'Ñuñoa', lat: -33.4569, lng: -70.5975 }
   ];
 
   const locationSuggestions = chileLocationBase.filter((city) =>
-    city.toLowerCase().includes(locationSearch.toLowerCase().trim())
+    city.name.toLowerCase().includes(locationSearch.toLowerCase().trim())
   );
 
   // Splash Screen
@@ -4286,6 +4333,7 @@ export default function App() {
               setGlobalSearchQuery('');
             }}
             initialQuery={globalSearchQuery}
+            currentLocation={currentLocation}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onSelectBusiness={(business) => {
@@ -4335,7 +4383,7 @@ export default function App() {
 
           {/* Primary Action Button */}
           <button
-            onClick={() => setCurrentLocation('San Bernardo')}
+            onClick={() => setCurrentLocation({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 })}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
           >
             <MapPinned className="w-5 h-5" />
@@ -4379,11 +4427,11 @@ export default function App() {
           <div className="mt-4 flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-teal-600" />
             <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
-            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation}</span>
+            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name}</span>
             <button
               onClick={() => {
-                setLocationSearch(currentLocation);
-                setPendingLocation(currentLocation);
+                setLocationSearch(currentLocation.name);
+                setPendingLocation(currentLocation.name);
                 setShowLocationModal(true);
               }}
               className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
@@ -4476,14 +4524,14 @@ export default function App() {
                 {locationSuggestions.length !== 0 ? (
                   locationSuggestions.map((city) => (
                     <button
-                      key={city}
+                      key={city.name}
                       type="button"
                       onClick={() => {
-                        setPendingLocation(city);
-                        setLocationSearch(city);
+                        setPendingLocation(city.name);
+                        setLocationSearch(city.name);
                       }}
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
-                        pendingLocation === city
+                        pendingLocation === city.name
                           ? isDarkMode
                             ? 'bg-teal-700 text-white'
                             : 'bg-teal-100 text-teal-900'
@@ -4492,7 +4540,7 @@ export default function App() {
                           : 'bg-blue-50 text-gray-800 hover:bg-blue-100'
                       }`}
                     >
-                      {city}
+                      {city.name}
                     </button>
                   ))
                 ) : (
@@ -4506,7 +4554,8 @@ export default function App() {
                 type="button"
                 onClick={() => {
                   if (pendingLocation.trim()) {
-                    setCurrentLocation(pendingLocation.trim());
+                    const selectedCity = chileLocationBase.find((city) => city.name.toLowerCase() === pendingLocation.trim().toLowerCase());
+                    setCurrentLocation(selectedCity ?? { name: pendingLocation.trim(), lat: currentLocation.lat, lng: currentLocation.lng });
                   }
                   setShowLocationModal(false);
                 }}
