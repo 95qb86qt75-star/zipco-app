@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 
@@ -3226,12 +3226,15 @@ function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: {
   );
 }
 
-function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: { onBack: () => void; initialQuery: string; activeTab: string; setActiveTab: (tab: string) => void }) {
+function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, setActiveTab }: { onBack: () => void; initialQuery: string; currentLocation: any; activeTab: string; setActiveTab: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos'); // 'todos', 'negocios', 'servicios'
   const [maxDistance, setMaxDistance] = useState(10);
   const [showDistanceModal, setShowDistanceModal] = useState(false);
+  const [backendResults, setBackendResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const filters = [
     { id: 'todos', label: 'Todos' },
@@ -3596,20 +3599,62 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
     }
   ];
 
-  // Filtrar resultados
-  const filteredResults = allResults.filter((result) => {
-    // Filtro por búsqueda
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchesName = result.name.toLowerCase().includes(query);
-      const matchesDescription = result.description.toLowerCase().includes(query);
-      const matchesKeywords = result.keywords?.toLowerCase().includes(query) || false;
+  const normalizeBackendResult = (result: any) => {
+    const rawCategory = result.category ?? result.kind ?? result.resultType ?? 'negocios';
+    const normalizedCategory = String(rawCategory).toLowerCase().includes('serv') ? 'servicios' : 'negocios';
+    const normalizedType = result.type ?? (normalizedCategory === 'servicios' ? 'Servicio' : 'Negocio');
 
-      if (!matchesName && !matchesDescription && !matchesKeywords) {
-        return false;
+    return {
+      ...result,
+      id: result.id ?? result._id ?? result.businessId ?? result.name,
+      name: result.name ?? result.businessName ?? result.title ?? 'Negocio sin nombre',
+      description: result.description ?? result.subtitle ?? result.address ?? 'Sin descripción disponible',
+      distance: Number(result.distance ?? result.distanceKm ?? result.distance_km ?? 0),
+      type: normalizedType,
+      category: normalizedCategory,
+      isOpen: result.isOpen ?? result.open ?? true,
+      image: result.image ?? result.imageUrl ?? result.logoUrl ?? 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=80'
+    };
+  };
+
+  const fetchNearbyBusinesses = async (query = searchQuery, radius = maxDistance) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    setIsSearching(true);
+    setSearchError('');
+
+    try {
+      const params = new URLSearchParams({
+        lat: String(currentLocation.lat),
+        lng: String(currentLocation.lng),
+        radius: String(radius),
+        search: trimmedQuery
+      });
+
+      const response = await fetch(`http://localhost:3000/businesses/nearby?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error('No se pudo conectar con la búsqueda');
       }
-    }
 
+      const data = await response.json();
+      const rawResults = Array.isArray(data) ? data : data.businesses ?? data.results ?? [];
+      setBackendResults(rawResults.map(normalizeBackendResult));
+    } catch (error) {
+      setBackendResults([]);
+      setSearchError(error instanceof Error ? error.message : 'No se pudo realizar la búsqueda');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNearbyBusinesses(initialQuery, maxDistance);
+  }, [initialQuery]);
+
+  // Filtrar resultados entregados por el backend
+  const filteredResults = backendResults.filter((result) => {
     // Filtro por distancia
     if (result.distance > maxDistance) return false;
 
@@ -3647,11 +3692,16 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  fetchNearbyBusinesses();
+                }
+              }}
               placeholder="Ej: tortas, gasfiter, clases de inglés..."
               className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             />
-            <button className="absolute inset-y-0 right-4 flex items-center">
-              <Mic className="w-4 h-4 text-gray-400 hover:text-teal-600 transition-colors" />
+            <button onClick={() => fetchNearbyBusinesses()} className="absolute inset-y-0 right-4 flex items-center" aria-label="Buscar negocios cercanos">
+              <Send className="w-4 h-4 text-gray-400 hover:text-teal-600 transition-colors" />
             </button>
           </div>
         </div>
@@ -3730,7 +3780,10 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
             </div>
 
             <button
-              onClick={() => setShowDistanceModal(false)}
+              onClick={() => {
+                setShowDistanceModal(false);
+                fetchNearbyBusinesses(searchQuery, maxDistance);
+              }}
               className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               Aplicar
@@ -3742,8 +3795,16 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
       {/* Results */}
       <div className="flex-1 overflow-auto px-4 pt-4 pb-24">
         <p className="text-sm text-gray-600 mb-4">
-          {filteredResults.length} {filteredResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
+          {isSearching
+            ? 'Buscando negocios cercanos...'
+            : `${filteredResults.length} ${filteredResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`}
         </p>
+
+        {searchError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm mb-4">
+            {searchError}
+          </div>
+        )}
 
         <div className="space-y-3">
           {filteredResults.map((result) => {
@@ -3813,7 +3874,7 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
           })}
         </div>
 
-        {filteredResults.length === 0 && (
+        {!isSearching && filteredResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Search className="w-10 h-10 text-gray-400" />
@@ -3831,16 +3892,62 @@ function GlobalSearchScreen({ onBack, initialQuery, activeTab, setActiveTab }: {
   );
 }
 
+function EmptyFavorites({ isDarkMode, onExplore }: { isDarkMode: boolean; onExplore: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className="flex-1 flex items-center justify-center px-6"
+    >
+      <div className="w-full max-w-sm text-center">
+        <div className="flex justify-center mb-6">
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`w-24 h-24 rounded-3xl flex items-center justify-center shadow-lg ${
+              isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-rose-50 border border-rose-100'
+            }`}
+          >
+            <Heart className={`w-12 h-12 ${isDarkMode ? 'text-rose-300' : 'text-rose-500'}`} />
+          </motion.div>
+        </div>
+
+        <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          Aún no tienes favoritos
+        </h3>
+        <p className={`text-sm mb-8 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>
+          Guarda negocios o servicios para encontrarlos rápido aquí
+        </p>
+
+        <button
+          type="button"
+          onClick={onExplore}
+          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-5 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
+        >
+          Explorar ahora
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
-  const [currentLocation, setCurrentLocation] = useState('San Bernardo');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState('');
+  const [currentLocation, setCurrentLocation] = useState({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 });
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
+  const [favoriteItems] = useState<any[]>([]);
 
   // Splash screen timer
   useEffect(() => {
@@ -3850,6 +3957,17 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('zipco-theme');
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const categories = [
     {
@@ -3869,6 +3987,25 @@ export default function App() {
       textColor: 'text-white'
     }
   ];
+
+  const chileLocationBase = [
+    { name: 'San Bernardo', lat: -33.5922, lng: -70.6996 },
+    { name: 'Santiago', lat: -33.4489, lng: -70.6693 },
+    { name: 'Maipú', lat: -33.5110, lng: -70.7567 },
+    { name: 'Coronel', lat: -37.0333, lng: -73.1333 },
+    { name: 'Concepción', lat: -36.8270, lng: -73.0503 },
+    { name: 'Chiguayante', lat: -36.9256, lng: -73.0286 },
+    { name: 'Valparaíso', lat: -33.0472, lng: -71.6127 },
+    { name: 'Viña del Mar', lat: -33.0153, lng: -71.5500 },
+    { name: 'Talcahuano', lat: -36.7248, lng: -73.1169 },
+    { name: 'Las Condes', lat: -33.4088, lng: -70.5674 },
+    { name: 'Providencia', lat: -33.4263, lng: -70.6171 },
+    { name: 'Ñuñoa', lat: -33.4569, lng: -70.5975 }
+  ];
+
+  const locationSuggestions = chileLocationBase.filter((city) =>
+    city.name.toLowerCase().includes(locationSearch.toLowerCase().trim())
+  );
 
   // Splash Screen
   if (showSplash) {
@@ -3988,6 +4125,58 @@ export default function App() {
               setCurrentScreen('home');
             }}
           />
+          <BottomNav
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onNavigate={(tab) => {
+              if (tab === 'home') {
+                setCurrentScreen('home');
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === 'favorites') {
+    return (
+      <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
+        <div className={`w-full max-w-md h-full relative overflow-hidden ${
+          isDarkMode ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800' : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
+        }`}>
+          <div className="px-6 pt-8 pb-4">
+            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Favoritos</h2>
+            <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>
+              Tus negocios y servicios guardados
+            </p>
+          </div>
+
+          <div className="flex-1 pb-24 h-[calc(100%-88px)] overflow-auto">
+            {favoriteItems.length === 0 ? (
+              <EmptyFavorites
+                isDarkMode={isDarkMode}
+                onExplore={() => {
+                  setActiveTab('home');
+                  setCurrentScreen('home');
+                }}
+              />
+            ) : (
+              <div className="px-6 space-y-3">
+                {favoriteItems.map((item, index) => (
+                  <div
+                    key={`${item.id ?? item.name ?? 'favorite'}-${index}`}
+                    className={`rounded-2xl p-4 border ${
+                      isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-gray-100 text-gray-900'
+                    }`}
+                  >
+                    {item.name ?? 'Favorito'}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <BottomNav
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -4137,6 +4326,7 @@ export default function App() {
               setGlobalSearchQuery('');
             }}
             initialQuery={globalSearchQuery}
+            currentLocation={currentLocation}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -4148,7 +4338,23 @@ export default function App() {
   return (
     <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
       {/* Mobile Frame */}
-      <div className="w-full max-w-md h-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative overflow-hidden backdrop-blur-sm">
+      <div className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800'
+          : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
+      }`}>
+
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className={`absolute top-6 right-6 z-20 p-2.5 rounded-full border transition-all shadow-md ${
+            isDarkMode
+              ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700'
+              : 'bg-white/90 border-white text-slate-700 hover:bg-white'
+          }`}
+          aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+        >
+          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
 
         {/* Header */}
         <div className="px-6 pt-8 pb-6">
@@ -4156,12 +4362,13 @@ export default function App() {
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-2">
               <MapPin className="w-8 h-8 text-teal-600" strokeWidth={2.5} />
-              <h1 className="text-3xl tracking-tight text-teal-700">ZIPCCO</h1>
+              <h1 className={`text-3xl tracking-tight ${isDarkMode ? 'text-teal-400' : 'text-teal-700'}`}>ZIPCCO</h1>
             </div>
           </div>
 
           {/* Primary Action Button */}
           <button
+            onClick={() => setCurrentLocation({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 })}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
           >
             <MapPinned className="w-5 h-5" />
@@ -4183,7 +4390,11 @@ export default function App() {
                 }
               }}
               placeholder="Qué buscas? ej: torta, gásfiter, hielo"
-              className="w-full bg-white border border-gray-200 rounded-full py-3 pl-11 pr-12 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+              className={`w-full border rounded-full py-3 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm ${
+                isDarkMode
+                  ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                  : 'bg-white border-gray-200 placeholder:text-gray-400'
+              }`}
             />
             <button
               onClick={() => {
@@ -4200,9 +4411,16 @@ export default function App() {
           {/* Location Indicator */}
           <div className="mt-4 flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-teal-600" />
-            <span className="text-gray-600">Ubicación actual:</span>
-            <span className="font-medium text-gray-900">{currentLocation}</span>
-            <button className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors">
+            <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
+            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name}</span>
+            <button
+              onClick={() => {
+                setLocationSearch(currentLocation.name);
+                setPendingLocation(currentLocation.name);
+                setShowLocationModal(true);
+              }}
+              className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
+            >
               Cambiar
             </button>
           </div>
@@ -4252,6 +4470,87 @@ export default function App() {
             }
           }}
         />
+
+        {showLocationModal && (
+          <div className="absolute inset-0 z-40 bg-black/40 flex items-end" onClick={() => setShowLocationModal(false)}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full rounded-t-3xl p-5 shadow-2xl border-t ${
+                isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'
+              }`}
+            >
+              <div className={`w-12 h-1.5 rounded-full mx-auto mb-4 ${isDarkMode ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
+              <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Cambiar ubicación</h3>
+              <p className={`text-xs mb-3 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                Simulación tipo Google Maps: escribe una comuna/ciudad y selecciona una sugerencia.
+              </p>
+
+              <div className="relative mb-3">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <Search className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`} />
+                </div>
+                <input
+                  type="text"
+                  value={locationSearch}
+                  onChange={(e) => {
+                    setLocationSearch(e.target.value);
+                    setPendingLocation(e.target.value);
+                  }}
+                  placeholder="Ej: Coronel, Santiago, Providencia..."
+                  className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${
+                    isDarkMode
+                      ? 'bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
+                  }`}
+                />
+              </div>
+
+              <div className="max-h-44 overflow-auto space-y-2 mb-4">
+                {locationSuggestions.length !== 0 ? (
+                  locationSuggestions.map((city) => (
+                    <button
+                      key={city.name}
+                      type="button"
+                      onClick={() => {
+                        setPendingLocation(city.name);
+                        setLocationSearch(city.name);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
+                        pendingLocation === city.name
+                          ? isDarkMode
+                            ? 'bg-teal-700 text-white'
+                            : 'bg-teal-100 text-teal-900'
+                          : isDarkMode
+                          ? 'bg-slate-800 text-slate-100 hover:bg-slate-700'
+                          : 'bg-blue-50 text-gray-800 hover:bg-blue-100'
+                      }`}
+                    >
+                      {city.name}
+                    </button>
+                  ))
+                ) : (
+                  <p className={`text-sm text-center py-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    Sin coincidencias. Prueba otra comuna o ciudad.
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (pendingLocation.trim()) {
+                    const selectedCity = chileLocationBase.find((city) => city.name.toLowerCase() === pendingLocation.trim().toLowerCase());
+                    setCurrentLocation(selectedCity ?? { name: pendingLocation.trim(), lat: currentLocation.lat, lng: currentLocation.lng });
+                  }
+                  setShowLocationModal(false);
+                }}
+                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+              >
+                Guardar ubicación
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
