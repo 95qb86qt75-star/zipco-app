@@ -3852,6 +3852,47 @@ function GlobalSearchScreen({
   );
 }
 
+function EmptyFavorites({ isDarkMode, onExplore }: { isDarkMode: boolean; onExplore: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className="flex-1 flex items-center justify-center px-6"
+    >
+      <div className="w-full max-w-sm text-center">
+        <div className="flex justify-center mb-6">
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`w-24 h-24 rounded-3xl flex items-center justify-center shadow-lg ${
+              isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-rose-50 border border-rose-100'
+            }`}
+          >
+            <Heart className={`w-12 h-12 ${isDarkMode ? 'text-rose-300' : 'text-rose-500'}`} />
+          </motion.div>
+        </div>
+
+        <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          Aún no tienes favoritos
+        </h3>
+        <p className={`text-sm mb-8 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>
+          Guarda negocios o servicios para encontrarlos rápido aquí
+        </p>
+
+        <button
+          type="button"
+          onClick={onExplore}
+          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-5 rounded-2xl font-semibold shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
+        >
+          Explorar ahora
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
@@ -3866,6 +3907,7 @@ export default function App() {
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
+  const [favoriteItems] = useState<any[]>([]);
 
   // Splash screen timer
   useEffect(() => {
@@ -4043,6 +4085,58 @@ export default function App() {
               setCurrentScreen('home');
             }}
           />
+          <BottomNav
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onNavigate={(tab) => {
+              if (tab === 'home') {
+                setCurrentScreen('home');
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === 'favorites') {
+    return (
+      <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
+        <div className={`w-full max-w-md h-full relative overflow-hidden ${
+          isDarkMode ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800' : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
+        }`}>
+          <div className="px-6 pt-8 pb-4">
+            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Favoritos</h2>
+            <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>
+              Tus negocios y servicios guardados
+            </p>
+          </div>
+
+          <div className="flex-1 pb-24 h-[calc(100%-88px)] overflow-auto">
+            {favoriteItems.length === 0 ? (
+              <EmptyFavorites
+                isDarkMode={isDarkMode}
+                onExplore={() => {
+                  setActiveTab('home');
+                  setCurrentScreen('home');
+                }}
+              />
+            ) : (
+              <div className="px-6 space-y-3">
+                {favoriteItems.map((item, index) => (
+                  <div
+                    key={`${item.id ?? item.name ?? 'favorite'}-${index}`}
+                    className={`rounded-2xl p-4 border ${
+                      isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-gray-100 text-gray-900'
+                    }`}
+                  >
+                    {item.name ?? 'Favorito'}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <BottomNav
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -4379,7 +4473,7 @@ export default function App() {
               </div>
 
               <div className="max-h-44 overflow-auto space-y-2 mb-4">
-                {locationSuggestions.length > 0 ? (
+                {locationSuggestions.length !== 0 ? (
                   locationSuggestions.map((city) => (
                     <button
                       key={city}
