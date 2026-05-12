@@ -3941,6 +3941,7 @@ function EmptyFavorites({ isDarkMode, onExplore }: { isDarkMode: boolean; onExpl
 }
 
 export default function App() {
+  const [isRegistrationComplete, setIsRegistrationComplete] = useState(() => localStorage.getItem('zipco-registration-complete') === 'true');
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -4092,6 +4093,10 @@ export default function App() {
         </motion.div>
       </div>
     );
+  }
+
+  if (!isRegistrationComplete) {
+    return <RegistrationFlow onComplete={() => setIsRegistrationComplete(true)} />;
   }
 
   if (activeTab === 'profile') {
