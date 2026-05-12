@@ -4232,6 +4232,33 @@ export default function App() {
     city.name.toLowerCase().includes(locationSearch.toLowerCase().trim())
   );
 
+  const updateCurrentLocationFromGeolocation = () => {
+    if (!navigator.geolocation) {
+      alert('La geolocalización no está disponible en este navegador.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude: lat, longitude: lng } = position.coords;
+        let locationName = 'Ubicación actual';
+
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const data = await response.json();
+          locationName = data.address?.city || data.address?.town || data.address?.suburb || locationName;
+        } catch (error) {
+          console.error('No se pudo obtener el nombre de la ubicación', error);
+        }
+
+        setCurrentLocation({ name: locationName, lat, lng });
+      },
+      () => {
+        alert('No se pudo obtener tu ubicación. Revisa los permisos del navegador.');
+      }
+    );
+  };
+
   // Splash Screen
   if (showSplash) {
     return (
@@ -4605,7 +4632,7 @@ export default function App() {
 
           {/* Primary Action Button */}
           <button
-            onClick={() => setCurrentLocation({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 })}
+            onClick={updateCurrentLocationFromGeolocation}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 hover:shadow-xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
           >
             <MapPinned className="w-5 h-5" />
@@ -4651,11 +4678,7 @@ export default function App() {
             <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
             <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name}</span>
             <button
-              onClick={() => {
-                setLocationSearch(currentLocation.name);
-                setPendingLocation(currentLocation.name);
-                setShowLocationModal(true);
-              }}
+              onClick={updateCurrentLocationFromGeolocation}
               className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
             >
               Cambiar
