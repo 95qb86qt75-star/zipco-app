@@ -4166,6 +4166,9 @@ export default function App() {
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationSearchError, setLocationSearchError] = useState('');
+  const [locationAutocompleteResults, setLocationAutocompleteResults] = useState<any[]>([]);
+  const [isLocationAutocompleteLoading, setIsLocationAutocompleteLoading] = useState(false);
+  const [hasLocationAutocompleteSearched, setHasLocationAutocompleteSearched] = useState(false);
   const [pendingLocation, setPendingLocation] = useState('');
   const [currentLocation, setCurrentLocation] = useState({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 });
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
@@ -4194,6 +4197,35 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const query = locationSearch.trim();
+
+    if (!showLocationModal || query.length < 3) {
+      setLocationAutocompleteResults([]);
+      setIsLocationAutocompleteLoading(false);
+      setHasLocationAutocompleteSearched(false);
+      return;
+    }
+
+    setIsLocationAutocompleteLoading(true);
+    setHasLocationAutocompleteSearched(false);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`);
+        const data = await response.json();
+        setLocationAutocompleteResults(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setLocationAutocompleteResults([]);
+      } finally {
+        setIsLocationAutocompleteLoading(false);
+        setHasLocationAutocompleteSearched(true);
+      }
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [locationSearch, showLocationModal]);
 
   const categories = [
     {
@@ -4232,6 +4264,30 @@ export default function App() {
   const locationSuggestions = chileLocationBase.filter((city) =>
     city.name.toLowerCase().includes(locationSearch.toLowerCase().trim())
   );
+
+  const getLocationNameFromResult = (result: any, fallback: string) =>
+    String(result.display_name ?? fallback).split(',').slice(0, 2).map((part) => part.trim()).join(', ');
+
+  const getLocationSuggestionLabel = (result: any) => {
+    const parts = String(result.display_name ?? '').split(',').map((part) => part.trim()).filter(Boolean);
+    if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
+      parts.pop();
+    }
+    return parts.join(', ');
+  };
+
+  const selectLocationResult = (result: any, fallback: string) => {
+    setCurrentLocation({
+      name: getLocationNameFromResult(result, fallback),
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon)
+    });
+    setShowLocationModal(false);
+    setLocationSearch('');
+    setLocationSearchError('');
+    setLocationAutocompleteResults([]);
+    setHasLocationAutocompleteSearched(false);
+  };
 
   const updateCurrentLocationFromGeolocation = () => {
     if (!navigator.geolocation) {
@@ -4275,15 +4331,7 @@ export default function App() {
         return;
       }
 
-      const result = data[0];
-      const name = String(result.display_name ?? query).split(',').slice(0, 2).map((part) => part.trim()).join(', ');
-      setCurrentLocation({
-        name,
-        lat: parseFloat(result.lat),
-        lng: parseFloat(result.lon)
-      });
-      setShowLocationModal(false);
-      setLocationSearch('');
+      selectLocationResult(data[0], query);
     } catch (error) {
       setLocationSearchError('No se encontró esa ubicación, intenta con otra');
     }
@@ -4712,6 +4760,8 @@ export default function App() {
               onClick={() => {
                 setLocationSearch('');
                 setLocationSearchError('');
+                setLocationAutocompleteResults([]);
+                setHasLocationAutocompleteSearched(false);
                 setShowLocationModal(true);
               }}
               className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
@@ -4751,6 +4801,36 @@ export default function App() {
                   Buscar
                 </button>
               </div>
+              {locationSearch.trim().length >= 3 && (
+                <div className={`mt-2 max-h-56 overflow-auto rounded-2xl border shadow-lg ${
+                  isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-100'
+                }`}>
+                  {isLocationAutocompleteLoading ? (
+                    <p className={`px-4 py-3 text-sm ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>
+                      Buscando...
+                    </p>
+                  ) : locationAutocompleteResults.length > 0 ? (
+                    locationAutocompleteResults.map((result, index) => (
+                      <button
+                        key={`${result.place_id ?? result.osm_id ?? 'location'}-${index}`}
+                        type="button"
+                        onClick={() => selectLocationResult(result, locationSearch.trim())}
+                        className={`w-full text-left px-4 py-3 text-sm border-b last:border-b-0 transition-colors ${
+                          isDarkMode
+                            ? 'border-slate-700 text-slate-100 hover:bg-slate-800'
+                            : 'border-gray-100 text-gray-700 hover:bg-teal-50'
+                        }`}
+                      >
+                        {getLocationSuggestionLabel(result)}
+                      </button>
+                    ))
+                  ) : hasLocationAutocompleteSearched ? (
+                    <p className={`px-4 py-3 text-sm ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>
+                      No se encontraron resultados
+                    </p>
+                  ) : null}
+                </div>
+              )}
               {locationSearchError && (
                 <p className="mt-2 text-xs text-red-500 text-center">{locationSearchError}</p>
               )}
