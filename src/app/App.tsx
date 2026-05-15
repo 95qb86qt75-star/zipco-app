@@ -2568,7 +2568,7 @@ function ServiciosScreen({ onBack, onSelectService, activeTab, setActiveTab }: {
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-1 pb-2">
           {filters.map((filter) => (
             <button
               key={filter.id}
@@ -2579,7 +2579,7 @@ function ServiciosScreen({ onBack, onSelectService, activeTab, setActiveTab }: {
                   setSelectedFilter(filter.id);
                 }
               }}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`flex-1 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
                 (selectedFilter === filter.id || filter.id === 'distance')
                   ? filter.id === 'distance'
                     ? 'bg-blue-500 text-white shadow-sm'
