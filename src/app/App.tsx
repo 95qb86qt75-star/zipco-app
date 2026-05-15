@@ -4276,7 +4276,7 @@ export default function App() {
       }
 
       const result = data[0];
-      const name = String(result.display_name ?? query).split(',')[0].trim();
+      const name = String(result.display_name ?? query).split(',').slice(0, 2).map((part) => part.trim()).join(', ');
       setCurrentLocation({
         name,
         lat: parseFloat(result.lat),
@@ -4736,7 +4736,7 @@ export default function App() {
                       searchLocationByText();
                     }
                   }}
-                  placeholder="Escribe una ciudad, comuna o direcciÃ³n..."
+                  placeholder="Escribe una ciudad o comuna..."
                   className={`flex-1 border rounded-full py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all shadow-sm ${
                     isDarkMode
                       ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
