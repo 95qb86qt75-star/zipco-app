@@ -4165,6 +4165,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationSearchError, setLocationSearchError] = useState('');
   const [pendingLocation, setPendingLocation] = useState('');
   const [currentLocation, setCurrentLocation] = useState({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 });
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
@@ -4257,6 +4258,35 @@ export default function App() {
         alert('No se pudo obtener tu ubicación. Revisa los permisos del navegador.');
       }
     );
+  };
+
+  const searchLocationByText = async () => {
+    const query = locationSearch.trim();
+    if (!query) return;
+
+    setLocationSearchError('');
+
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=1`);
+      const data = await response.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        setLocationSearchError('No se encontró esa ubicación, intenta con otra');
+        return;
+      }
+
+      const result = data[0];
+      const name = String(result.display_name ?? query).split(',')[0].trim();
+      setCurrentLocation({
+        name,
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon)
+      });
+      setShowLocationModal(false);
+      setLocationSearch('');
+    } catch (error) {
+      setLocationSearchError('No se encontró esa ubicación, intenta con otra');
+    }
   };
 
   // Splash Screen
@@ -4677,13 +4707,55 @@ export default function App() {
             <MapPin className="w-4 h-4 text-teal-600" />
             <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
             <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name}</span>
+            {!showLocationModal && (
             <button
-              onClick={updateCurrentLocationFromGeolocation}
+              onClick={() => {
+                setLocationSearch('');
+                setLocationSearchError('');
+                setShowLocationModal(true);
+              }}
               className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
             >
               Cambiar
             </button>
+            )}
           </div>
+
+          {showLocationModal && (
+            <div className="mt-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={locationSearch}
+                  onChange={(e) => {
+                    setLocationSearch(e.target.value);
+                    setLocationSearchError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      searchLocationByText();
+                    }
+                  }}
+                  placeholder="Escribe una ciudad, comuna o direcciÃ³n..."
+                  className={`flex-1 border rounded-full py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all shadow-sm ${
+                    isDarkMode
+                      ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={searchLocationByText}
+                  className="bg-[#00BFA5] text-white py-3 px-5 rounded-full text-sm font-semibold shadow-lg shadow-teal-500/25 hover:bg-teal-600 transition-all active:scale-[0.98]"
+                >
+                  Buscar
+                </button>
+              </div>
+              {locationSearchError && (
+                <p className="mt-2 text-xs text-red-500 text-center">{locationSearchError}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
@@ -4731,7 +4803,7 @@ export default function App() {
           }}
         />
 
-        {showLocationModal && (
+        {false && showLocationModal && (
           <div className="absolute inset-0 z-40 bg-black/40 flex items-end" onClick={() => setShowLocationModal(false)}>
             <div
               onClick={(e) => e.stopPropagation()}
