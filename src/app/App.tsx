@@ -3707,7 +3707,7 @@ function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, 
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex flex-wrap gap-1 pb-2">
           {filters.map((filter) => (
             <button
               key={filter.id}
@@ -3723,7 +3723,7 @@ function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, 
                   setSelectedFilter(filter.id);
                 }
               }}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`px-2 py-1 rounded-full text-xs font-medium transition-all ${
                 (selectedFilter === filter.id || typeFilter === filter.id || filter.id === 'distance')
                   ? filter.id === 'distance'
                     ? 'bg-blue-500 text-white shadow-sm'
