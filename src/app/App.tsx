@@ -353,12 +353,19 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     return () => clearTimeout(timeout);
   }, [personalInfoForm.location, isEditingPersonalInfo]);
 
-  const [businessInfo] = useState({
+  const [businessInfo, setBusinessInfo] = useState({
     name: 'Pastelería Delicias Tere',
     description: 'Repostería artesanal y tortas personalizadas',
     address: 'Av. Principal 123, San Bernardo',
     phone: '+56 9 8765 4321',
+    instagram: '',
+    facebook: '',
     image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80'
+  });
+  const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
+  const [businessSocialForm, setBusinessSocialForm] = useState({
+    instagram: '',
+    facebook: ''
   });
 
   const missingBusinessFields = [
@@ -381,6 +388,23 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     }
 
     showAppToast('¡Tu negocio está listo para publicarse! Será revisado por nuestro equipo antes de aparecer en los resultados', 'success');
+  };
+
+  const handleStartEditingBusinessInfo = () => {
+    setBusinessSocialForm({
+      instagram: businessInfo.instagram,
+      facebook: businessInfo.facebook
+    });
+    setIsEditingBusinessInfo(true);
+  };
+
+  const handleSaveBusinessInfo = () => {
+    setBusinessInfo((currentBusinessInfo) => ({
+      ...currentBusinessInfo,
+      instagram: businessSocialForm.instagram,
+      facebook: businessSocialForm.facebook
+    }));
+    setIsEditingBusinessInfo(false);
   };
 
   const handleStartEditingPersonalInfo = () => {
@@ -526,8 +550,12 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             }`}>
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-bold text-gray-900">🏪 Datos del Negocio</h4>
-                <button className="text-teal-600 text-sm font-semibold hover:text-teal-700">
-                  Editar
+                <button
+                  type="button"
+                  onClick={isEditingBusinessInfo ? handleSaveBusinessInfo : handleStartEditingBusinessInfo}
+                  className="text-teal-600 text-sm font-semibold hover:text-teal-700"
+                >
+                  {isEditingBusinessInfo ? 'Guardar' : 'Editar'}
                 </button>
               </div>
               <div className="flex items-center gap-3 mb-3">
@@ -546,6 +574,56 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                     <p className="text-xs text-[#EF4444] mt-1">Campo requerido para publicar</p>
                   )}
                 </div>
+                {isEditingBusinessInfo ? (
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                        <Instagram className="w-4 h-4 text-pink-500" />
+                        Instagram
+                      </label>
+                      <input
+                        type="text"
+                        value={businessSocialForm.instagram}
+                        onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, instagram: e.target.value })}
+                        placeholder="@tu_negocio"
+                        className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                        <Facebook className="w-4 h-4 text-blue-600" />
+                        Facebook
+                      </label>
+                      <input
+                        type="text"
+                        value={businessSocialForm.facebook}
+                        onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, facebook: e.target.value })}
+                        placeholder="facebook.com/tu_negocio"
+                        className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pt-1">
+                    {businessInfo.instagram && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Instagram className="w-4 h-4 text-pink-500" />
+                        <span className="text-gray-700">{businessInfo.instagram}</span>
+                      </div>
+                    )}
+                    {businessInfo.facebook && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Facebook className="w-4 h-4 text-blue-600" />
+                        <span className="text-gray-700">{businessInfo.facebook}</span>
+                      </div>
+                    )}
+                    {!businessInfo.instagram && !businessInfo.facebook && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-800">
+                        Agrega tus redes sociales para generar más confianza en tus clientes
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
@@ -555,11 +633,11 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 {isBusinessFieldMissing('Dirección') && (
                   <p className="text-xs text-[#EF4444] pl-6">Campo requerido para publicar</p>
                 )}
-                <div className="flex items-center gap-2 text-sm">
+                <div className="hidden">
                   <Phone className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-700">{businessInfo.phone}</span>
                 </div>
-                {isBusinessFieldMissing('Teléfono') && (
+                {false && isBusinessFieldMissing('Teléfono') && (
                   <p className="text-xs text-[#EF4444] pl-6">Campo requerido para publicar</p>
                 )}
               </div>
