@@ -283,7 +283,8 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
           ...currentUserInfo,
           name: data.name ?? currentUserInfo.name,
           email: data.email ?? currentUserInfo.email,
-          phone: data.phone ?? currentUserInfo.phone
+          phone: data.phone ?? currentUserInfo.phone,
+          address: data.location ?? data.address ?? currentUserInfo.address
         }));
       } catch (error) {
         // Mantener datos locales si el backend no responde.
@@ -292,6 +293,13 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
 
     loadUserInfo();
   }, []);
+
+  const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
+  const [personalInfoForm, setPersonalInfoForm] = useState({
+    name: '',
+    phone: '',
+    location: ''
+  });
 
   const [businessInfo] = useState({
     name: 'Pastelería Delicias Tere',
@@ -321,6 +329,59 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     }
 
     alert('¡Tu negocio está listo para publicarse! Será revisado por nuestro equipo antes de aparecer en los resultados');
+  };
+
+  const handleStartEditingPersonalInfo = () => {
+    setPersonalInfoForm({
+      name: userInfo.name,
+      phone: userInfo.phone,
+      location: userInfo.address
+    });
+    setIsEditingPersonalInfo(true);
+  };
+
+  const handleCancelEditingPersonalInfo = () => {
+    setIsEditingPersonalInfo(false);
+    setPersonalInfoForm({
+      name: '',
+      phone: '',
+      location: ''
+    });
+  };
+
+  const handleSavePersonalInfo = async () => {
+    const userId = localStorage.getItem('zipco-user-id');
+    const token = localStorage.getItem('zipco-token');
+
+    if (!userId || !token) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: personalInfoForm.name,
+          phone: personalInfoForm.phone,
+          location: personalInfoForm.location
+        })
+      });
+
+      if (!response.ok) return;
+
+      setUserInfo((currentUserInfo) => ({
+        ...currentUserInfo,
+        name: personalInfoForm.name,
+        phone: personalInfoForm.phone,
+        address: personalInfoForm.location
+      }));
+      setIsEditingPersonalInfo(false);
+      alert('Datos actualizados correctamente');
+    } catch (error) {
+      // Mantener datos locales si el backend no responde.
+    }
   };
 
   if (showBusinessConfig) {
@@ -364,7 +425,6 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold text-gray-900">{userInfo.name}</h3>
-              <p className="text-sm text-gray-600">{userInfo.email}</p>
             </div>
           </div>
         </div>
@@ -487,6 +547,101 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
 
         {/* Personal Information */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-bold text-gray-900">Informacion Personal</h4>
+            {!isEditingPersonalInfo && (
+              <button
+                type="button"
+                onClick={handleStartEditingPersonalInfo}
+                className="text-teal-600 text-sm font-semibold hover:text-teal-700"
+              >
+                Editar
+              </button>
+            )}
+          </div>
+          {isEditingPersonalInfo ? (
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Nombre</label>
+                <input
+                  type="text"
+                  value={personalInfoForm.name}
+                  onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, name: e.target.value })}
+                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Telefono</label>
+                <input
+                  type="tel"
+                  value={personalInfoForm.phone}
+                  onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, phone: e.target.value })}
+                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Ubicacion</label>
+                <input
+                  type="text"
+                  value={personalInfoForm.location}
+                  onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, location: e.target.value })}
+                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCancelEditingPersonalInfo}
+                  className="bg-gray-100 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePersonalInfo}
+                  className="bg-[#00BFA5] text-white py-3 rounded-xl font-semibold hover:bg-teal-600 transition-all"
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5 text-gray-400" />
+                  <div className="text-left">
+                    <p className="text-xs text-gray-500">Nombre</p>
+                    <p className="text-sm font-semibold text-gray-900">{userInfo.name}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+              <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <div className="text-left">
+                    <p className="text-xs text-gray-500">Telefono</p>
+                    <p className="text-sm font-semibold text-gray-900">{userInfo.phone}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+              <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
+                <div className="flex items-center gap-3">
+                  <MapPinIcon className="w-5 h-5 text-gray-400" />
+                  <div className="text-left">
+                    <p className="text-xs text-gray-500">Ubicacion</p>
+                    <p className="text-sm font-semibold text-gray-900">{userInfo.address}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+          )}
+        </div>
+        {false && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
           <h4 className="font-bold text-gray-900 mb-4">📱 Información Personal</h4>
           <div className="space-y-3">
             <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
@@ -521,6 +676,8 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             </button>
           </div>
         </div>
+
+        )}
 
         {/* Quick Actions */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
