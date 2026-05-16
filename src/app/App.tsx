@@ -3941,10 +3941,11 @@ function EmptyFavorites({ isDarkMode, onExplore }: { isDarkMode: boolean; onExpl
 }
 
 function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
-  const [step, setStep] = useState<'welcome' | 'phone' | 'verification' | 'name' | 'business'>('welcome');
+  const [step, setStep] = useState<'welcome' | 'phone' | 'verification' | 'name' | 'business' | 'businessDetails'>('welcome');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [error, setError] = useState('');
 
   const formatPhone = (value: string) => {
@@ -3996,7 +3997,8 @@ function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
     phone: 2,
     verification: 3,
     name: 4,
-    business: 5
+    business: 5,
+    businessDetails: 6
   }[step];
 
   return (
@@ -4013,13 +4015,13 @@ function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
           {step !== 'welcome' && (
             <div className="mb-8">
               <div className="flex items-center justify-between text-xs font-semibold text-gray-400 mb-2">
-                <span>Paso {progress} de 5</span>
-                <span>{Math.round((progress / 5) * 100)}%</span>
+                <span>Paso {progress} de 6</span>
+                <span>{Math.round((progress / 6) * 100)}%</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#00BFA5] rounded-full transition-all duration-300"
-                  style={{ width: `${(progress / 5) * 100}%` }}
+                  style={{ width: `${(progress / 6) * 100}%` }}
                 />
               </div>
             </div>
@@ -4125,6 +4127,98 @@ function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
           )}
 
           {step === 'business' && (
+            <div className="text-center">
+              <div className="w-20 h-20 bg-teal-50 rounded-3xl mx-auto mb-6 flex items-center justify-center">
+                <Store className="w-10 h-10 text-[#00BFA5]" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">¿Ofreces un negocio o servicio?</h2>
+              <p className="text-sm text-gray-600 mb-8">
+                Elige la opcion que mejor describe lo que haras en ZIPCO.
+              </p>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setStep('businessDetails')}
+                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-4 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Store className="w-6 h-6 text-[#00BFA5]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">Tengo un Negocio</h3>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        Vendo productos que los clientes pueden comprar o encargar (tortas, ropa, comida, etc.).
+                      </p>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep('businessDetails')}
+                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-4 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Wrench className="w-6 h-6 text-[#00BFA5]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">Ofrezco un Servicio</h3>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        Realizo trabajos o actividades para los clientes (gasfiter, peluquero, profesor, etc.).
+                      </p>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={completeRegistration}
+                  className="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-left hover:border-gray-300 hover:shadow-lg transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <User className="w-6 h-6 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-1">Solo busco negocios</h3>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        No ofrezco nada, solo quiero encontrar lo que necesito.
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'businessDetails' && (
+            <div>
+              <div className="w-20 h-20 bg-teal-50 rounded-3xl mx-auto mb-6 flex items-center justify-center">
+                <Store className="w-10 h-10 text-[#00BFA5]" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Nombre del negocio o servicio</h2>
+              <p className="text-sm text-gray-600 mb-8 text-center">
+                Tu perfil fue creado. Ve a la seccion Perfil para completar tu informacion y publicar tu negocio o servicio.
+              </p>
+              <label className="text-sm font-semibold text-gray-700 mb-2 block">Nombre del negocio</label>
+              <input
+                type="text"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="Ej: Pasteleria Delicias"
+                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all"
+              />
+              <button
+                type="button"
+                onClick={completeRegistration}
+                className="w-full mt-8 bg-[#00BFA5] text-white py-4 px-6 rounded-full font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98]"
+              >
+                Comenzar
+              </button>
+            </div>
+          )}
+
+          {false && step === 'business' && (
             <div className="text-center">
               <div className="w-20 h-20 bg-teal-50 rounded-3xl mx-auto mb-6 flex items-center justify-center">
                 <Store className="w-10 h-10 text-[#00BFA5]" />
