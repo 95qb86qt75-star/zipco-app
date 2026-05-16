@@ -267,6 +267,11 @@ function BusinessConfigScreen({ onBack, onSave }: { onBack: () => void; onSave: 
 function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string; setActiveTab: (tab: string) => void; onBack: () => void }) {
   const [businessMode, setBusinessMode] = useState(false);
   const [showBusinessConfig, setShowBusinessConfig] = useState(false);
+  const [showBusinessRegistrationForm, setShowBusinessRegistrationForm] = useState(false);
+  const [businessRegistrationForm, setBusinessRegistrationForm] = useState({
+    name: '',
+    type: 'Negocio'
+  });
   const [businessConfig, setBusinessConfig] = useState({
     category: 'reposteria',
     hashtags: ['tortas', 'pasteles', 'cumpleaños'],
@@ -362,8 +367,8 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     facebook: '',
     image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80'
   });
-  const [businessId, setBusinessId] = useState<string | number | null>(null);
-  const [hasRegisteredBusiness, setHasRegisteredBusiness] = useState(false);
+  const [businessId, setBusinessId] = useState<string | number | null>(() => localStorage.getItem('zipco-business-id'));
+  const [hasRegisteredBusiness, setHasRegisteredBusiness] = useState(() => Boolean(localStorage.getItem('zipco-business-id')));
   const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
   const [businessSocialForm, setBusinessSocialForm] = useState({
     name: '',
@@ -405,10 +410,15 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         if (!currentUserBusiness) {
           setHasRegisteredBusiness(false);
           setBusinessId(null);
+          localStorage.removeItem('zipco-business-id');
           return;
         }
 
-        setBusinessId(currentUserBusiness.id ?? currentUserBusiness._id);
+        const currentBusinessId = currentUserBusiness.id ?? currentUserBusiness._id;
+        setBusinessId(currentBusinessId);
+        if (currentBusinessId) {
+          localStorage.setItem('zipco-business-id', String(currentBusinessId));
+        }
         setHasRegisteredBusiness(true);
         setBusinessInfo((currentBusinessInfo) => ({
           ...currentBusinessInfo,
@@ -535,6 +545,65 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     }
   };
 
+  const handleRegisterBusiness = async () => {
+    const token = localStorage.getItem('zipco-token');
+    const businessName = businessRegistrationForm.name.trim();
+
+    if (!token || !businessName) {
+      showAppToast('No se pudo registrar el negocio', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/businesses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: businessName,
+          type: businessRegistrationForm.type,
+          status: 'pending',
+          categoryId: 1,
+          address: '',
+          latitude: 0,
+          longitude: 0
+        })
+      });
+
+      if (!response.ok) {
+        showAppToast('No se pudo registrar el negocio', 'error');
+        return;
+      }
+
+      const data = await response.json();
+      const newBusiness = data.business ?? data;
+      const newBusinessId = newBusiness.id ?? newBusiness._id ?? data.businessId;
+
+      if (newBusinessId) {
+        localStorage.setItem('zipco-business-id', String(newBusinessId));
+      }
+
+      setBusinessId(newBusinessId ?? null);
+      setBusinessInfo((currentBusinessInfo) => ({
+        ...currentBusinessInfo,
+        name: businessName,
+        description: newBusiness.description ?? '',
+        address: newBusiness.address ?? '',
+        instagram: newBusiness.instagram ?? '',
+        facebook: newBusiness.facebook ?? '',
+        image: newBusiness.image ?? newBusiness.imageUrl ?? currentBusinessInfo.image
+      }));
+      setHasRegisteredBusiness(true);
+      setShowBusinessRegistrationForm(false);
+      setBusinessRegistrationForm({ name: '', type: 'Negocio' });
+      showAppToast('¡Tu negocio fue registrado! Completa tu información en la sección de negocio', 'success');
+    } catch (error) {
+      showAppToast('No se pudo registrar el negocio', 'error');
+    }
+  };
+
   const handleStartEditingPersonalInfo = () => {
     setPersonalInfoForm({
       name: userInfo.name,
@@ -644,6 +713,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         </div>
 
         {/* Business Mode Toggle */}
+        {false && (
         <div className="bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-2xl p-4 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -669,9 +739,10 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             </button>
           </div>
         </div>
+        )}
 
         {/* Business Info (visible when business mode is ON) */}
-        {businessMode && (
+        {hasRegisteredBusiness && (
           <>
             {!hasRegisteredBusiness ? (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-md mb-4 text-center">
@@ -886,7 +957,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         )}
 
         {/* Personal Information */}
-        {!businessMode && (
+        {!hasRegisteredBusiness && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-bold text-gray-900">Informacion Personal</h4>
@@ -1070,6 +1141,66 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             </button>
           </div>
         </div>
+
+        {!hasRegisteredBusiness && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
+            {showBusinessRegistrationForm ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Nombre del negocio/servicio</label>
+                  <input
+                    type="text"
+                    value={businessRegistrationForm.name}
+                    onChange={(e) => setBusinessRegistrationForm({ ...businessRegistrationForm, name: e.target.value })}
+                    className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    placeholder="Ej: Pasteleria, gasfiteria, peluqueria"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Negocio', 'Servicio'].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setBusinessRegistrationForm({ ...businessRegistrationForm, type })}
+                      className={`py-3 px-3 rounded-xl text-sm font-semibold border transition-all ${
+                        businessRegistrationForm.type === type
+                          ? 'bg-[#00BFA5] text-white border-[#00BFA5]'
+                          : 'bg-white text-gray-700 border-gray-200'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowBusinessRegistrationForm(false)}
+                    className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRegisterBusiness}
+                    className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold bg-[#00BFA5] text-white hover:bg-teal-600 transition-all"
+                  >
+                    Confirmar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowBusinessRegistrationForm(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-[#00BFA5] hover:bg-teal-50 transition-colors"
+              >
+                <Store className="w-5 h-5 text-[#00BFA5]" />
+                ¿Tienes un negocio o servicio? Regístralo aquí
+              </button>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
