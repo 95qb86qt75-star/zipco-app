@@ -320,6 +320,38 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     phone: '',
     location: ''
   });
+  const [personalLocationSuggestions, setPersonalLocationSuggestions] = useState<any[]>([]);
+  const [isPersonalLocationLoading, setIsPersonalLocationLoading] = useState(false);
+  const [hasPersonalLocationSearched, setHasPersonalLocationSearched] = useState(false);
+
+  useEffect(() => {
+    const query = personalInfoForm.location.trim();
+
+    if (!isEditingPersonalInfo || query.length < 3) {
+      setPersonalLocationSuggestions([]);
+      setIsPersonalLocationLoading(false);
+      setHasPersonalLocationSearched(false);
+      return;
+    }
+
+    setIsPersonalLocationLoading(true);
+    setHasPersonalLocationSearched(false);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl`);
+        const data = await response.json();
+        setPersonalLocationSuggestions(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setPersonalLocationSuggestions([]);
+      } finally {
+        setIsPersonalLocationLoading(false);
+        setHasPersonalLocationSearched(true);
+      }
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [personalInfoForm.location, isEditingPersonalInfo]);
 
   const [businessInfo] = useState({
     name: 'Pastelería Delicias Tere',
@@ -367,7 +399,12 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
       phone: '',
       location: ''
     });
+    setPersonalLocationSuggestions([]);
+    setHasPersonalLocationSearched(false);
   };
+
+  const getPersonalLocationLabel = (result: any) =>
+    String(result.display_name ?? '').split(',').slice(0, 2).map((part) => part.trim()).join(', ');
 
   const handleSavePersonalInfo = async () => {
     const userId = localStorage.getItem('zipco-user-id');
@@ -601,12 +638,41 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Ubicacion</label>
-                <input
-                  type="text"
-                  value={personalInfoForm.location}
-                  onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, location: e.target.value })}
-                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={personalInfoForm.location}
+                    onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, location: e.target.value })}
+                    className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                  />
+                  {personalInfoForm.location.trim().length >= 3 && (
+                    <div className="absolute left-0 right-0 top-full mt-2 z-30 max-h-52 overflow-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
+                      {isPersonalLocationLoading ? (
+                        <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
+                      ) : personalLocationSuggestions.length > 0 ? (
+                        personalLocationSuggestions.map((result, index) => {
+                          const label = getPersonalLocationLabel(result);
+                          return (
+                            <button
+                              key={`${result.place_id ?? result.osm_id ?? 'personal-location'}-${index}`}
+                              type="button"
+                              onClick={() => {
+                                setPersonalInfoForm({ ...personalInfoForm, location: label });
+                                setPersonalLocationSuggestions([]);
+                                setHasPersonalLocationSearched(false);
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
+                            >
+                              {label}
+                            </button>
+                          );
+                        })
+                      ) : hasPersonalLocationSearched ? (
+                        <p className="px-4 py-3 text-sm text-gray-500">No se encontraron resultados</p>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
