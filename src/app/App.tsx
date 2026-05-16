@@ -3,6 +3,26 @@ import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Home, Store, Wre
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 
+type ToastType = 'success' | 'error';
+
+function showAppToast(message: string, type: ToastType = 'success') {
+  window.dispatchEvent(new CustomEvent('zipco-toast', { detail: { message, type } }));
+}
+
+function Toast({ message, type }: { message: string; type: ToastType }) {
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-md pointer-events-none">
+      <div
+        className={`rounded-2xl px-5 py-3 text-white text-sm font-semibold shadow-2xl ${
+          type === 'success' ? 'bg-[#00BFA5]' : 'bg-[#EF4444]'
+        }`}
+      >
+        {message}
+      </div>
+    </div>
+  );
+}
+
 function BusinessConfigScreen({ onBack, onSave }: { onBack: () => void; onSave: (config: any) => void }) {
   const [category, setCategory] = useState('reposteria');
   const [hashtags, setHashtags] = useState('Tortas de cumpleaños personalizadas, Galletas de Navidad artesanales, Pasteles para bodas y eventos, Cupcakes decorados');
@@ -324,11 +344,11 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
 
   const handlePublishBusiness = () => {
     if (!isBusinessReadyToPublish) {
-      alert(`Faltan completar estos campos:\n${missingBusinessFields.join('\n')}`);
+      showAppToast(`Faltan completar estos campos:\n${missingBusinessFields.join('\n')}`, 'error');
       return;
     }
 
-    alert('¡Tu negocio está listo para publicarse! Será revisado por nuestro equipo antes de aparecer en los resultados');
+    showAppToast('¡Tu negocio está listo para publicarse! Será revisado por nuestro equipo antes de aparecer en los resultados', 'success');
   };
 
   const handleStartEditingPersonalInfo = () => {
@@ -378,7 +398,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         address: personalInfoForm.location
       }));
       setIsEditingPersonalInfo(false);
-      alert('Datos actualizados correctamente');
+      showAppToast('Datos actualizados correctamente', 'success');
     } catch (error) {
       // Mantener datos locales si el backend no responde.
     }
@@ -4569,6 +4589,8 @@ export default function App() {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems] = useState<any[]>([]);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('success');
 
   // Splash screen timer
   useEffect(() => {
@@ -4589,6 +4611,34 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const handleToast = (event: Event) => {
+      const { message, type } = (event as CustomEvent<{ message: string; type: ToastType }>).detail;
+      setToastMessage(message);
+      setToastType(type);
+    };
+
+    window.addEventListener('zipco-toast', handleToast);
+    return () => window.removeEventListener('zipco-toast', handleToast);
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+
+    const timer = setTimeout(() => {
+      setToastMessage('');
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  const renderWithToast = (content: any) => (
+    <>
+      {toastMessage && <Toast message={toastMessage} type={toastType} />}
+      {content}
+    </>
+  );
 
   useEffect(() => {
     const query = locationSearch.trim();
@@ -4683,7 +4733,7 @@ export default function App() {
 
   const updateCurrentLocationFromGeolocation = () => {
     if (!navigator.geolocation) {
-      alert('La geolocalización no está disponible en este navegador.');
+      showAppToast('La geolocalización no está disponible en este navegador.', 'error');
       return;
     }
 
@@ -4703,7 +4753,7 @@ export default function App() {
         setCurrentLocation({ name: locationName, lat, lng });
       },
       () => {
-        alert('No se pudo obtener tu ubicación. Revisa los permisos del navegador.');
+        showAppToast('No se pudo obtener tu ubicación. Revisa los permisos del navegador.', 'error');
       }
     );
   };
@@ -4731,7 +4781,7 @@ export default function App() {
 
   // Splash Screen
   if (showSplash) {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-teal-500 via-blue-600 to-purple-700 flex items-center justify-center overflow-hidden">
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -4810,11 +4860,11 @@ export default function App() {
   }
 
   if (!isRegistrationComplete) {
-    return <RegistrationFlow onComplete={() => setIsRegistrationComplete(true)} />;
+    return renderWithToast(<RegistrationFlow onComplete={() => setIsRegistrationComplete(true)} />);
   }
 
   if (activeTab === 'profile') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ProfileScreen
@@ -4840,7 +4890,7 @@ export default function App() {
   }
 
   if (activeTab === 'requests') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <RequestsScreen
@@ -4866,7 +4916,7 @@ export default function App() {
   }
 
   if (activeTab === 'favorites') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className={`w-full max-w-md h-full relative overflow-hidden ${
           isDarkMode ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800' : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
@@ -4918,7 +4968,7 @@ export default function App() {
   }
 
   if (currentScreen === 'checkout' && selectedBusiness && checkoutData) {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <CheckoutScreen
@@ -4946,7 +4996,7 @@ export default function App() {
   }
 
   if (currentScreen === 'profile' && selectedBusiness) {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <BusinessProfileScreen
@@ -4972,7 +5022,7 @@ export default function App() {
   }
 
   if (currentScreen === 'negocios') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <NegociosScreen
@@ -4990,7 +5040,7 @@ export default function App() {
   }
 
   if (currentScreen === 'servicios') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiciosScreen
@@ -5008,7 +5058,7 @@ export default function App() {
   }
 
   if (currentScreen === 'service-profile') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiceProfileScreen
@@ -5027,7 +5077,7 @@ export default function App() {
   }
 
   if (currentScreen === 'service-checkout') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiceCheckoutScreen
@@ -5043,7 +5093,7 @@ export default function App() {
   }
 
   if (currentScreen === 'search') {
-    return (
+    return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <GlobalSearchScreen
@@ -5069,7 +5119,7 @@ export default function App() {
     );
   }
 
-  return (
+  return renderWithToast(
     <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
       {/* Mobile Frame */}
       <div className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
