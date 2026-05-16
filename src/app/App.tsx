@@ -4044,9 +4044,60 @@ function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
     setStep('business');
   };
 
-  const completeRegistration = () => {
-    localStorage.setItem('zipco-registration-complete', 'true');
-    onComplete();
+  const completeRegistration = async () => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const password = cleanPhone.slice(0, 8);
+    const email = `${cleanPhone}@zipco.cl`;
+    const credentials = {
+      name: name.trim(),
+      phone,
+      password,
+      email
+    };
+
+    const saveAuthData = (data: any) => {
+      const token = data.token ?? data.jwt ?? data.accessToken ?? data.access_token;
+      const userId = data.user?.id ?? data.user?._id ?? data.id ?? data.userId;
+
+      if (!token || !userId) {
+        throw new Error('Invalid auth response');
+      }
+
+      localStorage.setItem('zipco-token', token);
+      localStorage.setItem('zipco-user-id', String(userId));
+      localStorage.setItem('zipco-registration-complete', 'true');
+      onComplete();
+    };
+
+    try {
+      setError('');
+
+      const registerResponse = await fetch('http://localhost:3000/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+
+      if (registerResponse.ok) {
+        saveAuthData(await registerResponse.json());
+        return;
+      }
+
+      const loginResponse = await fetch('http://localhost:3000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (loginResponse.ok) {
+        saveAuthData(await loginResponse.json());
+        return;
+      }
+
+      setError('Hubo un problema al crear tu cuenta. Intenta de nuevo');
+    } catch (error) {
+      setError('Hubo un problema al crear tu cuenta. Intenta de nuevo');
+    }
   };
 
   const progress = {
@@ -4245,6 +4296,7 @@ function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
                   </div>
                 </button>
               </div>
+              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
             </div>
           )}
 
@@ -4265,6 +4317,7 @@ function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
                 placeholder="Ej: Pasteleria Delicias"
                 className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all"
               />
+              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
               <button
                 type="button"
                 onClick={completeRegistration}
