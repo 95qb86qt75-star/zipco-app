@@ -270,6 +270,28 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80'
   });
 
+  const missingBusinessFields = [
+    !businessInfo.name?.trim() ? 'Nombre del negocio' : '',
+    !businessConfig.category?.trim() ? 'Categoría' : '',
+    !businessInfo.description?.trim() ? 'Descripción' : '',
+    !businessInfo.address?.trim() ? 'Dirección' : '',
+    !businessInfo.phone?.trim() ? 'Teléfono' : '',
+    !businessConfig.schedule || Object.keys(businessConfig.schedule).length === 0 ? 'Horarios de atención' : '',
+    !businessConfig.hashtags || businessConfig.hashtags.length === 0 ? 'Palabras clave' : ''
+  ].filter(Boolean);
+
+  const isBusinessFieldMissing = (field: string) => missingBusinessFields.includes(field);
+  const isBusinessReadyToPublish = missingBusinessFields.length === 0;
+
+  const handlePublishBusiness = () => {
+    if (!isBusinessReadyToPublish) {
+      alert(`Faltan completar estos campos:\n${missingBusinessFields.join('\n')}`);
+      return;
+    }
+
+    alert('¡Tu negocio está listo para publicarse! Será revisado por nuestro equipo antes de aparecer en los resultados');
+  };
+
   if (showBusinessConfig) {
     return (
       <BusinessConfigScreen
@@ -346,7 +368,9 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         {/* Business Info (visible when business mode is ON) */}
         {businessMode && (
           <>
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
+            <div className={`bg-white/80 backdrop-blur-sm rounded-2xl p-5 border shadow-md mb-4 ${
+              ['Nombre del negocio', 'Descripción', 'Dirección', 'Teléfono'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : 'border-white/50'
+            }`}>
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-bold text-gray-900">🏪 Datos del Negocio</h4>
                 <button className="text-teal-600 text-sm font-semibold hover:text-teal-700">
@@ -361,7 +385,13 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 />
                 <div className="flex-1">
                   <h5 className="font-semibold text-gray-900">{businessInfo.name}</h5>
+                  {isBusinessFieldMissing('Nombre del negocio') && (
+                    <p className="text-xs text-[#EF4444] mt-1">Campo requerido para publicar</p>
+                  )}
                   <p className="text-xs text-gray-600">{businessInfo.description}</p>
+                  {isBusinessFieldMissing('Descripción') && (
+                    <p className="text-xs text-[#EF4444] mt-1">Campo requerido para publicar</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -369,17 +399,25 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                   <MapPinIcon className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-700">{businessInfo.address}</span>
                 </div>
+                {isBusinessFieldMissing('Dirección') && (
+                  <p className="text-xs text-[#EF4444] pl-6">Campo requerido para publicar</p>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-700">{businessInfo.phone}</span>
                 </div>
+                {isBusinessFieldMissing('Teléfono') && (
+                  <p className="text-xs text-[#EF4444] pl-6">Campo requerido para publicar</p>
+                )}
               </div>
             </div>
 
             {/* Business Configuration Button */}
             <button
               onClick={() => setShowBusinessConfig(true)}
-              className="w-full bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-2xl p-4 mb-4 hover:shadow-md transition-all"
+              className={`w-full bg-gradient-to-r from-teal-50 to-emerald-50 border-2 rounded-2xl p-4 mb-4 hover:shadow-md transition-all ${
+                ['Categoría', 'Horarios de atención', 'Palabras clave'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : 'border-teal-200'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -393,6 +431,25 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
+              {['Categoría', 'Horarios de atención', 'Palabras clave'].filter(isBusinessFieldMissing).map((field) => (
+                <div key={field} className="text-left mt-2">
+                  <p className="text-xs font-semibold text-[#EF4444]">{field}</p>
+                  <p className="text-xs text-[#EF4444]">Campo requerido para publicar</p>
+                </div>
+              ))}
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePublishBusiness}
+              aria-disabled={!isBusinessReadyToPublish}
+              className={`w-full py-4 px-6 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] mb-4 ${
+                isBusinessReadyToPublish
+                  ? 'bg-[#00BFA5] text-white hover:bg-teal-600 shadow-teal-500/30'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-gray-300/30'
+              }`}
+            >
+              Publicar negocio
             </button>
           </>
         )}
