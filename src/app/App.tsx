@@ -254,13 +254,44 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     fullAddress: 'Av. Principal 123, San Bernardo',
     schedule: {}
   });
-  const [userInfo] = useState({
+  const [userInfo, setUserInfo] = useState({
     name: 'María González',
     email: 'maria.gonzalez@email.com',
     phone: '+56 9 1234 5678',
     address: 'San Bernardo, Región Metropolitana',
     profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80'
   });
+
+  useEffect(() => {
+    const userId = localStorage.getItem('zipco-user-id');
+    const token = localStorage.getItem('zipco-token');
+
+    if (!userId || !token) return;
+
+    const loadUserInfo = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setUserInfo((currentUserInfo) => ({
+          ...currentUserInfo,
+          name: data.name ?? currentUserInfo.name,
+          email: data.email ?? currentUserInfo.email,
+          phone: data.phone ?? currentUserInfo.phone
+        }));
+      } catch (error) {
+        // Mantener datos locales si el backend no responde.
+      }
+    };
+
+    loadUserInfo();
+  }, []);
 
   const [businessInfo] = useState({
     name: 'Pastelería Delicias Tere',
