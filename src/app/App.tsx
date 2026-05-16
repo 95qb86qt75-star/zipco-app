@@ -403,8 +403,13 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     setHasPersonalLocationSearched(false);
   };
 
-  const getPersonalLocationLabel = (result: any) =>
-    String(result.display_name ?? '').split(',').slice(0, 2).map((part) => part.trim()).join(', ');
+  const getPersonalLocationLabel = (result: any) => {
+    const parts = String(result.display_name ?? '').split(',').map((part) => part.trim()).filter(Boolean);
+    if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
+      parts.pop();
+    }
+    return parts.join(', ');
+  };
 
   const handleSavePersonalInfo = async () => {
     const userId = localStorage.getItem('zipco-user-id');
