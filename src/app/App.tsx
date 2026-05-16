@@ -608,6 +608,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         )}
 
         {/* Personal Information */}
+        {!businessMode && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-bold text-gray-900">Informacion Personal</h4>
@@ -731,6 +732,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             </div>
           )}
         </div>
+        )}
         {false && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
           <h4 className="font-bold text-gray-900 mb-4">📱 Información Personal</h4>
@@ -777,32 +779,19 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-5 h-5 text-teal-600" />
-                <span className="text-sm font-semibold text-gray-900">Historial de compras/ventas</span>
+                <span className="text-sm font-semibold text-gray-900">Historial de pedidos</span>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
             <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
               <div className="flex items-center gap-3">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-semibold text-gray-900">Métodos de pago</span>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </button>
-            <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
-              <div className="flex items-center gap-3">
-                <Settings className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-900">Configuración de cuenta</span>
+                <LogOut className="w-5 h-5 text-red-600" />
+                <span className="text-sm font-semibold text-red-600">Cerrar sesión</span>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
           </div>
         </div>
-
-        {/* Logout */}
-        <button className="w-full bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-center gap-3 hover:bg-red-100 transition-colors">
-          <LogOut className="w-5 h-5 text-red-600" />
-          <span className="font-semibold text-red-600">Cerrar sesión</span>
-        </button>
 
       </div>
     </div>
