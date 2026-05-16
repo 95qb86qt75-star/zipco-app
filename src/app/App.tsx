@@ -354,19 +354,107 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
   }, [personalInfoForm.location, isEditingPersonalInfo]);
 
   const [businessInfo, setBusinessInfo] = useState({
-    name: 'Pastelería Delicias Tere',
-    description: 'Repostería artesanal y tortas personalizadas',
-    address: 'Av. Principal 123, San Bernardo',
-    phone: '+56 9 8765 4321',
+    name: '',
+    description: '',
+    address: '',
+    phone: '',
     instagram: '',
     facebook: '',
     image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80'
   });
+  const [businessId, setBusinessId] = useState<string | number | null>(null);
+  const [hasRegisteredBusiness, setHasRegisteredBusiness] = useState(false);
   const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
   const [businessSocialForm, setBusinessSocialForm] = useState({
+    name: '',
+    description: '',
+    address: '',
     instagram: '',
     facebook: ''
   });
+  const [businessAddressSuggestions, setBusinessAddressSuggestions] = useState<any[]>([]);
+  const [isBusinessAddressLoading, setIsBusinessAddressLoading] = useState(false);
+  const [hasBusinessAddressSearched, setHasBusinessAddressSearched] = useState(false);
+
+  const getBusinessAddressLabel = (result: any) =>
+    String(result.display_name ?? '').split(',').slice(0, 2).map((part) => part.trim()).join(', ');
+
+  useEffect(() => {
+    const userId = localStorage.getItem('zipco-user-id');
+    const token = localStorage.getItem('zipco-token');
+
+    if (!userId || !token) return;
+
+    const loadUserBusiness = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/businesses', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const businesses = Array.isArray(data) ? data : data.businesses ?? data.results ?? [];
+        const currentUserBusiness = businesses.find((business: any) => {
+          const ownerId = business.userId ?? business.user_id ?? business.ownerId ?? business.owner_id ?? business.user?.id ?? business.user?._id ?? business.user ?? business.owner?.id ?? business.owner?._id ?? business.owner;
+          return String(ownerId) === String(userId);
+        });
+
+        if (!currentUserBusiness) {
+          setHasRegisteredBusiness(false);
+          setBusinessId(null);
+          return;
+        }
+
+        setBusinessId(currentUserBusiness.id ?? currentUserBusiness._id);
+        setHasRegisteredBusiness(true);
+        setBusinessInfo((currentBusinessInfo) => ({
+          ...currentBusinessInfo,
+          name: currentUserBusiness.name ?? '',
+          description: currentUserBusiness.description ?? '',
+          address: currentUserBusiness.address ?? currentUserBusiness.location ?? '',
+          instagram: currentUserBusiness.instagram ?? '',
+          facebook: currentUserBusiness.facebook ?? '',
+          image: currentUserBusiness.image ?? currentUserBusiness.imageUrl ?? currentBusinessInfo.image
+        }));
+      } catch (error) {
+        setHasRegisteredBusiness(false);
+      }
+    };
+
+    loadUserBusiness();
+  }, []);
+
+  useEffect(() => {
+    const query = businessSocialForm.address.trim();
+
+    if (!isEditingBusinessInfo || query.length < 3) {
+      setBusinessAddressSuggestions([]);
+      setIsBusinessAddressLoading(false);
+      setHasBusinessAddressSearched(false);
+      return;
+    }
+
+    setIsBusinessAddressLoading(true);
+    setHasBusinessAddressSearched(false);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl`);
+        const data = await response.json();
+        setBusinessAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setBusinessAddressSuggestions([]);
+      } finally {
+        setIsBusinessAddressLoading(false);
+        setHasBusinessAddressSearched(true);
+      }
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [businessSocialForm.address, isEditingBusinessInfo]);
 
   const missingBusinessFields = [
     !businessInfo.name?.trim() ? 'Nombre del negocio' : '',
@@ -392,19 +480,59 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
 
   const handleStartEditingBusinessInfo = () => {
     setBusinessSocialForm({
+      name: businessInfo.name,
+      description: businessInfo.description,
+      address: businessInfo.address,
       instagram: businessInfo.instagram,
       facebook: businessInfo.facebook
     });
     setIsEditingBusinessInfo(true);
   };
 
-  const handleSaveBusinessInfo = () => {
-    setBusinessInfo((currentBusinessInfo) => ({
-      ...currentBusinessInfo,
-      instagram: businessSocialForm.instagram,
-      facebook: businessSocialForm.facebook
-    }));
-    setIsEditingBusinessInfo(false);
+  const handleSaveBusinessInfo = async () => {
+    const token = localStorage.getItem('zipco-token');
+
+    if (!businessId || !token) {
+      showAppToast('No se pudo guardar el negocio', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: businessSocialForm.name,
+          description: businessSocialForm.description,
+          address: businessSocialForm.address,
+          instagram: businessSocialForm.instagram,
+          facebook: businessSocialForm.facebook
+        })
+      });
+
+      if (!response.ok) {
+        showAppToast('No se pudo guardar el negocio', 'error');
+        return;
+      }
+
+      setBusinessInfo((currentBusinessInfo) => ({
+        ...currentBusinessInfo,
+        name: businessSocialForm.name,
+        description: businessSocialForm.description,
+        address: businessSocialForm.address,
+        instagram: businessSocialForm.instagram,
+        facebook: businessSocialForm.facebook
+      }));
+      setIsEditingBusinessInfo(false);
+      setBusinessAddressSuggestions([]);
+      setHasBusinessAddressSearched(false);
+      showAppToast('Datos del negocio actualizados correctamente', 'success');
+    } catch (error) {
+      showAppToast('No se pudo guardar el negocio', 'error');
+    }
   };
 
   const handleStartEditingPersonalInfo = () => {
@@ -545,6 +673,20 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         {/* Business Info (visible when business mode is ON) */}
         {businessMode && (
           <>
+            {!hasRegisteredBusiness ? (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-md mb-4 text-center">
+                <Store className="w-12 h-12 text-teal-500 mx-auto mb-3" />
+                <h4 className="font-bold text-gray-900 mb-2">Aún no has registrado tu negocio</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowBusinessConfig(true)}
+                  className="mt-3 bg-[#00BFA5] text-white py-3 px-5 rounded-xl font-semibold hover:bg-teal-600 transition-all"
+                >
+                  Registrar negocio ahora
+                </button>
+              </div>
+            ) : (
+            <>
             <div className={`bg-white/80 backdrop-blur-sm rounded-2xl p-5 border shadow-md mb-4 ${
               ['Nombre del negocio', 'Descripción', 'Dirección', 'Teléfono'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : 'border-white/50'
             }`}>
@@ -576,6 +718,62 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 </div>
                 {isEditingBusinessInfo ? (
                   <div className="space-y-3 pt-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Nombre</label>
+                      <input
+                        type="text"
+                        value={businessSocialForm.name}
+                        onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, name: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Descripción</label>
+                      <textarea
+                        value={businessSocialForm.description}
+                        onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, description: e.target.value })}
+                        className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Dirección</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={businessSocialForm.address}
+                          onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, address: e.target.value })}
+                          className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                        />
+                        {businessSocialForm.address.trim().length >= 3 && (
+                          <div className="absolute left-0 right-0 top-full mt-2 z-30 max-h-52 overflow-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
+                            {isBusinessAddressLoading ? (
+                              <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
+                            ) : businessAddressSuggestions.length > 0 ? (
+                              businessAddressSuggestions.map((result, index) => {
+                                const label = getBusinessAddressLabel(result);
+                                return (
+                                  <button
+                                    key={`${result.place_id ?? result.osm_id ?? 'business-address'}-${index}`}
+                                    type="button"
+                                    onClick={() => {
+                                      setBusinessSocialForm({ ...businessSocialForm, address: label });
+                                      setBusinessAddressSuggestions([]);
+                                      setHasBusinessAddressSearched(false);
+                                    }}
+                                    className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
+                                  >
+                                    {label}
+                                  </button>
+                                );
+                              })
+                            ) : hasBusinessAddressSearched ? (
+                              <p className="px-4 py-3 text-sm text-gray-500">No se encontraron resultados</p>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div>
                       <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                         <Instagram className="w-4 h-4 text-pink-500" />
@@ -682,6 +880,8 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             >
               Publicar negocio
             </button>
+            </>
+            )}
           </>
         )}
 
