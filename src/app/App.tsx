@@ -73,7 +73,7 @@ function BusinessConfigScreen({ onBack, onSave }: { onBack: () => void; onSave: 
   };
 
   return (
-    <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+    <div className={`size-full flex flex-col ${profileTab === 'negocio' ? 'bg-[#F0F4FF]' : 'bg-white'}`}>
       {/* Header */}
       <div className="px-4 pt-6 pb-4 border-b border-white/50">
         <div className="flex items-center gap-3 mb-3">
@@ -678,7 +678,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
   }
 
   return (
-    <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+    <div className={`size-full flex flex-col ${profileTab === 'negocio' ? 'bg-[#F0F4FF]' : 'bg-white'}`}>
       {/* Header */}
       <div className="px-4 pt-6 pb-4 border-b border-white/50">
         <div className="flex items-center gap-3 mb-4">
@@ -711,7 +711,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               <h3 className="text-xl font-bold text-gray-900">{userInfo.name}</h3>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1 bg-[#F3F4F6] rounded-full p-1">
             {[
               { id: 'personal', label: 'Personal' },
               { id: 'negocio', label: 'Negocio' }
@@ -720,10 +720,10 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 key={tab.id}
                 type="button"
                 onClick={() => setProfileTab(tab.id as 'personal' | 'negocio')}
-                className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+                className={`py-2 px-4 rounded-full text-sm font-semibold transition-all ${
                   profileTab === tab.id
-                    ? 'bg-[#00BFA5] text-white shadow-md shadow-teal-500/20'
-                    : 'bg-gray-100 text-gray-600'
+                    ? `bg-white ${tab.id === 'negocio' ? 'text-[#1E3A5F]' : 'text-[#00BFA5]'} shadow-sm`
+                    : 'bg-transparent text-gray-500'
                 }`}
               >
                 {tab.label}
