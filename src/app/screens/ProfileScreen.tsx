@@ -4,19 +4,20 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { showAppToast } from './Toast';
 
 function BusinessConfigScreen({ onBack, onSave }: { onBack: () => void; onSave: (config: any) => void }) {
-  const [category, setCategory] = useState('reposteria');
-  const [hashtags, setHashtags] = useState('Tortas de cumpleaños personalizadas, Galletas de Navidad artesanales, Pasteles para bodas y eventos, Cupcakes decorados');
+  const emptySchedule = {
+    monday: { enabled: false, open: '', close: '' },
+    tuesday: { enabled: false, open: '', close: '' },
+    wednesday: { enabled: false, open: '', close: '' },
+    thursday: { enabled: false, open: '', close: '' },
+    friday: { enabled: false, open: '', close: '' },
+    saturday: { enabled: false, open: '', close: '' },
+    sunday: { enabled: false, open: '', close: '' }
+  };
+  const [category, setCategory] = useState('');
+  const [hashtags, setHashtags] = useState('');
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [fullAddress, setFullAddress] = useState('Av. Principal 123, San Bernardo');
-  const [schedule, setSchedule] = useState({
-    monday: { enabled: true, open: '09:00', close: '18:00' },
-    tuesday: { enabled: true, open: '09:00', close: '18:00' },
-    wednesday: { enabled: true, open: '09:00', close: '18:00' },
-    thursday: { enabled: true, open: '09:00', close: '18:00' },
-    friday: { enabled: true, open: '09:00', close: '18:00' },
-    saturday: { enabled: true, open: '10:00', close: '14:00' },
-    sunday: { enabled: false, open: '00:00', close: '00:00' }
-  });
+  const [schedule, setSchedule] = useState(emptySchedule);
 
   const categories = [
     { id: 'reposteria', name: 'Repostería y Pastelería', icon: '🎂' },
@@ -41,15 +42,94 @@ function BusinessConfigScreen({ onBack, onSave }: { onBack: () => void; onSave: 
     { id: 'sunday', name: 'Domingo' }
   ];
 
-  const handleSave = () => {
-    onSave({
-      category,
-      hashtags: hashtags.split(',').map(tag => tag.trim()),
-      showFullAddress,
-      fullAddress,
-      schedule
-    });
-    onBack();
+  useEffect(() => {
+    const businessId = localStorage.getItem('zipco-business-id');
+    const token = localStorage.getItem('zipco-token');
+
+    if (!businessId || !token) return;
+
+    const parseSchedule = (value: any) => {
+      if (!value) return emptySchedule;
+
+      try {
+        const parsedSchedule = typeof value === 'string' ? JSON.parse(value) : value;
+        return {
+          ...emptySchedule,
+          ...(parsedSchedule && typeof parsedSchedule === 'object' ? parsedSchedule : {})
+        };
+      } catch (error) {
+        return emptySchedule;
+      }
+    };
+
+    const loadBusinessConfig = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          showAppToast('No se pudo cargar la configuración del negocio', 'error');
+          return;
+        }
+
+        const data = await response.json();
+        const business = data.business ?? data;
+        const loadedKeywords = business.keywords;
+
+        setCategory(business.category ?? '');
+        setHashtags(Array.isArray(loadedKeywords) ? loadedKeywords.join(', ') : loadedKeywords ?? '');
+        setSchedule(parseSchedule(business.schedule));
+      } catch (error) {
+        showAppToast('No se pudo cargar la configuración del negocio', 'error');
+      }
+    };
+
+    loadBusinessConfig();
+  }, []);
+
+  const handleSave = async () => {
+    const businessId = localStorage.getItem('zipco-business-id');
+    const token = localStorage.getItem('zipco-token');
+
+    if (!businessId || !token) {
+      showAppToast('No se pudo guardar la configuración del negocio', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          category,
+          keywords: hashtags,
+          schedule: JSON.stringify(schedule)
+        })
+      });
+
+      if (!response.ok) {
+        showAppToast('No se pudo guardar la configuración del negocio', 'error');
+        return;
+      }
+
+      onSave({
+        category,
+        hashtags: hashtags.split(',').map(tag => tag.trim()).filter(Boolean),
+        showFullAddress,
+        fullAddress,
+        schedule
+      });
+      showAppToast('Configuración del negocio actualizada correctamente', 'success');
+      onBack();
+    } catch (error) {
+      showAppToast('No se pudo guardar la configuración del negocio', 'error');
+    }
   };
 
   return (
