@@ -266,6 +266,7 @@ function BusinessConfigScreen({ onBack, onSave }: { onBack: () => void; onSave: 
 
 function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string; setActiveTab: (tab: string) => void; onBack: () => void }) {
   const [businessMode, setBusinessMode] = useState(false);
+  const [profileTab, setProfileTab] = useState<'personal' | 'negocio'>('personal');
   const [showBusinessConfig, setShowBusinessConfig] = useState(false);
   const [showBusinessRegistrationForm, setShowBusinessRegistrationForm] = useState(false);
   const [businessRegistrationForm, setBusinessRegistrationForm] = useState({
@@ -710,6 +711,25 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               <h3 className="text-xl font-bold text-gray-900">{userInfo.name}</h3>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'personal', label: 'Personal' },
+              { id: 'negocio', label: 'Negocio' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setProfileTab(tab.id as 'personal' | 'negocio')}
+                className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+                  profileTab === tab.id
+                    ? 'bg-[#00BFA5] text-white shadow-md shadow-teal-500/20'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Business Mode Toggle */}
@@ -742,7 +762,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         )}
 
         {/* Business Info (visible when business mode is ON) */}
-        {hasRegisteredBusiness && (
+        {profileTab === 'negocio' && hasRegisteredBusiness && (
           <>
             {!hasRegisteredBusiness ? (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-md mb-4 text-center">
@@ -957,7 +977,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         )}
 
         {/* Personal Information */}
-        {!hasRegisteredBusiness && (
+        {profileTab === 'personal' && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-bold text-gray-900">Informacion Personal</h4>
@@ -1122,6 +1142,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         )}
 
         {/* Quick Actions */}
+        {profileTab === 'personal' && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
           <h4 className="font-bold text-gray-900 mb-4">⚡ Acciones Rápidas</h4>
           <div className="space-y-2">
@@ -1141,8 +1162,9 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             </button>
           </div>
         </div>
+        )}
 
-        {!hasRegisteredBusiness && (
+        {profileTab === 'negocio' && !hasRegisteredBusiness && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
             {showBusinessRegistrationForm ? (
               <div className="space-y-4">
