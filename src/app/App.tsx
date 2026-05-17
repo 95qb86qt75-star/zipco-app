@@ -677,8 +677,15 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     );
   }
 
+  const isBusinessProfileTab = profileTab === 'negocio';
+  const profileCardClass = isBusinessProfileTab
+    ? 'bg-white/10 backdrop-blur-sm border-white/20'
+    : 'bg-white/80 backdrop-blur-sm border-white/50';
+  const businessTextClass = isBusinessProfileTab ? 'text-white' : 'text-gray-900';
+  const businessSubtextClass = isBusinessProfileTab ? 'text-white/70' : 'text-gray-600';
+
   return (
-    <div className={`size-full flex flex-col ${profileTab === 'negocio' ? 'bg-[#F0F4FF]' : 'bg-white'}`}>
+    <div className={`size-full flex flex-col ${isBusinessProfileTab ? 'bg-gradient-to-b from-[#0F172A] via-[#1E3A5F] to-[#0F172A]' : 'bg-white'}`}>
       {/* Header */}
       <div className="px-4 pt-6 pb-4 border-b border-white/50">
         <div className="flex items-center gap-3 mb-4">
@@ -686,7 +693,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900">Mi Perfil</h2>
+            <h2 className={`text-xl font-bold ${isBusinessProfileTab ? 'text-white' : 'text-gray-900'}`}>Mi Perfil</h2>
           </div>
         </div>
       </div>
@@ -695,7 +702,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
       <div className="flex-1 overflow-auto px-4 pt-4 pb-24">
 
         {/* Profile Header */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg mb-4">
+        <div className={`${profileCardClass} rounded-2xl p-6 border shadow-lg mb-4`}>
           <div className="flex items-center gap-4 mb-4">
             <div className="relative">
               <ImageWithFallback
@@ -708,10 +715,10 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               </button>
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-gray-900">{userInfo.name}</h3>
+              <h3 className={`text-xl font-bold ${isBusinessProfileTab ? 'text-white' : 'text-gray-900'}`}>{userInfo.name}</h3>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-1 bg-[#F3F4F6] rounded-full p-1">
+          <div className={`grid grid-cols-2 gap-1 rounded-full p-1 ${isBusinessProfileTab ? 'bg-white/20' : 'bg-[#F3F4F6]'}`}>
             {[
               { id: 'personal', label: 'Personal' },
               { id: 'negocio', label: 'Negocio' }
@@ -723,7 +730,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 className={`py-2 px-4 rounded-full text-sm font-semibold transition-all ${
                   profileTab === tab.id
                     ? `bg-white ${tab.id === 'negocio' ? 'text-[#1E3A5F]' : 'text-[#00BFA5]'} shadow-sm`
-                    : 'bg-transparent text-gray-500'
+                    : isBusinessProfileTab ? 'bg-transparent text-white/70' : 'bg-transparent text-gray-500'
                 }`}
               >
                 {tab.label}
@@ -778,11 +785,11 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               </div>
             ) : (
             <>
-            <div className={`bg-white/80 backdrop-blur-sm rounded-2xl p-5 border shadow-md mb-4 ${
-              ['Nombre del negocio', 'Descripción', 'Dirección', 'Teléfono'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : 'border-white/50'
+            <div className={`${profileCardClass} rounded-2xl p-5 border shadow-md mb-4 ${
+              ['Nombre del negocio', 'Descripción', 'Dirección', 'Teléfono'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : isBusinessProfileTab ? 'border-white/20' : 'border-white/50'
             }`}>
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-gray-900">🏪 Datos del Negocio</h4>
+                <h4 className={`font-bold ${businessTextClass}`}>🏪 Datos del Negocio</h4>
                 <button
                   type="button"
                   onClick={isEditingBusinessInfo ? handleSaveBusinessInfo : handleStartEditingBusinessInfo}
@@ -798,11 +805,11 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                   className="w-16 h-16 rounded-xl object-cover"
                 />
                 <div className="flex-1">
-                  <h5 className="font-semibold text-gray-900">{businessInfo.name}</h5>
+                  <h5 className={`font-semibold ${businessTextClass}`}>{businessInfo.name}</h5>
                   {isBusinessFieldMissing('Nombre del negocio') && (
                     <p className="text-xs text-[#EF4444] mt-1">Campo requerido para publicar</p>
                   )}
-                  <p className="text-xs text-gray-600">{businessInfo.description}</p>
+                  <p className={`text-xs ${businessSubtextClass}`}>{businessInfo.description}</p>
                   {isBusinessFieldMissing('Descripción') && (
                     <p className="text-xs text-[#EF4444] mt-1">Campo requerido para publicar</p>
                   )}
@@ -810,7 +817,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                 {isEditingBusinessInfo ? (
                   <div className="space-y-3 pt-2">
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Nombre</label>
+                      <label className={`text-xs mb-1 block ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>Nombre</label>
                       <input
                         type="text"
                         value={businessSocialForm.name}
@@ -819,7 +826,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Descripción</label>
+                      <label className={`text-xs mb-1 block ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>Descripción</label>
                       <textarea
                         value={businessSocialForm.description}
                         onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, description: e.target.value })}
@@ -828,7 +835,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 block">Dirección</label>
+                      <label className={`text-xs mb-1 block ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>Dirección</label>
                       <div className="relative">
                         <input
                           type="text"
@@ -866,7 +873,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                      <label className={`text-xs mb-1 flex items-center gap-1 ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>
                         <Instagram className="w-4 h-4 text-pink-500" />
                         Instagram
                       </label>
@@ -879,7 +886,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                      <label className={`text-xs mb-1 flex items-center gap-1 ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>
                         <Facebook className="w-4 h-4 text-blue-600" />
                         Facebook
                       </label>
@@ -897,17 +904,19 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                     {businessInfo.instagram && (
                       <div className="flex items-center gap-2 text-sm">
                         <Instagram className="w-4 h-4 text-pink-500" />
-                        <span className="text-gray-700">{businessInfo.instagram}</span>
+                        <span className={isBusinessProfileTab ? 'text-white' : 'text-gray-700'}>{businessInfo.instagram}</span>
                       </div>
                     )}
                     {businessInfo.facebook && (
                       <div className="flex items-center gap-2 text-sm">
                         <Facebook className="w-4 h-4 text-blue-600" />
-                        <span className="text-gray-700">{businessInfo.facebook}</span>
+                        <span className={isBusinessProfileTab ? 'text-white' : 'text-gray-700'}>{businessInfo.facebook}</span>
                       </div>
                     )}
                     {!businessInfo.instagram && !businessInfo.facebook && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-800">
+                      <div className={`border rounded-xl p-3 text-xs ${
+                        isBusinessProfileTab ? 'bg-white/10 border-white/20 text-white' : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                      }`}>
                         Agrega tus redes sociales para generar más confianza en tus clientes
                       </div>
                     )}
@@ -917,7 +926,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <MapPinIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-700">{businessInfo.address}</span>
+                  <span className={isBusinessProfileTab ? 'text-white' : 'text-gray-700'}>{businessInfo.address}</span>
                 </div>
                 {isBusinessFieldMissing('Dirección') && (
                   <p className="text-xs text-[#EF4444] pl-6">Campo requerido para publicar</p>
@@ -935,8 +944,8 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
             {/* Business Configuration Button */}
             <button
               onClick={() => setShowBusinessConfig(true)}
-              className={`w-full bg-gradient-to-r from-teal-50 to-emerald-50 border-2 rounded-2xl p-4 mb-4 hover:shadow-md transition-all ${
-                ['Categoría', 'Horarios de atención', 'Palabras clave'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : 'border-teal-200'
+              className={`w-full ${profileCardClass} border rounded-2xl p-4 mb-4 hover:shadow-md transition-all ${
+                ['Categoría', 'Horarios de atención', 'Palabras clave'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : isBusinessProfileTab ? 'border-white/20' : 'border-teal-200'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -945,8 +954,8 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                     <Settings className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <h4 className="font-bold text-gray-900">Configurar Negocio</h4>
-                    <p className="text-xs text-gray-600">Categoría, hashtags, horarios</p>
+                    <h4 className={`font-bold ${businessTextClass}`}>Configurar Negocio</h4>
+                    <p className={`text-xs ${businessSubtextClass}`}>Categoría, hashtags, horarios</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -1165,11 +1174,11 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         )}
 
         {profileTab === 'negocio' && !hasRegisteredBusiness && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
+          <div className={`${profileCardClass} rounded-2xl p-5 border shadow-md mb-4`}>
             {showBusinessRegistrationForm ? (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Nombre del negocio/servicio</label>
+                  <label className={`text-xs mb-1 block ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>Nombre del negocio/servicio</label>
                   <input
                     type="text"
                     value={businessRegistrationForm.name}
@@ -1187,7 +1196,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                       className={`py-3 px-3 rounded-xl text-sm font-semibold border transition-all ${
                         businessRegistrationForm.type === type
                           ? 'bg-[#00BFA5] text-white border-[#00BFA5]'
-                          : 'bg-white text-gray-700 border-gray-200'
+                          : isBusinessProfileTab ? 'bg-white/10 text-white border-white/20' : 'bg-white text-gray-700 border-gray-200'
                       }`}
                     >
                       {type}
@@ -1198,7 +1207,9 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                   <button
                     type="button"
                     onClick={() => setShowBusinessRegistrationForm(false)}
-                    className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700"
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold ${
+                      isBusinessProfileTab ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-700'
+                    }`}
                   >
                     Cancelar
                   </button>
@@ -1215,9 +1226,11 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
               <button
                 type="button"
                 onClick={() => setShowBusinessRegistrationForm(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-[#00BFA5] hover:bg-teal-50 transition-colors"
+                className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-colors ${
+                  isBusinessProfileTab ? 'text-white hover:bg-white/10' : 'text-[#00BFA5] hover:bg-teal-50'
+                }`}
               >
-                <Store className="w-5 h-5 text-[#00BFA5]" />
+                <Store className={`w-5 h-5 ${isBusinessProfileTab ? 'text-white' : 'text-[#00BFA5]'}`} />
                 ¿Tienes un negocio o servicio? Regístralo aquí
               </button>
             )}
