@@ -329,11 +329,12 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
   const [personalLocationSuggestions, setPersonalLocationSuggestions] = useState<any[]>([]);
   const [isPersonalLocationLoading, setIsPersonalLocationLoading] = useState(false);
   const [hasPersonalLocationSearched, setHasPersonalLocationSearched] = useState(false);
+  const [personalLocationTouched, setPersonalLocationTouched] = useState(false);
 
   useEffect(() => {
     const query = personalInfoForm.location.trim();
 
-    if (!isEditingPersonalInfo || query.length < 3) {
+    if (!isEditingPersonalInfo || !personalLocationTouched || query.length < 3) {
       setPersonalLocationSuggestions([]);
       setIsPersonalLocationLoading(false);
       setHasPersonalLocationSearched(false);
@@ -357,7 +358,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [personalInfoForm.location, isEditingPersonalInfo]);
+  }, [personalInfoForm.location, isEditingPersonalInfo, personalLocationTouched]);
 
   const [businessInfo, setBusinessInfo] = useState({
     name: '',
@@ -611,6 +612,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
       phone: userInfo.phone,
       location: userInfo.address
     });
+    setPersonalLocationTouched(false);
     setIsEditingPersonalInfo(true);
   };
 
@@ -623,6 +625,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
     });
     setPersonalLocationSuggestions([]);
     setHasPersonalLocationSearched(false);
+    setPersonalLocationTouched(false);
   };
 
   const getPersonalLocationLabel = (result: any) => {
@@ -662,6 +665,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
         address: personalInfoForm.location
       }));
       setIsEditingPersonalInfo(false);
+      setPersonalLocationTouched(false);
       showAppToast('Datos actualizados correctamente', 'success');
     } catch (error) {
       // Mantener datos locales si el backend no responde.
@@ -1026,10 +1030,13 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                   <input
                     type="text"
                     value={personalInfoForm.location}
-                    onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, location: e.target.value })}
+                    onChange={(e) => {
+                      setPersonalLocationTouched(true);
+                      setPersonalInfoForm({ ...personalInfoForm, location: e.target.value });
+                    }}
                     className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                   />
-                  {personalInfoForm.location.trim().length >= 3 && (
+                  {personalLocationTouched && personalInfoForm.location.trim().length >= 3 && (
                     <div className="absolute left-0 right-0 top-full mt-2 z-30 max-h-52 overflow-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
                       {isPersonalLocationLoading ? (
                         <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
@@ -1044,6 +1051,7 @@ function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string;
                                 setPersonalInfoForm({ ...personalInfoForm, location: label });
                                 setPersonalLocationSuggestions([]);
                                 setHasPersonalLocationSearched(false);
+                                setPersonalLocationTouched(false);
                               }}
                               className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
                             >
