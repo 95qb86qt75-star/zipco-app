@@ -17,8 +17,12 @@ export default function BusinessConfigScreen({ onBack, onSave }: { onBack: () =>
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState('');
   const [showFullAddress, setShowFullAddress] = useState(false);
-  const [fullAddress, setFullAddress] = useState('Av. Principal 123, San Bernardo');
+  const [fullAddress, setFullAddress] = useState('');
   const [schedule, setSchedule] = useState(emptySchedule);
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [hasLocationSearched, setHasLocationSearched] = useState(false);
+  const [locationTouched, setLocationTouched] = useState(false);
 
   const categories = [
     { id: 'reposteria', name: 'Repostería y Pastelería', icon: '🎂' },
@@ -101,6 +105,7 @@ export default function BusinessConfigScreen({ onBack, onSave }: { onBack: () =>
             : String(loadedKeywords ?? '').split(',').map((keyword) => keyword.trim()).filter(Boolean)
         );
         setSchedule(parseSchedule(business.schedule));
+        setFullAddress(business.address ?? '');
       } catch (error) {
         showAppToast('No se pudo cargar la configuración del negocio', 'error');
       }
@@ -108,6 +113,32 @@ export default function BusinessConfigScreen({ onBack, onSave }: { onBack: () =>
 
     loadBusinessConfig();
   }, []);
+
+  useEffect(() => {
+    const query = fullAddress.trim();
+    if (!locationTouched || query.length < 3) {
+      setLocationSuggestions([]);
+      setIsLocationLoading(false);
+      setHasLocationSearched(false);
+      return;
+    }
+    setIsLocationLoading(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl`
+        );
+        const data = await response.json();
+        setLocationSuggestions(Array.isArray(data) ? data : []);
+      } catch {
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocationLoading(false);
+        setHasLocationSearched(true);
+      }
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [fullAddress, locationTouched]);
 
   const handleSave = async () => {
     const businessId = localStorage.getItem('zipco-business-id');
@@ -128,7 +159,8 @@ export default function BusinessConfigScreen({ onBack, onSave }: { onBack: () =>
         body: JSON.stringify({
           category,
           keywords: keywords.join(', '),
-          schedule: JSON.stringify(schedule)
+          schedule: JSON.stringify(schedule),
+          address: fullAddress
         })
       });
 
@@ -275,12 +307,53 @@ export default function BusinessConfigScreen({ onBack, onSave }: { onBack: () =>
 
           <div className="mb-4">
             <label className="text-sm text-gray-700 mb-2 block">Dirección completa</label>
-            <input
-              type="text"
-              value={fullAddress}
-              onChange={(e) => setFullAddress(e.target.value)}
-              className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={fullAddress}
+                onChange={(e) => {
+                  setLocationTouched(true);
+                  setFullAddress(e.target.value);
+                }}
+                placeholder="Escribe tu dirección..."
+                className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+              />
+              {locationTouched && fullAddress.trim().length >= 3 && (
+                <div className="absolute left-0 right-0 top-full mt-2 z-30 max-h-52 overflow-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
+                  {isLocationLoading ? (
+                    <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
+                  ) : locationSuggestions.length > 0 ? (
+                    locationSuggestions.map((result, index) => {
+                      const parts = String(result.display_name ?? '').split(',').map((p: string) => p.trim());
+                      const streetName = parts[1] ?? parts[0] ?? '';
+                      const streetNumber = parts[0] ?? '';
+                      const city = parts[2] ?? '';
+                      const isNumber = /^\d+$/.test(streetNumber);
+                      const label = isNumber
+                        ? `${streetName} ${streetNumber}, ${city}`.trim()
+                        : `${streetNumber}, ${city}`.trim();
+                      return (
+                        <button
+                          key={`${result.place_id ?? index}`}
+                          type="button"
+                          onClick={() => {
+                            setFullAddress(label);
+                            setLocationSuggestions([]);
+                            setHasLocationSearched(false);
+                            setLocationTouched(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
+                        >
+                          {label}
+                        </button>
+                      );
+                    })
+                  ) : hasLocationSearched ? (
+                    <p className="px-4 py-3 text-sm text-gray-500">No se encontraron resultados</p>
+                  ) : null}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
