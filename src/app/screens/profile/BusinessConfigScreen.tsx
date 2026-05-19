@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { showAppToast } from '../Toast';
 import CategoryPickerModal from './business-config/CategoryPickerModal';
@@ -26,19 +26,40 @@ export default function BusinessConfigScreen({
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [hasLocationSearched, setHasLocationSearched] = useState(false);
   const [locationTouched, setLocationTouched] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+
+  const markChanged = useCallback(() => setHasUnsavedChanges(true), []);
+
+  const handleCategoryChange = (val: string) => { setCategory(val); markChanged(); };
+  const handleFullAddressChange = (val: string) => { setFullAddress(val); markChanged(); };
+  const handleShowFullAddressChange = (val: boolean) => { setShowFullAddress(val); markChanged(); };
+  const handleScheduleChange = (val: any) => { setSchedule(val); markChanged(); };
 
   const addKeyword = (value: string) => {
     const nextKeyword = value.trim();
     if (!nextKeyword) return;
-
-    setKeywords((currentKeywords) =>
-      currentKeywords.includes(nextKeyword) ? currentKeywords : [...currentKeywords, nextKeyword]
-    );
+    setKeywords((currentKeywords) => {
+      if (currentKeywords.includes(nextKeyword)) return currentKeywords;
+      markChanged();
+      return [...currentKeywords, nextKeyword];
+    });
     setKeywordInput('');
   };
 
   const removeKeyword = (keywordToRemove: string) => {
-    setKeywords((currentKeywords) => currentKeywords.filter((keyword) => keyword !== keywordToRemove));
+    setKeywords((currentKeywords) => {
+      markChanged();
+      return currentKeywords.filter((keyword) => keyword !== keywordToRemove);
+    });
+  };
+
+  const handleBackPress = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedModal(true);
+    } else {
+      onBack();
+    }
   };
 
   useEffect(() => {
@@ -49,7 +70,6 @@ export default function BusinessConfigScreen({
 
     const parseSchedule = (value: any) => {
       if (!value) return emptySchedule;
-
       try {
         const parsedSchedule = typeof value === 'string' ? JSON.parse(value) : value;
         return {
@@ -64,9 +84,7 @@ export default function BusinessConfigScreen({
     const loadBusinessConfig = async () => {
       try {
         const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (!response.ok) {
@@ -82,13 +100,11 @@ export default function BusinessConfigScreen({
         setKeywords(
           Array.isArray(loadedKeywords)
             ? loadedKeywords.map((keyword) => String(keyword).trim()).filter(Boolean)
-            : String(loadedKeywords ?? '')
-                .split(',')
-                .map((keyword) => keyword.trim())
-                .filter(Boolean)
+            : String(loadedKeywords ?? '').split(',').map((keyword) => keyword.trim()).filter(Boolean)
         );
         setSchedule(parseSchedule(business.schedule));
         setFullAddress(business.address ?? '');
+        setHasUnsavedChanges(false);
       } catch (error) {
         showAppToast('No se pudo cargar la configuracion del negocio', 'error');
       }
@@ -127,7 +143,7 @@ export default function BusinessConfigScreen({
     return () => clearTimeout(timeout);
   }, [fullAddress, locationTouched]);
 
-  const handleSave = async () => {
+  const handleSave = async (shouldExitAfterSave = false) => {
     const businessId = localStorage.getItem('zipco-business-id');
     const token = localStorage.getItem('zipco-token');
 
@@ -156,15 +172,12 @@ export default function BusinessConfigScreen({
         return;
       }
 
-      onSave({
-        category,
-        hashtags: keywords,
-        showFullAddress,
-        fullAddress,
-        schedule
-      });
+      onSave({ category, hashtags: keywords, showFullAddress, fullAddress, schedule });
+      setHasUnsavedChanges(false);
       showAppToast('Configuracion del negocio actualizada correctamente', 'success');
-      onBack();
+      if (shouldExitAfterSave) {
+        onBack();
+      }
     } catch (error) {
       showAppToast('No se pudo guardar la configuracion del negocio', 'error');
     }
@@ -172,16 +185,17 @@ export default function BusinessConfigScreen({
 
   return (
     <div className="size-full relative flex flex-col bg-[#F0F4FF]">
+      {/* Header */}
       <div className="px-4 pt-6 pb-4 border-b border-white/50">
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={handleBackPress} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <h2 className="text-xl font-bold text-gray-900">Configuracion de Negocio</h2>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-4 pt-4 pb-28">
+      <div className="flex-1 overflow-auto px-4 pt-4 pb-40">
         <CategorySelectionCard
           category={category}
           categories={businessCategories}
@@ -196,9 +210,9 @@ export default function BusinessConfigScreen({
         />
         <LocationPrivacyCard
           fullAddress={fullAddress}
-          setFullAddress={setFullAddress}
+          setFullAddress={handleFullAddressChange}
           showFullAddress={showFullAddress}
-          setShowFullAddress={setShowFullAddress}
+          setShowFullAddress={handleShowFullAddressChange}
           locationSuggestions={locationSuggestions}
           isLocationLoading={isLocationLoading}
           hasLocationSearched={hasLocationSearched}
@@ -207,27 +221,63 @@ export default function BusinessConfigScreen({
           setLocationSuggestions={setLocationSuggestions}
           setHasLocationSearched={setHasLocationSearched}
         />
-        <ScheduleCard days={businessDays} schedule={schedule} setSchedule={setSchedule} />
+        <ScheduleCard days={businessDays} schedule={schedule} setSchedule={handleScheduleChange} />
       </div>
+
+      {/* Modal cambios sin guardar */}
+      {showUnsavedModal && (
+        <div className="absolute inset-0 bg-black/50 z-50 flex items-center justify-center px-6">
+          <div className="bg-white rounded-2xl p-6 w-full shadow-xl">
+            <h3 className="font-bold text-gray-900 text-lg mb-2">¿Salir sin guardar?</h3>
+            <p className="text-sm text-gray-500 mb-5">Tienes cambios sin guardar. Si sales ahora se perderán.</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => handleSave(true)}
+                className="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl font-semibold text-white transition-all"
+              >
+                Guardar y salir
+              </button>
+              <button
+                onClick={onBack}
+                className="w-full py-3 bg-red-50 rounded-xl font-semibold text-red-500 transition-all"
+              >
+                Salir sin guardar
+              </button>
+              <button
+                onClick={() => setShowUnsavedModal(false)}
+                className="w-full py-3 bg-gray-100 rounded-xl font-semibold text-gray-700 transition-all"
+              >
+                Seguir editando
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCategoryModal && (
         <CategoryPickerModal
           category={category}
           categories={businessCategories}
           onSelectCategory={(selectedCategory) => {
-            setCategory(selectedCategory);
+            handleCategoryChange(selectedCategory);
             setShowCategoryModal(false);
           }}
           onClose={() => setShowCategoryModal(false)}
         />
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
+      {/* Botón guardar */}
+      <div className="absolute bottom-24 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <button
           onClick={handleSave}
-          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98]"
+          disabled={!hasUnsavedChanges}
+          className={`w-full py-4 px-6 rounded-full font-semibold shadow-xl transition-all active:scale-[0.98] ${
+            hasUnsavedChanges
+              ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+          }`}
         >
-          Guardar Configuracion
+          {hasUnsavedChanges ? 'Guardar Cambios' : 'Sin cambios pendientes'}
         </button>
       </div>
     </div>
