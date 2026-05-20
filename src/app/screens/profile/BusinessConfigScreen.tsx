@@ -4,7 +4,9 @@ import { showAppToast } from '../Toast';
 import CategoryPickerModal from './business-config/CategoryPickerModal';
 import CategorySelectionCard from './business-config/CategorySelectionCard';
 import KeywordsCard from './business-config/KeywordsCard';
+import LocalStatusCard from './business-config/LocalStatusCard';
 import LocationPrivacyCard from './business-config/LocationPrivacyCard';
+import PhysicalAttendanceCard from './business-config/PhysicalAttendanceCard';
 import ScheduleCard from './business-config/ScheduleCard';
 import { businessCategories, businessDays, emptySchedule } from './business-config/businessConfigData';
 
@@ -28,6 +30,9 @@ export default function BusinessConfigScreen({
   const [locationTouched, setLocationTouched] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [hasPhysicalStore, setHasPhysicalStore] = useState(true);
+  const [isOpen, setIsOpen] = useState(true);
+  const [isTogglingOpen, setIsTogglingOpen] = useState(false);
 
   const markChanged = useCallback(() => setHasUnsavedChanges(true), []);
 
@@ -35,6 +40,7 @@ export default function BusinessConfigScreen({
   const handleFullAddressChange = (val: string) => { setFullAddress(val); markChanged(); };
   const handleShowFullAddressChange = (val: boolean) => { setShowFullAddress(val); markChanged(); };
   const handleScheduleChange = (val: any) => { setSchedule(val); markChanged(); };
+  const handlePhysicalStoreChange = (val: boolean) => { setHasPhysicalStore(val); markChanged(); };
 
   const addKeyword = (value: string) => {
     const nextKeyword = value.trim();
@@ -59,6 +65,41 @@ export default function BusinessConfigScreen({
       setShowUnsavedModal(true);
     } else {
       onBack();
+    }
+  };
+
+  const handleToggleOpen = async () => {
+    const businessId = localStorage.getItem('zipco-business-id');
+    const token = localStorage.getItem('zipco-token');
+    if (!businessId || !token) return;
+
+    setIsTogglingOpen(true);
+    const newValue = !isOpen;
+
+    try {
+      const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ isOpen: newValue })
+      });
+
+      if (!response.ok) {
+        showAppToast('No se pudo actualizar el estado del local', 'error');
+        return;
+      }
+
+      setIsOpen(newValue);
+      showAppToast(
+        newValue ? 'El local vuelve a usar el horario configurado' : 'Local cerrado temporalmente',
+        newValue ? 'success' : 'error'
+      );
+    } catch {
+      showAppToast('No se pudo actualizar el estado del local', 'error');
+    } finally {
+      setIsTogglingOpen(false);
     }
   };
 
@@ -104,6 +145,13 @@ export default function BusinessConfigScreen({
         );
         setSchedule(parseSchedule(business.schedule));
         setFullAddress(business.address ?? '');
+        const savedPhysicalStore = localStorage.getItem(`zipco-business-${businessId}-has-physical-store`);
+        setHasPhysicalStore(
+          savedPhysicalStore === null
+            ? business.hasPhysicalStore ?? business.has_physical_store ?? true
+            : savedPhysicalStore === 'true'
+        );
+        setIsOpen(business.isOpen !== false);
         setHasUnsavedChanges(false);
       } catch (error) {
         showAppToast('No se pudo cargar la configuracion del negocio', 'error');
@@ -172,7 +220,8 @@ export default function BusinessConfigScreen({
         return;
       }
 
-      onSave({ category, hashtags: keywords, showFullAddress, fullAddress, schedule });
+      onSave({ category, hashtags: keywords, showFullAddress, fullAddress, schedule, hasPhysicalStore });
+      localStorage.setItem(`zipco-business-${businessId}-has-physical-store`, String(hasPhysicalStore));
       setHasUnsavedChanges(false);
       showAppToast('Configuracion del negocio actualizada correctamente', 'success');
       if (shouldExitAfterSave) {
@@ -185,7 +234,6 @@ export default function BusinessConfigScreen({
 
   return (
     <div className="size-full relative flex flex-col bg-[#F0F4FF]">
-      {/* Header */}
       <div className="px-4 pt-6 pb-4 border-b border-white/50">
         <div className="flex items-center gap-3 mb-3">
           <button onClick={handleBackPress} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -193,9 +241,14 @@ export default function BusinessConfigScreen({
           </button>
           <h2 className="text-xl font-bold text-gray-900">Configuracion de Negocio</h2>
         </div>
+
       </div>
 
       <div className="flex-1 overflow-auto px-4 pt-4 pb-40">
+        {hasPhysicalStore && (
+          <LocalStatusCard isUsingSchedule={isOpen} isLoading={isTogglingOpen} onToggle={handleToggleOpen} />
+        )}
+        <PhysicalAttendanceCard hasPhysicalStore={hasPhysicalStore} onChange={handlePhysicalStoreChange} />
         <CategorySelectionCard
           category={category}
           categories={businessCategories}
@@ -269,7 +322,7 @@ export default function BusinessConfigScreen({
       {/* Botón guardar */}
       <div className="absolute bottom-24 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <button
-          onClick={handleSave}
+          onClick={() => handleSave(false)}
           disabled={!hasUnsavedChanges}
           className={`w-full py-4 px-6 rounded-full font-semibold shadow-xl transition-all active:scale-[0.98] ${
             hasUnsavedChanges
