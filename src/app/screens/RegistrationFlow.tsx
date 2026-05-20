@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { MapPin, Phone, Store, User, Wrench } from 'lucide-react';
 
 export default function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
-  const [step, setStep] = useState<'welcome' | 'phone' | 'verification' | 'name' | 'business' | 'businessDetails'>('welcome');
+  const [step, setStep] = useState<'welcome' | 'phone' | 'name' | 'business' | 'businessDetails'>('welcome');
   const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [error, setError] = useState('');
@@ -27,17 +26,9 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       return;
     }
     setError('');
-    setStep('verification');
-  };
-
-  const handleVerificationSubmit = () => {
-    if (code !== '123456') {
-      setError('Código incorrecto. Usa 123456 para esta simulación.');
-      return;
-    }
-    setError('');
     setStep('name');
   };
+
 
   const handleNameSubmit = () => {
     if (!name.trim()) {
@@ -49,6 +40,11 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   };
 
   const completeRegistration = async () => {
+    if (step === 'businessDetails' && !businessName.trim()) {
+      setError('Ingresa el nombre de tu negocio o servicio.');
+      return;
+    }
+
     const cleanPhone = phone.replace(/\D/g, '');
     const password = cleanPhone.slice(0, 8);
     const email = `${cleanPhone}@zipco.cl`;
@@ -59,7 +55,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       email
     };
 
-    const saveAuthData = (data: any) => {
+    const saveAuthData = async (data: any) => {
       const token = data.token ?? data.jwt ?? data.accessToken ?? data.access_token;
       const userId = data.user?.id ?? data.user?._id ?? data.id ?? data.userId;
 
@@ -69,6 +65,40 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
       localStorage.setItem('zipco-token', token);
       localStorage.setItem('zipco-user-id', String(userId));
+
+      if (step === 'businessDetails' && businessName.trim()) {
+        try {
+          const businessResponse = await fetch('http://localhost:3000/businesses', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              name: businessName.trim(),
+              type: 'Negocio',
+              status: 'pending',
+              categoryId: 1,
+              address: '',
+              latitude: 0,
+              longitude: 0
+            })
+          });
+
+          if (businessResponse.ok) {
+            const businessData = await businessResponse.json();
+            const business = businessData.business ?? businessData;
+            const businessId = business.id ?? business._id ?? businessData.businessId;
+
+            if (businessId) {
+              localStorage.setItem('zipco-business-id', String(businessId));
+            }
+          }
+        } catch (error) {
+          // El usuario ya quedo autenticado; podra completar el negocio desde Perfil.
+        }
+      }
+
       localStorage.setItem('zipco-registration-complete', 'true');
       onComplete();
     };
@@ -76,6 +106,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     try {
       setError('');
 
+      console.log('Intentando registro con:', { email, password });
       const registerResponse = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,10 +114,11 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       });
 
       if (registerResponse.ok) {
-        saveAuthData(await registerResponse.json());
+        await saveAuthData(await registerResponse.json());
         return;
       }
 
+      console.log('Intentando login con:', { email, password });
       const loginResponse = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,7 +126,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       });
 
       if (loginResponse.ok) {
-        saveAuthData(await loginResponse.json());
+        await saveAuthData(await loginResponse.json());
         return;
       }
 
@@ -107,10 +139,9 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   const progress = {
     welcome: 1,
     phone: 2,
-    verification: 3,
-    name: 4,
-    business: 5,
-    businessDetails: 6
+    name: 3,
+    business: 4,
+    businessDetails: 5
   }[step];
 
   return (
@@ -127,13 +158,13 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
           {step !== 'welcome' && (
             <div className="mb-8">
               <div className="flex items-center justify-between text-xs font-semibold text-gray-400 mb-2">
-                <span>Paso {progress} de 6</span>
-                <span>{Math.round((progress / 6) * 100)}%</span>
+                <span>Paso {progress} de 5</span>
+                <span>{Math.round((progress / 5) * 100)}%</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#00BFA5] rounded-full transition-all duration-300"
-                  style={{ width: `${(progress / 6) * 100}%` }}
+                  style={{ width: `${(progress / 5) * 100}%` }}
                 />
               </div>
             </div>
@@ -164,7 +195,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
           {step === 'phone' && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Ingresa tu celular</h2>
-              <p className="text-sm text-gray-600 mb-8">Te enviaremos un código de verificación.</p>
+              <p className="text-sm text-gray-600 mb-8">Usaremos tu numero para crear tu cuenta.</p>
               <label className="text-sm font-semibold text-gray-700 mb-2 block">Número de celular</label>
               <input
                 type="tel"
@@ -184,33 +215,6 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
             </div>
           )}
 
-          {step === 'verification' && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifica tu número</h2>
-              <p className="text-sm text-gray-600 mb-8">Ingresa el código de 6 dígitos enviado a {phone}.</p>
-              <label className="text-sm font-semibold text-gray-700 mb-2 block">Código de verificación</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={code}
-                onChange={(e) => {
-                  setError('');
-                  setCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                }}
-                placeholder="123456"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-2xl text-center tracking-[0.35em] focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all"
-              />
-              <p className="text-xs text-gray-400 mt-3">Código de prueba: 123456</p>
-              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
-              <button
-                type="button"
-                onClick={handleVerificationSubmit}
-                className="w-full mt-8 bg-[#00BFA5] text-white py-4 px-6 rounded-full font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98]"
-              >
-                Verificar
-              </button>
-            </div>
-          )}
 
           {step === 'name' && (
             <div>
@@ -240,25 +244,25 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
           {step === 'business' && (
             <div className="text-center">
-              <div className="w-20 h-20 bg-teal-50 rounded-3xl mx-auto mb-6 flex items-center justify-center">
-                <Store className="w-10 h-10 text-[#00BFA5]" />
+              <div className="w-16 h-16 bg-teal-50 rounded-3xl mx-auto mb-4 flex items-center justify-center">
+                <Store className="w-8 h-8 text-[#00BFA5]" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">¿Ofreces un negocio o servicio?</h2>
-              <p className="text-sm text-gray-600 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">¿Ofreces un negocio o servicio?</h2>
+              <p className="text-sm text-gray-600 mb-5">
                 Elige la opcion que mejor describe lo que haras en ZIPCO.
               </p>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <button
                   type="button"
                   onClick={() => setStep('businessDetails')}
-                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-4 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
+                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-3 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Store className="w-6 h-6 text-[#00BFA5]" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Store className="w-5 h-5 text-[#00BFA5]" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 mb-1">Tengo un Negocio</h3>
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">Tengo un Negocio</h3>
                       <p className="text-xs text-gray-600 leading-relaxed">
                         Vendo productos que los clientes pueden comprar o encargar (tortas, ropa, comida, etc.).
                       </p>
@@ -268,14 +272,14 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
                 <button
                   type="button"
                   onClick={() => setStep('businessDetails')}
-                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-4 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
+                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-3 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Wrench className="w-6 h-6 text-[#00BFA5]" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Wrench className="w-5 h-5 text-[#00BFA5]" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 mb-1">Ofrezco un Servicio</h3>
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">Ofrezco un Servicio</h3>
                       <p className="text-xs text-gray-600 leading-relaxed">
                         Realizo trabajos o actividades para los clientes (gasfiter, peluquero, profesor, etc.).
                       </p>
@@ -285,16 +289,16 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
                 <button
                   type="button"
                   onClick={completeRegistration}
-                  className="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 text-left hover:border-gray-300 hover:shadow-lg transition-all active:scale-[0.98]"
+                  className="w-full bg-white border-2 border-gray-100 rounded-2xl p-3 text-left hover:border-gray-300 hover:shadow-lg transition-all active:scale-[0.98]"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <User className="w-6 h-6 text-gray-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5 text-gray-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 mb-1">Solo busco negocios</h3>
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">Solo quiero buscar</h3>
                       <p className="text-xs text-gray-600 leading-relaxed">
-                        No ofrezco nada, solo quiero encontrar lo que necesito.
+                        Encuentra negocios y servicios cerca de ti.
                       </p>
                     </div>
                   </div>
@@ -364,4 +368,3 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     </div>
   );
 }
-
