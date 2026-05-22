@@ -40,7 +40,7 @@ export default function LocationPrivacyCard({
   setHasLocationSearched
 }: LocationPrivacyCardProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-2">
       <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
         <MapPinIcon className="w-5 h-5 text-teal-600" />
         Privacidad de Ubicacion

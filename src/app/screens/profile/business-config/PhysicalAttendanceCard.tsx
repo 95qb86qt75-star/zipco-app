@@ -7,7 +7,7 @@ type PhysicalAttendanceCardProps = {
 
 export default function PhysicalAttendanceCard({ hasPhysicalStore, onChange }: PhysicalAttendanceCardProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-2">
       <div className="flex items-start gap-3 mb-4">
         <div className="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center">
           <Store className="w-5 h-5" />

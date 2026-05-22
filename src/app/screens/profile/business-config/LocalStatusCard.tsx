@@ -9,7 +9,7 @@ type LocalStatusCardProps = {
 export default function LocalStatusCard({ isUsingSchedule, isLoading, onToggle }: LocalStatusCardProps) {
   return (
     <div
-      className={`backdrop-blur-sm rounded-2xl p-4 border mb-4 transition-all ${
+      className={`backdrop-blur-sm rounded-2xl p-4 border mb-2 transition-all ${
         isUsingSchedule
           ? 'bg-[#F4FFE8] border-[#A3FF12] shadow-[0_0_22px_rgba(163,255,18,0.28)]'
           : 'bg-[#1F2933] border-[#334155] shadow-[0_10px_24px_rgba(15,23,42,0.24)]'
