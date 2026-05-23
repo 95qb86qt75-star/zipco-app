@@ -106,7 +106,6 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     try {
       setError('');
 
-      console.log('Intentando registro con:', { email, password });
       const registerResponse = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,7 +117,6 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         return;
       }
 
-      console.log('Intentando login con:', { email, password });
       const loginResponse = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
