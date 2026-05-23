@@ -18,6 +18,7 @@ export default function RequestsScreen({
   const [businessSubTab, setBusinessSubTab] = useState<'pending' | 'accepted'>('pending');
   const [requests, setRequests] = useState<BusinessRequest[]>(initialRequests);
   const [myOrders] = useState<MyOrder[]>(initialMyOrders);
+  const hasBusiness = typeof window !== 'undefined' && Boolean(localStorage.getItem('zipco-business-id'));
 
   const handleAccept = (requestId: number) => {
     setRequests(requests.map((req) => (req.id === requestId ? { ...req, status: 'accepted' } : req)));
@@ -55,6 +56,7 @@ export default function RequestsScreen({
           >
             🛒 Mis Pedidos
           </button>
+          {hasBusiness && (
           <button
             onClick={() => setSubTab('my-business')}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
@@ -63,6 +65,7 @@ export default function RequestsScreen({
           >
             🏪 Mi Negocio
           </button>
+          )}
         </div>
       </div>
 
@@ -96,12 +99,12 @@ export default function RequestsScreen({
             )}
 
             {myOrders.length === 0 && (
-              <EmptyRequestsState icon={Package} title="No tienes pedidos" description="Tus pedidos aparecerán aquí" />
+              <EmptyRequestsState icon={Package} title="Aún no tienes pedidos" description="Tus pedidos aparecerán aquí" />
             )}
           </>
         )}
 
-        {subTab === 'my-business' && (
+        {hasBusiness && subTab === 'my-business' && (
           <>
             <div className="flex gap-2 mb-4">
               <button
