@@ -409,7 +409,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
         search: trimmedQuery
       });
 
-      const response = await fetch(`http://localhost:3000/businesses/nearby?${params.toString()}`);
+      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/nearby?${params.toString()}`);
 
       if (!response.ok) {
         throw new Error('No se pudo conectar con la búsqueda');

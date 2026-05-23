@@ -218,7 +218,7 @@ export default function BusinessConfigScreen({
     const newValue = !isOpen;
 
     try {
-      const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -285,7 +285,7 @@ export default function BusinessConfigScreen({
 
     const loadBusinessConfig = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+        const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -363,7 +363,7 @@ export default function BusinessConfigScreen({
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/businesses/${businessId}`, {
+      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

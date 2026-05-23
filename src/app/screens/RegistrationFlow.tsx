@@ -68,7 +68,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
       if (step === 'businessDetails' && businessName.trim()) {
         try {
-          const businessResponse = await fetch('http://localhost:3000/businesses', {
+          const businessResponse = await fetch('https://zipco-backend-production.up.railway.app/businesses', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     try {
       setError('');
 
-      const registerResponse = await fetch('http://localhost:3000/auth/register', {
+      const registerResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
@@ -117,7 +117,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         return;
       }
 
-      const loginResponse = await fetch('http://localhost:3000/auth/login', {
+      const loginResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
