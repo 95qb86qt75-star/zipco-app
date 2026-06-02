@@ -12,8 +12,6 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
   const [selectedMinute, setSelectedMinute] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [needNow, setNeedNow] = useState(false);
   const availableHours = Array.from({ length: 15 }, (_, index) => String(index + 8).padStart(2, '0'));
   const availableMinutes = ['00', '15', '30', '45'];
@@ -29,20 +27,12 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     return date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' });
   };
 
-  const formatTime = (timeString: string) => {
-    if (!timeString) return 'Seleccionar hora';
-    return timeString;
-  };
-
   const selectedItems = products.filter((p) => selectedProducts.includes(p.id));
 
   const updateSelectedTime = (hour: string, minute: string) => {
     setSelectedHour(hour);
     setSelectedMinute(minute);
     setSelectedTime(hour && minute ? `${hour}:${minute}` : '');
-    if (hour && minute) {
-      setShowTimePicker(false);
-    }
   };
 
   const updateQuantity = (productId: number, delta: number) => {
@@ -153,8 +143,6 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
                 setSelectedTime('');
                 setSelectedHour('');
                 setSelectedMinute('');
-                setShowDatePicker(false);
-                setShowTimePicker(false);
               }
             }}
             className={`w-full py-4 px-6 rounded-2xl font-bold text-base transition-all mb-3 ${
@@ -169,108 +157,79 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
             </div>
           </button>
 
-          {/* Date and Time Buttons */}
-          <div className={`grid grid-cols-2 gap-3 mb-3 transition-opacity ${needNow ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-            {/* Date Button */}
-            <button
-              onClick={() => {
+          <div className={`bg-white/80 backdrop-blur-sm border border-teal-200 rounded-2xl p-4 mb-3 transition-opacity ${needNow ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Primero indica la fecha:
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
                 setNeedNow(false);
-                setShowDatePicker(!showDatePicker);
-                setShowTimePicker(false);
+                setSelectedDate(e.target.value);
+                setSelectedTime('');
+                setSelectedHour('');
+                setSelectedMinute('');
               }}
-              disabled={needNow}
-              className={`py-4 px-4 rounded-2xl font-semibold text-sm transition-all ${
-                selectedDate
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg'
-                  : 'bg-white/80 text-gray-700 border-2 border-gray-200 hover:border-teal-500'
-              }`}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl">📅</span>
-                <span className="text-xs">{formatDate(selectedDate)}</span>
-              </div>
-            </button>
+              min={getTodayDate()}
+              className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+            />
 
-            {/* Time Button */}
-            <button
-              onClick={() => {
-                setNeedNow(false);
-                if (selectedDate) {
-                  setShowTimePicker(!showTimePicker);
-                  setShowDatePicker(false);
-                } else {
-                  setShowDatePicker(true);
-                  setShowTimePicker(false);
-                }
-              }}
-              disabled={needNow}
-              className={`py-4 px-4 rounded-2xl font-semibold text-sm transition-all ${
-                selectedTime
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg'
-                  : 'bg-white/80 text-gray-700 border-2 border-gray-200 hover:border-teal-500'
-              }`}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl">🕐</span>
-                <span className="text-xs">{formatTime(selectedTime)}</span>
+            {selectedDate && (
+              <div className="mt-4 pt-4 border-t border-teal-100 animate-in">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-gray-700">
+                    Ahora indica la hora:
+                  </label>
+                  {selectedTime && (
+                    <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">
+                      {selectedTime}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Hora</p>
+                  <div className="grid grid-cols-5 gap-2">
+                    {availableHours.map((hour) => (
+                      <button
+                        key={hour}
+                        type="button"
+                        onClick={() => updateSelectedTime(hour, selectedMinute)}
+                        className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                          selectedHour === hour
+                            ? 'bg-teal-500 text-white shadow-md'
+                            : 'bg-white text-gray-700 border border-gray-200 hover:border-teal-500'
+                        }`}
+                      >
+                        {hour}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Minutos</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {availableMinutes.map((minute) => (
+                      <button
+                        key={minute}
+                        type="button"
+                        onClick={() => updateSelectedTime(selectedHour, minute)}
+                        className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                          selectedMinute === minute
+                            ? 'bg-teal-500 text-white shadow-md'
+                            : 'bg-white text-gray-700 border border-gray-200 hover:border-teal-500'
+                        }`}
+                      >
+                        {minute}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </button>
+            )}
           </div>
-
-          {/* Date Picker */}
-          {showDatePicker && (
-            <div className="bg-white/80 backdrop-blur-sm border border-teal-200 rounded-2xl p-4 mb-3 animate-in">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Selecciona la fecha:
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  setSelectedDate(e.target.value);
-                  setShowDatePicker(false);
-                  setShowTimePicker(true);
-                }}
-                min={getTodayDate()}
-                className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-              />
-            </div>
-          )}
-
-          {/* Time Picker */}
-          {showTimePicker && (
-            <div className="bg-white/80 backdrop-blur-sm border border-teal-200 rounded-2xl p-4 mb-3 animate-in">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Selecciona la hora:
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  value={selectedHour}
-                  onChange={(e) => updateSelectedTime(e.target.value, selectedMinute)}
-                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                >
-                  <option value="">Hora</option>
-                  {availableHours.map((hour) => (
-                    <option key={hour} value={hour}>
-                      {hour}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={selectedMinute}
-                  onChange={(e) => updateSelectedTime(selectedHour, e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                >
-                  <option value="">Min</option>
-                  {availableMinutes.map((minute) => (
-                    <option key={minute} value={minute}>
-                      {minute}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
 
           {/* Summary Display */}
           {needNow && (
