@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { ArrowLeft, Minus, Plus, Send } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { showAppToast } from './Toast';
 
 export default function CheckoutScreen({ business, selectedProducts, products, onBack, onOrderComplete }: { business: any; selectedProducts: number[]; products: any[]; onBack: () => void; onOrderComplete: () => void }) {
   const [quantities, setQuantities] = useState<Record<number, number>>(
@@ -74,6 +75,52 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     return selectedItems.reduce((total, item) => {
       return total + item.price * (quantities[item.id] || 1);
     }, 0);
+  };
+
+  const handleSubmitOrder = async () => {
+    const token = localStorage.getItem('zipco-token');
+    const userId = Number(localStorage.getItem('zipco-user-id'));
+
+    if (!token || !userId) {
+      showAppToast('No se pudo enviar el pedido', 'error');
+      return;
+    }
+
+    const orderProducts = selectedItems.map((product) => ({
+      name: product.name,
+      price: product.price,
+      quantity: quantities[product.id] || 1
+    }));
+
+    try {
+      const response = await fetch('https://zipco-backend-production.up.railway.app/orders', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          businessId: business.id,
+          userId,
+          products: JSON.stringify(orderProducts),
+          note,
+          needNow,
+          deliveryDate: selectedDate,
+          deliveryTime: selectedTime,
+          total: calculateTotal(),
+          status: 'pending'
+        })
+      });
+
+      if (!response.ok) {
+        showAppToast('No se pudo enviar el pedido', 'error');
+        return;
+      }
+
+      setShowConfirmation(true);
+    } catch (error) {
+      showAppToast('No se pudo enviar el pedido', 'error');
+    }
   };
 
   return (
@@ -344,7 +391,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
       {/* Order Button */}
       <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <button
-          onClick={() => setShowConfirmation(true)}
+          onClick={handleSubmitOrder}
           className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Send className="w-5 h-5" />
