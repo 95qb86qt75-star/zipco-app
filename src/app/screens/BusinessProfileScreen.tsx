@@ -272,7 +272,7 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
       </div>
 
       {selectedProducts.length > 0 && (
-        <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
+        <div className="absolute bottom-20 left-0 right-0 px-4 py-3 bg-gradient-to-t from-white via-white/95 to-transparent">
           <button
             onClick={() => onCheckout(selectedProducts, products)}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
@@ -284,18 +284,18 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
       )}
 
       {showRemoveTooltip && (
-        <div className="absolute bottom-40 left-4 right-4 bg-white/95 backdrop-blur-sm border border-teal-100 rounded-2xl p-4 shadow-xl">
+        <div className="absolute bottom-36 left-6 right-6 bg-white/95 backdrop-blur-sm border border-teal-100 rounded-2xl px-3 py-2.5 shadow-lg shadow-slate-900/10">
           <button
             type="button"
             onClick={() => setShowRemoveTooltip(false)}
-            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+            className="absolute right-2.5 top-2.5 text-gray-400 hover:text-gray-600"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
-          <div className="flex gap-3 pr-5">
-            <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm">ℹ️</div>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              <strong className="text-gray-900">¿Cómo desagregar un producto?</strong> Solo haz clic nuevamente en <strong className="text-green-600">Agregado</strong> y volverá a <strong className="text-teal-600">Agregar</strong>
+          <div className="flex items-center gap-2 pr-5">
+            <div className="shrink-0 w-7 h-7 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs">ℹ️</div>
+            <p className="text-xs text-gray-700 leading-snug">
+              <strong className="text-gray-900">Para quitarlo:</strong> toca <strong className="text-green-600">Agregado</strong> y volverá a <strong className="text-teal-600">Agregar</strong>
             </p>
           </div>
         </div>
