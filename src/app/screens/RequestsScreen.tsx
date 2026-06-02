@@ -1,9 +1,8 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { ArrowLeft, Check, FileText, Package } from 'lucide-react';
 import BusinessRequestCard from './requests/BusinessRequestCard';
 import EmptyRequestsState from './requests/EmptyRequestsState';
 import MyOrderCard from './requests/MyOrderCard';
-import { initialMyOrders, initialRequests } from './requests/mockData';
 import type { BusinessRequest, MyOrder } from './requests/types';
 import { groupByDate, sortByUrgency } from './requests/utils';
 
@@ -16,9 +15,103 @@ export default function RequestsScreen({
 }) {
   const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>('my-orders');
   const [businessSubTab, setBusinessSubTab] = useState<'pending' | 'accepted'>('pending');
-  const [requests, setRequests] = useState<BusinessRequest[]>(initialRequests);
-  const [myOrders] = useState<MyOrder[]>(initialMyOrders);
+  const [requests, setRequests] = useState<BusinessRequest[]>([]);
+  const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const hasBusiness = typeof window !== 'undefined' && Boolean(localStorage.getItem('zipco-business-id'));
+
+  useEffect(() => {
+    const token = localStorage.getItem('zipco-token');
+    const businessId = localStorage.getItem('zipco-business-id');
+
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    const parseProducts = (products: any) => {
+      if (!products) return [];
+      if (Array.isArray(products)) return products;
+
+      try {
+        const parsedProducts = JSON.parse(products);
+        return Array.isArray(parsedProducts) ? parsedProducts : [];
+      } catch (error) {
+        return [];
+      }
+    };
+
+    const formatOrderDate = (dateString: string) => {
+      if (!dateString) return '';
+      return new Date(dateString).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+    };
+
+    const normalizeMyOrder = (order: any): MyOrder => ({
+      id: order.id,
+      businessName: order.businessName ?? order.business?.name ?? `Negocio #${order.businessId}`,
+      businessImage: order.businessImage ?? order.business?.image ?? order.business?.photo ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80',
+      date: formatOrderDate(order.createdAt),
+      status: order.status ?? 'pending',
+      products: parseProducts(order.products),
+      note: order.note ?? '',
+      total: Number(order.total ?? 0),
+      deliveryDate: order.deliveryDate ?? '',
+      deliveryTime: order.deliveryTime ?? ''
+    });
+
+    const normalizeBusinessRequest = (order: any): BusinessRequest => ({
+      id: order.id,
+      customerName: order.customerName ?? order.user?.name ?? `Cliente #${order.userId}`,
+      customerImage: order.customerImage ?? order.user?.profileImage ?? 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80',
+      date: formatOrderDate(order.createdAt),
+      status: order.status ?? 'pending',
+      products: parseProducts(order.products),
+      note: order.note ?? '',
+      distance: '',
+      deliveryDate: order.deliveryDate ?? '',
+      deliveryTime: order.deliveryTime ?? '',
+      needNow: Boolean(order.needNow)
+    });
+
+    const loadOrders = async () => {
+      setIsLoading(true);
+
+      try {
+        const myOrdersResponse = await fetch('https://zipco-backend-production.up.railway.app/orders/my-orders', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (myOrdersResponse.ok) {
+          const data = await myOrdersResponse.json();
+          const orders = Array.isArray(data) ? data : data.orders ?? data.results ?? [];
+          setMyOrders(orders.map(normalizeMyOrder));
+        }
+
+        if (businessId) {
+          const businessOrdersResponse = await fetch(`https://zipco-backend-production.up.railway.app/orders/business/${businessId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (businessOrdersResponse.ok) {
+            const data = await businessOrdersResponse.json();
+            const orders = Array.isArray(data) ? data : data.orders ?? data.results ?? [];
+            setRequests(orders.map(normalizeBusinessRequest));
+          }
+        }
+      } catch (error) {
+        setMyOrders([]);
+        setRequests([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
 
   const handleAccept = (requestId: number) => {
     setRequests(requests.map((req) => (req.id === requestId ? { ...req, status: 'accepted' } : req)));
@@ -70,7 +163,14 @@ export default function RequestsScreen({
       </div>
 
       <div className="flex-1 overflow-auto px-4 pt-4 pb-24">
-        {subTab === 'my-orders' && (
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3" />
+            <p className="text-sm font-semibold text-gray-600">Cargando pedidos...</p>
+          </div>
+        )}
+
+        {!isLoading && subTab === 'my-orders' && (
           <>
             <p className="text-sm text-gray-600 mb-4">
               {pendingOrders.length} {pendingOrders.length === 1 ? 'pedido pendiente' : 'pedidos pendientes'}
@@ -104,7 +204,7 @@ export default function RequestsScreen({
           </>
         )}
 
-        {hasBusiness && subTab === 'my-business' && (
+        {!isLoading && hasBusiness && subTab === 'my-business' && (
           <>
             <div className="flex gap-2 mb-4">
               <button
