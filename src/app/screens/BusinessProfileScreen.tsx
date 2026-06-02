@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Facebook, Instagram, Star } from 'lucide-react';
+import { ArrowLeft, Eye, Facebook, Instagram, ShoppingCart, Star, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
@@ -61,9 +61,9 @@ function parseProducts(raw: any): any[] {
       name: p.name ?? '',
       description: p.description ?? '',
       price: parseInt(p.price ?? '0'),
-      image: p.imageUrl ?? '',
-      mode: p.mode ?? 'order',
-      isAvailable: true
+      image: p.imageUrl ?? p.image ?? '',
+      mode: p.mode ?? (p.isAvailable === false ? 'view' : 'order'),
+      isAvailable: p.isAvailable ?? true
     }));
   } catch {
     return [];
@@ -72,8 +72,9 @@ function parseProducts(raw: any): any[] {
 
 export default function BusinessProfileScreen({ business, onBack, onCheckout }: { business: any; onBack: () => void; onCheckout: (selectedProducts: any[], products: any[]) => void }) {
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [lastClickTime, setLastClickTime] = useState<{ [key: string]: number }>({});
+  const [previewProduct, setPreviewProduct] = useState<any | null>(null);
+  const [showRemoveTooltip, setShowRemoveTooltip] = useState(false);
+  const [hasShownRemoveTooltip, setHasShownRemoveTooltip] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -90,38 +91,37 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
     }
   }, []);
 
+  useEffect(() => {
+    if (!showRemoveTooltip) return;
+
+    const timeout = setTimeout(() => {
+      setShowRemoveTooltip(false);
+    }, 4000);
+
+    return () => clearTimeout(timeout);
+  }, [showRemoveTooltip]);
+
   const realProducts = parseProducts(business.products);
   const products = realProducts.length > 0 ? realProducts : mockProducts;
   const isRealBusiness = realProducts.length > 0;
 
-  const toggleProductSelection = (productId: any) => {
-    setSelectedProducts((prev) =>
-      prev.includes(productId)
+  const handleOrderToggle = (productId: any) => {
+    const isSelected = selectedProducts.includes(productId);
+
+    setSelectedProducts((prev) => (
+      isSelected
         ? prev.filter((id) => id !== productId)
         : [...prev, productId]
-    );
-  };
+    ));
 
-  const handleProductClick = (productId: any, mode: string) => {
-    if (mode === 'view') return;
-    const now = Date.now();
-    const lastClick = lastClickTime[productId] || 0;
-    const timeDiff = now - lastClick;
-
-    if (timeDiff < 300 && timeDiff > 0) {
-      if (!isSelectionMode) setIsSelectionMode(true);
-      toggleProductSelection(productId);
-      setLastClickTime({ ...lastClickTime, [productId]: 0 });
-    } else if (isSelectionMode) {
-      toggleProductSelection(productId);
-    } else {
-      setLastClickTime({ ...lastClickTime, [productId]: now });
+    if (!isSelected && !hasShownRemoveTooltip) {
+      setShowRemoveTooltip(true);
+      setHasShownRemoveTooltip(true);
     }
   };
 
   return (
     <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative">
-      {/* Header fijo */}
       <div className="px-4 pt-6 pb-2 border-b border-white/50 bg-white/80 backdrop-blur-sm">
         <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mb-2">
           <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -160,12 +160,12 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
               )}
 
               <div className="flex items-center gap-2">
-                {(business.instagram) && (
+                {business.instagram && (
                   <button className={`bg-gradient-to-br from-purple-500 to-pink-500 rounded-full hover:scale-110 transition-all ${isScrolled ? 'p-1.5' : 'p-2'}`}>
                     <Instagram className={`text-white ${isScrolled ? 'w-3 h-3' : 'w-4 h-4'}`} />
                   </button>
                 )}
-                {(business.facebook) && (
+                {business.facebook && (
                   <button className={`bg-blue-600 rounded-full hover:scale-110 transition-all ${isScrolled ? 'p-1.5' : 'p-2'}`}>
                     <Facebook className={`text-white ${isScrolled ? 'w-3 h-3' : 'w-4 h-4'}`} />
                   </button>
@@ -187,20 +187,24 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
         </motion.div>
       </div>
 
-      {/* Products Section */}
       <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-4 pb-28">
         <h3 className="text-lg font-bold text-gray-900 mb-2">
           {isRealBusiness ? 'Productos y servicios' : 'Productos disponibles'}
         </h3>
 
-        {isRealBusiness && (
-          <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 mb-4 flex items-start gap-2">
-            <span className="text-2xl">👆</span>
-            <p className="text-xs text-teal-800 leading-relaxed">
-              Haz <strong>doble clic</strong> en un producto para agregarlo al pedido
-            </p>
+        <div className="bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-3 mb-4 shadow-sm">
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2 rounded-full bg-teal-50 px-3 py-2 text-teal-700">
+              <span className="text-base">🛒</span>
+              <span className="text-xs font-bold">Se puede pedir</span>
+            </div>
+            <div className="h-8 w-px bg-gray-200" />
+            <div className="flex items-center gap-2 rounded-full bg-teal-50 px-3 py-2 text-teal-700">
+              <span className="text-base">👁</span>
+              <span className="text-xs font-bold">Solo para ver</span>
+            </div>
           </div>
-        )}
+        </div>
 
         <div className="space-y-3">
           {products.map((product) => {
@@ -209,35 +213,54 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
             return (
               <div
                 key={product.id}
-                onClick={() => handleProductClick(product.id, product.mode)}
-                className={`bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 transition-all ${
-                  canOrder ? 'cursor-pointer' : 'cursor-default'
-                } ${isSelected ? 'border-teal-500 shadow-lg shadow-teal-500/30' : 'border-white/50 shadow-md hover:shadow-lg'}`}
+                onClick={() => {
+                  if (!canOrder) setPreviewProduct(product);
+                }}
+                className={`backdrop-blur-sm rounded-2xl p-4 border-2 transition-all ${
+                  canOrder
+                    ? isSelected
+                      ? 'bg-emerald-50/90 border-teal-500 shadow-lg shadow-teal-500/20'
+                      : 'bg-white/80 border-teal-100 shadow-md hover:shadow-lg'
+                    : 'bg-blue-50/80 border-blue-100 shadow-md hover:shadow-lg cursor-pointer'
+                }`}
               >
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   <div className="relative">
                     <ImageWithFallback
                       src={product.image}
                       alt={product.name}
                       className="w-20 h-20 rounded-xl object-cover"
                     />
-                    {isSelected && (
-                      <div className="absolute inset-0 bg-teal-500/30 rounded-xl flex items-center justify-center">
-                        <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-lg">✓</span>
-                        </div>
-                      </div>
-                    )}
+                    <div className="absolute -left-2 -top-2 w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-500/30 flex items-center justify-center">
+                      {canOrder ? (
+                        <ShoppingCart className="w-5 h-5 text-white" />
+                      ) : (
+                        <Eye className="w-5 h-5 text-white" />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 text-sm mb-1">{product.name}</h4>
                     <p className="text-xs text-gray-600 mb-2 line-clamp-2">{product.description}</p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <span className="text-base font-bold text-gray-900">
                         ${Number(product.price).toLocaleString('es-CL')}
                       </span>
-                      {!canOrder && (
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Solo ver</span>
+                      {canOrder && (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleOrderToggle(product.id);
+                          }}
+                          className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold transition-all ${
+                            isSelected
+                              ? 'border-green-500 bg-white text-green-600 shadow-sm'
+                              : 'border-teal-500 bg-white text-teal-600 hover:bg-teal-50'
+                          }`}
+                        >
+                          {isSelected ? 'Agregado ✓' : 'Agregar'}
+                        </button>
                       )}
                     </div>
                   </div>
@@ -248,15 +271,56 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
         </div>
       </div>
 
-      {/* Order Button */}
       {selectedProducts.length > 0 && (
         <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
           <button
             onClick={() => onCheckout(selectedProducts, products)}
             className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           >
+            <ShoppingCart className="w-5 h-5" />
             <span>Realizar pedido ({selectedProducts.length})</span>
           </button>
+        </div>
+      )}
+
+      {showRemoveTooltip && (
+        <div className="absolute bottom-40 left-4 right-4 bg-white/95 backdrop-blur-sm border border-teal-100 rounded-2xl p-4 shadow-xl">
+          <button
+            type="button"
+            onClick={() => setShowRemoveTooltip(false)}
+            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <div className="flex gap-3 pr-5">
+            <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm">ℹ️</div>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              <strong className="text-gray-900">¿Cómo desagregar un producto?</strong> Solo haz clic nuevamente en <strong className="text-green-600">Agregado</strong> y volverá a <strong className="text-teal-600">Agregar</strong>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {previewProduct && (
+        <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-sm rounded-3xl bg-white p-3 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setPreviewProduct(null)}
+              className="absolute right-4 top-4 z-10 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-700 hover:bg-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <ImageWithFallback
+              src={previewProduct.image}
+              alt={previewProduct.name}
+              className="w-full max-h-[70vh] rounded-2xl object-cover"
+            />
+            <div className="px-2 pt-3">
+              <h4 className="font-bold text-gray-900">{previewProduct.name}</h4>
+              <p className="text-sm text-gray-600">{previewProduct.description}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
