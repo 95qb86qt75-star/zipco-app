@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowLeft, Minus, Plus, Send } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
@@ -13,6 +13,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
   const [selectedHour, setSelectedHour] = useState('');
   const [selectedMinute, setSelectedMinute] = useState('');
   const [needNow, setNeedNow] = useState(false);
+  const calendarInputRef = useRef<HTMLInputElement>(null);
   const availableHours = Array.from({ length: 14 }, (_, index) => String(index + 9).padStart(2, '0'));
   const availableMinutes = ['00', '10', '20', '30', '40', '50'];
 
@@ -29,7 +30,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     return date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' });
   };
 
-  const dateOptions = Array.from({ length: 10 }, (_, index) => {
+  const dateOptions = Array.from({ length: 6 }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() + index);
     return {
@@ -213,50 +214,76 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
                     <span className="block text-xs capitalize">{date.month}</span>
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => calendarInputRef.current?.showPicker?.() ?? calendarInputRef.current?.click()}
+                  className="shrink-0 w-20 rounded-xl border border-gray-200 bg-white px-2 py-3 text-center text-gray-900 transition-all hover:border-teal-500"
+                >
+                  <span className="block text-xs font-semibold">Abrir</span>
+                  <span className="block text-sm font-bold leading-tight">calendario</span>
+                </button>
               </div>
+              <input
+                ref={calendarInputRef}
+                type="date"
+                value={selectedDate}
+                onChange={(e) => handleDateSelection(e.target.value)}
+                min={getDateValue(new Date())}
+                className="sr-only"
+              />
             </div>
 
             {selectedDate && (
               <div className="animate-in">
-                <p className="text-sm font-bold text-gray-900 mb-3">Hora</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {availableHours.map((hour) => (
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-bold text-gray-900">
+                    {selectedHour ? `Minutos para las ${selectedHour}:00` : 'Hora'}
+                  </p>
+                  {selectedHour && (
                     <button
-                      key={hour}
                       type="button"
-                      onClick={() => handleHourSelection(hour)}
-                      className={`py-2 rounded-xl text-sm font-semibold transition-all ${
-                        selectedHour === hour
-                          ? 'bg-teal-500 text-white shadow-md'
-                          : 'bg-white text-gray-900 border border-gray-200 hover:border-teal-500'
-                      }`}
+                      onClick={() => {
+                        setSelectedHour('');
+                        setSelectedMinute('');
+                        setSelectedTime('');
+                      }}
+                      className="text-xs font-semibold text-teal-600"
                     >
-                      {hour}:00
+                      Cambiar hora
                     </button>
-                  ))}
+                  )}
                 </div>
-              </div>
-            )}
-
-            {selectedHour && (
-              <div className="mt-4 pt-4 border-t border-teal-100 animate-in">
-                <p className="text-sm font-bold text-gray-900 mb-3">Minutos para las {selectedHour}:00</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {availableMinutes.map((minute) => (
-                    <button
-                      key={minute}
-                      type="button"
-                      onClick={() => updateSelectedTime(selectedHour, minute)}
-                      className={`py-2 rounded-xl text-sm font-semibold transition-all ${
-                        selectedMinute === minute
-                          ? 'bg-teal-500 text-white shadow-md'
-                          : 'bg-white text-gray-900 border border-gray-200 hover:border-teal-500'
-                      }`}
-                    >
-                      {selectedHour}:{minute}
-                    </button>
-                  ))}
-                </div>
+                {!selectedHour ? (
+                  <div className="grid grid-cols-4 gap-2">
+                    {availableHours.map((hour) => (
+                      <button
+                        key={hour}
+                        type="button"
+                        onClick={() => handleHourSelection(hour)}
+                        className="py-2 rounded-xl text-sm font-semibold transition-all bg-white text-gray-900 border border-gray-200 hover:border-teal-500"
+                      >
+                        {hour}:00
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {availableMinutes.map((minute) => (
+                      <button
+                        key={minute}
+                        type="button"
+                        onClick={() => updateSelectedTime(selectedHour, minute)}
+                        className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                          selectedMinute === minute
+                            ? 'bg-teal-500 text-white shadow-md'
+                            : 'bg-white text-gray-900 border border-gray-200 hover:border-teal-500'
+                        }`}
+                      >
+                        {selectedHour}:{minute}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
