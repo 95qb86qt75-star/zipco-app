@@ -13,19 +13,32 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
   const [selectedHour, setSelectedHour] = useState('');
   const [selectedMinute, setSelectedMinute] = useState('');
   const [needNow, setNeedNow] = useState(false);
-  const availableHours = Array.from({ length: 15 }, (_, index) => String(index + 8).padStart(2, '0'));
-  const availableMinutes = ['00', '15', '30', '45'];
+  const availableHours = Array.from({ length: 14 }, (_, index) => String(index + 9).padStart(2, '0'));
+  const availableMinutes = ['00', '10', '20', '30', '40', '50'];
 
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+  const getDateValue = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Seleccionar fecha';
-    const date = new Date(dateString);
+    const date = new Date(`${dateString}T00:00:00`);
     return date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' });
   };
+
+  const dateOptions = Array.from({ length: 10 }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() + index);
+    return {
+      value: getDateValue(date),
+      weekday: index === 0 ? 'Hoy' : date.toLocaleDateString('es-CL', { weekday: 'short' }),
+      day: date.getDate(),
+      month: date.toLocaleDateString('es-CL', { month: 'short' })
+    };
+  });
 
   const selectedItems = products.filter((p) => selectedProducts.includes(p.id));
 
@@ -33,6 +46,20 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     setSelectedHour(hour);
     setSelectedMinute(minute);
     setSelectedTime(hour && minute ? `${hour}:${minute}` : '');
+  };
+
+  const handleDateSelection = (date: string) => {
+    setNeedNow(false);
+    setSelectedDate(date);
+    setSelectedTime('');
+    setSelectedHour('');
+    setSelectedMinute('');
+  };
+
+  const handleHourSelection = (hour: string) => {
+    setSelectedHour(hour);
+    setSelectedMinute('');
+    setSelectedTime('');
   };
 
   const updateQuantity = (productId: number, delta: number) => {
@@ -157,75 +184,78 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
             </div>
           </button>
 
-          <div className={`bg-white/80 backdrop-blur-sm border border-teal-200 rounded-2xl p-4 mb-3 transition-opacity ${needNow ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Primero indica la fecha:
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => {
-                setNeedNow(false);
-                setSelectedDate(e.target.value);
-                setSelectedTime('');
-                setSelectedHour('');
-                setSelectedMinute('');
-              }}
-              min={getTodayDate()}
-              className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-            />
+          <div className={`bg-white/90 backdrop-blur-sm border border-teal-200 rounded-3xl p-4 mb-3 transition-opacity ${needNow ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-bold text-gray-900">Selecciona fecha y hora</h4>
+              {selectedTime && (
+                <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">
+                  {selectedTime}
+                </span>
+              )}
+            </div>
+
+            <div className="mb-5">
+              <p className="text-sm font-bold text-gray-900 mb-3">Fecha</p>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                {dateOptions.map((date) => (
+                  <button
+                    key={date.value}
+                    type="button"
+                    onClick={() => handleDateSelection(date.value)}
+                    className={`shrink-0 w-16 rounded-xl border px-2 py-3 text-center transition-all ${
+                      selectedDate === date.value
+                        ? 'bg-gradient-to-b from-teal-500 to-emerald-500 text-white border-teal-500 shadow-md'
+                        : 'bg-white text-gray-900 border-gray-200 hover:border-teal-500'
+                    }`}
+                  >
+                    <span className="block text-xs font-semibold capitalize">{date.weekday}</span>
+                    <span className="block text-xl font-bold leading-tight">{date.day}</span>
+                    <span className="block text-xs capitalize">{date.month}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {selectedDate && (
+              <div className="animate-in">
+                <p className="text-sm font-bold text-gray-900 mb-3">Hora</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {availableHours.map((hour) => (
+                    <button
+                      key={hour}
+                      type="button"
+                      onClick={() => handleHourSelection(hour)}
+                      className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selectedHour === hour
+                          ? 'bg-teal-500 text-white shadow-md'
+                          : 'bg-white text-gray-900 border border-gray-200 hover:border-teal-500'
+                      }`}
+                    >
+                      {hour}:00
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedHour && (
               <div className="mt-4 pt-4 border-t border-teal-100 animate-in">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-semibold text-gray-700">
-                    Ahora indica la hora:
-                  </label>
-                  {selectedTime && (
-                    <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">
-                      {selectedTime}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">Hora</p>
-                  <div className="grid grid-cols-5 gap-2">
-                    {availableHours.map((hour) => (
-                      <button
-                        key={hour}
-                        type="button"
-                        onClick={() => updateSelectedTime(hour, selectedMinute)}
-                        className={`py-2 rounded-xl text-sm font-semibold transition-all ${
-                          selectedHour === hour
-                            ? 'bg-teal-500 text-white shadow-md'
-                            : 'bg-white text-gray-700 border border-gray-200 hover:border-teal-500'
-                        }`}
-                      >
-                        {hour}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 mb-2">Minutos</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {availableMinutes.map((minute) => (
-                      <button
-                        key={minute}
-                        type="button"
-                        onClick={() => updateSelectedTime(selectedHour, minute)}
-                        className={`py-2 rounded-xl text-sm font-semibold transition-all ${
-                          selectedMinute === minute
-                            ? 'bg-teal-500 text-white shadow-md'
-                            : 'bg-white text-gray-700 border border-gray-200 hover:border-teal-500'
-                        }`}
-                      >
-                        {minute}
-                      </button>
-                    ))}
-                  </div>
+                <p className="text-sm font-bold text-gray-900 mb-3">Minutos para las {selectedHour}:00</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {availableMinutes.map((minute) => (
+                    <button
+                      key={minute}
+                      type="button"
+                      onClick={() => updateSelectedTime(selectedHour, minute)}
+                      className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selectedMinute === minute
+                          ? 'bg-teal-500 text-white shadow-md'
+                          : 'bg-white text-gray-900 border border-gray-200 hover:border-teal-500'
+                      }`}
+                    >
+                      {selectedHour}:{minute}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
