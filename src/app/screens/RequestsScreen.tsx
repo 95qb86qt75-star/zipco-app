@@ -46,18 +46,37 @@ export default function RequestsScreen({
       return new Date(dateString).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
     };
 
-    const normalizeMyOrder = (order: any): MyOrder => ({
-      id: order.id,
-      businessName: order.businessName ?? order.business?.name ?? `Negocio #${order.businessId}`,
-      businessImage: order.businessImage ?? order.business?.image ?? order.business?.photo ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80',
-      date: formatOrderDate(order.createdAt),
-      status: order.status ?? 'pending',
-      products: parseProducts(order.products),
-      note: order.note ?? '',
-      total: Number(order.total ?? 0),
-      deliveryDate: order.deliveryDate ?? '',
-      deliveryTime: order.deliveryTime ?? ''
-    });
+    const businessNameCache = new Map<number, string>();
+
+    const getBusinessName = async (businessId: number) => {
+      if (!businessId) return '';
+      if (businessNameCache.has(businessId)) return businessNameCache.get(businessId) ?? '';
+
+      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`);
+      if (!response.ok) return '';
+
+      const business = await response.json();
+      const businessName = business.name ?? '';
+      businessNameCache.set(businessId, businessName);
+      return businessName;
+    };
+
+    const normalizeMyOrder = async (order: any): Promise<MyOrder> => {
+      const businessName = order.businessName ?? order.business?.name ?? await getBusinessName(Number(order.businessId));
+
+      return {
+        id: order.id,
+        businessName: businessName || `Negocio #${order.businessId}`,
+        businessImage: order.businessImage ?? order.business?.image ?? order.business?.photo ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80',
+        date: formatOrderDate(order.createdAt),
+        status: order.status ?? 'pending',
+        products: parseProducts(order.products),
+        note: order.note ?? '',
+        total: Number(order.total ?? 0),
+        deliveryDate: order.deliveryDate ?? '',
+        deliveryTime: order.deliveryTime ?? ''
+      };
+    };
 
     const normalizeBusinessRequest = (order: any): BusinessRequest => ({
       id: order.id,
@@ -86,7 +105,7 @@ export default function RequestsScreen({
         if (myOrdersResponse.ok) {
           const data = await myOrdersResponse.json();
           const orders = Array.isArray(data) ? data : data.orders ?? data.results ?? [];
-          setMyOrders(orders.map(normalizeMyOrder));
+          setMyOrders(await Promise.all(orders.map(normalizeMyOrder)));
         }
 
         if (businessId) {
