@@ -10,9 +10,13 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [selectedHour, setSelectedHour] = useState('');
+  const [selectedMinute, setSelectedMinute] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [needNow, setNeedNow] = useState(false);
+  const availableHours = Array.from({ length: 15 }, (_, index) => String(index + 8).padStart(2, '0'));
+  const availableMinutes = ['00', '15', '30', '45'];
 
   const getTodayDate = () => {
     const today = new Date();
@@ -31,6 +35,15 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
   };
 
   const selectedItems = products.filter((p) => selectedProducts.includes(p.id));
+
+  const updateSelectedTime = (hour: string, minute: string) => {
+    setSelectedHour(hour);
+    setSelectedMinute(minute);
+    setSelectedTime(hour && minute ? `${hour}:${minute}` : '');
+    if (hour && minute) {
+      setShowTimePicker(false);
+    }
+  };
 
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities((prev) => ({
@@ -138,6 +151,8 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
               if (!needNow) {
                 setSelectedDate('');
                 setSelectedTime('');
+                setSelectedHour('');
+                setSelectedMinute('');
                 setShowDatePicker(false);
                 setShowTimePicker(false);
               }
@@ -180,8 +195,13 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
             <button
               onClick={() => {
                 setNeedNow(false);
-                setShowTimePicker(!showTimePicker);
-                setShowDatePicker(false);
+                if (selectedDate) {
+                  setShowTimePicker(!showTimePicker);
+                  setShowDatePicker(false);
+                } else {
+                  setShowDatePicker(true);
+                  setShowTimePicker(false);
+                }
               }}
               disabled={needNow}
               className={`py-4 px-4 rounded-2xl font-semibold text-sm transition-all ${
@@ -209,6 +229,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
                 onChange={(e) => {
                   setSelectedDate(e.target.value);
                   setShowDatePicker(false);
+                  setShowTimePicker(true);
                 }}
                 min={getTodayDate()}
                 className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
@@ -222,15 +243,32 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Selecciona la hora:
               </label>
-              <input
-                type="time"
-                value={selectedTime}
-                onChange={(e) => {
-                  setSelectedTime(e.target.value);
-                  setShowTimePicker(false);
-                }}
-                className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={selectedHour}
+                  onChange={(e) => updateSelectedTime(e.target.value, selectedMinute)}
+                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                >
+                  <option value="">Hora</option>
+                  {availableHours.map((hour) => (
+                    <option key={hour} value={hour}>
+                      {hour}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedMinute}
+                  onChange={(e) => updateSelectedTime(selectedHour, e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                >
+                  <option value="">Min</option>
+                  {availableMinutes.map((minute) => (
+                    <option key={minute} value={minute}>
+                      {minute}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
 
