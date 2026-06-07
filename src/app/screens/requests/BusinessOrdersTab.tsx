@@ -1,4 +1,4 @@
-import { Check, FileText } from 'lucide-react';
+import { CalendarDays, Check, ClipboardList, FileText } from 'lucide-react';
 import { useState } from 'react';
 import BusinessOrderCard from './BusinessOrderCard';
 import EmptyRequestsState from './EmptyRequestsState';
@@ -45,6 +45,11 @@ export default function BusinessOrdersTab({ requests, onAccept, onReject }: Busi
   const tomorrowCount = acceptedRequests.filter((request) => getDateFilter(request) === 'tomorrow').length;
   const upcomingCount = acceptedRequests.filter((request) => getDateFilter(request) === 'upcoming').length;
   const filteredAccepted = acceptedRequests.filter((request) => getDateFilter(request) === dateFilter);
+  const acceptedSectionTitle = dateFilter === 'today'
+    ? 'Para Hoy'
+    : dateFilter === 'tomorrow'
+      ? 'Para Manana'
+      : 'Proximas Entregas';
 
   return (
     <>
@@ -57,7 +62,10 @@ export default function BusinessOrdersTab({ requests, onAccept, onReject }: Busi
               : 'bg-white/60 text-gray-600 hover:bg-white/80'
           }`}
         >
-          Pendientes ({pendingRequests.length})
+          <span className="inline-flex items-center justify-center gap-2">
+            <ClipboardList className="w-4 h-4" />
+            Pendientes ({pendingRequests.length})
+          </span>
         </button>
         <button
           onClick={() => setBusinessSubTab('accepted')}
@@ -67,7 +75,10 @@ export default function BusinessOrdersTab({ requests, onAccept, onReject }: Busi
               : 'bg-white/60 text-gray-600 hover:bg-white/80'
           }`}
         >
-          Aceptados ({acceptedRequests.length})
+          <span className="inline-flex items-center justify-center gap-2">
+            <Check className="w-4 h-4" />
+            Aceptados ({acceptedRequests.length})
+          </span>
         </button>
       </div>
 
@@ -132,10 +143,16 @@ export default function BusinessOrdersTab({ requests, onAccept, onReject }: Busi
           </div>
 
           {filteredAccepted.length > 0 ? (
-            <div className="space-y-3">
-              {filteredAccepted.map((request) => (
-                <BusinessOrderCard key={request.id} request={request} />
-              ))}
+            <div>
+              <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 mb-3 px-1">
+                <CalendarDays className="w-4 h-4 text-teal-500" />
+                {acceptedSectionTitle}
+              </h3>
+              <div className="space-y-3">
+                {filteredAccepted.map((request) => (
+                  <BusinessOrderCard key={request.id} request={request} />
+                ))}
+              </div>
             </div>
           ) : (
             <EmptyRequestsState
