@@ -3,7 +3,8 @@ import { useState } from 'react';
 import BusinessOrderCard from './BusinessOrderCard';
 import EmptyRequestsState from './EmptyRequestsState';
 import type { BusinessRequest } from './types';
-import { sortByUrgency } from './utils';
+
+type DateFilter = 'today' | 'tomorrow' | 'upcoming';
 
 type BusinessOrdersTabProps = {
   requests: BusinessRequest[];
@@ -11,10 +12,39 @@ type BusinessOrdersTabProps = {
   onReject: (requestId: number) => void;
 };
 
+function getLocalDateStr(offsetDays: number = 0): string {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return date.toISOString().split('T')[0];
+}
+
+function getDateFilter(request: BusinessRequest): DateFilter {
+  if (request.needNow) return 'today';
+
+  const today = getLocalDateStr();
+  const tomorrow = getLocalDateStr(1);
+
+  if (!request.deliveryDate || request.deliveryDate <= today) return 'today';
+  if (request.deliveryDate === tomorrow) return 'tomorrow';
+  return 'upcoming';
+}
+
 export default function BusinessOrdersTab({ requests, onAccept, onReject }: BusinessOrdersTabProps) {
   const [businessSubTab, setBusinessSubTab] = useState<'pending' | 'accepted'>('pending');
-  const pendingRequests = requests.filter((req) => req.status === 'pending').sort(sortByUrgency);
-  const processedRequests = requests.filter((req) => req.status !== 'pending').sort(sortByUrgency);
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
+
+  const pendingRequests = requests
+    .filter((req) => req.status === 'pending')
+    .sort((a, b) => b.id - a.id);
+
+  const acceptedRequests = requests
+    .filter((req) => req.status === 'accepted')
+    .sort((a, b) => b.id - a.id);
+
+  const todayCount = acceptedRequests.filter((request) => getDateFilter(request) === 'today').length;
+  const tomorrowCount = acceptedRequests.filter((request) => getDateFilter(request) === 'tomorrow').length;
+  const upcomingCount = acceptedRequests.filter((request) => getDateFilter(request) === 'upcoming').length;
+  const filteredAccepted = acceptedRequests.filter((request) => getDateFilter(request) === dateFilter);
 
   return (
     <>
@@ -37,7 +67,7 @@ export default function BusinessOrdersTab({ requests, onAccept, onReject }: Busi
               : 'bg-white/60 text-gray-600 hover:bg-white/80'
           }`}
         >
-          Historial ({processedRequests.length})
+          Aceptados ({acceptedRequests.length})
         </button>
       </div>
 
@@ -68,17 +98,50 @@ export default function BusinessOrdersTab({ requests, onAccept, onReject }: Busi
 
       {businessSubTab === 'accepted' && (
         <>
-          {processedRequests.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <button
+              onClick={() => setDateFilter('today')}
+              className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all ${
+                dateFilter === 'today'
+                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md'
+                  : 'bg-white/60 text-gray-600 hover:bg-white/80'
+              }`}
+            >
+              Hoy ({todayCount})
+            </button>
+            <button
+              onClick={() => setDateFilter('tomorrow')}
+              className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all ${
+                dateFilter === 'tomorrow'
+                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md'
+                  : 'bg-white/60 text-gray-600 hover:bg-white/80'
+              }`}
+            >
+              Manana ({tomorrowCount})
+            </button>
+            <button
+              onClick={() => setDateFilter('upcoming')}
+              className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all ${
+                dateFilter === 'upcoming'
+                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md'
+                  : 'bg-white/60 text-gray-600 hover:bg-white/80'
+              }`}
+            >
+              Proximos ({upcomingCount})
+            </button>
+          </div>
+
+          {filteredAccepted.length > 0 ? (
             <div className="space-y-3">
-              {processedRequests.map((request) => (
+              {filteredAccepted.map((request) => (
                 <BusinessOrderCard key={request.id} request={request} />
               ))}
             </div>
           ) : (
             <EmptyRequestsState
               icon={Check}
-              title="No hay solicitudes en historial"
-              description="Las solicitudes aceptadas o rechazadas apareceran aqui"
+              title="No hay solicitudes aceptadas"
+              description="Las solicitudes aceptadas apareceran aqui"
               colorClass="text-green-600"
               bgClass="bg-green-100"
             />
