@@ -3,7 +3,7 @@ import { ArrowLeft, Check, FileText, Package } from 'lucide-react';
 import BusinessRequestCard from './requests/BusinessRequestCard';
 import EmptyRequestsState from './requests/EmptyRequestsState';
 import MyOrderCard from './requests/MyOrderCard';
-import type { BusinessRequest, MyOrder } from './requests/types';
+import type { BusinessRequest, MyOrder, RequestStatus } from './requests/types';
 import { groupByDate, sortByUrgency } from './requests/utils';
 
 export default function RequestsScreen({
@@ -80,7 +80,7 @@ export default function RequestsScreen({
 
     const normalizeBusinessRequest = (order: any): BusinessRequest => ({
       id: order.id,
-      customerName: order.customerName ?? order.user?.name ?? `Cliente #${order.userId}`,
+      customerName: order.customerName ?? order.user?.name ?? 'Cliente',
       customerImage: order.customerImage ?? order.user?.profileImage ?? 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80',
       date: formatOrderDate(order.createdAt),
       status: order.status ?? 'pending',
@@ -132,20 +132,59 @@ export default function RequestsScreen({
     loadOrders();
   }, []);
 
+  const updateRequestStatus = async (requestId: number, status: RequestStatus) => {
+    const token = localStorage.getItem('zipco-token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`https://zipco-backend-production.up.railway.app/orders/${requestId}/status`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (!response.ok) return;
+
+      setRequests((currentRequests) => (
+        currentRequests.map((req) => (req.id === requestId ? { ...req, status } : req))
+      ));
+    } catch (error) {
+      return;
+    }
+  };
+
   const handleAccept = (requestId: number) => {
-    setRequests(requests.map((req) => (req.id === requestId ? { ...req, status: 'accepted' } : req)));
+    updateRequestStatus(requestId, 'accepted');
   };
 
   const handleReject = (requestId: number) => {
-    setRequests(requests.map((req) => (req.id === requestId ? { ...req, status: 'rejected' } : req)));
+    updateRequestStatus(requestId, 'rejected');
+  };
+
+  const getRequestTotal = (request: BusinessRequest) => (
+    request.products.reduce((total, product) => total + product.price * product.quantity, 0)
+  );
+
+  const getRequestStatusLabel = (status: RequestStatus) => {
+    if (status === 'accepted') return 'Aceptado';
+    if (status === 'rejected') return 'Rechazado';
+    return 'En espera';
+  };
+
+  const getRequestStatusClass = (status: RequestStatus) => {
+    if (status === 'accepted') return 'bg-green-100 text-green-700';
+    if (status === 'rejected') return 'bg-red-100 text-red-700';
+    return 'bg-amber-100 text-amber-700';
   };
 
   const pendingOrders = myOrders.filter((order) => order.status === 'pending');
   const processedOrders = myOrders.filter((order) => order.status !== 'pending');
   const pendingRequests = requests.filter((req) => req.status === 'pending').sort(sortByUrgency);
-  const acceptedRequests = requests.filter((req) => req.status === 'accepted').sort(sortByUrgency);
-  const groupedPending = groupByDate(pendingRequests);
-  const groupedAccepted = groupByDate(acceptedRequests);
+  const processedRequests = requests.filter((req) => req.status !== 'pending').sort(sortByUrgency);
+  const groupedAccepted = groupByDate(processedRequests);
 
   return (
     <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
@@ -244,41 +283,71 @@ export default function RequestsScreen({
                     : 'bg-white/60 text-gray-600 hover:bg-white/80'
                 }`}
               >
-                ✅ Aceptadas ({acceptedRequests.length})
+                Historial ({processedRequests.length})
               </button>
             </div>
 
             {businessSubTab === 'pending' && (
               <>
                 {pendingRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {groupedPending.today.length > 0 && (
-                      <RequestsSection title="📍 Solicitudes Hoy">
-                        {groupedPending.today.map((request) => (
-                          <BusinessRequestCard
-                            key={request.id}
-                            request={request}
-                            variant="pending-today"
-                            onAccept={handleAccept}
-                            onReject={handleReject}
-                          />
-                        ))}
-                      </RequestsSection>
-                    )}
+                  <div className="space-y-3">
+                    {pendingRequests.map((request) => (
+                      <div key={request.id} className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-amber-100 shadow-md">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <h3 className="font-bold text-gray-900">{request.customerName || 'Cliente'}</h3>
+                            <p className="text-xs text-gray-500">Pedido del {request.date}</p>
+                          </div>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${getRequestStatusClass(request.status)}`}>
+                            {getRequestStatusLabel(request.status)}
+                          </span>
+                        </div>
 
-                    {groupedPending.upcoming.length > 0 && (
-                      <RequestsSection title="📅 Próximas Solicitudes">
-                        {groupedPending.upcoming.map((request) => (
-                          <BusinessRequestCard
-                            key={request.id}
-                            request={request}
-                            variant="pending-upcoming"
-                            onAccept={handleAccept}
-                            onReject={handleReject}
-                          />
-                        ))}
-                      </RequestsSection>
-                    )}
+                        <div className="space-y-2 mb-3">
+                          {request.products.map((product, index) => (
+                            <div key={`${product.name}-${index}`} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-700">
+                                {product.quantity}x {product.name}
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                ${(product.price * product.quantity).toLocaleString('es-CL')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {request.note && (
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3">
+                            <p className="text-xs font-semibold text-blue-700 mb-1">Nota del cliente</p>
+                            <p className="text-sm text-blue-900">{request.note}</p>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <span className="text-sm font-semibold text-gray-600">Total</span>
+                          <span className="text-lg font-bold text-teal-600">
+                            ${getRequestTotal(request).toLocaleString('es-CL')}
+                          </span>
+                        </div>
+
+                        {request.status === 'pending' && (
+                          <div className="grid grid-cols-2 gap-2 mt-4">
+                            <button
+                              onClick={() => handleReject(request.id)}
+                              className="py-2.5 px-4 rounded-xl font-semibold text-sm bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                            >
+                              Rechazar
+                            </button>
+                            <button
+                              onClick={() => handleAccept(request.id)}
+                              className="py-2.5 px-4 rounded-xl font-semibold text-sm bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md transition-all"
+                            >
+                              Aceptar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <EmptyRequestsState
@@ -294,7 +363,64 @@ export default function RequestsScreen({
 
             {businessSubTab === 'accepted' && (
               <>
-                {acceptedRequests.length > 0 ? (
+                {processedRequests.length > 0 ? (
+                  <div className="space-y-3">
+                    {processedRequests.map((request) => (
+                      <div key={request.id} className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-md">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <h3 className="font-bold text-gray-900">{request.customerName || 'Cliente'}</h3>
+                            <p className="text-xs text-gray-500">Pedido del {request.date}</p>
+                          </div>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${getRequestStatusClass(request.status)}`}>
+                            {getRequestStatusLabel(request.status)}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2 mb-3">
+                          {request.products.map((product, index) => (
+                            <div key={`${product.name}-${index}`} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-700">
+                                {product.quantity}x {product.name}
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                ${(product.price * product.quantity).toLocaleString('es-CL')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {request.note && (
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3">
+                            <p className="text-xs font-semibold text-blue-700 mb-1">Nota del cliente</p>
+                            <p className="text-sm text-blue-900">{request.note}</p>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <span className="text-sm font-semibold text-gray-600">Total</span>
+                          <span className="text-lg font-bold text-teal-600">
+                            ${getRequestTotal(request).toLocaleString('es-CL')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyRequestsState
+                    icon={Check}
+                    title="No hay solicitudes en historial"
+                    description="Las solicitudes aceptadas o rechazadas apareceran aqui"
+                    colorClass="text-green-600"
+                    bgClass="bg-green-100"
+                  />
+                )}
+              </>
+            )}
+
+            {false && businessSubTab === 'accepted' && (
+              <>
+                {processedRequests.length > 0 ? (
                   <div className="space-y-4">
                     {groupedAccepted.today.length > 0 && (
                       <RequestsSection title="📍 Para Hoy">
