@@ -1,6 +1,5 @@
 import { Check, X } from 'lucide-react';
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { BusinessRequest, RequestStatus } from './types';
 import { formatDate } from './utils';
@@ -134,9 +133,9 @@ export default function BusinessOrderCard({ request, onAccept, onReject }: Busin
         )}
       </div>
 
-      {showReferencePhoto && request.referencePhoto && createPortal(
+      {showReferencePhoto && request.referencePhoto && (
         <div
-          className="fixed inset-0 z-[9999] bg-black flex flex-col"
+          className="fixed inset-0 z-[90] bg-black flex flex-col"
           onClick={() => setShowReferencePhoto(false)}
         >
           <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-5 pb-4 bg-gradient-to-b from-black/70 to-transparent">
@@ -158,8 +157,7 @@ export default function BusinessOrderCard({ request, onAccept, onReject }: Busin
               className="w-full h-full object-contain"
             />
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );
