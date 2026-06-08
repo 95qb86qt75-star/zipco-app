@@ -1,5 +1,6 @@
 import { Check, X } from 'lucide-react';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { BusinessRequest, RequestStatus } from './types';
 import { formatDate } from './utils';
@@ -133,21 +134,32 @@ export default function BusinessOrderCard({ request, onAccept, onReject }: Busin
         )}
       </div>
 
-      {showReferencePhoto && request.referencePhoto && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-          <button
-            type="button"
-            onClick={() => setShowReferencePhoto(false)}
-            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/90 text-gray-800 flex items-center justify-center"
-          >
-            <X className="w-5 h-5" />
-          </button>
-          <ImageWithFallback
-            src={request.referencePhoto}
-            alt="Foto de referencia"
-            className="max-h-[85vh] max-w-full rounded-2xl object-contain"
-          />
-        </div>
+      {showReferencePhoto && request.referencePhoto && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] bg-black flex flex-col"
+          onClick={() => setShowReferencePhoto(false)}
+        >
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-5 pb-4 bg-gradient-to-b from-black/70 to-transparent">
+            <p className="text-sm font-semibold text-white">Foto de referencia</p>
+            <button
+              type="button"
+              onClick={() => setShowReferencePhoto(false)}
+              className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm text-white flex items-center justify-center"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center p-0">
+            <ImageWithFallback
+              src={request.referencePhoto}
+              alt="Foto de referencia"
+              onClick={(event) => event.stopPropagation()}
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
