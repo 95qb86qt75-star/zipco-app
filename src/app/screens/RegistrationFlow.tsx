@@ -80,8 +80,8 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
               status: 'pending',
               categoryId: 1,
               address: '',
-              latitude: 0,
-              longitude: 0
+              latitude: null,
+              longitude: null
             })
           });
 

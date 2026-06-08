@@ -25,3 +25,20 @@ export type BusinessDay = {
   id: ScheduleDayId;
   name: string;
 };
+
+export type BusinessProduct = {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  mode: 'order' | 'view';
+  imageUrl: string;
+};
+
+export type ProductForm = {
+  name: string;
+  description: string;
+  price: string;
+  mode: 'order' | 'view';
+  imageUrl: string;
+};

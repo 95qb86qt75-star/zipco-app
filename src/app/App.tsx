@@ -29,7 +29,7 @@ export default function App() {
   const [isLocationAutocompleteLoading, setIsLocationAutocompleteLoading] = useState(false);
   const [hasLocationAutocompleteSearched, setHasLocationAutocompleteSearched] = useState(false);
   const [pendingLocation, setPendingLocation] = useState('');
-  const [currentLocation, setCurrentLocation] = useState({ name: 'San Bernardo', lat: -33.5922, lng: -70.6996 });
+  const [currentLocation, setCurrentLocation] = useState<{ name: string; lat: number | null; lng: number | null }>({ name: '', lat: null, lng: null });
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -643,7 +643,7 @@ export default function App() {
           <div className="mt-4 flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-teal-600" />
             <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
-            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name}</span>
+            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name || 'Sin ubicación'}</span>
             {!showLocationModal && (
             <button
               onClick={() => {

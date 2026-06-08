@@ -12,18 +12,21 @@ type LocationPrivacyCardProps = {
   setLocationTouched: (value: boolean) => void;
   setLocationSuggestions: (suggestions: any[]) => void;
   setHasLocationSearched: (value: boolean) => void;
+  onSelectLocationSuggestion: (suggestion: any) => void;
 };
 
 const getLocationLabel = (result: any) => {
   const parts = String(result.display_name ?? '')
     .split(',')
-    .map((part: string) => part.trim());
-  const streetName = parts[1] ?? parts[0] ?? '';
-  const streetNumber = parts[0] ?? '';
-  const city = parts[2] ?? '';
-  const isNumber = /^\d+$/.test(streetNumber);
+    .map((part: string) => part.trim())
+    .filter(Boolean);
+  const address = result.address ?? {};
+  const streetName = address.road ?? address.pedestrian ?? address.residential ?? address.street ?? parts[0] ?? '';
+  const streetNumber = address.house_number ?? (/^\d+[a-zA-Z]?$/.test(parts[1] ?? '') ? parts[1] : '');
+  const city = address.city ?? address.town ?? address.village ?? address.municipality ?? address.county ?? parts[2] ?? '';
+  const streetAddress = [streetName, streetNumber].filter(Boolean).join(' ');
 
-  return isNumber ? `${streetName} ${streetNumber}, ${city}`.trim() : `${streetNumber}, ${city}`.trim();
+  return [streetAddress, city].filter(Boolean).join(', ');
 };
 
 export default function LocationPrivacyCard({
@@ -37,7 +40,8 @@ export default function LocationPrivacyCard({
   locationTouched,
   setLocationTouched,
   setLocationSuggestions,
-  setHasLocationSearched
+  setHasLocationSearched,
+  onSelectLocationSuggestion
 }: LocationPrivacyCardProps) {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-2">
@@ -72,6 +76,7 @@ export default function LocationPrivacyCard({
                       type="button"
                       onClick={() => {
                         setFullAddress(label);
+                        onSelectLocationSuggestion(result);
                         setLocationSuggestions([]);
                         setHasLocationSearched(false);
                         setLocationTouched(false);
