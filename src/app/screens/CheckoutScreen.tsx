@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { ArrowLeft, Minus, Plus, Send } from 'lucide-react';
+import { type ChangeEvent, useRef, useState } from 'react';
+import { ArrowLeft, Camera, Minus, Plus, Send, X } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { showAppToast } from './Toast';
 
@@ -14,7 +14,10 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
   const [selectedHour, setSelectedHour] = useState('');
   const [selectedMinute, setSelectedMinute] = useState('');
   const [needNow, setNeedNow] = useState(false);
+  const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const calendarInputRef = useRef<HTMLInputElement>(null);
+  const referencePhotoInputRef = useRef<HTMLInputElement>(null);
   const availableHours = Array.from({ length: 14 }, (_, index) => String(index + 9).padStart(2, '0'));
   const availableMinutes = ['00', '10', '20', '30', '40', '50'];
 
@@ -77,6 +80,37 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     }, 0);
   };
 
+  const handleReferencePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'zipco_products');
+
+    setIsUploadingPhoto(true);
+
+    try {
+      const response = await fetch('https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        showAppToast('No se pudo subir la foto', 'error');
+        return;
+      }
+
+      const data = await response.json();
+      setReferencePhoto(data.secure_url ?? null);
+    } catch (error) {
+      showAppToast('No se pudo subir la foto', 'error');
+    } finally {
+      setIsUploadingPhoto(false);
+      event.target.value = '';
+    }
+  };
+
   const handleSubmitOrder = async () => {
     const token = localStorage.getItem('zipco-token');
     const userId = Number(localStorage.getItem('zipco-user-id'));
@@ -107,6 +141,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
           needNow,
           deliveryDate: selectedDate,
           deliveryTime: selectedTime,
+          referencePhoto,
           total: calculateTotal(),
           status: 'pending'
         })
@@ -371,6 +406,47 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
           />
         </div>
 
+        <div className="mb-6">
+          <label className="block text-base font-bold text-gray-900 mb-3">
+            Foto de referencia
+          </label>
+
+          {referencePhoto ? (
+            <div className="relative bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-3 shadow-sm">
+              <ImageWithFallback
+                src={referencePhoto}
+                alt="Foto de referencia"
+                className="w-full h-44 rounded-xl object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setReferencePhoto(null)}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-700 hover:text-red-500 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => referencePhotoInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+              className="w-full bg-white/80 text-gray-700 border-2 border-dashed border-teal-200 hover:border-teal-500 rounded-2xl p-4 font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <Camera className="w-5 h-5 text-teal-500" />
+              <span>{isUploadingPhoto ? 'Subiendo foto...' : 'Elegir foto desde galeria o camara'}</span>
+            </button>
+          )}
+
+          <input
+            ref={referencePhotoInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleReferencePhotoChange}
+            className="sr-only"
+          />
+        </div>
+
         {/* Total Summary */}
         <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl p-5 border-2 border-teal-200">
           <div className="flex justify-between items-center mb-2">
@@ -392,6 +468,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
       <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <button
           onClick={handleSubmitOrder}
+          disabled={isUploadingPhoto}
           className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Send className="w-5 h-5" />
@@ -441,4 +518,3 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     </div>
   );
 }
-

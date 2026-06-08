@@ -18,6 +18,7 @@ export type BusinessRequest = {
   deliveryDate: string;
   deliveryTime: string;
   needNow: boolean;
+  referencePhoto?: string | null;
 };
 
 export type MyOrder = {
@@ -31,4 +32,5 @@ export type MyOrder = {
   total: number;
   deliveryDate?: string;
   deliveryTime?: string;
+  referencePhoto?: string | null;
 };

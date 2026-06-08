@@ -63,7 +63,8 @@ export default function useRequests() {
         note: order.note ?? '',
         total: Number(order.total ?? 0),
         deliveryDate: order.deliveryDate ?? '',
-        deliveryTime: order.deliveryTime ?? ''
+        deliveryTime: order.deliveryTime ?? '',
+        referencePhoto: order.referencePhoto ?? null
       };
     };
 
@@ -78,7 +79,8 @@ export default function useRequests() {
       distance: '',
       deliveryDate: order.deliveryDate ?? '',
       deliveryTime: order.deliveryTime ?? '',
-      needNow: Boolean(order.needNow)
+      needNow: Boolean(order.needNow),
+      referencePhoto: order.referencePhoto ?? null
     });
 
     const loadOrders = async () => {
