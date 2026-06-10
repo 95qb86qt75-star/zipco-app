@@ -84,11 +84,11 @@ export default function LocationPrivacyCard({
                       key={`${result.place_id ?? index}`}
                       type="button"
                       onClick={() => {
-                        setFullAddress(label);
-                        onSelectLocationSuggestion(result);
                         setLocationSuggestions([]);
                         setHasLocationSearched(false);
                         setLocationTouched(false);
+                        setFullAddress(label);
+                        onSelectLocationSuggestion(result);
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
                     >

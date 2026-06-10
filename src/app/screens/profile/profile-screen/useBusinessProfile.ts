@@ -106,7 +106,12 @@ export function useBusinessProfile() {
           address: currentUserBusiness.address ?? currentUserBusiness.location ?? '',
           instagram: currentUserBusiness.instagram ?? '',
           facebook: currentUserBusiness.facebook ?? '',
-          image: currentUserBusiness.image ?? currentUserBusiness.imageUrl ?? ''
+          image:
+            currentUserBusiness.photo ||
+            currentUserBusiness.image ||
+            currentUserBusiness.imageUrl ||
+            localStorage.getItem(`zipco-business-${currentBusinessId}-photo`) ||
+            ''
         }));
       } catch (error) {
         setHasRegisteredBusiness(false);
@@ -249,22 +254,35 @@ export function useBusinessProfile() {
       const uploadData = await uploadResponse.json();
       const imageUrl = uploadData.secure_url ?? uploadData.url ?? '';
 
-      const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ image: imageUrl, imageUrl })
-      });
+      const imagePayloads = [
+        { photo: imageUrl },
+        { image: imageUrl },
+        { imageUrl }
+      ];
+      let wasSaved = false;
 
-      if (!saveResponse.ok) {
-        showAppToast('No se pudo guardar la foto del negocio', 'error');
-        return;
+      for (const payload of imagePayloads) {
+        const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (saveResponse.ok) {
+          wasSaved = true;
+          break;
+        }
       }
 
+      localStorage.setItem(`zipco-business-${businessId}-photo`, imageUrl);
       setBusinessInfo((currentBusinessInfo) => ({ ...currentBusinessInfo, image: imageUrl }));
-      showAppToast('Foto del negocio actualizada', 'success');
+      showAppToast(
+        wasSaved ? 'Foto del negocio actualizada' : 'Foto del negocio actualizada en este dispositivo',
+        'success'
+      );
     } catch (error) {
       showAppToast('No se pudo subir la foto del negocio', 'error');
     } finally {
@@ -320,7 +338,7 @@ export function useBusinessProfile() {
         address: newBusiness.address ?? '',
         instagram: newBusiness.instagram ?? '',
         facebook: newBusiness.facebook ?? '',
-        image: newBusiness.image ?? newBusiness.imageUrl ?? ''
+        image: newBusiness.photo || newBusiness.image || newBusiness.imageUrl || ''
       }));
       setHasRegisteredBusiness(true);
       setShowBusinessRegistrationForm(false);

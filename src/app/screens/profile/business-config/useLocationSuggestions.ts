@@ -39,6 +39,7 @@ export default function useLocationSuggestions(fullAddress: string) {
 
     setIsLocationLoading(true);
     setHasLocationSearched(false);
+    let isActive = true;
 
     const timeout = setTimeout(async () => {
       try {
@@ -46,16 +47,25 @@ export default function useLocationSuggestions(fullAddress: string) {
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`
         );
         const data = await response.json();
-        setLocationSuggestions(Array.isArray(data) ? data : []);
+        if (isActive) {
+          setLocationSuggestions(Array.isArray(data) ? data : []);
+        }
       } catch {
-        setLocationSuggestions([]);
+        if (isActive) {
+          setLocationSuggestions([]);
+        }
       } finally {
-        setIsLocationLoading(false);
-        setHasLocationSearched(true);
+        if (isActive) {
+          setIsLocationLoading(false);
+          setHasLocationSearched(true);
+        }
       }
     }, 400);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      isActive = false;
+      clearTimeout(timeout);
+    };
   }, [fullAddress, locationTouched]);
 
   return {

@@ -46,7 +46,14 @@ export function usePersonalProfile() {
           email: data.email ?? '',
           phone: data.phone ?? savedPhone,
           address: savedLocation,
-          profileImage: data.profileImage ?? data.profile_image ?? data.image ?? data.imageUrl ?? ''
+          profileImage:
+            data.photo ||
+            data.profileImage ||
+            data.profile_image ||
+            data.image ||
+            data.imageUrl ||
+            localStorage.getItem('zipco-user-profile-photo') ||
+            ''
         }));
       } catch (error) {
         // Mantener datos locales si el backend no responde.
@@ -158,22 +165,36 @@ export function usePersonalProfile() {
       const uploadData = await uploadResponse.json();
       const imageUrl = uploadData.secure_url ?? uploadData.url ?? '';
 
-      const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ profileImage: imageUrl, image: imageUrl })
-      });
+      const imagePayloads = [
+        { photo: imageUrl },
+        { profileImage: imageUrl },
+        { image: imageUrl },
+        { imageUrl }
+      ];
+      let wasSaved = false;
 
-      if (!saveResponse.ok) {
-        showAppToast('No se pudo guardar la foto de perfil', 'error');
-        return;
+      for (const payload of imagePayloads) {
+        const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (saveResponse.ok) {
+          wasSaved = true;
+          break;
+        }
       }
 
+      localStorage.setItem('zipco-user-profile-photo', imageUrl);
       setUserInfo((currentUserInfo) => ({ ...currentUserInfo, profileImage: imageUrl }));
-      showAppToast('Foto de perfil actualizada', 'success');
+      showAppToast(
+        wasSaved ? 'Foto de perfil actualizada' : 'Foto de perfil actualizada en este dispositivo',
+        'success'
+      );
     } catch (error) {
       showAppToast('No se pudo subir la foto de perfil', 'error');
     } finally {
