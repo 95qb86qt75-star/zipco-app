@@ -5,7 +5,7 @@ export function usePersonalProfile() {
   const [userInfo, setUserInfo] = useState({
     name: 'María González',
     email: 'maria.gonzalez@email.com',
-    phone: '',
+    phone: localStorage.getItem('zipco-user-phone') ?? '',
     address: '',
     profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80'
   });
@@ -23,6 +23,7 @@ export function usePersonalProfile() {
   useEffect(() => {
     const userId = localStorage.getItem('zipco-user-id');
     const token = localStorage.getItem('zipco-token');
+    const savedPhone = localStorage.getItem('zipco-user-phone') ?? '';
 
     if (!userId || !token) return;
 
@@ -41,7 +42,7 @@ export function usePersonalProfile() {
           ...currentUserInfo,
           name: data.name ?? currentUserInfo.name,
           email: data.email ?? currentUserInfo.email,
-          phone: data.phone ?? '',
+          phone: data.phone ?? savedPhone,
           address: data.location ?? data.address ?? ''
         }));
       } catch (error) {

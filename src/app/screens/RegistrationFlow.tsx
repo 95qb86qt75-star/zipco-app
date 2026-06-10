@@ -65,6 +65,20 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
       localStorage.setItem('zipco-token', token);
       localStorage.setItem('zipco-user-id', String(userId));
+      localStorage.setItem('zipco-user-phone', phone);
+
+      try {
+        await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ phone })
+        });
+      } catch (error) {
+        // El respaldo local permite mostrar el telefono aunque este PATCH falle.
+      }
 
       if (step === 'businessDetails' && businessName.trim()) {
         try {

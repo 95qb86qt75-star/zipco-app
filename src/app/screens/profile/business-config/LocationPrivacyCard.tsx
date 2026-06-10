@@ -16,22 +16,18 @@ type LocationPrivacyCardProps = {
 };
 
 const getLocationLabel = (result: any) => {
-  const parts = String(result.display_name ?? '')
-    .split(',')
-    .map((part: string) => part.trim())
-    .filter(Boolean);
-  const isStreetNumber = (value: string) => /^\d+[a-zA-Z]?$/.test(value);
+  const address = result.address ?? {};
+  const streetName = address.road ?? address.pedestrian ?? address.residential ?? address.street ?? '';
+  const streetNumber = address.house_number ?? '';
+  const city = address.city ?? address.town ?? address.suburb ?? address.village ?? address.municipality ?? '';
+  const streetAddress = [streetName, streetNumber].filter(Boolean).join(' ');
 
-  if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
-    parts.pop();
+  if (streetAddress) {
+    return [streetAddress, city].filter(Boolean).join(', ');
   }
 
-  if (isStreetNumber(parts[0] ?? '') && parts[1]) {
-    parts.splice(0, 2, `${parts[1]} ${parts[0]}`);
-  } else if (parts[0] && isStreetNumber(parts[1] ?? '')) {
-    parts.splice(0, 2, `${parts[0]} ${parts[1]}`);
-  }
-
+  const parts = String(result.display_name ?? '').split(',').map((part: string) => part.trim()).filter(Boolean);
+  if (parts[parts.length - 1]?.toLowerCase() === 'chile') parts.pop();
   return parts.join(', ');
 };
 

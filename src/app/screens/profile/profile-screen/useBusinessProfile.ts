@@ -20,7 +20,7 @@ export function useBusinessProfile() {
     phone: '',
     instagram: '',
     facebook: '',
-    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80'
+    image: ''
   });
   const [businessId, setBusinessId] = useState<string | number | null>(() => localStorage.getItem('zipco-business-id'));
   const [hasRegisteredBusiness, setHasRegisteredBusiness] = useState(() => Boolean(localStorage.getItem('zipco-business-id')));
@@ -83,7 +83,7 @@ export function useBusinessProfile() {
           address: currentUserBusiness.address ?? currentUserBusiness.location ?? '',
           instagram: currentUserBusiness.instagram ?? '',
           facebook: currentUserBusiness.facebook ?? '',
-          image: currentUserBusiness.image ?? currentUserBusiness.imageUrl ?? currentBusinessInfo.image
+          image: currentUserBusiness.image ?? currentUserBusiness.imageUrl ?? ''
         }));
       } catch (error) {
         setHasRegisteredBusiness(false);
@@ -249,7 +249,7 @@ export function useBusinessProfile() {
         address: newBusiness.address ?? '',
         instagram: newBusiness.instagram ?? '',
         facebook: newBusiness.facebook ?? '',
-        image: newBusiness.image ?? newBusiness.imageUrl ?? currentBusinessInfo.image
+        image: newBusiness.image ?? newBusiness.imageUrl ?? ''
       }));
       setHasRegisteredBusiness(true);
       setShowBusinessRegistrationForm(false);
