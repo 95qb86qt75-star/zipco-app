@@ -158,6 +158,11 @@ export function usePersonalProfile() {
       });
 
       if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.text().catch(() => '');
+        console.log('[ZIPCO photo upload] profile Cloudinary error', {
+          status: uploadResponse.status,
+          response: uploadError
+        });
         showAppToast('No se pudo subir la foto de perfil', 'error');
         return;
       }
@@ -165,35 +170,32 @@ export function usePersonalProfile() {
       const uploadData = await uploadResponse.json();
       const imageUrl = uploadData.secure_url ?? uploadData.url ?? '';
 
-      const imagePayloads = [
-        { photo: imageUrl },
-        { profileImage: imageUrl },
-        { image: imageUrl },
-        { imageUrl }
-      ];
-      let wasSaved = false;
-
-      for (const payload of imagePayloads) {
-        const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (saveResponse.ok) {
-          wasSaved = true;
-          break;
-        }
-      }
-
       localStorage.setItem('zipco-user-profile-photo', imageUrl);
       setUserInfo((currentUserInfo) => ({ ...currentUserInfo, profileImage: imageUrl }));
-      showAppToast(
-        wasSaved ? 'Foto de perfil actualizada' : 'Foto de perfil actualizada en este dispositivo',
-        'success'
+      showAppToast('Foto de perfil actualizada', 'success');
+
+      const imagePayloads = [{ photo: imageUrl }, { profileImage: imageUrl }, { image: imageUrl }, { imageUrl }];
+      imagePayloads.reduce(
+        (previousRequest, payload) => previousRequest.then(async (wasSaved) => {
+          if (wasSaved) return true;
+          const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+          });
+          const responseText = await saveResponse.text().catch(() => '');
+          console.log('[ZIPCO photo upload] profile PATCH response', {
+            status: saveResponse.status,
+            ok: saveResponse.ok,
+            payload,
+            response: responseText
+          });
+          return saveResponse.ok;
+        }).catch(() => false),
+        Promise.resolve(false)
       );
     } catch (error) {
       showAppToast('No se pudo subir la foto de perfil', 'error');
@@ -201,7 +203,6 @@ export function usePersonalProfile() {
       setIsUploadingProfilePhoto(false);
     }
   };
-
   const handleSavePersonalInfo = async () => {
     const userId = localStorage.getItem('zipco-user-id');
     const token = localStorage.getItem('zipco-token');
