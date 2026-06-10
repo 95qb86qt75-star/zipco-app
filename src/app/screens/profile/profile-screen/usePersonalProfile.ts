@@ -5,8 +5,8 @@ export function usePersonalProfile() {
   const [userInfo, setUserInfo] = useState({
     name: 'María González',
     email: 'maria.gonzalez@email.com',
-    phone: '+56 9 1234 5678',
-    address: 'San Bernardo, Región Metropolitana',
+    phone: '',
+    address: '',
     profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80'
   });
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
@@ -41,8 +41,8 @@ export function usePersonalProfile() {
           ...currentUserInfo,
           name: data.name ?? currentUserInfo.name,
           email: data.email ?? currentUserInfo.email,
-          phone: data.phone ?? currentUserInfo.phone,
-          address: data.location ?? data.address ?? currentUserInfo.address
+          phone: data.phone ?? '',
+          address: data.location ?? data.address ?? ''
         }));
       } catch (error) {
         // Mantener datos locales si el backend no responde.

@@ -20,13 +20,19 @@ const getLocationLabel = (result: any) => {
     .split(',')
     .map((part: string) => part.trim())
     .filter(Boolean);
-  const address = result.address ?? {};
-  const streetName = address.road ?? address.pedestrian ?? address.residential ?? address.street ?? parts[0] ?? '';
-  const streetNumber = address.house_number ?? (/^\d+[a-zA-Z]?$/.test(parts[1] ?? '') ? parts[1] : '');
-  const city = address.city ?? address.town ?? address.village ?? address.municipality ?? address.county ?? parts[2] ?? '';
-  const streetAddress = [streetName, streetNumber].filter(Boolean).join(' ');
+  const isStreetNumber = (value: string) => /^\d+[a-zA-Z]?$/.test(value);
 
-  return [streetAddress, city].filter(Boolean).join(', ');
+  if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
+    parts.pop();
+  }
+
+  if (isStreetNumber(parts[0] ?? '') && parts[1]) {
+    parts.splice(0, 2, `${parts[1]} ${parts[0]}`);
+  } else if (parts[0] && isStreetNumber(parts[1] ?? '')) {
+    parts.splice(0, 2, `${parts[0]} ${parts[1]}`);
+  }
+
+  return parts.join(', ');
 };
 
 export default function LocationPrivacyCard({
