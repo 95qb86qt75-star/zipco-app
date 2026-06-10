@@ -121,7 +121,7 @@ export default function PersonalInfoSection({
                   <User className="w-5 h-5 text-gray-400" />
                   <div className="text-left">
                     <p className="text-xs text-gray-500">Nombre</p>
-                    <p className="text-sm font-semibold text-gray-900">{userInfo.name}</p>
+                    <p className="text-sm font-semibold text-gray-900">{userInfo.name || 'Sin completar'}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -131,7 +131,7 @@ export default function PersonalInfoSection({
                   <Phone className="w-5 h-5 text-gray-400" />
                   <div className="text-left">
                     <p className="text-xs text-gray-500">Telefono</p>
-                    <p className="text-sm font-semibold text-gray-900">{userInfo.phone}</p>
+                    <p className="text-sm font-semibold text-gray-900">{userInfo.phone || 'Sin completar'}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -141,7 +141,7 @@ export default function PersonalInfoSection({
                   <MapPinIcon className="w-5 h-5 text-gray-400" />
                   <div className="text-left">
                     <p className="text-xs text-gray-500">Ubicacion</p>
-                    <p className="text-sm font-semibold text-gray-900">{userInfo.address}</p>
+                    <p className="text-sm font-semibold text-gray-900">{userInfo.address || 'Sin completar'}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400" />

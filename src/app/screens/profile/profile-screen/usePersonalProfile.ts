@@ -3,11 +3,11 @@ import { showAppToast } from '../../Toast';
 
 export function usePersonalProfile() {
   const [userInfo, setUserInfo] = useState({
-    name: 'María González',
-    email: 'maria.gonzalez@email.com',
+    name: '',
+    email: '',
     phone: localStorage.getItem('zipco-user-phone') ?? '',
     address: '',
-    profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80'
+    profileImage: ''
   });
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [personalInfoForm, setPersonalInfoForm] = useState({
@@ -40,10 +40,11 @@ export function usePersonalProfile() {
         const data = await response.json();
         setUserInfo((currentUserInfo) => ({
           ...currentUserInfo,
-          name: data.name ?? currentUserInfo.name,
-          email: data.email ?? currentUserInfo.email,
+          name: data.name ?? '',
+          email: data.email ?? '',
           phone: data.phone ?? savedPhone,
-          address: data.location ?? data.address ?? ''
+          address: data.location ?? data.address ?? '',
+          profileImage: data.profileImage ?? data.profile_image ?? data.image ?? data.imageUrl ?? ''
         }));
       } catch (error) {
         // Mantener datos locales si el backend no responde.

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Camera } from 'lucide-react';
+import { ArrowLeft, Camera, User } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import BusinessConfigScreen from './BusinessConfigScreen';
 import BusinessInfoSection from './BusinessInfoSection';
@@ -48,17 +48,25 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
         <div className={`${profileCardClass} rounded-2xl p-6 border shadow-lg mb-4`}>
           <div className="flex items-center gap-4 mb-4">
             <div className="relative">
-              <ImageWithFallback
-                src={personalProfile.userInfo.profileImage}
-                alt={personalProfile.userInfo.name}
-                className="w-20 h-20 rounded-full object-cover border-4 border-teal-500"
-              />
+              {personalProfile.userInfo.profileImage ? (
+                <ImageWithFallback
+                  src={personalProfile.userInfo.profileImage}
+                  alt={personalProfile.userInfo.name || 'Perfil'}
+                  className="w-20 h-20 rounded-full object-cover border-4 border-teal-500"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full border-4 border-teal-500 bg-teal-50 flex items-center justify-center">
+                  <User className="w-9 h-9 text-teal-500" />
+                </div>
+              )}
               <button className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors">
                 <Camera className="w-4 h-4 text-white" />
               </button>
             </div>
             <div className="flex-1">
-              <h3 className={`text-xl font-bold ${isBusinessProfileTab ? 'text-white' : 'text-gray-900'}`}>{personalProfile.userInfo.name}</h3>
+              <h3 className={`text-xl font-bold ${isBusinessProfileTab ? 'text-white' : 'text-gray-900'}`}>
+                {personalProfile.userInfo.name || 'Tu perfil'}
+              </h3>
             </div>
           </div>
           <div className={`grid grid-cols-2 gap-1 rounded-full p-1 ${isBusinessProfileTab ? 'bg-white/20' : 'bg-[#F3F4F6]'}`}>
