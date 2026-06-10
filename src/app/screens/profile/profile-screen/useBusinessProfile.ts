@@ -247,11 +247,6 @@ export function useBusinessProfile() {
       });
 
       if (!uploadResponse.ok) {
-        const uploadError = await uploadResponse.text().catch(() => '');
-        console.log('[ZIPCO photo upload] business Cloudinary error', {
-          status: uploadResponse.status,
-          response: uploadError
-        });
         showAppToast('No se pudo subir la foto del negocio', 'error');
         return;
       }
@@ -274,13 +269,6 @@ export function useBusinessProfile() {
             Authorization: `Bearer ${token}`
           },
           body: JSON.stringify(payload)
-        });
-        const responseText = await saveResponse.text().catch(() => '');
-        console.log('[ZIPCO photo upload] business PATCH response', {
-          status: saveResponse.status,
-          ok: saveResponse.ok,
-          payload,
-          response: responseText
         });
 
         if (saveResponse.ok) {

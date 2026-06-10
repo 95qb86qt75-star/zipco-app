@@ -158,11 +158,6 @@ export function usePersonalProfile() {
       });
 
       if (!uploadResponse.ok) {
-        const uploadError = await uploadResponse.text().catch(() => '');
-        console.log('[ZIPCO photo upload] profile Cloudinary error', {
-          status: uploadResponse.status,
-          response: uploadError
-        });
         showAppToast('No se pudo subir la foto de perfil', 'error');
         return;
       }
@@ -185,13 +180,6 @@ export function usePersonalProfile() {
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify(payload)
-          });
-          const responseText = await saveResponse.text().catch(() => '');
-          console.log('[ZIPCO photo upload] profile PATCH response', {
-            status: saveResponse.status,
-            ok: saveResponse.ok,
-            payload,
-            response: responseText
           });
           return saveResponse.ok;
         }).catch(() => false),
