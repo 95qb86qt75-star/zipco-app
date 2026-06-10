@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Camera, ChevronRight, Facebook, ImageIcon, Instagram, MapPinIcon, Phone, Settings, Store } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
@@ -27,6 +28,8 @@ export default function BusinessInfoSection({
   isUploadingBusinessPhoto,
   uploadBusinessPhoto
 }: any) {
+  const businessPhotoInputRef = useRef<HTMLInputElement>(null);
+
   return (
     <>
         {/* Business Info (visible when business mode is ON) */}
@@ -72,20 +75,25 @@ export default function BusinessInfoSection({
                       <ImageIcon className="w-7 h-7 text-gray-400" />
                     </div>
                   )}
-                  <label className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-teal-500 flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => businessPhotoInputRef.current?.click()}
+                    disabled={isUploadingBusinessPhoto}
+                    className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-teal-500 flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors disabled:opacity-60"
+                  >
                     <Camera className="w-3.5 h-3.5 text-white" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={isUploadingBusinessPhoto}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) uploadBusinessPhoto(file);
-                        e.currentTarget.value = '';
-                      }}
-                    />
-                  </label>
+                  </button>
+                  <input
+                    ref={businessPhotoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadBusinessPhoto(file);
+                      e.currentTarget.value = '';
+                    }}
+                  />
                 </div>
                 <div className="flex-1">
                   <h5 className={`font-semibold ${businessTextClass}`}>{businessInfo.name}</h5>

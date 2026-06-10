@@ -6,7 +6,7 @@ export function usePersonalProfile() {
     name: '',
     email: '',
     phone: localStorage.getItem('zipco-user-phone') ?? '',
-    address: '',
+    address: localStorage.getItem('zipco-user-location') ?? '',
     profileImage: ''
   });
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
@@ -25,6 +25,7 @@ export function usePersonalProfile() {
     const userId = localStorage.getItem('zipco-user-id');
     const token = localStorage.getItem('zipco-token');
     const savedPhone = localStorage.getItem('zipco-user-phone') ?? '';
+    const savedLocation = localStorage.getItem('zipco-user-location') ?? '';
 
     if (!userId || !token) return;
 
@@ -44,7 +45,7 @@ export function usePersonalProfile() {
           name: data.name ?? '',
           email: data.email ?? '',
           phone: data.phone ?? savedPhone,
-          address: data.location ?? data.address ?? '',
+          address: savedLocation,
           profileImage: data.profileImage ?? data.profile_image ?? data.image ?? data.imageUrl ?? ''
         }));
       } catch (error) {
@@ -70,7 +71,7 @@ export function usePersonalProfile() {
 
     const timeout = setTimeout(async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`);
         const data = await response.json();
         setPersonalLocationSuggestions(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -111,6 +112,23 @@ export function usePersonalProfile() {
     if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
       parts.pop();
     }
+    const address = result.address ?? {};
+    const fallbackStreet = [address.road ?? address.pedestrian ?? address.footway, address.house_number]
+      .map((part) => String(part ?? '').trim())
+      .filter(Boolean)
+      .join(' ');
+    if (!parts.length && fallbackStreet) parts.push(fallbackStreet);
+    [
+      address.city ?? address.town ?? address.village ?? address.municipality ?? address.suburb,
+      address.county,
+      address.state,
+      address.postcode
+    ].forEach((part) => {
+      const nextPart = String(part ?? '').trim();
+      if (nextPart && !parts.some((currentPart) => currentPart.toLowerCase() === nextPart.toLowerCase())) {
+        parts.push(nextPart);
+      }
+    });
     return parts.join(', ');
   };
 
@@ -185,11 +203,18 @@ export function usePersonalProfile() {
 
       if (!response.ok) return;
 
+      const nextLocation = personalInfoForm.location.trim();
+      if (nextLocation) {
+        localStorage.setItem('zipco-user-location', nextLocation);
+      } else {
+        localStorage.removeItem('zipco-user-location');
+      }
+
       setUserInfo((currentUserInfo) => ({
         ...currentUserInfo,
         name: personalInfoForm.name,
         phone: personalInfoForm.phone,
-        address: personalInfoForm.location
+        address: nextLocation
       }));
       setIsEditingPersonalInfo(false);
       setPersonalLocationTouched(false);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowLeft, Camera, User } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import BusinessConfigScreen from './BusinessConfigScreen';
@@ -12,6 +12,7 @@ import { usePersonalProfile } from './profile-screen/usePersonalProfile';
 export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string; setActiveTab: (tab: string) => void; onBack: () => void }) {
   const [profileTab, setProfileTab] = useState<'personal' | 'negocio'>('personal');
   const [showBusinessConfig, setShowBusinessConfig] = useState(false);
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
   const personalProfile = usePersonalProfile();
   const businessProfile = useBusinessProfile();
 
@@ -59,20 +60,25 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
                   <User className="w-9 h-9 text-teal-500" />
                 </div>
               )}
-              <label className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors cursor-pointer">
+              <button
+                type="button"
+                onClick={() => profilePhotoInputRef.current?.click()}
+                disabled={personalProfile.isUploadingProfilePhoto}
+                className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors disabled:opacity-60"
+              >
                 <Camera className="w-4 h-4 text-white" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={personalProfile.isUploadingProfilePhoto}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) personalProfile.uploadProfilePhoto(file);
-                    e.currentTarget.value = '';
-                  }}
-                />
-              </label>
+              </button>
+              <input
+                ref={profilePhotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) personalProfile.uploadProfilePhoto(file);
+                  e.currentTarget.value = '';
+                }}
+              />
             </div>
             <div className="flex-1">
               <h3 className={`text-xl font-bold ${isBusinessProfileTab ? 'text-white' : 'text-gray-900'}`}>

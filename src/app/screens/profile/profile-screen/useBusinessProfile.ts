@@ -7,10 +7,10 @@ export function useBusinessProfile() {
     type: 'Negocio'
   });
   const [businessConfig, setBusinessConfig] = useState({
-    category: 'reposteria',
-    hashtags: ['tortas', 'pasteles', 'cumpleaños'],
+    category: '',
+    hashtags: [] as string[],
     showFullAddress: false,
-    fullAddress: 'Av. Principal 123, San Bernardo',
+    fullAddress: '',
     schedule: {}
   });
   const [businessInfo, setBusinessInfo] = useState({
@@ -43,6 +43,23 @@ export function useBusinessProfile() {
     if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
       parts.pop();
     }
+    const address = result.address ?? {};
+    const fallbackStreet = [address.road ?? address.pedestrian ?? address.footway, address.house_number]
+      .map((part) => String(part ?? '').trim())
+      .filter(Boolean)
+      .join(' ');
+    if (!parts.length && fallbackStreet) parts.push(fallbackStreet);
+    [
+      address.city ?? address.town ?? address.village ?? address.municipality ?? address.suburb,
+      address.county,
+      address.state,
+      address.postcode
+    ].forEach((part) => {
+      const nextPart = String(part ?? '').trim();
+      if (nextPart && !parts.some((currentPart) => currentPart.toLowerCase() === nextPart.toLowerCase())) {
+        parts.push(nextPart);
+      }
+    });
     return parts.join(', ');
   };
 
