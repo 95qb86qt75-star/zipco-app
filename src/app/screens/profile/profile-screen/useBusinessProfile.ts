@@ -36,9 +36,15 @@ export function useBusinessProfile() {
   const [businessAddressSuggestions, setBusinessAddressSuggestions] = useState<any[]>([]);
   const [isBusinessAddressLoading, setIsBusinessAddressLoading] = useState(false);
   const [hasBusinessAddressSearched, setHasBusinessAddressSearched] = useState(false);
+  const [isUploadingBusinessPhoto, setIsUploadingBusinessPhoto] = useState(false);
 
-  const getBusinessAddressLabel = (result: any) =>
-    String(result.display_name ?? '').split(',').slice(0, 2).map((part) => part.trim()).join(', ');
+  const getBusinessAddressLabel = (result: any) => {
+    const parts = String(result.display_name ?? '').split(',').map((part) => part.trim()).filter(Boolean);
+    if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
+      parts.pop();
+    }
+    return parts.join(', ');
+  };
 
   useEffect(() => {
     const userId = localStorage.getItem('zipco-user-id');
@@ -108,7 +114,7 @@ export function useBusinessProfile() {
 
     const timeout = setTimeout(async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`);
         const data = await response.json();
         setBusinessAddressSuggestions(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -201,6 +207,54 @@ export function useBusinessProfile() {
     }
   };
 
+  const uploadBusinessPhoto = async (file: File) => {
+    const token = localStorage.getItem('zipco-token');
+
+    if (!businessId || !token) return;
+
+    setIsUploadingBusinessPhoto(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'zipco_products');
+
+      const uploadResponse = await fetch('https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!uploadResponse.ok) {
+        showAppToast('No se pudo subir la foto del negocio', 'error');
+        return;
+      }
+
+      const uploadData = await uploadResponse.json();
+      const imageUrl = uploadData.secure_url ?? uploadData.url ?? '';
+
+      const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ image: imageUrl, imageUrl })
+      });
+
+      if (!saveResponse.ok) {
+        showAppToast('No se pudo guardar la foto del negocio', 'error');
+        return;
+      }
+
+      setBusinessInfo((currentBusinessInfo) => ({ ...currentBusinessInfo, image: imageUrl }));
+      showAppToast('Foto del negocio actualizada', 'success');
+    } catch (error) {
+      showAppToast('No se pudo subir la foto del negocio', 'error');
+    } finally {
+      setIsUploadingBusinessPhoto(false);
+    }
+  };
+
   const handleRegisterBusiness = async () => {
     const token = localStorage.getItem('zipco-token');
     const businessName = businessRegistrationForm.name.trim();
@@ -273,7 +327,9 @@ export function useBusinessProfile() {
     isBusinessAddressLoading,
     hasBusinessAddressSearched,
     setHasBusinessAddressSearched,
+    isUploadingBusinessPhoto,
     getBusinessAddressLabel,
+    uploadBusinessPhoto,
     isBusinessFieldMissing,
     isBusinessReadyToPublish,
     handlePublishBusiness,

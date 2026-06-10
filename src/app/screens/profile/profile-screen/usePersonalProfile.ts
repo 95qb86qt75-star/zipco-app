@@ -19,6 +19,7 @@ export function usePersonalProfile() {
   const [isPersonalLocationLoading, setIsPersonalLocationLoading] = useState(false);
   const [hasPersonalLocationSearched, setHasPersonalLocationSearched] = useState(false);
   const [personalLocationTouched, setPersonalLocationTouched] = useState(false);
+  const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem('zipco-user-id');
@@ -113,6 +114,55 @@ export function usePersonalProfile() {
     return parts.join(', ');
   };
 
+  const uploadProfilePhoto = async (file: File) => {
+    const userId = localStorage.getItem('zipco-user-id');
+    const token = localStorage.getItem('zipco-token');
+
+    if (!userId || !token) return;
+
+    setIsUploadingProfilePhoto(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'zipco_products');
+
+      const uploadResponse = await fetch('https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!uploadResponse.ok) {
+        showAppToast('No se pudo subir la foto de perfil', 'error');
+        return;
+      }
+
+      const uploadData = await uploadResponse.json();
+      const imageUrl = uploadData.secure_url ?? uploadData.url ?? '';
+
+      const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ profileImage: imageUrl, image: imageUrl })
+      });
+
+      if (!saveResponse.ok) {
+        showAppToast('No se pudo guardar la foto de perfil', 'error');
+        return;
+      }
+
+      setUserInfo((currentUserInfo) => ({ ...currentUserInfo, profileImage: imageUrl }));
+      showAppToast('Foto de perfil actualizada', 'success');
+    } catch (error) {
+      showAppToast('No se pudo subir la foto de perfil', 'error');
+    } finally {
+      setIsUploadingProfilePhoto(false);
+    }
+  };
+
   const handleSavePersonalInfo = async () => {
     const userId = localStorage.getItem('zipco-user-id');
     const token = localStorage.getItem('zipco-token');
@@ -161,9 +211,11 @@ export function usePersonalProfile() {
     setHasPersonalLocationSearched,
     personalLocationTouched,
     setPersonalLocationTouched,
+    isUploadingProfilePhoto,
     handleStartEditingPersonalInfo,
     handleCancelEditingPersonalInfo,
     getPersonalLocationLabel,
+    uploadProfilePhoto,
     handleSavePersonalInfo
   };
 }

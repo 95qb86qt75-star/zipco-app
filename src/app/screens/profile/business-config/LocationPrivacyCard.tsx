@@ -16,16 +16,6 @@ type LocationPrivacyCardProps = {
 };
 
 const getLocationLabel = (result: any) => {
-  const address = result.address ?? {};
-  const streetName = address.road ?? address.pedestrian ?? address.residential ?? address.street ?? '';
-  const streetNumber = address.house_number ?? '';
-  const city = address.city ?? address.town ?? address.suburb ?? address.village ?? address.municipality ?? '';
-  const streetAddress = [streetName, streetNumber].filter(Boolean).join(' ');
-
-  if (streetAddress) {
-    return [streetAddress, city].filter(Boolean).join(', ');
-  }
-
   const parts = String(result.display_name ?? '').split(',').map((part: string) => part.trim()).filter(Boolean);
   if (parts[parts.length - 1]?.toLowerCase() === 'chile') parts.pop();
   return parts.join(', ');

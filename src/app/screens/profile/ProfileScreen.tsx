@@ -59,13 +59,24 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
                   <User className="w-9 h-9 text-teal-500" />
                 </div>
               )}
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors">
+              <label className="absolute bottom-0 right-0 w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors cursor-pointer">
                 <Camera className="w-4 h-4 text-white" />
-              </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={personalProfile.isUploadingProfilePhoto}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) personalProfile.uploadProfilePhoto(file);
+                    e.currentTarget.value = '';
+                  }}
+                />
+              </label>
             </div>
             <div className="flex-1">
               <h3 className={`text-xl font-bold ${isBusinessProfileTab ? 'text-white' : 'text-gray-900'}`}>
-                {personalProfile.userInfo.name || 'Tu perfil'}
+                {personalProfile.userInfo.name}
               </h3>
             </div>
           </div>
@@ -113,6 +124,8 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
           setShowBusinessConfig={setShowBusinessConfig}
           isBusinessReadyToPublish={businessProfile.isBusinessReadyToPublish}
           handlePublishBusiness={businessProfile.handlePublishBusiness}
+          isUploadingBusinessPhoto={businessProfile.isUploadingBusinessPhoto}
+          uploadBusinessPhoto={businessProfile.uploadBusinessPhoto}
         />
         <PersonalInfoSection
           profileTab={profileTab}

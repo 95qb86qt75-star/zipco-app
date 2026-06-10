@@ -1,4 +1,4 @@
-import { ChevronRight, Facebook, Instagram, MapPinIcon, Phone, Settings, Store } from 'lucide-react';
+import { Camera, ChevronRight, Facebook, ImageIcon, Instagram, MapPinIcon, Phone, Settings, Store } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 export default function BusinessInfoSection({
@@ -23,7 +23,9 @@ export default function BusinessInfoSection({
   hasBusinessAddressSearched,
   setShowBusinessConfig,
   isBusinessReadyToPublish,
-  handlePublishBusiness
+  handlePublishBusiness,
+  isUploadingBusinessPhoto,
+  uploadBusinessPhoto
 }: any) {
   return (
     <>
@@ -58,11 +60,33 @@ export default function BusinessInfoSection({
                 </button>
               </div>
               <div className="flex items-center gap-3 mb-3">
-                <ImageWithFallback
-                  src={businessInfo.image}
-                  alt={businessInfo.name}
-                  className="w-16 h-16 rounded-xl object-cover"
-                />
+                <div className="relative shrink-0">
+                  {businessInfo.image ? (
+                    <ImageWithFallback
+                      src={businessInfo.image}
+                      alt={businessInfo.name || 'Negocio'}
+                      className="w-16 h-16 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center">
+                      <ImageIcon className="w-7 h-7 text-gray-400" />
+                    </div>
+                  )}
+                  <label className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-teal-500 flex items-center justify-center shadow-lg hover:bg-teal-600 transition-colors cursor-pointer">
+                    <Camera className="w-3.5 h-3.5 text-white" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={isUploadingBusinessPhoto}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadBusinessPhoto(file);
+                        e.currentTarget.value = '';
+                      }}
+                    />
+                  </label>
+                </div>
                 <div className="flex-1">
                   <h5 className={`font-semibold ${businessTextClass}`}>{businessInfo.name}</h5>
                   {isBusinessFieldMissing('Nombre del negocio') && (
