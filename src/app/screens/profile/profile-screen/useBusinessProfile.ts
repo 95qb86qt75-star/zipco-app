@@ -64,6 +64,28 @@ export function useBusinessProfile() {
     return parts.join(', ');
   };
 
+  const parseKeywords = (value: any): string[] => {
+    if (Array.isArray(value)) {
+      return value.map((keyword) => String(keyword).trim()).filter(Boolean);
+    }
+
+    return String(value ?? '')
+      .split(',')
+      .map((keyword) => keyword.trim())
+      .filter(Boolean);
+  };
+
+  const parseSchedule = (value: any) => {
+    if (!value) return {};
+
+    try {
+      const parsedSchedule = typeof value === 'string' ? JSON.parse(value) : value;
+      return parsedSchedule && typeof parsedSchedule === 'object' ? parsedSchedule : {};
+    } catch (error) {
+      return {};
+    }
+  };
+
   useEffect(() => {
     const userId = localStorage.getItem('zipco-user-id');
     const token = localStorage.getItem('zipco-token');
@@ -95,6 +117,25 @@ export function useBusinessProfile() {
         }
 
         const currentBusinessId = currentUserBusiness.id ?? currentUserBusiness._id;
+        let fullBusiness = currentUserBusiness;
+
+        if (currentBusinessId) {
+          try {
+            const businessResponse = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${currentBusinessId}`, {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            });
+
+            if (businessResponse.ok) {
+              const businessData = await businessResponse.json();
+              fullBusiness = businessData.business ?? businessData;
+            }
+          } catch (error) {
+            fullBusiness = currentUserBusiness;
+          }
+        }
+
         setBusinessId(currentBusinessId);
         if (currentBusinessId) {
           localStorage.setItem('zipco-business-id', String(currentBusinessId));
@@ -102,18 +143,25 @@ export function useBusinessProfile() {
         setHasRegisteredBusiness(true);
         setBusinessInfo((currentBusinessInfo) => ({
           ...currentBusinessInfo,
-          name: currentUserBusiness.name ?? '',
-          description: currentUserBusiness.description ?? '',
-          address: currentUserBusiness.address ?? currentUserBusiness.location ?? '',
-          instagram: currentUserBusiness.instagram ?? '',
-          facebook: currentUserBusiness.facebook ?? '',
+          name: fullBusiness.name ?? '',
+          description: fullBusiness.description ?? '',
+          address: fullBusiness.address ?? fullBusiness.location ?? '',
+          instagram: fullBusiness.instagram ?? '',
+          facebook: fullBusiness.facebook ?? '',
           image:
-            currentUserBusiness.photo ||
-            currentUserBusiness.image ||
-            currentUserBusiness.imageUrl ||
+            fullBusiness.photo ||
+            fullBusiness.image ||
+            fullBusiness.imageUrl ||
             localStorage.getItem(`zipco-business-${currentBusinessId}-photo`) ||
             ''
         }));
+        setBusinessConfig({
+          category: fullBusiness.category ?? fullBusiness.categoryName ?? '',
+          hashtags: parseKeywords(fullBusiness.keywords ?? fullBusiness.hashtags),
+          showFullAddress: fullBusiness.showFullAddress ?? fullBusiness.show_full_address ?? fullBusiness.showOnlyDistance === false,
+          fullAddress: fullBusiness.address ?? fullBusiness.location ?? '',
+          schedule: parseSchedule(fullBusiness.schedule)
+        });
       } catch (error) {
         setHasRegisteredBusiness(false);
       }

@@ -20,12 +20,101 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     setPhone(formatPhone(value));
   };
 
-  const handlePhoneSubmit = () => {
+  const getAuthCredentials = () => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    return {
+      cleanPhone,
+      password: cleanPhone.slice(0, 8),
+      email: `${cleanPhone}@zipco.cl`
+    };
+  };
+
+  const saveAuthData = async (data: any, shouldCreateBusiness = false) => {
+    const token = data.token ?? data.jwt ?? data.accessToken ?? data.access_token;
+    const userId = data.user?.id ?? data.user?._id ?? data.id ?? data.userId;
+
+    if (!token || !userId) {
+      throw new Error('Invalid auth response');
+    }
+
+    localStorage.setItem('zipco-token', token);
+    localStorage.setItem('zipco-user-id', String(userId));
+    localStorage.setItem('zipco-user-phone', phone);
+
+    try {
+      await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ phone })
+      });
+    } catch (error) {
+      // El respaldo local permite mostrar el telefono aunque este PATCH falle.
+    }
+
+    if (shouldCreateBusiness && businessName.trim()) {
+      try {
+        const businessResponse = await fetch('https://zipco-backend-production.up.railway.app/businesses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: businessName.trim(),
+            type: 'Negocio',
+            status: 'pending',
+            categoryId: 1,
+            address: '',
+            latitude: null,
+            longitude: null
+          })
+        });
+
+        if (businessResponse.ok) {
+          const businessData = await businessResponse.json();
+          const business = businessData.business ?? businessData;
+          const businessId = business.id ?? business._id ?? businessData.businessId;
+
+          if (businessId) {
+            localStorage.setItem('zipco-business-id', String(businessId));
+          }
+        }
+      } catch (error) {
+        // El usuario ya quedo autenticado; podra completar el negocio desde Perfil.
+      }
+    }
+
+    localStorage.setItem('zipco-registration-complete', 'true');
+    onComplete();
+  };
+
+  const handlePhoneSubmit = async () => {
     if (phone.replace(/\D/g, '').length !== 11) {
       setError('Ingresa un número celular válido.');
       return;
     }
     setError('');
+
+    const { email, password } = getAuthCredentials();
+
+    try {
+      const loginResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (loginResponse.ok) {
+        await saveAuthData(await loginResponse.json());
+        return;
+      }
+    } catch (error) {
+      // Si no se puede confirmar que exista, continuamos con el flujo de registro.
+    }
+
     setStep('name');
   };
 
@@ -45,76 +134,12 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       return;
     }
 
-    const cleanPhone = phone.replace(/\D/g, '');
-    const password = cleanPhone.slice(0, 8);
-    const email = `${cleanPhone}@zipco.cl`;
+    const { password, email } = getAuthCredentials();
     const credentials = {
       name: name.trim(),
       phone,
       password,
       email
-    };
-
-    const saveAuthData = async (data: any) => {
-      const token = data.token ?? data.jwt ?? data.accessToken ?? data.access_token;
-      const userId = data.user?.id ?? data.user?._id ?? data.id ?? data.userId;
-
-      if (!token || !userId) {
-        throw new Error('Invalid auth response');
-      }
-
-      localStorage.setItem('zipco-token', token);
-      localStorage.setItem('zipco-user-id', String(userId));
-      localStorage.setItem('zipco-user-phone', phone);
-
-      try {
-        await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ phone })
-        });
-      } catch (error) {
-        // El respaldo local permite mostrar el telefono aunque este PATCH falle.
-      }
-
-      if (step === 'businessDetails' && businessName.trim()) {
-        try {
-          const businessResponse = await fetch('https://zipco-backend-production.up.railway.app/businesses', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              name: businessName.trim(),
-              type: 'Negocio',
-              status: 'pending',
-              categoryId: 1,
-              address: '',
-              latitude: null,
-              longitude: null
-            })
-          });
-
-          if (businessResponse.ok) {
-            const businessData = await businessResponse.json();
-            const business = businessData.business ?? businessData;
-            const businessId = business.id ?? business._id ?? businessData.businessId;
-
-            if (businessId) {
-              localStorage.setItem('zipco-business-id', String(businessId));
-            }
-          }
-        } catch (error) {
-          // El usuario ya quedo autenticado; podra completar el negocio desde Perfil.
-        }
-      }
-
-      localStorage.setItem('zipco-registration-complete', 'true');
-      onComplete();
     };
 
     try {
@@ -127,7 +152,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       });
 
       if (registerResponse.ok) {
-        await saveAuthData(await registerResponse.json());
+        await saveAuthData(await registerResponse.json(), step === 'businessDetails');
         return;
       }
 
