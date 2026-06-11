@@ -36,6 +36,7 @@ export function useBusinessProfile() {
   const [businessAddressSuggestions, setBusinessAddressSuggestions] = useState<any[]>([]);
   const [isBusinessAddressLoading, setIsBusinessAddressLoading] = useState(false);
   const [hasBusinessAddressSearched, setHasBusinessAddressSearched] = useState(false);
+  const [businessAddressTouched, setBusinessAddressTouched] = useState(false);
   const [isUploadingBusinessPhoto, setIsUploadingBusinessPhoto] = useState(false);
 
   const getBusinessAddressLabel = (result: any) => {
@@ -124,7 +125,7 @@ export function useBusinessProfile() {
   useEffect(() => {
     const query = businessSocialForm.address.trim();
 
-    if (!isEditingBusinessInfo || query.length < 3) {
+    if (!isEditingBusinessInfo || !businessAddressTouched || query.length < 3) {
       setBusinessAddressSuggestions([]);
       setIsBusinessAddressLoading(false);
       setHasBusinessAddressSearched(false);
@@ -148,14 +149,13 @@ export function useBusinessProfile() {
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [businessSocialForm.address, isEditingBusinessInfo]);
+  }, [businessSocialForm.address, businessAddressTouched, isEditingBusinessInfo]);
 
   const missingBusinessFields = [
     !businessInfo.name?.trim() ? 'Nombre del negocio' : '',
     !businessConfig.category?.trim() ? 'Categoría' : '',
     !businessInfo.description?.trim() ? 'Descripción' : '',
     !businessInfo.address?.trim() ? 'Dirección' : '',
-    !businessInfo.phone?.trim() ? 'Teléfono' : '',
     !businessConfig.schedule || Object.keys(businessConfig.schedule).length === 0 ? 'Horarios de atención' : '',
     !businessConfig.hashtags || businessConfig.hashtags.length === 0 ? 'Palabras clave' : ''
   ].filter(Boolean);
@@ -180,6 +180,7 @@ export function useBusinessProfile() {
       instagram: businessInfo.instagram,
       facebook: businessInfo.facebook
     });
+    setBusinessAddressTouched(false);
     setIsEditingBusinessInfo(true);
   };
 
@@ -223,6 +224,7 @@ export function useBusinessProfile() {
       setIsEditingBusinessInfo(false);
       setBusinessAddressSuggestions([]);
       setHasBusinessAddressSearched(false);
+      setBusinessAddressTouched(false);
       showAppToast('Datos del negocio actualizados correctamente', 'success');
     } catch (error) {
       showAppToast('No se pudo guardar el negocio', 'error');
@@ -362,6 +364,8 @@ export function useBusinessProfile() {
     isBusinessAddressLoading,
     hasBusinessAddressSearched,
     setHasBusinessAddressSearched,
+    businessAddressTouched,
+    setBusinessAddressTouched,
     isUploadingBusinessPhoto,
     getBusinessAddressLabel,
     uploadBusinessPhoto,

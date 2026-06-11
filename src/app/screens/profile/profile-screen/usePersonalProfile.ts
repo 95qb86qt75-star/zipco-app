@@ -20,6 +20,7 @@ export function usePersonalProfile() {
   const [hasPersonalLocationSearched, setHasPersonalLocationSearched] = useState(false);
   const [personalLocationTouched, setPersonalLocationTouched] = useState(false);
   const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
+  const [isLoadingUserInfo, setIsLoadingUserInfo] = useState(true);
 
   useEffect(() => {
     const userId = localStorage.getItem('zipco-user-id');
@@ -27,7 +28,10 @@ export function usePersonalProfile() {
     const savedPhone = localStorage.getItem('zipco-user-phone') ?? '';
     const savedLocation = localStorage.getItem('zipco-user-location') ?? '';
 
-    if (!userId || !token) return;
+    if (!userId || !token) {
+      setIsLoadingUserInfo(false);
+      return;
+    }
 
     const loadUserInfo = async () => {
       try {
@@ -57,6 +61,8 @@ export function usePersonalProfile() {
         }));
       } catch (error) {
         // Mantener datos locales si el backend no responde.
+      } finally {
+        setIsLoadingUserInfo(false);
       }
     };
 
@@ -247,6 +253,7 @@ export function usePersonalProfile() {
     personalLocationTouched,
     setPersonalLocationTouched,
     isUploadingProfilePhoto,
+    isLoadingUserInfo,
     handleStartEditingPersonalInfo,
     handleCancelEditingPersonalInfo,
     getPersonalLocationLabel,

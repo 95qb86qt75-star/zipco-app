@@ -127,6 +127,8 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
           setBusinessAddressSuggestions={businessProfile.setBusinessAddressSuggestions}
           setHasBusinessAddressSearched={businessProfile.setHasBusinessAddressSearched}
           hasBusinessAddressSearched={businessProfile.hasBusinessAddressSearched}
+          businessAddressTouched={businessProfile.businessAddressTouched}
+          setBusinessAddressTouched={businessProfile.setBusinessAddressTouched}
           setShowBusinessConfig={setShowBusinessConfig}
           isBusinessReadyToPublish={businessProfile.isBusinessReadyToPublish}
           handlePublishBusiness={businessProfile.handlePublishBusiness}
@@ -150,6 +152,7 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
           handleCancelEditingPersonalInfo={personalProfile.handleCancelEditingPersonalInfo}
           handleSavePersonalInfo={personalProfile.handleSavePersonalInfo}
           userInfo={personalProfile.userInfo}
+          isLoadingUserInfo={personalProfile.isLoadingUserInfo}
         />
         <QuickActionsCard profileTab={profileTab} />
 

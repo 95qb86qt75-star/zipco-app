@@ -22,6 +22,8 @@ export default function BusinessInfoSection({
   setBusinessAddressSuggestions,
   setHasBusinessAddressSearched,
   hasBusinessAddressSearched,
+  businessAddressTouched,
+  setBusinessAddressTouched,
   setShowBusinessConfig,
   isBusinessReadyToPublish,
   handlePublishBusiness,
@@ -50,7 +52,7 @@ export default function BusinessInfoSection({
             ) : (
             <>
             <div className={`${profileCardClass} rounded-2xl p-5 border shadow-md mb-4 ${
-              ['Nombre del negocio', 'Descripción', 'Dirección', 'Teléfono'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : isBusinessProfileTab ? 'border-white/20' : 'border-white/50'
+              ['Nombre del negocio', 'Descripción', 'Dirección'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : isBusinessProfileTab ? 'border-white/20' : 'border-white/50'
             }`}>
               <div className="flex items-center justify-between mb-4">
                 <h4 className={`font-bold ${businessTextClass}`}>🏪 Datos del Negocio</h4>
@@ -131,10 +133,13 @@ export default function BusinessInfoSection({
                         <input
                           type="text"
                           value={businessSocialForm.address}
-                          onChange={(e) => setBusinessSocialForm({ ...businessSocialForm, address: e.target.value })}
+                          onChange={(e) => {
+                            setBusinessAddressTouched(true);
+                            setBusinessSocialForm({ ...businessSocialForm, address: e.target.value });
+                          }}
                           className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                         />
-                        {businessSocialForm.address.trim().length >= 3 && (
+                        {businessAddressTouched && businessSocialForm.address.trim().length >= 3 && (
                           <div className="absolute left-0 right-0 top-full mt-2 z-30 max-h-52 overflow-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
                             {isBusinessAddressLoading ? (
                               <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
@@ -146,9 +151,10 @@ export default function BusinessInfoSection({
                                     key={`${result.place_id ?? result.osm_id ?? 'business-address'}-${index}`}
                                     type="button"
                                     onClick={() => {
-                                      setBusinessSocialForm({ ...businessSocialForm, address: label });
                                       setBusinessAddressSuggestions([]);
                                       setHasBusinessAddressSearched(false);
+                                      setBusinessAddressTouched(false);
+                                      setBusinessSocialForm({ ...businessSocialForm, address: label });
                                     }}
                                     className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
                                   >
