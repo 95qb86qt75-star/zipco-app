@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Clock, Eye, Facebook, Instagram, MapPin, ShoppingCart, Star, Store, X } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, Facebook, Instagram, MapPin, ShoppingCart, Store, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
@@ -72,9 +72,9 @@ function parseProducts(raw: any): any[] {
 
 function formatDistance(km: any) {
   const distance = Number(km ?? 0);
-  if (!Number.isFinite(distance) || distance <= 0) return 'Cerca de ti';
-  if (distance < 1) return `${Math.round(distance * 1000)} m de ti`;
-  return `${distance.toFixed(1)} km de ti`;
+  if (!Number.isFinite(distance) || distance <= 0) return 'A pocos km de ti';
+  if (distance < 1) return `A ${Math.round(distance * 1000)} m de ti`;
+  return `A ${distance.toFixed(1)} km de ti`;
 }
 
 function formatBusinessType(value: any) {
@@ -123,7 +123,7 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
   const realProducts = parseProducts(business.products);
   const products = realProducts.length > 0 ? realProducts : mockProducts;
   const isRealBusiness = realProducts.length > 0;
-  const businessImage = business.image || business.photo || business.imageUrl;
+  const businessImage = business.photo || business.imageUrl || business.image;
   const businessType = formatBusinessType(business.type || business.category || business.categoryName);
   const isBusinessOpen = business.isOpen ?? business.open ?? true;
   const closingTime = business.closesAt || business.closeTime || business.closingTime;
@@ -152,24 +152,30 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
         </button>
 
         <motion.div
-          animate={{ height: isScrolled ? 70 : 'auto', padding: isScrolled ? '8px' : '22px' }}
+          animate={{ height: isScrolled ? 70 : 'auto', padding: isScrolled ? '8px' : '24px' }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="bg-white rounded-[28px] shadow-xl shadow-slate-900/10 border border-white/80 overflow-hidden mb-2"
+          className="bg-white rounded-[28px] shadow-[0_18px_50px_rgba(15,23,42,0.10),0_4px_18px_rgba(20,200,184,0.08)] border border-white/80 overflow-hidden mb-2"
         >
           <div className="flex gap-4 items-center">
             <motion.div
-              animate={{ width: isScrolled ? 50 : 104, height: isScrolled ? 50 : 104 }}
+              animate={{ width: isScrolled ? 50 : 124, height: isScrolled ? 50 : 124 }}
               transition={{ duration: 0.3 }}
               className="relative shrink-0"
             >
               {!isScrolled && (
-                <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-violet-300/45 via-teal-200/45 to-sky-300/35 blur-xl" />
+                <div className="absolute -inset-3 rounded-full bg-[#14C8B8]/20 blur-2xl" />
               )}
-              <ImageWithFallback
-                src={businessImage}
-                alt={business.name}
-                className="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg shadow-teal-500/20"
-              />
+              {businessImage ? (
+                <ImageWithFallback
+                  src={businessImage}
+                  alt={business.name}
+                  className="relative w-full h-full rounded-full object-cover border-4 border-white shadow-[0_10px_26px_rgba(20,200,184,0.16)]"
+                />
+              ) : (
+                <div className="relative w-full h-full rounded-full border-4 border-white bg-[#14C8B8]/10 shadow-[0_10px_26px_rgba(20,200,184,0.16)] flex items-center justify-center">
+                  <Store className="w-10 h-10 text-[#14C8B8]" />
+                </div>
+              )}
             </motion.div>
 
             <div className="flex-1 min-w-0">
@@ -178,21 +184,21 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
               </h2>
 
               {!isScrolled && (
-                <motion.div initial={{ opacity: 1 }} animate={{ opacity: isScrolled ? 0 : 1 }} className="space-y-3">
+                <motion.div initial={{ opacity: 1 }} animate={{ opacity: isScrolled ? 0 : 1 }} className="space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700">
-                      <Store className="w-4 h-4 text-teal-600" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-xs font-bold text-[#0F8F86]">
+                      <Store className="w-3.5 h-3.5 text-[#14C8B8]" />
                       {businessType}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700">
-                      <MapPin className="w-4 h-4 text-teal-600 fill-teal-500/15" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-xs font-bold text-[#0F8F86]">
+                      <MapPin className="w-3.5 h-3.5 text-[#14C8B8] fill-[#14C8B8]/15" />
                       {distanceLabel}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className={`inline-flex items-center gap-2 font-bold ${isBusinessOpen ? 'text-emerald-600' : 'text-red-500'}`}>
-                      <span className={`h-2.5 w-2.5 rounded-full ${isBusinessOpen ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <span className={`inline-flex items-center gap-2 text-[15px] font-bold ${isBusinessOpen ? 'text-emerald-600' : 'text-red-500'}`}>
+                      <span className={`h-2.5 w-2.5 rounded-full shadow-sm ${isBusinessOpen ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'}`} />
                       {isBusinessOpen ? 'Abierto ahora' : 'Cerrado'}
                     </span>
                     {isBusinessOpen && closingTime && (
@@ -216,14 +222,14 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
               animate={{ opacity: isScrolled ? 0 : 1, height: isScrolled ? 0 : 'auto' }}
               transition={{ duration: 0.2 }}
             >
-              <div className="mt-5 border-t border-slate-100 pt-4">
+              <div className="mt-4 border-t border-slate-100 pt-4">
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  {business.description || 'Especialistas en reposteria artesanal. Mas de 10 anos creando momentos dulces para tu familia.'}
+                  {business.description || 'Especialistas en repostería artesanal. Más de 10 años creando momentos dulces para tu familia.'}
                 </p>
               </div>
 
-              <div className="mt-5 inline-flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 shadow-sm ring-1 ring-slate-100">
-                <span className="text-sm font-bold text-slate-600">Siguenos</span>
+              <div className="mt-4 inline-flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+                <span className="text-sm font-bold text-slate-600">Síguenos</span>
                 <span className="h-6 w-px bg-slate-200" />
                 <button
                   type="button"
@@ -250,66 +256,6 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
           )}
         </motion.div>
 
-        {false && (
-        <motion.div
-          animate={{ height: isScrolled ? 70 : 'auto', padding: isScrolled ? '8px' : '20px' }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 overflow-hidden mb-2"
-        >
-          <div className="flex gap-3 items-center">
-            <motion.div animate={{ width: isScrolled ? 50 : 80, height: isScrolled ? 50 : 80 }} transition={{ duration: 0.3 }}>
-              <ImageWithFallback
-                src={business.image || business.photo}
-                alt={business.name}
-                className="w-full h-full rounded-full object-cover border-2 border-teal-500"
-              />
-            </motion.div>
-
-            <div className="flex-1 min-w-0">
-              <h2 className={`font-bold text-gray-900 truncate ${isScrolled ? 'text-sm' : 'text-xl mb-1'}`}>
-                {business.name}
-              </h2>
-
-              {!isScrolled && (
-                <motion.div initial={{ opacity: 1 }} animate={{ opacity: isScrolled ? 0 : 1 }} className="flex items-center gap-2 mb-2">
-                  <span className={`text-xs px-2 py-1 rounded-full ${business.type === 'Negocio' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                    {business.type}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-sm font-semibold text-gray-700">4.8</span>
-                    <span className="text-xs text-gray-500">(23 reseñas)</span>
-                  </div>
-                </motion.div>
-              )}
-
-              <div className="flex items-center gap-2">
-                {business.instagram && (
-                  <button className={`bg-gradient-to-br from-purple-500 to-pink-500 rounded-full hover:scale-110 transition-all ${isScrolled ? 'p-1.5' : 'p-2'}`}>
-                    <Instagram className={`text-white ${isScrolled ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                  </button>
-                )}
-                {business.facebook && (
-                  <button className={`bg-blue-600 rounded-full hover:scale-110 transition-all ${isScrolled ? 'p-1.5' : 'p-2'}`}>
-                    <Facebook className={`text-white ${isScrolled ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {!isScrolled && (
-            <motion.p
-              initial={{ opacity: 1, height: 'auto' }}
-              animate={{ opacity: isScrolled ? 0 : 1, height: isScrolled ? 0 : 'auto' }}
-              transition={{ duration: 0.2 }}
-              className="text-sm text-gray-600 leading-relaxed mt-4"
-            >
-              {business.description || 'Especialistas en repostería artesanal. Más de 10 años creando momentos dulces para tu familia.'}
-            </motion.p>
-          )}
-        </motion.div>
-        )}
       </div>
 
       <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-4 pb-28">
