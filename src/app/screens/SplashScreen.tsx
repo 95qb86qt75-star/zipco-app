@@ -12,32 +12,33 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
   }, [onComplete]);
 
   return (
-    <div className="size-full overflow-hidden bg-[#020817] flex items-center justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(20,200,184,0.15),transparent_34%),radial-gradient(circle_at_top,rgba(31,41,120,0.30),transparent_48%),linear-gradient(180deg,#030716_0%,#071426_52%,#020817_100%)]" />
+    <div className="size-full overflow-hidden bg-[#050D1A] flex items-center justify-center">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#0D2137_0%,#09172A_48%,#050D1A_100%)]" />
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="relative z-10 flex translate-y-8 flex-col items-center px-4 text-center"
+        className="relative z-10 flex min-h-full flex-col items-center justify-center px-8 text-center"
       >
-        <img
-          src={ZIPCO_LOGO_URL}
-          alt="ZIPCO"
-          className="w-[520px] max-w-[98vw] h-auto drop-shadow-[0_34px_68px_rgba(20,200,184,0.30)]"
-        />
+        <div className="flex flex-col items-center">
+          <img
+            src={ZIPCO_LOGO_URL}
+            alt="ZIPCO"
+            className="w-[220px] h-auto drop-shadow-[0_24px_48px_rgba(20,200,184,0.24)]"
+          />
 
-        <h1 className="-mt-10 text-[clamp(58px,16vw,92px)] font-black leading-none tracking-[0.14em] text-white drop-shadow-[0_8px_20px_rgba(255,255,255,0.18)]">
-          ZIPCO
-        </h1>
-        <p className="mt-4 text-[clamp(24px,6vw,34px)] font-medium text-[#14C8B8]">
-          Cerca de ti
-        </p>
+          <h1 className="mt-10 text-[48px] font-bold leading-none tracking-[0.22em] text-white">
+            ZIPCO
+          </h1>
+          <p className="mt-4 text-[18px] font-medium text-[#14C8B8]">
+            Cerca de ti
+          </p>
+        </div>
 
         <div
-          className="mt-16 h-16 w-16 rounded-full p-1 animate-spin"
-          style={{ background: 'conic-gradient(from 0deg, #14C8B8, #2D7CFF, #8B5CF6, transparent 72%)' }}
+          className="absolute bottom-16 h-10 w-10 rounded-full border-4 border-[#14C8B8]/20 border-t-[#14C8B8] animate-spin"
+          aria-label="Cargando"
         >
-          <div className="h-full w-full rounded-full bg-[#020817]" />
         </div>
       </motion.div>
     </div>
