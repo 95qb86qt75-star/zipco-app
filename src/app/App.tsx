@@ -482,6 +482,7 @@ export default function App() {
         <div className="w-full max-w-md h-full relative">
           <BusinessProfileScreen
             business={selectedBusiness}
+            currentLocation={currentLocation}
             onBack={() => setCurrentScreen('negocios')}
             onCheckout={(selectedProducts, products) => {
               setCheckoutData({ selectedProducts, products });

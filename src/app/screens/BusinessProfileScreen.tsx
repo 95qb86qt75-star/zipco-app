@@ -70,9 +70,39 @@ function parseProducts(raw: any): any[] {
   }
 }
 
+function getCoordinate(...values: any[]) {
+  for (const value of values) {
+    const coordinate = Number(value);
+    if (Number.isFinite(coordinate)) return coordinate;
+  }
+
+  return null;
+}
+
+function calculateDistanceKm(fromLat: any, fromLng: any, toLat: any, toLng: any) {
+  const startLat = getCoordinate(fromLat);
+  const startLng = getCoordinate(fromLng);
+  const endLat = getCoordinate(toLat);
+  const endLng = getCoordinate(toLng);
+
+  if (startLat === null || startLng === null || endLat === null || endLng === null) return null;
+
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const deltaLat = toRadians(endLat - startLat);
+  const deltaLng = toRadians(endLng - startLng);
+  const lat1 = toRadians(startLat);
+  const lat2 = toRadians(endLat);
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function formatDistance(km: any) {
-  const distance = Number(km ?? 0);
-  if (!Number.isFinite(distance) || distance <= 0) return 'A pocos km de ti';
+  const distance = Number(km);
+  if (!Number.isFinite(distance) || distance <= 0) return '';
   if (distance < 1) return `A ${Math.round(distance * 1000)} m de ti`;
   return `A ${distance.toFixed(1)} km de ti`;
 }
@@ -89,7 +119,17 @@ function formatBusinessType(value: any) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export default function BusinessProfileScreen({ business, onBack, onCheckout }: { business: any; onBack: () => void; onCheckout: (selectedProducts: any[], products: any[]) => void }) {
+export default function BusinessProfileScreen({
+  business,
+  currentLocation,
+  onBack,
+  onCheckout
+}: {
+  business: any;
+  currentLocation?: { lat: number | null; lng: number | null };
+  onBack: () => void;
+  onCheckout: (selectedProducts: any[], products: any[]) => void;
+}) {
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [previewProduct, setPreviewProduct] = useState<any | null>(null);
   const [showRemoveTooltip, setShowRemoveTooltip] = useState(false);
@@ -127,7 +167,13 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
   const businessType = formatBusinessType(business.type || business.category || business.categoryName);
   const isBusinessOpen = business.isOpen ?? business.open ?? true;
   const closingTime = business.closesAt || business.closeTime || business.closingTime;
-  const distanceLabel = formatDistance(business.distance ?? business.distanceKm ?? business.distance_km);
+  const calculatedDistanceKm = calculateDistanceKm(
+    currentLocation?.lat,
+    currentLocation?.lng,
+    business.latitude ?? business.lat,
+    business.longitude ?? business.lng ?? business.lon
+  );
+  const distanceLabel = formatDistance(calculatedDistanceKm);
 
   const handleOrderToggle = (productId: any) => {
     const isSelected = selectedProducts.includes(productId);
@@ -154,25 +200,25 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
         <motion.div
           animate={{ height: isScrolled ? 78 : 'auto', padding: isScrolled ? '8px' : '24px' }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="bg-white rounded-[28px] shadow-[0_18px_50px_rgba(15,23,42,0.10),0_4px_18px_rgba(20,200,184,0.08)] border border-white/80 overflow-hidden mb-2"
+          className="bg-white rounded-[28px] shadow-[0_20px_54px_rgba(15,23,42,0.11),0_10px_34px_rgba(167,139,250,0.10),0_3px_14px_rgba(15,23,42,0.05)] border border-white/80 overflow-hidden mb-2"
         >
           <div className="flex gap-4 items-center">
             <motion.div
-              animate={{ width: isScrolled ? 50 : 124, height: isScrolled ? 50 : 124 }}
+              animate={{ width: isScrolled ? 50 : 148, height: isScrolled ? 50 : 148 }}
               transition={{ duration: 0.3 }}
               className="relative shrink-0"
             >
               {!isScrolled && (
-                <div className="absolute -inset-3 rounded-full bg-[#14C8B8]/20 blur-2xl" />
+                <div className="absolute -inset-4 rounded-full bg-[#B9A7FF]/30 blur-3xl" />
               )}
               {businessImage ? (
                 <ImageWithFallback
                   src={businessImage}
                   alt={business.name}
-                  className="relative w-full h-full rounded-full object-cover border-4 border-white shadow-[0_10px_26px_rgba(20,200,184,0.16)]"
+                  className="relative w-full h-full rounded-full object-cover border-4 border-white shadow-[0_12px_30px_rgba(124,92,255,0.14)]"
                 />
               ) : (
-                <div className="relative w-full h-full rounded-full border-4 border-white bg-[#14C8B8]/10 shadow-[0_10px_26px_rgba(20,200,184,0.16)] flex items-center justify-center">
+                <div className="relative w-full h-full rounded-full border-4 border-white bg-[#B9A7FF]/15 shadow-[0_12px_30px_rgba(124,92,255,0.14)] flex items-center justify-center">
                   <Store className="w-10 h-10 text-[#14C8B8]" />
                 </div>
               )}
@@ -190,10 +236,12 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
                       {isBusinessOpen ? 'Abierto' : 'Cerrado'}
                     </span>
                   </div>
-                  <span className="hidden min-[390px]:inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-[11px] font-bold text-[#0F8F86]">
-                    <MapPin className="h-3 w-3 text-[#14C8B8]" />
-                    {distanceLabel}
-                  </span>
+                  {distanceLabel && (
+                    <span className="hidden min-[390px]:inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-[11px] font-bold text-[#0F8F86]">
+                      <MapPin className="h-3 w-3 text-[#14C8B8]" />
+                      {distanceLabel}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <h2 className="mb-2 truncate text-2xl font-bold text-slate-950">
@@ -204,14 +252,16 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
               {!isScrolled && (
                 <motion.div initial={{ opacity: 1 }} animate={{ opacity: isScrolled ? 0 : 1 }} className="space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-xs font-bold text-[#0F8F86]">
-                      <Store className="w-3.5 h-3.5 text-[#14C8B8]" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2 py-0.5 text-[11px] font-bold text-[#0F8F86]">
+                      <Store className="w-3 h-3 text-[#14C8B8]" />
                       {businessType}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-xs font-bold text-[#0F8F86]">
-                      <MapPin className="w-3.5 h-3.5 text-[#14C8B8] fill-[#14C8B8]/15" />
-                      {distanceLabel}
-                    </span>
+                    {distanceLabel && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2 py-0.5 text-[11px] font-bold text-[#0F8F86]">
+                        <MapPin className="w-3 h-3 text-[#14C8B8] fill-[#14C8B8]/15" />
+                        {distanceLabel}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 text-sm">
