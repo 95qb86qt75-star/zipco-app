@@ -13,27 +13,32 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
 
   return (
     <div className="size-full overflow-hidden bg-[#0B1A2E] flex items-center justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(20,200,184,0.14),transparent_38%),radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_42%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(20,200,184,0.14),transparent_36%),radial-gradient(circle_at_top,rgba(99,102,241,0.16),transparent_44%)]" />
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="relative z-10 flex flex-col items-center px-8 text-center"
+        className="relative z-10 flex -translate-y-2 flex-col items-center px-8 text-center"
       >
         <img
           src={ZIPCO_LOGO_URL}
           alt="ZIPCO"
-          className="w-[240px] max-w-[68vw] h-auto drop-shadow-[0_24px_48px_rgba(20,200,184,0.24)]"
+          className="w-[360px] max-w-[86vw] h-auto drop-shadow-[0_30px_60px_rgba(20,200,184,0.28)]"
         />
 
-        <h1 className="mt-10 text-[42px] font-bold leading-none tracking-[0.18em] text-white">
+        <h1 className="mt-2 text-[72px] font-extrabold leading-none tracking-[0.16em] text-white drop-shadow-[0_8px_18px_rgba(255,255,255,0.16)]">
           ZIPCO
         </h1>
-        <p className="mt-5 text-[20px] font-medium text-[#14C8B8]">
+        <p className="mt-5 text-[28px] font-medium text-[#14C8B8]">
           Cerca de ti
         </p>
 
-        <div className="mt-20 h-14 w-14 rounded-full border-4 border-[#14C8B8]/20 border-t-[#14C8B8] animate-spin" />
+        <div
+          className="mt-28 h-16 w-16 rounded-full p-1 animate-spin"
+          style={{ background: 'conic-gradient(from 0deg, #14C8B8, #2D7CFF, #8B5CF6, transparent 72%)' }}
+        >
+          <div className="h-full w-full rounded-full bg-[#0B1A2E]" />
+        </div>
       </motion.div>
     </div>
   );
