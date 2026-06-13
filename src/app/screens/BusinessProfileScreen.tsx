@@ -279,6 +279,31 @@ export default function BusinessProfileScreen({
                       </>
                     )}
                   </div>
+
+                  <div className="inline-flex w-fit items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+                    <span className="text-sm font-bold text-slate-600">Síguenos</span>
+                    <span className="h-5 w-px bg-slate-200" />
+                    <button
+                      type="button"
+                      className={`rounded-full p-2 transition-all ${
+                        business.instagram
+                          ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:scale-105'
+                          : 'bg-slate-200'
+                      }`}
+                      aria-label="Instagram"
+                    >
+                      <Instagram className={`w-4 h-4 ${business.instagram ? 'text-white' : 'text-slate-400'}`} />
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-full p-2 transition-all ${
+                        business.facebook ? 'bg-blue-600 hover:scale-105' : 'bg-slate-200'
+                      }`}
+                      aria-label="Facebook"
+                    >
+                      <Facebook className={`w-4 h-4 ${business.facebook ? 'text-white' : 'text-slate-400'}`} />
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </div>
@@ -290,35 +315,10 @@ export default function BusinessProfileScreen({
               animate={{ opacity: isScrolled ? 0 : 1, height: isScrolled ? 0 : 'auto' }}
               transition={{ duration: 0.2 }}
             >
-              <div className="mt-4 border-t border-slate-100 pt-4">
+              <div className="mt-3 border-t border-slate-100 pt-3">
                 <p className="text-sm text-slate-600 leading-relaxed">
                   {business.description || 'Especialistas en repostería artesanal. Más de 10 años creando momentos dulces para tu familia.'}
                 </p>
-              </div>
-
-              <div className="mt-4 inline-flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
-                <span className="text-sm font-bold text-slate-600">Síguenos</span>
-                <span className="h-6 w-px bg-slate-200" />
-                <button
-                  type="button"
-                  className={`rounded-full p-2 transition-all ${
-                    business.instagram
-                      ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:scale-105'
-                      : 'bg-slate-200'
-                  }`}
-                  aria-label="Instagram"
-                >
-                  <Instagram className={`w-4 h-4 ${business.instagram ? 'text-white' : 'text-slate-400'}`} />
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-full p-2 transition-all ${
-                    business.facebook ? 'bg-blue-600 hover:scale-105' : 'bg-slate-200'
-                  }`}
-                  aria-label="Facebook"
-                >
-                  <Facebook className={`w-4 h-4 ${business.facebook ? 'text-white' : 'text-slate-400'}`} />
-                </button>
               </div>
             </motion.div>
           )}
