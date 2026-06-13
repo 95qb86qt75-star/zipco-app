@@ -77,6 +77,18 @@ function formatDistance(km: any) {
   return `${distance.toFixed(1)} km de ti`;
 }
 
+function formatBusinessType(value: any) {
+  const label = String(value ?? '').trim();
+  if (!label) return 'Negocio';
+
+  const normalized = label.toLowerCase();
+  if (normalized === 'negocios' || normalized === 'negocio') return 'Negocio';
+  if (normalized === 'servicios' || normalized === 'servicio') return 'Servicio';
+  if (normalized === 'particular') return 'Particular';
+
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export default function BusinessProfileScreen({ business, onBack, onCheckout }: { business: any; onBack: () => void; onCheckout: (selectedProducts: any[], products: any[]) => void }) {
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [previewProduct, setPreviewProduct] = useState<any | null>(null);
@@ -112,7 +124,7 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
   const products = realProducts.length > 0 ? realProducts : mockProducts;
   const isRealBusiness = realProducts.length > 0;
   const businessImage = business.image || business.photo || business.imageUrl;
-  const businessType = business.category || business.categoryName || business.type || 'Negocio';
+  const businessType = formatBusinessType(business.type || business.category || business.categoryName);
   const isBusinessOpen = business.isOpen ?? business.open ?? true;
   const closingTime = business.closesAt || business.closeTime || business.closingTime;
   const distanceLabel = formatDistance(business.distance ?? business.distanceKm ?? business.distance_km);
@@ -206,12 +218,12 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
             >
               <div className="mt-5 border-t border-slate-100 pt-4">
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  {business.description || 'Especialistas en reposterÃ­a artesanal. MÃ¡s de 10 aÃ±os creando momentos dulces para tu familia.'}
+                  {business.description || 'Especialistas en reposteria artesanal. Mas de 10 anos creando momentos dulces para tu familia.'}
                 </p>
               </div>
 
               <div className="mt-5 inline-flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 shadow-sm ring-1 ring-slate-100">
-                <span className="text-sm font-bold text-slate-600">SÃ­guenos</span>
+                <span className="text-sm font-bold text-slate-600">Siguenos</span>
                 <span className="h-6 w-px bg-slate-200" />
                 <button
                   type="button"
