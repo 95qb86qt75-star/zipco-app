@@ -23,17 +23,17 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
         <img
           src={ZIPCO_LOGO_URL}
           alt="ZIPCO"
-          className="w-[160px] h-auto drop-shadow-[0_18px_36px_rgba(20,200,184,0.20)]"
+          className="w-[240px] max-w-[68vw] h-auto drop-shadow-[0_24px_48px_rgba(20,200,184,0.24)]"
         />
 
-        <h1 className="mt-8 text-[32px] font-bold leading-none tracking-[0.18em] text-white">
+        <h1 className="mt-10 text-[42px] font-bold leading-none tracking-[0.18em] text-white">
           ZIPCO
         </h1>
-        <p className="mt-4 text-base font-medium text-[#14C8B8]">
+        <p className="mt-5 text-[20px] font-medium text-[#14C8B8]">
           Cerca de ti
         </p>
 
-        <div className="mt-24 h-14 w-14 rounded-full border-4 border-[#14C8B8]/20 border-t-[#14C8B8] animate-spin" />
+        <div className="mt-20 h-14 w-14 rounded-full border-4 border-[#14C8B8]/20 border-t-[#14C8B8] animate-spin" />
       </motion.div>
     </div>
   );
