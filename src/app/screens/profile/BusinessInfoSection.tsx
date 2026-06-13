@@ -56,13 +56,15 @@ export default function BusinessInfoSection({
             }`}>
               <div className="flex items-center justify-between mb-4">
                 <h4 className={`font-bold ${businessTextClass}`}>🏪 Datos del Negocio</h4>
-                <button
-                  type="button"
-                  onClick={isEditingBusinessInfo ? handleSaveBusinessInfo : handleStartEditingBusinessInfo}
-                  className="text-teal-600 text-sm font-semibold hover:text-teal-700"
-                >
-                  {isEditingBusinessInfo ? 'Guardar' : 'Editar'}
-                </button>
+                {!isEditingBusinessInfo && (
+                  <button
+                    type="button"
+                    onClick={handleStartEditingBusinessInfo}
+                    className="text-teal-600 text-sm font-semibold hover:text-teal-700"
+                  >
+                    Editar
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="relative shrink-0">
@@ -277,6 +279,17 @@ export default function BusinessInfoSection({
             >
               Publicar negocio
             </button>
+            {isEditingBusinessInfo && (
+              <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md bg-white/95 px-4 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.12)] backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={handleSaveBusinessInfo}
+                  className="w-full rounded-2xl bg-[#14C8B8] px-6 py-4 font-bold text-white shadow-lg shadow-[#14C8B8]/25 transition-all hover:bg-[#0FB6A8] active:scale-[0.98]"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            )}
             </>
             )}
           </>
