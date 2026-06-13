@@ -152,13 +152,13 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
         </button>
 
         <motion.div
-          animate={{ height: isScrolled ? 70 : 'auto', padding: isScrolled ? '8px' : '24px' }}
+          animate={{ height: isScrolled ? 84 : 'auto', padding: isScrolled ? '10px' : '24px' }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           className="bg-white rounded-[28px] shadow-[0_18px_50px_rgba(15,23,42,0.10),0_4px_18px_rgba(20,200,184,0.08)] border border-white/80 overflow-hidden mb-2"
         >
           <div className="flex gap-4 items-center">
             <motion.div
-              animate={{ width: isScrolled ? 50 : 124, height: isScrolled ? 50 : 124 }}
+              animate={{ width: isScrolled ? 54 : 124, height: isScrolled ? 54 : 124 }}
               transition={{ duration: 0.3 }}
               className="relative shrink-0"
             >
@@ -179,9 +179,23 @@ export default function BusinessProfileScreen({ business, onBack, onCheckout }: 
             </motion.div>
 
             <div className="flex-1 min-w-0">
-              <h2 className={`font-bold text-slate-950 truncate ${isScrolled ? 'text-sm' : 'text-2xl mb-2'}`}>
+              <h2 className={`font-bold text-slate-950 truncate ${isScrolled ? 'text-base mb-1' : 'text-2xl mb-2'}`}>
                 {business.name}
               </h2>
+
+              {isScrolled && (
+                <div className="flex min-w-0 items-center gap-2 text-[11px] font-semibold text-slate-500">
+                  <span className={`inline-flex items-center gap-1.5 ${isBusinessOpen ? 'text-[#0F8F86]' : 'text-red-500'}`}>
+                    <span className={`h-2 w-2 rounded-full ${isBusinessOpen ? 'bg-[#14C8B8]' : 'bg-red-500'}`} />
+                    {isBusinessOpen ? 'Abierto' : 'Cerrado'}
+                  </span>
+                  <span className="h-3 w-px bg-slate-200" />
+                  <span className="inline-flex min-w-0 items-center gap-1 truncate">
+                    <MapPin className="h-3 w-3 shrink-0 text-[#14C8B8]" />
+                    <span className="truncate">{distanceLabel}</span>
+                  </span>
+                </div>
+              )}
 
               {!isScrolled && (
                 <motion.div initial={{ opacity: 1 }} animate={{ opacity: isScrolled ? 0 : 1 }} className="space-y-2.5">
