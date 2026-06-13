@@ -15,6 +15,7 @@ import GlobalSearchScreen from './screens/GlobalSearchScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EmptyFavorites from './screens/EmptyFavorites';
 import Toast, { showAppToast, type ToastType } from './screens/Toast';
+import SplashScreen from './screens/SplashScreen';
 
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
@@ -39,7 +40,7 @@ export default function App() {
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(
     () => localStorage.getItem('zipco-registration-complete') === 'true' || hasStoredSession()
   );
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => sessionStorage.getItem('zipco-splash-seen') !== 'true');
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -72,15 +73,6 @@ export default function App() {
 
     localStorage.setItem('zipco-location', JSON.stringify(currentLocation));
   }, [currentLocation]);
-
-  // Splash screen timer
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 3000); // 3 segundos
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('zipco-theme');
@@ -263,80 +255,12 @@ export default function App() {
   // Splash Screen
   if (showSplash) {
     return renderWithToast(
-      <div className="size-full bg-gradient-to-br from-teal-500 via-blue-600 to-purple-700 flex items-center justify-center overflow-hidden">
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            duration: 0.8,
-            ease: "easeOut"
-          }}
-          className="flex flex-col items-center"
-        >
-          {/* Logo Icon with Pulse */}
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="mb-6"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-white/30 rounded-full blur-3xl"></div>
-              <MapPin className="w-32 h-32 text-white drop-shadow-2xl relative z-10" strokeWidth={2} />
-            </div>
-          </motion.div>
-
-          {/* App Name */}
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-6xl font-bold text-white tracking-tight mb-3 drop-shadow-lg"
-          >
-            ZIPCCO
-          </motion.h1>
-
-          {/* Tagline */}
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="text-white/90 text-lg font-medium tracking-wide"
-          >
-            Descubre lo cercano
-          </motion.p>
-
-          {/* Loading dots */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.4 }}
-            className="flex gap-2 mt-12"
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.3, 1, 0.3]
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2
-                }}
-                className="w-3 h-3 bg-white rounded-full"
-              />
-            ))}
-          </motion.div>
-        </motion.div>
-      </div>
+      <SplashScreen
+        onComplete={() => {
+          sessionStorage.setItem('zipco-splash-seen', 'true');
+          setShowSplash(false);
+        }}
+      />
     );
   }
 
