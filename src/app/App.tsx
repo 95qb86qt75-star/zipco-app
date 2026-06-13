@@ -19,6 +19,22 @@ import Toast, { showAppToast, type ToastType } from './screens/Toast';
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
 
+const getStoredLocation = () => {
+  try {
+    const savedLocation = localStorage.getItem('zipco-location');
+    if (!savedLocation) return { name: '', lat: null, lng: null };
+
+    const parsedLocation = JSON.parse(savedLocation);
+    return {
+      name: String(parsedLocation.name ?? ''),
+      lat: typeof parsedLocation.lat === 'number' ? parsedLocation.lat : null,
+      lng: typeof parsedLocation.lng === 'number' ? parsedLocation.lng : null
+    };
+  } catch (error) {
+    return { name: '', lat: null, lng: null };
+  }
+};
+
 export default function App() {
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(
     () => localStorage.getItem('zipco-registration-complete') === 'true' || hasStoredSession()
@@ -34,7 +50,7 @@ export default function App() {
   const [isLocationAutocompleteLoading, setIsLocationAutocompleteLoading] = useState(false);
   const [hasLocationAutocompleteSearched, setHasLocationAutocompleteSearched] = useState(false);
   const [pendingLocation, setPendingLocation] = useState('');
-  const [currentLocation, setCurrentLocation] = useState<{ name: string; lat: number | null; lng: number | null }>({ name: '', lat: null, lng: null });
+  const [currentLocation, setCurrentLocation] = useState<{ name: string; lat: number | null; lng: number | null }>(getStoredLocation);
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -50,6 +66,12 @@ export default function App() {
       setIsRegistrationComplete(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!currentLocation.name.trim()) return;
+
+    localStorage.setItem('zipco-location', JSON.stringify(currentLocation));
+  }, [currentLocation]);
 
   // Splash screen timer
   useEffect(() => {
