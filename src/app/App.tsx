@@ -16,8 +16,13 @@ import ProfileScreen from './screens/ProfileScreen';
 import EmptyFavorites from './screens/EmptyFavorites';
 import Toast, { showAppToast, type ToastType } from './screens/Toast';
 
+const hasStoredSession = () =>
+  Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
+
 export default function App() {
-  const [isRegistrationComplete, setIsRegistrationComplete] = useState(() => localStorage.getItem('zipco-registration-complete') === 'true');
+  const [isRegistrationComplete, setIsRegistrationComplete] = useState(
+    () => localStorage.getItem('zipco-registration-complete') === 'true' || hasStoredSession()
+  );
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -38,6 +43,13 @@ export default function App() {
   const [favoriteItems] = useState<any[]>([]);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<ToastType>('success');
+
+  useEffect(() => {
+    if (hasStoredSession()) {
+      localStorage.setItem('zipco-registration-complete', 'true');
+      setIsRegistrationComplete(true);
+    }
+  }, []);
 
   // Splash screen timer
   useEffect(() => {

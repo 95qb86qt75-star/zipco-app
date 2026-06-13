@@ -40,6 +40,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     localStorage.setItem('zipco-token', token);
     localStorage.setItem('zipco-user-id', String(userId));
     localStorage.setItem('zipco-user-phone', phone);
+    localStorage.removeItem('zipco-business-id');
 
     try {
       await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
