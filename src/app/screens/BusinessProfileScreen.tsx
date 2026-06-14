@@ -138,19 +138,53 @@ export default function BusinessProfileScreen({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrolledRef = useRef(false);
   const lastScrollTopRef = useRef(0);
+  const touchStartYRef = useRef<number | null>(null);
+
+  const setHeaderScrolled = (nextValue: boolean) => {
+    if (nextValue === isScrolledRef.current) return;
+
+    isScrolledRef.current = nextValue;
+    setIsScrolled(nextValue);
+  };
+
+  const canExpandHeader = () => !scrollContainerRef.current || scrollContainerRef.current.scrollTop <= 0;
+
+  const handleProfileWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (event.deltaY > 2) {
+      setHeaderScrolled(true);
+      return;
+    }
+
+    if (event.deltaY < -2 && canExpandHeader()) {
+      setHeaderScrolled(false);
+    }
+  };
+
+  const handleProfileTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartYRef.current = event.touches[0]?.clientY ?? null;
+  };
+
+  const handleProfileTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touchStartY = touchStartYRef.current;
+    if (touchStartY === null) return;
+
+    const deltaY = touchStartY - event.touches[0].clientY;
+    if (deltaY > 8) {
+      setHeaderScrolled(true);
+    } else if (deltaY < -8 && canExpandHeader()) {
+      setHeaderScrolled(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
       if (scrollContainerRef.current) {
         const scrollTop = scrollContainerRef.current.scrollTop;
-        const shouldBeScrolled = isScrolledRef.current || scrollTop > lastScrollTopRef.current || scrollTop > 4;
+        const shouldBeScrolled = scrollTop > lastScrollTopRef.current || scrollTop > 4;
 
         lastScrollTopRef.current = scrollTop;
 
-        if (shouldBeScrolled !== isScrolledRef.current) {
-          isScrolledRef.current = shouldBeScrolled;
-          setIsScrolled(shouldBeScrolled);
-        }
+        if (shouldBeScrolled) setHeaderScrolled(true);
       }
     };
     const container = scrollContainerRef.current;
@@ -201,7 +235,12 @@ export default function BusinessProfileScreen({
   };
 
   return (
-    <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative">
+    <div
+      className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative"
+      onWheel={handleProfileWheel}
+      onTouchStart={handleProfileTouchStart}
+      onTouchMove={handleProfileTouchMove}
+    >
       <div className="px-4 pt-4 pb-1 border-b border-white/50 bg-white/80 backdrop-blur-sm">
         <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mb-1">
           <ArrowLeft className="w-5 h-5 text-gray-700" />
