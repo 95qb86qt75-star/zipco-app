@@ -404,7 +404,7 @@ export default function BusinessProfileScreen({
                 onClick={() => {
                   if (!canOrder) setPreviewProduct(product);
                 }}
-                className={`backdrop-blur-sm rounded-xl p-2.5 border-2 transition-all ${
+                className={`relative overflow-hidden backdrop-blur-sm rounded-xl p-2.5 border-2 transition-all ${
                   canOrder
                     ? isSelected
                       ? 'bg-emerald-50/90 border-teal-500 shadow-lg shadow-teal-500/20'
@@ -412,6 +412,7 @@ export default function BusinessProfileScreen({
                     : 'bg-blue-50/80 border-blue-100 shadow-md hover:shadow-lg cursor-pointer'
                 }`}
               >
+                <div className={`absolute left-0 top-0 h-full w-1 ${canOrder ? 'bg-[#14C8B8]' : 'bg-[#7C3AED]'}`} />
                 <div className="flex gap-2.5 items-center">
                   <div className="relative">
                     <ImageWithFallback
@@ -419,19 +420,23 @@ export default function BusinessProfileScreen({
                       alt={product.name}
                       className="w-12 h-12 rounded-lg object-cover"
                     />
-                    <div className="absolute -left-1.5 -top-1.5 w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-500/30 flex items-center justify-center">
+                    <div className={`absolute -left-1.5 -top-1.5 w-7 h-7 rounded-full shadow-lg flex items-center justify-center ${
+                      canOrder
+                        ? 'bg-gradient-to-br from-teal-400 to-emerald-500 shadow-teal-500/30'
+                        : 'bg-white border border-violet-100 shadow-violet-500/20'
+                    }`}>
                       {canOrder ? (
                         <ShoppingCart className="w-4 h-4 text-white" />
                       ) : (
-                        <Eye className="w-4 h-4 text-white" />
+                        <Eye className="w-4 h-4 text-[#7C3AED]" />
                       )}
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 self-center pr-24">
                     <h4 className="font-semibold text-gray-900 text-[13px] mb-0.5">{product.name}</h4>
                     <p className="text-[11px] text-gray-600 mb-1 line-clamp-2">{product.description}</p>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[13px] font-bold text-gray-900">
+                    <div className="absolute right-2.5 top-2.5 bottom-2.5 flex flex-col items-end justify-between">
+                      <span className="text-[15px] font-extrabold text-gray-950 leading-none">
                         ${Number(product.price).toLocaleString('es-CL')}
                       </span>
                       {canOrder && (
@@ -441,13 +446,27 @@ export default function BusinessProfileScreen({
                             event.stopPropagation();
                             handleOrderToggle(product.id);
                           }}
-                          className={`shrink-0 rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-all ${
+                          className={`shrink-0 rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-all inline-flex items-center gap-1.5 ${
                             isSelected
                               ? 'border-green-500 bg-white text-green-600 shadow-sm'
-                              : 'border-teal-500 bg-white text-teal-600 hover:bg-teal-50'
+                              : 'border-teal-500 bg-[#14C8B8] text-white shadow-sm shadow-teal-500/20 hover:bg-[#0FB5A7]'
                           }`}
                         >
+                          <ShoppingCart className="w-3.5 h-3.5" />
                           {isSelected ? 'Agregado ✓' : 'Agregar'}
+                        </button>
+                      )}
+                      {!canOrder && (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setPreviewProduct(product);
+                          }}
+                          className="shrink-0 rounded-lg border border-[#7C3AED] bg-white px-3 py-1.5 text-[11px] font-bold text-[#7C3AED] transition-all hover:bg-violet-50 inline-flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Ver
                         </button>
                       )}
                     </div>
