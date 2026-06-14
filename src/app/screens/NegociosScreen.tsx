@@ -9,6 +9,9 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
   const [maxDistance, setMaxDistance] = useState(10);
   const [showDistanceModal, setShowDistanceModal] = useState(false);
 
+  const normalize = (str: string) =>
+    str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
   const filters = [
     { id: 'todos', label: 'Todos' },
     { id: 'negocios', label: 'Negocios' },
@@ -330,10 +333,10 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
   const filteredResults = allResults.filter((result) => {
     // Filtro por búsqueda (nombre, descripción y keywords)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchesName = result.name.toLowerCase().includes(query);
-      const matchesDescription = result.description.toLowerCase().includes(query);
-      const matchesKeywords = result.keywords?.toLowerCase().includes(query) || false;
+      const query = normalize(searchQuery);
+      const matchesName = normalize(result.name).includes(query);
+      const matchesDescription = normalize(result.description).includes(query);
+      const matchesKeywords = result.keywords ? normalize(result.keywords).includes(query) : false;
 
       if (!matchesName && !matchesDescription && !matchesKeywords) {
         return false;
