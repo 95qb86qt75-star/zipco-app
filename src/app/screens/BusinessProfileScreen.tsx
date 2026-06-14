@@ -326,26 +326,26 @@ export default function BusinessProfileScreen({
 
       </div>
 
-      <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-4 pb-28">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
+      <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-3 pb-28">
+        <h3 className="text-base font-bold text-gray-900 mb-1.5">
           {isRealBusiness ? 'Productos y servicios' : 'Productos disponibles'}
         </h3>
 
-        <div className="bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-3 mb-4 shadow-sm">
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-2 rounded-full bg-teal-50 px-3 py-2 text-teal-700">
-              <span className="text-base">🛒</span>
-              <span className="text-xs font-bold">Se puede pedir</span>
+        <div className="bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-2 mb-3 shadow-sm">
+          <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1.5 text-teal-700">
+              <span className="text-sm">🛒</span>
+              <span className="text-[12px] font-bold">Se puede pedir</span>
             </div>
-            <div className="h-8 w-px bg-gray-200" />
-            <div className="flex items-center gap-2 rounded-full bg-teal-50 px-3 py-2 text-teal-700">
-              <span className="text-base">👁</span>
-              <span className="text-xs font-bold">Solo para ver</span>
+            <div className="h-6 w-px bg-gray-200" />
+            <div className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1.5 text-teal-700">
+              <span className="text-sm">👁</span>
+              <span className="text-[12px] font-bold">Solo para ver</span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {products.map((product) => {
             const isSelected = selectedProducts.includes(product.id);
             const canOrder = product.mode === 'order';
@@ -355,7 +355,7 @@ export default function BusinessProfileScreen({
                 onClick={() => {
                   if (!canOrder) setPreviewProduct(product);
                 }}
-                className={`backdrop-blur-sm rounded-2xl p-4 border-2 transition-all ${
+                className={`backdrop-blur-sm rounded-xl p-2.5 border-2 transition-all ${
                   canOrder
                     ? isSelected
                       ? 'bg-emerald-50/90 border-teal-500 shadow-lg shadow-teal-500/20'
@@ -363,26 +363,26 @@ export default function BusinessProfileScreen({
                     : 'bg-blue-50/80 border-blue-100 shadow-md hover:shadow-lg cursor-pointer'
                 }`}
               >
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-2.5 items-center">
                   <div className="relative">
                     <ImageWithFallback
                       src={product.image}
                       alt={product.name}
-                      className="w-20 h-20 rounded-xl object-cover"
+                      className="w-12 h-12 rounded-lg object-cover"
                     />
-                    <div className="absolute -left-2 -top-2 w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-500/30 flex items-center justify-center">
+                    <div className="absolute -left-1.5 -top-1.5 w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-500/30 flex items-center justify-center">
                       {canOrder ? (
-                        <ShoppingCart className="w-5 h-5 text-white" />
+                        <ShoppingCart className="w-4 h-4 text-white" />
                       ) : (
-                        <Eye className="w-5 h-5 text-white" />
+                        <Eye className="w-4 h-4 text-white" />
                       )}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 text-sm mb-1">{product.name}</h4>
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">{product.description}</p>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-base font-bold text-gray-900">
+                    <h4 className="font-semibold text-gray-900 text-[13px] mb-0.5">{product.name}</h4>
+                    <p className="text-[11px] text-gray-600 mb-1 line-clamp-2">{product.description}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[13px] font-bold text-gray-900">
                         ${Number(product.price).toLocaleString('es-CL')}
                       </span>
                       {canOrder && (
@@ -392,7 +392,7 @@ export default function BusinessProfileScreen({
                             event.stopPropagation();
                             handleOrderToggle(product.id);
                           }}
-                          className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold transition-all ${
+                          className={`shrink-0 rounded-lg border px-3 py-1.5 text-[11px] font-bold transition-all ${
                             isSelected
                               ? 'border-green-500 bg-white text-green-600 shadow-sm'
                               : 'border-teal-500 bg-white text-teal-600 hover:bg-teal-50'
