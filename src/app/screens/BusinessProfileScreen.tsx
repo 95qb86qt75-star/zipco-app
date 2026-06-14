@@ -143,10 +143,7 @@ export default function BusinessProfileScreen({
     const handleScroll = () => {
       if (scrollContainerRef.current) {
         const scrollTop = scrollContainerRef.current.scrollTop;
-        const isScrollingDown = scrollTop > lastScrollTopRef.current;
-        const shouldBeScrolled = isScrolledRef.current
-          ? scrollTop > 1
-          : scrollTop > 4 && isScrollingDown;
+        const shouldBeScrolled = isScrolledRef.current || scrollTop > lastScrollTopRef.current || scrollTop > 4;
 
         lastScrollTopRef.current = scrollTop;
 
