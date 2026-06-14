@@ -6,7 +6,6 @@ import BottomNav from './BottomNav';
 export default function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, setActiveTab, onSelectBusiness, onSelectService }: { onBack: () => void; initialQuery: string; currentLocation: any; activeTab: string; setActiveTab: (tab: string) => void; onSelectBusiness: (business: any) => void; onSelectService: (service: any) => void }) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
-  const [typeFilter, setTypeFilter] = useState('todos'); // 'todos', 'negocios', 'servicios'
   const [maxDistance, setMaxDistance] = useState(10);
   const [showDistanceModal, setShowDistanceModal] = useState(false);
   const [backendResults, setBackendResults] = useState<any[]>([]);
@@ -435,13 +434,10 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
     // Filtro por distancia
     if (result.distance > maxDistance) return false;
 
-    // Filtro por tipo (Negocio/Particular)
-    if (selectedFilter === 'negocios' && result.type !== 'Negocio') return false;
+    // Filtro por chip seleccionado
+    if (selectedFilter === 'negocios' && result.category !== 'negocios') return false;
+    if (selectedFilter === 'servicios' && result.category !== 'servicios') return false;
     if (selectedFilter === 'particular' && result.type !== 'Particular') return false;
-
-    // Filtro por categoría (negocios vs servicios)
-    if (typeFilter === 'negocios' && result.category !== 'negocios') return false;
-    if (typeFilter === 'servicios' && result.category !== 'servicios') return false;
 
     return true;
   });
@@ -489,30 +485,14 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
             <button
               key={filter.id}
               onClick={() => {
+                setSelectedFilter(filter.id);
                 if (filter.id === 'distance') {
                   setShowDistanceModal(true);
-                } else if (filter.id === 'negocios' || filter.id === 'servicios') {
-                  setTypeFilter(filter.id);
-                } else if (filter.id === 'todos') {
-                  setSelectedFilter('todos');
-                  setTypeFilter('todos');
-                } else {
-                  setSelectedFilter(filter.id);
                 }
               }}
               className={`px-2 py-1 rounded-full text-xs font-medium transition-all ${
-                (selectedFilter === filter.id || typeFilter === filter.id || filter.id === 'distance')
-                  ? filter.id === 'distance'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : filter.id === 'negocios'
-                    ? typeFilter === 'negocios'
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    : filter.id === 'servicios'
-                    ? typeFilter === 'servicios'
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    : 'bg-teal-500 text-white shadow-sm'
+                selectedFilter === filter.id
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
