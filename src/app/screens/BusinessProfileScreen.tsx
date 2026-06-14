@@ -404,7 +404,7 @@ export default function BusinessProfileScreen({
                 onClick={() => {
                   if (!canOrder) setPreviewProduct(product);
                 }}
-                className={`relative overflow-hidden backdrop-blur-sm rounded-xl p-2.5 border-2 transition-all ${
+                className={`relative overflow-hidden backdrop-blur-sm rounded-xl p-3 border-2 transition-all ${
                   canOrder
                     ? isSelected
                       ? 'bg-emerald-50/90 border-teal-500 shadow-lg shadow-teal-500/20'
@@ -418,7 +418,7 @@ export default function BusinessProfileScreen({
                     <ImageWithFallback
                       src={product.image}
                       alt={product.name}
-                      className="w-12 h-12 rounded-lg object-cover"
+                      className="w-14 h-14 rounded-lg object-cover"
                     />
                     <div className={`absolute -left-1.5 -top-1.5 w-7 h-7 rounded-full shadow-lg flex items-center justify-center ${
                       canOrder
@@ -432,10 +432,10 @@ export default function BusinessProfileScreen({
                       )}
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 self-center pr-24">
+                  <div className="flex-1 min-w-0 self-center pr-28">
                     <h4 className="font-semibold text-gray-900 text-[13px] mb-0.5">{product.name}</h4>
                     <p className="text-[11px] text-gray-600 mb-1 line-clamp-2">{product.description}</p>
-                    <div className="absolute right-2.5 top-2.5 bottom-2.5 flex flex-col items-end justify-between">
+                    <div className="absolute right-3 top-3 bottom-3 flex flex-col items-end justify-between">
                       <span className="text-[15px] font-extrabold text-gray-950 leading-none">
                         ${Number(product.price).toLocaleString('es-CL')}
                       </span>
