@@ -137,12 +137,18 @@ export default function BusinessProfileScreen({
   const [isScrolled, setIsScrolled] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrolledRef = useRef(false);
+  const lastScrollTopRef = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
       if (scrollContainerRef.current) {
         const scrollTop = scrollContainerRef.current.scrollTop;
-        const shouldBeScrolled = isScrolledRef.current ? scrollTop > 16 : scrollTop > 96;
+        const isScrollingDown = scrollTop > lastScrollTopRef.current;
+        const shouldBeScrolled = isScrolledRef.current
+          ? scrollTop > 1
+          : scrollTop > 4 && isScrollingDown;
+
+        lastScrollTopRef.current = scrollTop;
 
         if (shouldBeScrolled !== isScrolledRef.current) {
           isScrolledRef.current = shouldBeScrolled;
@@ -333,7 +339,7 @@ export default function BusinessProfileScreen({
 
       </div>
 
-      <div ref={scrollContainerRef} className="flex-1 overflow-auto overscroll-contain px-4 pt-3 pb-28">
+      <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-3 pb-28">
         <h3 className="text-base font-bold text-gray-900 mb-1.5">
           {isRealBusiness ? 'Productos y servicios' : 'Productos disponibles'}
         </h3>
