@@ -20,17 +20,17 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
         transition={{ duration: 0.8, ease: 'easeOut' }}
         className="relative z-10 flex min-h-full flex-col items-center justify-center px-8 text-center"
       >
-        <div className="flex flex-col items-center">
+        <div className="flex -translate-y-6 flex-col items-center">
           <img
             src={ZIPCO_LOGO_URL}
             alt="ZIPCO"
-            className="w-[220px] h-auto drop-shadow-[0_24px_48px_rgba(20,200,184,0.24)]"
+            className="w-[280px] h-auto drop-shadow-[0_24px_48px_rgba(20,200,184,0.24)]"
           />
 
-          <h1 className="mt-10 text-[48px] font-bold leading-none tracking-[0.22em] text-white">
+          <h1 className="mt-4 text-[48px] font-bold leading-none tracking-[0.22em] text-white">
             ZIPCO
           </h1>
-          <p className="mt-4 text-[18px] font-medium text-[#14C8B8]">
+          <p className="mt-3 text-[18px] font-medium text-[#14C8B8]">
             Cerca de ti
           </p>
         </div>
