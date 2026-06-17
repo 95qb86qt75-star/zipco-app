@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, MapPin, Search, Send, Store, Wrench } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
@@ -11,6 +11,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
   const [backendResults, setBackendResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const hasMountedSearchEffect = useRef(false);
 
   const filters = [
     { id: 'todos', label: 'Todos' },
@@ -428,6 +429,22 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
   useEffect(() => {
     fetchNearbyBusinesses(initialQuery, maxDistance);
   }, [initialQuery]);
+
+  useEffect(() => {
+    if (!hasMountedSearchEffect.current) {
+      hasMountedSearchEffect.current = true;
+      return;
+    }
+
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery.length < 2) return;
+
+    const searchTimeout = window.setTimeout(() => {
+      fetchNearbyBusinesses(trimmedQuery, maxDistance);
+    }, 500);
+
+    return () => window.clearTimeout(searchTimeout);
+  }, [searchQuery]);
 
   // Filtrar resultados entregados por el backend
   const filteredResults = backendResults.filter((result) => {
