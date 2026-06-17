@@ -43,6 +43,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(() => sessionStorage.getItem('zipco-splash-seen') !== 'true');
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
+  const [previousScreen, setPreviousScreen] = useState<string>('negocios');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -407,7 +408,7 @@ export default function App() {
           <BusinessProfileScreen
             business={selectedBusiness}
             currentLocation={currentLocation}
-            onBack={() => setCurrentScreen('negocios')}
+            onBack={() => setCurrentScreen(previousScreen)}
             onCheckout={(selectedProducts, products) => {
               setCheckoutData({ selectedProducts, products });
               setCurrentScreen('checkout');
@@ -435,6 +436,7 @@ export default function App() {
             onBack={() => setCurrentScreen('home')}
             onSelectBusiness={(business) => {
               setSelectedBusiness(business);
+              setPreviousScreen('negocios');
               setCurrentScreen('profile');
             }}
             activeTab={activeTab}
@@ -513,6 +515,7 @@ export default function App() {
             setActiveTab={setActiveTab}
             onSelectBusiness={(business) => {
               setSelectedBusiness(business);
+              setPreviousScreen('search');
               setCurrentScreen('profile');
             }}
             onSelectService={(service) => {
