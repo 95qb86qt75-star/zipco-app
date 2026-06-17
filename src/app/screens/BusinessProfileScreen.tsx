@@ -135,6 +135,7 @@ export default function BusinessProfileScreen({
   const [showRemoveTooltip, setShowRemoveTooltip] = useState(false);
   const [hasShownRemoveTooltip, setHasShownRemoveTooltip] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrolledRef = useRef(false);
   const lastScrollTopRef = useRef(0);
@@ -365,9 +366,28 @@ export default function BusinessProfileScreen({
               transition={{ duration: 0.2 }}
             >
               <div className="mt-3 border-t border-slate-100 pt-3">
-                <p className="text-sm text-slate-600 leading-relaxed">
+                <p
+                  className="text-sm text-slate-600 leading-relaxed"
+                  style={
+                    expanded
+                      ? undefined
+                      : {
+                          display: '-webkit-box',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: 3,
+                          overflow: 'hidden'
+                        }
+                  }
+                >
                   {business.description || 'Especialistas en repostería artesanal. Más de 10 años creando momentos dulces para tu familia.'}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setExpanded((currentExpanded) => !currentExpanded)}
+                  className="mt-1 text-sm font-semibold text-[#0F8F86]"
+                >
+                  {expanded ? 'ver menos' : 'ver más'}
+                </button>
               </div>
             </motion.div>
           )}
