@@ -44,7 +44,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [currentScreen, setCurrentScreen] = useState('home');
   const [previousScreen, setPreviousScreen] = useState<string>('negocios');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('zipco-theme') === 'dark');
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationSearchError, setLocationSearchError] = useState('');
@@ -75,13 +75,6 @@ export default function App() {
     localStorage.setItem('zipco-location', JSON.stringify(currentLocation));
   }, [currentLocation]);
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('zipco-theme');
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-    }
-  }, []);
-
   const handleLogout = () => {
     localStorage.removeItem('zipco-token');
     localStorage.removeItem('zipco-user-id');
@@ -94,6 +87,16 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
+
+    const themeColor = isDarkMode ? '#020617' : '#ffffff';
+    const themeColorMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const statusBarMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-status-bar-style"]');
+
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    document.documentElement.style.backgroundColor = themeColor;
+    document.body.style.backgroundColor = themeColor;
+    themeColorMeta?.setAttribute('content', themeColor);
+    statusBarMeta?.setAttribute('content', isDarkMode ? 'black-translucent' : 'default');
   }, [isDarkMode]);
 
   useEffect(() => {
@@ -540,7 +543,11 @@ export default function App() {
   }
 
   return renderWithToast(
-    <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
+    <div className={`size-full flex items-center justify-center ${
+      isDarkMode
+        ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800'
+        : 'bg-gradient-to-br from-blue-50 via-white to-blue-100'
+    }`}>
       {/* Mobile Frame */}
       <div className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
         isDarkMode
