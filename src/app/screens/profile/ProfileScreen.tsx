@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ArrowLeft, Camera, User } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import BusinessConfigScreen from './BusinessConfigScreen';
@@ -23,8 +23,13 @@ export default function ProfileScreen({
   const [profileTab, setProfileTab] = useState<'personal' | 'negocio'>('personal');
   const [showBusinessConfig, setShowBusinessConfig] = useState(false);
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+  const profileContentRef = useRef<HTMLDivElement>(null);
   const personalProfile = usePersonalProfile();
   const businessProfile = useBusinessProfile();
+
+  useLayoutEffect(() => {
+    profileContentRef.current?.scrollTo({ top: 0 });
+  }, [profileTab]);
 
   if (showBusinessConfig) {
     return (
@@ -44,7 +49,10 @@ export default function ProfileScreen({
 
   return (
     <div className={`size-full flex flex-col ${isBusinessProfileTab ? 'bg-gradient-to-b from-[#0F172A] via-[#1E3A5F] to-[#0F172A]' : 'bg-white'}`}>
-      <div className="px-4 pt-6 pb-4 border-b border-white/50">
+      <div
+        className="px-4 pb-4 border-b border-white/50"
+        style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
+      >
         <div className="flex items-center gap-3 mb-4">
           <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -55,7 +63,7 @@ export default function ProfileScreen({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-4 pt-4 pb-24">
+      <div ref={profileContentRef} className="min-h-0 flex-1 overflow-auto px-4 pt-4 pb-24">
         <div className={`${profileCardClass} rounded-2xl p-6 border shadow-lg mb-4`}>
           <div className="flex items-center gap-4 mb-4">
             <div className="relative">

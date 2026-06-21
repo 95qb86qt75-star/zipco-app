@@ -2,7 +2,10 @@ import { FileText, Heart, Home, UserRound } from 'lucide-react';
 
 export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { activeTab: string; setActiveTab: (tab: string) => void; onNavigate?: (tab: string) => void }) {
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-white px-6 pt-1.5 pb-1.5 shadow-[0_-6px_20px_rgba(15,23,42,0.07)]">
+    <div
+      className="absolute bottom-0 left-0 right-0 bg-white px-6 pt-1.5 shadow-[0_-6px_20px_rgba(15,23,42,0.07)]"
+      style={{ paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom))' }}
+    >
       <div className="flex items-center justify-around">
         {[
           { id: 'home', icon: Home, label: 'Inicio' },

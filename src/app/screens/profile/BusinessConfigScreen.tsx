@@ -379,7 +379,10 @@ export default function BusinessConfigScreen({
 
   return (
     <div className="size-full relative flex flex-col bg-[#F0F4FF]">
-      <div className="px-4 pt-6 pb-4 border-b border-white/50">
+      <div
+        className="px-4 pb-4 border-b border-white/50"
+        style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
+      >
         <div className="flex items-center gap-3 mb-3">
           <button onClick={handleBackPress} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />

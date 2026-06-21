@@ -550,18 +550,22 @@ export default function App() {
 
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className={`absolute top-6 right-6 z-20 p-2.5 rounded-full border transition-all shadow-md ${
+          className={`absolute right-6 z-20 p-2.5 rounded-full border transition-all shadow-md ${
             isDarkMode
               ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700'
               : 'bg-white/90 border-white text-slate-700 hover:bg-white'
           }`}
+          style={{ top: 'max(1.5rem, env(safe-area-inset-top))' }}
           aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
         >
           {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
 
         {/* Header */}
-        <div className="px-6 pt-8 pb-6">
+        <div
+          className="px-6 pb-6"
+          style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
+        >
           {/* Logo */}
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-2">
