@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Clock, Eye, Facebook, Instagram, MapPin, ShoppingCart, Store, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import DistanceInfo from './DistanceInfo';
 
 const mockProducts = [
   {
@@ -290,6 +291,7 @@ export default function BusinessProfileScreen({
                     <span className="hidden min-[390px]:inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-[11px] font-bold text-[#0F8F86]">
                       <MapPin className="h-3 w-3 text-[#14C8B8]" />
                       {distanceLabel}
+                      <DistanceInfo />
                     </span>
                   )}
                 </div>
@@ -310,6 +312,7 @@ export default function BusinessProfileScreen({
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2 py-0.5 text-[11px] font-bold text-[#0F8F86]">
                         <MapPin className="w-3 h-3 text-[#14C8B8] fill-[#14C8B8]/15" />
                         {distanceLabel}
+                        <DistanceInfo />
                       </span>
                     )}
                   </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, MapPin, Search, Send, Store, Wrench } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import DistanceInfo from './DistanceInfo';
 
 const getCoordinate = (value: any) => {
   const coordinate = Number(value);
@@ -669,6 +670,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
                       <div className="flex items-center gap-1 text-gray-600">
                         <MapPin className="w-3 h-3" />
                         <span>{formatDistance(result.distance)}</span>
+                        <DistanceInfo />
                       </div>
                       <span className={`px-2 py-0.5 rounded-full font-medium ${
                         result.type === 'Negocio'
