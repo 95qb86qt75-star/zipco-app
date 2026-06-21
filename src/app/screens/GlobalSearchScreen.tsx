@@ -3,6 +3,32 @@ import { ArrowLeft, MapPin, Search, Send, Store, Wrench } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 
+const getCoordinate = (value: any) => {
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) ? coordinate : null;
+};
+
+const calculateDistanceKm = (fromLat: any, fromLng: any, toLat: any, toLng: any) => {
+  const startLat = getCoordinate(fromLat);
+  const startLng = getCoordinate(fromLng);
+  const endLat = getCoordinate(toLat);
+  const endLng = getCoordinate(toLng);
+
+  if (startLat === null || startLng === null || endLat === null || endLng === null) return null;
+
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const deltaLat = toRadians(endLat - startLat);
+  const deltaLng = toRadians(endLng - startLng);
+  const lat1 = toRadians(startLat);
+  const lat2 = toRadians(endLat);
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
 export default function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, setActiveTab, onSelectBusiness, onSelectService }: { onBack: () => void; initialQuery: string; currentLocation: any; activeTab: string; setActiveTab: (tab: string) => void; onSelectBusiness: (business: any) => void; onSelectService: (service: any) => void }) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilter, setSelectedFilter] = useState('todos');
@@ -380,13 +406,20 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
     const rawCategory = result.category ?? result.kind ?? result.resultType ?? 'negocios';
     const normalizedCategory = String(rawCategory).toLowerCase().includes('serv') ? 'servicios' : 'negocios';
     const normalizedType = result.type ?? (normalizedCategory === 'servicios' ? 'Servicio' : 'Negocio');
+    const calculatedDistance = calculateDistanceKm(
+      currentLocation?.lat,
+      currentLocation?.lng,
+      result.latitude ?? result.lat,
+      result.longitude ?? result.lng ?? result.lon
+    );
+    const backendDistance = getCoordinate(result.distance ?? result.distanceKm ?? result.distance_km);
 
     return {
       ...result,
       id: result.id ?? result._id ?? result.businessId ?? result.name,
       name: result.name ?? result.businessName ?? result.title ?? 'Negocio sin nombre',
       description: result.description ?? result.subtitle ?? result.address ?? 'Sin descripción disponible',
-      distance: Number(result.distance ?? result.distanceKm ?? result.distance_km ?? 0),
+      distance: calculatedDistance ?? backendDistance,
       type: normalizedType,
       category: normalizedCategory,
       isOpen: result.isOpen ?? result.open ?? true,
@@ -449,7 +482,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
   // Filtrar resultados entregados por el backend
   const filteredResults = backendResults.filter((result) => {
     // Filtro por distancia
-    if (result.distance > maxDistance) return false;
+    if (result.distance !== null && result.distance > maxDistance) return false;
 
     // Filtro por chip seleccionado
     if (selectedFilter === 'negocios' && result.category !== 'negocios') return false;
@@ -459,7 +492,8 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
     return true;
   });
 
-  const formatDistance = (km: number) => {
+  const formatDistance = (km: number | null) => {
+    if (km === null || !Number.isFinite(km)) return 'Distancia no disponible';
     if (km < 1) {
       return `${Math.round(km * 1000)} m`;
     }
