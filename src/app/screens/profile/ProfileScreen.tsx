@@ -9,7 +9,17 @@ import QuickActionsCard from './QuickActionsCard';
 import { useBusinessProfile } from './profile-screen/useBusinessProfile';
 import { usePersonalProfile } from './profile-screen/usePersonalProfile';
 
-export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { activeTab: string; setActiveTab: (tab: string) => void; onBack: () => void }) {
+export default function ProfileScreen({
+  activeTab,
+  setActiveTab,
+  onBack,
+  onLogout
+}: {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  onBack: () => void;
+  onLogout: () => void;
+}) {
   const [profileTab, setProfileTab] = useState<'personal' | 'negocio'>('personal');
   const [showBusinessConfig, setShowBusinessConfig] = useState(false);
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
@@ -154,7 +164,7 @@ export default function ProfileScreen({ activeTab, setActiveTab, onBack }: { act
           userInfo={personalProfile.userInfo}
           isLoadingUserInfo={personalProfile.isLoadingUserInfo}
         />
-        <QuickActionsCard profileTab={profileTab} />
+        <QuickActionsCard profileTab={profileTab} onLogout={onLogout} />
 
         <BusinessRegistrationCard
           profileTab={profileTab}

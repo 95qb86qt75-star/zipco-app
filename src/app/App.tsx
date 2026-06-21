@@ -82,6 +82,16 @@ export default function App() {
     }
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('zipco-token');
+    localStorage.removeItem('zipco-user-id');
+    localStorage.removeItem('zipco-registration-complete');
+    localStorage.removeItem('zipco-business-id');
+    setCurrentScreen('home');
+    setActiveTab('home');
+    setIsRegistrationComplete(false);
+  };
+
   useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
@@ -276,6 +286,7 @@ export default function App() {
           <ProfileScreen
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onLogout={handleLogout}
             onBack={() => {
               setActiveTab('home');
               setCurrentScreen('home');
