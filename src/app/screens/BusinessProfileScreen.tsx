@@ -347,9 +347,9 @@ export default function BusinessProfileScreen({
                     )}
                   </div>
 
-                  <div className="inline-flex w-fit items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+                  <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100 max-[390px]:gap-2 max-[390px]:px-2.5">
                     <span className="text-sm font-bold text-slate-600">Síguenos</span>
-                    <span className="h-5 w-px bg-slate-200" />
+                    <span className="h-5 w-px bg-slate-200 max-[390px]:hidden" />
                     <button
                       type="button"
                       className={`rounded-full p-2 transition-all ${
