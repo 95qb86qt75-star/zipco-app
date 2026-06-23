@@ -149,6 +149,15 @@ export default function BusinessProfileScreen({
     setIsScrolled(nextValue);
   };
 
+  const handleCollapsedHeaderClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!isScrolled) return;
+
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, input, select, textarea, [role="button"]')) return;
+
+    setHeaderScrolled(false);
+  };
+
   const canExpandHeader = () => !scrollContainerRef.current || scrollContainerRef.current.scrollTop <= 12;
 
   const handleProfileWheel = (event: React.WheelEvent<HTMLDivElement>) => {
@@ -253,6 +262,7 @@ export default function BusinessProfileScreen({
         </button>
 
         <motion.div
+          onClick={handleCollapsedHeaderClick}
           animate={{ height: isScrolled ? 78 : 'auto', padding: isScrolled ? '8px' : '24px' }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           className="bg-white rounded-[28px] shadow-[0_20px_54px_rgba(15,23,42,0.11),0_10px_34px_rgba(167,139,250,0.10),0_3px_14px_rgba(15,23,42,0.05)] border border-white/80 overflow-hidden mb-2"
