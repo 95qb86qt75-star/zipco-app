@@ -149,7 +149,7 @@ export default function BusinessProfileScreen({
     setIsScrolled(nextValue);
   };
 
-  const canExpandHeader = () => !scrollContainerRef.current || scrollContainerRef.current.scrollTop <= 0;
+  const canExpandHeader = () => !scrollContainerRef.current || scrollContainerRef.current.scrollTop <= 12;
 
   const handleProfileWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (event.deltaY > 2) {
@@ -186,7 +186,11 @@ export default function BusinessProfileScreen({
 
         lastScrollTopRef.current = scrollTop;
 
-        if (shouldBeScrolled) setHeaderScrolled(true);
+        if (scrollTop <= 12) {
+          setHeaderScrolled(false);
+        } else if (shouldBeScrolled) {
+          setHeaderScrolled(true);
+        }
       }
     };
     const container = scrollContainerRef.current;
