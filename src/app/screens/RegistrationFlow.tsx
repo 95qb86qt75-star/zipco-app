@@ -240,7 +240,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="+56 9 XXXX XXXX"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all"
+                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all text-gray-900 placeholder:text-gray-400 caret-[#00BFA5]"
               />
               {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
               <button
@@ -267,7 +267,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
                   setName(e.target.value);
                 }}
                 placeholder="Tu nombre"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all"
+                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all text-gray-900 placeholder:text-gray-400 caret-[#00BFA5]"
               />
               {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
               <button
@@ -361,7 +361,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
                 placeholder="Ej: Pasteleria Delicias"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all"
+                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all text-gray-900 placeholder:text-gray-400 caret-[#00BFA5]"
               />
               {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
               <button
