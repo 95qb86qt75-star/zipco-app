@@ -1,31 +1,43 @@
 import { useState } from 'react';
-import { MapPin, Phone, Store, User, Wrench } from 'lucide-react';
+import { MapPin } from 'lucide-react';
+import {
+  AuthSmsError,
+  completeSmsRegistration
+} from '../api/authSms';
+import BusinessChoiceStep from './registration/BusinessChoiceStep';
+import BusinessDetailsStep from './registration/BusinessDetailsStep';
+import NameStep from './registration/NameStep';
+import PhoneStep from './registration/PhoneStep';
+import SmsCodeStep from './registration/SmsCodeStep';
+import WelcomeStep from './registration/WelcomeStep';
+import type { RegistrationStep } from './registration/registrationTypes';
+import useSmsRegistration from './registration/useSmsRegistration';
+
+const USE_SMS_LOGIN =
+  import.meta.env.VITE_USE_SMS_LOGIN === 'true';
 
 export default function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
-  const [step, setStep] = useState<'welcome' | 'phone' | 'name' | 'business' | 'businessDetails'>('welcome');
+  const [step, setStep] = useState<RegistrationStep>('welcome');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [error, setError] = useState('');
+  const [isCompletingRegistration, setIsCompletingRegistration] = useState(false);
 
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '').replace(/^56/, '').replace(/^9?/, '9').slice(0, 9);
-    const firstBlock = digits.slice(1, 5);
-    const secondBlock = digits.slice(5, 9);
-    return `+56 9${firstBlock ? ` ${firstBlock}` : ''}${secondBlock ? ` ${secondBlock}` : ''}`;
-  };
+  const displayPhone = phone;
+  const apiPhone = phone.replace(/\D/g, '');
+
+  const sms = useSmsRegistration({ setError });
 
   const handlePhoneChange = (value: string) => {
     setError('');
-    setPhone(formatPhone(value));
+    setPhone(value);
   };
 
-  const getAuthCredentials = () => {
-    const cleanPhone = phone.replace(/\D/g, '');
+  const getLegacyAuthCredentials = () => {
     return {
-      cleanPhone,
-      password: cleanPhone.slice(0, 8),
-      email: `${cleanPhone}@zipco.cl`
+      password: apiPhone.slice(0, 8),
+      email: `${apiPhone}@zipco.cl`
     };
   };
 
@@ -93,13 +105,26 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   };
 
   const handlePhoneSubmit = async () => {
-    if (phone.replace(/\D/g, '').length !== 11) {
+    if (apiPhone.length !== 11) {
       setError('Ingresa un número celular válido.');
       return;
     }
     setError('');
 
-    const { email, password } = getAuthCredentials();
+    if (USE_SMS_LOGIN) {
+      const requested = await sms.requestInitialCode(
+        apiPhone,
+        isCompletingRegistration
+      );
+
+      if (requested) {
+        setStep('code');
+      }
+
+      return;
+    }
+
+    const { email, password } = getLegacyAuthCredentials();
 
     try {
       const loginResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/login', {
@@ -119,6 +144,20 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     setStep('name');
   };
 
+  const handleChangePhone = () => {
+    if (
+      sms.isRequestingCode ||
+      sms.isCodeActionPending ||
+      isCompletingRegistration ||
+      sms.feedbackState !== 'idle'
+    ) {
+      return;
+    }
+
+    sms.resetSmsState();
+    setStep('phone');
+  };
+
 
   const handleNameSubmit = () => {
     if (!name.trim()) {
@@ -130,21 +169,31 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   };
 
   const completeRegistration = async () => {
+    if (isCompletingRegistration) return;
+
     if (step === 'businessDetails' && !businessName.trim()) {
       setError('Ingresa el nombre de tu negocio o servicio.');
       return;
     }
 
-    const { password, email } = getAuthCredentials();
-    const credentials = {
-      name: name.trim(),
-      phone,
-      password,
-      email
-    };
+    setIsCompletingRegistration(true);
 
     try {
       setError('');
+
+      if (USE_SMS_LOGIN) {
+        const data = await completeSmsRegistration(apiPhone, sms.code, name.trim());
+        await saveAuthData(data, step === 'businessDetails');
+        return;
+      }
+
+      const { password, email } = getLegacyAuthCredentials();
+      const credentials = {
+        name: name.trim(),
+        phone,
+        password,
+        email
+      };
 
       const registerResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/register', {
         method: 'POST',
@@ -169,18 +218,103 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
       }
 
       setError('Hubo un problema al crear tu cuenta. Intenta de nuevo');
-    } catch (error) {
-      setError('Hubo un problema al crear tu cuenta. Intenta de nuevo');
+    } catch (registrationError) {
+      setError(
+        registrationError instanceof AuthSmsError
+          ? registrationError.message
+          : 'Hubo un problema al crear tu cuenta. Intenta de nuevo'
+      );
+    } finally {
+      setIsCompletingRegistration(false);
     }
   };
 
-  const progress = {
-    welcome: 1,
-    phone: 2,
-    name: 3,
-    business: 4,
-    businessDetails: 5
-  }[step];
+  const activeSteps: RegistrationStep[] = USE_SMS_LOGIN
+    ? ['welcome', 'phone', 'code', 'name', 'business', 'businessDetails']
+    : ['welcome', 'phone', 'name', 'business', 'businessDetails'];
+
+  const progress = activeSteps.indexOf(step) + 1;
+  const totalSteps = activeSteps.length;
+
+  const renderStep = () => {
+    switch (step) {
+      case 'welcome':
+        return <WelcomeStep onContinue={() => setStep('phone')} />;
+
+      case 'phone':
+        return (
+          <PhoneStep
+            phone={phone}
+            error={error}
+            isRequestingCode={sms.isRequestingCode}
+            onPhoneChange={handlePhoneChange}
+            onContinue={handlePhoneSubmit}
+          />
+        );
+
+      case 'code':
+        return (
+          <SmsCodeStep
+            code={sms.code}
+            displayPhone={displayPhone}
+            error={error}
+            feedbackState={sms.feedbackState}
+            focusRequestKey={sms.focusRequestKey}
+            isVerifying={sms.isVerifyingCode}
+            isResending={sms.isResendingCode}
+            resendSeconds={sms.resendSeconds}
+            onCodeChange={sms.handleCodeChange}
+            onSubmit={() => {
+              void sms.handleCodeSubmit({
+                apiPhone,
+                isCompletingRegistration,
+                onAuthenticated: (data) => saveAuthData(data, false),
+                onRegistrationRequired: () => setStep('name')
+              });
+            }}
+            onResend={() => {
+              void sms.handleResendCode(apiPhone, isCompletingRegistration);
+            }}
+            onChangePhone={handleChangePhone}
+          />
+        );
+
+      case 'name':
+        return (
+          <NameStep
+            name={name}
+            error={error}
+            onNameChange={(value) => {
+              setError('');
+              setName(value);
+            }}
+            onContinue={handleNameSubmit}
+          />
+        );
+
+      case 'business':
+        return (
+          <BusinessChoiceStep
+            error={error}
+            isCompletingRegistration={isCompletingRegistration}
+            onChooseBusiness={() => setStep('businessDetails')}
+            onChooseService={() => setStep('businessDetails')}
+            onSearchOnly={completeRegistration}
+          />
+        );
+
+      case 'businessDetails':
+        return (
+          <BusinessDetailsStep
+            businessName={businessName}
+            error={error}
+            isCompletingRegistration={isCompletingRegistration}
+            onBusinessNameChange={setBusinessName}
+            onComplete={completeRegistration}
+          />
+        );
+    }
+  };
 
   return (
     <div className="size-full bg-gradient-to-br from-teal-50 via-white to-emerald-50 flex items-center justify-center">
@@ -196,13 +330,13 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
           {step !== 'welcome' && (
             <div className="mb-8">
               <div className="flex items-center justify-between text-xs font-semibold text-gray-400 mb-2">
-                <span>Paso {progress} de 5</span>
-                <span>{Math.round((progress / 5) * 100)}%</span>
+                <span>Paso {progress} de {totalSteps}</span>
+                <span>{Math.round((progress / totalSteps) * 100)}%</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#00BFA5] rounded-full transition-all duration-300"
-                  style={{ width: `${(progress / 5) * 100}%` }}
+                  style={{ width: `${(progress / totalSteps) * 100}%` }}
                 />
               </div>
             </div>
@@ -210,197 +344,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         </div>
 
         <div className="relative z-10 flex-1 px-6 pb-8 flex flex-col justify-center">
-          {step === 'welcome' && (
-            <div className="text-center">
-              <div className="w-24 h-24 bg-[#00BFA5] rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-xl shadow-teal-500/30">
-                <MapPin className="w-12 h-12 text-white" strokeWidth={2.5} />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Bienvenido a ZIPCO</h2>
-              <p className="text-gray-600 mb-10 leading-relaxed">
-                Encuentra negocios y servicios cerca de ti en segundos.
-              </p>
-              <button
-                type="button"
-                onClick={() => setStep('phone')}
-                className="w-full bg-[#00BFA5] text-white py-4 px-6 rounded-full font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-              >
-                <Phone className="w-5 h-5" />
-                Ingresar con número de celular
-              </button>
-            </div>
-          )}
-
-          {step === 'phone' && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Ingresa tu celular</h2>
-              <p className="text-sm text-gray-600 mb-8">Usaremos tu numero para crear tu cuenta.</p>
-              <label className="text-sm font-semibold text-gray-700 mb-2 block">Número de celular</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="+56 9 XXXX XXXX"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all text-gray-900 placeholder:text-gray-400 caret-[#00BFA5]"
-              />
-              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
-              <button
-                type="button"
-                onClick={handlePhoneSubmit}
-                className="w-full mt-8 bg-[#00BFA5] text-white py-4 px-6 rounded-full font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98]"
-              >
-                Continuar
-              </button>
-            </div>
-          )}
-
-
-          {step === 'name' && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">¿Cómo te llamas?</h2>
-              <p className="text-sm text-gray-600 mb-8">Usaremos tu nombre para personalizar tu experiencia.</p>
-              <label className="text-sm font-semibold text-gray-700 mb-2 block">Nombre</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => {
-                  setError('');
-                  setName(e.target.value);
-                }}
-                placeholder="Tu nombre"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all text-gray-900 placeholder:text-gray-400 caret-[#00BFA5]"
-              />
-              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
-              <button
-                type="button"
-                onClick={handleNameSubmit}
-                className="w-full mt-8 bg-[#00BFA5] text-white py-4 px-6 rounded-full font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98]"
-              >
-                Continuar
-              </button>
-            </div>
-          )}
-
-          {step === 'business' && (
-            <div className="text-center">
-              <div className="w-16 h-16 bg-teal-50 rounded-3xl mx-auto mb-4 flex items-center justify-center">
-                <Store className="w-8 h-8 text-[#00BFA5]" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">¿Ofreces un negocio o servicio?</h2>
-              <p className="text-sm text-gray-600 mb-5">
-                Elige la opcion que mejor describe lo que haras en ZIPCO.
-              </p>
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => setStep('businessDetails')}
-                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-3 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Store className="w-5 h-5 text-[#00BFA5]" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">Tengo un Negocio</h3>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        Vendo productos que los clientes pueden comprar o encargar (tortas, ropa, comida, etc.).
-                      </p>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStep('businessDetails')}
-                  className="w-full bg-white border-2 border-teal-100 rounded-2xl p-3 text-left hover:border-[#00BFA5] hover:shadow-lg transition-all active:scale-[0.98]"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-teal-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Wrench className="w-5 h-5 text-[#00BFA5]" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">Ofrezco un Servicio</h3>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        Realizo trabajos o actividades para los clientes (gasfiter, peluquero, profesor, etc.).
-                      </p>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={completeRegistration}
-                  className="w-full bg-white border-2 border-gray-100 rounded-2xl p-3 text-left hover:border-gray-300 hover:shadow-lg transition-all active:scale-[0.98]"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <User className="w-5 h-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-900 mb-1">Solo quiero buscar</h3>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        Encuentra negocios y servicios cerca de ti.
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
-            </div>
-          )}
-
-          {step === 'businessDetails' && (
-            <div>
-              <div className="w-20 h-20 bg-teal-50 rounded-3xl mx-auto mb-6 flex items-center justify-center">
-                <Store className="w-10 h-10 text-[#00BFA5]" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Nombre del negocio o servicio</h2>
-              <p className="text-sm text-gray-600 mb-8 text-center">
-                Tu perfil fue creado. Ve a la seccion Perfil para completar tu informacion y publicar tu negocio o servicio.
-              </p>
-              <label className="text-sm font-semibold text-gray-700 mb-2 block">Nombre del negocio</label>
-              <input
-                type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Ej: Pasteleria Delicias"
-                className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all text-gray-900 placeholder:text-gray-400 caret-[#00BFA5]"
-              />
-              {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
-              <button
-                type="button"
-                onClick={completeRegistration}
-                className="w-full mt-8 bg-[#00BFA5] text-white py-4 px-6 rounded-full font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98]"
-              >
-                Comenzar
-              </button>
-            </div>
-          )}
-
-          {false && step === 'business' && (
-            <div className="text-center">
-              <div className="w-20 h-20 bg-teal-50 rounded-3xl mx-auto mb-6 flex items-center justify-center">
-                <Store className="w-10 h-10 text-[#00BFA5]" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">¿Tienes un negocio o servicio?</h2>
-              <p className="text-sm text-gray-600 mb-8">
-                Puedes activarlo ahora y configurarlo después desde tu perfil.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={completeRegistration}
-                  className="bg-[#00BFA5] text-white py-4 px-5 rounded-2xl font-semibold shadow-lg shadow-teal-500/30 hover:bg-teal-600 transition-all active:scale-[0.98]"
-                >
-                  Sí
-                </button>
-                <button
-                  type="button"
-                  onClick={completeRegistration}
-                  className="bg-gray-100 text-gray-800 py-4 px-5 rounded-2xl font-semibold hover:bg-gray-200 transition-all active:scale-[0.98]"
-                >
-                  No
-                </button>
-              </div>
-            </div>
-          )}
+          {renderStep()}
         </div>
       </div>
     </div>
