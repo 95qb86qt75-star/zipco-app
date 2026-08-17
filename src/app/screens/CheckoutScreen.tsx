@@ -1,5 +1,6 @@
 import { type ChangeEvent, useRef, useState } from 'react';
 import { ArrowLeft, Camera, Minus, Plus, Send, X } from 'lucide-react';
+import { API_BASE_URL } from '../api/apiConfig';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { showAppToast } from './Toast';
 
@@ -127,7 +128,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     }));
 
     try {
-      const response = await fetch('https://zipco-backend-production.up.railway.app/orders', {
+      const response = await fetch(`${API_BASE_URL}/orders`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

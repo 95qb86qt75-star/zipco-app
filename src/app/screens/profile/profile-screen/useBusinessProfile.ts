@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../../api/apiConfig';
 import { showAppToast } from '../../Toast';
 
 export function useBusinessProfile() {
@@ -94,7 +95,7 @@ export function useBusinessProfile() {
 
     const loadUserBusiness = async () => {
       try {
-        const response = await fetch('https://zipco-backend-production.up.railway.app/businesses', {
+        const response = await fetch(`${API_BASE_URL}/businesses`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -121,7 +122,7 @@ export function useBusinessProfile() {
 
         if (currentBusinessId) {
           try {
-            const businessResponse = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${currentBusinessId}`, {
+            const businessResponse = await fetch(`${API_BASE_URL}/businesses/${currentBusinessId}`, {
               headers: {
                 Authorization: `Bearer ${token}`
               }
@@ -241,7 +242,7 @@ export function useBusinessProfile() {
     }
 
     try {
-      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+      const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -312,7 +313,7 @@ export function useBusinessProfile() {
       let wasSaved = false;
 
       for (const payload of imagePayloads) {
-        const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+        const saveResponse = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -350,7 +351,7 @@ export function useBusinessProfile() {
     }
 
     try {
-      const response = await fetch('https://zipco-backend-production.up.railway.app/businesses', {
+      const response = await fetch(`${API_BASE_URL}/businesses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

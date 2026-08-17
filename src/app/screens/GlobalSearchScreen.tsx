@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, MapPin, Search, Send, Store, Wrench } from 'lucide-react';
+import { API_BASE_URL } from '../api/apiConfig';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 import DistanceInfo from './DistanceInfo';
@@ -443,7 +444,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
         search: trimmedQuery
       });
 
-      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/nearby?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/businesses/nearby?${params.toString()}`);
 
       if (!response.ok) {
         throw new Error('No se pudo conectar con la búsqueda');

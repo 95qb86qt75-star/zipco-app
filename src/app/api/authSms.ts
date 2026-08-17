@@ -1,4 +1,6 @@
-const AUTH_API_URL = 'https://zipco-backend-production.up.railway.app/auth';
+import { API_BASE_URL } from './apiConfig';
+
+const AUTH_API_URL = `${API_BASE_URL}/auth`;
 
 export type RequestCodeResponse = {
   message: string;

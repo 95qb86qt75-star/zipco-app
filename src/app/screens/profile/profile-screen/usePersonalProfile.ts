@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../../api/apiConfig';
 import { showAppToast } from '../../Toast';
 
 export function usePersonalProfile() {
@@ -35,7 +36,7 @@ export function usePersonalProfile() {
 
     const loadUserInfo = async () => {
       try {
-        const response = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -179,7 +180,7 @@ export function usePersonalProfile() {
       imagePayloads.reduce(
         (previousRequest, payload) => previousRequest.then(async (wasSaved) => {
           if (wasSaved) return true;
-          const saveResponse = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+          const saveResponse = await fetch(`${API_BASE_URL}/users/${userId}`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
@@ -204,7 +205,7 @@ export function usePersonalProfile() {
     if (!userId || !token) return;
 
     try {
-      const response = await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

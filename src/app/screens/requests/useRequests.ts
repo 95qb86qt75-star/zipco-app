@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../api/apiConfig';
 import type { BusinessRequest, MyOrder, RequestStatus } from './types';
-
-const API_URL = 'https://zipco-backend-production.up.railway.app';
 
 export default function useRequests() {
   const [requests, setRequests] = useState<BusinessRequest[]>([]);
@@ -41,7 +40,7 @@ export default function useRequests() {
       if (!businessId) return '';
       if (businessNameCache.has(businessId)) return businessNameCache.get(businessId) ?? '';
 
-      const response = await fetch(`${API_URL}/businesses/${businessId}`);
+      const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`);
       if (!response.ok) return '';
 
       const business = await response.json();
@@ -87,7 +86,7 @@ export default function useRequests() {
       setIsLoading(true);
 
       try {
-        const myOrdersResponse = await fetch(`${API_URL}/orders/my-orders`, {
+        const myOrdersResponse = await fetch(`${API_BASE_URL}/orders/my-orders`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -100,7 +99,7 @@ export default function useRequests() {
         }
 
         if (businessId) {
-          const businessOrdersResponse = await fetch(`${API_URL}/orders/business/${businessId}`, {
+          const businessOrdersResponse = await fetch(`${API_BASE_URL}/orders/business/${businessId}`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -128,7 +127,7 @@ export default function useRequests() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${API_URL}/orders/${requestId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/orders/${requestId}/status`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,

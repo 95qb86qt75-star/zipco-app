@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MapPin } from 'lucide-react';
+import { API_BASE_URL } from '../api/apiConfig';
 import {
   AuthSmsError,
   completeSmsRegistration
@@ -55,7 +56,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     localStorage.removeItem('zipco-business-id');
 
     try {
-      await fetch(`https://zipco-backend-production.up.railway.app/users/${userId}`, {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
     if (shouldCreateBusiness && businessName.trim()) {
       try {
-        const businessResponse = await fetch('https://zipco-backend-production.up.railway.app/businesses', {
+        const businessResponse = await fetch(`${API_BASE_URL}/businesses`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     const { email, password } = getLegacyAuthCredentials();
 
     try {
-      const loginResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/login', {
+      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -195,7 +196,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         email
       };
 
-      const registerResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/register', {
+      const registerResponse = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
@@ -206,7 +207,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         return;
       }
 
-      const loginResponse = await fetch('https://zipco-backend-production.up.railway.app/auth/login', {
+      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

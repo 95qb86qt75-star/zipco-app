@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { API_BASE_URL } from '../../api/apiConfig';
 import { showAppToast } from '../Toast';
 import CategoryPickerModal from './business-config/CategoryPickerModal';
 import CategorySelectionCard from './business-config/CategorySelectionCard';
@@ -224,7 +225,7 @@ export default function BusinessConfigScreen({
     const newValue = !isOpen;
 
     try {
-      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+      const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -291,7 +292,7 @@ export default function BusinessConfigScreen({
 
     const loadBusinessConfig = async () => {
       try {
-        const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+        const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -343,7 +344,7 @@ export default function BusinessConfigScreen({
     }
 
     try {
-      const response = await fetch(`https://zipco-backend-production.up.railway.app/businesses/${businessId}`, {
+      const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
