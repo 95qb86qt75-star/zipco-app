@@ -14,9 +14,6 @@ import WelcomeStep from './registration/WelcomeStep';
 import type { RegistrationStep } from './registration/registrationTypes';
 import useSmsRegistration from './registration/useSmsRegistration';
 
-const USE_SMS_LOGIN =
-  import.meta.env.VITE_USE_SMS_LOGIN === 'true';
-
 export default function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<RegistrationStep>('welcome');
   const [phone, setPhone] = useState('');
@@ -35,13 +32,6 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     setPhone(value);
   };
 
-  const getLegacyAuthCredentials = () => {
-    return {
-      password: apiPhone.slice(0, 8),
-      email: `${apiPhone}@zipco.cl`
-    };
-  };
-
   const saveAuthData = async (data: any, shouldCreateBusiness = false) => {
     const token = data.token ?? data.jwt ?? data.accessToken ?? data.access_token;
     const userId = data.user?.id ?? data.user?._id ?? data.id ?? data.userId;
@@ -54,19 +44,6 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     localStorage.setItem('zipco-user-id', String(userId));
     localStorage.setItem('zipco-user-phone', phone);
     localStorage.removeItem('zipco-business-id');
-
-    try {
-      await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ phone })
-      });
-    } catch (error) {
-      // El respaldo local permite mostrar el telefono aunque este PATCH falle.
-    }
 
     if (shouldCreateBusiness && businessName.trim()) {
       try {
@@ -112,37 +89,14 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     }
     setError('');
 
-    if (USE_SMS_LOGIN) {
-      const requested = await sms.requestInitialCode(
-        apiPhone,
-        isCompletingRegistration
-      );
+    const requested = await sms.requestInitialCode(
+      apiPhone,
+      isCompletingRegistration
+    );
 
-      if (requested) {
-        setStep('code');
-      }
-
-      return;
+    if (requested) {
+      setStep('code');
     }
-
-    const { email, password } = getLegacyAuthCredentials();
-
-    try {
-      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (loginResponse.ok) {
-        await saveAuthData(await loginResponse.json());
-        return;
-      }
-    } catch (error) {
-      // Si no se puede confirmar que exista, continuamos con el flujo de registro.
-    }
-
-    setStep('name');
   };
 
   const handleChangePhone = () => {
@@ -182,43 +136,8 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     try {
       setError('');
 
-      if (USE_SMS_LOGIN) {
-        const data = await completeSmsRegistration(apiPhone, sms.code, name.trim());
-        await saveAuthData(data, step === 'businessDetails');
-        return;
-      }
-
-      const { password, email } = getLegacyAuthCredentials();
-      const credentials = {
-        name: name.trim(),
-        phone,
-        password,
-        email
-      };
-
-      const registerResponse = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      });
-
-      if (registerResponse.ok) {
-        await saveAuthData(await registerResponse.json(), step === 'businessDetails');
-        return;
-      }
-
-      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (loginResponse.ok) {
-        await saveAuthData(await loginResponse.json());
-        return;
-      }
-
-      setError('Hubo un problema al crear tu cuenta. Intenta de nuevo');
+      const data = await completeSmsRegistration(apiPhone, sms.code, name.trim());
+      await saveAuthData(data, step === 'businessDetails');
     } catch (registrationError) {
       setError(
         registrationError instanceof AuthSmsError
@@ -230,9 +149,14 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
     }
   };
 
-  const activeSteps: RegistrationStep[] = USE_SMS_LOGIN
-    ? ['welcome', 'phone', 'code', 'name', 'business', 'businessDetails']
-    : ['welcome', 'phone', 'name', 'business', 'businessDetails'];
+  const activeSteps: RegistrationStep[] = [
+    'welcome',
+    'phone',
+    'code',
+    'name',
+    'business',
+    'businessDetails'
+  ];
 
   const progress = activeSteps.indexOf(step) + 1;
   const totalSteps = activeSteps.length;
