@@ -4,54 +4,6 @@ import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import DistanceInfo from './DistanceInfo';
 
-const mockProducts = [
-  {
-    id: 1,
-    name: 'Pan de Pascua clásico',
-    description: 'Tradicional pan de Pascua con frutos confitados, nueces y almendras',
-    price: 12000,
-    image: 'https://images.unsplash.com/photo-1607478900766-efe13248b125?w=400&q=80',
-    mode: 'order',
-    isAvailable: true
-  },
-  {
-    id: 2,
-    name: 'Pan de Pascua frutos secos',
-    description: 'Pan de Pascua con almendras, nueces y nueces confitadas',
-    price: 14000,
-    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80',
-    mode: 'order',
-    isAvailable: true
-  },
-  {
-    id: 3,
-    name: 'Queque navideño',
-    description: 'Pan caletas de manjar con nueces y pasas',
-    price: 8000,
-    image: 'https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e?w=400&q=80',
-    mode: 'view',
-    isAvailable: false
-  },
-  {
-    id: 4,
-    name: 'Galletas artesanales',
-    description: 'Ricas galletas de jengibre especiadas y decoradas',
-    price: 6000,
-    image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400&q=80',
-    mode: 'order',
-    isAvailable: true
-  },
-  {
-    id: 5,
-    name: 'Rollitos de canela',
-    description: 'Rollitos de canela esponjosos con glaseado',
-    price: 3500,
-    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80',
-    mode: 'order',
-    isAvailable: true
-  }
-];
-
 function parseProducts(raw: any): any[] {
   if (!raw) return [];
   try {
@@ -219,9 +171,7 @@ export default function BusinessProfileScreen({
     return () => clearTimeout(timeout);
   }, [showRemoveTooltip]);
 
-  const realProducts = parseProducts(business.products);
-  const products = realProducts.length > 0 ? realProducts : mockProducts;
-  const isRealBusiness = realProducts.length > 0;
+  const products = parseProducts(business.products);
   const businessImage = business.photo || business.imageUrl || business.image;
   const businessType = formatBusinessType(business.type || business.category || business.categoryName);
   const isBusinessOpen = business.isOpen ?? business.open ?? true;
@@ -233,6 +183,13 @@ export default function BusinessProfileScreen({
     business.longitude ?? business.lng ?? business.lon
   );
   const distanceLabel = formatDistance(calculatedDistanceKm);
+
+  useEffect(() => {
+    setSelectedProducts([]);
+    setPreviewProduct(null);
+    setShowRemoveTooltip(false);
+    setHasShownRemoveTooltip(false);
+  }, [business.id, business.products]);
 
   const handleOrderToggle = (productId: any) => {
     const isSelected = selectedProducts.includes(productId);
@@ -413,26 +370,33 @@ export default function BusinessProfileScreen({
       </div>
 
       <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-3 pb-28">
-        <h3 className="text-base font-bold text-gray-900 mb-1.5">
-          {isRealBusiness ? 'Productos y servicios' : 'Productos disponibles'}
-        </h3>
+        <h3 className="text-base font-bold text-gray-900 mb-1.5">Productos y servicios</h3>
 
-        <div className="bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-2 mb-3 shadow-sm">
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1.5 text-teal-700">
-              <span className="text-sm">🛒</span>
-              <span className="text-[12px] font-bold">Se puede pedir</span>
-            </div>
-            <div className="h-6 w-px bg-gray-200" />
-            <div className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1.5 text-teal-700">
-              <span className="text-sm">👁</span>
-              <span className="text-[12px] font-bold">Solo para ver</span>
-            </div>
+        {products.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200 bg-white/80 px-5 py-8 text-center shadow-sm">
+            <Store className="mx-auto mb-3 h-9 w-9 text-slate-300" />
+            <p className="text-sm font-semibold text-slate-600">
+              Este negocio todavía no cargó su catálogo.
+            </p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-2 mb-3 shadow-sm">
+              <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1.5 text-teal-700">
+                  <span className="text-sm">🛒</span>
+                  <span className="text-[12px] font-bold">Se puede pedir</span>
+                </div>
+                <div className="h-6 w-px bg-gray-200" />
+                <div className="flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1.5 text-teal-700">
+                  <span className="text-sm">👁</span>
+                  <span className="text-[12px] font-bold">Solo para ver</span>
+                </div>
+              </div>
+            </div>
 
-        <div className="space-y-2">
-          {products.map((product) => {
+            <div className="space-y-2">
+              {products.map((product) => {
             const isSelected = selectedProducts.includes(product.id);
             const canOrder = product.mode === 'order';
             return (
@@ -511,11 +475,13 @@ export default function BusinessProfileScreen({
                 </div>
               </div>
             );
-          })}
-        </div>
+              })}
+            </div>
+          </>
+        )}
       </div>
 
-      {selectedProducts.length > 0 && (
+      {products.length > 0 && selectedProducts.length > 0 && (
         <div className="absolute bottom-20 left-0 right-0 px-4 py-3 bg-gradient-to-t from-white via-white/95 to-transparent">
           <button
             onClick={() => onCheckout(selectedProducts, products)}
