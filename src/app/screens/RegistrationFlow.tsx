@@ -247,7 +247,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
   return (
     <div className="size-full bg-gradient-to-br from-teal-50 via-white to-emerald-50 flex items-center justify-center">
-      <div className="w-full max-w-md h-full flex flex-col relative overflow-hidden bg-white">
+      <div className="w-full max-w-md h-full flex flex-col relative overflow-x-hidden overflow-y-auto bg-white">
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-teal-500/20 to-transparent" />
 
         <div className="relative z-10 px-6 pt-8">

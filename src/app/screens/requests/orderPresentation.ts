@@ -34,13 +34,41 @@ export const STATUS_LABELS: Record<DisplayOrderStatus, string> = {
   unavailable: 'Estado no disponible'
 };
 
-export const ACTION_LABELS: Record<OrderAction, string> = {
-  accept: 'Aceptar pedido',
-  reject: 'Rechazar pedido',
-  cancel: 'Cancelar pedido',
-  'mark-ready': 'Marcar pedido listo',
-  'complete-reception': 'Confirmar recepción',
-  'complete-delivery': 'Confirmar entrega'
+export const ORDER_ACTION_COPY: Record<OrderAction, {
+  title: string;
+  description: string;
+  confirmLabel: string;
+}> = {
+  accept: {
+    title: 'Aceptar pedido',
+    description: 'Al aceptar, el pedido pasará a “En preparación” y podrás marcarlo como listo cuando corresponda.',
+    confirmLabel: 'Aceptar pedido'
+  },
+  reject: {
+    title: 'Rechazar pedido',
+    description: 'El pedido será rechazado y pasará al historial. Esta acción no se puede deshacer.',
+    confirmLabel: 'Rechazar pedido'
+  },
+  cancel: {
+    title: 'Cancelar pedido',
+    description: 'Selecciona el motivo de cancelación. El pedido pasará al historial y esta acción no se puede deshacer.',
+    confirmLabel: 'Cancelar pedido'
+  },
+  'mark-ready': {
+    title: 'Marcar pedido listo',
+    description: 'Confirma que el pedido está preparado y listo para ser entregado al cliente.',
+    confirmLabel: 'Marcar como listo'
+  },
+  'complete-reception': {
+    title: 'Confirmar recepción',
+    description: 'Confirma únicamente cuando hayas recibido tu pedido. Después de completar la entrega, no podrás cambiar su estado.',
+    confirmLabel: 'Confirmar recepción'
+  },
+  'complete-delivery': {
+    title: 'Confirmar entrega',
+    description: 'Confirma que el pedido fue entregado al cliente. Después de completar la entrega, no podrás cambiar su estado.',
+    confirmLabel: 'Confirmar entrega'
+  }
 };
 
 export function actionToPayload(
