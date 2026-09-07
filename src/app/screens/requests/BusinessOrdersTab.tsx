@@ -1,170 +1,81 @@
-import { CalendarDays, Check, ClipboardList, FileText } from 'lucide-react';
+import { Check, ClipboardList, History, PackageCheck } from 'lucide-react';
 import { useState } from 'react';
 import BusinessOrderCard from './BusinessOrderCard';
+import { classifyBusinessDeliveryDate, type BusinessDateFilter } from './businessOrderDates';
 import EmptyRequestsState from './EmptyRequestsState';
-import type { BusinessRequest } from './types';
+import OrderActionModal from './OrderActionModal';
+import { classifyBusinessOrders } from './orderPresentation';
+import type { BusinessRequest, CancellationReason, OrderAction } from './types';
 
-type DateFilter = 'today' | 'tomorrow' | 'upcoming';
-
-type BusinessOrdersTabProps = {
+type Section = 'pending' | 'preparing' | 'ready' | 'history';
+type Props = {
   requests: BusinessRequest[];
-  onAccept: (requestId: number) => void;
-  onReject: (requestId: number) => void;
+  updatingOrderIds: Set<number>;
+  onAction: (order: BusinessRequest, action: OrderAction, reason?: CancellationReason) => Promise<void>;
+  onRetry: () => Promise<boolean>;
 };
 
-function getLocalDateStr(offsetDays: number = 0): string {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetDays);
-  return date.toISOString().split('T')[0];
-}
+export default function BusinessOrdersTab({ requests, updatingOrderIds, onAction, onRetry }: Props) {
+  const [section, setSection] = useState<Section>('pending');
+  const [dateFilter, setDateFilter] = useState<BusinessDateFilter>('today');
+  const [selection, setSelection] = useState<{ order: BusinessRequest; action: OrderAction } | null>(null);
+  const groups = classifyBusinessOrders(requests);
+  const selectedId = selection?.order.recordState === 'available' ? selection.order.id : null;
+  const isSubmitting = selectedId !== null && updatingOrderIds.has(selectedId);
+  const preparing = groups.preparing.filter((order) => classifyBusinessDeliveryDate(order) === dateFilter);
+  const displayed = section === 'pending' ? groups.pending : section === 'preparing' ? preparing : section === 'ready' ? groups.ready : groups.history;
 
-function getDateFilter(request: BusinessRequest): DateFilter {
-  if (request.needNow) return 'today';
+  const confirm = async (reason?: CancellationReason) => {
+    if (!selection) return;
+    await onAction(selection.order, selection.action, reason);
+    setSelection(null);
+  };
 
-  const today = getLocalDateStr();
-  const tomorrow = getLocalDateStr(1);
-
-  if (!request.deliveryDate || request.deliveryDate <= today) return 'today';
-  if (request.deliveryDate === tomorrow) return 'tomorrow';
-  return 'upcoming';
-}
-
-export default function BusinessOrdersTab({ requests, onAccept, onReject }: BusinessOrdersTabProps) {
-  const [businessSubTab, setBusinessSubTab] = useState<'pending' | 'accepted'>('pending');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
-
-  const pendingRequests = requests
-    .filter((req) => req.status === 'pending')
-    .sort((a, b) => b.id - a.id);
-
-  const acceptedRequests = requests
-    .filter((req) => req.status === 'accepted')
-    .sort((a, b) => b.id - a.id);
-
-  const todayCount = acceptedRequests.filter((request) => getDateFilter(request) === 'today').length;
-  const tomorrowCount = acceptedRequests.filter((request) => getDateFilter(request) === 'tomorrow').length;
-  const upcomingCount = acceptedRequests.filter((request) => getDateFilter(request) === 'upcoming').length;
-  const filteredAccepted = acceptedRequests.filter((request) => getDateFilter(request) === dateFilter);
-  const acceptedSectionTitle = dateFilter === 'today'
-    ? 'Para Hoy'
-    : dateFilter === 'tomorrow'
-      ? 'Para Manana'
-      : 'Proximas Entregas';
+  const tabs: Array<{ key: Section; label: string; count: number }> = [
+    { key: 'pending', label: 'Pendientes', count: groups.pending.length },
+    { key: 'preparing', label: 'En preparación', count: groups.preparing.length },
+    { key: 'ready', label: 'Listos', count: groups.ready.length },
+    { key: 'history', label: 'Historial', count: groups.history.length }
+  ];
 
   return (
     <>
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setBusinessSubTab('pending')}
-          className={`flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all ${
-            businessSubTab === 'pending'
-              ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-              : 'bg-white/60 text-gray-600 hover:bg-white/80'
-          }`}
-        >
-          <span className="inline-flex items-center justify-center gap-2">
-            <ClipboardList className="w-4 h-4" />
-            Pendientes ({pendingRequests.length})
-          </span>
-        </button>
-        <button
-          onClick={() => setBusinessSubTab('accepted')}
-          className={`flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all ${
-            businessSubTab === 'accepted'
-              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
-              : 'bg-white/60 text-gray-600 hover:bg-white/80'
-          }`}
-        >
-          <span className="inline-flex items-center justify-center gap-2">
-            <Check className="w-4 h-4" />
-            Aceptados ({acceptedRequests.length})
-          </span>
-        </button>
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+        {tabs.map((tab) => (
+          <button key={tab.key} onClick={() => setSection(tab.key)} className={`shrink-0 rounded-xl px-3 py-2.5 text-xs font-semibold ${section === tab.key ? 'bg-teal-600 text-white' : 'bg-white text-gray-600'}`}>
+            {tab.label} ({tab.count})
+          </button>
+        ))}
       </div>
 
-      {businessSubTab === 'pending' && (
-        <>
-          {pendingRequests.length > 0 ? (
-            <div className="space-y-3">
-              {pendingRequests.map((request) => (
-                <BusinessOrderCard
-                  key={request.id}
-                  request={request}
-                  onAccept={onAccept}
-                  onReject={onReject}
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyRequestsState
-              icon={FileText}
-              title="No hay solicitudes pendientes"
-              description="Las nuevas solicitudes apareceran aqui"
-              colorClass="text-amber-600"
-              bgClass="bg-amber-100"
-            />
-          )}
-        </>
+      {section === 'preparing' && (
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          {(['today', 'tomorrow', 'upcoming', 'undated'] as const).map((filter) => (
+            <button key={filter} onClick={() => setDateFilter(filter)} className={`rounded-xl py-2 text-xs font-semibold ${dateFilter === filter ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`}>
+              {filter === 'today' ? 'Hoy' : filter === 'tomorrow' ? 'Mañana' : filter === 'upcoming' ? 'Próximos' : 'Sin fecha'} ({groups.preparing.filter((order) => classifyBusinessDeliveryDate(order) === filter).length})
+            </button>
+          ))}
+        </div>
       )}
 
-      {businessSubTab === 'accepted' && (
-        <>
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <button
-              onClick={() => setDateFilter('today')}
-              className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all ${
-                dateFilter === 'today'
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md'
-                  : 'bg-white/60 text-gray-600 hover:bg-white/80'
-              }`}
-            >
-              Hoy ({todayCount})
-            </button>
-            <button
-              onClick={() => setDateFilter('tomorrow')}
-              className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all ${
-                dateFilter === 'tomorrow'
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md'
-                  : 'bg-white/60 text-gray-600 hover:bg-white/80'
-              }`}
-            >
-              Manana ({tomorrowCount})
-            </button>
-            <button
-              onClick={() => setDateFilter('upcoming')}
-              className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all ${
-                dateFilter === 'upcoming'
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md'
-                  : 'bg-white/60 text-gray-600 hover:bg-white/80'
-              }`}
-            >
-              Proximos ({upcomingCount})
-            </button>
-          </div>
-
-          {filteredAccepted.length > 0 ? (
-            <div>
-              <h3 className="flex items-center gap-2 text-sm font-bold text-gray-800 mb-3 px-1">
-                <CalendarDays className="w-4 h-4 text-teal-500" />
-                {acceptedSectionTitle}
-              </h3>
-              <div className="space-y-3">
-                {filteredAccepted.map((request) => (
-                  <BusinessOrderCard key={request.id} request={request} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <EmptyRequestsState
-              icon={Check}
-              title="No hay solicitudes aceptadas"
-              description="Las solicitudes aceptadas apareceran aqui"
-              colorClass="text-green-600"
-              bgClass="bg-green-100"
-            />
-          )}
-        </>
+      {displayed.length > 0 ? (
+        <div className="space-y-3">
+          {displayed.map((order) => (
+            <BusinessOrderCard key={order.clientKey} request={order} isUpdating={order.recordState === 'available' && updatingOrderIds.has(order.id)} onAction={(action) => setSelection({ order, action })} onRetry={() => { void onRetry(); }} />
+          ))}
+        </div>
+      ) : (
+        <EmptyRequestsState icon={section === 'pending' ? ClipboardList : section === 'ready' ? PackageCheck : section === 'history' ? History : Check} title="No hay pedidos en esta sección" description="Los pedidos correspondientes aparecerán aquí" />
       )}
+
+      {groups.unavailable.length > 0 && (
+        <div className="mt-6 space-y-3">
+          <h3 className="text-sm font-bold text-gray-800">No disponibles</h3>
+          {groups.unavailable.map((order) => <BusinessOrderCard key={order.clientKey} request={order} isUpdating={false} onAction={() => undefined} onRetry={() => { void onRetry(); }} />)}
+        </div>
+      )}
+
+      <OrderActionModal key={selection ? `${selection.order.clientKey}-${selection.action}` : 'closed'} action={selection?.action ?? null} isSubmitting={isSubmitting} onClose={() => { if (!isSubmitting) setSelection(null); }} onConfirm={(reason) => { void confirm(reason); }} />
     </>
   );
 }

@@ -5,14 +5,16 @@ import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
 
 export default function RequestsScreen({
-  onBack
+  onBack,
+  onSessionExpired
 }: {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onBack: () => void;
+  onSessionExpired: () => void;
 }) {
   const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>('my-orders');
-  const { hasBusiness, isLoading, myOrders, requests, handleAccept, handleReject } = useRequests();
+  const { hasBusiness, isLoading, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
 
   return (
     <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
@@ -60,11 +62,21 @@ export default function RequestsScreen({
         )}
 
         {!isLoading && subTab === 'my-orders' && (
-          <MyOrdersTab myOrders={myOrders} />
+          <MyOrdersTab
+            myOrders={myOrders}
+            updatingOrderIds={updatingOrderIds}
+            onRetry={loadOrders}
+            onAction={(order, action, reason) => performAction(order, 'customer', action, reason)}
+          />
         )}
 
         {!isLoading && hasBusiness && subTab === 'my-business' && (
-          <BusinessOrdersTab requests={requests} onAccept={handleAccept} onReject={handleReject} />
+          <BusinessOrdersTab
+            requests={requests}
+            updatingOrderIds={updatingOrderIds}
+            onRetry={loadOrders}
+            onAction={(order, action, reason) => performAction(order, 'business', action, reason)}
+          />
         )}
       </div>
     </div>

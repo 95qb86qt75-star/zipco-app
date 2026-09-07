@@ -1,47 +1,75 @@
 import { Package } from 'lucide-react';
+import { useState } from 'react';
 import EmptyRequestsState from './EmptyRequestsState';
 import MyOrderCard from './MyOrderCard';
-import type { MyOrder } from './types';
+import OrderActionModal from './OrderActionModal';
+import { classifyCustomerOrders } from './orderPresentation';
+import type { CancellationReason, MyOrder, OrderAction } from './types';
 
-type MyOrdersTabProps = {
+type Props = {
   myOrders: MyOrder[];
+  updatingOrderIds: Set<number>;
+  onAction: (order: MyOrder, action: OrderAction, reason?: CancellationReason) => Promise<void>;
+  onRetry: () => Promise<boolean>;
 };
 
-export default function MyOrdersTab({ myOrders }: MyOrdersTabProps) {
-  const pendingOrders = myOrders.filter((order) => order.status === 'pending');
-  const processedOrders = myOrders.filter((order) => order.status !== 'pending');
+export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRetry }: Props) {
+  const [tab, setTab] = useState<'active' | 'history'>('active');
+  const [selection, setSelection] = useState<{ order: MyOrder; action: OrderAction } | null>(null);
+  const { active, history, unavailable } = classifyCustomerOrders(myOrders);
+  const displayed = tab === 'active' ? active : history;
+  const selectedId = selection?.order.recordState === 'available' ? selection.order.id : null;
+  const isSubmitting = selectedId !== null && updatingOrderIds.has(selectedId);
+
+  const confirm = async (reason?: CancellationReason) => {
+    if (!selection) return;
+    await onAction(selection.order, selection.action, reason);
+    setSelection(null);
+  };
 
   return (
     <>
-      <p className="text-sm text-gray-600 mb-4">
-        {pendingOrders.length} {pendingOrders.length === 1 ? 'pedido pendiente' : 'pedidos pendientes'}
-      </p>
+      <div className="mb-4 grid grid-cols-2 gap-2">
+        <button onClick={() => setTab('active')} className={`rounded-xl py-2.5 text-sm font-semibold ${tab === 'active' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600'}`}>
+          Activos ({active.length})
+        </button>
+        <button onClick={() => setTab('history')} className={`rounded-xl py-2.5 text-sm font-semibold ${tab === 'history' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600'}`}>
+          Historial ({history.length})
+        </button>
+      </div>
 
-      {pendingOrders.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-base font-bold text-gray-900 mb-3">Pendientes</h3>
-          <div className="space-y-3">
-            {pendingOrders.map((order) => (
-              <MyOrderCard key={order.id} order={order} variant="pending" />
-            ))}
-          </div>
+      {displayed.length > 0 ? (
+        <div className="space-y-3">
+          {displayed.map((order) => (
+            <MyOrderCard
+              key={order.clientKey}
+              order={order}
+              isUpdating={order.recordState === 'available' && updatingOrderIds.has(order.id)}
+              onAction={(action) => setSelection({ order, action })}
+              onRetry={() => { void onRetry(); }}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyRequestsState icon={Package} title={tab === 'active' ? 'No tienes pedidos activos' : 'Tu historial está vacío'} description="Tus pedidos aparecerán aquí" />
+      )}
+
+      {unavailable.length > 0 && (
+        <div className="mt-6 space-y-3">
+          <h3 className="text-sm font-bold text-gray-800">No disponibles</h3>
+          {unavailable.map((order) => (
+            <MyOrderCard key={order.clientKey} order={order} isUpdating={false} onAction={() => undefined} onRetry={() => { void onRetry(); }} />
+          ))}
         </div>
       )}
 
-      {processedOrders.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-base font-bold text-gray-900 mb-3">Historial</h3>
-          <div className="space-y-3">
-            {processedOrders.map((order) => (
-              <MyOrderCard key={order.id} order={order} variant="history" />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {myOrders.length === 0 && (
-        <EmptyRequestsState icon={Package} title="Aun no tienes pedidos" description="Tus pedidos apareceran aqui" />
-      )}
+      <OrderActionModal
+        key={selection ? `${selection.order.clientKey}-${selection.action}` : 'closed'}
+        action={selection?.action ?? null}
+        isSubmitting={isSubmitting}
+        onClose={() => { if (!isSubmitting) setSelection(null); }}
+        onConfirm={(reason) => { void confirm(reason); }}
+      />
     </>
   );
 }

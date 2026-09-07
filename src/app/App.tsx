@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
@@ -75,7 +75,7 @@ export default function App() {
     localStorage.setItem('zipco-location', JSON.stringify(currentLocation));
   }, [currentLocation]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem('zipco-token');
     localStorage.removeItem('zipco-user-id');
     localStorage.removeItem('zipco-registration-complete');
@@ -83,7 +83,7 @@ export default function App() {
     setCurrentScreen('home');
     setActiveTab('home');
     setIsRegistrationComplete(false);
-  };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
@@ -316,6 +316,7 @@ export default function App() {
           <RequestsScreen
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSessionExpired={handleLogout}
             onBack={() => {
               setActiveTab('home');
               setCurrentScreen('home');
