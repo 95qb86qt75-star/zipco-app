@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../api/apiConfig';
 import {
@@ -13,6 +13,10 @@ import SmsCodeStep from './registration/SmsCodeStep';
 import WelcomeStep from './registration/WelcomeStep';
 import type { RegistrationStep } from './registration/registrationTypes';
 import useSmsRegistration from './registration/useSmsRegistration';
+
+const DevAccessPanel = import.meta.env.DEV
+  ? lazy(() => import('../dev/DevAccessPanel'))
+  : null;
 
 export default function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<RegistrationStep>('welcome');
@@ -270,6 +274,11 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
         <div className="relative z-10 flex-1 px-6 pb-8 flex flex-col justify-center">
           {renderStep()}
+          {step === 'welcome' && DevAccessPanel && (
+            <Suspense fallback={null}>
+              <DevAccessPanel onAuthenticated={onComplete} />
+            </Suspense>
+          )}
         </div>
       </div>
     </div>

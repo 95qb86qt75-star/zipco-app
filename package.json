@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:production:verify": "vite build --mode production && node scripts/verify-production-build.mjs",
     "dev": "vite",
     "test": "vitest run"
   },
