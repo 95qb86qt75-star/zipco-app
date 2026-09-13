@@ -3,8 +3,13 @@ import { ArrowLeft, Camera, Minus, Plus, Send, X } from 'lucide-react';
 import { API_BASE_URL } from '../api/apiConfig';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { showAppToast } from './Toast';
+import {
+  createOrder,
+  CreateOrderError,
+  GENERIC_CREATE_ORDER_MESSAGE
+} from './createOrderApi';
 
-export default function CheckoutScreen({ business, selectedProducts, products, onBack, onOrderComplete }: { business: any; selectedProducts: number[]; products: any[]; onBack: () => void; onOrderComplete: () => void }) {
+export default function CheckoutScreen({ business, currentUserId, selectedProducts, products, onBack, onOrderComplete }: { business: any; currentUserId: unknown; selectedProducts: number[]; products: any[]; onBack: () => void; onOrderComplete: () => void }) {
   const [quantities, setQuantities] = useState<Record<number, number>>(
     selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {})
   );
@@ -114,7 +119,7 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
 
   const handleSubmitOrder = async () => {
     const token = localStorage.getItem('zipco-token');
-    const userId = Number(localStorage.getItem('zipco-user-id'));
+    const userId = Number(currentUserId);
 
     if (!token || !userId) {
       showAppToast('No se pudo enviar el pedido', 'error');
@@ -128,13 +133,12 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      await createOrder({
+        url: `${API_BASE_URL}/orders`,
+        token,
+        currentUserId,
+        businessUserId: business.userId,
+        payload: {
           businessId: business.id,
           userId,
           products: JSON.stringify(orderProducts),
@@ -145,17 +149,15 @@ export default function CheckoutScreen({ business, selectedProducts, products, o
           referencePhoto,
           total: calculateTotal(),
           status: 'pending'
-        })
+        }
       });
-
-      if (!response.ok) {
-        showAppToast('No se pudo enviar el pedido', 'error');
-        return;
-      }
 
       setShowConfirmation(true);
     } catch (error) {
-      showAppToast('No se pudo enviar el pedido', 'error');
+      const message = error instanceof CreateOrderError
+        ? error.message
+        : GENERIC_CREATE_ORDER_MESSAGE;
+      showAppToast(message, 'error');
     }
   };
 

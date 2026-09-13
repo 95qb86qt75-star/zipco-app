@@ -394,6 +394,7 @@ export default function App() {
         <div className="w-full max-w-md h-full relative">
           <CheckoutScreen
             business={selectedBusiness}
+            currentUserId={localStorage.getItem('zipco-user-id')}
             selectedProducts={checkoutData.selectedProducts}
             products={checkoutData.products}
             onBack={() => setCurrentScreen('profile')}
@@ -422,6 +423,7 @@ export default function App() {
         <div className="w-full max-w-md h-full relative">
           <BusinessProfileScreen
             business={selectedBusiness}
+            currentUserId={localStorage.getItem('zipco-user-id')}
             currentLocation={currentLocation}
             onBack={() => setCurrentScreen(previousScreen)}
             onCheckout={(selectedProducts, products) => {

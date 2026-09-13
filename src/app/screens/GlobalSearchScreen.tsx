@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Search, Send, Store, Wrench } from 'lucide-react';
 import { API_BASE_URL } from '../api/apiConfig';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import { parsePositiveIntegerId } from './businessOwnership';
 import DistanceInfo from './DistanceInfo';
 
 const getCoordinate = (value: any) => {
@@ -419,6 +420,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
     return {
       ...result,
       id: result.id ?? result._id ?? result.businessId ?? result.name,
+      userId: parsePositiveIntegerId(result.userId),
       name: result.name ?? result.businessName ?? result.title ?? 'Negocio sin nombre',
       description: result.description ?? result.subtitle ?? result.address ?? 'Sin descripción disponible',
       distance: calculatedDistance ?? backendDistance,

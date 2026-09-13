@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Clock, Eye, Facebook, Instagram, MapPin, ShoppingCart, Store, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { isOwnBusiness, selectionAfterBusinessContextChange } from './businessOwnership';
 import DistanceInfo from './DistanceInfo';
 
 function parseProducts(raw: any): any[] {
@@ -74,11 +75,13 @@ function formatBusinessType(value: any) {
 
 export default function BusinessProfileScreen({
   business,
+  currentUserId,
   currentLocation,
   onBack,
   onCheckout
 }: {
   business: any;
+  currentUserId: unknown;
   currentLocation?: { lat: number | null; lng: number | null };
   onBack: () => void;
   onCheckout: (selectedProducts: any[], products: any[]) => void;
@@ -172,6 +175,7 @@ export default function BusinessProfileScreen({
   }, [showRemoveTooltip]);
 
   const products = parseProducts(business.products);
+  const isOwnBusinessProfile = isOwnBusiness(business.userId, currentUserId);
   const businessImage = business.photo || business.imageUrl || business.image;
   const businessType = formatBusinessType(business.type || business.category || business.categoryName);
   const isBusinessOpen = business.isOpen ?? business.open ?? true;
@@ -185,13 +189,17 @@ export default function BusinessProfileScreen({
   const distanceLabel = formatDistance(calculatedDistanceKm);
 
   useEffect(() => {
-    setSelectedProducts([]);
+    setSelectedProducts((selection) => selectionAfterBusinessContextChange(
+      selection,
+      isOwnBusinessProfile
+    ));
     setPreviewProduct(null);
     setShowRemoveTooltip(false);
     setHasShownRemoveTooltip(false);
-  }, [business.id, business.products]);
+  }, [business.id, business.products, isOwnBusinessProfile]);
 
   const handleOrderToggle = (productId: any) => {
+    if (isOwnBusinessProfile) return;
     const isSelected = selectedProducts.includes(productId);
 
     setSelectedProducts((prev) => (
@@ -372,6 +380,12 @@ export default function BusinessProfileScreen({
       <div ref={scrollContainerRef} className="flex-1 overflow-auto px-4 pt-3 pb-28">
         <h3 className="text-base font-bold text-gray-900 mb-1.5">Productos y servicios</h3>
 
+        {isOwnBusinessProfile && (
+          <div className="mb-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
+            Este es tu negocio. Puedes revisar el catálogo, pero no realizar pedidos aquí.
+          </div>
+        )}
+
         {products.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white/80 px-5 py-8 text-center shadow-sm">
             <Store className="mx-auto mb-3 h-9 w-9 text-slate-300" />
@@ -440,7 +454,7 @@ export default function BusinessProfileScreen({
                       <span className="text-[15px] font-extrabold text-gray-950 leading-none">
                         ${Number(product.price).toLocaleString('es-CL')}
                       </span>
-                      {canOrder && (
+                      {canOrder && !isOwnBusinessProfile && (
                         <button
                           type="button"
                           onClick={(event) => {
@@ -457,7 +471,7 @@ export default function BusinessProfileScreen({
                           {isSelected ? 'Agregado ✓' : 'Agregar'}
                         </button>
                       )}
-                      {!canOrder && (
+                      {(!canOrder || isOwnBusinessProfile) && (
                         <button
                           type="button"
                           onClick={(event) => {
@@ -481,7 +495,7 @@ export default function BusinessProfileScreen({
         )}
       </div>
 
-      {products.length > 0 && selectedProducts.length > 0 && (
+      {!isOwnBusinessProfile && products.length > 0 && selectedProducts.length > 0 && (
         <div className="absolute bottom-20 left-0 right-0 px-4 py-3 bg-gradient-to-t from-white via-white/95 to-transparent">
           <button
             onClick={() => onCheckout(selectedProducts, products)}
