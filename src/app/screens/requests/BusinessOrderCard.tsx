@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import OrderStatusBadge from './OrderStatusBadge';
 import type { BusinessRequest, OrderAction } from './types';
-import { formatDate } from './utils';
+import { formatDeliverySchedule } from './utils';
 
 const REASON_LABELS = {
   no_longer_needed: 'Ya no lo necesitaba.',
@@ -42,6 +42,7 @@ export default function BusinessOrderCard({ request, isUpdating, onAction, onRet
       ? 'complete-delivery'
       : null;
   const total = request.total;
+  const deliverySchedule = formatDeliverySchedule(request, 'business');
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white/80 p-3 shadow-sm">
@@ -65,9 +66,11 @@ export default function BusinessOrderCard({ request, isUpdating, onAction, onRet
         ))}
       </div>
 
-      <div className="mb-2 rounded-lg border border-purple-200 bg-purple-50 p-2 text-xs">
-        {request.needNow ? 'Lo necesita ahora' : `${formatDate(request.deliveryDate)} · ${request.deliveryTime ?? 'Hora no disponible'}`}
-      </div>
+      {deliverySchedule && (
+        <div className="mb-2 rounded-lg border border-purple-200 bg-purple-50 p-2 text-xs">
+          {deliverySchedule}
+        </div>
+      )}
       {request.note && <p className="mb-2 rounded-lg bg-blue-50 p-2 text-xs italic">“{request.note}”</p>}
       {request.status === 'cancelled' && (
         <p className="mb-2 text-xs text-gray-600">

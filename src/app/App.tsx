@@ -14,8 +14,9 @@ import NegociosScreen from './screens/NegociosScreen';
 import GlobalSearchScreen from './screens/GlobalSearchScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EmptyFavorites from './screens/EmptyFavorites';
-import Toast, { showAppToast, type ToastType } from './screens/Toast';
+import Toast, { mergeToastNotification, showAppToast, type ToastNotification } from './screens/Toast';
 import SplashScreen from './screens/SplashScreen';
+import type { CatalogItem } from './screens/profile/business-config/types';
 
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
@@ -54,13 +55,13 @@ export default function App() {
   const [pendingLocation, setPendingLocation] = useState('');
   const [currentLocation, setCurrentLocation] = useState<{ name: string; lat: number | null; lng: number | null }>(getStoredLocation);
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
-  const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: any[] } | null>(null);
+  const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: CatalogItem[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems] = useState<any[]>([]);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<ToastType>('success');
+  const [toast, setToast] = useState<ToastNotification | null>(null);
+  const closeToast = useCallback(() => setToast(null), []);
 
   useEffect(() => {
     if (hasStoredSession()) {
@@ -101,28 +102,17 @@ export default function App() {
 
   useEffect(() => {
     const handleToast = (event: Event) => {
-      const { message, type } = (event as CustomEvent<{ message: string; type: ToastType }>).detail;
-      setToastMessage(message);
-      setToastType(type);
+      const notification = (event as CustomEvent<ToastNotification>).detail;
+      setToast((current) => mergeToastNotification(current, notification));
     };
 
     window.addEventListener('zipco-toast', handleToast);
     return () => window.removeEventListener('zipco-toast', handleToast);
   }, []);
 
-  useEffect(() => {
-    if (!toastMessage) return;
-
-    const timer = setTimeout(() => {
-      setToastMessage('');
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [toastMessage]);
-
   const renderWithToast = (content: any) => (
     <>
-      {toastMessage && <Toast message={toastMessage} type={toastType} />}
+      {toast && <Toast key={toast.dedupeKey} notification={toast} onClose={closeToast} />}
       {content}
     </>
   );
@@ -402,6 +392,11 @@ export default function App() {
               setCurrentScreen('home');
               setActiveTab('requests');
             }}
+            onCatalogConflict={() => {
+              setCheckoutData(null);
+              setCurrentScreen('profile');
+            }}
+            onSessionExpired={handleLogout}
           />
           <BottomNav
             activeTab={activeTab}

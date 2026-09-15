@@ -5,9 +5,10 @@ import {
   parseCancellationReason,
   parseIsoDate,
   parseNonNegativeNumber,
+  parseNonNegativeInteger,
   parseOrderStatus,
   parsePositiveInteger,
-  parseProducts,
+  parseProducts, parseOrderItems,
   parseTime
 } from './orderValueParsers';
 
@@ -81,5 +82,35 @@ describe('order value parsers', () => {
   it('accepts only supported cancellation reasons', () => {
     expect(parseCancellationReason('selected_by_mistake')).toBe('selected_by_mistake');
     expect(parseCancellationReason('invented')).toBeNull();
+  });
+});
+
+describe('OrderItem compatibility', () => {
+  const orderItem = { id: 1, orderId: 2, catalogItemId: 3, nameSnapshot: 'Torta', unitPriceClpSnapshot: 12000, quantity: 2, subtotalClp: 24000 };
+  it('maps valid snapshots to display products', () => expect(parseOrderItems([orderItem])).toEqual({ state: 'available', items: [{ name: 'Torta', price: 12000, quantity: 2 }] }));
+  it('rejects an invalid subtotal', () => expect(parseOrderItems([{ ...orderItem, subtotalClp: 1 }])).toEqual({ state: 'unavailable', items: [] }));
+  it.each([
+    { ...orderItem, unitPriceClpSnapshot: 0, subtotalClp: 0 },
+    { ...orderItem, subtotalClp: 0 }
+  ])('rejects zero price or subtotal in a new OrderItem', (value) => {
+    expect(parseOrderItems([value])).toEqual({ state: 'unavailable', items: [] });
+  });
+
+  it.each([
+    [12000, 12000],
+    ['12000', 12000],
+    ['12000.00', 12000],
+    [0, 0],
+    ['0', 0],
+    ['0.00', 0]
+  ])('normalizes canonical integer total %s', (value, expected) => {
+    expect(parseNonNegativeInteger(value)).toBe(expected);
+  });
+
+  it.each([
+    '12000.50', '12000.0', '012000.00', '+12000.00', '1e4', '-1', '-1.00',
+    Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1
+  ])('rejects non-canonical or unsafe integer total %s', (value) => {
+    expect(parseNonNegativeInteger(value)).toBeNull();
   });
 });

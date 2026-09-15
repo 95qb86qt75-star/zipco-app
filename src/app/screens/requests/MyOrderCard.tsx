@@ -1,6 +1,7 @@
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import OrderStatusBadge from './OrderStatusBadge';
 import type { MyOrder, OrderAction } from './types';
+import { formatDeliverySchedule } from './utils';
 
 const REASON_LABELS = {
   no_longer_needed: 'Ya no lo necesitaba.',
@@ -38,6 +39,7 @@ export default function MyOrderCard({ order, isUpdating, onAction, onRetry }: Pr
     : order.status === 'ready'
       ? 'complete-reception'
       : null;
+  const deliverySchedule = formatDeliverySchedule(order, 'customer');
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 shadow-sm">
@@ -60,6 +62,12 @@ export default function MyOrderCard({ order, isUpdating, onAction, onRetry }: Pr
               <span className="font-semibold">${(product.price * product.quantity).toLocaleString('es-CL')}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {deliverySchedule && (
+        <div className="mb-3 rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm text-purple-900">
+          {deliverySchedule}
         </div>
       )}
 

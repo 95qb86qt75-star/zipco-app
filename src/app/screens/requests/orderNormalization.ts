@@ -4,7 +4,8 @@ import {
   parseCalendarDate,
   parseCancellationReason,
   parseIsoDate,
-  parseNonNegativeNumber,
+  parseNonNegativeInteger,
+  parseOrderItems,
   parseOrderStatus,
   parsePositiveInteger,
   parseProducts,
@@ -156,10 +157,12 @@ function normalizeCandidate(
   if (isPresent(record.deliveryDate) && deliveryDate === null) dataIssues.push('deliveryDate');
   if (isPresent(record.deliveryTime) && deliveryTime === null) dataIssues.push('deliveryTime');
 
-  const total = parseNonNegativeNumber(record.total);
+  const total = parseNonNegativeInteger(record.total);
   if (total === null) dataIssues.push('total');
-  const products = parseProducts(record.products);
-  if (products.state === 'unavailable') dataIssues.push('products');
+  const hasNewItems = Array.isArray(record.items) && record.items.length > 0;
+  const hasInvalidItemsValue = isPresent(record.items) && !Array.isArray(record.items);
+  const products = hasNewItems || hasInvalidItemsValue ? parseOrderItems(record.items) : parseProducts(record.products);
+  if (products.state === 'unavailable') dataIssues.push(hasNewItems || hasInvalidItemsValue ? 'items' : 'products');
 
   const note = readOptionalText(record.note, 'note', dataIssues);
   const referencePhoto = readOptionalImage(record.referencePhoto, 'referencePhoto', dataIssues);

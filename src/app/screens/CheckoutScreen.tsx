@@ -4,12 +4,16 @@ import { API_BASE_URL } from '../api/apiConfig';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { showAppToast } from './Toast';
 import {
+  buildCreateOrderPayload,
   createOrder,
   CreateOrderError,
   GENERIC_CREATE_ORDER_MESSAGE
 } from './createOrderApi';
+import { getCloudinarySecureImageUrl } from './profile/business-config/catalogValidation';
+import type { CatalogItem } from './profile/business-config/types';
+import { nextOrderQuantity } from './checkoutOrderState';
 
-export default function CheckoutScreen({ business, currentUserId, selectedProducts, products, onBack, onOrderComplete }: { business: any; currentUserId: unknown; selectedProducts: number[]; products: any[]; onBack: () => void; onOrderComplete: () => void }) {
+export default function CheckoutScreen({ business, currentUserId, selectedProducts, products, onBack, onOrderComplete, onCatalogConflict, onSessionExpired }: { business: any; currentUserId: unknown; selectedProducts: number[]; products: CatalogItem[]; onBack: () => void; onOrderComplete: () => void; onCatalogConflict: () => void; onSessionExpired: () => void }) {
   const [quantities, setQuantities] = useState<Record<number, number>>(
     selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {})
   );
@@ -22,6 +26,9 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
   const [needNow, setNeedNow] = useState(false);
   const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [officialTotal, setOfficialTotal] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
   const calendarInputRef = useRef<HTMLInputElement>(null);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
   const availableHours = Array.from({ length: 14 }, (_, index) => String(index + 9).padStart(2, '0'));
@@ -51,7 +58,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
     };
   });
 
-  const selectedItems = products.filter((p) => selectedProducts.includes(p.id));
+  const selectedItems = products.filter((p) => selectedProducts.includes(p.id) && p.kind === 'product' && p.pricingMode === 'fixed_price');
 
   const updateSelectedTime = (hour: string, minute: string) => {
     setSelectedHour(hour);
@@ -76,13 +83,13 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities((prev) => ({
       ...prev,
-      [productId]: Math.max(1, (prev[productId] || 1) + delta)
+      [productId]: nextOrderQuantity(prev[productId] || 1, delta > 0 ? 1 : -1)
     }));
   };
 
   const calculateTotal = () => {
     return selectedItems.reduce((total, item) => {
-      return total + item.price * (quantities[item.id] || 1);
+      return total + (item.priceClp ?? 0) * (quantities[item.id] || 1);
     }, 0);
   };
 
@@ -107,8 +114,9 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
         return;
       }
 
-      const data = await response.json();
-      setReferencePhoto(data.secure_url ?? null);
+      const imageUrl = getCloudinarySecureImageUrl(await response.json() as unknown);
+      if (!imageUrl) { showAppToast('No se pudo subir la foto', 'error'); return; }
+      setReferencePhoto(imageUrl);
     } catch (error) {
       showAppToast('No se pudo subir la foto', 'error');
     } finally {
@@ -119,45 +127,39 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
 
   const handleSubmitOrder = async () => {
     const token = localStorage.getItem('zipco-token');
-    const userId = Number(currentUserId);
-
-    if (!token || !userId) {
+    if (!token || selectedItems.length === 0 || submitLock.current) {
       showAppToast('No se pudo enviar el pedido', 'error');
       return;
     }
 
-    const orderProducts = selectedItems.map((product) => ({
-      name: product.name,
-      price: product.price,
-      quantity: quantities[product.id] || 1
-    }));
-
+    submitLock.current = true; setIsSubmitting(true);
     try {
-      await createOrder({
+      const created = await createOrder({
         url: `${API_BASE_URL}/orders`,
         token,
         currentUserId,
         businessUserId: business.userId,
-        payload: {
+        payload: buildCreateOrderPayload({
           businessId: business.id,
-          userId,
-          products: JSON.stringify(orderProducts),
+          items: selectedItems.map((product) => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 })),
           note,
           needNow,
           deliveryDate: selectedDate,
           deliveryTime: selectedTime,
-          referencePhoto,
-          total: calculateTotal(),
-          status: 'pending'
-        }
+          referencePhoto
+        })
       });
-
+      setOfficialTotal(created.total);
       setShowConfirmation(true);
     } catch (error) {
       const message = error instanceof CreateOrderError
         ? error.message
         : GENERIC_CREATE_ORDER_MESSAGE;
       showAppToast(message, 'error');
+      if (error instanceof CreateOrderError && error.status === 409) onCatalogConflict();
+      if (error instanceof CreateOrderError && error.status === 401) onSessionExpired();
+    } finally {
+      submitLock.current = false; setIsSubmitting(false);
     }
   };
 
@@ -200,14 +202,14 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             >
               <div className="flex gap-3 mb-3">
                 <ImageWithFallback
-                  src={product.image}
+                  src={product.imageUrl}
                   alt={product.name}
                   className="w-16 h-16 rounded-xl object-cover"
                 />
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 text-sm mb-1">{product.name}</h4>
                   <p className="text-xs text-gray-600 mb-2 line-clamp-1">{product.description}</p>
-                  <span className="text-base font-bold text-gray-900">${product.price.toLocaleString('es-CL')}</span>
+                  <span className="text-base font-bold text-gray-900">${product.priceClp?.toLocaleString('es-CL')}</span>
                 </div>
               </div>
 
@@ -237,7 +239,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
               <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
                 <span className="text-sm text-gray-600">Subtotal</span>
                 <span className="text-base font-bold text-teal-600">
-                  ${((product.price * (quantities[product.id] || 1)).toLocaleString('es-CL'))}
+                  ${(((product.priceClp ?? 0) * (quantities[product.id] || 1)).toLocaleString('es-CL'))}
                 </span>
               </div>
             </div>
@@ -462,7 +464,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-lg font-bold text-gray-900">Total a pagar</span>
+            <span className="text-lg font-bold text-gray-900">Total estimado</span>
             <span className="text-2xl font-bold text-teal-600">
               ${calculateTotal().toLocaleString('es-CL')}
             </span>
@@ -474,11 +476,11 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
       <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <button
           onClick={handleSubmitOrder}
-          disabled={isUploadingPhoto}
+          disabled={isUploadingPhoto || isSubmitting}
           className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Send className="w-5 h-5" />
-          <span>Realizar pedido</span>
+          <span>{isSubmitting ? 'Enviando...' : 'Realizar pedido'}</span>
         </button>
       </div>
 
@@ -502,6 +504,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             <p className="text-base font-bold text-teal-600 text-center mb-4">
               {business.name}
             </p>
+            {officialTotal !== null && <p className="mb-4 text-center text-sm font-bold text-slate-900">Total confirmado: ${officialTotal.toLocaleString('es-CL')}</p>}
 
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
               <p className="text-sm text-blue-800 text-center">

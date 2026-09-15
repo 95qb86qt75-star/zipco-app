@@ -33,9 +33,9 @@ describe('BusinessProfileScreen ownership mode', () => {
     expect(markup).not.toContain('Realizar pedido');
   });
 
-  it('keeps product selection available for another user', () => {
+  it('loads the public catalog for another user without showing the owner warning', () => {
     const markup = renderProfile('36');
     expect(markup).not.toContain('Este es tu negocio.');
-    expect(markup).toMatch(/>Agregar</);
+    expect(markup).toContain('Cargando catálogo...');
   });
 });

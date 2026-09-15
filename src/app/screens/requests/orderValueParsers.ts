@@ -27,6 +27,13 @@ export function parseNonNegativeNumber(value: unknown): number | null {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
+export function parseNonNegativeInteger(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isSafeInteger(value) && value >= 0 ? value : null;
+  if (typeof value !== 'string' || !/^(0|[1-9]\d*)(?:\.00)?$/.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) ? parsed : null;
+}
+
 export function parseOrderStatus(value: unknown): OrderStatus | null {
   return typeof value === 'string' && ORDER_STATUSES.includes(value as OrderStatus)
     ? value as OrderStatus : null;
@@ -81,6 +88,23 @@ export function parseProducts(value: unknown): NormalizedProducts {
     const product = parseProduct(item);
     if (!product) return { state: 'unavailable', items: [] };
     items.push(product);
+  }
+  return { state: 'available', items };
+}
+
+export function parseOrderItems(value: unknown): NormalizedProducts {
+  if (!Array.isArray(value) || value.length === 0) return { state: 'unavailable', items: [] };
+  const items: Product[] = [];
+  for (const candidate of value) {
+    if (!isRecord(candidate)) return { state: 'unavailable', items: [] };
+    const id = parsePositiveInteger(candidate.id);
+    const orderId = parsePositiveInteger(candidate.orderId);
+    const catalogItemId = candidate.catalogItemId === null ? null : parsePositiveInteger(candidate.catalogItemId);
+    const quantity = parsePositiveInteger(candidate.quantity);
+    const price = parsePositiveInteger(candidate.unitPriceClpSnapshot);
+    const subtotal = parsePositiveInteger(candidate.subtotalClp);
+    if (id === null || orderId === null || (candidate.catalogItemId !== null && catalogItemId === null) || typeof candidate.nameSnapshot !== 'string' || !candidate.nameSnapshot.trim() || quantity === null || quantity > 99 || price === null || subtotal === null || subtotal !== price * quantity) return { state: 'unavailable', items: [] };
+    items.push({ name: candidate.nameSnapshot.trim(), quantity, price });
   }
   return { state: 'available', items };
 }

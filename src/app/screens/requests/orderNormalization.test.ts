@@ -20,6 +20,29 @@ const baseOrder = {
 afterEach(() => vi.restoreAllMocks());
 
 describe('order payload normalization', () => {
+  const orderItem = { id: 1, orderId: 20, catalogItemId: 7, nameSnapshot: 'Snapshot', unitPriceClpSnapshot: 5000, quantity: 2, subtotalClp: 10000 };
+
+  it('uses non-empty Order.items exclusively and never mixes legacy products', () => {
+    const [order] = normalizeMyOrdersPayload([{ ...baseOrder, items: [orderItem], products: [{ name: 'Legacy', quantity: 1, price: 1 }] }]);
+    expect(order.products).toEqual({ state: 'available', items: [{ name: 'Snapshot', quantity: 2, price: 5000 }] });
+  });
+
+  it('falls back to legacy only when items is absent or empty', () => {
+    expect(normalizeMyOrdersPayload([{ ...baseOrder, items: [] }])[0].products).toEqual({ state: 'available', items: [{ name: 'Producto', quantity: 1, price: 3800 }] });
+    expect(normalizeMyOrdersPayload([baseOrder])[0].products.state).toBe('available');
+  });
+
+  it('does not fall back when non-empty items is invalid', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const [order] = normalizeMyOrdersPayload([{ ...baseOrder, items: [{ ...orderItem, subtotalClp: 1 }] }]);
+    expect(order.products.state).toBe('unavailable');
+    expect(order.dataIssues).toContain('items');
+  });
+
+  it.each([1.5, -1, '01', '1.0', '+1', '1e2'])('rejects ambiguous or invalid official total %s', (total) => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect(normalizeMyOrdersPayload([{ ...baseOrder, total }])[0].total).toBeNull();
+  });
   it.each(['pending', 'accepted', 'ready', 'completed', 'rejected', 'cancelled'])
   ('preserves the valid status %s', (status) => {
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

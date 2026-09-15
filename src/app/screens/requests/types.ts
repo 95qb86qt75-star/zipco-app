@@ -5,7 +5,7 @@ export type DisplayOrderStatus = OrderStatus | 'unavailable';
 export type IdentityIssue = 'record' | 'id' | 'status';
 export type OrderDataIssue =
   | 'businessId' | 'userId' | 'createdAt' | 'deliveryDate' | 'deliveryTime'
-  | 'total' | 'products' | 'cancellationReason' | 'businessName'
+  | 'total' | 'products' | 'items' | 'cancellationReason' | 'businessName'
   | 'businessPhone' | 'businessImage' | 'customerName' | 'customerPhone'
   | 'customerImage' | 'note' | 'referencePhoto' | 'needNow';
 

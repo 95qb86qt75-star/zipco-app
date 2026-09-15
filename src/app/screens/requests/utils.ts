@@ -34,6 +34,17 @@ export const formatDate = (dateString: string | null) => {
   return `${day} ${months[month - 1]}`;
 };
 
+export const formatDeliverySchedule = (
+  schedule: { needNow: boolean; deliveryDate: string | null; deliveryTime: string | null },
+  perspective: 'customer' | 'business'
+): string | null => {
+  if (schedule.needNow) {
+    return perspective === 'customer' ? 'Lo necesitas ahora' : 'Lo necesita ahora';
+  }
+  if (!schedule.deliveryDate || !schedule.deliveryTime) return null;
+  return `${formatDate(schedule.deliveryDate)} · ${schedule.deliveryTime}`;
+};
+
 export const groupByDate = (requests: BusinessRequest[]) => {
   const today: BusinessRequest[] = [];
   const upcoming: BusinessRequest[] = [];
