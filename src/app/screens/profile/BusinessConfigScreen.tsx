@@ -13,10 +13,12 @@ import SaveChangesBar from './business-config/SaveChangesBar';
 import ScheduleCard from './business-config/ScheduleCard';
 import UnsavedChangesModal from './business-config/UnsavedChangesModal';
 import { businessCategories, businessDays, emptySchedule } from './business-config/businessConfigData';
-import type { BusinessProduct } from './business-config/types';
+import { parseBusinessId } from './business-config/catalogValidation';
+import useCatalogManager from './business-config/useCatalogManager';
 import useLocationSuggestions from './business-config/useLocationSuggestions';
 
-const MIN_PRODUCT_PRICE = 100;
+export const businessConfigContentPadding = (hasUnsavedChanges: boolean) =>
+  hasUnsavedChanges ? 'pb-40' : 'pb-24';
 
 export default function BusinessConfigScreen({
   onBack,
@@ -37,17 +39,9 @@ export default function BusinessConfigScreen({
   const [hasPhysicalStore, setHasPhysicalStore] = useState(true);
   const [isOpen, setIsOpen] = useState(true);
   const [isTogglingOpen, setIsTogglingOpen] = useState(false);
-  const [products, setProducts] = useState<BusinessProduct[]>([]);
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [isUploadingProductPhoto, setIsUploadingProductPhoto] = useState(false);
-  const [editingProductId, setEditingProductId] = useState<string | null>(null);
-  const [productForm, setProductForm] = useState({
-    name: '',
-    description: '',
-    price: '',
-    mode: 'order' as 'order' | 'view',
-    imageUrl: ''
-  });
+  const businessId = parseBusinessId(localStorage.getItem('zipco-business-id'));
+  const token = localStorage.getItem('zipco-token');
+  const catalog = useCatalogManager(businessId, token);
   const {
     locationSuggestions,
     isLocationLoading,
@@ -87,125 +81,6 @@ export default function BusinessConfigScreen({
       markChanged();
       return currentKeywords.filter((keyword) => keyword !== keywordToRemove);
     });
-  };
-
-  const resetProductForm = () => {
-    setProductForm({
-      name: '',
-      description: '',
-      price: '',
-      mode: 'order',
-      imageUrl: ''
-    });
-    setEditingProductId(null);
-  };
-
-  const getProductPriceDigits = (value: string) => value.replace(/\D/g, '');
-
-  const formatChileanPrice = (value: string) => {
-    const digits = getProductPriceDigits(value);
-    return digits ? `$${Number(digits).toLocaleString('es-CL')}` : '';
-  };
-
-  const handleProductPriceChange = (value: string) => {
-    setProductForm({ ...productForm, price: getProductPriceDigits(value) });
-  };
-
-  const startEditingProduct = (product: BusinessProduct) => {
-    setProductForm({
-      name: product.name,
-      description: product.description,
-      price: getProductPriceDigits(product.price),
-      mode: product.mode,
-      imageUrl: product.imageUrl
-    });
-    setEditingProductId(product.id);
-    setShowProductForm(true);
-  };
-
-  const addProduct = () => {
-    const productName = productForm.name.trim();
-    const productPrice = getProductPriceDigits(productForm.price);
-
-    if (!productName) {
-      showAppToast('Ingresa el nombre del producto o servicio', 'error');
-      return;
-    }
-
-    if (productPrice && Number(productPrice) < MIN_PRODUCT_PRICE) {
-      showAppToast('El precio minimo debe ser $100', 'error');
-      return;
-    }
-
-    if (editingProductId) {
-      setProducts((currentProducts) =>
-        currentProducts.map((product) =>
-          product.id === editingProductId
-            ? {
-                ...product,
-                name: productName,
-                description: productForm.description.trim(),
-                price: productPrice,
-                mode: productForm.mode,
-                imageUrl: productForm.imageUrl
-              }
-            : product
-        )
-      );
-    } else {
-      setProducts((currentProducts) => [
-        ...currentProducts,
-        {
-        id: `${Date.now()}`,
-        name: productName,
-        description: productForm.description.trim(),
-        price: productPrice,
-        mode: productForm.mode,
-        imageUrl: productForm.imageUrl
-        }
-      ]);
-    }
-
-    resetProductForm();
-    setShowProductForm(false);
-    markChanged();
-  };
-
-  const removeProduct = (productId: string) => {
-    setProducts((currentProducts) => currentProducts.filter((product) => product.id !== productId));
-    if (editingProductId === productId) {
-      resetProductForm();
-      setShowProductForm(false);
-    }
-    markChanged();
-  };
-
-  const uploadProductPhoto = async (file: File) => {
-    setIsUploadingProductPhoto(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'zipco_products');
-
-      const response = await fetch('https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        showAppToast('No se pudo subir la foto del producto', 'error');
-        return;
-      }
-
-      const data = await response.json();
-      setProductForm((currentForm) => ({ ...currentForm, imageUrl: data.secure_url ?? data.url ?? '' }));
-      showAppToast('Foto subida correctamente', 'success');
-    } catch (error) {
-      showAppToast('No se pudo subir la foto del producto', 'error');
-    } finally {
-      setIsUploadingProductPhoto(false);
-    }
   };
 
   const handleBackPress = () => {
@@ -270,26 +145,6 @@ export default function BusinessConfigScreen({
       }
     };
 
-    const parseProducts = (value: any): BusinessProduct[] => {
-      if (!value) return [];
-
-      try {
-        const parsedProducts = typeof value === 'string' ? JSON.parse(value) : value;
-        return Array.isArray(parsedProducts)
-          ? parsedProducts.map((product, index) => ({
-              id: String(product.id ?? `${Date.now()}-${index}`),
-              name: String(product.name ?? '').trim(),
-              description: String(product.description ?? '').trim(),
-              price: getProductPriceDigits(String(product.price ?? '')),
-              mode: product.mode === 'view' ? 'view' : 'order',
-              imageUrl: String(product.imageUrl ?? product.image_url ?? '').trim()
-            })).filter((product) => product.name)
-          : [];
-      } catch (error) {
-        return [];
-      }
-    };
-
     const loadBusinessConfig = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
@@ -312,7 +167,6 @@ export default function BusinessConfigScreen({
             : String(loadedKeywords ?? '').split(',').map((keyword) => keyword.trim()).filter(Boolean)
         );
         setSchedule(parseSchedule(business.schedule));
-        setProducts(parseProducts(business.products));
         setFullAddress(business.address ?? '');
         setCoordinates(
           business.latitude ?? business.lat,
@@ -356,8 +210,7 @@ export default function BusinessConfigScreen({
           schedule: JSON.stringify(schedule),
           address: fullAddress,
           latitude,
-          longitude,
-          products: JSON.stringify(products)
+          longitude
         })
       });
 
@@ -366,7 +219,7 @@ export default function BusinessConfigScreen({
         return;
       }
 
-      onSave({ category, hashtags: keywords, showFullAddress, fullAddress, latitude, longitude, schedule, hasPhysicalStore, products });
+      onSave({ category, hashtags: keywords, showFullAddress, fullAddress, latitude, longitude, schedule, hasPhysicalStore });
       localStorage.setItem(`zipco-business-${businessId}-has-physical-store`, String(hasPhysicalStore));
       setHasUnsavedChanges(false);
       showAppToast('Configuracion del negocio actualizada correctamente', 'success');
@@ -393,7 +246,7 @@ export default function BusinessConfigScreen({
 
       </div>
 
-      <div className="flex-1 overflow-auto px-4 pt-4 pb-48">
+      <div className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pt-4 ${businessConfigContentPadding(hasUnsavedChanges)}`}>
         {hasPhysicalStore && (
           <LocalStatusCard isUsingSchedule={isOpen} isLoading={isTogglingOpen} onToggle={handleToggleOpen} />
         )}
@@ -425,22 +278,7 @@ export default function BusinessConfigScreen({
           onSelectLocationSuggestion={selectLocationSuggestion}
         />
         <ScheduleCard days={businessDays} schedule={schedule} setSchedule={handleScheduleChange} />
-        <ProductManagerCard
-          products={products}
-          productForm={productForm}
-          showProductForm={showProductForm}
-          isUploadingProductPhoto={isUploadingProductPhoto}
-          editingProductId={editingProductId}
-          setProductForm={setProductForm}
-          resetProductForm={resetProductForm}
-          setShowProductForm={setShowProductForm}
-          formatChileanPrice={formatChileanPrice}
-          handleProductPriceChange={handleProductPriceChange}
-          uploadProductPhoto={uploadProductPhoto}
-          addProduct={addProduct}
-          startEditingProduct={startEditingProduct}
-          removeProduct={removeProduct}
-        />
+        <ProductManagerCard catalog={catalog} />
       </div>
 
       {/* Modal cambios sin guardar */}

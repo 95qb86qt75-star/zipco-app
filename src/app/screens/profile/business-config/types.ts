@@ -26,19 +26,41 @@ export type BusinessDay = {
   name: string;
 };
 
-export type BusinessProduct = {
-  id: string;
+export type CatalogItemKind = 'product' | 'service';
+export type CatalogItemPricingMode = 'fixed_price' | 'quote' | 'view';
+
+export type CatalogItem = {
+  id: number;
+  businessId: number;
   name: string;
   description: string;
-  price: string;
-  mode: 'order' | 'view';
+  kind: CatalogItemKind;
+  pricingMode: CatalogItemPricingMode;
+  priceClp: number | null;
+  startingPriceClp: number | null;
+  imageUrl: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CatalogItemFormState = {
+  name: string;
+  description: string;
+  kind: CatalogItemKind;
+  pricingMode: CatalogItemPricingMode;
+  priceClp: string;
+  startingPriceClp: string;
   imageUrl: string;
 };
 
-export type ProductForm = {
+export type CatalogItemWritePayload = {
   name: string;
   description: string;
-  price: string;
-  mode: 'order' | 'view';
+  kind: CatalogItemKind;
+  pricingMode: CatalogItemPricingMode;
+  priceClp: number | null;
+  startingPriceClp: number | null;
   imageUrl: string;
 };
