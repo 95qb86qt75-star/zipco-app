@@ -7,7 +7,8 @@ import {
   buildCreateOrderPayload,
   createOrder,
   CreateOrderError,
-  GENERIC_CREATE_ORDER_MESSAGE
+  GENERIC_CREATE_ORDER_MESSAGE,
+  hasCompleteDeliverySelection
 } from './createOrderApi';
 import { getCloudinarySecureImageUrl } from './profile/business-config/catalogValidation';
 import type { CatalogItem } from './profile/business-config/types';
@@ -126,6 +127,10 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
   };
 
   const handleSubmitOrder = async () => {
+    if (!hasCompleteDeliverySelection({ needNow, deliveryDate: selectedDate, deliveryTime: selectedTime })) {
+      showAppToast('Selecciona si lo necesitas ahora o una fecha y hora.', 'warning');
+      return;
+    }
     const token = localStorage.getItem('zipco-token');
     if (!token || selectedItems.length === 0 || submitLock.current) {
       showAppToast('No se pudo enviar el pedido', 'error');
