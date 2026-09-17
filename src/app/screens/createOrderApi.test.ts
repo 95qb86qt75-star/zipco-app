@@ -4,6 +4,7 @@ import {
   createOrder,
   CreateOrderError,
   GENERIC_CREATE_ORDER_MESSAGE,
+  hasCompleteDeliverySelection,
   OWN_BUSINESS_ORDER_MESSAGE
 } from './createOrderApi';
 
@@ -54,6 +55,19 @@ describe('buildCreateOrderPayload', () => {
     expect(payload).not.toHaveProperty('products');
     expect(payload).not.toHaveProperty('prices');
     expect(payload).not.toHaveProperty('total');
+  });
+});
+
+describe('delivery selection', () => {
+  it('accepts immediate or complete scheduled delivery', () => {
+    expect(hasCompleteDeliverySelection({ needNow: true, deliveryDate: '', deliveryTime: '' })).toBe(true);
+    expect(hasCompleteDeliverySelection({ needNow: false, deliveryDate: '2026-09-20', deliveryTime: '13:30' })).toBe(true);
+  });
+
+  it('rejects an unselected or incomplete delivery', () => {
+    expect(hasCompleteDeliverySelection({ needNow: false, deliveryDate: '', deliveryTime: '' })).toBe(false);
+    expect(hasCompleteDeliverySelection({ needNow: false, deliveryDate: '2026-09-20', deliveryTime: '' })).toBe(false);
+    expect(hasCompleteDeliverySelection({ needNow: true, deliveryDate: '2026-09-20', deliveryTime: '13:30' })).toBe(false);
   });
 });
 

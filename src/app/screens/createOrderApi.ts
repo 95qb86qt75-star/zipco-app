@@ -8,6 +8,14 @@ export const CATALOG_CHANGED_MESSAGE = 'El catálogo cambió. Revisa nuevamente 
 export type CreateOrderPayload = { businessId: number; items: Array<{ catalogItemId: number; quantity: number }>; note: string; needNow: boolean; deliveryDate: string | null; deliveryTime: string | null; referencePhoto: string | null };
 export type CreateOrderDraft = Omit<CreateOrderPayload, 'deliveryDate' | 'deliveryTime'> & { deliveryDate: string; deliveryTime: string };
 
+export function hasCompleteDeliverySelection(
+  delivery: Pick<CreateOrderDraft, 'needNow' | 'deliveryDate' | 'deliveryTime'>
+): boolean {
+  if (delivery.needNow) return delivery.deliveryDate === '' && delivery.deliveryTime === '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(delivery.deliveryDate)
+    && /^([01]\d|2[0-3]):[0-5]\d$/.test(delivery.deliveryTime);
+}
+
 export function buildCreateOrderPayload(draft: CreateOrderDraft): CreateOrderPayload {
   return {
     businessId: draft.businessId,
