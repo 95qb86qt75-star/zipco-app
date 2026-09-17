@@ -1,3 +1,18 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/*
+ * iOS Safari amplía automáticamente la página al enfocar controles cuyo texto
+ * mide menos de 16 px. Esto mantiene estable el viewport y la navegación
+ * inferior sin impedir el zoom manual de accesibilidad.
+ */
+@media (max-width: 768px) {
+  @supports (-webkit-touch-callout: none) {
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+}
