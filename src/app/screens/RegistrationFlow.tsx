@@ -17,6 +17,9 @@ import useSmsRegistration from './registration/useSmsRegistration';
 const DevAccessPanel = import.meta.env.DEV
   ? lazy(() => import('../dev/DevAccessPanel'))
   : null;
+const QaAccessPanel = import.meta.env.PROD && import.meta.env.VITE_ENABLE_QA_AUTH === 'true'
+  ? lazy(() => import('../qa/QaAccessPanel'))
+  : null;
 
 export default function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<RegistrationStep>('welcome');
@@ -277,6 +280,11 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
           {step === 'welcome' && DevAccessPanel && (
             <Suspense fallback={null}>
               <DevAccessPanel onAuthenticated={onComplete} />
+            </Suspense>
+          )}
+          {step === 'welcome' && QaAccessPanel && (
+            <Suspense fallback={null}>
+              <QaAccessPanel onAuthenticated={onComplete} />
             </Suspense>
           )}
         </div>
