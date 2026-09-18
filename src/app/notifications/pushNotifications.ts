@@ -18,6 +18,12 @@ export function urlBase64ToUint8Array(value: string): Uint8Array {
   return Uint8Array.from(decoded, (character) => character.charCodeAt(0));
 }
 
+async function getPushRegistration() {
+  const existing = await navigator.serviceWorker.getRegistration('/');
+  if (existing) return existing;
+  return navigator.serviceWorker.register('/sw.js', { scope: '/' });
+}
+
 function serializeSubscription(subscription: PushSubscription) {
   const json = subscription.toJSON();
   return {
@@ -42,7 +48,7 @@ async function requestJson(path: string, token: string, init: RequestInit = {}) 
 
 export async function getExistingPushSubscription() {
   if (getPushSupport() === 'unsupported') return null;
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await getPushRegistration();
   return registration.pushManager.getSubscription();
 }
 
@@ -53,7 +59,7 @@ export async function enablePushNotifications(token: string) {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') throw new Error('permission-denied');
 
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await getPushRegistration();
   let subscription = await registration.pushManager.getSubscription();
   if (!subscription) {
     const keyResponse = await fetch(`${API_BASE_URL}/push/public-key`);
