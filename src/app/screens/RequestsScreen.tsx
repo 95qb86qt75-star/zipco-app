@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
+import NotificationPermissionCard from '../notifications/NotificationPermissionCard';
 
 export default function RequestsScreen({
   onBack,
@@ -13,7 +14,9 @@ export default function RequestsScreen({
   onBack: () => void;
   onSessionExpired: () => void;
 }) {
-  const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>('my-orders');
+  const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>(() =>
+    new URLSearchParams(window.location.search).get('open') === 'requests-business' ? 'my-business' : 'my-orders'
+  );
   const { hasBusiness, isLoading, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
 
   return (
@@ -71,12 +74,15 @@ export default function RequestsScreen({
         )}
 
         {!isLoading && hasBusiness && subTab === 'my-business' && (
-          <BusinessOrdersTab
-            requests={requests}
-            updatingOrderIds={updatingOrderIds}
-            onRetry={loadOrders}
-            onAction={(order, action, reason) => performAction(order, 'business', action, reason)}
-          />
+          <>
+            <NotificationPermissionCard />
+            <BusinessOrdersTab
+              requests={requests}
+              updatingOrderIds={updatingOrderIds}
+              onRetry={loadOrders}
+              onAction={(order, action, reason) => performAction(order, 'business', action, reason)}
+            />
+          </>
         )}
       </div>
     </div>

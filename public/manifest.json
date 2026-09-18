@@ -3,6 +3,8 @@
   "short_name": "ZIPCO",
   "description": "Encuentra negocios y servicios cerca de ti",
   "start_url": "/",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#0a1628",
   "theme_color": "#14C8B8",
