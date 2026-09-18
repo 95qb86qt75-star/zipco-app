@@ -2,6 +2,29 @@
 @import './tailwind.css';
 @import './theme.css';
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
+body {
+  position: fixed;
+  inset: 0;
+}
+
 /*
  * Los navegadores móviles pueden ampliar automáticamente la página al enfocar
  * controles cuyo texto mide menos de 16 px. Esto mantiene estable el viewport
