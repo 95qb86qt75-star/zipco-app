@@ -126,7 +126,7 @@ export default function App() {
   const renderWithToast = (content: any) => (
     <>
       {toast && <Toast key={toast.dedupeKey} notification={toast} onClose={closeToast} />}
-      <BusinessNotificationMonitor onSessionExpired={handleLogout} />
+      {hasStoredSession() && <BusinessNotificationMonitor onSessionExpired={handleLogout} />}
       {content}
     </>
   );
