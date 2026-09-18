@@ -17,6 +17,8 @@ import EmptyFavorites from './screens/EmptyFavorites';
 import Toast, { mergeToastNotification, showAppToast, type ToastNotification } from './screens/Toast';
 import SplashScreen from './screens/SplashScreen';
 import type { CatalogItem } from './screens/profile/business-config/types';
+import BusinessNotificationMonitor from './notifications/BusinessNotificationMonitor';
+import { disablePushNotifications } from './notifications/pushNotifications';
 
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
@@ -42,7 +44,9 @@ export default function App() {
     () => localStorage.getItem('zipco-registration-complete') === 'true' || hasStoredSession()
   );
   const [showSplash, setShowSplash] = useState(() => sessionStorage.getItem('zipco-splash-seen') !== 'true');
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() =>
+    new URLSearchParams(window.location.search).get('open') === 'requests-business' ? 'requests' : 'home'
+  );
   const [currentScreen, setCurrentScreen] = useState('home');
   const [previousScreen, setPreviousScreen] = useState<string>('negocios');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('zipco-theme') === 'dark');
@@ -77,6 +81,8 @@ export default function App() {
   }, [currentLocation]);
 
   const handleLogout = useCallback(() => {
+    const token = localStorage.getItem('zipco-token');
+    if (token) void disablePushNotifications(token).catch(() => undefined);
     localStorage.removeItem('zipco-token');
     localStorage.removeItem('zipco-user-id');
     localStorage.removeItem('zipco-registration-complete');
@@ -84,6 +90,13 @@ export default function App() {
     setCurrentScreen('home');
     setActiveTab('home');
     setIsRegistrationComplete(false);
+  }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('open')) return;
+    url.searchParams.delete('open');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   }, []);
 
   useEffect(() => {
@@ -113,6 +126,7 @@ export default function App() {
   const renderWithToast = (content: any) => (
     <>
       {toast && <Toast key={toast.dedupeKey} notification={toast} onClose={closeToast} />}
+      <BusinessNotificationMonitor onSessionExpired={handleLogout} />
       {content}
     </>
   );

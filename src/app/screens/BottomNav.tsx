@@ -1,6 +1,15 @@
+import { useEffect, useState } from 'react';
 import { FileText, Heart, Home, UserRound } from 'lucide-react';
 
 export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { activeTab: string; setActiveTab: (tab: string) => void; onNavigate?: (tab: string) => void }) {
+  const [pendingCount, setPendingCount] = useState(() => Number(localStorage.getItem('zipco-pending-business-orders')) || 0);
+
+  useEffect(() => {
+    const update = (event: Event) => setPendingCount(Math.max(0, Number((event as CustomEvent<number>).detail) || 0));
+    window.addEventListener('zipco-pending-business-orders', update);
+    return () => window.removeEventListener('zipco-pending-business-orders', update);
+  }, []);
+
   return (
     <div
       className="absolute bottom-0 left-0 right-0 bg-white px-6 pt-1.5 shadow-[0_-6px_20px_rgba(15,23,42,0.07)]"
@@ -43,6 +52,11 @@ export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { act
                 />
                 {tab.id === 'home' && !isActive && (
                   <span className="absolute bottom-2.5 h-2.5 w-2 rounded-t-md bg-gradient-to-t from-[#00BFA5] to-emerald-300 opacity-90" />
+                )}
+                {tab.id === 'requests' && pendingCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-extrabold text-white shadow-md">
+                    {pendingCount > 9 ? '9+' : pendingCount}
+                  </span>
                 )}
               </div>
               <span className={`mt-0.5 text-[11px] font-semibold transition-colors ${isActive ? 'text-[#00BFA5]' : 'text-gray-500'}`}>{tab.label}</span>
