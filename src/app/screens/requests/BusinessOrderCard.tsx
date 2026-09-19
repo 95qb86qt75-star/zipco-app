@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import OrderStatusBadge from './OrderStatusBadge';
 import type { BusinessRequest, OrderAction } from './types';
-import { formatDeliverySchedule } from './utils';
+import { formatBusinessDeliverySchedule } from './utils';
 
 const REASON_LABELS = {
   no_longer_needed: 'Ya no lo necesitaba.',
@@ -42,7 +42,7 @@ export default function BusinessOrderCard({ request, isUpdating, onAction, onRet
       ? 'complete-delivery'
       : null;
   const total = request.total;
-  const deliverySchedule = formatDeliverySchedule(request, 'business');
+  const deliverySchedule = formatBusinessDeliverySchedule(request);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white/80 p-3 shadow-sm">

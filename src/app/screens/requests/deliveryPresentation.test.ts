@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDeliverySchedule } from './utils';
+import { formatBusinessDeliverySchedule, formatDeliverySchedule } from './utils';
 
 describe('formatDeliverySchedule', () => {
   it('uses the customer perspective for an urgent order', () => {
@@ -26,5 +26,13 @@ describe('formatDeliverySchedule', () => {
     { needNow: false, deliveryDate: '2026-09-16', deliveryTime: null }
   ])('omits delivery information when normalized scheduling is incomplete', (schedule) => {
     expect(formatDeliverySchedule(schedule, 'customer')).toBeNull();
+  });
+
+  it('explains explicitly when a business order is scheduled', () => {
+    expect(formatBusinessDeliverySchedule({
+      needNow: false,
+      deliveryDate: '2026-09-22',
+      deliveryTime: '15:20'
+    })).toBe('Programado para: 22 Sep · 15:20');
   });
 });

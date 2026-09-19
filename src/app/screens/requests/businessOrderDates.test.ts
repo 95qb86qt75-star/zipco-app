@@ -1,27 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { classifyBusinessDeliveryDate } from './businessOrderDates';
+import { sortBusinessOrdersByDelivery } from './businessOrderDates';
 
-const now = new Date(2026, 8, 5, 12, 0, 0);
+const order = (clientKey: string, needNow: boolean, deliveryDate: string | null, deliveryTime: string | null, createdAt: string | null) =>
+  ({ clientKey, needNow, deliveryDate, deliveryTime, createdAt });
 
-describe('business order date classification', () => {
-  it('classifies needNow as today even without deliveryDate', () => {
-    expect(classifyBusinessDeliveryDate({ needNow: true, deliveryDate: null }, now)).toBe('today');
+describe('business order chronological presentation', () => {
+  it('places urgent orders first, oldest request first', () => {
+    const result = sortBusinessOrdersByDelivery([
+      order('urgent-new', true, null, null, '2026-09-18T13:00:00.000Z'),
+      order('scheduled', false, '2026-09-19', '09:00', '2026-09-18T10:00:00.000Z'),
+      order('urgent-old', true, null, null, '2026-09-18T12:00:00.000Z')
+    ]);
+    expect(result.map(({ clientKey }) => clientKey)).toEqual(['urgent-old', 'urgent-new', 'scheduled']);
   });
 
-  it('classifies a valid date equal to or before today as today', () => {
-    expect(classifyBusinessDeliveryDate({ needNow: false, deliveryDate: '2026-09-05' }, now)).toBe('today');
-    expect(classifyBusinessDeliveryDate({ needNow: false, deliveryDate: '2026-09-04' }, now)).toBe('today');
+  it('orders scheduled requests by YYYY-MM-DD and time without timezone conversion', () => {
+    const result = sortBusinessOrdersByDelivery([
+      order('later', false, '2026-09-22', '15:20', '2026-09-18T10:00:00.000Z'),
+      order('first', false, '2026-09-19', '18:00', '2026-09-18T12:00:00.000Z'),
+      order('second', false, '2026-09-22', '09:00', '2026-09-18T11:00:00.000Z')
+    ]);
+    expect(result.map(({ clientKey }) => clientKey)).toEqual(['first', 'second', 'later']);
   });
 
-  it('classifies tomorrow separately', () => {
-    expect(classifyBusinessDeliveryDate({ needNow: false, deliveryDate: '2026-09-06' }, now)).toBe('tomorrow');
-  });
-
-  it('classifies later dates as upcoming', () => {
-    expect(classifyBusinessDeliveryDate({ needNow: false, deliveryDate: '2026-09-07' }, now)).toBe('upcoming');
-  });
-
-  it('keeps a missing date in the undated group', () => {
-    expect(classifyBusinessDeliveryDate({ needNow: false, deliveryDate: null }, now)).toBe('undated');
+  it('keeps legacy incomplete schedules at the end', () => {
+    const result = sortBusinessOrdersByDelivery([
+      order('legacy', false, null, null, '2026-09-18T09:00:00.000Z'),
+      order('scheduled', false, '2026-09-30', '20:00', '2026-09-18T10:00:00.000Z')
+    ]);
+    expect(result.map(({ clientKey }) => clientKey)).toEqual(['scheduled', 'legacy']);
   });
 });
