@@ -95,7 +95,7 @@ export function useBusinessProfile() {
 
     const loadUserBusiness = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/businesses`, {
+        const response = await fetch(`${API_BASE_URL}/businesses/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -118,24 +118,7 @@ export function useBusinessProfile() {
         }
 
         const currentBusinessId = currentUserBusiness.id ?? currentUserBusiness._id;
-        let fullBusiness = currentUserBusiness;
-
-        if (currentBusinessId) {
-          try {
-            const businessResponse = await fetch(`${API_BASE_URL}/businesses/${currentBusinessId}`, {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            });
-
-            if (businessResponse.ok) {
-              const businessData = await businessResponse.json();
-              fullBusiness = businessData.business ?? businessData;
-            }
-          } catch (error) {
-            fullBusiness = currentUserBusiness;
-          }
-        }
+        const fullBusiness = currentUserBusiness;
 
         setBusinessId(currentBusinessId);
         if (currentBusinessId) {
