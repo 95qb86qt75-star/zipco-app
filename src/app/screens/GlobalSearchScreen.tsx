@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Search, Send, Store, Wrench } from 'lucide-react';
 import { API_BASE_URL } from '../api/apiConfig';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import { getBusinessResultImage } from './searchResultPresentation';
 import { parsePositiveIntegerId } from './businessOwnership';
 import DistanceInfo from './DistanceInfo';
 
@@ -427,7 +428,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
       type: normalizedType,
       category: normalizedCategory,
       isOpen: result.isOpen ?? result.open ?? true,
-      image: result.image ?? result.imageUrl ?? result.logoUrl ?? 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400&q=80'
+      image: getBusinessResultImage(result)
     };
   };
 
