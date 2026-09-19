@@ -45,6 +45,14 @@ export const formatDeliverySchedule = (
   return `${formatDate(schedule.deliveryDate)} · ${schedule.deliveryTime}`;
 };
 
+export const formatBusinessDeliverySchedule = (
+  schedule: { needNow: boolean; deliveryDate: string | null; deliveryTime: string | null }
+): string | null => {
+  const formatted = formatDeliverySchedule(schedule, 'business');
+  if (!formatted || schedule.needNow) return formatted;
+  return `Programado para: ${formatted}`;
+};
+
 export const groupByDate = (requests: BusinessRequest[]) => {
   const today: BusinessRequest[] = [];
   const upcoming: BusinessRequest[] = [];

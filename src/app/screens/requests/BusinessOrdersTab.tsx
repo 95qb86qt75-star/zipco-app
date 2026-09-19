@@ -1,7 +1,7 @@
 import { Check, ClipboardList, History, PackageCheck } from 'lucide-react';
 import { useState } from 'react';
 import BusinessOrderCard from './BusinessOrderCard';
-import { classifyBusinessDeliveryDate, type BusinessDateFilter } from './businessOrderDates';
+import { sortBusinessOrdersByDelivery } from './businessOrderDates';
 import EmptyRequestsState from './EmptyRequestsState';
 import OrderActionModal from './OrderActionModal';
 import { classifyBusinessOrders } from './orderPresentation';
@@ -17,13 +17,18 @@ type Props = {
 
 export default function BusinessOrdersTab({ requests, updatingOrderIds, onAction, onRetry }: Props) {
   const [section, setSection] = useState<Section>('pending');
-  const [dateFilter, setDateFilter] = useState<BusinessDateFilter>('today');
   const [selection, setSelection] = useState<{ order: BusinessRequest; action: OrderAction } | null>(null);
   const groups = classifyBusinessOrders(requests);
   const selectedId = selection?.order.recordState === 'available' ? selection.order.id : null;
   const isSubmitting = selectedId !== null && updatingOrderIds.has(selectedId);
-  const preparing = groups.preparing.filter((order) => classifyBusinessDeliveryDate(order) === dateFilter);
-  const displayed = section === 'pending' ? groups.pending : section === 'preparing' ? preparing : section === 'ready' ? groups.ready : groups.history;
+  const sectionOrders = section === 'pending'
+    ? groups.pending
+    : section === 'preparing'
+      ? groups.preparing
+      : section === 'ready'
+        ? groups.ready
+        : groups.history;
+  const displayed = section === 'history' ? sectionOrders : sortBusinessOrdersByDelivery(sectionOrders);
 
   const confirm = async (reason?: CancellationReason) => {
     if (!selection) return;
@@ -47,16 +52,6 @@ export default function BusinessOrdersTab({ requests, updatingOrderIds, onAction
           </button>
         ))}
       </div>
-
-      {section === 'preparing' && (
-        <div className="mb-4 grid grid-cols-2 gap-2">
-          {(['today', 'tomorrow', 'upcoming', 'undated'] as const).map((filter) => (
-            <button key={filter} onClick={() => setDateFilter(filter)} className={`rounded-xl py-2 text-xs font-semibold ${dateFilter === filter ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600'}`}>
-              {filter === 'today' ? 'Hoy' : filter === 'tomorrow' ? 'Mañana' : filter === 'upcoming' ? 'Próximos' : 'Sin fecha'} ({groups.preparing.filter((order) => classifyBusinessDeliveryDate(order) === filter).length})
-            </button>
-          ))}
-        </div>
-      )}
 
       {displayed.length > 0 ? (
         <div className="space-y-3">
