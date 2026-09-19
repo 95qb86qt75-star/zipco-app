@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseOrders } from './BusinessNotificationMonitor';
+import { parseOrders, shouldAnnouncePendingOrders } from './BusinessNotificationMonitor';
 
 describe('BusinessNotificationMonitor', () => {
   it('keeps only orders with a safe identity and status', () => {
@@ -16,5 +16,11 @@ describe('BusinessNotificationMonitor', () => {
 
   it('rejects non-array responses', () => {
     expect(parseOrders({ orders: [] })).toEqual([]);
+  });
+
+  it('announces only after the baseline while the app remains visible', () => {
+    expect(shouldAnnouncePendingOrders(false, true)).toBe(false);
+    expect(shouldAnnouncePendingOrders(true, false)).toBe(false);
+    expect(shouldAnnouncePendingOrders(true, true)).toBe(true);
   });
 });

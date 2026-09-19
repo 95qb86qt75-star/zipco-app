@@ -14,13 +14,21 @@ self.addEventListener('push', (event) => {
     renotify: false,
     data: { url: data.url || '/', orderId: data.orderId }
   };
-  const informOpenClients = self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-    .then((clients) => clients.forEach((client) => client.postMessage({
-      type: data.type,
-      orderId: data.orderId,
-      customerName: data.customerName
-    })));
-  event.waitUntil(Promise.all([self.registration.showNotification(title, options), informOpenClients]));
+  const deliverNotification = self.clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then(async (clients) => {
+      const visibleClients = clients.filter((client) => client.visibilityState === 'visible');
+      if (visibleClients.length === 0) {
+        await self.registration.showNotification(title, options);
+        return;
+      }
+      visibleClients.forEach((client) => client.postMessage({
+        type: data.type,
+        orderId: data.orderId,
+        customerName: data.customerName
+      }));
+    });
+  event.waitUntil(deliverNotification);
 });
 
 self.addEventListener('notificationclick', (event) => {

@@ -22,6 +22,10 @@ export function parseOrders(value: unknown): MinimalOrder[] {
   });
 }
 
+export function shouldAnnouncePendingOrders(hasBaseline: boolean, announceNewOrders: boolean) {
+  return hasBaseline && announceNewOrders;
+}
+
 function publishPendingCount(count: number) {
   localStorage.setItem('zipco-pending-business-orders', String(count));
   window.dispatchEvent(new CustomEvent(COUNT_EVENT, { detail: count }));
@@ -52,7 +56,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
       });
     };
 
-    const load = async () => {
+    const load = async (announceNewOrders = true) => {
       if (document.visibilityState !== 'visible') return;
       try {
         const response = await fetch(`${API_BASE_URL}/orders/business/${businessId}`, {
@@ -67,7 +71,9 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
         if (stopped) return;
         const pending = orders.filter((order) => order.status === 'pending');
         publishPendingCount(pending.length);
-        if (hasBaseline.current) pending.forEach(announce);
+        if (shouldAnnouncePendingOrders(hasBaseline.current, announceNewOrders)) {
+          pending.forEach(announce);
+        }
         orders.forEach((order) => seenOrderIds.current.add(order.id));
         hasBaseline.current = true;
       } catch {
@@ -83,7 +89,9 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
       announce({ id, status: 'pending', customerName: typeof data.customerName === 'string' ? data.customerName : null });
       void load();
     };
-    const handleVisibility = () => { if (document.visibilityState === 'visible') void load(); };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void load(false);
+    };
 
     navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
     document.addEventListener('visibilitychange', handleVisibility);
