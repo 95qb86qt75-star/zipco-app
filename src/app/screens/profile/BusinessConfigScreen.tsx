@@ -147,7 +147,7 @@ export default function BusinessConfigScreen({
 
     const loadBusinessConfig = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
+        const response = await fetch(`${API_BASE_URL}/businesses/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -157,7 +157,13 @@ export default function BusinessConfigScreen({
         }
 
         const data = await response.json();
-        const business = data.business ?? data;
+        const businesses = Array.isArray(data) ? data : data.businesses ?? data.results ?? [];
+        const business = businesses.find((candidate: any) => String(candidate.id ?? candidate._id) === String(businessId));
+
+        if (!business) {
+          showAppToast('No se pudo cargar la configuracion del negocio', 'error');
+          return;
+        }
         const loadedKeywords = business.keywords;
 
         setCategory(business.category ?? '');
