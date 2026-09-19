@@ -10,7 +10,11 @@ const exclusiveMarkers = [
   'unrelated-user',
   '@zipco.local',
   'ZIPCO_DEV_UNAVAILABLE_FIXTURE_ONLY',
-  'Revisar Estado no disponible'
+  'Revisar Estado no disponible',
+  '/qa/auth/session',
+  'X-Qa-Auth-Key',
+  'VITE_ENABLE_QA_AUTH',
+  'ACCESO QA'
 ];
 
 const sentinel = process.env.VITE_DEV_AUTH_KEY;
