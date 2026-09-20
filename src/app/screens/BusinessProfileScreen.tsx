@@ -12,6 +12,7 @@ import type { CatalogItem } from './profile/business-config/types';
 
 function getCoordinate(...values: any[]) {
   for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
     const coordinate = Number(value);
     if (Number.isFinite(coordinate)) return coordinate;
   }
@@ -165,7 +166,12 @@ export default function BusinessProfileScreen({
     business.latitude ?? business.lat,
     business.longitude ?? business.lng ?? business.lon
   );
-  const distanceLabel = formatDistance(calculatedDistanceKm);
+  const backendDistanceKm = getCoordinate(
+    business.distanceKm,
+    business.distance_km,
+    business.distance
+  );
+  const distanceLabel = formatDistance(calculatedDistanceKm ?? backendDistanceKm);
   const catalogPricingCounts = getCatalogPricingCounts(products);
 
   const loadCatalog = async () => {

@@ -14,10 +14,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderProfile(currentUserId: unknown) {
+function renderProfile(currentUserId: unknown, overrides: Record<string, unknown> = {}) {
   vi.stubGlobal('React', React);
   return renderToStaticMarkup(React.createElement(BusinessProfileScreen, {
-    business,
+    business: { ...business, ...overrides },
     currentUserId,
     onBack: () => undefined,
     onCheckout: () => undefined
@@ -37,5 +37,16 @@ describe('BusinessProfileScreen ownership mode', () => {
     const markup = renderProfile('36');
     expect(markup).not.toContain('Este es tu negocio.');
     expect(markup).toContain('Cargando catálogo...');
+  });
+
+  it('shows backend distance when exact coordinates are private', () => {
+    const markup = renderProfile('36', {
+      showOnlyDistance: true,
+      latitude: null,
+      longitude: null,
+      distanceKm: 1.25
+    });
+
+    expect(markup).toContain('A 1.3 km de ti');
   });
 });
