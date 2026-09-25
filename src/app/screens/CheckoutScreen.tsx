@@ -30,6 +30,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
   const [officialTotal, setOfficialTotal] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submitLock = useRef(false);
+  const idempotencyKey = useRef<string | null>(null);
   const calendarInputRef = useRef<HTMLInputElement>(null);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
   const availableHours = Array.from({ length: 14 }, (_, index) => String(index + 9).padStart(2, '0'));
@@ -139,11 +140,13 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
 
     submitLock.current = true; setIsSubmitting(true);
     try {
+      idempotencyKey.current ??= crypto.randomUUID();
       const created = await createOrder({
         url: `${API_BASE_URL}/orders`,
         token,
         currentUserId,
         businessUserId: business.userId,
+        idempotencyKey: idempotencyKey.current,
         payload: buildCreateOrderPayload({
           businessId: business.id,
           items: selectedItems.map((product) => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 })),
@@ -156,6 +159,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
       });
       setOfficialTotal(created.total);
       setShowConfirmation(true);
+      idempotencyKey.current = null;
     } catch (error) {
       const message = error instanceof CreateOrderError
         ? error.message

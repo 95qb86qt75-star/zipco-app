@@ -13,6 +13,7 @@ const input = {
   token: 'test-token',
   currentUserId: '36',
   businessUserId: 35,
+  idempotencyKey: '123e4567-e89b-42d3-a456-426614174000',
   payload: { businessId: 50, items: [{ catalogItemId: 7, quantity: 2 }], note: '', needNow: true, deliveryDate: null, deliveryTime: null, referencePhoto: null }
 };
 const createdOrder = { id: 1, total: '24000.00', items: [{ id: 1, orderId: 1, catalogItemId: 7, nameSnapshot: 'Torta', unitPriceClpSnapshot: 12000, quantity: 2, subtotalClp: 24000 }] };
@@ -103,7 +104,8 @@ describe('createOrder', () => {
     expect(fetchImpl).toHaveBeenCalledOnce();
     expect(fetchImpl).toHaveBeenCalledWith(input.url, expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify(input.payload)
+      body: JSON.stringify(input.payload),
+      headers: expect.objectContaining({ 'Idempotency-Key': input.idempotencyKey })
     }));
   });
 
