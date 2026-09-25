@@ -50,11 +50,12 @@ export function normalizeCreatedOrder(value: unknown): CreatedOrder {
   return { id: value.id, total, items: validItems };
 }
 
-type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; fetchImpl?: typeof fetch };
-export async function createOrder({ url, token, currentUserId, businessUserId, payload, fetchImpl = fetch }: Input): Promise<CreatedOrder> {
+type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; fetchImpl?: typeof fetch };
+export async function createOrder({ url, token, currentUserId, businessUserId, payload, idempotencyKey, fetchImpl = fetch }: Input): Promise<CreatedOrder> {
   if (isOwnBusiness(businessUserId, currentUserId)) throw new CreateOrderError(OWN_BUSINESS_ORDER_MESSAGE, null);
+  if (!idempotencyKey) throw new CreateOrderError('No se pudo preparar el envÃ­o seguro del pedido.', null);
   let response: Response;
-  try { response = await fetchImpl(url, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
+  try { response = await fetchImpl(url, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) }); }
   catch { throw new CreateOrderError('No se pudo conectar. Intenta nuevamente.', null); }
   if (!response.ok) {
     const messages: Record<number, string> = { 400: 'Revisa los datos del pedido.', 401: 'Tu sesión venció. Ingresa nuevamente.', 403: OWN_BUSINESS_ORDER_MESSAGE, 404: 'El negocio o uno de sus artículos ya no está disponible.', 409: CATALOG_CHANGED_MESSAGE };
