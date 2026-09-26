@@ -165,6 +165,7 @@ export default function ProfileScreen({
           handleSavePersonalInfo={personalProfile.handleSavePersonalInfo}
           userInfo={personalProfile.userInfo}
           isLoadingUserInfo={personalProfile.isLoadingUserInfo}
+          handlePhoneChanged={personalProfile.handlePhoneChanged}
         />
         <QuickActionsCard profileTab={profileTab} onLogout={onLogout} />
 

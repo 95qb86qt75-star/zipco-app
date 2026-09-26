@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { ChevronRight, Lock, Mail, MapPinIcon, Phone, User, X } from 'lucide-react';
+import { API_BASE_URL } from '../../api/apiConfig';
+import { showAppToast } from '../Toast';
 import { LOCATION_SUGGESTIONS_PANEL_CLASS } from './locationSuggestionLayout';
 
 export const formatChileanMobile = (phone: string) => {
@@ -27,8 +30,56 @@ export default function PersonalInfoSection({
   handleCancelEditingPersonalInfo,
   handleSavePersonalInfo,
   userInfo,
-  isLoadingUserInfo
+  isLoadingUserInfo,
+  handlePhoneChanged
 }: any) {
+  const [showPhoneChange, setShowPhoneChange] = useState(false);
+  const [phoneDigits, setPhoneDigits] = useState('');
+  const [phoneCode, setPhoneCode] = useState('');
+  const [phoneStep, setPhoneStep] = useState<'phone' | 'code'>('phone');
+  const [isPhoneSubmitting, setIsPhoneSubmitting] = useState(false);
+
+  const newPhone = `569${phoneDigits}`;
+  const closePhoneChange = () => {
+    setShowPhoneChange(false);
+    setPhoneDigits('');
+    setPhoneCode('');
+    setPhoneStep('phone');
+  };
+  const submitPhoneChange = async () => {
+    if (phoneDigits.length !== 8) {
+      showAppToast('Ingresa los 8 dígitos de tu celular', 'error');
+      return;
+    }
+    const token = localStorage.getItem('zipco-token');
+    if (!token) return;
+    setIsPhoneSubmitting(true);
+    try {
+      const path = phoneStep === 'phone' ? 'request-code' : 'confirm';
+      const response = await fetch(`${API_BASE_URL}/auth/change-phone/${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(phoneStep === 'phone' ? { phone: newPhone } : { phone: newPhone, code: phoneCode })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        showAppToast(data.message ?? 'No se pudo verificar el teléfono', 'error');
+        return;
+      }
+      if (phoneStep === 'phone') {
+        setPhoneStep('code');
+        showAppToast('Código enviado por SMS', 'success');
+      } else {
+        handlePhoneChanged(newPhone, data.access_token);
+        showAppToast('Teléfono verificado correctamente', 'success');
+        closePhoneChange();
+      }
+    } catch {
+      showAppToast('No se pudo conectar, intenta nuevamente', 'error');
+    } finally {
+      setIsPhoneSubmitting(false);
+    }
+  };
   return (
     <>
         {/* Personal Information */}
@@ -68,6 +119,13 @@ export default function PersonalInfoSection({
                     ? 'Para cambiarlo se requiere verificacion por SMS.'
                     : 'Esta cuenta no tiene un telefono verificado.'}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPhoneChange(true)}
+                  className="mt-2 text-sm font-semibold text-teal-600 hover:text-teal-700"
+                >
+                  {userInfo.phone ? 'Cambiar teléfono' : 'Agregar teléfono'}
+                </button>
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Ubicacion</label>
@@ -196,6 +254,48 @@ export default function PersonalInfoSection({
             </div>
           )}
         </div>
+        )}
+        {showPhoneChange && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
+              <h3 className="text-lg font-bold text-gray-900">
+                {phoneStep === 'phone' ? (userInfo.phone ? 'Cambiar teléfono' : 'Agregar teléfono') : 'Ingresa el código SMS'}
+              </h3>
+              {phoneStep === 'phone' ? (
+                <div className="mt-4 flex overflow-hidden rounded-xl border border-gray-300 focus-within:border-teal-500">
+                  <span className="bg-gray-100 px-3 py-3 font-semibold text-gray-700">+56 9</span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={phoneDigits}
+                    onChange={(event) => setPhoneDigits(event.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="1234 5678"
+                    className="min-w-0 flex-1 px-3 py-3 outline-none"
+                  />
+                </div>
+              ) : (
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={phoneCode}
+                  onChange={(event) => setPhoneCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Código de 6 dígitos"
+                  className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 outline-none focus:border-teal-500"
+                />
+              )}
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <button type="button" onClick={closePhoneChange} className="rounded-xl bg-gray-100 py-3 font-semibold text-gray-800">Cancelar</button>
+                <button
+                  type="button"
+                  disabled={isPhoneSubmitting || (phoneStep === 'code' && phoneCode.length !== 6)}
+                  onClick={submitPhoneChange}
+                  className="rounded-xl bg-teal-500 py-3 font-semibold text-white disabled:opacity-50"
+                >
+                  {isPhoneSubmitting ? 'Procesando...' : phoneStep === 'phone' ? 'Enviar código' : 'Verificar'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
         {false && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-4">
