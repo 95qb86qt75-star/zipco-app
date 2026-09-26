@@ -20,6 +20,7 @@ import type { CatalogItem } from './screens/profile/business-config/types';
 import BusinessNotificationMonitor from './notifications/BusinessNotificationMonitor';
 import { disablePushNotifications } from './notifications/pushNotifications';
 import { canRunSearch } from './screens/searchConsistency';
+import { fetchLocationSuggestions } from './api/locationSuggestions';
 
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
@@ -146,21 +147,26 @@ export default function App() {
 
     setIsLocationAutocompleteLoading(true);
     setHasLocationAutocompleteSearched(false);
+    const controller = new AbortController();
 
     const timeout = setTimeout(async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`);
-        const data = await response.json();
-        setLocationAutocompleteResults(Array.isArray(data) ? data : []);
+        const data = await fetchLocationSuggestions(query, controller.signal);
+        setLocationAutocompleteResults(data);
       } catch (error) {
+        if (controller.signal.aborted) return;
         setLocationAutocompleteResults([]);
       } finally {
+        if (controller.signal.aborted) return;
         setIsLocationAutocompleteLoading(false);
         setHasLocationAutocompleteSearched(true);
       }
     }, 400);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [locationSearch, showLocationModal]);
 
   const categories = [
@@ -259,8 +265,7 @@ export default function App() {
     setLocationSearchError('');
 
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=1`);
-      const data = await response.json();
+      const data = await fetchLocationSuggestions(query);
 
       if (!Array.isArray(data) || data.length === 0) {
         setLocationSearchError('No se encontró esa ubicación, intenta con otra');

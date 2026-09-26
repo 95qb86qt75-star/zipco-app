@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { fetchLocationSuggestions } from '../../../api/locationSuggestions';
 
 export default function useLocationSuggestions(fullAddress: string) {
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
@@ -40,13 +41,11 @@ export default function useLocationSuggestions(fullAddress: string) {
     setIsLocationLoading(true);
     setHasLocationSearched(false);
     let isActive = true;
+    const controller = new AbortController();
 
     const timeout = setTimeout(async () => {
       try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`
-        );
-        const data = await response.json();
+        const data = await fetchLocationSuggestions(query, controller.signal);
         if (isActive) {
           setLocationSuggestions(Array.isArray(data) ? data : []);
         }
@@ -65,6 +64,7 @@ export default function useLocationSuggestions(fullAddress: string) {
     return () => {
       isActive = false;
       clearTimeout(timeout);
+      controller.abort();
     };
   }, [fullAddress, locationTouched]);
 

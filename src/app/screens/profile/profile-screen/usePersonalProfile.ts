@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../../api/apiConfig';
 import { showAppToast } from '../../Toast';
+import { fetchLocationSuggestions } from '../../../api/locationSuggestions';
 
 export function usePersonalProfile() {
   const [userInfo, setUserInfo] = useState({
@@ -82,21 +83,26 @@ export function usePersonalProfile() {
 
     setIsPersonalLocationLoading(true);
     setHasPersonalLocationSearched(false);
+    const controller = new AbortController();
 
     const timeout = setTimeout(async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`);
-        const data = await response.json();
-        setPersonalLocationSuggestions(Array.isArray(data) ? data : []);
+        const data = await fetchLocationSuggestions(query, controller.signal);
+        setPersonalLocationSuggestions(data);
       } catch (error) {
+        if (controller.signal.aborted) return;
         setPersonalLocationSuggestions([]);
       } finally {
+        if (controller.signal.aborted) return;
         setIsPersonalLocationLoading(false);
         setHasPersonalLocationSearched(true);
       }
     }, 400);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [personalInfoForm.location, isEditingPersonalInfo, personalLocationTouched]);
 
   const handleStartEditingPersonalInfo = () => {
