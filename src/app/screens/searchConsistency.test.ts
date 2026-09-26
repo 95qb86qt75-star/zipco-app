@@ -3,6 +3,8 @@ import {
   MINIMUM_SEARCH_LENGTH,
   canRunSearch,
   isCurrentSearchResponse,
+  isSearchFilterActive,
+  nextCategoryFilter,
   normalizeSearchQuery,
 } from "./searchConsistency";
 
@@ -35,5 +37,12 @@ describe("search consistency", () => {
         currentQuery: "Eve",
       }),
     ).toBe(true);
+  });
+
+  it("keeps category and distance as independent active filters", () => {
+    expect(nextCategoryFilter("negocios", "distance")).toBe("negocios");
+    expect(isSearchFilterActive("negocios", "negocios", 2)).toBe(true);
+    expect(isSearchFilterActive("distance", "negocios", 2)).toBe(true);
+    expect(isSearchFilterActive("servicios", "negocios", 2)).toBe(false);
   });
 });
