@@ -29,8 +29,8 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   const [error, setError] = useState('');
   const [isCompletingRegistration, setIsCompletingRegistration] = useState(false);
 
-  const displayPhone = phone;
-  const apiPhone = phone.replace(/\D/g, '');
+  const displayPhone = phone.length === 8 ? `+56 9 ${phone.slice(0, 4)} ${phone.slice(4)}` : '+56 9';
+  const apiPhone = `569${phone}`;
 
   const sms = useSmsRegistration({ setError });
 
@@ -49,7 +49,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
     localStorage.setItem('zipco-token', token);
     localStorage.setItem('zipco-user-id', String(userId));
-    localStorage.setItem('zipco-user-phone', phone);
+    localStorage.setItem('zipco-user-phone', apiPhone);
     localStorage.removeItem('zipco-business-id');
 
     if (shouldCreateBusiness && businessName.trim()) {
@@ -90,7 +90,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   };
 
   const handlePhoneSubmit = async () => {
-    if (apiPhone.length !== 11) {
+    if (phone.length !== 8) {
       setError('Ingresa un número celular válido.');
       return;
     }
