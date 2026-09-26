@@ -473,6 +473,7 @@ export default function App() {
               setPreviousScreen('negocios');
               setCurrentScreen('profile');
             }}
+            onShowServices={() => setCurrentScreen('servicios')}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -491,6 +492,7 @@ export default function App() {
               setSelectedService(service);
               setCurrentScreen('service-profile');
             }}
+            onShowBusinesses={() => setCurrentScreen('negocios')}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
