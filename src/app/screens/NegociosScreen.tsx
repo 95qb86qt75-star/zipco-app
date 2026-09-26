@@ -4,7 +4,7 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 import DistanceInfo from './DistanceInfo';
 
-export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: { onBack: () => void; onSelectBusiness: (business: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
+export default function NegociosScreen({ onBack, onSelectBusiness, onShowServices, activeTab, setActiveTab }: { onBack: () => void; onSelectBusiness: (business: any) => void; onShowServices: () => void; activeTab: string; setActiveTab: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [maxDistance, setMaxDistance] = useState(10);
@@ -16,6 +16,7 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
   const filters = [
     { id: 'todos', label: 'Todos' },
     { id: 'negocios', label: 'Negocios' },
+    { id: 'servicios', label: 'Servicios' },
     { id: 'particular', label: 'Particular' },
     { id: 'distance', label: `${maxDistance} km` }
   ];
@@ -390,23 +391,25 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex flex-wrap gap-1 pb-2">
           {filters.map((filter) => (
             <button
               key={filter.id}
               onClick={() => {
                 if (filter.id === 'distance') {
                   setShowDistanceModal(true);
+                } else if (filter.id === 'servicios') {
+                  onShowServices();
                 } else {
                   setSelectedFilter(filter.id);
                 }
               }}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
                 (selectedFilter === filter.id || filter.id === 'distance')
                   ? filter.id === 'distance'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'bg-teal-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                    : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200 shadow-sm hover:bg-gray-200'
               }`}
             >
               {filter.label}

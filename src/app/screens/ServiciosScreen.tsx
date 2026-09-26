@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock, Mic, Search } from 'lucide-react';
+import { ArrowLeft, MapPin, Mic, Search, Wrench } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import DistanceInfo from './DistanceInfo';
 
-export default function ServiciosScreen({ onBack, onSelectService, activeTab, setActiveTab }: { onBack: () => void; onSelectService: (service: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
+export default function ServiciosScreen({ onBack, onSelectService, onShowBusinesses, activeTab, setActiveTab }: { onBack: () => void; onSelectService: (service: any) => void; onShowBusinesses: () => void; activeTab: string; setActiveTab: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [maxDistance, setMaxDistance] = useState(10);
@@ -14,8 +15,9 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
 
   const filters = [
     { id: 'todos', label: 'Todos' },
-    { id: 'negocios', label: 'Empresas' },
-    { id: 'particular', label: 'Independientes' },
+    { id: 'negocios', label: 'Negocios' },
+    { id: 'servicios', label: 'Servicios' },
+    { id: 'particular', label: 'Particular' },
     { id: 'distance', label: `${maxDistance} km` }
   ];
 
@@ -407,23 +409,25 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex gap-1 pb-2">
+        <div className="flex flex-wrap gap-1 pb-2">
           {filters.map((filter) => (
             <button
               key={filter.id}
               onClick={() => {
                 if (filter.id === 'distance') {
                   setShowDistanceModal(true);
+                } else if (filter.id === 'negocios') {
+                  onShowBusinesses();
                 } else {
                   setSelectedFilter(filter.id);
                 }
               }}
-              className={`flex-1 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+              className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
                 (selectedFilter === filter.id || filter.id === 'distance')
                   ? filter.id === 'distance'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'bg-teal-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                    : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200 shadow-sm hover:bg-gray-200'
               }`}
             >
               {filter.label}
@@ -441,39 +445,44 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
             <div
               key={result.id}
               onClick={() => onSelectService(result)}
-              className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition-all flex gap-4 cursor-pointer"
+              className="cursor-pointer overflow-hidden rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-lg transition-all hover:shadow-xl"
             >
-              {/* Image */}
-              <div className="flex-shrink-0">
+              <div className="flex items-start gap-3 p-4">
+              <div className="relative shrink-0">
                 <ImageWithFallback
                   src={result.image}
                   alt={result.name}
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="h-20 w-20 rounded-xl object-cover"
                 />
+                <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+                  <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
+                </div>
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-900 text-sm">{result.name}</h3>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{formatDistance(result.distance)}</span>
+                  <h3 className="font-bold text-gray-900 text-sm leading-tight">{result.name}</h3>
+                  <span className="whitespace-nowrap rounded-full bg-purple-500 px-2 py-0.5 text-xs font-semibold text-white">Servicio</span>
                 </div>
                 <p className="text-xs text-gray-600 mb-2 line-clamp-2">{result.description}</p>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    result.type === 'Negocio'
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {result.type === 'Negocio' ? 'Empresa' : 'Independiente'}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span className={`text-xs ${result.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.isOpen ? 'Disponible' : 'No disponible'}
-                    </span>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <MapPin className="h-3 w-3" />
+                    <span>{formatDistance(result.distance)}</span>
+                    <DistanceInfo />
                   </div>
+                  <span className={`px-2 py-0.5 rounded-full font-medium ${
+                    result.type === 'Negocio'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    {result.type}
+                  </span>
+                  <span className={`rounded-full px-2 py-0.5 font-semibold text-white ${result.isOpen ? 'bg-green-500' : 'bg-red-500'}`}>
+                    {result.isOpen ? 'Abierto' : 'Cerrado'}
+                  </span>
                 </div>
+              </div>
               </div>
             </div>
           ))}
