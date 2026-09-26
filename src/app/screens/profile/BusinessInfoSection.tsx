@@ -1,5 +1,4 @@
 import { useRef } from 'react';
-import { LOCATION_SUGGESTIONS_PANEL_CLASS } from './locationSuggestionLayout';
 import { Camera, ChevronRight, Facebook, ImageIcon, Instagram, MapPinIcon, Phone, Settings, Store } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
@@ -17,14 +16,6 @@ export default function BusinessInfoSection({
   businessSubtextClass,
   businessSocialForm,
   setBusinessSocialForm,
-  businessAddressSuggestions,
-  isBusinessAddressLoading,
-  getBusinessAddressLabel,
-  setBusinessAddressSuggestions,
-  setHasBusinessAddressSearched,
-  hasBusinessAddressSearched,
-  businessAddressTouched,
-  setBusinessAddressTouched,
   setShowBusinessConfig,
   isBusinessReadyToPublish,
   handlePublishBusiness,
@@ -129,48 +120,6 @@ export default function BusinessInfoSection({
                         className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none"
                         rows={3}
                       />
-                    </div>
-                    <div>
-                      <label className={`text-xs mb-1 block ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>Dirección</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={businessSocialForm.address}
-                          onChange={(e) => {
-                            setBusinessAddressTouched(true);
-                            setBusinessSocialForm({ ...businessSocialForm, address: e.target.value });
-                          }}
-                          className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                        />
-                        {businessAddressTouched && businessSocialForm.address.trim().length >= 3 && (
-                          <div className={LOCATION_SUGGESTIONS_PANEL_CLASS}>
-                            {isBusinessAddressLoading ? (
-                              <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
-                            ) : businessAddressSuggestions.length > 0 ? (
-                              businessAddressSuggestions.map((result, index) => {
-                                const label = getBusinessAddressLabel(result);
-                                return (
-                                  <button
-                                    key={`${result.place_id ?? result.osm_id ?? 'business-address'}-${index}`}
-                                    type="button"
-                                    onClick={() => {
-                                      setBusinessAddressSuggestions([]);
-                                      setHasBusinessAddressSearched(false);
-                                      setBusinessAddressTouched(false);
-                                      setBusinessSocialForm({ ...businessSocialForm, address: label });
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
-                                  >
-                                    {label}
-                                  </button>
-                                );
-                              })
-                            ) : hasBusinessAddressSearched ? (
-                              <p className="px-4 py-3 text-sm text-gray-500">No se encontraron resultados</p>
-                            ) : null}
-                          </div>
-                        )}
-                      </div>
                     </div>
                     <div>
                       <label className={`text-xs mb-1 flex items-center gap-1 ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>

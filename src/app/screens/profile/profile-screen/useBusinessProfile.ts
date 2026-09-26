@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../../api/apiConfig';
 import { showAppToast } from '../../Toast';
-import { fetchLocationSuggestions } from '../../../api/locationSuggestions';
 
 export function useBusinessProfile() {
   const [businessRegistrationForm, setBusinessRegistrationForm] = useState({
@@ -31,40 +30,10 @@ export function useBusinessProfile() {
   const [businessSocialForm, setBusinessSocialForm] = useState({
     name: '',
     description: '',
-    address: '',
     instagram: '',
     facebook: ''
   });
-  const [businessAddressSuggestions, setBusinessAddressSuggestions] = useState<any[]>([]);
-  const [isBusinessAddressLoading, setIsBusinessAddressLoading] = useState(false);
-  const [hasBusinessAddressSearched, setHasBusinessAddressSearched] = useState(false);
-  const [businessAddressTouched, setBusinessAddressTouched] = useState(false);
   const [isUploadingBusinessPhoto, setIsUploadingBusinessPhoto] = useState(false);
-
-  const getBusinessAddressLabel = (result: any) => {
-    const parts = String(result.display_name ?? '').split(',').map((part) => part.trim()).filter(Boolean);
-    if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
-      parts.pop();
-    }
-    const address = result.address ?? {};
-    const fallbackStreet = [address.road ?? address.pedestrian ?? address.footway, address.house_number]
-      .map((part) => String(part ?? '').trim())
-      .filter(Boolean)
-      .join(' ');
-    if (!parts.length && fallbackStreet) parts.push(fallbackStreet);
-    [
-      address.city ?? address.town ?? address.village ?? address.municipality ?? address.suburb,
-      address.county,
-      address.state,
-      address.postcode
-    ].forEach((part) => {
-      const nextPart = String(part ?? '').trim();
-      if (nextPart && !parts.some((currentPart) => currentPart.toLowerCase() === nextPart.toLowerCase())) {
-        parts.push(nextPart);
-      }
-    });
-    return parts.join(', ');
-  };
 
   const parseKeywords = (value: any): string[] => {
     if (Array.isArray(value)) {
@@ -155,40 +124,6 @@ export function useBusinessProfile() {
     loadUserBusiness();
   }, []);
 
-  useEffect(() => {
-    const query = businessSocialForm.address.trim();
-
-    if (!isEditingBusinessInfo || !businessAddressTouched || query.length < 3) {
-      setBusinessAddressSuggestions([]);
-      setIsBusinessAddressLoading(false);
-      setHasBusinessAddressSearched(false);
-      return;
-    }
-
-    setIsBusinessAddressLoading(true);
-    setHasBusinessAddressSearched(false);
-    const controller = new AbortController();
-
-    const timeout = setTimeout(async () => {
-      try {
-        const data = await fetchLocationSuggestions(query, controller.signal);
-        setBusinessAddressSuggestions(data);
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        setBusinessAddressSuggestions([]);
-      } finally {
-        if (controller.signal.aborted) return;
-        setIsBusinessAddressLoading(false);
-        setHasBusinessAddressSearched(true);
-      }
-    }, 400);
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [businessSocialForm.address, businessAddressTouched, isEditingBusinessInfo]);
-
   const missingBusinessFields = [
     !businessInfo.name?.trim() ? 'Nombre del negocio' : '',
     !businessConfig.category?.trim() ? 'Categoría' : '',
@@ -214,11 +149,9 @@ export function useBusinessProfile() {
     setBusinessSocialForm({
       name: businessInfo.name,
       description: businessInfo.description,
-      address: businessInfo.address,
       instagram: businessInfo.instagram,
       facebook: businessInfo.facebook
     });
-    setBusinessAddressTouched(false);
     setIsEditingBusinessInfo(true);
   };
 
@@ -240,7 +173,6 @@ export function useBusinessProfile() {
         body: JSON.stringify({
           name: businessSocialForm.name,
           description: businessSocialForm.description,
-          address: businessSocialForm.address,
           instagram: businessSocialForm.instagram,
           facebook: businessSocialForm.facebook
         })
@@ -255,14 +187,10 @@ export function useBusinessProfile() {
         ...currentBusinessInfo,
         name: businessSocialForm.name,
         description: businessSocialForm.description,
-        address: businessSocialForm.address,
         instagram: businessSocialForm.instagram,
         facebook: businessSocialForm.facebook
       }));
       setIsEditingBusinessInfo(false);
-      setBusinessAddressSuggestions([]);
-      setHasBusinessAddressSearched(false);
-      setBusinessAddressTouched(false);
       showAppToast('Datos del negocio actualizados correctamente', 'success');
     } catch (error) {
       showAppToast('No se pudo guardar el negocio', 'error');
@@ -391,21 +319,21 @@ export function useBusinessProfile() {
 
   return {
     businessConfig,
-    setBusinessConfig,
+    setBusinessConfig: (config: any) => {
+      setBusinessConfig(config);
+      if (typeof config?.fullAddress === 'string') {
+        setBusinessInfo((currentBusinessInfo) => ({
+          ...currentBusinessInfo,
+          address: config.fullAddress
+        }));
+      }
+    },
     businessInfo,
     hasRegisteredBusiness,
     isEditingBusinessInfo,
     businessSocialForm,
     setBusinessSocialForm,
-    businessAddressSuggestions,
-    setBusinessAddressSuggestions,
-    isBusinessAddressLoading,
-    hasBusinessAddressSearched,
-    setHasBusinessAddressSearched,
-    businessAddressTouched,
-    setBusinessAddressTouched,
     isUploadingBusinessPhoto,
-    getBusinessAddressLabel,
     uploadBusinessPhoto,
     isBusinessFieldMissing,
     isBusinessReadyToPublish,

@@ -139,14 +139,6 @@ export default function ProfileScreen({
           businessSubtextClass={businessSubtextClass}
           businessSocialForm={businessProfile.businessSocialForm}
           setBusinessSocialForm={businessProfile.setBusinessSocialForm}
-          businessAddressSuggestions={businessProfile.businessAddressSuggestions}
-          isBusinessAddressLoading={businessProfile.isBusinessAddressLoading}
-          getBusinessAddressLabel={businessProfile.getBusinessAddressLabel}
-          setBusinessAddressSuggestions={businessProfile.setBusinessAddressSuggestions}
-          setHasBusinessAddressSearched={businessProfile.setHasBusinessAddressSearched}
-          hasBusinessAddressSearched={businessProfile.hasBusinessAddressSearched}
-          businessAddressTouched={businessProfile.businessAddressTouched}
-          setBusinessAddressTouched={businessProfile.setBusinessAddressTouched}
           setShowBusinessConfig={setShowBusinessConfig}
           isBusinessReadyToPublish={businessProfile.isBusinessReadyToPublish}
           handlePublishBusiness={businessProfile.handlePublishBusiness}
