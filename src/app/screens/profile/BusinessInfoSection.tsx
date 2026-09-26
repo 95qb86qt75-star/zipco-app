@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { LOCATION_SUGGESTIONS_PANEL_CLASS } from './locationSuggestionLayout';
 import { Camera, ChevronRight, Facebook, ImageIcon, Instagram, MapPinIcon, Phone, Settings, Store } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
@@ -142,7 +143,7 @@ export default function BusinessInfoSection({
                           className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                         />
                         {businessAddressTouched && businessSocialForm.address.trim().length >= 3 && (
-                          <div className="absolute left-0 right-0 top-full mt-2 z-30 max-h-52 overflow-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
+                          <div className={LOCATION_SUGGESTIONS_PANEL_CLASS}>
                             {isBusinessAddressLoading ? (
                               <p className="px-4 py-3 text-sm text-gray-500">Buscando...</p>
                             ) : businessAddressSuggestions.length > 0 ? (
