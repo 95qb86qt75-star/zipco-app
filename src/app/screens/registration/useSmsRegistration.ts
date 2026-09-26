@@ -32,6 +32,7 @@ export default function useSmsRegistration({
   setError
 }: UseSmsRegistrationOptions) {
   const [code, setCode] = useState('');
+  const [qaCode, setQaCode] = useState('');
   const [feedbackState, setFeedbackState] =
     useState<SmsCodeFeedbackState>('idle');
   const [focusRequestKey, setFocusRequestKey] = useState(0);
@@ -102,7 +103,8 @@ export default function useSmsRegistration({
     setIsRequestingCode(true);
 
     try {
-      await requestSmsCode(apiPhone);
+      const response = await requestSmsCode(apiPhone);
+      setQaCode(response.qaCode ?? '');
       setCode('');
       setError('');
       setFeedbackState('idle');
@@ -189,7 +191,8 @@ export default function useSmsRegistration({
     setIsResendingCode(true);
 
     try {
-      await requestSmsCode(apiPhone);
+      const response = await requestSmsCode(apiPhone);
+      setQaCode(response.qaCode ?? '');
       setCode('');
       setError('');
       setResendSeconds(30);
@@ -216,6 +219,7 @@ export default function useSmsRegistration({
   const resetSmsState = () => {
     clearFeedbackTimer();
     setCode('');
+    setQaCode('');
     setError('');
     setFeedbackState('idle');
     setResendSeconds(0);
@@ -223,6 +227,7 @@ export default function useSmsRegistration({
 
   return {
     code,
+    qaCode,
     feedbackState,
     focusRequestKey,
     resendSeconds,
