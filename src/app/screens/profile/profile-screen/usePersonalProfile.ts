@@ -250,6 +250,12 @@ export function usePersonalProfile() {
     }
   };
 
+  const handlePhoneChanged = (phone: string, accessToken?: string) => {
+    if (accessToken) localStorage.setItem('zipco-token', accessToken);
+    localStorage.setItem('zipco-user-phone', phone);
+    setUserInfo((currentUserInfo) => ({ ...currentUserInfo, phone }));
+  };
+
   return {
     userInfo,
     isEditingPersonalInfo,
@@ -270,6 +276,7 @@ export function usePersonalProfile() {
     handleCancelEditingPersonalInfo,
     getPersonalLocationLabel,
     uploadProfilePhoto,
-    handleSavePersonalInfo
+    handleSavePersonalInfo,
+    handlePhoneChanged
   };
 }
