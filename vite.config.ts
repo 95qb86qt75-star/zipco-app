@@ -29,6 +29,9 @@ export default defineConfig({
       injectRegister: null,
       manifest: false,
       workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,png,svg}'],
         importScripts: ['push-sw.js'],
       },
