@@ -3,8 +3,9 @@ import { ArrowLeft, MapPin, Mic, Search, Wrench } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 import DistanceInfo from './DistanceInfo';
+import { isSearchFilterActive } from './searchConsistency';
 
-export default function ServiciosScreen({ onBack, onSelectService, onShowBusinesses, activeTab, setActiveTab }: { onBack: () => void; onSelectService: (service: any) => void; onShowBusinesses: () => void; activeTab: string; setActiveTab: (tab: string) => void }) {
+export default function ServiciosScreen({ onBack, onSelectService, activeTab, setActiveTab }: { onBack: () => void; onSelectService: (service: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [maxDistance, setMaxDistance] = useState(10);
@@ -15,7 +16,6 @@ export default function ServiciosScreen({ onBack, onSelectService, onShowBusines
 
   const filters = [
     { id: 'todos', label: 'Todos' },
-    { id: 'negocios', label: 'Negocios' },
     { id: 'servicios', label: 'Servicios' },
     { id: 'particular', label: 'Particular' },
     { id: 'distance', label: `${maxDistance} km` }
@@ -416,17 +416,13 @@ export default function ServiciosScreen({ onBack, onSelectService, onShowBusines
               onClick={() => {
                 if (filter.id === 'distance') {
                   setShowDistanceModal(true);
-                } else if (filter.id === 'negocios') {
-                  onShowBusinesses();
                 } else {
                   setSelectedFilter(filter.id);
                 }
               }}
               className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                (selectedFilter === filter.id || filter.id === 'distance')
-                  ? filter.id === 'distance'
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
-                    : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                isSearchFilterActive(filter.id, selectedFilter, maxDistance)
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200 shadow-sm hover:bg-gray-200'
               }`}
             >
