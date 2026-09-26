@@ -1,4 +1,4 @@
-import { Eye, EyeOff, MapPinIcon } from 'lucide-react';
+import { Eye, EyeOff, MapPinIcon, X } from 'lucide-react';
 import { LOCATION_SUGGESTIONS_PANEL_CLASS } from '../locationSuggestionLayout';
 
 type LocationPrivacyCardProps = {
@@ -10,6 +10,7 @@ type LocationPrivacyCardProps = {
   isLocationLoading: boolean;
   hasLocationSearched: boolean;
   locationTouched: boolean;
+  isLocationConfirmed: boolean;
   setLocationTouched: (value: boolean) => void;
   setLocationSuggestions: (suggestions: any[]) => void;
   setHasLocationSearched: (value: boolean) => void;
@@ -48,6 +49,7 @@ export default function LocationPrivacyCard({
   isLocationLoading,
   hasLocationSearched,
   locationTouched,
+  isLocationConfirmed,
   setLocationTouched,
   setLocationSuggestions,
   setHasLocationSearched,
@@ -63,16 +65,37 @@ export default function LocationPrivacyCard({
       <div className="mb-4">
         <label className="text-sm text-gray-700 mb-2 block">Direccion completa</label>
         <div className="relative">
-          <input
-            type="text"
-            value={fullAddress}
-            onChange={(e) => {
-              setLocationTouched(true);
-              setFullAddress(e.target.value);
-            }}
-            placeholder="Escribe tu direccion..."
-            className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-          />
+          {isLocationConfirmed ? (
+            <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2.5">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-teal-800" title={fullAddress}>
+                {fullAddress}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLocationSuggestions([]);
+                  setHasLocationSearched(false);
+                  setLocationTouched(false);
+                  setFullAddress('');
+                }}
+                aria-label="Borrar direccion seleccionada"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 transition-colors hover:bg-teal-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <input
+              type="text"
+              value={fullAddress}
+              onChange={(e) => {
+                setLocationTouched(true);
+                setFullAddress(e.target.value);
+              }}
+              placeholder="Escribe tu direccion..."
+              className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+            />
+          )}
           {locationTouched && fullAddress.trim().length >= 3 && (
             <div className={LOCATION_SUGGESTIONS_PANEL_CLASS}>
               {isLocationLoading ? (

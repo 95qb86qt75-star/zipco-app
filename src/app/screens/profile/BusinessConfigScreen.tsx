@@ -278,6 +278,7 @@ export default function BusinessConfigScreen({
           isLocationLoading={isLocationLoading}
           hasLocationSearched={hasLocationSearched}
           locationTouched={locationTouched}
+          isLocationConfirmed={Boolean(fullAddress.trim() && latitude !== null && longitude !== null)}
           setLocationTouched={setLocationTouched}
           setLocationSuggestions={setLocationSuggestions}
           setHasLocationSearched={setHasLocationSearched}
