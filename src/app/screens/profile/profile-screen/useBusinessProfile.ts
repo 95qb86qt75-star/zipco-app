@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../../api/apiConfig';
 import { showAppToast } from '../../Toast';
+import { fetchLocationSuggestions } from '../../../api/locationSuggestions';
 
 export function useBusinessProfile() {
   const [businessRegistrationForm, setBusinessRegistrationForm] = useState({
@@ -166,21 +167,26 @@ export function useBusinessProfile() {
 
     setIsBusinessAddressLoading(true);
     setHasBusinessAddressSearched(false);
+    const controller = new AbortController();
 
     const timeout = setTimeout(async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}+Chile&format=json&limit=5&countrycodes=cl&addressdetails=1`);
-        const data = await response.json();
-        setBusinessAddressSuggestions(Array.isArray(data) ? data : []);
+        const data = await fetchLocationSuggestions(query, controller.signal);
+        setBusinessAddressSuggestions(data);
       } catch (error) {
+        if (controller.signal.aborted) return;
         setBusinessAddressSuggestions([]);
       } finally {
+        if (controller.signal.aborted) return;
         setIsBusinessAddressLoading(false);
         setHasBusinessAddressSearched(true);
       }
     }, 400);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [businessSocialForm.address, businessAddressTouched, isEditingBusinessInfo]);
 
   const missingBusinessFields = [
