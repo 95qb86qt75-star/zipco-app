@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock, Mic, Search } from 'lucide-react';
+import { ArrowLeft, MapPin, Mic, Search, Store } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import DistanceInfo from './DistanceInfo';
 
 export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: { onBack: () => void; onSelectBusiness: (business: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -485,35 +486,39 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
             <div
               key={result.id}
               onClick={() => onSelectBusiness(result)}
-              className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition-all flex gap-4 cursor-pointer"
+              className="cursor-pointer overflow-hidden rounded-2xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 shadow-lg transition-all hover:shadow-xl"
             >
-              {/* Image */}
-              <div className="flex-shrink-0">
-                <ImageWithFallback
-                  src={result.image}
-                  alt={result.name}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-900 text-sm">{result.name}</h3>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{formatDistance(result.distance)}</span>
+              <div className="flex items-start gap-3 p-4">
+                <div className="relative shrink-0">
+                  <ImageWithFallback
+                    src={result.image}
+                    alt={result.name}
+                    className="h-20 w-20 rounded-xl object-cover"
+                  />
+                  <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
+                    <Store className="h-4 w-4 text-white" strokeWidth={2.5} />
+                  </div>
                 </div>
-                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{result.description}</p>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    result.type === 'Negocio'
-                      ? 'bg-amber-100 text-amber-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {result.type}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span className={`text-xs ${result.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-bold leading-tight text-gray-900">{result.name}</h3>
+                    <span className="whitespace-nowrap rounded-full bg-orange-500 px-2 py-0.5 text-xs font-semibold text-white">
+                      Negocio
+                    </span>
+                  </div>
+                  <p className="mb-2 line-clamp-2 text-xs text-gray-600">{result.description}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1 text-gray-600">
+                      <MapPin className="h-3 w-3" />
+                      <span>{formatDistance(result.distance)}</span>
+                      <DistanceInfo />
+                    </div>
+                    <span className={`rounded-full px-2 py-0.5 font-medium ${
+                      result.type === 'Negocio' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {result.type}
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 font-semibold text-white ${result.isOpen ? 'bg-green-500' : 'bg-red-500'}`}>
                       {result.isOpen ? 'Abierto' : 'Cerrado'}
                     </span>
                   </div>
