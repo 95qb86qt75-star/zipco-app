@@ -153,6 +153,8 @@ export default function ProfileScreen({
           setPersonalInfoForm={personalProfile.setPersonalInfoForm}
           setPersonalLocationTouched={personalProfile.setPersonalLocationTouched}
           personalLocationTouched={personalProfile.personalLocationTouched}
+          isPersonalLocationConfirmed={personalProfile.isPersonalLocationConfirmed}
+          setIsPersonalLocationConfirmed={personalProfile.setIsPersonalLocationConfirmed}
           personalLocationSuggestions={personalProfile.personalLocationSuggestions}
           isPersonalLocationLoading={personalProfile.isPersonalLocationLoading}
           hasPersonalLocationSearched={personalProfile.hasPersonalLocationSearched}

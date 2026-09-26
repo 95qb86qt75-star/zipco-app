@@ -21,6 +21,7 @@ export function usePersonalProfile() {
   const [isPersonalLocationLoading, setIsPersonalLocationLoading] = useState(false);
   const [hasPersonalLocationSearched, setHasPersonalLocationSearched] = useState(false);
   const [personalLocationTouched, setPersonalLocationTouched] = useState(false);
+  const [isPersonalLocationConfirmed, setIsPersonalLocationConfirmed] = useState(false);
   const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
   const [isLoadingUserInfo, setIsLoadingUserInfo] = useState(true);
 
@@ -112,6 +113,7 @@ export function usePersonalProfile() {
       location: userInfo.address
     });
     setPersonalLocationTouched(false);
+    setIsPersonalLocationConfirmed(Boolean(userInfo.address.trim()));
     setIsEditingPersonalInfo(true);
   };
 
@@ -125,6 +127,7 @@ export function usePersonalProfile() {
     setPersonalLocationSuggestions([]);
     setHasPersonalLocationSearched(false);
     setPersonalLocationTouched(false);
+    setIsPersonalLocationConfirmed(false);
   };
 
   const getPersonalLocationLabel = (result: any) => {
@@ -210,6 +213,11 @@ export function usePersonalProfile() {
 
     if (!userId || !token) return;
 
+    if (personalInfoForm.location.trim() && !isPersonalLocationConfirmed) {
+      showAppToast('Selecciona una ubicacion de la lista antes de guardar', 'error');
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PATCH',
@@ -259,6 +267,8 @@ export function usePersonalProfile() {
     setHasPersonalLocationSearched,
     personalLocationTouched,
     setPersonalLocationTouched,
+    isPersonalLocationConfirmed,
+    setIsPersonalLocationConfirmed,
     isUploadingProfilePhoto,
     isLoadingUserInfo,
     handleStartEditingPersonalInfo,
