@@ -19,6 +19,7 @@ import SplashScreen from './screens/SplashScreen';
 import type { CatalogItem } from './screens/profile/business-config/types';
 import BusinessNotificationMonitor from './notifications/BusinessNotificationMonitor';
 import { disablePushNotifications } from './notifications/pushNotifications';
+import { canRunSearch } from './screens/searchConsistency';
 
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
@@ -61,6 +62,8 @@ export default function App() {
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: CatalogItem[] } | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [globalSearchFilter, setGlobalSearchFilter] = useState('todos');
+  const [globalSearchDistance, setGlobalSearchDistance] = useState(10);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems] = useState<any[]>([]);
@@ -534,8 +537,15 @@ export default function App() {
             onBack={() => {
               setCurrentScreen('home');
               setGlobalSearchQuery('');
+              setGlobalSearchFilter('todos');
+              setGlobalSearchDistance(10);
             }}
             initialQuery={globalSearchQuery}
+            onQueryChange={setGlobalSearchQuery}
+            initialFilter={globalSearchFilter}
+            onFilterChange={setGlobalSearchFilter}
+            initialMaxDistance={globalSearchDistance}
+            onMaxDistanceChange={setGlobalSearchDistance}
             currentLocation={currentLocation}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -612,7 +622,7 @@ export default function App() {
               value={globalSearchQuery}
               onChange={(e) => setGlobalSearchQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && globalSearchQuery.trim()) {
+                if (e.key === 'Enter' && canRunSearch(globalSearchQuery)) {
                   setCurrentScreen('search');
                 }
               }}
@@ -625,7 +635,7 @@ export default function App() {
             />
             <button
               onClick={() => {
-                if (globalSearchQuery.trim()) {
+                if (canRunSearch(globalSearchQuery)) {
                   setCurrentScreen('search');
                 }
               }}

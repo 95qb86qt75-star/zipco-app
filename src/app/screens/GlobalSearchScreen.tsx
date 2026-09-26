@@ -6,6 +6,7 @@ import BottomNav from './BottomNav';
 import { getBusinessResultImage } from './searchResultPresentation';
 import { parsePositiveIntegerId } from './businessOwnership';
 import DistanceInfo from './DistanceInfo';
+import { canRunSearch, isCurrentSearchResponse, normalizeSearchQuery } from './searchConsistency';
 
 const getCoordinate = (value: any) => {
   const coordinate = Number(value);
@@ -33,15 +34,18 @@ const calculateDistanceKm = (fromLat: any, fromLng: any, toLat: any, toLng: any)
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export default function GlobalSearchScreen({ onBack, initialQuery, currentLocation, activeTab, setActiveTab, onSelectBusiness, onSelectService }: { onBack: () => void; initialQuery: string; currentLocation: any; activeTab: string; setActiveTab: (tab: string) => void; onSelectBusiness: (business: any) => void; onSelectService: (service: any) => void }) {
+export default function GlobalSearchScreen({ onBack, initialQuery, onQueryChange, initialFilter, onFilterChange, initialMaxDistance, onMaxDistanceChange, currentLocation, activeTab, setActiveTab, onSelectBusiness, onSelectService }: { onBack: () => void; initialQuery: string; onQueryChange: (query: string) => void; initialFilter: string; onFilterChange: (filter: string) => void; initialMaxDistance: number; onMaxDistanceChange: (distance: number) => void; currentLocation: any; activeTab: string; setActiveTab: (tab: string) => void; onSelectBusiness: (business: any) => void; onSelectService: (service: any) => void }) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [selectedFilter, setSelectedFilter] = useState('todos');
-  const [maxDistance, setMaxDistance] = useState(10);
+  const [selectedFilter, setSelectedFilter] = useState(initialFilter);
+  const [maxDistance, setMaxDistance] = useState(initialMaxDistance);
   const [showDistanceModal, setShowDistanceModal] = useState(false);
   const [backendResults, setBackendResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const hasMountedSearchEffect = useRef(false);
+  const searchQueryRef = useRef(initialQuery);
+  const latestRequestId = useRef(0);
+  const activeSearchController = useRef<AbortController | null>(null);
 
   const filters = [
     { id: 'todos', label: 'Todos' },
@@ -433,8 +437,20 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
   };
 
   const fetchNearbyBusinesses = async (query = searchQuery, radius = maxDistance) => {
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) return;
+    const trimmedQuery = normalizeSearchQuery(query);
+    if (!canRunSearch(trimmedQuery)) {
+      activeSearchController.current?.abort();
+      latestRequestId.current += 1;
+      setBackendResults([]);
+      setIsSearching(false);
+      setSearchError('');
+      return;
+    }
+
+    activeSearchController.current?.abort();
+    const controller = new AbortController();
+    activeSearchController.current = controller;
+    const requestId = ++latestRequestId.current;
 
     setIsSearching(true);
     setSearchError('');
@@ -447,26 +463,35 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
         search: trimmedQuery
       });
 
-      const response = await fetch(`${API_BASE_URL}/businesses/nearby?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/businesses/nearby?${params.toString()}`, {
+        signal: controller.signal
+      });
 
       if (!response.ok) {
         throw new Error('No se pudo conectar con la búsqueda');
       }
 
       const data = await response.json();
+      if (!isCurrentSearchResponse({
+        requestId,
+        latestRequestId: latestRequestId.current,
+        requestedQuery: trimmedQuery,
+        currentQuery: searchQueryRef.current
+      })) return;
       const rawResults = Array.isArray(data) ? data : data.businesses ?? data.results ?? [];
       setBackendResults(rawResults.map(normalizeBackendResult));
     } catch (error) {
+      if (controller.signal.aborted || requestId !== latestRequestId.current) return;
       setBackendResults([]);
       setSearchError(error instanceof Error ? error.message : 'No se pudo realizar la búsqueda');
     } finally {
-      setIsSearching(false);
+      if (requestId === latestRequestId.current) setIsSearching(false);
     }
   };
 
   useEffect(() => {
     fetchNearbyBusinesses(initialQuery, maxDistance);
-  }, [initialQuery]);
+  }, []);
 
   useEffect(() => {
     if (!hasMountedSearchEffect.current) {
@@ -474,8 +499,13 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
       return;
     }
 
-    const trimmedQuery = searchQuery.trim();
-    if (trimmedQuery.length < 2) return;
+    const trimmedQuery = normalizeSearchQuery(searchQuery);
+    activeSearchController.current?.abort();
+    latestRequestId.current += 1;
+    setBackendResults([]);
+    setSearchError('');
+    setIsSearching(false);
+    if (!canRunSearch(trimmedQuery)) return;
 
     const searchTimeout = window.setTimeout(() => {
       fetchNearbyBusinesses(trimmedQuery, maxDistance);
@@ -483,6 +513,8 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
 
     return () => window.clearTimeout(searchTimeout);
   }, [searchQuery]);
+
+  useEffect(() => () => activeSearchController.current?.abort(), []);
 
   // Filtrar resultados entregados por el backend
   const filteredResults = backendResults.filter((result) => {
@@ -523,7 +555,12 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const nextQuery = e.target.value;
+                searchQueryRef.current = nextQuery;
+                setSearchQuery(nextQuery);
+                onQueryChange(nextQuery);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   fetchNearbyBusinesses();
@@ -545,6 +582,7 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
               key={filter.id}
               onClick={() => {
                 setSelectedFilter(filter.id);
+                onFilterChange(filter.id);
                 if (filter.id === 'distance') {
                   setShowDistanceModal(true);
                 }
@@ -581,7 +619,11 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
                   max="10"
                   step="0.5"
                   value={maxDistance}
-                  onChange={(e) => setMaxDistance(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    const distance = parseFloat(e.target.value);
+                    setMaxDistance(distance);
+                    onMaxDistanceChange(distance);
+                  }}
                   style={{
                     background: `linear-gradient(to right, #14b8a6 0%, #14b8a6 ${((maxDistance - 0.5) / 9.5) * 100}%, #e5e7eb ${((maxDistance - 0.5) / 9.5) * 100}%, #e5e7eb 100%)`
                   }}
@@ -613,7 +655,9 @@ export default function GlobalSearchScreen({ onBack, initialQuery, currentLocati
         <p className="text-sm text-gray-600 mb-4">
           {isSearching
             ? 'Buscando negocios cercanos...'
-            : `${filteredResults.length} ${filteredResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`}
+            : !canRunSearch(searchQuery)
+              ? 'Escribe al menos 3 caracteres para buscar'
+              : `${filteredResults.length} ${filteredResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`}
         </p>
 
         {searchError && (
