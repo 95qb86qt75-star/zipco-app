@@ -63,7 +63,11 @@ export default function PersonalInfoSection({
                   <Lock className="h-4 w-4 shrink-0 text-gray-400" />
                   <span className="font-medium">{formatChileanMobile(userInfo.phone)}</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Para cambiarlo se requiere verificacion por SMS.</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {userInfo.phone
+                    ? 'Para cambiarlo se requiere verificacion por SMS.'
+                    : 'Esta cuenta no tiene un telefono verificado.'}
+                </p>
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Ubicacion</label>
