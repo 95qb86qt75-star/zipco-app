@@ -36,6 +36,7 @@ export default function PersonalInfoSection({
   const [showPhoneChange, setShowPhoneChange] = useState(false);
   const [phoneDigits, setPhoneDigits] = useState('');
   const [phoneCode, setPhoneCode] = useState('');
+  const [qaPhoneCode, setQaPhoneCode] = useState('');
   const [phoneStep, setPhoneStep] = useState<'phone' | 'code'>('phone');
   const [isPhoneSubmitting, setIsPhoneSubmitting] = useState(false);
 
@@ -44,6 +45,7 @@ export default function PersonalInfoSection({
     setShowPhoneChange(false);
     setPhoneDigits('');
     setPhoneCode('');
+    setQaPhoneCode('');
     setPhoneStep('phone');
   };
   const submitPhoneChange = async () => {
@@ -68,7 +70,8 @@ export default function PersonalInfoSection({
       }
       if (phoneStep === 'phone') {
         setPhoneStep('code');
-        showAppToast('Código enviado por SMS', 'success');
+        setQaPhoneCode(data.qaCode ?? '');
+        showAppToast(data.qaCode ? 'Código de prueba QA generado' : 'Código enviado por SMS', 'success');
       } else {
         handlePhoneChanged(newPhone, data.access_token);
         showAppToast('Teléfono verificado correctamente', 'success');
@@ -274,14 +277,21 @@ export default function PersonalInfoSection({
                   />
                 </div>
               ) : (
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  value={phoneCode}
-                  onChange={(event) => setPhoneCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="Código de 6 dígitos"
-                  className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 outline-none focus:border-teal-500"
-                />
+                <>
+                  {qaPhoneCode && (
+                    <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                      Simulación QA — código: <strong>{qaPhoneCode}</strong>
+                    </div>
+                  )}
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={phoneCode}
+                    onChange={(event) => setPhoneCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Código de 6 dígitos"
+                    className="mt-4 w-full rounded-xl border border-gray-300 px-3 py-3 outline-none focus:border-teal-500"
+                  />
+                </>
               )}
               <div className="mt-5 grid grid-cols-2 gap-3">
                 <button type="button" onClick={closePhoneChange} className="rounded-xl bg-gray-100 py-3 font-semibold text-gray-800">Cancelar</button>
