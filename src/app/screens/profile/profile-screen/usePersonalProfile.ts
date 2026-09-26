@@ -14,7 +14,6 @@ export function usePersonalProfile() {
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [personalInfoForm, setPersonalInfoForm] = useState({
     name: '',
-    phone: '',
     location: ''
   });
   const [personalLocationSuggestions, setPersonalLocationSuggestions] = useState<any[]>([]);
@@ -109,7 +108,6 @@ export function usePersonalProfile() {
   const handleStartEditingPersonalInfo = () => {
     setPersonalInfoForm({
       name: userInfo.name,
-      phone: userInfo.phone,
       location: userInfo.address
     });
     setPersonalLocationTouched(false);
@@ -121,7 +119,6 @@ export function usePersonalProfile() {
     setIsEditingPersonalInfo(false);
     setPersonalInfoForm({
       name: '',
-      phone: '',
       location: ''
     });
     setPersonalLocationSuggestions([]);
@@ -227,7 +224,6 @@ export function usePersonalProfile() {
         },
         body: JSON.stringify({
           name: personalInfoForm.name,
-          phone: personalInfoForm.phone,
           location: personalInfoForm.location
         })
       });
@@ -244,7 +240,6 @@ export function usePersonalProfile() {
       setUserInfo((currentUserInfo) => ({
         ...currentUserInfo,
         name: personalInfoForm.name,
-        phone: personalInfoForm.phone,
         address: nextLocation
       }));
       setIsEditingPersonalInfo(false);

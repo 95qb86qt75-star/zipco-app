@@ -1,5 +1,12 @@
-import { ChevronRight, Mail, MapPinIcon, Phone, User, X } from 'lucide-react';
+import { ChevronRight, Lock, Mail, MapPinIcon, Phone, User, X } from 'lucide-react';
 import { LOCATION_SUGGESTIONS_PANEL_CLASS } from './locationSuggestionLayout';
+
+export const formatChileanMobile = (phone: string) => {
+  const digits = String(phone ?? '').replace(/\D/g, '');
+  const nationalNumber = digits.startsWith('56') ? digits.slice(2) : digits;
+  if (!/^9\d{8}$/.test(nationalNumber)) return phone || 'Sin completar';
+  return `+56 9 ${nationalNumber.slice(1, 5)} ${nationalNumber.slice(5)}`;
+};
 
 export default function PersonalInfoSection({
   profileTab,
@@ -52,12 +59,11 @@ export default function PersonalInfoSection({
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Telefono</label>
-                <input
-                  type="tel"
-                  value={personalInfoForm.phone}
-                  onChange={(e) => setPersonalInfoForm({ ...personalInfoForm, phone: e.target.value })}
-                  className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                />
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 p-3 text-sm text-gray-700">
+                  <Lock className="h-4 w-4 shrink-0 text-gray-400" />
+                  <span className="font-medium">{formatChileanMobile(userInfo.phone)}</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Para cambiarlo se requiere verificacion por SMS.</p>
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Ubicacion</label>
@@ -165,7 +171,7 @@ export default function PersonalInfoSection({
                   <div className="text-left">
                     <p className="text-xs text-gray-500">Telefono</p>
                     <p className="text-sm font-semibold text-gray-900">
-                      {isLoadingUserInfo ? 'Cargando...' : userInfo.phone || 'Sin completar'}
+                      {isLoadingUserInfo ? 'Cargando...' : formatChileanMobile(userInfo.phone)}
                     </p>
                   </div>
                 </div>
