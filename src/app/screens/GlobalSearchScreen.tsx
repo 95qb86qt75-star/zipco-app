@@ -6,7 +6,7 @@ import BottomNav from './BottomNav';
 import { getBusinessResultImage } from './searchResultPresentation';
 import { parsePositiveIntegerId } from './businessOwnership';
 import DistanceInfo from './DistanceInfo';
-import { canRunSearch, isCurrentSearchResponse, normalizeSearchQuery } from './searchConsistency';
+import { canRunSearch, isCurrentSearchResponse, isSearchFilterActive, nextCategoryFilter, normalizeSearchQuery } from './searchConsistency';
 
 const getCoordinate = (value: any) => {
   const coordinate = Number(value);
@@ -581,16 +581,17 @@ export default function GlobalSearchScreen({ onBack, initialQuery, onQueryChange
             <button
               key={filter.id}
               onClick={() => {
-                setSelectedFilter(filter.id);
-                onFilterChange(filter.id);
                 if (filter.id === 'distance') {
                   setShowDistanceModal(true);
                 }
+                const nextFilter = nextCategoryFilter(selectedFilter, filter.id);
+                setSelectedFilter(nextFilter);
+                onFilterChange(nextFilter);
               }}
               className={`px-2 py-1 rounded-full text-xs font-medium transition-all ${
-                selectedFilter === filter.id
+                isSearchFilterActive(filter.id, selectedFilter, maxDistance)
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200 shadow-sm hover:bg-gray-200'
               }`}
             >
               {filter.label}
