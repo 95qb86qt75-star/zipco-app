@@ -1,4 +1,4 @@
-import { ChevronRight, Mail, MapPinIcon, Phone, User } from 'lucide-react';
+import { ChevronRight, Mail, MapPinIcon, Phone, User, X } from 'lucide-react';
 import { LOCATION_SUGGESTIONS_PANEL_CLASS } from './locationSuggestionLayout';
 
 export default function PersonalInfoSection({
@@ -9,6 +9,8 @@ export default function PersonalInfoSection({
   setPersonalInfoForm,
   setPersonalLocationTouched,
   personalLocationTouched,
+  isPersonalLocationConfirmed,
+  setIsPersonalLocationConfirmed,
   personalLocationSuggestions,
   isPersonalLocationLoading,
   hasPersonalLocationSearched,
@@ -60,15 +62,41 @@ export default function PersonalInfoSection({
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Ubicacion</label>
                 <div className="relative">
-                  <input
-                    type="text"
-                    value={personalInfoForm.location}
-                    onChange={(e) => {
-                      setPersonalLocationTouched(true);
-                      setPersonalInfoForm({ ...personalInfoForm, location: e.target.value });
-                    }}
-                    className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                  />
+                  {isPersonalLocationConfirmed ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2.5">
+                      <span
+                        className="min-w-0 flex-1 truncate text-sm font-medium text-teal-800"
+                        title={personalInfoForm.location}
+                      >
+                        {personalInfoForm.location}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPersonalInfoForm({ ...personalInfoForm, location: '' });
+                          setPersonalLocationSuggestions([]);
+                          setHasPersonalLocationSearched(false);
+                          setPersonalLocationTouched(false);
+                          setIsPersonalLocationConfirmed(false);
+                        }}
+                        aria-label="Borrar ubicacion seleccionada"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 transition-colors hover:bg-teal-200"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={personalInfoForm.location}
+                      onChange={(e) => {
+                        setPersonalLocationTouched(true);
+                        setIsPersonalLocationConfirmed(false);
+                        setPersonalInfoForm({ ...personalInfoForm, location: e.target.value });
+                      }}
+                      className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    />
+                  )}
                   {personalLocationTouched && personalInfoForm.location.trim().length >= 3 && (
                     <div className={LOCATION_SUGGESTIONS_PANEL_CLASS}>
                       {isPersonalLocationLoading ? (
@@ -85,6 +113,7 @@ export default function PersonalInfoSection({
                                 setPersonalLocationSuggestions([]);
                                 setHasPersonalLocationSearched(false);
                                 setPersonalLocationTouched(false);
+                                setIsPersonalLocationConfirmed(true);
                               }}
                               className="w-full text-left px-4 py-3 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 hover:bg-teal-50 transition-colors"
                             >
