@@ -4,6 +4,7 @@ const AUTH_API_URL = `${API_BASE_URL}/auth`;
 
 export type RequestCodeResponse = {
   message: string;
+  qaCode?: string;
 };
 
 export type AuthenticatedResponse = {
@@ -43,7 +44,9 @@ const isOptionalNullableString = (value: unknown) =>
   value === undefined || value === null || typeof value === 'string';
 
 export const isRequestCodeResponse = (value: unknown): value is RequestCodeResponse =>
-  isRecord(value) && typeof value.message === 'string';
+  isRecord(value) &&
+  typeof value.message === 'string' &&
+  (value.qaCode === undefined || typeof value.qaCode === 'string');
 
 export const isAuthenticatedResponse = (value: unknown): value is AuthenticatedResponse => {
   if (!isRecord(value) || typeof value.access_token !== 'string' || !isRecord(value.user)) {

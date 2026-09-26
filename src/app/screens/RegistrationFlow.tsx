@@ -205,6 +205,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         return (
           <SmsCodeStep
             code={sms.code}
+            qaCode={sms.qaCode}
             displayPhone={displayPhone}
             error={error}
             feedbackState={sms.feedbackState}

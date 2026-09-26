@@ -21,6 +21,7 @@ import type {
 
 type SmsCodeStepProps = {
   code: string;
+  qaCode: string;
   displayPhone: string;
   error: string;
   feedbackState: SmsCodeFeedbackState;
@@ -36,6 +37,7 @@ type SmsCodeStepProps = {
 
 export default function SmsCodeStep({
   code,
+  qaCode,
   displayPhone,
   error,
   feedbackState,
@@ -145,6 +147,12 @@ export default function SmsCodeStep({
           {displayPhone}
         </span>
       </p>
+
+      {qaCode && (
+        <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+          Simulación QA — código: <strong>{qaCode}</strong>
+        </div>
+      )}
 
       <div className="flex justify-center">
         <InputOTP
