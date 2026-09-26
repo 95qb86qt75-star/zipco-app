@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../api/apiConfig';
 import {
   AuthSmsError,
@@ -20,6 +20,17 @@ const DevAccessPanel = import.meta.env.DEV
 const QaAccessPanel = import.meta.env.PROD && import.meta.env.VITE_ENABLE_QA_AUTH === 'true'
   ? lazy(() => import('../qa/QaAccessPanel'))
   : null;
+
+export const previousRegistrationStep = (step: RegistrationStep): RegistrationStep => {
+  const previousStep: Partial<Record<RegistrationStep, RegistrationStep>> = {
+    phone: 'welcome',
+    code: 'phone',
+    name: 'code',
+    business: 'name',
+    businessDetails: 'business'
+  };
+  return previousStep[step] ?? 'welcome';
+};
 
 export default function RegistrationFlow({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<RegistrationStep>('welcome');
@@ -118,6 +129,15 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
     sms.resetSmsState();
     setStep('phone');
+  };
+
+  const handleBack = () => {
+    if (step === 'code') {
+      handleChangePhone();
+      return;
+    }
+    setError('');
+    setStep(previousRegistrationStep(step));
   };
 
 
@@ -254,7 +274,17 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-teal-500/20 to-transparent" />
 
         <div className="relative z-10 px-6 pt-8">
-          <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="relative flex items-center justify-center gap-2 mb-8">
+            {step !== 'welcome' && (
+              <button
+                type="button"
+                onClick={handleBack}
+                aria-label="Volver al paso anterior"
+                className="absolute left-0 rounded-full p-2 text-gray-700 transition-colors hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
             <MapPin className="w-8 h-8 text-teal-600" strokeWidth={2.5} />
             <h1 className="text-3xl font-bold tracking-tight text-teal-700">ZIPCO</h1>
           </div>
