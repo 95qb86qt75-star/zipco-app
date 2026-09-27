@@ -4,6 +4,8 @@ import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
 import NotificationPermissionCard from '../notifications/NotificationPermissionCard';
+import { BusinessQuotes, CustomerQuotes } from './quotes/QuotesPanel';
+import useQuotes from './quotes/useQuotes';
 
 export default function RequestsScreen({
   onBack,
@@ -17,7 +19,9 @@ export default function RequestsScreen({
   const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>(() =>
     new URLSearchParams(window.location.search).get('open') === 'requests-business' ? 'my-business' : 'my-orders'
   );
+  const [requestType, setRequestType] = useState<'orders' | 'quotes'>('orders');
   const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
+  const quotes = useQuotes(onSessionExpired);
 
   useEffect(() => {
     if (!hasBusiness && subTab === 'my-business') setSubTab('my-orders');
@@ -61,6 +65,15 @@ export default function RequestsScreen({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-24">
+        <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/70 p-1.5 shadow-sm">
+          <button onClick={() => setRequestType('orders')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'orders' ? 'bg-teal-600 text-white' : 'text-slate-600'}`}>Pedidos</button>
+          <button onClick={() => setRequestType('quotes')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'quotes' ? 'bg-violet-600 text-white' : 'text-slate-600'}`}>Cotizaciones</button>
+        </div>
+        {requestType === 'quotes' && quotes.loading && <div className="py-16 text-center text-sm font-semibold text-slate-500">Cargando cotizaciones…</div>}
+        {requestType === 'quotes' && !quotes.loading && quotes.error && <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center"><p className="text-sm font-semibold text-red-700">{quotes.error}</p><button onClick={() => void quotes.load()} className="mt-3 rounded-xl bg-white px-4 py-2 text-sm font-bold text-red-700">Intentar nuevamente</button></div>}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && subTab === 'my-orders' && <CustomerQuotes quotes={quotes.myQuotes} updating={quotes.updating} onStatus={quotes.changeStatus} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && hasBusiness && subTab === 'my-business' && <BusinessQuotes quotes={quotes.businessQuotes} updating={quotes.updating} onRespond={quotes.respond} />}
+        {requestType === 'orders' && <>
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3" />
@@ -97,6 +110,7 @@ export default function RequestsScreen({
             />
           </>
         )}
+        </>}
       </div>
     </div>
   );

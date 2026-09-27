@@ -505,6 +505,7 @@ export default function App() {
               setCheckoutData({ selectedProducts, products });
               setCurrentScreen('checkout');
             }}
+            onSessionExpired={handleLogout}
           />
           <BottomNav
             activeTab={activeTab}

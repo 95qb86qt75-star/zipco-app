@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Clock, Eye, Facebook, Heart, Instagram, MapPin, ShoppingCart, Store, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { showAppToast } from './Toast';
 import { isOwnBusiness, selectionAfterBusinessContextChange } from './businessOwnership';
 import DistanceInfo from './DistanceInfo';
 import { getCatalogItemAction, getCatalogPricingCounts, getPublicCatalogPriceLabel, selectionAfterCatalogChange, toggleCatalogSelection } from './catalogItemPresentation';
 import { getPublicCatalog } from './profile/business-config/catalogApi';
 import { parseBusinessId } from './profile/business-config/catalogValidation';
 import type { CatalogItem } from './profile/business-config/types';
+import QuoteRequestModal from './quotes/QuoteRequestModal';
 
 function getCoordinate(...values: any[]) {
   for (const value of values) {
@@ -67,7 +67,9 @@ export default function BusinessProfileScreen({
   isFavorite,
   onToggleFavorite,
   onBack,
-  onCheckout
+  onCheckout,
+  onQuoteCreated,
+  onSessionExpired
 }: {
   business: any;
   currentUserId: unknown;
@@ -76,6 +78,8 @@ export default function BusinessProfileScreen({
   onToggleFavorite?: () => void;
   onBack: () => void;
   onCheckout: (selectedProducts: number[], products: CatalogItem[]) => void;
+  onQuoteCreated?: () => void;
+  onSessionExpired?: () => void;
 }) {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [previewProduct, setPreviewProduct] = useState<CatalogItem | null>(null);
@@ -86,6 +90,7 @@ export default function BusinessProfileScreen({
   const [hasShownRemoveTooltip, setHasShownRemoveTooltip] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [quoteItem, setQuoteItem] = useState<CatalogItem | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrolledRef = useRef(false);
   const touchStartYRef = useRef<number | null>(null);
@@ -506,12 +511,7 @@ export default function BusinessProfileScreen({
                           type="button"
                           onClick={(event) => {
                             event.stopPropagation();
-                            showAppToast('', 'success', {
-                              title: 'Cotizaciones: próximamente',
-                              description: 'Pronto podrás solicitar cotizaciones desde ZIPCO.',
-                              dedupeKey: 'catalog-quotes-coming-soon',
-                              icon: 'bell'
-                            });
+                            setQuoteItem(product);
                           }}
                           className="relative min-h-8 w-auto rounded-lg border border-violet-400 bg-white px-3 py-1 text-[11px] font-bold text-violet-600 shadow-sm after:absolute after:-inset-y-1.5 after:inset-x-0"
                         >
@@ -581,6 +581,15 @@ export default function BusinessProfileScreen({
             </div>
           </div>
         </div>
+      )}
+      {quoteItem && parseBusinessId(business.id) !== null && (
+        <QuoteRequestModal
+          businessId={parseBusinessId(business.id) as number}
+          item={quoteItem}
+          onClose={() => setQuoteItem(null)}
+          onCreated={() => onQuoteCreated?.()}
+          onSessionExpired={onSessionExpired}
+        />
       )}
     </div>
   );
