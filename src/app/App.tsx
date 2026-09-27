@@ -68,11 +68,11 @@ export default function App() {
   const [servicesSearchQuery, setServicesSearchQuery] = useState('');
   const [servicesSearchFilter, setServicesSearchFilter] = useState('todos');
   const [servicesSearchDistance, setServicesSearchDistance] = useState(10);
-  const [servicesScrollTop, setServicesScrollTop] = useState(0);
+  const servicesScrollTopRef = useRef(0);
   const [businessesSearchQuery, setBusinessesSearchQuery] = useState('');
   const [businessesSearchFilter, setBusinessesSearchFilter] = useState('todos');
   const [businessesSearchDistance, setBusinessesSearchDistance] = useState(10);
-  const [businessesScrollTop, setBusinessesScrollTop] = useState(0);
+  const businessesScrollTopRef = useRef(0);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems] = useState<any[]>([]);
@@ -489,8 +489,8 @@ export default function App() {
             onFilterChange={setBusinessesSearchFilter}
             initialMaxDistance={businessesSearchDistance}
             onMaxDistanceChange={setBusinessesSearchDistance}
-            initialScrollTop={businessesScrollTop}
-            onScrollTopChange={setBusinessesScrollTop}
+            initialScrollTop={businessesScrollTopRef.current}
+            onScrollTopChange={(scrollTop) => { businessesScrollTopRef.current = scrollTop; }}
           />
         </div>
       </div>
@@ -515,8 +515,8 @@ export default function App() {
             onFilterChange={setServicesSearchFilter}
             initialMaxDistance={servicesSearchDistance}
             onMaxDistanceChange={setServicesSearchDistance}
-            initialScrollTop={servicesScrollTop}
-            onScrollTopChange={setServicesScrollTop}
+            initialScrollTop={servicesScrollTopRef.current}
+            onScrollTopChange={(scrollTop) => { servicesScrollTopRef.current = scrollTop; }}
           />
         </div>
       </div>
