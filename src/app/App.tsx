@@ -21,6 +21,7 @@ import BusinessNotificationMonitor from './notifications/BusinessNotificationMon
 import { disablePushNotifications } from './notifications/pushNotifications';
 import { canRunSearch } from './screens/searchConsistency';
 import { fetchLocationSuggestions } from './api/locationSuggestions';
+import { addFavorite, loadFavorites, removeFavorite } from './api/favoritesApi';
 
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
@@ -94,8 +95,25 @@ export default function App() {
   const [toast, setToast] = useState<ToastNotification | null>(null);
   const closeToast = useCallback(() => setToast(null), []);
 
-  const toggleFavorite = useCallback((kind: FavoriteEntry['kind'], item: any) => {
+  const refreshFavorites = useCallback(async () => {
+    const token = localStorage.getItem('zipco-token');
+    if (!token) { setFavoriteItems([]); return; }
+    try {
+      const records = await loadFavorites(token);
+      const next = records.map((record) => ({ key: favoriteKey(record.kind, record.business), kind: record.kind, item: record.business }));
+      setFavoriteItems(next);
+      localStorage.setItem('zipco-favorites', JSON.stringify(next));
+    } catch (error: any) {
+      if (error?.status === 401) handleLogout();
+    }
+  }, []);
+
+  const toggleFavorite = useCallback(async (kind: FavoriteEntry['kind'], item: any) => {
     const key = favoriteKey(kind, item);
+    const businessId = Number(item?.id);
+    const token = localStorage.getItem('zipco-token');
+    if (!token || !Number.isInteger(businessId) || businessId <= 0) { showAppToast('Este perfil todavía no está conectado a Favoritos.', 'error'); return; }
+    const wasFavorite = favoriteItems.some((favorite) => favorite.key === key);
     setFavoriteItems((current) => {
       const next = current.some((favorite) => favorite.key === key)
         ? current.filter((favorite) => favorite.key !== key)
@@ -103,7 +121,14 @@ export default function App() {
       localStorage.setItem('zipco-favorites', JSON.stringify(next));
       return next;
     });
-  }, []);
+    try {
+      if (wasFavorite) await removeFavorite(businessId, token); else await addFavorite(businessId, kind, token);
+      await refreshFavorites();
+    } catch (error: any) {
+      await refreshFavorites();
+      if (error?.status === 401) handleLogout(); else showAppToast('No se pudo actualizar Favoritos. Intenta nuevamente.', 'error');
+    }
+  }, [favoriteItems, refreshFavorites]);
 
   useEffect(() => {
     if (hasStoredSession()) {
@@ -111,6 +136,8 @@ export default function App() {
       setIsRegistrationComplete(true);
     }
   }, []);
+
+  useEffect(() => { if (isRegistrationComplete) void refreshFavorites(); }, [isRegistrationComplete, refreshFavorites]);
 
   useEffect(() => {
     if (!currentLocation.name.trim()) return;
@@ -125,6 +152,8 @@ export default function App() {
     localStorage.removeItem('zipco-user-id');
     localStorage.removeItem('zipco-registration-complete');
     localStorage.removeItem('zipco-business-id');
+    localStorage.removeItem('zipco-favorites');
+    setFavoriteItems([]);
     setCurrentScreen('home');
     setActiveTab('home');
     setIsRegistrationComplete(false);
