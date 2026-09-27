@@ -1,4 +1,4 @@
-import { Eye, ArrowLeft, Facebook, Instagram } from 'lucide-react';
+import { Eye, ArrowLeft, Facebook, Heart, Instagram } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 import { getCatalogItemAction, getCatalogPricingCounts, getPublicCatalogPriceLabel } from './catalogItemPresentation';
@@ -34,7 +34,7 @@ function getServiceCatalog(service: any): CatalogItem[] {
   });
 }
 
-export default function ServiceProfileScreen({ service, onBack, onRequestService, activeTab, setActiveTab }: { service: any; onBack: () => void; onRequestService: (selectedService: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
+export default function ServiceProfileScreen({ service, isFavorite, onToggleFavorite, onBack, onRequestService, activeTab, setActiveTab }: { service: any; isFavorite?: boolean; onToggleFavorite?: () => void; onBack: () => void; onRequestService: (selectedService: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
   const catalogItems = getServiceCatalog(service);
   const pricingCounts = getCatalogPricingCounts(catalogItems);
 
@@ -50,6 +50,9 @@ export default function ServiceProfileScreen({ service, onBack, onRequestService
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <h2 className="text-xl font-bold text-gray-900">Perfil del Servicio</h2>
+          <button type="button" onClick={onToggleFavorite} className="ml-auto rounded-full bg-white p-2 shadow-sm ring-1 ring-slate-100" aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}>
+            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
+          </button>
         </div>
       </div>
 

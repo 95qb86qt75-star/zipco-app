@@ -25,6 +25,20 @@ import { fetchLocationSuggestions } from './api/locationSuggestions';
 const hasStoredSession = () =>
   Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
 
+type FavoriteEntry = { key: string; kind: 'business' | 'service'; item: any };
+
+const favoriteKey = (kind: FavoriteEntry['kind'], item: any) =>
+  `${kind}:${String(item?.id ?? item?.name ?? '')}`;
+
+const getStoredFavorites = (): FavoriteEntry[] => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('zipco-favorites') ?? '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 const getStoredLocation = () => {
   try {
     const savedLocation = localStorage.getItem('zipco-location');
@@ -51,6 +65,7 @@ export default function App() {
   );
   const [currentScreen, setCurrentScreen] = useState('home');
   const [previousScreen, setPreviousScreen] = useState<string>('negocios');
+  const [previousServiceScreen, setPreviousServiceScreen] = useState<'servicios' | 'search' | 'favorites'>('servicios');
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('zipco-theme') === 'dark');
   const [locationSearch, setLocationSearch] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -75,9 +90,20 @@ export default function App() {
   const businessesScrollTopRef = useRef(0);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
-  const [favoriteItems] = useState<any[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<FavoriteEntry[]>(getStoredFavorites);
   const [toast, setToast] = useState<ToastNotification | null>(null);
   const closeToast = useCallback(() => setToast(null), []);
+
+  const toggleFavorite = useCallback((kind: FavoriteEntry['kind'], item: any) => {
+    const key = favoriteKey(kind, item);
+    setFavoriteItems((current) => {
+      const next = current.some((favorite) => favorite.key === key)
+        ? current.filter((favorite) => favorite.key !== key)
+        : [...current, { key, kind, item }];
+      localStorage.setItem('zipco-favorites', JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (hasStoredSession()) {
@@ -380,15 +406,30 @@ export default function App() {
               />
             ) : (
               <div className="px-6 space-y-3">
-                {favoriteItems.map((item, index) => (
-                  <div
-                    key={`${item.id ?? item.name ?? 'favorite'}-${index}`}
-                    className={`rounded-2xl p-4 border ${
+                {favoriteItems.map((favorite) => (
+                  <button
+                    type="button"
+                    key={favorite.key}
+                    onClick={() => {
+                      setActiveTab('home');
+                      if (favorite.kind === 'business') {
+                        setSelectedBusiness(favorite.item);
+                        setPreviousScreen('favorites');
+                        setCurrentScreen('profile');
+                      } else {
+                        setSelectedService(favorite.item);
+                        setPreviousServiceScreen('favorites');
+                        setCurrentScreen('service-profile');
+                      }
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-2xl p-4 text-left border ${
                       isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-gray-100 text-gray-900'
                     }`}
                   >
-                    {item.name ?? 'Favorito'}
-                  </div>
+                    <ImageWithFallback src={favorite.item.image ?? favorite.item.imageUrl ?? favorite.item.photo} alt={favorite.item.name ?? 'Favorito'} className="h-14 w-14 rounded-xl object-cover" />
+                    <div className="min-w-0 flex-1"><strong className="block truncate">{favorite.item.name ?? 'Favorito'}</strong><span className="text-xs text-gray-500">{favorite.kind === 'business' ? 'Negocio' : 'Servicio'}</span></div>
+                    <Heart className="h-5 w-5 fill-rose-500 text-rose-500" />
+                  </button>
                 ))}
               </div>
             )}
@@ -450,7 +491,16 @@ export default function App() {
             business={selectedBusiness}
             currentUserId={localStorage.getItem('zipco-user-id')}
             currentLocation={currentLocation}
-            onBack={() => setCurrentScreen(previousScreen)}
+            isFavorite={favoriteItems.some((favorite) => favorite.key === favoriteKey('business', selectedBusiness))}
+            onToggleFavorite={() => toggleFavorite('business', selectedBusiness)}
+            onBack={() => {
+              if (previousScreen === 'favorites') {
+                setCurrentScreen('home');
+                setActiveTab('favorites');
+              } else {
+                setCurrentScreen(previousScreen);
+              }
+            }}
             onCheckout={(selectedProducts, products) => {
               setCheckoutData({ selectedProducts, products });
               setCurrentScreen('checkout');
@@ -505,6 +555,7 @@ export default function App() {
             onBack={() => setCurrentScreen('home')}
             onSelectService={(service) => {
               setSelectedService(service);
+              setPreviousServiceScreen('servicios');
               setCurrentScreen('service-profile');
             }}
             activeTab={activeTab}
@@ -529,7 +580,16 @@ export default function App() {
         <div className="w-full max-w-md h-full relative">
           <ServiceProfileScreen
             service={selectedService}
-            onBack={() => setCurrentScreen('servicios')}
+            isFavorite={favoriteItems.some((favorite) => favorite.key === favoriteKey('service', selectedService))}
+            onToggleFavorite={() => toggleFavorite('service', selectedService)}
+            onBack={() => {
+              if (previousServiceScreen === 'favorites') {
+                setCurrentScreen('home');
+                setActiveTab('favorites');
+              } else {
+                setCurrentScreen(previousServiceScreen);
+              }
+            }}
             onRequestService={(serviceItem) => {
               setSelectedServiceItem(serviceItem);
               setCurrentScreen('service-checkout');
@@ -585,6 +645,7 @@ export default function App() {
             }}
             onSelectService={(service) => {
               setSelectedService(service);
+              setPreviousServiceScreen('search');
               setCurrentScreen('service-profile');
             }}
           />

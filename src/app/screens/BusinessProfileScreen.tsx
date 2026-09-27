@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Clock, Eye, Facebook, Instagram, MapPin, ShoppingCart, Store, X } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, Facebook, Heart, Instagram, MapPin, ShoppingCart, Store, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { showAppToast } from './Toast';
@@ -64,12 +64,16 @@ export default function BusinessProfileScreen({
   business,
   currentUserId,
   currentLocation,
+  isFavorite,
+  onToggleFavorite,
   onBack,
   onCheckout
 }: {
   business: any;
   currentUserId: unknown;
   currentLocation?: { lat: number | null; lng: number | null };
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
   onBack: () => void;
   onCheckout: (selectedProducts: number[], products: CatalogItem[]) => void;
 }) {
@@ -211,9 +215,14 @@ export default function BusinessProfileScreen({
       onTouchMove={handleProfileTouchMove}
     >
       <div className="px-4 pt-4 pb-1 border-b border-white/50 bg-white/80 backdrop-blur-sm">
-        <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors mb-1">
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
+        <div className="mb-1 flex items-center justify-between">
+          <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors" aria-label="Volver">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <button type="button" onClick={onToggleFavorite} className="rounded-full bg-white p-2 shadow-sm ring-1 ring-slate-100" aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}>
+            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-500'}`} />
+          </button>
+        </div>
 
         <motion.div
           layout
