@@ -389,7 +389,7 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
     <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       {/* Header */}
       <div
-        className="px-4 pb-4 border-b border-white/50"
+        className="px-4 pb-0 border-b border-white/50"
         style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
       >
         <div className="flex items-center gap-3 mb-4">
@@ -417,7 +417,7 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex flex-wrap gap-1 pb-2">
+        <div className="flex flex-wrap gap-1 pb-1">
           {filters.map((filter) => (
             <button
               key={filter.id}
@@ -442,7 +442,7 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
       </div>
 
       {/* Results */}
-      <div ref={resultsRef} onScroll={(event) => onScrollTopChange(event.currentTarget.scrollTop)} className="flex-1 overflow-auto px-4 pt-4">
+      <div ref={resultsRef} onScroll={(event) => onScrollTopChange(event.currentTarget.scrollTop)} className="flex-1 overflow-auto px-4 pt-2">
         <p className="text-sm text-gray-600 mb-4">{filteredResults.length} servicios cerca de ti</p>
 
         <div className="space-y-3 pb-6">

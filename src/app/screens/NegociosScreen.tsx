@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, MapPin, Mic, Search, Store } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 import DistanceInfo from './DistanceInfo';
 import { isSearchFilterActive } from './searchConsistency';
 
-export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab }: { onBack: () => void; onSelectBusiness: (business: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('todos');
-  const [maxDistance, setMaxDistance] = useState(10);
+export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, setActiveTab, initialQuery, onQueryChange, initialFilter, onFilterChange, initialMaxDistance, onMaxDistanceChange, initialScrollTop, onScrollTopChange }: { onBack: () => void; onSelectBusiness: (business: any) => void; activeTab: string; setActiveTab: (tab: string) => void; initialQuery: string; onQueryChange: (query: string) => void; initialFilter: string; onFilterChange: (filter: string) => void; initialMaxDistance: number; onMaxDistanceChange: (distance: number) => void; initialScrollTop: number; onScrollTopChange: (scrollTop: number) => void }) {
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [selectedFilter, setSelectedFilter] = useState(initialFilter);
+  const [maxDistance, setMaxDistance] = useState(initialMaxDistance);
   const [showDistanceModal, setShowDistanceModal] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (resultsRef.current) resultsRef.current.scrollTop = initialScrollTop;
+  }, []);
 
   const normalize = (str: string) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -366,7 +371,7 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
     <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       {/* Header */}
       <div
-        className="px-4 pb-4 border-b border-white/50"
+        className="px-4 pb-0 border-b border-white/50"
         style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
       >
         <div className="flex items-center gap-3 mb-4">
@@ -380,7 +385,10 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                onQueryChange(e.target.value);
+              }}
               placeholder="Ej: tortas, gasfiter, clases de inglés..."
               className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             />
@@ -391,7 +399,7 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex flex-wrap gap-1 pb-2">
+        <div className="flex flex-wrap gap-1 pb-1">
           {filters.map((filter) => (
             <button
               key={filter.id}
@@ -400,6 +408,7 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
                   setShowDistanceModal(true);
                 } else {
                   setSelectedFilter(filter.id);
+                  onFilterChange(filter.id);
                 }
               }}
               className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
@@ -435,7 +444,11 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
                   max="10"
                   step="0.5"
                   value={maxDistance}
-                  onChange={(e) => setMaxDistance(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    const distance = parseFloat(e.target.value);
+                    setMaxDistance(distance);
+                    onMaxDistanceChange(distance);
+                  }}
                   style={{
                     background: `linear-gradient(to right, #14b8a6 0%, #14b8a6 ${((maxDistance - 0.5) / 9.5) * 100}%, #e5e7eb ${((maxDistance - 0.5) / 9.5) * 100}%, #e5e7eb 100%)`
                   }}
@@ -454,7 +467,10 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
               {[1, 2, 5, 10].map((km) => (
                 <button
                   key={km}
-                  onClick={() => setMaxDistance(km)}
+                  onClick={() => {
+                    setMaxDistance(km);
+                    onMaxDistanceChange(km);
+                  }}
                   className={`py-2 rounded-full text-sm font-medium transition-all ${
                     maxDistance === km
                       ? 'bg-teal-500 text-white'
@@ -477,7 +493,7 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
       )}
 
       {/* Results */}
-      <div className="flex-1 overflow-auto px-4 pt-4">
+      <div ref={resultsRef} onScroll={(event) => onScrollTopChange(event.currentTarget.scrollTop)} className="flex-1 overflow-auto px-4 pt-2">
         <p className="text-sm text-gray-600 mb-4">{filteredResults.length} resultados cerca de ti</p>
 
         <div className="space-y-3 pb-6">
