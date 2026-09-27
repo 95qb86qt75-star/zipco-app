@@ -69,6 +69,10 @@ export default function App() {
   const [servicesSearchFilter, setServicesSearchFilter] = useState('todos');
   const [servicesSearchDistance, setServicesSearchDistance] = useState(10);
   const [servicesScrollTop, setServicesScrollTop] = useState(0);
+  const [businessesSearchQuery, setBusinessesSearchQuery] = useState('');
+  const [businessesSearchFilter, setBusinessesSearchFilter] = useState('todos');
+  const [businessesSearchDistance, setBusinessesSearchDistance] = useState(10);
+  const [businessesScrollTop, setBusinessesScrollTop] = useState(0);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems] = useState<any[]>([]);
@@ -479,6 +483,14 @@ export default function App() {
             }}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            initialQuery={businessesSearchQuery}
+            onQueryChange={setBusinessesSearchQuery}
+            initialFilter={businessesSearchFilter}
+            onFilterChange={setBusinessesSearchFilter}
+            initialMaxDistance={businessesSearchDistance}
+            onMaxDistanceChange={setBusinessesSearchDistance}
+            initialScrollTop={businessesScrollTop}
+            onScrollTopChange={setBusinessesScrollTop}
           />
         </div>
       </div>
