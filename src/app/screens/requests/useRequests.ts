@@ -20,6 +20,7 @@ export default function useRequests(onSessionExpired: () => void) {
   const [requests, setRequests] = useState<BusinessRequest[]>([]);
   const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [updatingOrderIds, setUpdatingOrderIds] = useState<Set<number>>(() => new Set());
   const guardRef = useRef(createOrderOperationGuard());
   const businessNameCache = useRef(new Map<number, string>());
@@ -40,6 +41,7 @@ export default function useRequests(onSessionExpired: () => void) {
     const businessId = localStorage.getItem('zipco-business-id');
     if (!token) { setIsLoading(false); return false; }
     setIsLoading(true);
+    setLoadError('');
     try {
       const myResponse = await fetch(`${API_BASE_URL}/orders/my-orders`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -75,6 +77,7 @@ export default function useRequests(onSessionExpired: () => void) {
         showAppToast('Tu sesión venció. Ingresa nuevamente por SMS.', 'error');
         onSessionExpired();
       } else {
+        setLoadError('No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.');
         showAppToast('No se pudieron cargar los pedidos. Intenta nuevamente.', 'error');
       }
       return false;
@@ -117,5 +120,5 @@ export default function useRequests(onSessionExpired: () => void) {
     }
   }, [loadOrders, onSessionExpired]);
 
-  return { hasBusiness, isLoading, myOrders, requests, updatingOrderIds, loadOrders, performAction };
+  return { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction };
 }

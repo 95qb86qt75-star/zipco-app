@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
@@ -17,10 +17,14 @@ export default function RequestsScreen({
   const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>(() =>
     new URLSearchParams(window.location.search).get('open') === 'requests-business' ? 'my-business' : 'my-orders'
   );
-  const { hasBusiness, isLoading, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
+  const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
+
+  useEffect(() => {
+    if (!hasBusiness && subTab === 'my-business') setSubTab('my-orders');
+  }, [hasBusiness, subTab]);
 
   return (
-    <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+    <div className="size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       <div
         className="px-4 pb-4 border-b border-white/50"
         style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
@@ -56,7 +60,7 @@ export default function RequestsScreen({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-4 pt-4 pb-24">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-24">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3" />
@@ -64,7 +68,16 @@ export default function RequestsScreen({
           </div>
         )}
 
-        {!isLoading && subTab === 'my-orders' && (
+        {!isLoading && loadError && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
+            <p className="text-sm font-semibold text-red-700">{loadError}</p>
+            <button type="button" onClick={() => { void loadOrders(); }} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-red-700 shadow-sm ring-1 ring-red-200">
+              <RefreshCw className="h-4 w-4" /> Intentar nuevamente
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !loadError && subTab === 'my-orders' && (
           <MyOrdersTab
             myOrders={myOrders}
             updatingOrderIds={updatingOrderIds}
@@ -73,7 +86,7 @@ export default function RequestsScreen({
           />
         )}
 
-        {!isLoading && hasBusiness && subTab === 'my-business' && (
+        {!isLoading && !loadError && hasBusiness && subTab === 'my-business' && (
           <>
             <NotificationPermissionCard />
             <BusinessOrdersTab
