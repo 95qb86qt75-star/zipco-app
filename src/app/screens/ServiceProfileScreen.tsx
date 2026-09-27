@@ -1,10 +1,42 @@
-import { useState } from 'react';
-import { ArrowLeft, Facebook, Instagram } from 'lucide-react';
+import { Eye, ArrowLeft, Facebook, Instagram } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import { getCatalogItemAction, getCatalogPricingCounts, getPublicCatalogPriceLabel } from './catalogItemPresentation';
+import { showAppToast } from './Toast';
+import type { CatalogItem, CatalogItemPricingMode } from './profile/business-config/types';
+
+const PRICING_MODES: CatalogItemPricingMode[] = ['fixed_price', 'quote', 'view'];
+
+function getServiceCatalog(service: any): CatalogItem[] {
+  const source = Array.isArray(service.catalogItems)
+    ? service.catalogItems
+    : Array.isArray(service.services)
+      ? service.services
+      : [];
+
+  return source.map((item: any, index: number) => {
+    const pricingMode = PRICING_MODES.includes(item.pricingMode) ? item.pricingMode : 'quote';
+    return {
+      id: Number(item.id ?? index + 1),
+      businessId: Number(service.id) || 0,
+      name: String(item.name ?? 'Servicio'),
+      description: String(item.description ?? ''),
+      kind: 'service',
+      pricingMode,
+      priceClp: pricingMode === 'fixed_price' && item.priceClp != null && Number.isFinite(Number(item.priceClp)) ? Number(item.priceClp) : null,
+      startingPriceClp: pricingMode === 'quote' && item.startingPriceClp != null && Number.isFinite(Number(item.startingPriceClp)) ? Number(item.startingPriceClp) : null,
+      imageUrl: String(item.imageUrl ?? item.image ?? service.image ?? ''),
+      isActive: true,
+      displayOrder: Number(item.displayOrder ?? index),
+      createdAt: String(item.createdAt ?? ''),
+      updatedAt: String(item.updatedAt ?? '')
+    };
+  });
+}
 
 export default function ServiceProfileScreen({ service, onBack, onRequestService, activeTab, setActiveTab }: { service: any; onBack: () => void; onRequestService: (selectedService: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const catalogItems = getServiceCatalog(service);
+  const pricingCounts = getCatalogPricingCounts(catalogItems);
 
   return (
     <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
@@ -72,28 +104,48 @@ export default function ServiceProfileScreen({ service, onBack, onRequestService
           </div>
         </div>
 
-        {/* Services List */}
+        {/* Services catalog */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-md">
-          <h4 className="font-bold text-gray-900 mb-2">Servicios disponibles</h4>
-          <p className="text-xs text-gray-500 mb-4 italic">Haz doble clic para seleccionar el servicio</p>
+          <h4 className="font-bold text-gray-900 mb-3">Productos y servicios</h4>
+          <div className="mb-3 grid grid-cols-3 items-stretch gap-1 rounded-2xl border border-teal-100 bg-white/80 p-2 shadow-sm">
+            <div className="flex min-w-0 items-center justify-center rounded-full bg-teal-50 px-1.5 py-1.5 text-teal-700">
+              <span className="truncate text-[10px] font-bold">Precio fijo <span className="text-slate-400">({pricingCounts.fixed_price})</span></span>
+            </div>
+            <div className="flex min-w-0 items-center justify-center rounded-full bg-violet-50 px-1.5 py-1.5 text-violet-700">
+              <span className="truncate text-[10px] font-bold">Cotizar <span className="text-slate-400">({pricingCounts.quote})</span></span>
+            </div>
+            <div className="flex min-w-0 items-center justify-center rounded-full bg-slate-50 px-1.5 py-1.5 text-slate-700">
+              <span className="truncate text-[10px] font-bold">Solo ver <span className="text-slate-400">({pricingCounts.view})</span></span>
+            </div>
+          </div>
           <div className="space-y-3">
-            {service.services?.map((item: any) => (
+            {catalogItems.map((item) => {
+              const action = getCatalogItemAction(item);
+              const priceLabel = getPublicCatalogPriceLabel(item);
+              return (
               <div
                 key={item.id}
-                onDoubleClick={() => {
-                  setSelectedService(item);
-                  onRequestService(item);
-                }}
-                className={`w-full bg-gradient-to-br from-purple-50 to-indigo-50 border-2 rounded-xl p-4 hover:shadow-md transition-all cursor-pointer ${
-                  selectedService?.id === item.id
-                    ? 'border-purple-500 bg-gradient-to-br from-purple-100 to-indigo-100'
-                    : 'border-purple-200'
-                }`}
+                className="w-full rounded-xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 p-4 shadow-sm"
               >
-                <h5 className="font-bold text-purple-900 mb-1">{item.name}</h5>
-                <p className="text-sm text-purple-700">{item.description}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h5 className="mb-1 font-bold text-purple-900">{item.name}</h5>
+                    <p className="text-sm text-purple-700">{item.description}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    {priceLabel && <span className="text-sm font-bold text-purple-700">{priceLabel}</span>}
+                    {action === 'quote-soon' ? (
+                      <button type="button" onClick={() => showAppToast('', 'success', { title: 'Cotizaciones: próximamente', description: 'Pronto podrás solicitar cotizaciones desde ZIPCO.', dedupeKey: 'catalog-quotes-coming-soon', icon: 'bell' })} className="rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-bold text-violet-600">Cotizar</button>
+                    ) : action === 'view' ? (
+                      <span className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600"><Eye className="h-3.5 w-3.5" /> Ver</span>
+                    ) : (
+                      <button type="button" onClick={() => onRequestService(item)} className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-bold text-white">Solicitar</button>
+                    )}
+                  </div>
+                </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
