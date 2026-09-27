@@ -386,7 +386,7 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
   };
 
   return (
-    <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+    <div className="size-full min-h-0 bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col overflow-hidden">
       {/* Header */}
       <div
         className="px-4 pb-0 border-b border-white/50"
@@ -442,7 +442,7 @@ export default function ServiciosScreen({ onBack, onSelectService, activeTab, se
       </div>
 
       {/* Results */}
-      <div ref={resultsRef} onScroll={(event) => onScrollTopChange(event.currentTarget.scrollTop)} className="flex-1 overflow-auto px-4 pt-2">
+      <div ref={resultsRef} onScroll={(event) => onScrollTopChange(event.currentTarget.scrollTop)} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2">
         <p className="text-sm text-gray-600 mb-4">{filteredResults.length} servicios cerca de ti</p>
 
         <div className="space-y-3 pb-6">
