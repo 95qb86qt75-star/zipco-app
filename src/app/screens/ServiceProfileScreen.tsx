@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Eye, ArrowLeft, Facebook, Heart, Instagram } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
 import { getCatalogItemAction, getCatalogPricingCounts, getPublicCatalogPriceLabel } from './catalogItemPresentation';
 import { showAppToast } from './Toast';
 import type { CatalogItem, CatalogItemPricingMode } from './profile/business-config/types';
+import { getPublicCatalog } from './profile/business-config/catalogApi';
+import QuoteRequestModal from './quotes/QuoteRequestModal';
 
 const PRICING_MODES: CatalogItemPricingMode[] = ['fixed_price', 'quote', 'view'];
 
@@ -34,8 +37,15 @@ function getServiceCatalog(service: any): CatalogItem[] {
   });
 }
 
-export default function ServiceProfileScreen({ service, isFavorite, onToggleFavorite, onBack, onRequestService, activeTab, setActiveTab }: { service: any; isFavorite?: boolean; onToggleFavorite?: () => void; onBack: () => void; onRequestService: (selectedService: any) => void; activeTab: string; setActiveTab: (tab: string) => void }) {
-  const catalogItems = getServiceCatalog(service);
+export default function ServiceProfileScreen({ service, isFavorite, onToggleFavorite, onBack, onRequestService, onSessionExpired, activeTab, setActiveTab }: { service: any; isFavorite?: boolean; onToggleFavorite?: () => void; onBack: () => void; onRequestService: (selectedService: any) => void; onSessionExpired?: () => void; activeTab: string; setActiveTab: (tab: string) => void }) {
+  const [catalogItems, setCatalogItems] = useState<CatalogItem[]>(() => getServiceCatalog(service));
+  const [quoteItem, setQuoteItem] = useState<CatalogItem | null>(null);
+  const [catalogError, setCatalogError] = useState('');
+  useEffect(() => {
+    let active = true; setCatalogError('');
+    getPublicCatalog(Number(service.id)).then((items) => { if (active) setCatalogItems(items.filter((item) => item.kind === 'service')); }).catch(() => { if (active) { setCatalogItems([]); setCatalogError('No se pudo cargar el catálogo del servicio.'); } });
+    return () => { active = false; };
+  }, [service.id]);
   const pricingCounts = getCatalogPricingCounts(catalogItems);
 
   return (
@@ -122,6 +132,7 @@ export default function ServiceProfileScreen({ service, isFavorite, onToggleFavo
             </div>
           </div>
           <div className="space-y-3">
+            {catalogError && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{catalogError}</p>}
             {catalogItems.map((item) => {
               const action = getCatalogItemAction(item);
               const priceLabel = getPublicCatalogPriceLabel(item);
@@ -138,7 +149,7 @@ export default function ServiceProfileScreen({ service, isFavorite, onToggleFavo
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     {priceLabel && <span className="text-sm font-bold text-purple-700">{priceLabel}</span>}
                     {action === 'quote-soon' ? (
-                      <button type="button" onClick={() => showAppToast('', 'success', { title: 'Cotizaciones: próximamente', description: 'Pronto podrás solicitar cotizaciones desde ZIPCO.', dedupeKey: 'catalog-quotes-coming-soon', icon: 'bell' })} className="rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-bold text-violet-600">Cotizar</button>
+                      <button type="button" onClick={() => setQuoteItem(item)} className="rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-bold text-violet-600">Cotizar</button>
                     ) : action === 'view' ? (
                       <span className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600"><Eye className="h-3.5 w-3.5" /> Ver</span>
                     ) : (
@@ -154,6 +165,7 @@ export default function ServiceProfileScreen({ service, isFavorite, onToggleFavo
       </div>
 
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      {quoteItem && <QuoteRequestModal businessId={Number(service.id)} item={quoteItem} onClose={() => setQuoteItem(null)} onCreated={() => undefined} onSessionExpired={onSessionExpired} />}
     </div>
   );
 }

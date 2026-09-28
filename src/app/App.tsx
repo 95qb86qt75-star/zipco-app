@@ -9,7 +9,7 @@ import CheckoutScreen from './screens/CheckoutScreen';
 import BusinessProfileScreen from './screens/BusinessProfileScreen';
 import ServiceProfileScreen from './screens/ServiceProfileScreen';
 import ServiceCheckoutScreen from './screens/ServiceCheckoutScreen';
-import ServiciosScreen from './screens/ServiciosScreen';
+import ServiciosScreen from './screens/RealServiciosScreen';
 import NegociosScreen from './screens/NegociosScreen';
 import GlobalSearchScreen from './screens/GlobalSearchScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -596,6 +596,7 @@ export default function App() {
             onFilterChange={setServicesSearchFilter}
             initialMaxDistance={servicesSearchDistance}
             onMaxDistanceChange={setServicesSearchDistance}
+            currentLocation={currentLocation}
             initialScrollTop={servicesScrollTopRef.current}
             onScrollTopChange={(scrollTop) => { servicesScrollTopRef.current = scrollTop; }}
           />
@@ -624,6 +625,7 @@ export default function App() {
               setSelectedServiceItem(serviceItem);
               setCurrentScreen('service-checkout');
             }}
+            onSessionExpired={handleLogout}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
