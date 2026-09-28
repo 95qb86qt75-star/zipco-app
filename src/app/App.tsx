@@ -152,6 +152,7 @@ export default function App() {
     localStorage.removeItem('zipco-user-id');
     localStorage.removeItem('zipco-registration-complete');
     localStorage.removeItem('zipco-business-id');
+    localStorage.removeItem('zipco-provider-type');
     localStorage.removeItem('zipco-favorites');
     setFavoriteItems([]);
     setCurrentScreen('home');

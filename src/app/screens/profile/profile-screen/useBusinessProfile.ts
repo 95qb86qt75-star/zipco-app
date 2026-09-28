@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../../../api/apiConfig';
 import { showAppToast } from '../../Toast';
 
 export function useBusinessProfile() {
+  const [providerType, setProviderType] = useState<'Negocio' | 'Servicio'>(() => localStorage.getItem('zipco-provider-type') === 'Servicio' ? 'Servicio' : 'Negocio');
   const [businessRegistrationForm, setBusinessRegistrationForm] = useState({
     name: '',
     type: 'Negocio'
@@ -95,6 +96,9 @@ export function useBusinessProfile() {
           localStorage.setItem('zipco-business-id', String(currentBusinessId));
         }
         setHasRegisteredBusiness(true);
+        const loadedType = fullBusiness.type === 'Servicio' ? 'Servicio' : 'Negocio';
+        setProviderType(loadedType);
+        localStorage.setItem('zipco-provider-type', loadedType);
         setBusinessInfo((currentBusinessInfo) => ({
           ...currentBusinessInfo,
           name: fullBusiness.name ?? '',
@@ -309,6 +313,8 @@ export function useBusinessProfile() {
         image: newBusiness.photo || newBusiness.image || newBusiness.imageUrl || ''
       }));
       setHasRegisteredBusiness(true);
+      setProviderType(businessRegistrationForm.type === 'Servicio' ? 'Servicio' : 'Negocio');
+      localStorage.setItem('zipco-provider-type', businessRegistrationForm.type === 'Servicio' ? 'Servicio' : 'Negocio');
       setShowBusinessRegistrationForm(false);
       setBusinessRegistrationForm({ name: '', type: 'Negocio' });
       showAppToast('¡Tu negocio fue registrado! Completa tu información en la sección de negocio', 'success');
@@ -329,6 +335,7 @@ export function useBusinessProfile() {
       }
     },
     businessInfo,
+    providerType,
     hasRegisteredBusiness,
     isEditingBusinessInfo,
     businessSocialForm,

@@ -34,6 +34,7 @@ export default function ProfileScreen({
   if (showBusinessConfig) {
     return (
       <BusinessConfigScreen
+        providerType={businessProfile.providerType}
         onBack={() => setShowBusinessConfig(false)}
         onSave={(config) => businessProfile.setBusinessConfig(config)}
       />
@@ -107,7 +108,7 @@ export default function ProfileScreen({
           {businessProfile.hasRegisteredBusiness && <div className={`grid grid-cols-2 gap-1 rounded-full p-1 ${isBusinessProfileTab ? 'bg-white/20' : 'bg-[#F3F4F6]'}`}>
             {[
               { id: 'personal', label: 'Personal' },
-              { id: 'negocio', label: 'Negocio' }
+              { id: 'negocio', label: businessProfile.providerType }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -144,6 +145,7 @@ export default function ProfileScreen({
           handlePublishBusiness={businessProfile.handlePublishBusiness}
           isUploadingBusinessPhoto={businessProfile.isUploadingBusinessPhoto}
           uploadBusinessPhoto={businessProfile.uploadBusinessPhoto}
+          providerType={businessProfile.providerType}
         />
         <PersonalInfoSection
           profileTab={profileTab}

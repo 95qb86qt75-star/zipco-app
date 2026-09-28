@@ -20,7 +20,8 @@ export default function BusinessInfoSection({
   isBusinessReadyToPublish,
   handlePublishBusiness,
   isUploadingBusinessPhoto,
-  uploadBusinessPhoto
+  uploadBusinessPhoto,
+  providerType = 'Negocio'
 }: any) {
   const businessPhotoInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,7 +48,7 @@ export default function BusinessInfoSection({
               ['Nombre del negocio', 'Descripción', 'Dirección'].some(isBusinessFieldMissing) ? 'border-[#EF4444]' : isBusinessProfileTab ? 'border-white/20' : 'border-white/50'
             }`}>
               <div className="flex items-center justify-between mb-4">
-                <h4 className={`font-bold ${businessTextClass}`}>🏪 Datos del Negocio</h4>
+                <h4 className={`font-bold ${businessTextClass}`}>🏪 Datos del {providerType}</h4>
                 {!isEditingBusinessInfo && (
                   <button
                     type="button"
@@ -203,7 +204,7 @@ export default function BusinessInfoSection({
                     <Settings className="w-6 h-6 text-white" />
                   </div>
                   <div className="text-left">
-                    <h4 className={`font-bold ${businessTextClass}`}>Configurar Negocio</h4>
+                    <h4 className={`font-bold ${businessTextClass}`}>Configurar {providerType}</h4>
                     <p className={`text-xs ${businessSubtextClass}`}>Categoría, hashtags, horarios</p>
                   </div>
                 </div>
@@ -227,7 +228,7 @@ export default function BusinessInfoSection({
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-gray-300/30'
               }`}
             >
-              Publicar negocio
+              Publicar {providerType.toLowerCase()}
             </button>
             {isEditingBusinessInfo && (
               <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md bg-white/95 px-4 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.12)] backdrop-blur-md">

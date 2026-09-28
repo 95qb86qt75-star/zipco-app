@@ -22,10 +22,12 @@ export const businessConfigContentPadding = (hasUnsavedChanges: boolean) =>
 
 export default function BusinessConfigScreen({
   onBack,
-  onSave
+  onSave,
+  providerType
 }: {
   onBack: () => void;
   onSave: (config: any) => void;
+  providerType?: 'Negocio' | 'Servicio';
 }) {
   const [category, setCategory] = useState('');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -247,7 +249,7 @@ export default function BusinessConfigScreen({
           <button onClick={handleBackPress} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h2 className="text-xl font-bold text-gray-900">Configuracion de Negocio</h2>
+          <h2 className="text-xl font-bold text-gray-900">Configuración de {providerType === 'Servicio' ? 'Servicio' : 'Negocio'}</h2>
         </div>
 
       </div>

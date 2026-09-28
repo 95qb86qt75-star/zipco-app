@@ -90,6 +90,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
 
           if (businessId) {
             localStorage.setItem('zipco-business-id', String(businessId));
+            localStorage.setItem('zipco-provider-type', providerType);
           }
         }
       } catch (error) {
