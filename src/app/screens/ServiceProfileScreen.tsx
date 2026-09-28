@@ -153,7 +153,7 @@ export default function ServiceProfileScreen({ service, isFavorite, onToggleFavo
                     ) : action === 'view' ? (
                       <span className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-600"><Eye className="h-3.5 w-3.5" /> Ver</span>
                     ) : (
-                      <button type="button" onClick={() => showAppToast('', 'success', { title: 'Solicitudes de servicio: próximamente', description: 'Pronto podrás solicitar y agendar servicios desde ZIPCO.', dedupeKey: 'service-requests-coming-soon', icon: 'bell' })} className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-bold text-white">Solicitar</button>
+                      <button type="button" onClick={() => onRequestService(item)} className="rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-bold text-white">Solicitar</button>
                     )}
                   </div>
                 </div>

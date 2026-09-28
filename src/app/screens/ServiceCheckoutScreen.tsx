@@ -1,33 +1,42 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ArrowLeft, Calendar, Camera, Check, Clock, Send, X } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import BottomNav from './BottomNav';
+import { API_BASE_URL } from '../api/apiConfig';
+import { buildCreateOrderPayload, createOrder, CreateOrderError, hasCompleteDeliverySelection } from './createOrderApi';
+import { getCloudinarySecureImageUrl } from './profile/business-config/catalogValidation';
+import { showAppToast } from './Toast';
 
-export default function ServiceCheckoutScreen({ onBack, service, provider, activeTab, setActiveTab }: { onBack: () => void; service: any; provider: any; activeTab: string; setActiveTab: (tab: string) => void }) {
+export default function ServiceCheckoutScreen({ onBack, service, provider, activeTab, setActiveTab, onSessionExpired }: { onBack: () => void; service: any; provider: any; activeTab: string; setActiveTab: (tab: string) => void; onSessionExpired?: () => void }) {
   const [deliveryDate, setDeliveryDate] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('');
   const [scheduleOption, setScheduleOption] = useState<'now' | 'schedule' | null>(null);
   const [message, setMessage] = useState('');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const idempotencyKey = useRef<string | null>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) { showAppToast('Selecciona una imagen de hasta 10 MB.', 'error'); return; }
+      setIsUploading(true);
+      try { const body = new FormData(); body.append('file', file); body.append('upload_preset', 'zipco_products'); const response = await fetch('https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload', { method: 'POST', body }); if (!response.ok) throw new Error(); const url = getCloudinarySecureImageUrl(await response.json()); if (!url) throw new Error(); setUploadedImage(url); }
+      catch { showAppToast('No se pudo subir la foto.', 'error'); }
+      finally { setIsUploading(false); e.target.value = ''; }
     }
   };
 
-  const handleSubmit = () => {
-    setShowNotification(true);
-    setTimeout(() => {
-      setShowNotification(false);
-      onBack();
-    }, 3000);
+  const handleSubmit = async () => {
+    const needNow = scheduleOption === 'now';
+    if (!scheduleOption || !hasCompleteDeliverySelection({ needNow, deliveryDate, deliveryTime })) { showAppToast('Selecciona cuándo necesitas el servicio.', 'warning'); return; }
+    const token = localStorage.getItem('zipco-token'); if (!token || isSubmitting || isUploading) return;
+    setIsSubmitting(true);
+    try { idempotencyKey.current ??= crypto.randomUUID(); await createOrder({ url: `${API_BASE_URL}/orders`, token, currentUserId: localStorage.getItem('zipco-user-id'), businessUserId: provider.userId, idempotencyKey: idempotencyKey.current, payload: buildCreateOrderPayload({ businessId: Number(provider.id), items: [{ catalogItemId: Number(service.id), quantity: 1 }], note: message, needNow, deliveryDate, deliveryTime, referencePhoto: uploadedImage }) }); setShowNotification(true); idempotencyKey.current = null; setTimeout(() => { setShowNotification(false); onBack(); }, 1800); }
+    catch (error) { showAppToast(error instanceof CreateOrderError ? error.message : 'No se pudo solicitar el servicio.', 'error'); if (error instanceof CreateOrderError && error.status === 401) onSessionExpired?.(); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
@@ -174,11 +183,12 @@ export default function ServiceCheckoutScreen({ onBack, service, provider, activ
 
         {/* Submit Button */}
         <button
-          onClick={handleSubmit}
+          onClick={() => void handleSubmit()}
+          disabled={isSubmitting || isUploading}
           className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 mb-4"
         >
           <Send className="w-5 h-5" />
-          Solicitar Servicio
+          {isSubmitting ? 'Enviando…' : isUploading ? 'Subiendo foto…' : 'Solicitar Servicio'}
         </button>
       </div>
 

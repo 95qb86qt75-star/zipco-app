@@ -392,7 +392,6 @@ export default function App() {
           <RequestsScreen
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            onSessionExpired={handleLogout}
             onBack={() => {
               setActiveTab('home');
               setCurrentScreen('home');
@@ -564,6 +563,7 @@ export default function App() {
             }}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSessionExpired={handleLogout}
             initialQuery={businessesSearchQuery}
             onQueryChange={setBusinessesSearchQuery}
             initialFilter={businessesSearchFilter}
@@ -645,6 +645,7 @@ export default function App() {
             onBack={() => setCurrentScreen('service-profile')}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSessionExpired={handleLogout}
           />
         </div>
       </div>
