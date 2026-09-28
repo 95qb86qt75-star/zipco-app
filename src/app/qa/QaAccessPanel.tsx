@@ -78,7 +78,8 @@ export default function QaAccessPanel({
             setKey(event.target.value);
             setError("");
           }}
-          className="mt-1 h-11 w-full rounded-xl border border-violet-300 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-violet-400"
+          className="mt-1 h-11 w-full rounded-xl border border-violet-300 bg-white px-3 text-sm text-slate-950 caret-violet-600 opacity-100 outline-none focus:ring-2 focus:ring-violet-400"
+          style={{ color: "#0f172a", WebkitTextFillColor: "#0f172a" }}
         />
         <div className="mt-3 grid grid-cols-2 gap-2">
           {QA_ACCOUNT_OPTIONS.map((option) => (
