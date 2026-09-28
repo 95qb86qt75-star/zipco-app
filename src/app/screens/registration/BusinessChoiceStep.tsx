@@ -35,9 +35,9 @@ export default function BusinessChoiceStep({
               <Store className="w-5 h-5 text-[#00BFA5]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 mb-1">Tengo un Negocio</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">Vendo productos</h3>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Vendo productos que los clientes pueden comprar o encargar (tortas, ropa, comida, etc.).
+                Productos físicos que los clientes compran o encargan: tortas, ropa, comida, artesanía y más.
               </p>
             </div>
           </div>
@@ -52,9 +52,9 @@ export default function BusinessChoiceStep({
               <Wrench className="w-5 h-5 text-[#00BFA5]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 mb-1">Ofrezco un Servicio</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">Presto servicios</h3>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Realizo trabajos o actividades para los clientes (gasfiter, peluquero, profesor, etc.).
+                Trabajos realizados para clientes: reparaciones, fletes, mudanzas, clases, peluquería y más.
               </p>
             </div>
           </div>

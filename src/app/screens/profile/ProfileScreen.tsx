@@ -104,7 +104,7 @@ export default function ProfileScreen({
               </h3>
             </div>
           </div>
-          <div className={`grid grid-cols-2 gap-1 rounded-full p-1 ${isBusinessProfileTab ? 'bg-white/20' : 'bg-[#F3F4F6]'}`}>
+          {businessProfile.hasRegisteredBusiness && <div className={`grid grid-cols-2 gap-1 rounded-full p-1 ${isBusinessProfileTab ? 'bg-white/20' : 'bg-[#F3F4F6]'}`}>
             {[
               { id: 'personal', label: 'Personal' },
               { id: 'negocio', label: 'Negocio' }
@@ -122,7 +122,7 @@ export default function ProfileScreen({
                 {tab.label}
               </button>
             ))}
-          </div>
+          </div>}
         </div>
 
         <BusinessInfoSection

@@ -1,83 +1,17 @@
-import { Store } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Store, Wrench, X } from 'lucide-react';
 
-export default function BusinessRegistrationCard({
-  profileTab,
-  hasRegisteredBusiness,
-  profileCardClass,
-  showBusinessRegistrationForm,
-  businessRegistrationForm,
-  setBusinessRegistrationForm,
-  isBusinessProfileTab,
-  setShowBusinessRegistrationForm,
-  handleRegisterBusiness
-}: any) {
-  if (profileTab !== 'negocio' || hasRegisteredBusiness) return null;
-
-  return (
-    <div className={`${profileCardClass} rounded-2xl p-5 border shadow-md mb-4`}>
-      {showBusinessRegistrationForm ? (
-        <div className="space-y-4">
-          <div>
-            <label className={`text-xs mb-1 block ${isBusinessProfileTab ? 'text-white/70' : 'text-gray-500'}`}>
-              Nombre del negocio/servicio
-            </label>
-            <input
-              type="text"
-              value={businessRegistrationForm.name}
-              onChange={(e) => setBusinessRegistrationForm({ ...businessRegistrationForm, name: e.target.value })}
-              className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-              placeholder="Ej: Pasteleria, gasfiteria, peluqueria"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {['Negocio', 'Servicio'].map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setBusinessRegistrationForm({ ...businessRegistrationForm, type })}
-                className={`py-3 px-3 rounded-xl text-sm font-semibold border transition-all ${
-                  businessRegistrationForm.type === type
-                    ? 'bg-[#00BFA5] text-white border-[#00BFA5]'
-                    : isBusinessProfileTab
-                      ? 'bg-white/10 text-white border-white/20'
-                      : 'bg-white text-gray-700 border-gray-200'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setShowBusinessRegistrationForm(false)}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold ${
-                isBusinessProfileTab ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleRegisterBusiness}
-              className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold bg-[#00BFA5] text-white hover:bg-teal-600 transition-all"
-            >
-              Confirmar
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShowBusinessRegistrationForm(true)}
-          className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-colors ${
-            isBusinessProfileTab ? 'text-white hover:bg-white/10' : 'text-[#00BFA5] hover:bg-teal-50'
-          }`}
-        >
-          <Store className={`w-5 h-5 ${isBusinessProfileTab ? 'text-white' : 'text-[#00BFA5]'}`} />
-          Tienes un negocio o servicio? Registralo aqui
-        </button>
-      )}
-    </div>
-  );
+export default function BusinessRegistrationCard({ profileTab, hasRegisteredBusiness, businessRegistrationForm, setBusinessRegistrationForm, handleRegisterBusiness }: any) {
+  const [stage, setStage] = useState<'closed' | 'confirm' | 'choose' | 'details'>('closed');
+  if (profileTab !== 'personal' || hasRegisteredBusiness) return null;
+  return <>
+    <div className="mb-4 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-white p-5 shadow-sm"><div className="flex items-start gap-3"><span className="rounded-2xl bg-teal-100 p-3"><Store className="h-6 w-6 text-teal-600" /></span><div className="flex-1"><h3 className="font-black text-slate-900">¿Quieres vender en ZIPCO?</h3><p className="mt-1 text-sm text-slate-600">Crea un perfil para vender productos o prestar servicios. Tu cuenta personal seguirá funcionando normalmente.</p></div></div><button type="button" onClick={() => setStage('confirm')} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-teal-500 py-3 font-bold text-white">Crear perfil proveedor <ArrowRight className="h-4 w-4" /></button></div>
+    {stage !== 'closed' && <div className="absolute inset-0 z-50 flex items-end bg-slate-950/50 p-3 sm:items-center"><div className="mx-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl"><div className="flex justify-end"><button onClick={() => setStage('closed')} className="rounded-full bg-slate-100 p-2"><X className="h-5 w-5" /></button></div>
+      {stage === 'confirm' && <div className="text-center"><span className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-teal-50"><Store className="h-8 w-8 text-teal-600" /></span><h2 className="mt-4 text-xl font-black text-slate-950">¿Activar un perfil proveedor?</h2><p className="mt-2 text-sm leading-6 text-slate-600">Además de buscar como cliente, podrás vender productos o prestar servicios mediante ZIPCO.</p><div className="mt-6 grid grid-cols-2 gap-2"><button onClick={() => setStage('closed')} className="rounded-xl border py-3 font-bold text-slate-700">No, volver</button><button onClick={() => setStage('choose')} className="rounded-xl bg-teal-500 py-3 font-bold text-white">Sí, continuar</button></div></div>}
+      {stage === 'choose' && <div><h2 className="text-center text-xl font-black text-slate-950">¿Qué ofrecerás?</h2><p className="mt-1 text-center text-sm text-slate-500">Elige la opción que mejor representa tu actividad.</p><div className="mt-5 space-y-3"><Choice icon={Store} title="Venderé productos" description="Bienes físicos que se compran o encargan: tortas, ropa, comida, artesanía y más." onClick={() => { setBusinessRegistrationForm({ ...businessRegistrationForm, type: 'Negocio' }); setStage('details'); }} /><Choice icon={Wrench} title="Prestaré servicios" description="Trabajos para clientes: reparaciones, fletes, mudanzas, clases, peluquería y más." onClick={() => { setBusinessRegistrationForm({ ...businessRegistrationForm, type: 'Servicio' }); setStage('details'); }} /></div></div>}
+      {stage === 'details' && <div><div className="flex items-center gap-3"><span className="rounded-2xl bg-teal-50 p-3">{businessRegistrationForm.type === 'Servicio' ? <Wrench className="h-6 w-6 text-teal-600" /> : <Store className="h-6 w-6 text-teal-600" />}</span><div><h2 className="text-xl font-black text-slate-950">Crear {businessRegistrationForm.type === 'Servicio' ? 'servicio' : 'negocio'}</h2><p className="text-xs text-slate-500">Después completarás datos, ubicación y catálogo.</p></div></div><label className="mt-5 block text-sm font-bold text-slate-800">Nombre<input autoFocus value={businessRegistrationForm.name} onChange={(e) => setBusinessRegistrationForm({ ...businessRegistrationForm, name: e.target.value })} className="mt-2 w-full rounded-xl border border-slate-200 p-3 font-normal text-slate-950" placeholder={businessRegistrationForm.type === 'Servicio' ? 'Ej: Fletes Rápidos' : 'Ej: Pastelería Delicias'} /></label><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setStage('choose')} className="rounded-xl border py-3 font-bold">Volver</button><button onClick={() => void handleRegisterBusiness()} disabled={!businessRegistrationForm.name.trim()} className="rounded-xl bg-teal-500 py-3 font-bold text-white disabled:opacity-50">Crear perfil</button></div></div>}
+    </div></div>}
+  </>;
 }
+
+function Choice({ icon: Icon, title, description, onClick }: any) { return <button type="button" onClick={onClick} className="flex w-full gap-3 rounded-2xl border-2 border-teal-100 p-4 text-left hover:border-teal-400"><span className="rounded-2xl bg-teal-50 p-3"><Icon className="h-6 w-6 text-teal-600" /></span><span><strong className="block text-slate-950">{title}</strong><span className="mt-1 block text-xs leading-5 text-slate-600">{description}</span></span></button>; }

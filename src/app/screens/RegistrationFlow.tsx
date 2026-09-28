@@ -37,6 +37,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
+  const [providerType, setProviderType] = useState<'Negocio' | 'Servicio'>('Negocio');
   const [error, setError] = useState('');
   const [isCompletingRegistration, setIsCompletingRegistration] = useState(false);
 
@@ -73,7 +74,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
           },
           body: JSON.stringify({
             name: businessName.trim(),
-            type: 'Negocio',
+            type: providerType,
             status: 'pending',
             categoryId: 1,
             address: '',
@@ -250,8 +251,8 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
           <BusinessChoiceStep
             error={error}
             isCompletingRegistration={isCompletingRegistration}
-            onChooseBusiness={() => setStep('businessDetails')}
-            onChooseService={() => setStep('businessDetails')}
+            onChooseBusiness={() => { setProviderType('Negocio'); setStep('businessDetails'); }}
+            onChooseService={() => { setProviderType('Servicio'); setStep('businessDetails'); }}
             onSearchOnly={completeRegistration}
           />
         );
@@ -260,6 +261,7 @@ export default function RegistrationFlow({ onComplete }: { onComplete: () => voi
         return (
           <BusinessDetailsStep
             businessName={businessName}
+            providerType={providerType}
             error={error}
             isCompletingRegistration={isCompletingRegistration}
             onBusinessNameChange={setBusinessName}
