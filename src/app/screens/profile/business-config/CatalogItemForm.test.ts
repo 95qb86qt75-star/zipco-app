@@ -12,14 +12,14 @@ const item: CatalogItem = {
 };
 
 const renderForm = (editingItem: CatalogItem | null) => renderToStaticMarkup(createElement(CatalogItemForm, {
-  item: editingItem, isSaving: false, onCancel: vi.fn(), onSubmit: vi.fn(async () => undefined), onError: vi.fn()
+  item: editingItem, providerType: 'Negocio', isSaving: false, onCancel: vi.fn(), onSubmit: vi.fn(async () => undefined), onError: vi.fn()
 }));
 
 describe('CatalogItemForm mobile presentation', () => {
   it('renders the independent editor header with exactly one close control', () => {
     const html = renderForm(null);
-    expect(html).toContain('Nuevo artículo');
-    expect(html).toContain('Agrega un producto o servicio a tu catálogo.');
+    expect(html).toContain('Nuevo producto');
+    expect(html).toContain('Agrega un producto a tu catálogo.');
     expect(html.match(/aria-label="Cerrar editor"/g)).toHaveLength(1);
     expect(html).not.toContain('>Cerrar</button>');
   });
@@ -65,8 +65,8 @@ describe('CatalogItemForm mobile presentation', () => {
     const html = renderForm(null);
     expect(html).toContain('space-y-3');
     expect(html).toContain('min-h-11');
-    expect(html).toContain('Un bien físico que vendes');
-    expect(html).toContain('Un servicio que ofreces');
+    expect(html).toContain('Tu perfil de Negocio vende productos');
+    expect(html).not.toContain('Tu perfil de Servicio ofrece prestaciones');
     expect(html).toContain('Precio fijo');
     expect(html).toContain('Cotizar');
     expect(html).toContain('Solo mostrar');

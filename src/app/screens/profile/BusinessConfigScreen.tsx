@@ -265,6 +265,7 @@ export default function BusinessConfigScreen({
           onOpenCategoryModal={() => setShowCategoryModal(true)}
         />
         <KeywordsCard
+          providerType={providerType === 'Servicio' ? 'Servicio' : 'Negocio'}
           keywords={keywords}
           keywordInput={keywordInput}
           setKeywordInput={setKeywordInput}
@@ -287,7 +288,7 @@ export default function BusinessConfigScreen({
           onSelectLocationSuggestion={selectLocationSuggestion}
         />
         <ScheduleCard days={businessDays} schedule={schedule} setSchedule={handleScheduleChange} />
-        <ProductManagerCard catalog={catalog} />
+        <ProductManagerCard catalog={catalog} providerType={providerType === 'Servicio' ? 'Servicio' : 'Negocio'} />
       </div>
 
       {/* Modal cambios sin guardar */}

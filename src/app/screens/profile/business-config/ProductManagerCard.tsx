@@ -6,9 +6,9 @@ import { moveCatalogItemIds } from './catalogManagerState';
 import type { CatalogManager } from './useCatalogManager';
 import type { CatalogItem, CatalogItemWritePayload } from './types';
 
-type Props = { catalog: CatalogManager };
+type Props = { catalog: CatalogManager; providerType: 'Negocio' | 'Servicio' };
 
-export default function ProductManagerCard({ catalog }: Props) {
+export default function ProductManagerCard({ catalog, providerType }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
   const closeForm = () => { setEditingItem(null); setIsFormOpen(false); };
@@ -40,20 +40,20 @@ export default function ProductManagerCard({ catalog }: Props) {
   };
 
   if (isFormOpen) {
-    return <CatalogItemForm key={editingItem?.id ?? 'new'} item={editingItem} isSaving={catalog.isSavingItem} onCancel={closeForm} onSubmit={save} onError={(message) => showAppToast(message, 'error')} />;
+    return <CatalogItemForm key={editingItem?.id ?? 'new'} item={editingItem} providerType={providerType} isSaving={catalog.isSavingItem} onCancel={closeForm} onSubmit={save} onError={(message) => showAppToast(message, 'error')} />;
   }
 
   return (
     <section className="mb-2 rounded-2xl border border-white/50 bg-white/80 p-5 shadow-md">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div><h4 className="font-bold text-gray-900">Mi catalogo</h4><p className="text-xs text-gray-500">Administra productos y servicios.</p></div>
+        <div><h4 className="font-bold text-gray-900">Mi catálogo</h4><p className="text-xs text-gray-500">{providerType === 'Servicio' ? 'Administra los servicios que prestas.' : 'Administra los productos que vendes.'}</p></div>
         <button type="button" onClick={() => { setEditingItem(null); setIsFormOpen(true); }} className="min-h-11 shrink-0 rounded-full bg-teal-50 px-3 py-2 text-xs font-semibold text-teal-700">
-          + Agregar articulo
+          + Agregar {providerType === 'Servicio' ? 'servicio' : 'producto'}
         </button>
       </div>
       {catalog.isLoading && <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Cargando catalogo...</p>}
       {catalog.loadError && <div className="rounded-xl bg-red-50 p-4"><p className="text-sm text-red-700">{catalog.loadError}</p><button type="button" onClick={() => { void catalog.load(); }} className="mt-2 text-sm font-semibold text-teal-700">Intentar nuevamente</button></div>}
-      {!catalog.isLoading && !catalog.loadError && catalog.items.length === 0 && <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Tu catalogo esta vacio. Agrega tu primer producto o servicio.</p>}
+      {!catalog.isLoading && !catalog.loadError && catalog.items.length === 0 && <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-500">Tu catálogo está vacío. Agrega tu primer {providerType === 'Servicio' ? 'servicio' : 'producto'}.</p>}
       {!catalog.isLoading && !catalog.loadError && catalog.items.length > 0 && <CatalogItemList items={catalog.items} changingStatusId={catalog.changingStatusId} isReordering={catalog.isReordering} onEdit={(item) => { setEditingItem(item); setIsFormOpen(true); }} onSetActive={(item) => { void changeStatus(item); }} onMove={(id, direction) => { void move(id, direction); }} />}
     </section>
   );

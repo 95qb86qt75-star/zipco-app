@@ -1,9 +1,9 @@
 import React, { useState, type ChangeEvent } from 'react';
-import { ArrowRight, Briefcase, CheckCircle2, ChevronRight, Circle, Eye, FileText, ImageIcon, Info, Package, ReceiptText, ShoppingBag, Tag, X } from 'lucide-react';
+import { ArrowRight, Briefcase, CheckCircle2, ChevronRight, Eye, FileText, ImageIcon, Info, Package, ReceiptText, ShoppingBag, Tag, X } from 'lucide-react';
 import { buildCatalogItemPayload, formatClpInput, getCloudinarySecureImageUrl, validateCatalogItemForm, type CatalogFormErrors } from './catalogValidation';
 import type { CatalogItem, CatalogItemFormState, CatalogItemPricingMode, CatalogItemWritePayload } from './types';
 
-const emptyForm = (): CatalogItemFormState => ({ name: '', description: '', kind: 'product', pricingMode: 'fixed_price', priceClp: '', startingPriceClp: '', imageUrl: '' });
+const emptyForm = (kind: CatalogItemFormState['kind']): CatalogItemFormState => ({ name: '', description: '', kind, pricingMode: 'fixed_price', priceClp: '', startingPriceClp: '', imageUrl: '' });
 export type OptionalCatalogSections = { description: boolean; image: boolean };
 export const PRICING_MODE_HELP: Record<CatalogItemPricingMode, string> = {
   fixed_price: 'El cliente verá un precio final.', quote: 'El precio se acuerda antes de confirmar.', view: 'Aparecerá sin opción de compra.'
@@ -15,10 +15,11 @@ export function formFromCatalogItem(item: CatalogItem): CatalogItemFormState {
   return { name: item.name, description: item.description ?? '', kind: item.kind, pricingMode: item.pricingMode, priceClp: item.priceClp?.toString() ?? '', startingPriceClp: item.startingPriceClp?.toString() ?? '', imageUrl: item.imageUrl ?? '' };
 }
 
-type Props = { item: CatalogItem | null; isSaving: boolean; onCancel: () => void; onSubmit: (payload: CatalogItemWritePayload) => Promise<void>; onError: (message: string) => void; };
+type Props = { item: CatalogItem | null; providerType: 'Negocio' | 'Servicio'; isSaving: boolean; onCancel: () => void; onSubmit: (payload: CatalogItemWritePayload) => Promise<void>; onError: (message: string) => void; };
 
-export default function CatalogItemForm({ item, isSaving, onCancel, onSubmit, onError }: Props) {
-  const [form, setForm] = useState<CatalogItemFormState>(() => item ? formFromCatalogItem(item) : emptyForm());
+export default function CatalogItemForm({ item, providerType, isSaving, onCancel, onSubmit, onError }: Props) {
+  const providerKind = providerType === 'Servicio' ? 'service' : 'product';
+  const [form, setForm] = useState<CatalogItemFormState>(() => item ? { ...formFromCatalogItem(item), kind: providerKind } : emptyForm(providerKind));
   const [errors, setErrors] = useState<CatalogFormErrors>({});
   const [optionalSections, setOptionalSections] = useState(() => initialOptionalCatalogSections(item));
   const [isUploading, setIsUploading] = useState(false);
@@ -63,7 +64,7 @@ export default function CatalogItemForm({ item, isSaving, onCancel, onSubmit, on
     <header className="shrink-0 border-b border-slate-100 bg-white px-4 pb-3 shadow-sm" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-teal-600"><ShoppingBag aria-hidden="true" className="h-6 w-6" /></div>
-        <div className="min-w-0 flex-1"><h4 className="text-xl font-bold text-slate-950">{item ? 'Editar artículo' : 'Nuevo artículo'}</h4><p className="mt-0.5 text-sm leading-5 text-slate-500">{item ? 'Actualiza la información de tu catálogo.' : 'Agrega un producto o servicio a tu catálogo.'}</p></div>
+        <div className="min-w-0 flex-1"><h4 className="text-xl font-bold text-slate-950">{item ? `Editar ${providerKind === 'product' ? 'producto' : 'servicio'}` : `Nuevo ${providerKind === 'product' ? 'producto' : 'servicio'}`}</h4><p className="mt-0.5 text-sm leading-5 text-slate-500">{item ? 'Actualiza la información de tu catálogo.' : `Agrega ${providerKind === 'product' ? 'un producto' : 'un servicio'} a tu catálogo.`}</p></div>
         <button type="button" aria-label="Cerrar editor" title="Cerrar" onClick={onCancel} disabled={isSaving} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 disabled:opacity-50"><X aria-hidden="true" className="h-6 w-6" /></button>
       </div>
     </header>
@@ -71,10 +72,7 @@ export default function CatalogItemForm({ item, isSaving, onCancel, onSubmit, on
     <div className="min-h-0 flex-1 touch-pan-y space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-3">
       <label className="block text-sm font-semibold text-slate-800"><span className="flex items-center justify-between"><span>Nombre</span><span className="font-normal text-slate-400">{form.name.length}/120</span></span><span className="relative mt-2 block"><Tag aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input autoFocus maxLength={120} value={form.name} onChange={(event) => update('name', event.target.value)} className="min-h-12 w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 font-normal text-slate-900 outline-none focus:border-teal-500" placeholder="Ej: Torta de chocolate" /></span>{errors.name && <span className="mt-1 block text-xs font-normal text-red-600">{errors.name}</span>}</label>
 
-      <fieldset><legend className="mb-2 text-sm font-semibold text-slate-800">Tipo</legend><div className="grid grid-cols-2 gap-2">{(['product', 'service'] as const).map((kind) => {
-        const selected = form.kind === kind; const Icon = kind === 'product' ? Package : Briefcase;
-        return <button key={kind} type="button" onClick={() => update('kind', kind)} className={`flex min-h-[76px] items-center gap-2 rounded-xl border p-3 text-left ${selected ? 'border-teal-500 bg-teal-50 text-teal-800' : 'border-slate-200 bg-white text-slate-700'}`}><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${selected ? 'bg-teal-100 text-teal-600' : 'bg-slate-100 text-slate-500'}`}><Icon aria-hidden="true" className="h-5 w-5" /></span><span className="min-w-0 flex-1"><span className="block text-sm font-bold">{kind === 'product' ? 'Producto' : 'Servicio'}</span><span className="mt-0.5 block text-xs font-normal leading-4 text-slate-500">{kind === 'product' ? 'Un bien físico que vendes' : 'Un servicio que ofreces'}</span></span>{selected ? <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0 text-teal-600" /> : <Circle aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-300" />}</button>;
-      })}</div></fieldset>
+      <section><h5 className="mb-2 text-sm font-semibold text-slate-800">Tipo</h5><div className="flex min-h-[72px] items-center gap-3 rounded-xl border border-teal-500 bg-teal-50 p-3 text-teal-800"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-600">{providerKind === 'product' ? <Package aria-hidden="true" className="h-5 w-5" /> : <Briefcase aria-hidden="true" className="h-5 w-5" />}</span><span className="min-w-0 flex-1"><span className="block text-sm font-bold">{providerKind === 'product' ? 'Producto' : 'Servicio'}</span><span className="mt-0.5 block text-xs font-normal leading-4 text-slate-500">{providerKind === 'product' ? 'Tu perfil de Negocio vende productos' : 'Tu perfil de Servicio ofrece prestaciones'}</span></span><CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0 text-teal-600" /></div></section>
 
       <fieldset><legend className="mb-2 text-sm font-semibold text-slate-800">Modalidad</legend><div className="grid grid-cols-3 gap-2">{modes.map(([mode, label]) => <button key={mode} type="button" onClick={() => changePricingMode(mode)} className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-xl border px-1.5 py-2 text-xs font-semibold ${form.pricingMode === mode ? 'border-teal-500 bg-teal-50 text-teal-800' : 'border-slate-200 bg-white text-slate-600'}`}>{React.createElement(modeIcons[mode], { 'aria-hidden': true, className: 'h-5 w-5' })}<span>{label}</span></button>)}</div><p className="mt-2 flex items-center gap-2 rounded-xl bg-teal-50 px-3 py-2.5 text-xs text-teal-900"><Info aria-hidden="true" className="h-4 w-4 shrink-0" />{PRICING_MODE_HELP[form.pricingMode]}</p></fieldset>
 
