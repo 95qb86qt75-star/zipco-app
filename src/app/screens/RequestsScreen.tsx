@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CircleCheck, CircleX, Filter, List, Minus, RefreshCw, X } from 'lucide-react';
+import { ArrowLeft, Check, Filter, List, Minus, RefreshCw, X } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
@@ -207,12 +207,12 @@ export default function RequestsScreen({
               {historyOptions.map((option) => {
                 const selected = historyFilter === option.value;
                 const statusIcon = option.value === 'all'
-                  ? <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 text-teal-600"><List className="h-5 w-5" /></span>
+                  ? <span className="flex h-9 w-9 justify-self-center items-center justify-center rounded-full bg-teal-100 text-teal-600"><List className="h-5 w-5" /></span>
                   : option.value === 'completed'
-                    ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white"><CircleCheck className="h-4 w-4" /></span>
+                    ? <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="h-4 w-4 stroke-[3]" /></span>
                     : option.value === 'cancelled'
-                      ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white"><CircleX className="h-4 w-4" /></span>
-                      : <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-500 text-white"><Minus className="h-4 w-4" /></span>;
+                      ? <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-red-500 text-white"><X className="h-4 w-4 stroke-[3]" /></span>
+                      : <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-slate-500 text-white"><Minus className="h-4 w-4 stroke-[3]" /></span>;
                 return (
                 <button
                   key={option.value}
