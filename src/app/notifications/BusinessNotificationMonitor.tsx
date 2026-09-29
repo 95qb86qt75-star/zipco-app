@@ -4,6 +4,7 @@ import { showAppToast } from '../screens/Toast';
 import { updatePushPresence } from './pushNotifications';
 
 const POLL_INTERVAL_MS = 15_000;
+const PRESENCE_INTERVAL_MS = 5_000;
 const COUNT_EVENT = 'zipco-pending-interactions';
 
 type Interaction = {
@@ -168,7 +169,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
     const interval = window.setInterval(() => void load(), POLL_INTERVAL_MS);
     const presenceInterval = window.setInterval(
       () => reportPresence(document.visibilityState === 'visible'),
-      POLL_INTERVAL_MS
+      PRESENCE_INTERVAL_MS
     );
     return () => {
       stopped = true;
