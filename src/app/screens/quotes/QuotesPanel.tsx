@@ -9,7 +9,7 @@ export function CustomerQuotes({ quotes, updating, onStatus, emptyText = "Tus co
   if (!quotes.length) return <Empty text={emptyText} />;
   return <div className="space-y-3">{quotes.map((quote) => <QuoteCard key={quote.id} quote={quote}>
     {quote.status === 'quoted' && <div className="mt-3 grid grid-cols-2 gap-2"><button disabled={updating.has(quote.id)} onClick={() => onStatus(quote, 'declined')} className="rounded-xl border border-red-200 py-2 text-sm font-bold text-red-600">Rechazar</button><button disabled={updating.has(quote.id)} onClick={() => onStatus(quote, 'accepted')} className="rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white">Aceptar</button></div>}
-    {(quote.status === 'requested' || quote.status === 'quoted') && <button disabled={updating.has(quote.id)} onClick={() => onStatus(quote, 'cancelled')} className="mt-2 w-full py-1 text-xs font-semibold text-slate-500">Cancelar solicitud</button>}
+    {(quote.status === 'requested' || quote.status === 'quoted') && <button disabled={updating.has(quote.id)} onClick={() => onStatus(quote, 'cancelled')} className="mt-2 w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50">Cancelar solicitud</button>}
   </QuoteCard>)}</div>;
 }
 
