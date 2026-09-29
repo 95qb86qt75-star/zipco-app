@@ -32,6 +32,19 @@ export function parseOrders(value: unknown): Interaction[] {
 
 export const parseQuotes = parseOrders;
 
+export function countPendingInteractions(
+  businessOrders: Interaction[],
+  customerOrders: Interaction[],
+  businessQuotes: Interaction[],
+  customerQuotes: Interaction[]
+) {
+  const activeOrderStatuses = new Set(['pending', 'accepted', 'ready']);
+  return businessOrders.filter((order) => activeOrderStatuses.has(order.status)).length
+    + customerOrders.filter((order) => activeOrderStatuses.has(order.status)).length
+    + businessQuotes.filter((quote) => quote.status === 'requested').length
+    + customerQuotes.filter((quote) => quote.status === 'quoted').length;
+}
+
 export function shouldAnnouncePendingOrders(hasBaseline: boolean, announceNewOrders: boolean) {
   return hasBaseline && announceNewOrders;
 }
@@ -56,6 +69,7 @@ async function loadJson(path: string, token: string, onSessionExpired: () => voi
 
 export default function BusinessNotificationMonitor({ onSessionExpired }: { onSessionExpired: () => void }) {
   const orderStatuses = useRef(new Map<number, string>());
+  const customerOrderStatuses = useRef(new Map<number, string>());
   const businessQuoteStatuses = useRef(new Map<number, string>());
   const customerQuoteStatuses = useRef(new Map<number, string>());
   const announcedKeys = useRef(new Set<string>());
@@ -84,13 +98,15 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
     const load = async (announceChanges = true) => {
       if (document.visibilityState !== 'visible') return;
       try {
-        const [ordersValue, businessQuotesValue, customerQuotesValue] = await Promise.all([
+        const [ordersValue, customerOrdersValue, businessQuotesValue, customerQuotesValue] = await Promise.all([
           businessId ? loadJson(`/orders/business/${businessId}`, token, onSessionExpired) : Promise.resolve([]),
+          loadJson('/orders/my-orders', token, onSessionExpired),
           businessId ? loadJson(`/quotes/business/${businessId}`, token, onSessionExpired) : Promise.resolve([]),
           loadJson('/quotes/my-quotes', token, onSessionExpired)
         ]);
         if (stopped) return;
         const orders = parseOrders(ordersValue);
+        const customerOrders = parseOrders(customerOrdersValue);
         const businessQuotes = parseQuotes(businessQuotesValue);
         const customerQuotes = parseQuotes(customerQuotesValue);
 
@@ -102,6 +118,20 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
               'Nuevo pedido recibido',
               `${order.customerName || 'Un cliente'} envio una nueva solicitud.`
             ));
+          customerOrders.forEach((order) => {
+            const previous = customerOrderStatuses.current.get(order.id);
+            if (!previous || previous === order.status) return;
+            const copy = {
+              accepted: ['Pedido aceptado', 'El negocio acepto tu pedido.'],
+              rejected: ['Pedido rechazado', 'El negocio rechazo tu pedido.'],
+              ready: ['Tu pedido esta listo', 'El negocio marco tu pedido como listo.'],
+              completed: ['Pedido completado', 'Tu pedido fue marcado como completado.']
+            } as const;
+            if (order.status in copy) {
+              const [title, description] = copy[order.status as keyof typeof copy];
+              announce(`order-${order.id}-${order.status}`, title, description);
+            }
+          });
           businessQuotes.forEach((quote) => {
             const previous = businessQuoteStatuses.current.get(quote.id);
             if (!previous && quote.status === 'requested') {
@@ -129,12 +159,9 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
           });
         }
 
-        publishPendingCount(
-          orders.filter((order) => order.status === 'pending').length
-          + businessQuotes.filter((quote) => quote.status === 'requested').length
-          + customerQuotes.filter((quote) => quote.status === 'quoted').length
-        );
+        publishPendingCount(countPendingInteractions(orders, customerOrders, businessQuotes, customerQuotes));
         orderStatuses.current = new Map(orders.map((order) => [order.id, order.status]));
+        customerOrderStatuses.current = new Map(customerOrders.map((order) => [order.id, order.status]));
         businessQuoteStatuses.current = new Map(businessQuotes.map((quote) => [quote.id, quote.status]));
         customerQuoteStatuses.current = new Map(customerQuotes.map((quote) => [quote.id, quote.status]));
         hasBaseline.current = true;
