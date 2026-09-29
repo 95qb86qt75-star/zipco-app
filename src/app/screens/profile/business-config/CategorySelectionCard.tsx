@@ -2,12 +2,14 @@ import { Store } from 'lucide-react';
 import type { BusinessCategory } from './types';
 
 type CategorySelectionCardProps = {
+  providerType: 'Negocio' | 'Servicio';
   category: string;
   categories: BusinessCategory[];
   onOpenCategoryModal: () => void;
 };
 
 export default function CategorySelectionCard({
+  providerType,
   category,
   categories,
   onOpenCategoryModal
@@ -18,7 +20,7 @@ export default function CategorySelectionCard({
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-white/50 shadow-md mb-2">
       <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
         <Store className="w-5 h-5 text-teal-600" />
-        Categoria del Negocio
+        Categoría del {providerType}
       </h4>
       {!category ? (
         <button
@@ -26,7 +28,7 @@ export default function CategorySelectionCard({
           onClick={onOpenCategoryModal}
           className="w-full rounded-xl bg-gray-100 px-4 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-all"
         >
-          Indica tu categoria →
+          Indica tu categoría →
         </button>
       ) : (
         <div className="flex items-center gap-2">

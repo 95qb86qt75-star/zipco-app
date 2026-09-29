@@ -53,6 +53,7 @@ export default function BusinessConfigScreen({
   const businessId = parseBusinessId(localStorage.getItem("zipco-business-id"));
   const token = localStorage.getItem("zipco-token");
   const catalog = useCatalogManager(businessId, token);
+  const providerLabel = providerType === "Servicio" ? "servicio" : "negocio";
   const {
     locationSuggestions,
     isLocationLoading,
@@ -193,7 +194,7 @@ export default function BusinessConfigScreen({
 
         if (!response.ok) {
           showAppToast(
-            "No se pudo cargar la configuracion del negocio",
+            `No se pudo cargar la configuración del ${providerLabel}`,
             "error",
           );
           return;
@@ -210,7 +211,7 @@ export default function BusinessConfigScreen({
 
         if (!business) {
           showAppToast(
-            "No se pudo cargar la configuracion del negocio",
+            `No se pudo cargar la configuración del ${providerLabel}`,
             "error",
           );
           return;
@@ -255,7 +256,7 @@ export default function BusinessConfigScreen({
         );
         setHasUnsavedChanges(false);
       } catch (error) {
-        showAppToast("No se pudo cargar la configuracion del negocio", "error");
+        showAppToast(`No se pudo cargar la configuración del ${providerLabel}`, "error");
       }
     };
 
@@ -267,7 +268,7 @@ export default function BusinessConfigScreen({
     const token = localStorage.getItem("zipco-token");
 
     if (!businessId || !token) {
-      showAppToast("No se pudo guardar la configuracion del negocio", "error");
+      showAppToast(`No se pudo guardar la configuración del ${providerLabel}`, "error");
       return;
     }
 
@@ -303,7 +304,7 @@ export default function BusinessConfigScreen({
 
       if (!response.ok) {
         showAppToast(
-          "No se pudo guardar la configuracion del negocio",
+          `No se pudo guardar la configuración del ${providerLabel}`,
           "error",
         );
         return;
@@ -327,14 +328,14 @@ export default function BusinessConfigScreen({
       );
       setHasUnsavedChanges(false);
       showAppToast(
-        "Configuracion del negocio actualizada correctamente",
+        `Configuración del ${providerLabel} actualizada correctamente`,
         "success",
       );
       if (shouldExitAfterSave) {
         onBack();
       }
     } catch (error) {
-      showAppToast("No se pudo guardar la configuracion del negocio", "error");
+      showAppToast(`No se pudo guardar la configuración del ${providerLabel}`, "error");
     }
   };
 
@@ -394,6 +395,7 @@ export default function BusinessConfigScreen({
           />
         )}
         <CategorySelectionCard
+          providerType={providerType === "Servicio" ? "Servicio" : "Negocio"}
           category={category}
           categories={businessCategories}
           onOpenCategoryModal={() => setShowCategoryModal(true)}
