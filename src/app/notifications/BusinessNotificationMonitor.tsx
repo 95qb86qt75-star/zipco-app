@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../api/apiConfig';
 import { showAppToast } from '../screens/Toast';
+import { updatePushPresence } from './pushNotifications';
 
 const POLL_INTERVAL_MS = 15_000;
 const COUNT_EVENT = 'zipco-pending-interactions';
@@ -68,6 +69,11 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
     }
 
     let stopped = false;
+    const reportPresence = (isForeground: boolean) => {
+      void updatePushPresence(token, isForeground).catch(() => {
+        // El siguiente heartbeat vuelve a intentar.
+      });
+    };
     const announce = (key: string, title: string, description: string) => {
       if (announcedKeys.current.has(key)) return;
       announcedKeys.current.add(key);
@@ -139,12 +145,6 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       const data = event.data as Record<string, unknown> | null;
       if (!data || typeof data.type !== 'string') return;
-      if (data.type === 'zipco-visibility-probe') {
-        event.ports[0]?.postMessage({
-          visible: document.visibilityState === 'visible'
-        });
-        return;
-      }
       const key = typeof data.tag === 'string' ? data.tag : `${data.type}:${String(data.orderId ?? data.quoteId ?? '')}`;
       announce(
         key,
@@ -154,17 +154,29 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
       void load(false);
     };
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') void load(false);
+      const isVisible = document.visibilityState === 'visible';
+      reportPresence(isVisible);
+      if (isVisible) void load(false);
     };
+    const handlePageHide = () => reportPresence(false);
 
     navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', handlePageHide);
+    reportPresence(true);
     void load();
     const interval = window.setInterval(() => void load(), POLL_INTERVAL_MS);
+    const presenceInterval = window.setInterval(
+      () => reportPresence(document.visibilityState === 'visible'),
+      POLL_INTERVAL_MS
+    );
     return () => {
       stopped = true;
       window.clearInterval(interval);
+      window.clearInterval(presenceInterval);
+      reportPresence(false);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', handlePageHide);
       navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
     };
   }, [onSessionExpired]);

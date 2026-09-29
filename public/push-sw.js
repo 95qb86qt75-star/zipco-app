@@ -14,35 +14,7 @@ self.addEventListener('push', (event) => {
     renotify: false,
     data: { url: data.url || '/', orderId: data.orderId, quoteId: data.quoteId }
   };
-  const checkVisibility = (client) => new Promise((resolve) => {
-    const channel = new MessageChannel();
-    const timeout = setTimeout(() => resolve(false), 500);
-    channel.port1.onmessage = (message) => {
-      clearTimeout(timeout);
-      resolve(message.data?.visible === true);
-    };
-    client.postMessage({ type: 'zipco-visibility-probe' }, [channel.port2]);
-  });
-  const deliverNotification = self.clients
-    .matchAll({ type: 'window', includeUncontrolled: true })
-    .then(async (clients) => {
-      const visibility = await Promise.all(clients.map(checkVisibility));
-      const visibleClients = clients.filter((_, index) => visibility[index]);
-      if (visibleClients.length === 0) {
-        await self.registration.showNotification(title, options);
-        return;
-      }
-      visibleClients.forEach((client) => client.postMessage({
-        type: data.type,
-        orderId: data.orderId,
-        quoteId: data.quoteId,
-        customerName: data.customerName,
-        title: data.title,
-        body: data.body,
-        tag: data.tag
-      }));
-    });
-  event.waitUntil(deliverNotification);
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {

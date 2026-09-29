@@ -80,7 +80,18 @@ export async function enablePushNotifications(token: string) {
     method: 'POST',
     body: JSON.stringify(serializeSubscription(subscription))
   });
+  await updatePushPresence(token, true);
   return subscription;
+}
+
+export async function updatePushPresence(token: string, isForeground: boolean) {
+  const subscription = await getExistingPushSubscription();
+  if (!subscription) return;
+  await requestJson('/push/presence', token, {
+    method: 'POST',
+    body: JSON.stringify({ endpoint: subscription.endpoint, isForeground }),
+    keepalive: !isForeground
+  });
 }
 
 export async function disablePushNotifications(token: string) {
