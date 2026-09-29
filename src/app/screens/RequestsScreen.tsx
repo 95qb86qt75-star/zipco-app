@@ -68,6 +68,7 @@ export default function RequestsScreen({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-24">
+        <NotificationPermissionCard />
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/70 p-1.5 shadow-sm">
           <button onClick={() => setRequestType('orders')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'orders' ? 'bg-teal-600 text-white' : 'text-slate-600'}`}>Pedidos</button>
           <button onClick={() => setRequestType('quotes')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'quotes' ? 'bg-violet-600 text-white' : 'text-slate-600'}`}>Cotizaciones</button>
@@ -103,15 +104,12 @@ export default function RequestsScreen({
         )}
 
         {!isLoading && !loadError && hasBusiness && subTab === 'my-business' && (
-          <>
-            <NotificationPermissionCard />
-            <BusinessOrdersTab
-              requests={requests}
-              updatingOrderIds={updatingOrderIds}
-              onRetry={loadOrders}
-              onAction={(order, action, reason) => performAction(order, 'business', action, reason)}
-            />
-          </>
+          <BusinessOrdersTab
+            requests={requests}
+            updatingOrderIds={updatingOrderIds}
+            onRetry={loadOrders}
+            onAction={(order, action, reason) => performAction(order, 'business', action, reason)}
+          />
         )}
         </>}
       </div>
