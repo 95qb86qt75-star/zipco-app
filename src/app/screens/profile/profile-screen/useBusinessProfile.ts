@@ -201,7 +201,7 @@ export function useBusinessProfile() {
     missingBusinessFields.includes(field);
   const isBusinessReadyToPublish = missingBusinessFields.length === 0;
 
-  const handlePublishBusiness = () => {
+  const handlePublishBusiness = async () => {
     if (!isBusinessReadyToPublish) {
       showAppToast(
         `Faltan completar estos campos:\n${missingBusinessFields.join("\n")}`,
@@ -210,10 +210,42 @@ export function useBusinessProfile() {
       return;
     }
 
-    showAppToast(
-      "¡Tu negocio está listo para publicarse! Será revisado por nuestro equipo antes de aparecer en los resultados",
-      "success",
-    );
+    const token = localStorage.getItem("zipco-token");
+    if (!businessId || !token) {
+      showAppToast("No se pudo enviar el perfil a revisión", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/businesses/${businessId}/submit-review`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        const message = Array.isArray(body?.message)
+          ? body.message[0]
+          : body?.message;
+        showAppToast(
+          typeof message === "string"
+            ? message
+            : "No se pudo enviar el perfil a revisión",
+          "error",
+        );
+        return;
+      }
+
+      showAppToast(
+        `Tu ${providerType.toLowerCase()} fue enviado a revisión. Te avisaremos cuando sea aprobado.`,
+        "success",
+      );
+    } catch {
+      showAppToast("No se pudo enviar el perfil a revisión", "error");
+    }
   };
 
   const handleStartEditingBusinessInfo = () => {
