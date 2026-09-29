@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Filter, RefreshCw, X } from 'lucide-react';
+import { ArrowLeft, CircleCheck, CircleX, Filter, List, Minus, RefreshCw, X } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
@@ -203,21 +203,30 @@ export default function RequestsScreen({
               <h3 className="text-xl font-black text-slate-900">Filtrar historial</h3>
               <button onClick={() => setShowHistoryFilter(false)} className="rounded-full p-2 text-slate-600"><X className="h-5 w-5" /></button>
             </div>
-            <div className="mt-4 space-y-2">
-              {historyOptions.map((option) => (
+            <div className="mt-4 space-y-1">
+              {historyOptions.map((option) => {
+                const selected = historyFilter === option.value;
+                const statusIcon = option.value === 'all'
+                  ? <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 text-teal-600"><List className="h-5 w-5" /></span>
+                  : option.value === 'completed'
+                    ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white"><CircleCheck className="h-4 w-4" /></span>
+                    : option.value === 'cancelled'
+                      ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white"><CircleX className="h-4 w-4" /></span>
+                      : <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-500 text-white"><Minus className="h-4 w-4" /></span>;
+                return (
                 <button
                   key={option.value}
                   onClick={() => setHistoryFilters((current) => ({ ...current, [viewKey]: option.value }))}
-                  className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left ${
-                    historyFilter === option.value ? 'border-teal-300 bg-teal-50' : 'border-slate-100 bg-white'
-                  }`}
+                  className={`grid w-full grid-cols-[24px_40px_1fr] items-center gap-3 rounded-2xl p-4 text-left transition-colors ${selected ? 'bg-gradient-to-r from-teal-50 to-cyan-50' : 'bg-white'}`}
                 >
-                  <span className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 ${
-                    historyFilter === option.value ? 'border-teal-500 bg-teal-500 shadow-[inset_0_0_0_4px_white]' : 'border-slate-300'
+                  <span className={`h-5 w-5 rounded-full border-2 ${
+                    selected ? 'border-teal-500 bg-teal-500 shadow-[inset_0_0_0_4px_white]' : 'border-slate-300 bg-white'
                   }`} />
-                  <span><span className="block text-sm font-bold text-slate-900">{option.label}</span><span className="mt-1 block text-xs text-slate-500">{option.description}</span></span>
+                  {statusIcon}
+                  <span><span className="block text-sm font-bold text-slate-900">{option.label}</span><span className="mt-1 block text-xs leading-4 text-slate-500">{option.description}</span></span>
                 </button>
-              ))}
+                );
+              })}
             </div>
             <button onClick={() => setShowHistoryFilter(false)} className="mt-5 w-full rounded-xl bg-teal-600 py-3 font-bold text-white">Aplicar filtro</button>
           </div>
