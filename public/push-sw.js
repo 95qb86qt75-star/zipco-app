@@ -12,7 +12,7 @@ self.addEventListener('push', (event) => {
     badge: '/icon-192.png',
     tag: data.tag || 'zipco-notification',
     renotify: false,
-    data: { url: data.url || '/', orderId: data.orderId }
+    data: { url: data.url || '/', orderId: data.orderId, quoteId: data.quoteId }
   };
   const deliverNotification = self.clients
     .matchAll({ type: 'window', includeUncontrolled: true })
@@ -25,7 +25,11 @@ self.addEventListener('push', (event) => {
       visibleClients.forEach((client) => client.postMessage({
         type: data.type,
         orderId: data.orderId,
-        customerName: data.customerName
+        quoteId: data.quoteId,
+        customerName: data.customerName,
+        title: data.title,
+        body: data.body,
+        tag: data.tag
       }));
     });
   event.waitUntil(deliverNotification);

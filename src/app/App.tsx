@@ -62,7 +62,7 @@ export default function App() {
   );
   const [showSplash, setShowSplash] = useState(() => sessionStorage.getItem('zipco-splash-seen') !== 'true');
   const [activeTab, setActiveTab] = useState(() =>
-    new URLSearchParams(window.location.search).get('open') === 'requests-business' ? 'requests' : 'home'
+    new URLSearchParams(window.location.search).get('open')?.startsWith('requests-') ? 'requests' : 'home'
   );
   const [currentScreen, setCurrentScreen] = useState('home');
   const [previousScreen, setPreviousScreen] = useState<string>('negocios');

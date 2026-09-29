@@ -16,10 +16,13 @@ export default function RequestsScreen({
   onBack: () => void;
   onSessionExpired: () => void;
 }) {
+  const openTarget = new URLSearchParams(window.location.search).get('open');
   const [subTab, setSubTab] = useState<'my-orders' | 'my-business'>(() =>
-    new URLSearchParams(window.location.search).get('open') === 'requests-business' ? 'my-business' : 'my-orders'
+    openTarget === 'requests-business' || openTarget === 'requests-business-quotes' ? 'my-business' : 'my-orders'
   );
-  const [requestType, setRequestType] = useState<'orders' | 'quotes'>('orders');
+  const [requestType, setRequestType] = useState<'orders' | 'quotes'>(() =>
+    openTarget?.endsWith('-quotes') ? 'quotes' : 'orders'
+  );
   const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
   const quotes = useQuotes(onSessionExpired);
 
