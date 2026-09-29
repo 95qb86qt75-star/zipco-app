@@ -6,6 +6,7 @@ import useRequests from './requests/useRequests';
 import NotificationPermissionCard from '../notifications/NotificationPermissionCard';
 import { BusinessQuotes, CustomerQuotes } from './quotes/QuotesPanel';
 import useQuotes from './quotes/useQuotes';
+import { OrderHistoryList, QuoteHistoryList } from './requests/CompactHistoryList';
 import {
   countStatusViews,
   filterByStatusView,
@@ -154,8 +155,10 @@ export default function RequestsScreen({
         )}
         {requestType === 'quotes' && quotes.loading && <div className="py-16 text-center text-sm font-semibold text-slate-500">Cargando cotizaciones…</div>}
         {requestType === 'quotes' && !quotes.loading && quotes.error && <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center"><p className="text-sm font-semibold text-red-700">{quotes.error}</p><button onClick={() => void quotes.load()} className="mt-3 rounded-xl bg-white px-4 py-2 text-sm font-bold text-red-700">Intentar nuevamente</button></div>}
-        {requestType === 'quotes' && !quotes.loading && !quotes.error && subTab === 'my-orders' && <CustomerQuotes quotes={filteredQuotes} updating={quotes.updating} onStatus={quotes.changeStatus} emptyText={emptyCopy.description} />}
-        {requestType === 'quotes' && !quotes.loading && !quotes.error && hasBusiness && subTab === 'my-business' && <BusinessQuotes quotes={filteredQuotes} updating={quotes.updating} onRespond={quotes.respond} emptyText={emptyCopy.description} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length === 0 && <CustomerQuotes quotes={[]} updating={quotes.updating} onStatus={quotes.changeStatus} emptyText={emptyCopy.description} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView === 'history' && <QuoteHistoryList quotes={filteredQuotes} owner={subTab === 'my-orders' ? 'customer' : 'business'} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView !== 'history' && subTab === 'my-orders' && <CustomerQuotes quotes={filteredQuotes} updating={quotes.updating} onStatus={quotes.changeStatus} emptyText={emptyCopy.description} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView !== 'history' && hasBusiness && subTab === 'my-business' && <BusinessQuotes quotes={filteredQuotes} updating={quotes.updating} onRespond={quotes.respond} emptyText={emptyCopy.description} />}
         {requestType === 'orders' && <>
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
@@ -173,7 +176,10 @@ export default function RequestsScreen({
           </div>
         )}
 
-        {!isLoading && !loadError && subTab === 'my-orders' && (
+        {!isLoading && !loadError && statusView === 'history' && subTab === 'my-orders' && filteredMyOrders.length > 0 && <OrderHistoryList orders={filteredMyOrders} owner="customer" />}
+        {!isLoading && !loadError && statusView === 'history' && hasBusiness && subTab === 'my-business' && filteredBusinessOrders.length > 0 && <OrderHistoryList orders={filteredBusinessOrders} owner="business" />}
+
+        {!isLoading && !loadError && statusView !== 'history' && subTab === 'my-orders' && (
           <MyOrdersTab
             myOrders={filteredMyOrders}
             updatingOrderIds={updatingOrderIds}
@@ -184,7 +190,7 @@ export default function RequestsScreen({
           />
         )}
 
-        {!isLoading && !loadError && hasBusiness && subTab === 'my-business' && (
+        {!isLoading && !loadError && statusView !== 'history' && hasBusiness && subTab === 'my-business' && (
           <BusinessOrdersTab
             requests={filteredBusinessOrders}
             updatingOrderIds={updatingOrderIds}
@@ -193,6 +199,9 @@ export default function RequestsScreen({
             emptyTitle={emptyCopy.title}
             emptyDescription={emptyCopy.description}
           />
+        )}
+        {!isLoading && !loadError && statusView === 'history' && (subTab === 'my-orders' ? filteredMyOrders.length === 0 : filteredBusinessOrders.length === 0) && (
+          <MyOrdersTab myOrders={[]} updatingOrderIds={updatingOrderIds} onRetry={loadOrders} onAction={async () => undefined} emptyTitle={emptyCopy.title} emptyDescription={emptyCopy.description} />
         )}
         </>}
       </div>
