@@ -139,6 +139,12 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       const data = event.data as Record<string, unknown> | null;
       if (!data || typeof data.type !== 'string') return;
+      if (data.type === 'zipco-visibility-probe') {
+        event.ports[0]?.postMessage({
+          visible: document.visibilityState === 'visible'
+        });
+        return;
+      }
       const key = typeof data.tag === 'string' ? data.tag : `${data.type}:${String(data.orderId ?? data.quoteId ?? '')}`;
       announce(
         key,
