@@ -3,7 +3,6 @@ import { useState } from 'react';
 import EmptyRequestsState from './EmptyRequestsState';
 import MyOrderCard from './MyOrderCard';
 import OrderActionModal from './OrderActionModal';
-import { classifyCustomerOrders } from './orderPresentation';
 import type { CancellationReason, MyOrder, OrderAction } from './types';
 
 type Props = {
@@ -11,13 +10,14 @@ type Props = {
   updatingOrderIds: Set<number>;
   onAction: (order: MyOrder, action: OrderAction, reason?: CancellationReason) => Promise<void>;
   onRetry: () => Promise<boolean>;
+  emptyTitle: string;
+  emptyDescription: string;
 };
 
-export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRetry }: Props) {
-  const [tab, setTab] = useState<'active' | 'history'>('active');
+export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRetry, emptyTitle, emptyDescription }: Props) {
   const [selection, setSelection] = useState<{ order: MyOrder; action: OrderAction } | null>(null);
-  const { active, history, unavailable } = classifyCustomerOrders(myOrders);
-  const displayed = tab === 'active' ? active : history;
+  const displayed = myOrders.filter((order) => order.recordState === 'available');
+  const unavailable = myOrders.filter((order) => order.recordState === 'unavailable');
   const selectedId = selection?.order.recordState === 'available' ? selection.order.id : null;
   const isSubmitting = selectedId !== null && updatingOrderIds.has(selectedId);
 
@@ -29,15 +29,6 @@ export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRe
 
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-2">
-        <button onClick={() => setTab('active')} className={`rounded-xl py-2.5 text-sm font-semibold ${tab === 'active' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600'}`}>
-          Activos ({active.length})
-        </button>
-        <button onClick={() => setTab('history')} className={`rounded-xl py-2.5 text-sm font-semibold ${tab === 'history' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600'}`}>
-          Historial ({history.length})
-        </button>
-      </div>
-
       {displayed.length > 0 ? (
         <div className="space-y-3">
           {displayed.map((order) => (
@@ -51,7 +42,7 @@ export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRe
           ))}
         </div>
       ) : (
-        <EmptyRequestsState icon={Package} title={tab === 'active' ? 'No tienes pedidos activos' : 'Tu historial está vacío'} description="Tus pedidos aparecerán aquí" />
+        <EmptyRequestsState icon={Package} title={emptyTitle} description={emptyDescription} />
       )}
 
       {unavailable.length > 0 && (

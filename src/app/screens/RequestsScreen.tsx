@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Filter, RefreshCw, X } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
 import NotificationPermissionCard from '../notifications/NotificationPermissionCard';
 import { BusinessQuotes, CustomerQuotes } from './quotes/QuotesPanel';
 import useQuotes from './quotes/useQuotes';
+import {
+  countStatusViews,
+  filterByStatusView,
+  type HistoryFilter,
+  type StatusView
+} from './requests/requestStatusGrouping';
 
 export default function RequestsScreen({
   onBack,
@@ -23,8 +29,50 @@ export default function RequestsScreen({
   const [requestType, setRequestType] = useState<'orders' | 'quotes'>(() =>
     openTarget?.endsWith('-quotes') ? 'quotes' : 'orders'
   );
+  const [statusViews, setStatusViews] = useState<Record<string, StatusView>>({});
+  const [historyFilters, setHistoryFilters] = useState<Record<string, HistoryFilter>>({});
+  const [showHistoryFilter, setShowHistoryFilter] = useState(false);
   const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
   const quotes = useQuotes(onSessionExpired);
+  const viewKey = `${subTab}-${requestType}`;
+  const statusView = statusViews[viewKey] ?? 'pending';
+  const historyFilter = historyFilters[viewKey] ?? 'all';
+  const orderRecords = subTab === 'my-orders' ? myOrders : requests;
+  const quoteRecords = subTab === 'my-orders' ? quotes.myQuotes : quotes.businessQuotes;
+  const statusCounts = countStatusViews(
+    requestType === 'orders' ? orderRecords : quoteRecords,
+    requestType
+  );
+  const filteredMyOrders = filterByStatusView(myOrders, 'orders', statusView, historyFilter);
+  const filteredBusinessOrders = filterByStatusView(requests, 'orders', statusView, historyFilter);
+  const filteredQuotes = filterByStatusView(quoteRecords, 'quotes', statusView, historyFilter);
+  const emptyCopy = {
+    pending: {
+      title: 'No tienes solicitudes pendientes',
+      description: 'Cuando algo requiera atención aparecerá aquí.'
+    },
+    active: {
+      title: 'No tienes solicitudes en curso',
+      description: 'Las solicitudes aceptadas que todavía están en proceso aparecerán aquí.'
+    },
+    history: {
+      title: historyFilter === 'all' ? 'Todavía no tienes historial' : 'No hay resultados para este filtro',
+      description: historyFilter === 'all' ? 'Las solicitudes finalizadas aparecerán aquí.' : 'Prueba mostrando todo el historial.'
+    }
+  }[statusView];
+
+  const selectStatusView = (view: StatusView) => {
+    setStatusViews((current) => ({ ...current, [viewKey]: view }));
+  };
+  const historyOptions: Array<{ value: HistoryFilter; label: string; description: string }> = [
+    { value: 'all', label: 'Todas', description: 'Muestra todas las solicitudes finalizadas.' },
+    ...(requestType === 'orders'
+      ? [{ value: 'completed' as const, label: 'Completadas', description: 'Pedidos finalizados correctamente.' }]
+      : []),
+    { value: 'cancelled', label: 'Canceladas', description: 'Solicitudes que no continuaron.' },
+    { value: 'rejected', label: 'Rechazadas', description: 'Solicitudes rechazadas antes de concretarse.' }
+  ];
+  const historyFilterLabel = historyOptions.find((option) => option.value === historyFilter)?.label ?? 'Todas';
 
   useEffect(() => {
     if (!hasBusiness && subTab === 'my-business') setSubTab('my-orders');
@@ -73,10 +121,41 @@ export default function RequestsScreen({
           <button onClick={() => setRequestType('orders')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'orders' ? 'bg-teal-600 text-white' : 'text-slate-600'}`}>Pedidos</button>
           <button onClick={() => setRequestType('quotes')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'quotes' ? 'bg-violet-600 text-white' : 'text-slate-600'}`}>Cotizaciones</button>
         </div>
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          {([
+            { key: 'pending', label: 'Pendientes', count: statusCounts.pending },
+            { key: 'active', label: 'En curso', count: statusCounts.active },
+            { key: 'history', label: 'Historial', count: null }
+          ] as const).map((item) => (
+            <button
+              key={item.key}
+              onClick={() => selectStatusView(item.key)}
+              className={`rounded-xl px-2 py-2.5 text-xs font-bold shadow-sm transition-all ${
+                statusView === item.key
+                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white'
+                  : 'bg-white text-slate-600'
+              }`}
+            >
+              {item.label}{item.count !== null ? ` (${item.count})` : ''}
+            </button>
+          ))}
+        </div>
+        {statusView === 'history' && (
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-black text-slate-900">Historial</h3>
+              <p className="text-xs text-slate-500">Tus solicitudes finalizadas.</p>
+            </div>
+            <button onClick={() => setShowHistoryFilter(true)} className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm">
+              <Filter className="h-4 w-4" />
+              {historyFilter === 'all' ? 'Filtrar' : historyFilterLabel}
+            </button>
+          </div>
+        )}
         {requestType === 'quotes' && quotes.loading && <div className="py-16 text-center text-sm font-semibold text-slate-500">Cargando cotizaciones…</div>}
         {requestType === 'quotes' && !quotes.loading && quotes.error && <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center"><p className="text-sm font-semibold text-red-700">{quotes.error}</p><button onClick={() => void quotes.load()} className="mt-3 rounded-xl bg-white px-4 py-2 text-sm font-bold text-red-700">Intentar nuevamente</button></div>}
-        {requestType === 'quotes' && !quotes.loading && !quotes.error && subTab === 'my-orders' && <CustomerQuotes quotes={quotes.myQuotes} updating={quotes.updating} onStatus={quotes.changeStatus} />}
-        {requestType === 'quotes' && !quotes.loading && !quotes.error && hasBusiness && subTab === 'my-business' && <BusinessQuotes quotes={quotes.businessQuotes} updating={quotes.updating} onRespond={quotes.respond} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && subTab === 'my-orders' && <CustomerQuotes quotes={filteredQuotes} updating={quotes.updating} onStatus={quotes.changeStatus} emptyText={emptyCopy.description} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && hasBusiness && subTab === 'my-business' && <BusinessQuotes quotes={filteredQuotes} updating={quotes.updating} onRespond={quotes.respond} emptyText={emptyCopy.description} />}
         {requestType === 'orders' && <>
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-16">
@@ -96,23 +175,54 @@ export default function RequestsScreen({
 
         {!isLoading && !loadError && subTab === 'my-orders' && (
           <MyOrdersTab
-            myOrders={myOrders}
+            myOrders={filteredMyOrders}
             updatingOrderIds={updatingOrderIds}
             onRetry={loadOrders}
             onAction={(order, action, reason) => performAction(order, 'customer', action, reason)}
+            emptyTitle={emptyCopy.title}
+            emptyDescription={emptyCopy.description}
           />
         )}
 
         {!isLoading && !loadError && hasBusiness && subTab === 'my-business' && (
           <BusinessOrdersTab
-            requests={requests}
+            requests={filteredBusinessOrders}
             updatingOrderIds={updatingOrderIds}
             onRetry={loadOrders}
             onAction={(order, action, reason) => performAction(order, 'business', action, reason)}
+            emptyTitle={emptyCopy.title}
+            emptyDescription={emptyCopy.description}
           />
         )}
         </>}
       </div>
+      {showHistoryFilter && (
+        <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
+          <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black text-slate-900">Filtrar historial</h3>
+              <button onClick={() => setShowHistoryFilter(false)} className="rounded-full p-2 text-slate-600"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {historyOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setHistoryFilters((current) => ({ ...current, [viewKey]: option.value }))}
+                  className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left ${
+                    historyFilter === option.value ? 'border-teal-300 bg-teal-50' : 'border-slate-100 bg-white'
+                  }`}
+                >
+                  <span className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 ${
+                    historyFilter === option.value ? 'border-teal-500 bg-teal-500 shadow-[inset_0_0_0_4px_white]' : 'border-slate-300'
+                  }`} />
+                  <span><span className="block text-sm font-bold text-slate-900">{option.label}</span><span className="mt-1 block text-xs text-slate-500">{option.description}</span></span>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowHistoryFilter(false)} className="mt-5 w-full rounded-xl bg-teal-600 py-3 font-bold text-white">Aplicar filtro</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
