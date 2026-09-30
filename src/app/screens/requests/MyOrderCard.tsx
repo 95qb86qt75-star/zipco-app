@@ -1,12 +1,12 @@
-import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
-import OrderStatusBadge from './OrderStatusBadge';
-import type { MyOrder, OrderAction } from './types';
-import { formatDeliverySchedule } from './utils';
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import OrderStatusBadge from "./OrderStatusBadge";
+import type { MyOrder, OrderAction } from "./types";
+import { formatDeliverySchedule } from "./utils";
 
 const REASON_LABELS = {
-  no_longer_needed: 'Ya no lo necesitaba.',
-  business_took_too_long: 'El negocio tardó demasiado.',
-  selected_by_mistake: 'Lo seleccionó por error.'
+  no_longer_needed: "Ya no lo necesitaba.",
+  business_took_too_long: "El negocio tardó demasiado.",
+  selected_by_mistake: "Lo seleccionó por error.",
 } as const;
 
 type Props = {
@@ -18,76 +18,130 @@ type Props = {
   onOpen?: () => void;
 };
 
-export default function MyOrderCard({ order, isUpdating, onAction, onRetry, isUnread = false, onOpen }: Props) {
-  if (order.recordState === 'unavailable') {
+export default function MyOrderCard({
+  order,
+  isUpdating,
+  onAction,
+  onRetry,
+  isUnread = false,
+  onOpen,
+}: Props) {
+  if (order.recordState === "unavailable") {
     return (
       <div className="bg-white/80 rounded-2xl p-4 border border-gray-300 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h4 className="font-semibold text-gray-900 text-sm">Pedido no disponible</h4>
-            <p className="text-xs text-gray-500">No pudimos interpretar el estado de este pedido.</p>
+            <h4 className="font-semibold text-gray-900 text-sm">
+              Pedido no disponible
+            </h4>
+            <p className="text-xs text-gray-500">
+              No pudimos interpretar el estado de este pedido.
+            </p>
           </div>
           <OrderStatusBadge status="unavailable" />
         </div>
-        <button type="button" onClick={onRetry} className="mt-3 text-sm font-semibold text-teal-700">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-3 text-sm font-semibold text-teal-700"
+        >
           Intentar nuevamente
         </button>
       </div>
     );
   }
 
-  const action = order.status === 'pending'
-    ? 'cancel'
-    : order.status === 'ready'
-      ? 'complete-reception'
-      : null;
-  const deliverySchedule = formatDeliverySchedule(order, 'customer');
+  const action =
+    order.status === "pending"
+      ? "cancel"
+      : order.status === "ready"
+        ? "complete-reception"
+        : null;
+  const deliverySchedule = formatDeliverySchedule(order, "customer");
 
   return (
-    <div id={`order-${order.id}`} onClick={onOpen} className={`backdrop-blur-sm rounded-2xl p-4 border shadow-sm ${isUnread ? 'border-sky-300 bg-sky-50 ring-2 ring-sky-100' : 'border-gray-200 bg-white/80'}`}>
-      <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-100">
-        <ImageWithFallback src={order.businessImage} alt={order.businessName} className="w-12 h-12 rounded-full object-cover" />
+    <div
+      id={`order-${order.id}`}
+      onClick={onOpen}
+      className={`backdrop-blur-sm rounded-2xl p-3 border shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-gray-200 bg-white/80"}`}
+    >
+      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+        <ImageWithFallback
+          src={order.businessImage}
+          alt={order.businessName}
+          className="w-10 h-10 rounded-lg object-cover"
+        />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2"><h4 className="font-semibold text-gray-900 text-sm truncate">{order.businessName}</h4>{isUnread && <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">Nueva</span>}</div>
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold text-gray-900 text-sm truncate">
+              {order.businessName}
+            </h4>
+            {isUnread && (
+              <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">
+                Nueva
+              </span>
+            )}
+          </div>
           <p className="text-xs text-gray-500">{order.date}</p>
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
 
-      {order.products.state === 'unavailable' ? (
-        <p className="mb-3 text-sm text-red-700">Información de productos no disponible.</p>
+      {order.products.state === "unavailable" ? (
+        <p className="mb-3 text-sm text-red-700">
+          Información de productos no disponible.
+        </p>
       ) : (
-        <div className="mb-3 space-y-1">
+        <div className="mb-2 space-y-0.5">
           {order.products.items.map((product, index) => (
-            <div key={`${product.name}-${index}`} className="flex justify-between text-sm">
-              <span>{product.quantity}x {product.name}</span>
-              <span className="font-semibold">${(product.price * product.quantity).toLocaleString('es-CL')}</span>
+            <div
+              key={`${product.name}-${index}`}
+              className="flex justify-between text-sm"
+            >
+              <span>
+                {product.quantity}x {product.name}
+              </span>
+              <span className="font-semibold">
+                ${(product.price * product.quantity).toLocaleString("es-CL")}
+              </span>
             </div>
           ))}
         </div>
       )}
 
       {deliverySchedule && (
-        <div className="mb-3 rounded-xl border border-purple-200 bg-purple-50 p-3 text-sm text-purple-900">
+        <div className="mb-2 rounded-lg border border-purple-200 bg-purple-50 px-2 py-1.5 text-xs text-purple-900">
           {deliverySchedule}
         </div>
       )}
 
-      {order.note && <p className="mb-3 rounded-xl bg-slate-50 p-3 text-sm italic text-slate-700">“{order.note}”</p>}
-
-      {order.status === 'accepted' && (
-        <p className="mb-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-800">El negocio está preparando tu pedido.</p>
-      )}
-      {order.status === 'cancelled' && (
-        <p className="mb-3 text-sm text-gray-600">
-          Motivo: {order.cancellationReason && order.cancellationReason !== 'unavailable'
-            ? REASON_LABELS[order.cancellationReason]
-            : 'Motivo no disponible.'}
+      {order.note && (
+        <p className="mb-2 rounded-lg bg-slate-50 px-2 py-1.5 text-xs italic text-slate-700">
+          “{order.note}”
         </p>
       )}
 
-      <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-        <span className="font-bold">{order.total === null ? 'Total no disponible' : `$${order.total.toLocaleString('es-CL')}`}</span>
+      {order.status === "accepted" && (
+        <p className="mb-2 rounded-lg bg-blue-50 px-2 py-1.5 text-xs text-blue-800">
+          El negocio está preparando tu pedido.
+        </p>
+      )}
+      {order.status === "cancelled" && (
+        <p className="mb-3 text-sm text-gray-600">
+          Motivo:{" "}
+          {order.cancellationReason &&
+          order.cancellationReason !== "unavailable"
+            ? REASON_LABELS[order.cancellationReason]
+            : "Motivo no disponible."}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between border-t border-gray-100 pt-2">
+        <span className="font-bold">
+          {order.total === null
+            ? "Total no disponible"
+            : `$${order.total.toLocaleString("es-CL")}`}
+        </span>
         {action && (
           <button
             type="button"
@@ -95,7 +149,11 @@ export default function MyOrderCard({ order, isUpdating, onAction, onRetry, isUn
             onClick={() => onAction(action)}
             className="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
-            {isUpdating ? 'Guardando...' : action === 'cancel' ? 'Cancelar pedido' : 'Confirmar recepción'}
+            {isUpdating
+              ? "Guardando..."
+              : action === "cancel"
+                ? "Cancelar pedido"
+                : "Confirmar recepción"}
           </button>
         )}
       </div>
