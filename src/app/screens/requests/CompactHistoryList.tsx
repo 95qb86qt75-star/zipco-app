@@ -107,6 +107,7 @@ export function QuoteHistoryList({ quotes, owner, deleted, onArchive }: { quotes
 
 function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[]; deleted: boolean; onArchive: (id: number, archived: boolean) => void }) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
+  const [pendingArchive, setPendingArchive] = useState<HistoryItem | null>(null);
   const { unread, markRead } = useUnreadInteractions();
   return <>
     <div className="space-y-2.5">
@@ -130,18 +131,12 @@ function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[
               aria-label={deleted ? 'Restaurar solicitud' : 'Mover solicitud a Eliminados'}
               onClick={(event) => {
                 event.stopPropagation();
-                const confirmed = window.confirm(deleted
-                  ? '¿Deseas restaurar esta solicitud para que vuelva al historial?'
-                  : '¿Deseas mover esta solicitud a Eliminados? Podrás restaurarla después.');
-                if (confirmed) onArchive(item.id, !deleted);
+                setPendingArchive(item);
               }}
               onKeyDown={(event) => {
                 if (event.key !== 'Enter' && event.key !== ' ') return;
                 event.preventDefault(); event.stopPropagation();
-                const confirmed = window.confirm(deleted
-                  ? '¿Deseas restaurar esta solicitud para que vuelva al historial?'
-                  : '¿Deseas mover esta solicitud a Eliminados? Podrás restaurarla después.');
-                if (confirmed) onArchive(item.id, !deleted);
+                setPendingArchive(item);
               }}
               className={`flex h-8 w-8 items-center justify-center rounded-full ${deleted ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}
             >{deleted ? <RotateCcw className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}</span>
@@ -151,6 +146,19 @@ function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[
         </button>;
       })}
     </div>
+    {pendingArchive && <div className="absolute inset-0 z-[60] flex items-end bg-slate-950/45 p-3 sm:items-center">
+      <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${deleted ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+          {deleted ? <RotateCcw className="h-7 w-7" /> : <Trash2 className="h-7 w-7" />}
+        </div>
+        <h3 className="mt-4 text-center text-lg font-black text-slate-900">{deleted ? 'Restaurar solicitud' : 'Mover a Eliminados'}</h3>
+        <p className="mt-2 text-center text-sm leading-5 text-slate-600">{deleted ? '¿Deseas restaurar esta solicitud para que vuelva al historial?' : '¿Deseas mover esta solicitud a Eliminados? Podrás restaurarla después.'}</p>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <button type="button" onClick={() => setPendingArchive(null)} className="rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700">Cancelar</button>
+          <button type="button" onClick={() => { onArchive(pendingArchive.id, !deleted); setPendingArchive(null); }} className={`rounded-xl py-3 text-sm font-bold text-white ${deleted ? 'bg-emerald-600' : 'bg-red-500'}`}>{deleted ? 'Restaurar' : 'Mover'}</button>
+        </div>
+      </div>
+    </div>}
     {selected && <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
       <div className="mx-auto max-h-[88vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5">
         <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-teal-600">Detalle del historial</p><h3 className="mt-1 text-xl font-black text-slate-900">{selected.title}</h3><p className="text-sm text-slate-500">{selected.subtitle}</p></div><button onClick={() => setSelected(null)} className="rounded-full bg-slate-100 p-2"><X className="h-5 w-5" /></button></div>
