@@ -19,7 +19,10 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const target = new URL(event.notification.data?.url || '/', self.location.origin).href;
+  const targetUrl = new URL(event.notification.data?.url || '/', self.location.origin);
+  if (event.notification.data?.orderId && !targetUrl.searchParams.has('orderId')) targetUrl.searchParams.set('orderId', String(event.notification.data.orderId));
+  if (event.notification.data?.quoteId && !targetUrl.searchParams.has('quoteId')) targetUrl.searchParams.set('quoteId', String(event.notification.data.quoteId));
+  const target = targetUrl.href;
   event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clients) => {
     const client = clients[0];
     if (client) {

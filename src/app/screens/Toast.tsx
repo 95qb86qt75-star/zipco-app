@@ -10,6 +10,7 @@ export type ToastOptions = {
   dedupeKey?: string;
   durationMs?: number;
   icon?: 'bell';
+  actionUrl?: string;
 };
 
 export type ToastNotification = {
@@ -20,6 +21,7 @@ export type ToastNotification = {
   dedupeKey: string;
   durationMs: number;
   icon?: 'bell';
+  actionUrl?: string;
 };
 
 export function createToastNotification(message: string, type: ToastType = 'success', options: ToastOptions = {}): ToastNotification {
@@ -31,6 +33,7 @@ export function createToastNotification(message: string, type: ToastType = 'succ
     dedupeKey: options.dedupeKey ?? `${type}:${options.title ?? ''}:${options.description ?? ''}:${message}`,
     durationMs: options.durationMs ?? (options.title || options.description ? 5000 : 3000),
     icon: options.icon
+    , actionUrl: options.actionUrl
   };
 }
 
@@ -45,7 +48,7 @@ export function showAppToast(message: string, type: ToastType = 'success', optio
 }
 
 export default function Toast({ notification, onClose }: { notification: ToastNotification; onClose: () => void }) {
-  const { message, type, title, description, durationMs, icon } = notification;
+  const { message, type, title, description, durationMs, icon, actionUrl } = notification;
   const [isLeaving, setIsLeaving] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,7 +108,8 @@ export default function Toast({ notification, onClose }: { notification: ToastNo
       aria-live="polite"
     >
       <div
-          className={`pointer-events-auto relative overflow-hidden rounded-2xl border bg-white px-4 py-3 pr-12 shadow-[0_10px_30px_rgba(15,23,42,0.14)] ${tone.border}`}
+          className={`pointer-events-auto relative overflow-hidden rounded-2xl border bg-white px-4 py-3 pr-12 shadow-[0_10px_30px_rgba(15,23,42,0.14)] ${tone.border} ${actionUrl ? 'cursor-pointer' : ''}`}
+          onClick={() => { if (actionUrl) window.location.assign(actionUrl); }}
           onMouseEnter={pauseTimer}
           onMouseLeave={resumeTimer}
         >
@@ -121,7 +125,7 @@ export default function Toast({ notification, onClose }: { notification: ToastNo
           </div>
           <button
             type="button"
-            onClick={beginClose}
+            onClick={(event) => { event.stopPropagation(); beginClose(); }}
             aria-label="Cerrar notificación"
             className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100"
           >

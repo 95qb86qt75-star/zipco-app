@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Check, ChevronRight, Image as ImageIcon, Minus, Package, X } from 'lucide-react';
+import { Calendar, Check, ChevronRight, Image as ImageIcon, Minus, X } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { QuoteRequest } from '../quotes/quoteApi';
 import type { BusinessRequest, MyOrder } from './types';
@@ -16,7 +16,18 @@ type HistoryItem = {
   status: 'completed' | 'cancelled' | 'rejected';
   price: number | null;
   details: string[];
+  schedule: string;
+  note: string;
+  response: string;
+  reason: string;
+  referencePhoto: string | null;
 };
+
+const reasonLabels = {
+  no_longer_needed: 'Ya no lo necesitaba.',
+  business_took_too_long: 'El negocio tardó demasiado.',
+  selected_by_mistake: 'Fue seleccionado por error.'
+} as const;
 
 const statusPresentation = {
   completed: { label: 'Completada', classes: 'bg-emerald-50 text-emerald-600', icon: Check },
@@ -56,7 +67,12 @@ function normalizeOrder(order: MyOrder | BusinessRequest, owner: 'customer' | 'b
     image: isCustomer ? (identity as MyOrder).businessImage : (identity as BusinessRequest).customerImage,
     status,
     price: order.total,
-    details: products.map((product) => `${product.quantity}x ${product.name}`)
+    details: products.map((product) => `${product.quantity}x ${product.name} — ${money(product.price * product.quantity)}`),
+    schedule: order.needNow ? (isCustomer ? 'Lo necesitabas ahora' : 'Lo necesitaba ahora') : order.deliveryDate && order.deliveryTime ? `${order.deliveryDate} · ${order.deliveryTime}` : 'Horario no disponible',
+    note: order.note,
+    response: '',
+    reason: order.cancellationReason && order.cancellationReason !== 'unavailable' ? reasonLabels[order.cancellationReason] : '',
+    referencePhoto: order.referencePhoto
   };
 }
 
@@ -71,7 +87,12 @@ function normalizeQuote(quote: QuoteRequest, owner: 'customer' | 'business'): Hi
     image: quote.referencePhoto,
     status: quote.status === 'cancelled' ? 'cancelled' : 'rejected',
     price: quote.quotedPriceClp ?? quote.startingPriceClpSnapshot,
-    details: [quote.message, quote.businessMessage].filter((value): value is string => Boolean(value))
+    details: [],
+    schedule: quote.needNow ? 'Lo necesita ahora' : quote.requestedDate && quote.requestedTime ? `${quote.requestedDate} · ${quote.requestedTime}` : 'Horario no disponible',
+    note: quote.message,
+    response: quote.businessMessage ?? '',
+    reason: quote.status === 'cancelled' ? 'La solicitud fue cancelada.' : quote.status === 'declined' ? 'La cotización fue rechazada.' : '',
+    referencePhoto: quote.referencePhoto
   };
 }
 
@@ -109,9 +130,19 @@ function CompactHistoryList({ items }: { items: HistoryItem[] }) {
       })}
     </div>
     {selected && <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
-      <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
+      <div className="mx-auto max-h-[88vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5">
         <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-teal-600">Detalle del historial</p><h3 className="mt-1 text-xl font-black text-slate-900">{selected.title}</h3><p className="text-sm text-slate-500">{selected.subtitle}</p></div><button onClick={() => setSelected(null)} className="rounded-full bg-slate-100 p-2"><X className="h-5 w-5" /></button></div>
-        <div className="mt-4 rounded-2xl bg-slate-50 p-4"><p className="flex items-center gap-2 text-sm text-slate-600"><Calendar className="h-4 w-4" />{selected.date}</p>{selected.details.map((detail, index) => <p key={`${detail}-${index}`} className="mt-2 text-sm text-slate-700">{detail}</p>)}<p className="mt-4 text-xl font-black text-emerald-600">{selected.price === null ? 'Precio no disponible' : money(selected.price)}</p></div>
+        <div className="mt-4 space-y-3 rounded-2xl bg-slate-50 p-4">
+          <div className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${statusPresentation[selected.status].classes}`}>{statusPresentation[selected.status].label}</div>
+          <p className="flex items-center gap-2 text-sm text-slate-600"><Calendar className="h-4 w-4" />{selected.date}</p>
+          <div><p className="text-xs font-bold uppercase tracking-wide text-slate-400">Entrega o atención</p><p className="mt-1 text-sm text-slate-700">{selected.schedule}</p></div>
+          {selected.details.length > 0 && <div><p className="text-xs font-bold uppercase tracking-wide text-slate-400">Detalle</p>{selected.details.map((detail, index) => <p key={`${detail}-${index}`} className="mt-1 text-sm text-slate-700">{detail}</p>)}</div>}
+          {selected.note && <div><p className="text-xs font-bold uppercase tracking-wide text-slate-400">Nota del cliente</p><p className="mt-1 rounded-xl bg-white p-3 text-sm italic text-slate-700">“{selected.note}”</p></div>}
+          {selected.response && <div><p className="text-xs font-bold uppercase tracking-wide text-slate-400">Respuesta del proveedor</p><p className="mt-1 rounded-xl bg-white p-3 text-sm text-slate-700">{selected.response}</p></div>}
+          {selected.reason && <div><p className="text-xs font-bold uppercase tracking-wide text-slate-400">Motivo</p><p className="mt-1 text-sm text-slate-700">{selected.reason}</p></div>}
+          {selected.referencePhoto && <div><p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Foto de referencia</p><ImageWithFallback src={selected.referencePhoto} alt="Foto de referencia" className="h-44 w-full rounded-xl object-cover" /></div>}
+          <p className="pt-1 text-xl font-black text-emerald-600">{selected.price === null ? 'Precio no disponible' : money(selected.price)}</p>
+        </div>
         <button onClick={() => setSelected(null)} className="mt-4 w-full rounded-xl bg-teal-600 py-3 font-bold text-white">Cerrar</button>
       </div>
     </div>}

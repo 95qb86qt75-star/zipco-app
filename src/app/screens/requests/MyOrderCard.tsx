@@ -73,6 +73,8 @@ export default function MyOrderCard({ order, isUpdating, onAction, onRetry, isUn
         </div>
       )}
 
+      {order.note && <p className="mb-3 rounded-xl bg-slate-50 p-3 text-sm italic text-slate-700">“{order.note}”</p>}
+
       {order.status === 'accepted' && (
         <p className="mb-3 rounded-xl bg-blue-50 p-3 text-sm text-blue-800">El negocio está preparando tu pedido.</p>
       )}

@@ -70,11 +70,11 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
         // El siguiente heartbeat vuelve a intentar.
       });
     };
-    const announce = (key: string, title: string, description: string, interaction?: { kind: InteractionKind; id: number }) => {
+    const announce = (key: string, title: string, description: string, interaction?: { kind: InteractionKind; id: number }, actionUrl?: string) => {
       if (announcedKeys.current.has(key)) return;
       announcedKeys.current.add(key);
       if (interaction) markInteractionUnread(interaction.kind, interaction.id);
-      showAppToast('', 'info', { title, description, dedupeKey: key, durationMs: 7000, icon: 'bell' });
+      showAppToast('', 'info', { title, description, dedupeKey: key, durationMs: 7000, icon: 'bell', actionUrl });
     };
 
     const load = async (announceChanges = true) => {
@@ -99,7 +99,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
               `order-${order.id}-created`,
               'Nuevo pedido recibido',
               `${order.customerName || 'Un cliente'} envio una nueva solicitud.`
-              , { kind: 'order', id: order.id }
+              , { kind: 'order', id: order.id }, `/?open=requests-business&orderId=${order.id}`
             ));
           customerOrders.forEach((order) => {
             const previous = customerOrderStatuses.current.get(order.id);
@@ -112,7 +112,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
             } as const;
             if (order.status in copy) {
               const [title, description] = copy[order.status as keyof typeof copy];
-              announce(`order-${order.id}-${order.status}`, title, description, { kind: 'order', id: order.id });
+              announce(`order-${order.id}-${order.status}`, title, description, { kind: 'order', id: order.id }, `/?open=requests-customer&orderId=${order.id}`);
             }
           });
           businessQuotes.forEach((quote) => {
@@ -122,13 +122,13 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
                 `quote-${quote.id}-created`,
                 'Nueva cotizacion recibida',
                 `${quote.customerName || 'Un cliente'} solicito ${quote.itemNameSnapshot || 'una cotizacion'}.`
-                , { kind: 'quote', id: quote.id }
+                , { kind: 'quote', id: quote.id }, `/?open=requests-business-quotes&quoteId=${quote.id}`
               );
             } else if (previous && previous !== quote.status && ['accepted', 'declined', 'cancelled'].includes(quote.status)) {
               const labels = { accepted: 'acepto', declined: 'rechazo', cancelled: 'cancelo' } as const;
               const titles = { accepted: 'Cotizacion aceptada', declined: 'Cotizacion rechazada', cancelled: 'Cotizacion cancelada' } as const;
               const status = quote.status as keyof typeof labels;
-              announce(`quote-${quote.id}-${status}`, titles[status], `El cliente ${labels[status]} la cotizacion.`, { kind: 'quote', id: quote.id });
+              announce(`quote-${quote.id}-${status}`, titles[status], `El cliente ${labels[status]} la cotizacion.`, { kind: 'quote', id: quote.id }, `/?open=requests-business-quotes&quoteId=${quote.id}`);
             }
           });
           customerQuotes.forEach((quote) => {
@@ -138,7 +138,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
                 `quote-${quote.id}-responded`,
                 'Respondieron tu cotizacion',
                 `Recibiste un precio para ${quote.itemNameSnapshot || 'tu solicitud'}.`
-                , { kind: 'quote', id: quote.id }
+                , { kind: 'quote', id: quote.id }, `/?open=requests-customer-quotes&quoteId=${quote.id}`
               );
             }
           });
@@ -169,7 +169,8 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
           ? { kind: 'order', id: orderId }
           : Number.isInteger(quoteId) && quoteId > 0
             ? { kind: 'quote', id: quoteId }
-            : undefined
+            : undefined,
+        typeof data.url === 'string' ? data.url : undefined
       );
       void load(false);
     };
