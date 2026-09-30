@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Calendar, Check, ChevronRight, Image as ImageIcon, Minus, RotateCcw, Trash2, X } from 'lucide-react';
+import { motion } from 'motion/react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { QuoteRequest } from '../quotes/quoteApi';
 import type { BusinessRequest, MyOrder } from './types';
@@ -108,6 +109,7 @@ export function QuoteHistoryList({ quotes, owner, deleted, onArchive }: { quotes
 function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[]; deleted: boolean; onArchive: (id: number, archived: boolean) => void }) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
   const [pendingArchive, setPendingArchive] = useState<HistoryItem | null>(null);
+  const [swipedKey, setSwipedKey] = useState<string | null>(null);
   const { unread, markRead } = useUnreadInteractions();
   return <>
     <div className="space-y-2.5">
@@ -115,7 +117,27 @@ function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[
         const presentation = statusPresentation[item.status];
         const StatusIcon = presentation.icon;
         const isUnread = unread.has(interactionKey(item.kind, item.id));
-        return <button id={`${item.kind}-${item.id}`} key={item.key} type="button" onClick={() => { markRead(item.kind, item.id); setSelected(item); }} className={`grid w-full grid-cols-[64px_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left shadow-sm ${isUnread ? 'border-sky-300 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-100 bg-white'}`}>
+        const isSwiped = swipedKey === item.key;
+        return <div key={item.key} className="relative overflow-hidden rounded-2xl">
+          <button type="button" onClick={() => setPendingArchive(item)} className={`absolute inset-y-0 right-0 flex w-24 flex-col items-center justify-center gap-1 text-xs font-black text-white ${deleted ? 'bg-emerald-600' : 'bg-red-500'}`}>
+            {deleted ? <RotateCcw className="h-5 w-5" /> : <Trash2 className="h-5 w-5" />}
+            {deleted ? 'Restaurar' : 'Eliminar'}
+          </button>
+          <motion.button
+            id={`${item.kind}-${item.id}`}
+            type="button"
+            drag="x"
+            dragConstraints={{ left: -96, right: 0 }}
+            dragElastic={0.08}
+            animate={{ x: isSwiped ? -96 : 0 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+            onDragEnd={(_, info) => setSwipedKey(info.offset.x < -45 ? item.key : null)}
+            onClick={() => {
+              if (isSwiped) { setSwipedKey(null); return; }
+              markRead(item.kind, item.id); setSelected(item);
+            }}
+            className={`relative grid w-full grid-cols-[64px_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left shadow-sm ${isUnread ? 'border-sky-300 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-100 bg-white'}`}
+          >
           {item.image
             ? <ImageWithFallback src={item.image} alt={item.title} className="h-16 w-16 rounded-xl object-cover" />
             : <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-slate-400"><ImageIcon className="h-6 w-6" /></span>}
@@ -143,7 +165,8 @@ function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[
             <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${presentation.classes}`}><StatusIcon className="h-3.5 w-3.5" />{presentation.label}</span>
             <span className="flex items-center gap-1.5"><span className="text-sm font-black text-emerald-600">{item.price === null ? '—' : money(item.price)}</span><ChevronRight className="h-5 w-5 text-slate-600" /></span>
           </span>
-        </button>;
+          </motion.button>
+        </div>;
       })}
     </div>
     {pendingArchive && <div className="absolute inset-0 z-[60] flex items-end bg-slate-950/45 p-3 sm:items-center">
