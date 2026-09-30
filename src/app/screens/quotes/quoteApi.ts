@@ -20,6 +20,8 @@ export type QuoteRequest = {
   status: QuoteStatus;
   quotedPriceClp: number | null;
   businessMessage: string | null;
+  customerArchivedAt: string | null;
+  businessArchivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -52,3 +54,4 @@ export const getMyQuotes = (token: string) => request<QuoteRequest[]>('/quotes/m
 export const getBusinessQuotes = (businessId: number, token: string) => request<QuoteRequest[]>(`/quotes/business/${businessId}`, token);
 export const respondQuote = (id: number, priceClp: number, message: string, token: string) => request<QuoteRequest>(`/quotes/${id}/respond`, token, { method: 'PATCH', body: JSON.stringify({ priceClp, message: message.trim() || undefined }) });
 export const updateQuoteStatus = (id: number, status: 'accepted' | 'declined' | 'cancelled', token: string) => request<QuoteRequest>(`/quotes/${id}/status`, token, { method: 'PATCH', body: JSON.stringify({ status }) });
+export const archiveQuote = (id: number, archived: boolean, token: string) => request<QuoteRequest>(`/quotes/${id}/archive`, token, { method: 'PATCH', body: JSON.stringify({ archived }) });

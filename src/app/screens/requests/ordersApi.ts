@@ -44,3 +44,15 @@ export async function patchOrderStatus(
   try { body = await response.json(); } catch { body = null; }
   throw new OrdersApiError(getErrorMessage(response.status, body), response.status);
 }
+
+export async function archiveOrder(requestId: number, archived: boolean, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/orders/${requestId}/archive`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ archived })
+  });
+  if (response.ok) return;
+  let body: unknown = null;
+  try { body = await response.json(); } catch { body = null; }
+  throw new OrdersApiError(getErrorMessage(response.status, body), response.status);
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Check, ChevronRight, Image as ImageIcon, Minus, X } from 'lucide-react';
+import { Calendar, Check, ChevronRight, Image as ImageIcon, Minus, RotateCcw, Trash2, X } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { QuoteRequest } from '../quotes/quoteApi';
 import type { BusinessRequest, MyOrder } from './types';
@@ -96,15 +96,16 @@ function normalizeQuote(quote: QuoteRequest, owner: 'customer' | 'business'): Hi
   };
 }
 
-export function OrderHistoryList({ orders, owner }: { orders: Array<MyOrder | BusinessRequest>; owner: 'customer' | 'business' }) {
-  return <CompactHistoryList items={orders.map((order) => normalizeOrder(order, owner))} />;
+export function OrderHistoryList({ orders, owner, deleted, onArchive }: { orders: Array<MyOrder | BusinessRequest>; owner: 'customer' | 'business'; deleted: boolean; onArchive: (id: number, archived: boolean) => void }) {
+  return <CompactHistoryList items={orders.map((order) => normalizeOrder(order, owner))} deleted={deleted} onArchive={onArchive} />;
 }
 
-export function QuoteHistoryList({ quotes, owner }: { quotes: QuoteRequest[]; owner: 'customer' | 'business' }) {
-  return <CompactHistoryList items={quotes.map((quote) => normalizeQuote(quote, owner))} />;
+export function QuoteHistoryList({ quotes, owner, deleted, onArchive }: { quotes: QuoteRequest[]; owner: 'customer' | 'business'; deleted: boolean; onArchive: (quote: QuoteRequest, archived: boolean) => void }) {
+  const byId = new Map(quotes.map((quote) => [quote.id, quote]));
+  return <CompactHistoryList items={quotes.map((quote) => normalizeQuote(quote, owner))} deleted={deleted} onArchive={(id, archived) => { const quote = byId.get(id); if (quote) onArchive(quote, archived); }} />;
 }
 
-function CompactHistoryList({ items }: { items: HistoryItem[] }) {
+function CompactHistoryList({ items, deleted, onArchive }: { items: HistoryItem[]; deleted: boolean; onArchive: (id: number, archived: boolean) => void }) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
   const { unread, markRead } = useUnreadInteractions();
   return <>
@@ -123,6 +124,27 @@ function CompactHistoryList({ items }: { items: HistoryItem[] }) {
             <span className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-500"><Calendar className="h-3.5 w-3.5" />{item.date}</span>
           </span>
           <span className="flex min-w-[92px] flex-col items-end gap-2">
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={deleted ? 'Restaurar solicitud' : 'Mover solicitud a Eliminados'}
+              onClick={(event) => {
+                event.stopPropagation();
+                const confirmed = window.confirm(deleted
+                  ? '¿Deseas restaurar esta solicitud para que vuelva al historial?'
+                  : '¿Deseas mover esta solicitud a Eliminados? Podrás restaurarla después.');
+                if (confirmed) onArchive(item.id, !deleted);
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault(); event.stopPropagation();
+                const confirmed = window.confirm(deleted
+                  ? '¿Deseas restaurar esta solicitud para que vuelva al historial?'
+                  : '¿Deseas mover esta solicitud a Eliminados? Podrás restaurarla después.');
+                if (confirmed) onArchive(item.id, !deleted);
+              }}
+              className={`flex h-8 w-8 items-center justify-center rounded-full ${deleted ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}
+            >{deleted ? <RotateCcw className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}</span>
             <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${presentation.classes}`}><StatusIcon className="h-3.5 w-3.5" />{presentation.label}</span>
             <span className="flex items-center gap-1.5"><span className="text-sm font-black text-emerald-600">{item.price === null ? '—' : money(item.price)}</span><ChevronRight className="h-5 w-5 text-slate-600" /></span>
           </span>

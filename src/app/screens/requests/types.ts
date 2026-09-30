@@ -53,6 +53,7 @@ type CommonOrderData = {
   needNow: boolean;
   referencePhoto: string | null;
   cancellationReason: NormalizedCancellationReason;
+  archivedAt: string | null;
   dataIssues: OrderDataIssue[];
 };
 

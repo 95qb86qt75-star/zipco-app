@@ -123,6 +123,7 @@ function normalizeCandidate(
       needNow: false,
       referencePhoto: null,
       cancellationReason: null,
+      archivedAt: null,
       dataIssues: []
     };
     console.warn('Invalid order response fields', {
@@ -188,6 +189,7 @@ function normalizeCandidate(
     needNow,
     referencePhoto,
     cancellationReason: normalizeReason(record.cancellationReason, rawStatus, dataIssues),
+    archivedAt: parseIsoDate(context === 'customer' ? record.customerArchivedAt : record.businessArchivedAt),
     dataIssues: uniqueIssues(dataIssues)
   };
 

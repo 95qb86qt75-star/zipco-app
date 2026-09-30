@@ -10,7 +10,7 @@ import {
   normalizeBusinessOrdersPayload,
   normalizeMyOrdersPayload
 } from './orderNormalization';
-import { OrdersApiError, patchOrderStatus } from './ordersApi';
+import { archiveOrder, OrdersApiError, patchOrderStatus } from './ordersApi';
 import { isRecord } from './orderValueParsers';
 import type { BusinessRequest, CancellationReason, MyOrder, OrderAction, OrderActor } from './types';
 
@@ -120,5 +120,17 @@ export default function useRequests(onSessionExpired: () => void) {
     }
   }, [loadOrders, onSessionExpired]);
 
-  return { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction };
+  const setArchived = useCallback(async (id: number, archived: boolean) => {
+    const token = localStorage.getItem('zipco-token');
+    if (!token) return;
+    try {
+      await archiveOrder(id, archived, token);
+      await loadOrders();
+      showAppToast(archived ? 'Pedido movido a Eliminados.' : 'Pedido restaurado al historial.');
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : 'No se pudo actualizar el historial.', 'error');
+    }
+  }, [loadOrders]);
+
+  return { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction, setArchived };
 }

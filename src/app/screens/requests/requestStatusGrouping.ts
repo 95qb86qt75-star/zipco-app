@@ -1,8 +1,8 @@
 export type RequestKind = 'orders' | 'quotes';
 export type StatusView = 'pending' | 'waiting' | 'active' | 'history';
-export type HistoryFilter = 'all' | 'completed' | 'cancelled' | 'rejected';
+export type HistoryFilter = 'all' | 'completed' | 'cancelled' | 'rejected' | 'deleted';
 
-type StatusRecord = { status: string };
+type StatusRecord = { status: string; archivedAt?: string | null };
 
 export function statusViewFor(kind: RequestKind, status: string): StatusView | null {
   if (kind === 'orders') {
@@ -30,11 +30,16 @@ export function filterByStatusView<T extends StatusRecord>(
   records: T[],
   kind: RequestKind,
   view: StatusView,
-  historyFilter: HistoryFilter = 'all'
+  historyFilter: HistoryFilter = 'all',
+  isArchived: (record: T) => boolean = (record) => Boolean(record.archivedAt)
 ) {
   return records.filter((record) => {
     if (statusViewFor(kind, record.status) !== view) return false;
-    if (view !== 'history' || historyFilter === 'all') return true;
+    if (view !== 'history') return true;
+    const archived = isArchived(record);
+    if (historyFilter === 'deleted') return archived;
+    if (archived) return false;
+    if (historyFilter === 'all') return true;
     if (historyFilter === 'rejected') {
       return record.status === (kind === 'quotes' ? 'declined' : 'rejected');
     }

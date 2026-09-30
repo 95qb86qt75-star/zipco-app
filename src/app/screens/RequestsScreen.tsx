@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Filter, List, Minus, RefreshCw, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Filter, List, Minus, RefreshCw, Trash2, X } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
@@ -36,7 +36,7 @@ export default function RequestsScreen({
   const [historyFilters, setHistoryFilters] = useState<Record<string, HistoryFilter>>({});
   const [sortDirections, setSortDirections] = useState<Record<string, 'newest' | 'oldest'>>({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
-  const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
+  const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction, setArchived: setOrderArchived } = useRequests(onSessionExpired);
   const quotes = useQuotes(onSessionExpired);
   const viewKey = `${subTab}-${requestType}`;
   const statusView = statusViews[viewKey] ?? 'pending';
@@ -55,7 +55,10 @@ export default function RequestsScreen({
   });
   const filteredMyOrders = sortRecords(filterByStatusView(myOrders, 'orders', statusView, historyFilter));
   const filteredBusinessOrders = sortRecords(filterByStatusView(requests, 'orders', statusView, historyFilter));
-  const filteredQuotes = sortRecords(filterByStatusView(quoteRecords, 'quotes', statusView, historyFilter));
+  const filteredQuotes = sortRecords(filterByStatusView(
+    quoteRecords, 'quotes', statusView, historyFilter,
+    (quote) => Boolean(subTab === 'my-orders' ? quote.customerArchivedAt : quote.businessArchivedAt)
+  ));
   const emptyCopy = {
     pending: {
       title: 'No tienes solicitudes pendientes',
@@ -71,7 +74,7 @@ export default function RequestsScreen({
     },
     history: {
       title: historyFilter === 'all' ? 'Todavía no tienes historial' : 'No hay resultados para este filtro',
-      description: historyFilter === 'all' ? 'Las solicitudes finalizadas aparecerán aquí.' : 'Prueba mostrando todo el historial.'
+      description: historyFilter === 'deleted' ? 'Las solicitudes que muevas a Eliminados aparecerán aquí.' : historyFilter === 'all' ? 'Las solicitudes finalizadas aparecerán aquí.' : 'Prueba mostrando todo el historial.'
     }
   }[statusView];
 
@@ -84,7 +87,8 @@ export default function RequestsScreen({
       ? [{ value: 'completed' as const, label: 'Completadas', description: 'Pedidos finalizados correctamente.' }]
       : []),
     { value: 'cancelled', label: 'Canceladas', description: 'Solicitudes que no continuaron.' },
-    { value: 'rejected', label: 'Rechazadas', description: 'Solicitudes rechazadas antes de concretarse.' }
+    { value: 'rejected', label: 'Rechazadas', description: 'Solicitudes rechazadas antes de concretarse.' },
+    { value: 'deleted', label: 'Eliminados', description: 'Solicitudes ocultas que todavía puedes restaurar.' }
   ];
   const historyFilterLabel = historyOptions.find((option) => option.value === historyFilter)?.label ?? 'Todas';
 
@@ -206,7 +210,7 @@ export default function RequestsScreen({
         {requestType === 'quotes' && quotes.loading && <div className="py-16 text-center text-sm font-semibold text-slate-500">Cargando cotizaciones…</div>}
         {requestType === 'quotes' && !quotes.loading && quotes.error && <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center"><p className="text-sm font-semibold text-red-700">{quotes.error}</p><button onClick={() => void quotes.load()} className="mt-3 rounded-xl bg-white px-4 py-2 text-sm font-bold text-red-700">Intentar nuevamente</button></div>}
         {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length === 0 && <CustomerQuotes quotes={[]} updating={quotes.updating} onStatus={quotes.changeStatus} emptyText={emptyCopy.description} />}
-        {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView === 'history' && <QuoteHistoryList quotes={filteredQuotes} owner={subTab === 'my-orders' ? 'customer' : 'business'} />}
+        {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView === 'history' && <QuoteHistoryList quotes={filteredQuotes} owner={subTab === 'my-orders' ? 'customer' : 'business'} deleted={historyFilter === 'deleted'} onArchive={quotes.setArchived} />}
         {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView !== 'history' && subTab === 'my-orders' && <CustomerQuotes quotes={filteredQuotes} updating={quotes.updating} onStatus={quotes.changeStatus} emptyText={emptyCopy.description} />}
         {requestType === 'quotes' && !quotes.loading && !quotes.error && filteredQuotes.length > 0 && statusView !== 'history' && hasBusiness && subTab === 'my-business' && <BusinessQuotes quotes={filteredQuotes} updating={quotes.updating} onRespond={quotes.respond} emptyText={emptyCopy.description} />}
         {requestType === 'orders' && <>
@@ -226,8 +230,8 @@ export default function RequestsScreen({
           </div>
         )}
 
-        {!isLoading && !loadError && statusView === 'history' && subTab === 'my-orders' && filteredMyOrders.length > 0 && <OrderHistoryList orders={filteredMyOrders} owner="customer" />}
-        {!isLoading && !loadError && statusView === 'history' && hasBusiness && subTab === 'my-business' && filteredBusinessOrders.length > 0 && <OrderHistoryList orders={filteredBusinessOrders} owner="business" />}
+        {!isLoading && !loadError && statusView === 'history' && subTab === 'my-orders' && filteredMyOrders.length > 0 && <OrderHistoryList orders={filteredMyOrders} owner="customer" deleted={historyFilter === 'deleted'} onArchive={setOrderArchived} />}
+        {!isLoading && !loadError && statusView === 'history' && hasBusiness && subTab === 'my-business' && filteredBusinessOrders.length > 0 && <OrderHistoryList orders={filteredBusinessOrders} owner="business" deleted={historyFilter === 'deleted'} onArchive={setOrderArchived} />}
 
         {!isLoading && !loadError && statusView !== 'history' && subTab === 'my-orders' && (
           <MyOrdersTab
@@ -271,7 +275,9 @@ export default function RequestsScreen({
                     ? <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-emerald-500 text-white"><Check className="h-4 w-4 stroke-[3]" /></span>
                     : option.value === 'cancelled'
                       ? <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-red-500 text-white"><X className="h-4 w-4 stroke-[3]" /></span>
-                      : <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-slate-500 text-white"><Minus className="h-4 w-4 stroke-[3]" /></span>;
+                      : option.value === 'rejected'
+                        ? <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-slate-500 text-white"><Minus className="h-4 w-4 stroke-[3]" /></span>
+                        : <span className="flex h-6 w-6 justify-self-center items-center justify-center rounded-full bg-red-100 text-red-500"><Trash2 className="h-4 w-4" /></span>;
                 return (
                 <button
                   key={option.value}

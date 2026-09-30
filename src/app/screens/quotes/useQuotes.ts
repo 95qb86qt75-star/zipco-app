@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { showAppToast } from '../Toast';
-import { getBusinessQuotes, getMyQuotes, QuoteApiError, respondQuote, updateQuoteStatus, type QuoteRequest } from './quoteApi';
+import { archiveQuote, getBusinessQuotes, getMyQuotes, QuoteApiError, respondQuote, updateQuoteStatus, type QuoteRequest } from './quoteApi';
 
 export default function useQuotes(onSessionExpired: () => void) {
   const [myQuotes, setMyQuotes] = useState<QuoteRequest[]>([]);
@@ -43,6 +43,10 @@ export default function useQuotes(onSessionExpired: () => void) {
     const token = localStorage.getItem('zipco-token'); if (!token) return;
     void run(quote, () => respondQuote(quote.id, price, message, token), 'Cotización enviada al cliente.');
   };
+  const setArchived = (quote: QuoteRequest, archived: boolean) => {
+    const token = localStorage.getItem('zipco-token'); if (!token) return;
+    void run(quote, () => archiveQuote(quote.id, archived, token), archived ? 'Cotización movida a Eliminados.' : 'Cotización restaurada al historial.');
+  };
 
-  return { hasBusiness, myQuotes, businessQuotes, loading, error, updating, load, changeStatus, respond };
+  return { hasBusiness, myQuotes, businessQuotes, loading, error, updating, load, changeStatus, respond, setArchived };
 }

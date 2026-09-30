@@ -35,4 +35,13 @@ describe('request status grouping', () => {
       { status: 'cancelled' }
     ], 'orders')).toEqual({ pending: 1, waiting: 0, active: 2, history: 1 });
   });
+
+  it('keeps archived requests out of normal history and exposes them in Eliminados', () => {
+    const records = [
+      { status: 'completed', id: 1, archivedAt: null },
+      { status: 'rejected', id: 2, archivedAt: '2026-09-30T12:00:00.000Z' }
+    ];
+    expect(filterByStatusView(records, 'orders', 'history', 'all')).toEqual([records[0]]);
+    expect(filterByStatusView(records, 'orders', 'history', 'deleted')).toEqual([records[1]]);
+  });
 });
