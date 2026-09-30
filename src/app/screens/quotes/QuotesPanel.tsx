@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { Calendar, Image as ImageIcon, MessageSquareText } from "lucide-react";
+import { Fragment, useState } from "react";
+import {
+  Calendar,
+  CalendarDays,
+  Image as ImageIcon,
+  MessageSquareText,
+} from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import type { QuoteRequest } from "./quoteApi";
 import {
@@ -39,53 +44,58 @@ export function CustomerQuotes({
   if (!quotes.length) return <Empty text={emptyText} />;
   return (
     <div className="space-y-2">
-      {quotes.map((quote) => (
-        <QuoteCard
-          key={quote.id}
-          quote={quote}
-          unread={unread.has(interactionKey("quote", quote.id))}
-          onOpen={() => markRead("quote", quote.id)}
-        >
-          {quote.status === "quoted" && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
+      {quotes.map((quote, index) => (
+        <Fragment key={quote.id}>
+          {(index === 0 ||
+            formatQuoteDay(quotes[index - 1]) !== formatQuoteDay(quote)) && (
+            <QuoteDateDivider label={formatQuoteDay(quote)} />
+          )}
+          <QuoteCard
+            quote={quote}
+            unread={unread.has(interactionKey("quote", quote.id))}
+            onOpen={() => markRead("quote", quote.id)}
+          >
+            {quote.status === "quoted" && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button
+                  disabled={updating.has(quote.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    markRead("quote", quote.id);
+                    onStatus(quote, "declined");
+                  }}
+                  className="rounded-xl border border-red-200 py-2 text-sm font-bold text-red-600"
+                >
+                  Rechazar
+                </button>
+                <button
+                  disabled={updating.has(quote.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    markRead("quote", quote.id);
+                    onStatus(quote, "accepted");
+                  }}
+                  className="rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white"
+                >
+                  Aceptar
+                </button>
+              </div>
+            )}
+            {(quote.status === "requested" || quote.status === "quoted") && (
               <button
                 disabled={updating.has(quote.id)}
                 onClick={(event) => {
                   event.stopPropagation();
                   markRead("quote", quote.id);
-                  onStatus(quote, "declined");
+                  onStatus(quote, "cancelled");
                 }}
-                className="rounded-xl border border-red-200 py-2 text-sm font-bold text-red-600"
+                className="mt-2 w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
               >
-                Rechazar
+                Cancelar solicitud
               </button>
-              <button
-                disabled={updating.has(quote.id)}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  markRead("quote", quote.id);
-                  onStatus(quote, "accepted");
-                }}
-                className="rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white"
-              >
-                Aceptar
-              </button>
-            </div>
-          )}
-          {(quote.status === "requested" || quote.status === "quoted") && (
-            <button
-              disabled={updating.has(quote.id)}
-              onClick={(event) => {
-                event.stopPropagation();
-                markRead("quote", quote.id);
-                onStatus(quote, "cancelled");
-              }}
-              className="mt-2 w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
-            >
-              Cancelar solicitud
-            </button>
-          )}
-        </QuoteCard>
+            )}
+          </QuoteCard>
+        </Fragment>
       ))}
     </div>
   );
@@ -110,28 +120,33 @@ export function BusinessQuotes({
   return (
     <>
       <div className="space-y-2">
-        {quotes.map((quote) => (
-          <QuoteCard
-            key={quote.id}
-            quote={quote}
-            unread={unread.has(interactionKey("quote", quote.id))}
-            onOpen={() => markRead("quote", quote.id)}
-          >
-            {quote.status === "requested" && (
-              <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  markRead("quote", quote.id);
-                  setSelected(quote);
-                  setPrice("");
-                  setMessage("");
-                }}
-                className="mt-2 w-full rounded-lg bg-violet-600 py-2 text-xs font-bold text-white"
-              >
-                Responder con precio
-              </button>
+        {quotes.map((quote, index) => (
+          <Fragment key={quote.id}>
+            {(index === 0 ||
+              formatQuoteDay(quotes[index - 1]) !== formatQuoteDay(quote)) && (
+              <QuoteDateDivider label={formatQuoteDay(quote)} />
             )}
-          </QuoteCard>
+            <QuoteCard
+              quote={quote}
+              unread={unread.has(interactionKey("quote", quote.id))}
+              onOpen={() => markRead("quote", quote.id)}
+            >
+              {quote.status === "requested" && (
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    markRead("quote", quote.id);
+                    setSelected(quote);
+                    setPrice("");
+                    setMessage("");
+                  }}
+                  className="mt-2 w-full rounded-lg bg-violet-600 py-2 text-xs font-bold text-white"
+                >
+                  Responder con precio
+                </button>
+              )}
+            </QuoteCard>
+          </Fragment>
         ))}
       </div>
       {selected && (
@@ -256,6 +271,25 @@ function QuoteCard({
       )}
       {children}
     </article>
+  );
+}
+function formatQuoteDay(quote: QuoteRequest) {
+  const parsed = new Date(quote.createdAt);
+  return Number.isNaN(parsed.getTime())
+    ? "Fecha no disponible"
+    : new Intl.DateTimeFormat("es-CL", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(parsed);
+}
+function QuoteDateDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 pt-1 text-xs font-bold text-slate-500">
+      <CalendarDays className="h-4 w-4" />
+      <span>{label}</span>
+      <span className="h-px flex-1 bg-slate-200" />
+    </div>
   );
 }
 function Empty({ text }: { text: string }) {
