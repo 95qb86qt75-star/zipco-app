@@ -1,15 +1,15 @@
-import { Check, X } from "lucide-react";
+import {
+  Calendar,
+  Check,
+  Image as ImageIcon,
+  MessageCircle,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { BusinessRequest, OrderAction } from "./types";
 import { formatBusinessDeliverySchedule } from "./utils";
-
-const REASON_LABELS = {
-  no_longer_needed: "Ya no lo necesitaba.",
-  business_took_too_long: "El negocio tardó demasiado.",
-  selected_by_mistake: "Lo seleccionó por error.",
-} as const;
 
 type Props = {
   request: BusinessRequest;
@@ -28,181 +28,155 @@ export default function BusinessOrderCard({
   isUnread = false,
   onOpen,
 }: Props) {
-  const [showReferencePhoto, setShowReferencePhoto] = useState(false);
-  if (request.recordState === "unavailable") {
+  const [showPhoto, setShowPhoto] = useState(false);
+  if (request.recordState === "unavailable")
     return (
-      <div className="rounded-xl border border-gray-300 bg-white/80 p-3 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h4 className="text-xs font-bold text-gray-900">
-              Pedido no disponible
-            </h4>
-            <p className="text-xs text-gray-500">
-              No pudimos interpretar el estado de este pedido.
-            </p>
-          </div>
+      <div className="rounded-2xl border bg-white p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-bold">Pedido no disponible</p>
           <OrderStatusBadge status="unavailable" />
         </div>
         <button
-          type="button"
           onClick={onRetry}
-          className="mt-3 text-xs font-semibold text-teal-700"
+          className="mt-2 text-xs font-bold text-teal-700"
         >
           Intentar nuevamente
         </button>
       </div>
     );
-  }
-
   const canAccept =
     request.status === "pending" && request.products.state === "available";
-  const primaryAction: OrderAction | null =
+  const action: OrderAction | null =
     request.status === "accepted"
       ? "mark-ready"
       : request.status === "ready"
         ? "complete-delivery"
         : null;
-  const total = request.total;
-  const deliverySchedule = formatBusinessDeliverySchedule(request);
-
+  const schedule = formatBusinessDeliverySchedule(request);
   return (
-    <div
+    <article
       id={`order-${request.id}`}
       onClick={onOpen}
-      className={`rounded-xl border p-2.5 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-gray-200 bg-white/80"}`}
+      className={`rounded-2xl border p-3 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-white"}`}
     >
-      <div className="mb-1.5 flex items-center gap-2">
-        <ImageWithFallback
-          src={request.customerImage}
-          alt={request.customerName}
-          className="h-9 w-9 rounded-lg object-cover"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h4 className="truncate text-xs font-bold text-gray-900">
+      <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
+        {request.referencePhoto ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              setShowPhoto(true);
+            }}
+          >
+            <ImageWithFallback
+              src={request.referencePhoto}
+              alt="Foto de referencia"
+              className="h-[72px] w-[72px] rounded-xl object-cover"
+            />
+          </button>
+        ) : (
+          <span className="flex h-[72px] w-[72px] items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+            <ImageIcon className="h-6 w-6" />
+          </span>
+        )}
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h4 className="truncate text-sm font-black text-slate-950">
               {request.customerName || "Cliente"}
             </h4>
             {isUnread && (
-              <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">
+              <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">
                 Nueva
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500">{request.date}</p>
+          {request.products.state === "available" ? (
+            request.products.items.map((product, index) => (
+              <p
+                key={`${product.name}-${index}`}
+                className="truncate text-xs text-slate-700"
+              >
+                <strong>{product.quantity}x</strong> {product.name}
+              </p>
+            ))
+          ) : (
+            <p className="text-xs text-red-600">Producto no disponible</p>
+          )}
+          {schedule && (
+            <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{schedule}</span>
+            </p>
+          )}
+          {request.note && (
+            <p className="mt-1 flex items-center gap-1.5 truncate text-[11px] italic text-slate-500">
+              <MessageCircle className="h-3.5 w-3.5 shrink-0" />“{request.note}”
+            </p>
+          )}
         </div>
-        <OrderStatusBadge status={request.status} />
+        <div className="flex flex-col items-end gap-2">
+          <OrderStatusBadge status={request.status} />
+          <span className="whitespace-nowrap text-base font-black text-emerald-600">
+            {request.total === null
+              ? "—"
+              : `$${request.total.toLocaleString("es-CL")}`}
+          </span>
+        </div>
       </div>
-
-      <div className="mb-1.5 rounded-lg bg-gray-50 px-2 py-1.5">
-        {request.products.state === "unavailable" ? (
-          <p className="text-xs text-red-700">
-            Información de productos no disponible. No puedes aceptar ni
-            preparar este pedido.
-          </p>
-        ) : (
-          request.products.items.map((product, index) => (
-            <div
-              key={`${product.name}-${index}`}
-              className="flex justify-between text-xs"
-            >
-              <span>
-                {product.quantity}x {product.name}
-              </span>
-              <span className="font-semibold">
-                ${(product.price * product.quantity).toLocaleString("es-CL")}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-
-      {deliverySchedule && (
-        <div className="mb-1.5 rounded-lg border border-purple-200 bg-purple-50 px-2 py-1.5 text-xs">
-          {deliverySchedule}
+      {request.status === "pending" && (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            disabled={isUpdating}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("reject");
+            }}
+            className="rounded-xl bg-red-500 py-2 text-xs font-bold text-white"
+          >
+            <X className="mr-1 inline h-3.5 w-3.5" />
+            Rechazar
+          </button>
+          <button
+            disabled={isUpdating || !canAccept}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("accept");
+            }}
+            className="rounded-xl bg-teal-600 py-2 text-xs font-bold text-white"
+          >
+            <Check className="mr-1 inline h-3.5 w-3.5" />
+            Aceptar
+          </button>
         </div>
       )}
-      {request.note && (
-        <p className="mb-1.5 rounded-lg bg-blue-50 px-2 py-1.5 text-xs italic">
-          “{request.note}”
-        </p>
-      )}
-      {request.status === "cancelled" && (
-        <p className="mb-2 text-xs text-gray-600">
-          Motivo:{" "}
-          {request.cancellationReason &&
-          request.cancellationReason !== "unavailable"
-            ? REASON_LABELS[request.cancellationReason]
-            : "Motivo no disponible."}
-        </p>
-      )}
-      {request.referencePhoto && (
+      {action && (
         <button
-          type="button"
-          onClick={() => setShowReferencePhoto(true)}
-          className="mb-2 text-xs font-semibold text-teal-700"
+          disabled={isUpdating}
+          onClick={(event) => {
+            event.stopPropagation();
+            onAction(action);
+          }}
+          className="mt-3 w-full rounded-xl bg-teal-600 py-2 text-xs font-bold text-white"
         >
-          Ver foto de referencia
+          {isUpdating
+            ? "Guardando..."
+            : action === "mark-ready"
+              ? "Marcar pedido listo"
+              : "Confirmar entrega"}
         </button>
       )}
-
-      <div className="flex items-center justify-between gap-2 border-t border-gray-100 pt-2">
-        <span className="text-sm font-bold">
-          {total === null
-            ? "Total no disponible"
-            : `$${total.toLocaleString("es-CL")}`}
-        </span>
-        {request.status === "pending" && (
-          <div className="flex gap-2">
-            <button
-              disabled={isUpdating}
-              onClick={() => onAction("reject")}
-              className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-            >
-              <X className="mr-1 inline h-3 w-3" />
-              Rechazar
-            </button>
-            <button
-              disabled={isUpdating || !canAccept}
-              onClick={() => onAction("accept")}
-              className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
-            >
-              <Check className="mr-1 inline h-3 w-3" />
-              Aceptar
-            </button>
-          </div>
-        )}
-        {primaryAction && (
-          <button
-            disabled={
-              isUpdating ||
-              (primaryAction === "mark-ready" &&
-                request.products.state === "unavailable")
-            }
-            onClick={() => onAction(primaryAction)}
-            className="rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
-          >
-            {isUpdating
-              ? "Guardando..."
-              : primaryAction === "mark-ready"
-                ? "Marcar pedido listo"
-                : "Confirmar entrega"}
-          </button>
-        )}
-      </div>
-
-      {showReferencePhoto && request.referencePhoto && (
+      {showPhoto && request.referencePhoto && (
         <div
           className="fixed inset-0 z-[90] flex items-center justify-center bg-black p-4"
-          onClick={() => setShowReferencePhoto(false)}
+          onClick={() => setShowPhoto(false)}
         >
           <ImageWithFallback
             src={request.referencePhoto}
             alt="Foto de referencia"
-            onClick={(event) => event.stopPropagation()}
             className="max-h-full w-full object-contain"
           />
         </div>
       )}
-    </div>
+    </article>
   );
 }

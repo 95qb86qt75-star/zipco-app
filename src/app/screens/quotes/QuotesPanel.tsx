@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Calendar, MessageSquareText } from "lucide-react";
+import { Calendar, Image as ImageIcon, MessageSquareText } from "lucide-react";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import type { QuoteRequest } from "./quoteApi";
 import {
   interactionKey,
@@ -204,10 +205,21 @@ function QuoteCard({
       onClick={onOpen}
       className={`rounded-2xl border p-3 shadow-sm transition-colors ${unread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"}`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-start gap-3">
+        {quote.referencePhoto ? (
+          <ImageWithFallback
+            src={quote.referencePhoto}
+            alt={quote.itemNameSnapshot}
+            className="h-16 w-16 rounded-xl object-cover"
+          />
+        ) : (
+          <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+            <ImageIcon className="h-5 w-5" />
+          </span>
+        )}
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-black text-slate-900">
+            <h3 className="truncate text-sm font-black text-slate-900">
               {quote.itemNameSnapshot}
             </h3>
             {unread && (
@@ -218,11 +230,13 @@ function QuoteCard({
           </div>
           <p className="text-xs text-slate-500">{quote.customerName}</p>
         </div>
-        <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">
+        <span className="max-w-[88px] rounded-full bg-violet-50 px-2.5 py-1 text-center text-[10px] font-bold leading-tight text-violet-700">
           {labels[quote.status]}
         </span>
       </div>
-      <p className="mt-2 line-clamp-2 text-xs text-slate-700">{quote.message}</p>
+      <p className="mt-2 line-clamp-2 text-xs text-slate-700">
+        {quote.message}
+      </p>
       <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
         <Calendar className="h-3.5 w-3.5" />
         {quote.needNow

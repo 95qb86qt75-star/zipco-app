@@ -1,13 +1,8 @@
+import { Calendar, ChevronRight, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { MyOrder, OrderAction } from "./types";
 import { formatDeliverySchedule } from "./utils";
-
-const REASON_LABELS = {
-  no_longer_needed: "Ya no lo necesitaba.",
-  business_took_too_long: "El negocio tardó demasiado.",
-  selected_by_mistake: "Lo seleccionó por error.",
-} as const;
 
 type Props = {
   order: MyOrder;
@@ -26,137 +21,107 @@ export default function MyOrderCard({
   isUnread = false,
   onOpen,
 }: Props) {
-  if (order.recordState === "unavailable") {
+  if (order.recordState === "unavailable")
     return (
-      <div className="bg-white/80 rounded-2xl p-4 border border-gray-300 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h4 className="font-semibold text-gray-900 text-sm">
-              Pedido no disponible
-            </h4>
-            <p className="text-xs text-gray-500">
-              No pudimos interpretar el estado de este pedido.
-            </p>
-          </div>
+      <div className="rounded-2xl border bg-white p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-bold">Pedido no disponible</p>
           <OrderStatusBadge status="unavailable" />
         </div>
         <button
-          type="button"
           onClick={onRetry}
-          className="mt-3 text-sm font-semibold text-teal-700"
+          className="mt-2 text-xs font-bold text-teal-700"
         >
           Intentar nuevamente
         </button>
       </div>
     );
-  }
-
   const action =
     order.status === "pending"
       ? "cancel"
       : order.status === "ready"
         ? "complete-reception"
         : null;
-  const deliverySchedule = formatDeliverySchedule(order, "customer");
-
+  const schedule = formatDeliverySchedule(order, "customer");
   return (
-    <div
+    <article
       id={`order-${order.id}`}
       onClick={onOpen}
-      className={`backdrop-blur-sm rounded-2xl p-3 border shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-gray-200 bg-white/80"}`}
+      className={`rounded-2xl border p-3 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-white"}`}
     >
-      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+      <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         <ImageWithFallback
           src={order.businessImage}
           alt={order.businessName}
-          className="w-10 h-10 rounded-lg object-cover"
+          className="h-[72px] w-[72px] rounded-xl object-cover"
         />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-gray-900 text-sm truncate">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h4 className="truncate text-sm font-black text-slate-950">
               {order.businessName}
             </h4>
             {isUnread && (
-              <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">
+              <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">
                 Nueva
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500">{order.date}</p>
+          {order.products.state === "available" ? (
+            order.products.items.map((product, index) => (
+              <p
+                key={`${product.name}-${index}`}
+                className="truncate text-xs text-slate-700"
+              >
+                <strong>{product.quantity}x</strong> {product.name}
+              </p>
+            ))
+          ) : (
+            <p className="text-xs text-red-600">Producto no disponible</p>
+          )}
+          {schedule && (
+            <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{schedule}</span>
+            </p>
+          )}
+          {order.note && (
+            <p className="mt-1 flex items-center gap-1.5 truncate text-[11px] italic text-slate-500">
+              <MessageCircle className="h-3.5 w-3.5 shrink-0" />“{order.note}”
+            </p>
+          )}
         </div>
-        <OrderStatusBadge status={order.status} />
+        <div className="flex flex-col items-end gap-2">
+          <OrderStatusBadge status={order.status} />
+          <span className="whitespace-nowrap text-base font-black text-emerald-600">
+            {order.total === null
+              ? "—"
+              : `$${order.total.toLocaleString("es-CL")}`}
+          </span>
+        </div>
       </div>
-
-      {order.products.state === "unavailable" ? (
-        <p className="mb-3 text-sm text-red-700">
-          Información de productos no disponible.
-        </p>
-      ) : (
-        <div className="mb-2 space-y-0.5">
-          {order.products.items.map((product, index) => (
-            <div
-              key={`${product.name}-${index}`}
-              className="flex justify-between text-sm"
-            >
-              <span>
-                {product.quantity}x {product.name}
-              </span>
-              <span className="font-semibold">
-                ${(product.price * product.quantity).toLocaleString("es-CL")}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {deliverySchedule && (
-        <div className="mb-2 rounded-lg border border-purple-200 bg-purple-50 px-2 py-1.5 text-xs text-purple-900">
-          {deliverySchedule}
-        </div>
-      )}
-
-      {order.note && (
-        <p className="mb-2 rounded-lg bg-slate-50 px-2 py-1.5 text-xs italic text-slate-700">
-          “{order.note}”
-        </p>
-      )}
-
       {order.status === "accepted" && (
-        <p className="mb-2 rounded-lg bg-blue-50 px-2 py-1.5 text-xs text-blue-800">
+        <p className="mt-3 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
           El negocio está preparando tu pedido.
+          <ChevronRight className="h-4 w-4" />
         </p>
       )}
-      {order.status === "cancelled" && (
-        <p className="mb-3 text-sm text-gray-600">
-          Motivo:{" "}
-          {order.cancellationReason &&
-          order.cancellationReason !== "unavailable"
-            ? REASON_LABELS[order.cancellationReason]
-            : "Motivo no disponible."}
-        </p>
+      {action && (
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={(event) => {
+            event.stopPropagation();
+            onAction(action);
+          }}
+          className="mt-3 w-full rounded-xl bg-teal-600 py-2 text-xs font-bold text-white disabled:opacity-50"
+        >
+          {isUpdating
+            ? "Guardando..."
+            : action === "cancel"
+              ? "Cancelar pedido"
+              : "Confirmar recepción"}
+        </button>
       )}
-
-      <div className="flex items-center justify-between border-t border-gray-100 pt-2">
-        <span className="font-bold">
-          {order.total === null
-            ? "Total no disponible"
-            : `$${order.total.toLocaleString("es-CL")}`}
-        </span>
-        {action && (
-          <button
-            type="button"
-            disabled={isUpdating}
-            onClick={() => onAction(action)}
-            className="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {isUpdating
-              ? "Guardando..."
-              : action === "cancel"
-                ? "Cancelar pedido"
-                : "Confirmar recepción"}
-          </button>
-        )}
-      </div>
-    </div>
+    </article>
   );
 }
