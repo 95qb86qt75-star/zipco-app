@@ -489,8 +489,8 @@ export default function App() {
             products={checkoutData.products}
             onBack={() => setCurrentScreen('profile')}
             onOrderComplete={() => {
-              setCurrentScreen('home');
-              setActiveTab('requests');
+              setCheckoutData(null);
+              setCurrentScreen('profile');
             }}
             onCatalogConflict={() => {
               setCheckoutData(null);

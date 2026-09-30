@@ -3,9 +3,12 @@ import { Calendar, Check, ChevronRight, Image as ImageIcon, Minus, Package, X } 
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { QuoteRequest } from '../quotes/quoteApi';
 import type { BusinessRequest, MyOrder } from './types';
+import { interactionKey, useUnreadInteractions, type InteractionKind } from '../../notifications/unreadInteractions';
 
 type HistoryItem = {
   key: string;
+  id: number;
+  kind: InteractionKind;
   title: string;
   subtitle: string;
   date: string;
@@ -45,6 +48,8 @@ function normalizeOrder(order: MyOrder | BusinessRequest, owner: 'customer' | 'b
   const identity = isCustomer ? order as MyOrder : order as BusinessRequest;
   return {
     key: order.clientKey,
+    id: order.recordState === 'available' ? order.id : 0,
+    kind: 'order',
     title: products.map((product) => product.name).join(', ') || 'Pedido',
     subtitle: isCustomer ? (identity as MyOrder).businessName : (identity as BusinessRequest).customerName,
     date: order.date || formatDate(order.createdAt),
@@ -58,6 +63,8 @@ function normalizeOrder(order: MyOrder | BusinessRequest, owner: 'customer' | 'b
 function normalizeQuote(quote: QuoteRequest, owner: 'customer' | 'business'): HistoryItem {
   return {
     key: `quote-${quote.id}`,
+    id: quote.id,
+    kind: 'quote',
     title: quote.itemNameSnapshot,
     subtitle: owner === 'business' ? quote.customerName : 'Tu cotización',
     date: formatDate(quote.updatedAt || quote.createdAt),
@@ -78,17 +85,19 @@ export function QuoteHistoryList({ quotes, owner }: { quotes: QuoteRequest[]; ow
 
 function CompactHistoryList({ items }: { items: HistoryItem[] }) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
+  const { unread, markRead } = useUnreadInteractions();
   return <>
     <div className="space-y-2.5">
       {items.map((item) => {
         const presentation = statusPresentation[item.status];
         const StatusIcon = presentation.icon;
-        return <button key={item.key} type="button" onClick={() => setSelected(item)} className="grid w-full grid-cols-[64px_1fr_auto] items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-left shadow-sm">
+        const isUnread = unread.has(interactionKey(item.kind, item.id));
+        return <button id={`${item.kind}-${item.id}`} key={item.key} type="button" onClick={() => { markRead(item.kind, item.id); setSelected(item); }} className={`grid w-full grid-cols-[64px_1fr_auto] items-center gap-3 rounded-2xl border p-3 text-left shadow-sm ${isUnread ? 'border-sky-300 bg-sky-50 ring-2 ring-sky-100' : 'border-slate-100 bg-white'}`}>
           {item.image
             ? <ImageWithFallback src={item.image} alt={item.title} className="h-16 w-16 rounded-xl object-cover" />
             : <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-slate-400"><ImageIcon className="h-6 w-6" /></span>}
           <span className="min-w-0">
-            <span className="block truncate text-sm font-black text-slate-900">{item.title}</span>
+            <span className="flex items-center gap-2"><span className="block truncate text-sm font-black text-slate-900">{item.title}</span>{isUnread && <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">Nueva</span>}</span>
             <span className="mt-0.5 block truncate text-xs text-slate-500">{item.subtitle}</span>
             <span className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-500"><Calendar className="h-3.5 w-3.5" />{item.date}</span>
           </span>

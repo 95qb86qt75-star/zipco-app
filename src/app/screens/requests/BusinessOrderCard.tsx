@@ -16,9 +16,11 @@ type Props = {
   isUpdating: boolean;
   onAction: (action: OrderAction) => void;
   onRetry: () => void;
+  isUnread?: boolean;
+  onOpen?: () => void;
 };
 
-export default function BusinessOrderCard({ request, isUpdating, onAction, onRetry }: Props) {
+export default function BusinessOrderCard({ request, isUpdating, onAction, onRetry, isUnread = false, onOpen }: Props) {
   const [showReferencePhoto, setShowReferencePhoto] = useState(false);
   if (request.recordState === 'unavailable') {
     return (
@@ -45,11 +47,11 @@ export default function BusinessOrderCard({ request, isUpdating, onAction, onRet
   const deliverySchedule = formatBusinessDeliverySchedule(request);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white/80 p-3 shadow-sm">
+    <div id={`order-${request.id}`} onClick={onOpen} className={`rounded-xl border p-3 shadow-sm ${isUnread ? 'border-sky-300 bg-sky-50 ring-2 ring-sky-100' : 'border-gray-200 bg-white/80'}`}>
       <div className="mb-2 flex items-center gap-2">
         <ImageWithFallback src={request.customerImage} alt={request.customerName} className="h-10 w-10 rounded-full object-cover" />
         <div className="min-w-0 flex-1">
-          <h4 className="truncate text-xs font-bold text-gray-900">{request.customerName || 'Cliente'}</h4>
+          <div className="flex items-center gap-2"><h4 className="truncate text-xs font-bold text-gray-900">{request.customerName || 'Cliente'}</h4>{isUnread && <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">Nueva</span>}</div>
           <p className="text-xs text-gray-500">{request.date}</p>
         </div>
         <OrderStatusBadge status={request.status} />

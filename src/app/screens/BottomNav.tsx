@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { FileText, Heart, Home, UserRound } from 'lucide-react';
+import { getUnreadInteractions } from '../notifications/unreadInteractions';
 
 export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { activeTab: string; setActiveTab: (tab: string) => void; onNavigate?: (tab: string) => void }) {
-  const [pendingCount, setPendingCount] = useState(() => Number(localStorage.getItem('zipco-pending-interactions')) || 0);
+  const [pendingCount, setPendingCount] = useState(() => getUnreadInteractions().length);
 
   useEffect(() => {
     const update = (event: Event) => setPendingCount(Math.max(0, Number((event as CustomEvent<number>).detail) || 0));
-    window.addEventListener('zipco-pending-interactions', update);
-    return () => window.removeEventListener('zipco-pending-interactions', update);
+    window.addEventListener('zipco-unread-interactions', update);
+    return () => window.removeEventListener('zipco-unread-interactions', update);
   }, []);
 
   return (

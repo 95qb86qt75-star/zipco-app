@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Check, Filter, List, Minus, RefreshCw, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Filter, List, Minus, RefreshCw, X } from 'lucide-react';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import useRequests from './requests/useRequests';
@@ -7,9 +7,11 @@ import NotificationPermissionCard from '../notifications/NotificationPermissionC
 import { BusinessQuotes, CustomerQuotes } from './quotes/QuotesPanel';
 import useQuotes from './quotes/useQuotes';
 import { OrderHistoryList, QuoteHistoryList } from './requests/CompactHistoryList';
+import { markInteractionUnread } from '../notifications/unreadInteractions';
 import {
   countStatusViews,
   filterByStatusView,
+  statusViewFor,
   type HistoryFilter,
   type StatusView
 } from './requests/requestStatusGrouping';
@@ -32,21 +34,28 @@ export default function RequestsScreen({
   );
   const [statusViews, setStatusViews] = useState<Record<string, StatusView>>({});
   const [historyFilters, setHistoryFilters] = useState<Record<string, HistoryFilter>>({});
+  const [sortDirections, setSortDirections] = useState<Record<string, 'newest' | 'oldest'>>({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
   const { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction } = useRequests(onSessionExpired);
   const quotes = useQuotes(onSessionExpired);
   const viewKey = `${subTab}-${requestType}`;
   const statusView = statusViews[viewKey] ?? 'pending';
   const historyFilter = historyFilters[viewKey] ?? 'all';
+  const sortDirection = sortDirections[viewKey] ?? 'newest';
   const orderRecords = subTab === 'my-orders' ? myOrders : requests;
   const quoteRecords = subTab === 'my-orders' ? quotes.myQuotes : quotes.businessQuotes;
   const statusCounts = countStatusViews(
     requestType === 'orders' ? orderRecords : quoteRecords,
     requestType
   );
-  const filteredMyOrders = filterByStatusView(myOrders, 'orders', statusView, historyFilter);
-  const filteredBusinessOrders = filterByStatusView(requests, 'orders', statusView, historyFilter);
-  const filteredQuotes = filterByStatusView(quoteRecords, 'quotes', statusView, historyFilter);
+  const sortRecords = <T extends { createdAt?: string | null; updatedAt?: string | null },>(records: T[]) => [...records].sort((left, right) => {
+    const leftTime = new Date(left.createdAt || left.updatedAt || 0).getTime();
+    const rightTime = new Date(right.createdAt || right.updatedAt || 0).getTime();
+    return sortDirection === 'newest' ? rightTime - leftTime : leftTime - rightTime;
+  });
+  const filteredMyOrders = sortRecords(filterByStatusView(myOrders, 'orders', statusView, historyFilter));
+  const filteredBusinessOrders = sortRecords(filterByStatusView(requests, 'orders', statusView, historyFilter));
+  const filteredQuotes = sortRecords(filterByStatusView(quoteRecords, 'quotes', statusView, historyFilter));
   const emptyCopy = {
     pending: {
       title: 'No tienes solicitudes pendientes',
@@ -55,6 +64,10 @@ export default function RequestsScreen({
     active: {
       title: 'No tienes solicitudes en curso',
       description: 'Las solicitudes aceptadas que todavía están en proceso aparecerán aquí.'
+    },
+    waiting: {
+      title: 'No tienes cotizaciones esperando respuesta',
+      description: 'Las cotizaciones respondidas aparecerán aquí mientras esperan al cliente.'
     },
     history: {
       title: historyFilter === 'all' ? 'Todavía no tienes historial' : 'No hay resultados para este filtro',
@@ -78,6 +91,32 @@ export default function RequestsScreen({
   useEffect(() => {
     if (!hasBusiness && subTab === 'my-business') setSubTab('my-orders');
   }, [hasBusiness, subTab]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const quoteId = Number(params.get('quoteId'));
+    const orderId = Number(params.get('orderId'));
+    if (Number.isInteger(quoteId) && quoteId > 0) markInteractionUnread('quote', quoteId);
+    if (Number.isInteger(orderId) && orderId > 0) markInteractionUnread('order', orderId);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const quoteId = Number(params.get('quoteId'));
+    const orderId = Number(params.get('orderId'));
+    const target = Number.isInteger(quoteId) && quoteId > 0
+      ? quoteRecords.find((quote) => quote.id === quoteId)
+      : Number.isInteger(orderId) && orderId > 0
+        ? orderRecords.find((order) => order.recordState === 'available' && order.id === orderId)
+        : undefined;
+    if (!target) return;
+    const targetKind = Number.isInteger(quoteId) && quoteId > 0 ? 'quotes' : 'orders';
+    const targetView = statusViewFor(targetKind, target.status);
+    if (!targetView) return;
+    setRequestType(targetKind);
+    setStatusViews((current) => ({ ...current, [`${subTab}-${targetKind}`]: targetView }));
+    window.setTimeout(() => document.getElementById(`${targetKind === 'quotes' ? 'quote' : 'order'}-${targetKind === 'quotes' ? quoteId : orderId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+  }, [orderRecords, quoteRecords, subTab]);
 
   return (
     <div className="size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
@@ -122,8 +161,13 @@ export default function RequestsScreen({
           <button onClick={() => setRequestType('orders')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'orders' ? 'bg-teal-600 text-white' : 'text-slate-600'}`}>Pedidos</button>
           <button onClick={() => setRequestType('quotes')} className={`rounded-xl py-2 text-sm font-bold ${requestType === 'quotes' ? 'bg-violet-600 text-white' : 'text-slate-600'}`}>Cotizaciones</button>
         </div>
-        <div className="mb-4 grid grid-cols-3 gap-2">
-          {([
+        <div className={`mb-3 grid gap-2 ${requestType === 'quotes' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          {(requestType === 'quotes' ? [
+            { key: 'pending', label: subTab === 'my-business' ? 'Solicitudes' : 'Enviadas', count: statusCounts.pending },
+            { key: 'waiting', label: subTab === 'my-business' ? 'Esperando cliente' : 'Por responder', count: statusCounts.waiting },
+            { key: 'active', label: 'En curso', count: statusCounts.active },
+            { key: 'history', label: 'Historial', count: null }
+          ] as const : [
             { key: 'pending', label: 'Pendientes', count: statusCounts.pending },
             { key: 'active', label: 'En curso', count: statusCounts.active },
             { key: 'history', label: 'Historial', count: null }
@@ -131,7 +175,7 @@ export default function RequestsScreen({
             <button
               key={item.key}
               onClick={() => selectStatusView(item.key)}
-              className={`rounded-xl px-2 py-2.5 text-xs font-bold shadow-sm transition-all ${
+              className={`min-w-0 rounded-xl px-1.5 py-2.5 text-[11px] font-bold leading-tight shadow-sm transition-all ${
                 statusView === item.key
                   ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white'
                   : 'bg-white text-slate-600'
@@ -140,6 +184,12 @@ export default function RequestsScreen({
               {item.label}{item.count !== null ? ` (${item.count})` : ''}
             </button>
           ))}
+        </div>
+        <div className="mb-4 flex justify-end">
+          <button onClick={() => setSortDirections((current) => ({ ...current, [viewKey]: sortDirection === 'newest' ? 'oldest' : 'newest' }))} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm">
+            {sortDirection === 'newest' ? <ArrowDown className="h-3.5 w-3.5" /> : <ArrowUp className="h-3.5 w-3.5" />}
+            {sortDirection === 'newest' ? 'Más recientes' : 'Más antiguas'}
+          </button>
         </div>
         {statusView === 'history' && (
           <div className="mb-4 flex items-center justify-between gap-3">

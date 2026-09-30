@@ -4,6 +4,7 @@ import BusinessOrderCard from './BusinessOrderCard';
 import EmptyRequestsState from './EmptyRequestsState';
 import OrderActionModal from './OrderActionModal';
 import type { BusinessRequest, CancellationReason, OrderAction } from './types';
+import { interactionKey, useUnreadInteractions } from '../../notifications/unreadInteractions';
 
 type Props = {
   requests: BusinessRequest[];
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function BusinessOrdersTab({ requests, updatingOrderIds, onAction, onRetry, emptyTitle, emptyDescription }: Props) {
+  const { unread, markRead } = useUnreadInteractions();
   const [selection, setSelection] = useState<{ order: BusinessRequest; action: OrderAction } | null>(null);
   const displayed = requests.filter((order) => order.recordState === 'available');
   const unavailable = requests.filter((order) => order.recordState === 'unavailable');
@@ -32,7 +34,7 @@ export default function BusinessOrdersTab({ requests, updatingOrderIds, onAction
       {displayed.length > 0 ? (
         <div className="space-y-3">
           {displayed.map((order) => (
-            <BusinessOrderCard key={order.clientKey} request={order} isUpdating={order.recordState === 'available' && updatingOrderIds.has(order.id)} onAction={(action) => setSelection({ order, action })} onRetry={() => { void onRetry(); }} />
+            <BusinessOrderCard key={order.clientKey} request={order} isUpdating={order.recordState === 'available' && updatingOrderIds.has(order.id)} onAction={(action) => setSelection({ order, action })} onRetry={() => { void onRetry(); }} isUnread={order.recordState === 'available' && unread.has(interactionKey('order', order.id))} onOpen={() => { if (order.recordState === 'available') markRead('order', order.id); }} />
           ))}
         </div>
       ) : (

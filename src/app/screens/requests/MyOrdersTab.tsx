@@ -4,6 +4,7 @@ import EmptyRequestsState from './EmptyRequestsState';
 import MyOrderCard from './MyOrderCard';
 import OrderActionModal from './OrderActionModal';
 import type { CancellationReason, MyOrder, OrderAction } from './types';
+import { interactionKey, useUnreadInteractions } from '../../notifications/unreadInteractions';
 
 type Props = {
   myOrders: MyOrder[];
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRetry, emptyTitle, emptyDescription }: Props) {
+  const { unread, markRead } = useUnreadInteractions();
   const [selection, setSelection] = useState<{ order: MyOrder; action: OrderAction } | null>(null);
   const displayed = myOrders.filter((order) => order.recordState === 'available');
   const unavailable = myOrders.filter((order) => order.recordState === 'unavailable');
@@ -38,6 +40,8 @@ export default function MyOrdersTab({ myOrders, updatingOrderIds, onAction, onRe
               isUpdating={order.recordState === 'available' && updatingOrderIds.has(order.id)}
               onAction={(action) => setSelection({ order, action })}
               onRetry={() => { void onRetry(); }}
+              isUnread={order.recordState === 'available' && unread.has(interactionKey('order', order.id))}
+              onOpen={() => { if (order.recordState === 'available') markRead('order', order.id); }}
             />
           ))}
         </div>

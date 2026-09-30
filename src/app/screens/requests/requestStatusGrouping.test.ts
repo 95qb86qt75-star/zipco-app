@@ -11,7 +11,7 @@ describe('request status grouping', () => {
 
   it('groups the real quote statuses', () => {
     expect(statusViewFor('quotes', 'requested')).toBe('pending');
-    expect(statusViewFor('quotes', 'quoted')).toBe('pending');
+    expect(statusViewFor('quotes', 'quoted')).toBe('waiting');
     expect(statusViewFor('quotes', 'accepted')).toBe('active');
     expect(statusViewFor('quotes', 'declined')).toBe('history');
   });
@@ -33,6 +33,6 @@ describe('request status grouping', () => {
       { status: 'accepted' },
       { status: 'ready' },
       { status: 'cancelled' }
-    ], 'orders')).toEqual({ pending: 1, active: 2, history: 1 });
+    ], 'orders')).toEqual({ pending: 1, waiting: 0, active: 2, history: 1 });
   });
 });

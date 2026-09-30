@@ -14,9 +14,11 @@ type Props = {
   isUpdating: boolean;
   onAction: (action: OrderAction) => void;
   onRetry: () => void;
+  isUnread?: boolean;
+  onOpen?: () => void;
 };
 
-export default function MyOrderCard({ order, isUpdating, onAction, onRetry }: Props) {
+export default function MyOrderCard({ order, isUpdating, onAction, onRetry, isUnread = false, onOpen }: Props) {
   if (order.recordState === 'unavailable') {
     return (
       <div className="bg-white/80 rounded-2xl p-4 border border-gray-300 shadow-sm">
@@ -42,11 +44,11 @@ export default function MyOrderCard({ order, isUpdating, onAction, onRetry }: Pr
   const deliverySchedule = formatDeliverySchedule(order, 'customer');
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 shadow-sm">
+    <div id={`order-${order.id}`} onClick={onOpen} className={`backdrop-blur-sm rounded-2xl p-4 border shadow-sm ${isUnread ? 'border-sky-300 bg-sky-50 ring-2 ring-sky-100' : 'border-gray-200 bg-white/80'}`}>
       <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-100">
         <ImageWithFallback src={order.businessImage} alt={order.businessName} className="w-12 h-12 rounded-full object-cover" />
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-900 text-sm truncate">{order.businessName}</h4>
+          <div className="flex items-center gap-2"><h4 className="font-semibold text-gray-900 text-sm truncate">{order.businessName}</h4>{isUnread && <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">Nueva</span>}</div>
           <p className="text-xs text-gray-500">{order.date}</p>
         </div>
         <OrderStatusBadge status={order.status} />

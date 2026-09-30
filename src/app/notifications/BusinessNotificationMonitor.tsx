@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../api/apiConfig';
 import { showAppToast } from '../screens/Toast';
 import { updatePushPresence } from './pushNotifications';
+import { markInteractionUnread, publishUnreadCount, type InteractionKind } from './unreadInteractions';
 
 const POLL_INTERVAL_MS = 15_000;
 const PRESENCE_INTERVAL_MS = 5_000;
-const COUNT_EVENT = 'zipco-pending-interactions';
 
 type Interaction = {
   id: number;
@@ -32,27 +32,8 @@ export function parseOrders(value: unknown): Interaction[] {
 
 export const parseQuotes = parseOrders;
 
-export function countPendingInteractions(
-  businessOrders: Interaction[],
-  customerOrders: Interaction[],
-  businessQuotes: Interaction[],
-  customerQuotes: Interaction[]
-) {
-  const activeOrderStatuses = new Set(['pending', 'accepted', 'ready']);
-  return businessOrders.filter((order) => activeOrderStatuses.has(order.status)).length
-    + customerOrders.filter((order) => activeOrderStatuses.has(order.status)).length
-    + businessQuotes.filter((quote) => quote.status === 'requested').length
-    + customerQuotes.filter((quote) => quote.status === 'quoted').length;
-}
-
 export function shouldAnnouncePendingOrders(hasBaseline: boolean, announceNewOrders: boolean) {
   return hasBaseline && announceNewOrders;
-}
-
-function publishPendingCount(count: number) {
-  localStorage.setItem('zipco-pending-interactions', String(count));
-  localStorage.removeItem('zipco-pending-business-orders');
-  window.dispatchEvent(new CustomEvent(COUNT_EVENT, { detail: count }));
 }
 
 async function loadJson(path: string, token: string, onSessionExpired: () => void) {
@@ -79,7 +60,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
     const token = localStorage.getItem('zipco-token');
     const businessId = localStorage.getItem('zipco-business-id');
     if (!token) {
-      publishPendingCount(0);
+      publishUnreadCount();
       return;
     }
 
@@ -89,9 +70,10 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
         // El siguiente heartbeat vuelve a intentar.
       });
     };
-    const announce = (key: string, title: string, description: string) => {
+    const announce = (key: string, title: string, description: string, interaction?: { kind: InteractionKind; id: number }) => {
       if (announcedKeys.current.has(key)) return;
       announcedKeys.current.add(key);
+      if (interaction) markInteractionUnread(interaction.kind, interaction.id);
       showAppToast('', 'info', { title, description, dedupeKey: key, durationMs: 7000, icon: 'bell' });
     };
 
@@ -117,6 +99,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
               `order-${order.id}-created`,
               'Nuevo pedido recibido',
               `${order.customerName || 'Un cliente'} envio una nueva solicitud.`
+              , { kind: 'order', id: order.id }
             ));
           customerOrders.forEach((order) => {
             const previous = customerOrderStatuses.current.get(order.id);
@@ -129,7 +112,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
             } as const;
             if (order.status in copy) {
               const [title, description] = copy[order.status as keyof typeof copy];
-              announce(`order-${order.id}-${order.status}`, title, description);
+              announce(`order-${order.id}-${order.status}`, title, description, { kind: 'order', id: order.id });
             }
           });
           businessQuotes.forEach((quote) => {
@@ -139,12 +122,13 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
                 `quote-${quote.id}-created`,
                 'Nueva cotizacion recibida',
                 `${quote.customerName || 'Un cliente'} solicito ${quote.itemNameSnapshot || 'una cotizacion'}.`
+                , { kind: 'quote', id: quote.id }
               );
             } else if (previous && previous !== quote.status && ['accepted', 'declined', 'cancelled'].includes(quote.status)) {
               const labels = { accepted: 'acepto', declined: 'rechazo', cancelled: 'cancelo' } as const;
               const titles = { accepted: 'Cotizacion aceptada', declined: 'Cotizacion rechazada', cancelled: 'Cotizacion cancelada' } as const;
               const status = quote.status as keyof typeof labels;
-              announce(`quote-${quote.id}-${status}`, titles[status], `El cliente ${labels[status]} la cotizacion.`);
+              announce(`quote-${quote.id}-${status}`, titles[status], `El cliente ${labels[status]} la cotizacion.`, { kind: 'quote', id: quote.id });
             }
           });
           customerQuotes.forEach((quote) => {
@@ -154,12 +138,13 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
                 `quote-${quote.id}-responded`,
                 'Respondieron tu cotizacion',
                 `Recibiste un precio para ${quote.itemNameSnapshot || 'tu solicitud'}.`
+                , { kind: 'quote', id: quote.id }
               );
             }
           });
         }
 
-        publishPendingCount(countPendingInteractions(orders, customerOrders, businessQuotes, customerQuotes));
+        publishUnreadCount();
         orderStatuses.current = new Map(orders.map((order) => [order.id, order.status]));
         customerOrderStatuses.current = new Map(customerOrders.map((order) => [order.id, order.status]));
         businessQuoteStatuses.current = new Map(businessQuotes.map((quote) => [quote.id, quote.status]));
@@ -174,10 +159,17 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
       const data = event.data as Record<string, unknown> | null;
       if (!data || typeof data.type !== 'string') return;
       const key = typeof data.tag === 'string' ? data.tag : `${data.type}:${String(data.orderId ?? data.quoteId ?? '')}`;
+      const orderId = Number(data.orderId);
+      const quoteId = Number(data.quoteId);
       announce(
         key,
         typeof data.title === 'string' ? data.title : 'Nueva actividad en ZIPCO',
-        typeof data.body === 'string' ? data.body : 'Revisa tus Solicitudes.'
+        typeof data.body === 'string' ? data.body : 'Revisa tus Solicitudes.',
+        Number.isInteger(orderId) && orderId > 0
+          ? { kind: 'order', id: orderId }
+          : Number.isInteger(quoteId) && quoteId > 0
+            ? { kind: 'quote', id: quoteId }
+            : undefined
       );
       void load(false);
     };

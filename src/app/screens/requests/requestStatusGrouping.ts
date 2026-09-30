@@ -1,5 +1,5 @@
 export type RequestKind = 'orders' | 'quotes';
-export type StatusView = 'pending' | 'active' | 'history';
+export type StatusView = 'pending' | 'waiting' | 'active' | 'history';
 export type HistoryFilter = 'all' | 'completed' | 'cancelled' | 'rejected';
 
 type StatusRecord = { status: string };
@@ -11,7 +11,8 @@ export function statusViewFor(kind: RequestKind, status: string): StatusView | n
     if (status === 'completed' || status === 'rejected' || status === 'cancelled') return 'history';
     return null;
   }
-  if (status === 'requested' || status === 'quoted') return 'pending';
+  if (status === 'requested') return 'pending';
+  if (status === 'quoted') return 'waiting';
   if (status === 'accepted') return 'active';
   if (status === 'declined' || status === 'cancelled') return 'history';
   return null;
@@ -22,7 +23,7 @@ export function countStatusViews(records: StatusRecord[], kind: RequestKind) {
     const view = statusViewFor(kind, record.status);
     if (view) counts[view] += 1;
     return counts;
-  }, { pending: 0, active: 0, history: 0 });
+  }, { pending: 0, waiting: 0, active: 0, history: 0 });
 }
 
 export function filterByStatusView<T extends StatusRecord>(
