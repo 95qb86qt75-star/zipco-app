@@ -259,11 +259,12 @@ export default function RequestsScreen({
     }));
     window.setTimeout(
       () => {
-        document
-          .getElementById(
-            `${targetKind === "quotes" ? "quote" : "order"}-${targetKind === "quotes" ? quoteId : orderId}`,
-          )
-          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        const element = document.getElementById(
+          `${targetKind === "quotes" ? "quote" : "order"}-${targetKind === "quotes" ? quoteId : orderId}`,
+        );
+        element?.scrollIntoView({ behavior: "smooth", block: "center" });
+        element?.classList.add("zipco-notification-target");
+        if (element) window.setTimeout(() => element.classList.remove("zipco-notification-target"), 7000);
         window.history.replaceState({}, "", window.location.pathname);
       },
       150,

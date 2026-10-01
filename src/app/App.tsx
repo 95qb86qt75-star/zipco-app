@@ -190,6 +190,8 @@ export default function App() {
     const statusBarMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-status-bar-style"]');
 
     document.documentElement.classList.toggle('dark', isDarkMode);
+    document.documentElement.style.colorScheme = isDarkMode ? 'dark' : 'only light';
+    document.body.style.colorScheme = isDarkMode ? 'dark' : 'only light';
     document.documentElement.style.backgroundColor = themeColor;
     document.body.style.backgroundColor = themeColor;
     themeColorMeta?.setAttribute('content', themeColor);

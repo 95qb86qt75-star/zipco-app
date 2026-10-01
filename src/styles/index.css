@@ -5,11 +5,47 @@
 html,
 body,
 #root {
+  color-scheme: only light;
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
+}
+
+html.dark,
+html.dark body,
+html.dark #root {
+  color-scheme: dark;
+}
+
+@keyframes zipco-notification-focus {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(14, 165, 233, .45), 0 10px 28px rgba(14, 165, 233, .16); }
+  50% { box-shadow: 0 0 0 5px rgba(14, 165, 233, .75), 0 14px 34px rgba(14, 165, 233, .32); }
+}
+
+.zipco-notification-target {
+  position: relative;
+  z-index: 2;
+  animation: zipco-notification-focus 1.15s ease-in-out 6;
+}
+
+.zipco-notification-target::after {
+  content: 'Abierta desde la notificación';
+  position: absolute;
+  top: -11px;
+  right: 12px;
+  z-index: 3;
+  border-radius: 999px;
+  background: #0284c7;
+  color: #fff;
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zipco-notification-target { animation: none; box-shadow: 0 0 0 4px rgba(14, 165, 233, .7); }
 }
 
 @supports (height: 100dvh) {
