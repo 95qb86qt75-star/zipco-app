@@ -1,4 +1,4 @@
-export const ORDER_STATUSES = ['pending', 'accepted', 'ready', 'completed', 'rejected', 'cancelled'] as const;
+export const ORDER_STATUSES = ['pending', 'alternative_proposed', 'accepted', 'ready', 'completed', 'rejected', 'cancelled'] as const;
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export type DisplayOrderStatus = OrderStatus | 'unavailable';
@@ -12,10 +12,14 @@ export type OrderDataIssue =
 export const CANCELLATION_REASONS = [
   'no_longer_needed',
   'business_took_too_long',
-  'selected_by_mistake'
+  'selected_by_mistake',
+  'requirements_changed',
+  'unavailable', 'cannot_meet_schedule', 'outside_service_area', 'insufficient_information', 'no_capacity', 'other'
 ] as const;
 
 export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+export type RejectionReason = 'unavailable' | 'cannot_meet_schedule' | 'outside_service_area' | 'insufficient_information' | 'no_capacity' | 'other';
+export type ClosureReason = CancellationReason | RejectionReason;
 export type NormalizedCancellationReason = CancellationReason | 'unavailable' | null;
 
 export type Product = { name: string; quantity: number; price: number };
@@ -44,6 +48,7 @@ type CommonOrderData = {
   businessId: number | null;
   userId: number | null;
   createdAt: string | null;
+  updatedAt: string | null;
   date: string;
   products: NormalizedProducts;
   note: string;
@@ -53,6 +58,13 @@ type CommonOrderData = {
   needNow: boolean;
   referencePhoto: string | null;
   cancellationReason: NormalizedCancellationReason;
+  cancellationReasonDetail: string;
+  alternativeDate: string | null;
+  alternativeTime: string | null;
+  alternativeItem: string;
+  alternativeQuantity: number | null;
+  alternativePriceClp: number | null;
+  alternativeMessage: string;
   archivedAt: string | null;
   dataIssues: OrderDataIssue[];
 };
@@ -73,8 +85,10 @@ export type MyOrder = OrderIdentity & CommonOrderData & {
 export type UpdateOrderStatusPayload = {
   status: Extract<OrderStatus, 'accepted' | 'ready' | 'completed' | 'rejected' | 'cancelled'>;
   cancellationReason?: CancellationReason;
+  rejectionReason?: RejectionReason;
+  reasonDetail?: string;
 };
 
 export type ActionableOrder = { id: number; status: OrderStatus };
 export type OrderActor = 'customer' | 'business';
-export type OrderAction = 'accept' | 'reject' | 'cancel' | 'mark-ready' | 'complete-reception' | 'complete-delivery';
+export type OrderAction = 'accept' | 'reject' | 'cancel' | 'accept-alternative' | 'reject-alternative' | 'mark-ready' | 'complete-reception' | 'complete-delivery';

@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../../api/apiConfig';
 
-export type QuoteStatus = 'requested' | 'quoted' | 'accepted' | 'declined' | 'cancelled';
+export type QuoteStatus = 'requested' | 'quoted' | 'alternative_proposed' | 'accepted' | 'ready' | 'completed' | 'declined' | 'cancelled';
+export type QuoteCancellationReason = 'no_longer_needed' | 'sent_by_mistake' | 'requirements_changed' | 'business_took_too_long' | 'other';
 
 export type QuoteRequest = {
   id: number;
@@ -20,6 +21,14 @@ export type QuoteRequest = {
   status: QuoteStatus;
   quotedPriceClp: number | null;
   businessMessage: string | null;
+  closureReason: string | null;
+  closureReasonDetail: string | null;
+  alternativeDate: string | null;
+  alternativeTime: string | null;
+  alternativeItem: string | null;
+  alternativeQuantity: number | null;
+  alternativePriceClp: number | null;
+  alternativeMessage: string | null;
   customerArchivedAt: string | null;
   businessArchivedAt: string | null;
   createdAt: string;
@@ -53,5 +62,7 @@ export function createQuote(payload: {
 export const getMyQuotes = (token: string) => request<QuoteRequest[]>('/quotes/my-quotes', token);
 export const getBusinessQuotes = (businessId: number, token: string) => request<QuoteRequest[]>(`/quotes/business/${businessId}`, token);
 export const respondQuote = (id: number, priceClp: number, message: string, token: string) => request<QuoteRequest>(`/quotes/${id}/respond`, token, { method: 'PATCH', body: JSON.stringify({ priceClp, message: message.trim() || undefined }) });
-export const updateQuoteStatus = (id: number, status: 'accepted' | 'declined' | 'cancelled', token: string) => request<QuoteRequest>(`/quotes/${id}/status`, token, { method: 'PATCH', body: JSON.stringify({ status }) });
+export const proposeQuoteAlternative = (id: number, payload: { date?: string; time?: string; item?: string; quantity?: number; priceClp?: number; message: string }, token: string) => request<QuoteRequest>(`/quotes/${id}/alternative`, token, { method: 'PATCH', body: JSON.stringify(payload) });
+export const updateQuoteStatus = (id: number, status: QuoteStatus, token: string, reason?: QuoteCancellationReason, reasonDetail?: string) => request<QuoteRequest>(`/quotes/${id}/status`, token, { method: 'PATCH', body: JSON.stringify({ status, reason, reasonDetail }) });
 export const archiveQuote = (id: number, archived: boolean, token: string) => request<QuoteRequest>(`/quotes/${id}/archive`, token, { method: 'PATCH', body: JSON.stringify({ archived }) });
+export const deleteQuotePermanently = (id: number, token: string) => request<{ deleted: true }>(`/quotes/${id}/delete-permanently`, token, { method: 'PATCH' });

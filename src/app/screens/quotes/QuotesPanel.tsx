@@ -6,7 +6,7 @@ import {
   MessageSquareText,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import type { QuoteRequest } from "./quoteApi";
+import type { QuoteCancellationReason, QuoteRequest, QuoteStatus } from "./quoteApi";
 import {
   interactionKey,
   useUnreadInteractions,
@@ -15,7 +15,10 @@ import {
 const labels = {
   requested: "Esperando respuesta",
   quoted: "Cotización recibida",
+  alternative_proposed: "Alternativa recibida",
   accepted: "Aceptada",
+  ready: "Lista",
+  completed: "Completada",
   declined: "Rechazada",
   cancelled: "Cancelada",
 } as const;
@@ -36,11 +39,16 @@ export function CustomerQuotes({
   updating: Set<number>;
   onStatus: (
     quote: QuoteRequest,
-    status: "accepted" | "declined" | "cancelled",
+    status: QuoteStatus,
+    reason?: QuoteCancellationReason,
+    detail?: string,
   ) => void;
   emptyText?: string;
 }) {
   const { unread, markRead } = useUnreadInteractions();
+  const [cancelling, setCancelling] = useState<QuoteRequest | null>(null);
+  const [cancelReason, setCancelReason] = useState<QuoteCancellationReason | "">("");
+  const [cancelDetail, setCancelDetail] = useState("");
   if (!quotes.length) return <Empty text={emptyText} />;
   return (
     <div className="space-y-2">
@@ -55,7 +63,7 @@ export function CustomerQuotes({
             unread={unread.has(interactionKey("quote", quote.id))}
             onOpen={() => markRead("quote", quote.id)}
           >
-            {quote.status === "quoted" && (
+            {(quote.status === "quoted" || quote.status === "alternative_proposed") && (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <button
                   disabled={updating.has(quote.id)}
@@ -87,16 +95,45 @@ export function CustomerQuotes({
                 onClick={(event) => {
                   event.stopPropagation();
                   markRead("quote", quote.id);
-                  onStatus(quote, "cancelled");
+                  setCancelling(quote);
+                  setCancelReason("");
+                  setCancelDetail("");
                 }}
                 className="mt-2 w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
               >
                 Cancelar solicitud
               </button>
             )}
+            {quote.status === "ready" && (
+              <button disabled={updating.has(quote.id)} onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); onStatus(quote, "completed"); }} className="mt-2 w-full rounded-xl bg-teal-600 py-2.5 text-xs font-bold text-white">
+                Confirmar recepción o servicio realizado
+              </button>
+            )}
           </QuoteCard>
         </Fragment>
       ))}
+      {cancelling && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5">
+            <h3 className="text-lg font-black">Cancelar cotización</h3>
+            <p className="mt-1 text-sm text-slate-600">Selecciona el motivo. La cotización pasará al historial.</p>
+            <div className="mt-4 space-y-2">
+              {([
+                ["no_longer_needed", "Ya no lo necesito"], ["sent_by_mistake", "La envié por error"],
+                ["requirements_changed", "Cambiaron mis necesidades"], ["business_took_too_long", "El negocio tardó demasiado"],
+                ["other", "Otro motivo"],
+              ] as Array<[QuoteCancellationReason, string]>).map(([code, label]) => (
+                <label key={code} className="flex gap-3 rounded-xl border p-3 text-sm"><input type="radio" checked={cancelReason === code} onChange={() => setCancelReason(code)} />{label}</label>
+              ))}
+              {cancelReason === "other" && <textarea value={cancelDetail} onChange={(event) => setCancelDetail(event.target.value)} rows={3} placeholder="Escribe el motivo" className="w-full rounded-xl border p-3 text-sm" />}
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button onClick={() => setCancelling(null)} className="rounded-xl border py-3 font-bold">Volver</button>
+              <button disabled={!cancelReason || (cancelReason === "other" && cancelDetail.trim().length < 3)} onClick={() => { onStatus(cancelling, "cancelled", cancelReason || undefined, cancelDetail.trim() || undefined); setCancelling(null); }} className="rounded-xl bg-red-500 py-3 font-bold text-white disabled:opacity-50">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -105,16 +142,27 @@ export function BusinessQuotes({
   quotes,
   updating,
   onRespond,
+  onStatus,
+  onAlternative,
   emptyText = "Las solicitudes de cotización aparecerán aquí",
 }: {
   quotes: QuoteRequest[];
   updating: Set<number>;
   onRespond: (quote: QuoteRequest, price: number, message: string) => void;
+  onStatus: (quote: QuoteRequest, status: QuoteStatus) => void;
+  onAlternative: (quote: QuoteRequest, payload: { date?: string; time?: string; item?: string; quantity?: number; priceClp?: number; message: string }) => void;
   emptyText?: string;
 }) {
   const [selected, setSelected] = useState<QuoteRequest | null>(null);
   const [price, setPrice] = useState("");
   const [message, setMessage] = useState("");
+  const [alternative, setAlternative] = useState<QuoteRequest | null>(null);
+  const [alternativeMessage, setAlternativeMessage] = useState("");
+  const [alternativeItem, setAlternativeItem] = useState("");
+  const [alternativePrice, setAlternativePrice] = useState("");
+  const [alternativeQuantity, setAlternativeQuantity] = useState("");
+  const [alternativeDate, setAlternativeDate] = useState("");
+  const [alternativeTime, setAlternativeTime] = useState("");
   const { unread, markRead } = useUnreadInteractions();
   if (!quotes.length) return <Empty text={emptyText} />;
   return (
@@ -132,7 +180,7 @@ export function BusinessQuotes({
               onOpen={() => markRead("quote", quote.id)}
             >
               {quote.status === "requested" && (
-                <button
+                <div className="mt-2 grid grid-cols-2 gap-2"><button
                   onClick={(event) => {
                     event.stopPropagation();
                     markRead("quote", quote.id);
@@ -140,9 +188,15 @@ export function BusinessQuotes({
                     setPrice("");
                     setMessage("");
                   }}
-                  className="mt-2 w-full rounded-lg bg-violet-600 py-2 text-xs font-bold text-white"
+                  className="rounded-lg bg-violet-600 py-2 text-xs font-bold text-white"
                 >
                   Responder con precio
+                </button>
+                <button onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); setAlternative(quote); setAlternativeMessage(""); setAlternativeItem(""); setAlternativePrice(""); setAlternativeQuantity(""); setAlternativeDate(""); setAlternativeTime(""); }} className="rounded-lg border border-teal-300 bg-teal-50 py-2 text-xs font-bold text-teal-700">Proponer alternativa</button></div>
+              )}
+              {quote.status === "accepted" && (
+                <button disabled={updating.has(quote.id)} onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); onStatus(quote, "ready"); }} className="mt-2 w-full rounded-lg bg-teal-600 py-2 text-xs font-bold text-white">
+                  Marcar como listo o realizado
                 </button>
               )}
             </QuoteCard>
@@ -198,6 +252,16 @@ export function BusinessQuotes({
             </div>
           </div>
         </div>
+      )}
+      {alternative && (
+        <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3"><div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
+          <h3 className="text-lg font-black">Proponer una alternativa</h3><p className="mt-1 text-sm text-slate-500">El cliente solo podrá aceptarla o rechazarla.</p>
+          <label className="mt-4 block text-sm font-bold">Explicación obligatoria<textarea value={alternativeMessage} onChange={(event) => setAlternativeMessage(event.target.value)} rows={3} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
+          <label className="mt-3 block text-sm font-bold">Producto o servicio alternativo<input value={alternativeItem} onChange={(event) => setAlternativeItem(event.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
+          <label className="mt-3 block text-sm font-bold">Precio alternativo<input inputMode="numeric" value={alternativePrice} onChange={(event) => setAlternativePrice(event.target.value.replace(/\D/g, ""))} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
+          <div className="mt-3 grid grid-cols-3 gap-2"><input inputMode="numeric" value={alternativeQuantity} onChange={(event) => setAlternativeQuantity(event.target.value.replace(/\D/g, ""))} placeholder="Cantidad" className="rounded-xl border p-3 text-sm" /><input type="date" value={alternativeDate} onChange={(event) => setAlternativeDate(event.target.value)} className="rounded-xl border p-3 text-sm" /><input type="time" value={alternativeTime} onChange={(event) => setAlternativeTime(event.target.value)} className="rounded-xl border p-3 text-sm" /></div>
+          <div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button disabled={alternativeMessage.trim().length < 3} onClick={() => { onAlternative(alternative, { message: alternativeMessage.trim(), item: alternativeItem.trim() || undefined, priceClp: Number(alternativePrice) >= 100 ? Number(alternativePrice) : undefined, quantity: Number(alternativeQuantity) || undefined, date: alternativeDate || undefined, time: alternativeTime || undefined }); setAlternative(null); }} className="rounded-xl bg-teal-600 py-3 font-bold text-white disabled:opacity-50">Enviar alternativa</button></div>
+        </div></div>
       )}
     </>
   );
@@ -273,18 +337,28 @@ function QuoteCard({
           {quote.businessMessage}
         </p>
       )}
+      {quote.alternativeMessage && (
+        <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+          <p className="font-black">Alternativa del negocio</p><p className="mt-1">{quote.alternativeMessage}</p>
+          {quote.alternativeItem && <p className="mt-1">Opción: {quote.alternativeItem}{quote.alternativeQuantity ? ` · Cantidad ${quote.alternativeQuantity}` : ""}</p>}
+          {quote.alternativeDate && <p className="mt-1">Fecha: {quote.alternativeDate}{quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}</p>}
+          {quote.alternativePriceClp && <p className="mt-1 font-black">{money(quote.alternativePriceClp)}</p>}
+        </div>
+      )}
       {children}
     </article>
   );
 }
 function formatQuoteDay(quote: QuoteRequest) {
-  const parsed = new Date(quote.createdAt);
+  const parsed = new Date(quote.updatedAt || quote.createdAt);
   return Number.isNaN(parsed.getTime())
     ? "Fecha no disponible"
     : new Intl.DateTimeFormat("es-CL", {
         day: "numeric",
         month: "long",
         year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       }).format(parsed);
 }
 function QuoteDateDivider({ label }: { label: string }) {

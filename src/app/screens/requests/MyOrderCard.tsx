@@ -105,6 +105,12 @@ export default function MyOrderCard({
           <ChevronRight className="h-4 w-4" />
         </p>
       )}
+      {order.alternativeMessage && (
+        <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900"><p className="font-black">Alternativa del negocio</p><p>{order.alternativeMessage}</p>{order.alternativeItem && <p>Opción: {order.alternativeItem}{order.alternativeQuantity ? ` · Cantidad ${order.alternativeQuantity}` : ""}</p>}{order.alternativeDate && <p>Fecha: {order.alternativeDate}{order.alternativeTime ? ` · ${order.alternativeTime}` : ""}</p>}{order.alternativePriceClp && <p className="font-black">${order.alternativePriceClp.toLocaleString("es-CL")}</p>}</div>
+      )}
+      {order.status === "alternative_proposed" && (
+        <div className="mt-3 grid grid-cols-2 gap-2"><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("reject-alternative"); }} className="rounded-xl border border-red-200 py-2 text-xs font-bold text-red-600">Rechazar</button><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("accept-alternative"); }} className="rounded-xl bg-teal-600 py-2 text-xs font-bold text-white">Aceptar alternativa</button></div>
+      )}
       {action && (
         <button
           type="button"

@@ -101,10 +101,16 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
               `${order.customerName || 'Un cliente'} envio una nueva solicitud.`
               , { kind: 'order', id: order.id }, `/?open=requests-business&orderId=${order.id}`
             ));
+          orders.forEach((order) => {
+            const previous = orderStatuses.current.get(order.id);
+            if (previous !== 'alternative_proposed' || !['accepted', 'rejected'].includes(order.status)) return;
+            announce(`order-${order.id}-${order.status}`, order.status === 'accepted' ? 'Alternativa aceptada' : 'Alternativa rechazada', `El cliente ${order.status === 'accepted' ? 'aceptó' : 'rechazó'} la alternativa propuesta.`, { kind: 'order', id: order.id }, `/?open=requests-business&orderId=${order.id}`);
+          });
           customerOrders.forEach((order) => {
             const previous = customerOrderStatuses.current.get(order.id);
             if (!previous || previous === order.status) return;
             const copy = {
+              alternative_proposed: ['Nueva alternativa del negocio', 'El negocio propuso otra opción para tu pedido.'],
               accepted: ['Pedido aceptado', 'El negocio acepto tu pedido.'],
               rejected: ['Pedido rechazado', 'El negocio rechazo tu pedido.'],
               ready: ['Tu pedido esta listo', 'El negocio marco tu pedido como listo.'],
@@ -124,22 +130,24 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
                 `${quote.customerName || 'Un cliente'} solicito ${quote.itemNameSnapshot || 'una cotizacion'}.`
                 , { kind: 'quote', id: quote.id }, `/?open=requests-business-quotes&quoteId=${quote.id}`
               );
-            } else if (previous && previous !== quote.status && ['accepted', 'declined', 'cancelled'].includes(quote.status)) {
-              const labels = { accepted: 'acepto', declined: 'rechazo', cancelled: 'cancelo' } as const;
-              const titles = { accepted: 'Cotizacion aceptada', declined: 'Cotizacion rechazada', cancelled: 'Cotizacion cancelada' } as const;
+            } else if (previous && previous !== quote.status && ['accepted', 'declined', 'cancelled', 'completed'].includes(quote.status)) {
+              const labels = { accepted: 'aceptó', declined: 'rechazó', cancelled: 'canceló', completed: 'confirmó como completada' } as const;
+              const titles = { accepted: 'Cotización aceptada', declined: 'Cotización rechazada', cancelled: 'Cotización cancelada', completed: 'Cotización completada' } as const;
               const status = quote.status as keyof typeof labels;
               announce(`quote-${quote.id}-${status}`, titles[status], `El cliente ${labels[status]} la cotizacion.`, { kind: 'quote', id: quote.id }, `/?open=requests-business-quotes&quoteId=${quote.id}`);
             }
           });
           customerQuotes.forEach((quote) => {
             const previous = customerQuoteStatuses.current.get(quote.id);
-            if (previous === 'requested' && quote.status === 'quoted') {
+            if (previous === 'requested' && (quote.status === 'quoted' || quote.status === 'alternative_proposed')) {
               announce(
-                `quote-${quote.id}-responded`,
-                'Respondieron tu cotizacion',
-                `Recibiste un precio para ${quote.itemNameSnapshot || 'tu solicitud'}.`
+                `quote-${quote.id}-${quote.status === 'alternative_proposed' ? 'alternative' : 'responded'}`,
+                quote.status === 'alternative_proposed' ? 'Nueva alternativa del negocio' : 'Respondieron tu cotización',
+                quote.status === 'alternative_proposed' ? `El negocio propuso otra opción para ${quote.itemNameSnapshot || 'tu solicitud'}.` : `Recibiste un precio para ${quote.itemNameSnapshot || 'tu solicitud'}.`
                 , { kind: 'quote', id: quote.id }, `/?open=requests-customer-quotes&quoteId=${quote.id}`
               );
+            } else if (previous === 'accepted' && quote.status === 'ready') {
+              announce(`quote-${quote.id}-ready`, 'Tu solicitud está lista', `El negocio marcó ${quote.itemNameSnapshot || 'tu solicitud'} como lista o realizada.`, { kind: 'quote', id: quote.id }, `/?open=requests-customer-quotes&quoteId=${quote.id}`);
             }
           });
         }

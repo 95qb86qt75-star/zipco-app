@@ -31,6 +31,7 @@ type HistoryItem = {
   image: string | null;
   status: "completed" | "cancelled" | "rejected";
   price: number | null;
+  priceIsStarting: boolean;
   details: string[];
   schedule: string;
   note: string;
@@ -43,6 +44,14 @@ const reasonLabels = {
   no_longer_needed: "Ya no lo necesitaba.",
   business_took_too_long: "El negocio tardó demasiado.",
   selected_by_mistake: "Fue seleccionado por error.",
+  requirements_changed: "Cambiaron las necesidades.",
+  unavailable: "Producto o servicio no disponible.",
+  cannot_meet_schedule: "No podía cumplir la fecha u horario solicitado.",
+  outside_service_area: "Solicitud fuera de su zona de atención.",
+  insufficient_information: "Información insuficiente para procesarla.",
+  no_capacity: "Sin capacidad disponible.",
+  sent_by_mistake: "La cotización fue enviada por error.",
+  other: "Otro motivo.",
 } as const;
 
 const statusPresentation = {
@@ -107,6 +116,7 @@ function normalizeOrder(
       : (identity as BusinessRequest).customerImage,
     status,
     price: order.total,
+    priceIsStarting: false,
     details: products.map(
       (product) =>
         `${product.quantity}x ${product.name} — ${money(product.price * product.quantity)}`,
@@ -121,9 +131,9 @@ function normalizeOrder(
     note: order.note,
     response: "",
     reason:
-      order.cancellationReason && order.cancellationReason !== "unavailable"
+      order.cancellationReasonDetail || (order.cancellationReason && order.cancellationReason !== "unavailable"
         ? reasonLabels[order.cancellationReason]
-        : "",
+        : ""),
     referencePhoto: order.referencePhoto,
   };
 }
@@ -140,8 +150,9 @@ function normalizeQuote(
     subtitle: owner === "business" ? quote.customerName : "Tu cotización",
     date: formatDate(quote.updatedAt || quote.createdAt),
     image: quote.referencePhoto,
-    status: quote.status === "cancelled" ? "cancelled" : "rejected",
+    status: quote.status === "completed" ? "completed" : quote.status === "cancelled" ? "cancelled" : "rejected",
     price: quote.quotedPriceClp ?? quote.startingPriceClpSnapshot,
+    priceIsStarting: quote.quotedPriceClp === null && quote.startingPriceClpSnapshot !== null,
     details: [],
     schedule: quote.needNow
       ? "Lo necesita ahora"
@@ -150,12 +161,9 @@ function normalizeQuote(
         : "Horario no disponible",
     note: quote.message,
     response: quote.businessMessage ?? "",
-    reason:
-      quote.status === "cancelled"
-        ? "La solicitud fue cancelada."
-        : quote.status === "declined"
-          ? "La cotización fue rechazada."
-          : "",
+    reason: quote.closureReasonDetail || (quote.closureReason && quote.closureReason in reasonLabels
+      ? reasonLabels[quote.closureReason as keyof typeof reasonLabels]
+      : ""),
     referencePhoto: quote.referencePhoto,
   };
 }
@@ -165,17 +173,20 @@ export function OrderHistoryList({
   owner,
   deleted,
   onArchive,
+  onDelete,
 }: {
   orders: Array<MyOrder | BusinessRequest>;
   owner: "customer" | "business";
   deleted: boolean;
   onArchive: (id: number, archived: boolean) => void;
+  onDelete?: (id: number) => void;
 }) {
   return (
     <CompactHistoryList
       items={orders.map((order) => normalizeOrder(order, owner))}
       deleted={deleted}
       onArchive={onArchive}
+      onDelete={onDelete}
     />
   );
 }
@@ -185,11 +196,13 @@ export function QuoteHistoryList({
   owner,
   deleted,
   onArchive,
+  onDelete,
 }: {
   quotes: QuoteRequest[];
   owner: "customer" | "business";
   deleted: boolean;
   onArchive: (quote: QuoteRequest, archived: boolean) => void;
+  onDelete?: (quote: QuoteRequest) => void;
 }) {
   const byId = new Map(quotes.map((quote) => [quote.id, quote]));
   return (
@@ -200,6 +213,7 @@ export function QuoteHistoryList({
         const quote = byId.get(id);
         if (quote) onArchive(quote, archived);
       }}
+      onDelete={(id) => { const quote = byId.get(id); if (quote) onDelete?.(quote); }}
     />
   );
 }
@@ -208,19 +222,32 @@ function CompactHistoryList({
   items,
   deleted,
   onArchive,
+  onDelete,
 }: {
   items: HistoryItem[];
   deleted: boolean;
   onArchive: (id: number, archived: boolean) => void;
+  onDelete?: (id: number) => void;
 }) {
   const [selected, setSelected] = useState<HistoryItem | null>(null);
   const [pendingArchive, setPendingArchive] = useState<HistoryItem | null>(
     null,
   );
+  const [pendingDelete, setPendingDelete] = useState<HistoryItem | null>(null);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
+  const [confirmBulk, setConfirmBulk] = useState(false);
   const [swipedKey, setSwipedKey] = useState<string | null>(null);
   const { unread, markRead } = useUnreadInteractions();
   return (
     <>
+      {!deleted && items.length > 0 && (
+        <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" checked={selectedKeys.size === items.length} onChange={(event) => setSelectedKeys(event.target.checked ? new Set(items.map((item) => item.key)) : new Set())} />Seleccionar todo</label>
+            {selectedKeys.size > 0 && <button type="button" onClick={() => setConfirmBulk(true)} className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-black text-red-600">Mover {selectedKeys.size} a Eliminados</button>}
+          </div>
+        </div>
+      )}
       <div className="space-y-2.5">
         {items.map((item, index) => {
           const presentation = statusPresentation[item.status];
@@ -228,7 +255,7 @@ function CompactHistoryList({
           const isUnread = unread.has(interactionKey(item.kind, item.id));
           const isSwiped = swipedKey === item.key;
           return (
-            <div key={item.key}>
+            <div key={item.key} className="relative">
               {(index === 0 || items[index - 1].date !== item.date) && (
                 <div className="mb-2 flex items-center gap-2 pt-1 text-xs font-bold text-slate-500">
                   <CalendarDays className="h-4 w-4" />
@@ -237,25 +264,25 @@ function CompactHistoryList({
                 </div>
               )}
               <div className="relative overflow-hidden rounded-2xl">
+                {!deleted && <input type="checkbox" aria-label={`Seleccionar ${item.title}`} checked={selectedKeys.has(item.key)} onChange={(event) => setSelectedKeys((current) => { const next = new Set(current); event.target.checked ? next.add(item.key) : next.delete(item.key); return next; })} className="absolute left-2 top-2 z-20 h-4 w-4 accent-teal-600" />}
+                <div className="absolute inset-y-0 right-0 flex">
+                {deleted && <button type="button" onClick={() => setPendingArchive(item)} className="flex w-24 flex-col items-center justify-center gap-1 bg-emerald-600 text-xs font-black text-white"><RotateCcw className="h-5 w-5" />Restaurar</button>}
                 <button
                   type="button"
-                  onClick={() => setPendingArchive(item)}
-                  className={`absolute inset-y-0 right-0 flex w-24 flex-col items-center justify-center gap-1 text-xs font-black text-white ${deleted ? "bg-emerald-600" : "bg-red-500"}`}
+                  onClick={() => deleted ? setPendingDelete(item) : setPendingArchive(item)}
+                  className="flex w-24 flex-col items-center justify-center gap-1 bg-red-500 text-xs font-black text-white"
                 >
-                  {deleted ? (
-                    <RotateCcw className="h-5 w-5" />
-                  ) : (
-                    <Trash2 className="h-5 w-5" />
-                  )}
-                  {deleted ? "Restaurar" : "Eliminar"}
+                  <Trash2 className="h-5 w-5" />
+                  {deleted ? "Definitivo" : "Eliminar"}
                 </button>
+                </div>
                 <motion.button
                   id={`${item.kind}-${item.id}`}
                   type="button"
                   drag="x"
-                  dragConstraints={{ left: -96, right: 0 }}
+                  dragConstraints={{ left: deleted ? -192 : -96, right: 0 }}
                   dragElastic={0.08}
-                  animate={{ x: isSwiped ? -96 : 0 }}
+                  animate={{ x: isSwiped ? (deleted ? -192 : -96) : 0 }}
                   transition={{ type: "spring", stiffness: 500, damping: 38 }}
                   onDragEnd={(_, info) =>
                     setSwipedKey(info.offset.x < -45 ? item.key : null)
@@ -341,7 +368,7 @@ function CompactHistoryList({
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="text-sm font-black text-emerald-600">
-                        {item.price === null ? "—" : money(item.price)}
+                        {item.price === null ? "—" : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
                       </span>
                       <ChevronRight className="h-5 w-5 text-slate-600" />
                     </span>
@@ -352,6 +379,9 @@ function CompactHistoryList({
           );
         })}
       </div>
+      {confirmBulk && (
+        <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center"><div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl"><h3 className="text-center text-lg font-black">Mover solicitudes a Eliminados</h3><p className="mt-2 text-center text-sm text-slate-600">Moverás {selectedKeys.size} solicitudes a la carpeta Eliminados. Podrás restaurarlas después.</p><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setConfirmBulk(false)} className="rounded-xl border py-3 text-sm font-bold">Volver</button><button onClick={() => { items.filter((item) => selectedKeys.has(item.key)).forEach((item) => onArchive(item.id, true)); setSelectedKeys(new Set()); setConfirmBulk(false); }} className="rounded-xl bg-red-500 py-3 text-sm font-bold text-white">Continuar</button></div></div></div>
+      )}
       {pendingArchive && (
         <div className="absolute inset-0 z-[60] flex items-end bg-slate-950/45 p-3 sm:items-center">
           <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
@@ -391,6 +421,16 @@ function CompactHistoryList({
                 {deleted ? "Restaurar" : "Mover"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {pendingDelete && (
+        <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center">
+          <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
+            <Trash2 className="mx-auto h-12 w-12 rounded-full bg-red-50 p-3 text-red-500" />
+            <h3 className="mt-4 text-center text-lg font-black">Eliminar definitivamente</h3>
+            <p className="mt-2 text-center text-sm text-slate-600">Esta solicitud dejará de aparecer en tu cuenta y no podrás restaurarla. La otra persona conservará su propio registro.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setPendingDelete(null)} className="rounded-xl border py-3 text-sm font-bold">Volver</button><button onClick={() => { onDelete?.(pendingDelete.id); setPendingDelete(null); }} className="rounded-xl bg-red-500 py-3 text-sm font-bold text-white">Eliminar</button></div>
           </div>
         </div>
       )}
@@ -492,7 +532,7 @@ function CompactHistoryList({
               <p className="pt-1 text-xl font-black text-emerald-600">
                 {selected.price === null
                   ? "Precio no disponible"
-                  : money(selected.price)}
+                  : `${selected.priceIsStarting ? "Desde " : ""}${money(selected.price)}`}
               </p>
             </div>
             <button

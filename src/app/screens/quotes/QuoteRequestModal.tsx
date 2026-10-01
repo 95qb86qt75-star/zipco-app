@@ -43,8 +43,8 @@ export default function QuoteRequestModal({ businessId, item, onClose, onCreated
     if (submitting) return;
     setSubmitting(true); setError('');
     try {
-      await createQuote({ businessId, catalogItemId: item.id, message: message.trim(), needNow, requestedDate: needNow ? undefined : date, requestedTime: needNow ? undefined : time, referencePhoto: photo.trim() || undefined }, token, key.current);
-      showAppToast('Cotización enviada. Puedes seguirla en Solicitudes.');
+      const created = await createQuote({ businessId, catalogItemId: item.id, message: message.trim(), needNow, requestedDate: needNow ? undefined : date, requestedTime: needNow ? undefined : time, referencePhoto: photo.trim() || undefined }, token, key.current);
+      showAppToast('', 'success', { title: 'Cotización enviada', description: 'Puedes seguirla en Solicitudes.', actionUrl: `/?open=requests-customer-quotes&quoteId=${created.id}` });
       onCreated(); onClose();
     } catch (cause: any) {
       if (cause?.status === 401) onSessionExpired?.();

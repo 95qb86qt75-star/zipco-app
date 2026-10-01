@@ -13,6 +13,9 @@ describe('request status grouping', () => {
     expect(statusViewFor('quotes', 'requested')).toBe('pending');
     expect(statusViewFor('quotes', 'quoted')).toBe('waiting');
     expect(statusViewFor('quotes', 'accepted')).toBe('active');
+    expect(statusViewFor('quotes', 'alternative_proposed')).toBe('waiting');
+    expect(statusViewFor('quotes', 'ready')).toBe('active');
+    expect(statusViewFor('quotes', 'completed')).toBe('history');
     expect(statusViewFor('quotes', 'declined')).toBe('history');
   });
 

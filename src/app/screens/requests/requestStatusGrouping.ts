@@ -6,15 +6,15 @@ type StatusRecord = { status: string; archivedAt?: string | null };
 
 export function statusViewFor(kind: RequestKind, status: string): StatusView | null {
   if (kind === 'orders') {
-    if (status === 'pending') return 'pending';
+    if (status === 'pending' || status === 'alternative_proposed') return 'pending';
     if (status === 'accepted' || status === 'ready') return 'active';
     if (status === 'completed' || status === 'rejected' || status === 'cancelled') return 'history';
     return null;
   }
   if (status === 'requested') return 'pending';
-  if (status === 'quoted') return 'waiting';
-  if (status === 'accepted') return 'active';
-  if (status === 'declined' || status === 'cancelled') return 'history';
+  if (status === 'quoted' || status === 'alternative_proposed') return 'waiting';
+  if (status === 'accepted' || status === 'ready') return 'active';
+  if (status === 'completed' || status === 'declined' || status === 'cancelled') return 'history';
   return null;
 }
 

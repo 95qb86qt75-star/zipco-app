@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { showAppToast } from '../Toast';
-import { archiveQuote, getBusinessQuotes, getMyQuotes, QuoteApiError, respondQuote, updateQuoteStatus, type QuoteRequest } from './quoteApi';
+import { archiveQuote, deleteQuotePermanently, getBusinessQuotes, getMyQuotes, proposeQuoteAlternative, QuoteApiError, respondQuote, updateQuoteStatus, type QuoteCancellationReason, type QuoteRequest, type QuoteStatus } from './quoteApi';
 
 export default function useQuotes(onSessionExpired: () => void) {
   const [myQuotes, setMyQuotes] = useState<QuoteRequest[]>([]);
@@ -35,18 +35,27 @@ export default function useQuotes(onSessionExpired: () => void) {
     } finally { setUpdating((current) => { const next = new Set(current); next.delete(quote.id); return next; }); }
   }, [load, onSessionExpired, updating]);
 
-  const changeStatus = (quote: QuoteRequest, status: 'accepted' | 'declined' | 'cancelled') => {
+  const changeStatus = (quote: QuoteRequest, status: QuoteStatus, reason?: QuoteCancellationReason, reasonDetail?: string) => {
     const token = localStorage.getItem('zipco-token'); if (!token) return;
-    void run(quote, () => updateQuoteStatus(quote.id, status, token), 'Cotización actualizada.');
+    void run(quote, () => updateQuoteStatus(quote.id, status, token, reason, reasonDetail), 'Cotización actualizada.');
   };
   const respond = (quote: QuoteRequest, price: number, message: string) => {
     const token = localStorage.getItem('zipco-token'); if (!token) return;
     void run(quote, () => respondQuote(quote.id, price, message, token), 'Cotización enviada al cliente.');
+  };
+  const proposeAlternative = (quote: QuoteRequest, payload: { date?: string; time?: string; item?: string; quantity?: number; priceClp?: number; message: string }) => {
+    const token = localStorage.getItem('zipco-token'); if (!token) return;
+    void run(quote, () => proposeQuoteAlternative(quote.id, payload, token), 'Alternativa enviada al cliente.');
   };
   const setArchived = (quote: QuoteRequest, archived: boolean) => {
     const token = localStorage.getItem('zipco-token'); if (!token) return;
     void run(quote, () => archiveQuote(quote.id, archived, token), archived ? 'Cotización movida a Eliminados.' : 'Cotización restaurada al historial.');
   };
 
-  return { hasBusiness, myQuotes, businessQuotes, loading, error, updating, load, changeStatus, respond, setArchived };
+  const deletePermanently = (quote: QuoteRequest) => {
+    const token = localStorage.getItem('zipco-token'); if (!token) return;
+    void run(quote, () => deleteQuotePermanently(quote.id, token), 'Cotización eliminada definitivamente.');
+  };
+
+  return { hasBusiness, myQuotes, businessQuotes, loading, error, updating, load, changeStatus, respond, proposeAlternative, setArchived, deletePermanently };
 }

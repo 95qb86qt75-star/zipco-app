@@ -1,4 +1,4 @@
-import type { BusinessRequest, DisplayOrderStatus, MyOrder, OrderAction, UpdateOrderStatusPayload } from './types';
+import type { BusinessRequest, ClosureReason, DisplayOrderStatus, MyOrder, OrderAction, UpdateOrderStatusPayload } from './types';
 
 const historyStatuses = new Set(['completed', 'rejected', 'cancelled']);
 
@@ -26,6 +26,7 @@ export function classifyBusinessOrders(orders: BusinessRequest[]) {
 
 export const STATUS_LABELS: Record<DisplayOrderStatus, string> = {
   pending: 'En espera',
+  alternative_proposed: 'Alternativa enviada',
   accepted: 'Aceptado',
   ready: 'Listo',
   completed: 'Completado',
@@ -54,6 +55,8 @@ export const ORDER_ACTION_COPY: Record<OrderAction, {
     description: 'Selecciona el motivo de cancelación. El pedido pasará al historial y esta acción no se puede deshacer.',
     confirmLabel: 'Cancelar pedido'
   },
+  'accept-alternative': { title: 'Aceptar alternativa', description: 'El pedido continuará con las condiciones propuestas por el negocio.', confirmLabel: 'Aceptar alternativa' },
+  'reject-alternative': { title: 'Rechazar alternativa', description: 'El pedido finalizará y pasará al historial. No habrá una nueva negociación.', confirmLabel: 'Rechazar alternativa' },
   'mark-ready': {
     title: 'Marcar pedido listo',
     description: 'Confirma que el pedido está preparado y listo para ser entregado al cliente.',
@@ -73,11 +76,14 @@ export const ORDER_ACTION_COPY: Record<OrderAction, {
 
 export function actionToPayload(
   action: OrderAction,
-  cancellationReason?: UpdateOrderStatusPayload['cancellationReason']
+  reason?: ClosureReason,
+  reasonDetail?: string,
 ): UpdateOrderStatusPayload | null {
   if (action === 'accept') return { status: 'accepted' };
-  if (action === 'reject') return { status: 'rejected' };
+  if (action === 'accept-alternative') return { status: 'accepted' };
+  if (action === 'reject-alternative') return { status: 'rejected', rejectionReason: 'other', reasonDetail: 'El cliente rechazó la alternativa propuesta.' };
+  if (action === 'reject') return reason ? { status: 'rejected', rejectionReason: reason as UpdateOrderStatusPayload['rejectionReason'], reasonDetail } : null;
   if (action === 'mark-ready') return { status: 'ready' };
   if (action === 'complete-reception' || action === 'complete-delivery') return { status: 'completed' };
-  return cancellationReason ? { status: 'cancelled', cancellationReason } : null;
+  return reason ? { status: 'cancelled', cancellationReason: reason as UpdateOrderStatusPayload['cancellationReason'], reasonDetail } : null;
 }

@@ -53,7 +53,7 @@ function readOptionalImage(value: unknown, issue: OrderDataIssue, issues: OrderD
 
 function formatCreatedAt(createdAt: string | null): string {
   return createdAt
-    ? new Date(createdAt).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })
+    ? new Date(createdAt).toLocaleString('es-CL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : 'Fecha no disponible';
 }
 
@@ -84,7 +84,8 @@ function normalizeReason(
   status: OrderStatus | null,
   issues: OrderDataIssue[]
 ): NormalizedCancellationReason {
-  if (status === 'cancelled') {
+  if (status === 'cancelled' || status === 'rejected') {
+    if (status === 'rejected' && !isPresent(value)) return null;
     const reason = parseCancellationReason(value);
     if (reason) return reason;
     issues.push('cancellationReason');
@@ -114,6 +115,7 @@ function normalizeCandidate(
       businessId: null,
       userId: null,
       createdAt: null,
+      updatedAt: null,
       date: 'Fecha no disponible',
       products: { state: 'unavailable' as const, items: [] as [] },
       note: '',
@@ -123,6 +125,8 @@ function normalizeCandidate(
       needNow: false,
       referencePhoto: null,
       cancellationReason: null,
+      cancellationReasonDetail: '',
+      alternativeDate: null, alternativeTime: null, alternativeItem: '', alternativeQuantity: null, alternativePriceClp: null, alternativeMessage: '',
       archivedAt: null,
       dataIssues: []
     };
@@ -151,6 +155,7 @@ function normalizeCandidate(
   if (isPresent(userIdValue) && userId === null) dataIssues.push('userId');
 
   const createdAt = parseIsoDate(record.createdAt);
+  const updatedAt = parseIsoDate(record.updatedAt);
   if (createdAt === null) dataIssues.push('createdAt');
 
   const deliveryDate = isPresent(record.deliveryDate) ? parseCalendarDate(record.deliveryDate) : null;
@@ -180,7 +185,8 @@ function normalizeCandidate(
     businessId,
     userId,
     createdAt,
-    date: formatCreatedAt(createdAt),
+    updatedAt,
+    date: formatCreatedAt(updatedAt ?? createdAt),
     products,
     note,
     total,
@@ -189,6 +195,13 @@ function normalizeCandidate(
     needNow,
     referencePhoto,
     cancellationReason: normalizeReason(record.cancellationReason, rawStatus, dataIssues),
+    cancellationReasonDetail: readOptionalText(record.cancellationReasonDetail, 'cancellationReason', dataIssues),
+    alternativeDate: isPresent(record.alternativeDate) ? parseCalendarDate(record.alternativeDate) : null,
+    alternativeTime: isPresent(record.alternativeTime) ? parseTime(record.alternativeTime) : null,
+    alternativeItem: readOptionalText(record.alternativeItem, 'products', dataIssues),
+    alternativeQuantity: isPresent(record.alternativeQuantity) ? parsePositiveInteger(record.alternativeQuantity) : null,
+    alternativePriceClp: isPresent(record.alternativePriceClp) ? parseNonNegativeInteger(record.alternativePriceClp) : null,
+    alternativeMessage: readOptionalText(record.alternativeMessage, 'note', dataIssues),
     archivedAt: parseIsoDate(context === 'customer' ? record.customerArchivedAt : record.businessArchivedAt),
     dataIssues: uniqueIssues(dataIssues)
   };
@@ -257,6 +270,7 @@ export function canSubmitOrderStatus(
   if (order.recordState !== 'available') return false;
   if (actor === 'customer') {
     return (action === 'cancel' && order.status === 'pending')
+      || ((action === 'accept-alternative' || action === 'reject-alternative') && order.status === 'alternative_proposed')
       || (action === 'complete-reception' && order.status === 'ready');
   }
   if (action === 'reject') return order.status === 'pending';

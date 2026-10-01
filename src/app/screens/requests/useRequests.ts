@@ -10,9 +10,9 @@ import {
   normalizeBusinessOrdersPayload,
   normalizeMyOrdersPayload
 } from './orderNormalization';
-import { archiveOrder, OrdersApiError, patchOrderStatus } from './ordersApi';
+import { archiveOrder, deleteOrderPermanently, OrdersApiError, patchOrderStatus, proposeOrderAlternative } from './ordersApi';
 import { isRecord } from './orderValueParsers';
-import type { BusinessRequest, CancellationReason, MyOrder, OrderAction, OrderActor } from './types';
+import type { BusinessRequest, ClosureReason, MyOrder, OrderAction, OrderActor } from './types';
 
 const FALLBACK_BUSINESS_IMAGE = 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80';
 
@@ -92,11 +92,12 @@ export default function useRequests(onSessionExpired: () => void) {
     order: BusinessRequest | MyOrder,
     actor: OrderActor,
     action: OrderAction,
-    cancellationReason?: CancellationReason
+    cancellationReason?: ClosureReason,
+    reasonDetail?: string,
   ) => {
     if (!canSubmitOrderStatus(order, actor, action)) return;
     const actionable = getActionableOrder(order);
-    const payload = actionToPayload(action, cancellationReason);
+    const payload = actionToPayload(action, cancellationReason, reasonDetail);
     const token = localStorage.getItem('zipco-token');
     if (!actionable || !payload || !token || !guardRef.current.begin(actionable.id)) return;
 
@@ -132,5 +133,23 @@ export default function useRequests(onSessionExpired: () => void) {
     }
   }, [loadOrders]);
 
-  return { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction, setArchived };
+  const deletePermanently = useCallback(async (id: number) => {
+    const token = localStorage.getItem('zipco-token');
+    if (!token) return;
+    try {
+      await deleteOrderPermanently(id, token);
+      await loadOrders();
+      showAppToast('Pedido eliminado definitivamente.');
+    } catch (error) {
+      showAppToast(error instanceof Error ? error.message : 'No se pudo eliminar el pedido.', 'error');
+    }
+  }, [loadOrders]);
+
+  const proposeAlternative = useCallback(async (id: number, payload: { date?: string; time?: string; item?: string; quantity?: number; priceClp?: number; message: string }) => {
+    const token = localStorage.getItem('zipco-token'); if (!token) return;
+    try { await proposeOrderAlternative(id, payload, token); await loadOrders(); showAppToast('Alternativa enviada al cliente.'); }
+    catch (error) { showAppToast(error instanceof Error ? error.message : 'No se pudo enviar la alternativa.', 'error'); }
+  }, [loadOrders]);
+
+  return { hasBusiness, isLoading, loadError, myOrders, requests, updatingOrderIds, loadOrders, performAction, proposeAlternative, setArchived, deletePermanently };
 }

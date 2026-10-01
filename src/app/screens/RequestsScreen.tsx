@@ -4,11 +4,14 @@ import {
   ArrowLeft,
   ArrowUp,
   Check,
+  Bell,
+  ChevronRight,
   Filter,
   List,
   Minus,
   RefreshCw,
   Trash2,
+  PackageCheck,
   X,
 } from "lucide-react";
 import BusinessOrdersTab from "./requests/BusinessOrdersTab";
@@ -21,7 +24,7 @@ import {
   OrderHistoryList,
   QuoteHistoryList,
 } from "./requests/CompactHistoryList";
-import { markInteractionUnread } from "../notifications/unreadInteractions";
+import { interactionKey, markInteractionUnread, useUnreadInteractions } from "../notifications/unreadInteractions";
 import {
   countStatusViews,
   filterByStatusView,
@@ -59,6 +62,7 @@ export default function RequestsScreen({
     Record<string, "newest" | "oldest">
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
+  const { unread } = useUnreadInteractions();
   const {
     hasBusiness,
     isLoading,
@@ -68,7 +72,9 @@ export default function RequestsScreen({
     updatingOrderIds,
     loadOrders,
     performAction,
+    proposeAlternative: proposeOrderAlternative,
     setArchived: setOrderArchived,
+    deletePermanently: deleteOrderPermanently,
   } = useRequests(onSessionExpired);
   const quotes = useQuotes(onSessionExpired);
   const viewKey = `${subTab}-${requestType}`;
@@ -78,6 +84,20 @@ export default function RequestsScreen({
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
   const quoteRecords =
     subTab === "my-orders" ? quotes.myQuotes : quotes.businessQuotes;
+  const readyCustomerItems = subTab === "my-orders" ? [
+    ...myOrders.filter((order) => order.recordState === "available" && order.status === "ready").map((order) => ({ kind: "orders" as const, id: order.id })),
+    ...quotes.myQuotes.filter((quote) => quote.status === "ready").map((quote) => ({ kind: "quotes" as const, id: quote.id })),
+  ] : [];
+  const responseCustomerItems = subTab === "my-orders" ? [
+    ...myOrders.filter((order) => order.recordState === "available" && order.status !== "ready" && unread.has(interactionKey("order", order.id))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status })),
+    ...quotes.myQuotes.filter((quote) => quote.status !== "ready" && unread.has(interactionKey("quote", quote.id))).map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status })),
+  ] : [];
+  const openAttentionItem = (item: { kind: "orders" | "quotes"; id: number; status?: string }) => {
+    setRequestType(item.kind);
+    const nextView = statusViewFor(item.kind, item.status ?? "ready") ?? "active";
+    setStatusViews((current) => ({ ...current, [`my-orders-${item.kind}`]: nextView }));
+    window.setTimeout(() => document.getElementById(`${item.kind === "quotes" ? "quote" : "order"}-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
+  };
   const statusCounts = countStatusViews(
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
@@ -89,10 +109,10 @@ export default function RequestsScreen({
   ) =>
     [...records].sort((left, right) => {
       const leftTime = new Date(
-        left.createdAt || left.updatedAt || 0,
+        left.updatedAt || left.createdAt || 0,
       ).getTime();
       const rightTime = new Date(
-        right.createdAt || right.updatedAt || 0,
+        right.updatedAt || right.createdAt || 0,
       ).getTime();
       return sortDirection === "newest"
         ? rightTime - leftTime
@@ -149,6 +169,11 @@ export default function RequestsScreen({
 
   const selectStatusView = (view: StatusView) => {
     setStatusViews((current) => ({ ...current, [viewKey]: view }));
+  };
+  const changeQuoteStatusAndFollow = (quote: Parameters<typeof quotes.changeStatus>[0], status: Parameters<typeof quotes.changeStatus>[1], reason?: Parameters<typeof quotes.changeStatus>[2], detail?: string) => {
+    quotes.changeStatus(quote, status, reason, detail);
+    const nextView = statusViewFor("quotes", status);
+    if (nextView) setStatusViews((current) => ({ ...current, [viewKey]: nextView }));
   };
   const historyOptions: Array<{
     value: HistoryFilter;
@@ -227,12 +252,14 @@ export default function RequestsScreen({
       [`${subTab}-${targetKind}`]: targetView,
     }));
     window.setTimeout(
-      () =>
+      () => {
         document
           .getElementById(
             `${targetKind === "quotes" ? "quote" : "order"}-${targetKind === "quotes" ? quoteId : orderId}`,
           )
-          ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.history.replaceState({}, "", window.location.pathname);
+      },
       150,
     );
   }, [orderRecords, quoteRecords, subTab]);
@@ -350,6 +377,24 @@ export default function RequestsScreen({
             </button>
           ))}
         </div>
+        {subTab === "my-orders" && (responseCustomerItems.length > 0 || readyCustomerItems.length > 0) && (
+          <div className="mb-3 space-y-2">
+            {responseCustomerItems.length > 0 && (
+              <button type="button" onClick={() => openAttentionItem(responseCustomerItems[0])} className="flex w-full items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-3 text-left shadow-sm">
+                <Bell className="h-7 w-7 shrink-0 text-teal-600" />
+                <span className="min-w-0 flex-1"><span className="block text-sm font-black text-slate-900">{responseCustomerItems.length} {responseCustomerItems.length === 1 ? "nueva respuesta del negocio" : "nuevas respuestas del negocio"}</span><span className="block text-xs text-slate-500">Tienes {responseCustomerItems.length} pedido/solicitud con una nueva respuesta.</span></span>
+                <ChevronRight className="h-5 w-5 text-slate-700" />
+              </button>
+            )}
+            {readyCustomerItems.length > 0 && (
+              <button type="button" onClick={() => openAttentionItem(readyCustomerItems[0])} className="flex w-full items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-left shadow-sm">
+                <PackageCheck className="h-7 w-7 shrink-0 text-amber-500" />
+                <span className="min-w-0 flex-1"><span className="block text-sm font-black text-slate-900">{readyCustomerItems.length} {readyCustomerItems.length === 1 ? "pedido listo para recibir" : "pedidos listos para recibir"}</span><span className="block text-xs text-slate-500">Tienes {readyCustomerItems.length} pedido que el negocio marcó como listo.</span></span>
+                <ChevronRight className="h-5 w-5 text-slate-700" />
+              </button>
+            )}
+          </div>
+        )}
         {statusView !== "history" && (
           <div className="mb-4 flex justify-end">
             <button
@@ -428,7 +473,7 @@ export default function RequestsScreen({
             <CustomerQuotes
               quotes={[]}
               updating={quotes.updating}
-              onStatus={quotes.changeStatus}
+              onStatus={changeQuoteStatusAndFollow}
               emptyText={emptyCopy.description}
             />
           )}
@@ -442,6 +487,7 @@ export default function RequestsScreen({
               owner={subTab === "my-orders" ? "customer" : "business"}
               deleted={historyFilter === "deleted"}
               onArchive={quotes.setArchived}
+              onDelete={quotes.deletePermanently}
             />
           )}
         {requestType === "quotes" &&
@@ -453,7 +499,7 @@ export default function RequestsScreen({
             <CustomerQuotes
               quotes={filteredQuotes}
               updating={quotes.updating}
-              onStatus={quotes.changeStatus}
+              onStatus={changeQuoteStatusAndFollow}
               emptyText={emptyCopy.description}
             />
           )}
@@ -468,6 +514,8 @@ export default function RequestsScreen({
               quotes={filteredQuotes}
               updating={quotes.updating}
               onRespond={quotes.respond}
+              onStatus={changeQuoteStatusAndFollow}
+              onAlternative={quotes.proposeAlternative}
               emptyText={emptyCopy.description}
             />
           )}
@@ -509,6 +557,7 @@ export default function RequestsScreen({
                   owner="customer"
                   deleted={historyFilter === "deleted"}
                   onArchive={setOrderArchived}
+                  onDelete={deleteOrderPermanently}
                 />
               )}
             {!isLoading &&
@@ -522,6 +571,7 @@ export default function RequestsScreen({
                   owner="business"
                   deleted={historyFilter === "deleted"}
                   onArchive={setOrderArchived}
+                  onDelete={deleteOrderPermanently}
                 />
               )}
 
@@ -533,11 +583,14 @@ export default function RequestsScreen({
                   myOrders={filteredMyOrders}
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
-                  onAction={(order, action, reason) =>
-                    performAction(order, "customer", action, reason)
-                  }
+                  onAction={async (order, action, reason, detail) => {
+                    await performAction(order, "customer", action, reason, detail);
+                    const next = action === "cancel" ? "history" : action === "complete-reception" ? "history" : "active";
+                    setStatusViews((current) => ({ ...current, [viewKey]: next }));
+                  }}
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
+                  onProposeAlternative={proposeOrderAlternative}
                 />
               )}
 
@@ -550,9 +603,11 @@ export default function RequestsScreen({
                   requests={filteredBusinessOrders}
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
-                  onAction={(order, action, reason) =>
-                    performAction(order, "business", action, reason)
-                  }
+                  onAction={async (order, action, reason, detail) => {
+                    await performAction(order, "business", action, reason, detail);
+                    const next = action === "reject" || action === "complete-delivery" ? "history" : "active";
+                    setStatusViews((current) => ({ ...current, [viewKey]: next }));
+                  }}
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
                 />

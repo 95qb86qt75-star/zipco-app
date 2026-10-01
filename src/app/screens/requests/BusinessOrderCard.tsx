@@ -16,6 +16,7 @@ type Props = {
   isUpdating: boolean;
   onAction: (action: OrderAction) => void;
   onRetry: () => void;
+  onProposeAlternative?: () => void;
   isUnread?: boolean;
   onOpen?: () => void;
 };
@@ -25,6 +26,7 @@ export default function BusinessOrderCard({
   isUpdating,
   onAction,
   onRetry,
+  onProposeAlternative,
   isUnread = false,
   onOpen,
 }: Props) {
@@ -124,7 +126,7 @@ export default function BusinessOrderCard({
         </div>
       </div>
       {request.status === "pending" && (
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-2">
           <button
             disabled={isUpdating}
             onClick={(event) => {
@@ -136,6 +138,7 @@ export default function BusinessOrderCard({
             <X className="mr-1 inline h-3.5 w-3.5" />
             Rechazar
           </button>
+          <button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onProposeAlternative?.(); }} className="rounded-xl border border-teal-300 bg-teal-50 py-2 text-[10px] font-bold text-teal-700">Proponer alternativa</button>
           <button
             disabled={isUpdating || !canAccept}
             onClick={(event) => {
@@ -149,6 +152,7 @@ export default function BusinessOrderCard({
           </button>
         </div>
       )}
+      {request.alternativeMessage && <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900"><p className="font-black">Alternativa enviada</p><p>{request.alternativeMessage}</p>{request.alternativeItem && <p>Opción: {request.alternativeItem}</p>}{request.alternativePriceClp && <p className="font-black">${request.alternativePriceClp.toLocaleString("es-CL")}</p>}</div>}
       {action && (
         <button
           disabled={isUpdating}

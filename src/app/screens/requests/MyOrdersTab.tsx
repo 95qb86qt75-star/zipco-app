@@ -3,7 +3,7 @@ import { Fragment, useState } from "react";
 import EmptyRequestsState from "./EmptyRequestsState";
 import MyOrderCard from "./MyOrderCard";
 import OrderActionModal from "./OrderActionModal";
-import type { CancellationReason, MyOrder, OrderAction } from "./types";
+import type { ClosureReason, MyOrder, OrderAction } from "./types";
 import {
   interactionKey,
   useUnreadInteractions,
@@ -15,7 +15,8 @@ type Props = {
   onAction: (
     order: MyOrder,
     action: OrderAction,
-    reason?: CancellationReason,
+    reason?: ClosureReason,
+    detail?: string,
   ) => Promise<void>;
   onRetry: () => Promise<boolean>;
   emptyTitle: string;
@@ -45,9 +46,9 @@ export default function MyOrdersTab({
     selection?.order.recordState === "available" ? selection.order.id : null;
   const isSubmitting = selectedId !== null && updatingOrderIds.has(selectedId);
 
-  const confirm = async (reason?: CancellationReason) => {
+  const confirm = async (reason?: ClosureReason, detail?: string) => {
     if (!selection) return;
-    await onAction(selection.order, selection.action, reason);
+    await onAction(selection.order, selection.action, reason, detail);
     setSelection(null);
   };
 
@@ -122,8 +123,8 @@ export default function MyOrdersTab({
         onClose={() => {
           if (!isSubmitting) setSelection(null);
         }}
-        onConfirm={(reason) => {
-          void confirm(reason);
+        onConfirm={(reason, detail) => {
+          void confirm(reason, detail);
         }}
       />
     </>

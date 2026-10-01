@@ -24,7 +24,9 @@ self.addEventListener('notificationclick', (event) => {
   if (event.notification.data?.quoteId && !targetUrl.searchParams.has('quoteId')) targetUrl.searchParams.set('quoteId', String(event.notification.data.quoteId));
   const target = targetUrl.href;
   event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clients) => {
-    const client = clients[0];
+    const client = clients.find((candidate) => candidate.url.startsWith(self.location.origin) && candidate.visibilityState === 'visible')
+      || clients.find((candidate) => candidate.url.startsWith(self.location.origin))
+      || clients[0];
     if (client) {
       if ('navigate' in client) await client.navigate(target);
       return client.focus();

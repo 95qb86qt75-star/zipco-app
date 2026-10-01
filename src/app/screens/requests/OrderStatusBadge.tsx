@@ -3,6 +3,7 @@ import type { DisplayOrderStatus } from './types';
 
 const STATUS_CLASSES: Record<DisplayOrderStatus, string> = {
   pending: 'bg-amber-100 text-amber-700',
+  alternative_proposed: 'bg-teal-100 text-teal-700',
   accepted: 'bg-blue-100 text-blue-700',
   ready: 'bg-teal-100 text-teal-700',
   completed: 'bg-green-100 text-green-700',

@@ -3,7 +3,7 @@ import { Fragment, useState } from "react";
 import BusinessOrderCard from "./BusinessOrderCard";
 import EmptyRequestsState from "./EmptyRequestsState";
 import OrderActionModal from "./OrderActionModal";
-import type { BusinessRequest, CancellationReason, OrderAction } from "./types";
+import type { BusinessRequest, ClosureReason, OrderAction } from "./types";
 import {
   interactionKey,
   useUnreadInteractions,
@@ -15,11 +15,13 @@ type Props = {
   onAction: (
     order: BusinessRequest,
     action: OrderAction,
-    reason?: CancellationReason,
+    reason?: ClosureReason,
+    detail?: string,
   ) => Promise<void>;
   onRetry: () => Promise<boolean>;
   emptyTitle: string;
   emptyDescription: string;
+  onProposeAlternative: (id: number, payload: { date?: string; time?: string; item?: string; quantity?: number; priceClp?: number; message: string }) => Promise<void>;
 };
 
 export default function BusinessOrdersTab({
@@ -29,12 +31,20 @@ export default function BusinessOrdersTab({
   onRetry,
   emptyTitle,
   emptyDescription,
+  onProposeAlternative,
 }: Props) {
   const { unread, markRead } = useUnreadInteractions();
   const [selection, setSelection] = useState<{
     order: BusinessRequest;
     action: OrderAction;
   } | null>(null);
+  const [alternative, setAlternative] = useState<BusinessRequest | null>(null);
+  const [alternativeMessage, setAlternativeMessage] = useState("");
+  const [alternativeItem, setAlternativeItem] = useState("");
+  const [alternativePrice, setAlternativePrice] = useState("");
+  const [alternativeQuantity, setAlternativeQuantity] = useState("");
+  const [alternativeDate, setAlternativeDate] = useState("");
+  const [alternativeTime, setAlternativeTime] = useState("");
   const displayed = requests.filter(
     (order) => order.recordState === "available",
   );
@@ -45,9 +55,9 @@ export default function BusinessOrdersTab({
     selection?.order.recordState === "available" ? selection.order.id : null;
   const isSubmitting = selectedId !== null && updatingOrderIds.has(selectedId);
 
-  const confirm = async (reason?: CancellationReason) => {
+  const confirm = async (reason?: ClosureReason, detail?: string) => {
     if (!selection) return;
-    await onAction(selection.order, selection.action, reason);
+    await onAction(selection.order, selection.action, reason, detail);
     setSelection(null);
   };
 
@@ -74,6 +84,7 @@ export default function BusinessOrdersTab({
                 onRetry={() => {
                   void onRetry();
                 }}
+                onProposeAlternative={() => { setAlternative(order); setAlternativeMessage(""); setAlternativeItem(""); setAlternativePrice(""); setAlternativeQuantity(""); setAlternativeDate(""); setAlternativeTime(""); }}
                 isUnread={
                   order.recordState === "available" &&
                   unread.has(interactionKey("order", order.id))
@@ -122,10 +133,11 @@ export default function BusinessOrdersTab({
         onClose={() => {
           if (!isSubmitting) setSelection(null);
         }}
-        onConfirm={(reason) => {
-          void confirm(reason);
+        onConfirm={(reason, detail) => {
+          void confirm(reason, detail);
         }}
       />
+      {alternative?.recordState === "available" && <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"><div className="max-h-[88vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5"><h3 className="text-lg font-black">Proponer una alternativa</h3><p className="mt-1 text-sm text-slate-600">El cliente solo podrá aceptarla o rechazarla.</p><textarea value={alternativeMessage} onChange={(event) => setAlternativeMessage(event.target.value)} rows={3} placeholder="Explica la alternativa" className="mt-4 w-full rounded-xl border p-3 text-sm" /><input value={alternativeItem} onChange={(event) => setAlternativeItem(event.target.value)} placeholder="Producto o servicio alternativo" className="mt-2 w-full rounded-xl border p-3 text-sm" /><div className="mt-2 grid grid-cols-2 gap-2"><input inputMode="numeric" value={alternativeQuantity} onChange={(event) => setAlternativeQuantity(event.target.value.replace(/\D/g, ""))} placeholder="Cantidad" className="w-full rounded-xl border p-3 text-sm" /><input inputMode="numeric" value={alternativePrice} onChange={(event) => setAlternativePrice(event.target.value.replace(/\D/g, ""))} placeholder="Precio" className="w-full rounded-xl border p-3 text-sm" /></div><div className="mt-2 grid grid-cols-2 gap-2"><input type="date" value={alternativeDate} onChange={(event) => setAlternativeDate(event.target.value)} className="w-full rounded-xl border p-3 text-sm" /><input type="time" value={alternativeTime} onChange={(event) => setAlternativeTime(event.target.value)} className="w-full rounded-xl border p-3 text-sm" /></div><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button disabled={alternativeMessage.trim().length < 3} onClick={() => { void onProposeAlternative(alternative.id, { message: alternativeMessage.trim(), item: alternativeItem.trim() || undefined, quantity: Number(alternativeQuantity) || undefined, priceClp: Number(alternativePrice) >= 100 ? Number(alternativePrice) : undefined, date: alternativeDate || undefined, time: alternativeTime || undefined }); setAlternative(null); }} className="rounded-xl bg-teal-600 py-3 font-bold text-white disabled:opacity-50">Enviar alternativa</button></div></div></div>}
     </>
   );
 }
