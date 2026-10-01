@@ -28,6 +28,19 @@ self.addEventListener('notificationclick', (event) => {
       || clients.find((candidate) => candidate.url.startsWith(self.location.origin))
       || clients[0];
     if (client) {
+      // iOS can resume the PWA after this worker posts the message, causing the
+      // message to be lost before React attaches its listener. Navigating the
+      // existing window preserves the target in the URL and works on resume.
+      if ('navigate' in client) {
+        try {
+          const navigatedClient = await client.navigate(target);
+          await (navigatedClient || client).focus();
+          return;
+        } catch {
+          // Older browsers can reject WindowClient.navigate; retain the
+          // message-based behavior as a compatible fallback.
+        }
+      }
       client.postMessage({ type: 'ZIPCO_NOTIFICATION_NAVIGATE', url: targetUrl.pathname + targetUrl.search });
       await client.focus();
       return;
