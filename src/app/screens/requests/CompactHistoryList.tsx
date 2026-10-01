@@ -235,16 +235,16 @@ function CompactHistoryList({
   );
   const [pendingDelete, setPendingDelete] = useState<HistoryItem | null>(null);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
-  const [confirmBulk, setConfirmBulk] = useState(false);
+  const [bulkAction, setBulkAction] = useState<"archive" | "restore" | "delete" | null>(null);
   const [swipedKey, setSwipedKey] = useState<string | null>(null);
   const { unread, markRead } = useUnreadInteractions();
   return (
     <>
-      {!deleted && items.length > 0 && (
+      {items.length > 0 && (
         <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" checked={selectedKeys.size === items.length} onChange={(event) => setSelectedKeys(event.target.checked ? new Set(items.map((item) => item.key)) : new Set())} />Seleccionar todo</label>
-            {selectedKeys.size > 0 && <button type="button" onClick={() => setConfirmBulk(true)} className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-black text-red-600">Mover {selectedKeys.size} a Eliminados</button>}
+            {selectedKeys.size > 0 && <div className="flex gap-1">{deleted ? <><button type="button" onClick={() => setBulkAction("restore")} className="rounded-lg bg-emerald-50 px-2 py-1.5 text-[10px] font-black text-emerald-700">Restaurar ({selectedKeys.size})</button><button type="button" onClick={() => setBulkAction("delete")} className="rounded-lg bg-red-50 px-2 py-1.5 text-[10px] font-black text-red-600">Definitivo ({selectedKeys.size})</button></> : <button type="button" onClick={() => setBulkAction("archive")} className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-black text-red-600">Mover {selectedKeys.size} a Eliminados</button>}</div>}
           </div>
         </div>
       )}
@@ -264,7 +264,7 @@ function CompactHistoryList({
                 </div>
               )}
               <div className="relative overflow-hidden rounded-2xl">
-                {!deleted && <input type="checkbox" aria-label={`Seleccionar ${item.title}`} checked={selectedKeys.has(item.key)} onChange={(event) => setSelectedKeys((current) => { const next = new Set(current); event.target.checked ? next.add(item.key) : next.delete(item.key); return next; })} className="absolute left-2 top-2 z-20 h-4 w-4 accent-teal-600" />}
+                <input type="checkbox" aria-label={`Seleccionar ${item.title}`} checked={selectedKeys.has(item.key)} onChange={(event) => setSelectedKeys((current) => { const next = new Set(current); event.target.checked ? next.add(item.key) : next.delete(item.key); return next; })} className="absolute left-2 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 accent-teal-600" />
                 <div className="absolute inset-y-0 right-0 flex">
                 {deleted && <button type="button" onClick={() => setPendingArchive(item)} className="flex w-24 flex-col items-center justify-center gap-1 bg-emerald-600 text-xs font-black text-white"><RotateCcw className="h-5 w-5" />Restaurar</button>}
                 <button
@@ -290,21 +290,18 @@ function CompactHistoryList({
                   onClick={() => {
                     if (isSwiped) {
                       setSwipedKey(null);
-                      return;
                     }
-                    markRead(item.kind, item.id);
-                    setSelected(item);
                   }}
-                  className={`relative grid w-full grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3 rounded-2xl border p-3 text-left shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-100 bg-white"}`}
+                  className={`relative grid w-full grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-2xl border py-3 pl-8 pr-3 text-left shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-100 bg-white"}`}
                 >
                   {item.image ? (
                     <ImageWithFallback
                       src={item.image}
                       alt={item.title}
-                      className="h-[72px] w-[72px] rounded-xl object-cover"
+                      className="h-16 w-16 rounded-xl object-cover"
                     />
                   ) : (
-                    <span className="flex h-[72px] w-[72px] items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                    <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                       <ImageIcon className="h-6 w-6" />
                     </span>
                   )}
@@ -370,7 +367,7 @@ function CompactHistoryList({
                       <span className="text-sm font-black text-emerald-600">
                         {item.price === null ? "—" : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
                       </span>
-                      <ChevronRight className="h-5 w-5 text-slate-600" />
+                      <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
                     </span>
                   </span>
                 </motion.button>
@@ -379,8 +376,8 @@ function CompactHistoryList({
           );
         })}
       </div>
-      {confirmBulk && (
-        <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center"><div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl"><h3 className="text-center text-lg font-black">Mover solicitudes a Eliminados</h3><p className="mt-2 text-center text-sm text-slate-600">Moverás {selectedKeys.size} solicitudes a la carpeta Eliminados. Podrás restaurarlas después.</p><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setConfirmBulk(false)} className="rounded-xl border py-3 text-sm font-bold">Volver</button><button onClick={() => { items.filter((item) => selectedKeys.has(item.key)).forEach((item) => onArchive(item.id, true)); setSelectedKeys(new Set()); setConfirmBulk(false); }} className="rounded-xl bg-red-500 py-3 text-sm font-bold text-white">Continuar</button></div></div></div>
+      {bulkAction && (
+        <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center"><div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl"><h3 className="text-center text-lg font-black">{bulkAction === "archive" ? "Mover a Eliminados" : bulkAction === "restore" ? "Restaurar solicitudes" : "Eliminar definitivamente"}</h3><p className="mt-2 text-center text-sm text-slate-600">{bulkAction === "delete" ? `Eliminarás definitivamente ${selectedKeys.size} solicitudes. Esta acción no se puede deshacer.` : `${bulkAction === "restore" ? "Restaurarás" : "Moverás"} ${selectedKeys.size} solicitudes seleccionadas.`}</p><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setBulkAction(null)} className="rounded-xl border py-3 text-sm font-bold">Volver</button><button onClick={() => { items.filter((item) => selectedKeys.has(item.key)).forEach((item) => bulkAction === "delete" ? onDelete?.(item.id) : onArchive(item.id, bulkAction === "archive")); setSelectedKeys(new Set()); setBulkAction(null); }} className={`rounded-xl py-3 text-sm font-bold text-white ${bulkAction === "restore" ? "bg-emerald-600" : "bg-red-500"}`}>Continuar</button></div></div></div>
       )}
       {pendingArchive && (
         <div className="absolute inset-0 z-[60] flex items-end bg-slate-950/45 p-3 sm:items-center">

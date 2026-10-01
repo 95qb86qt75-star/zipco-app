@@ -1,6 +1,7 @@
-import { Bell, BellOff, CheckCircle2 } from 'lucide-react';
+import { Bell, BellOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { enablePushNotifications, getExistingPushSubscription, getPushSupport } from './pushNotifications';
+import { showAppToast } from '../screens/Toast';
 
 type State = 'checking' | 'unsupported' | 'blocked' | 'inactive' | 'active' | 'saving';
 
@@ -32,6 +33,7 @@ export default function NotificationPermissionCard() {
     try {
       await enablePushNotifications(token);
       setState('active');
+      showAppToast('', 'success', { title: 'Notificaciones activadas', description: 'Podrás desactivarlas desde la pantalla de Inicio.', icon: 'bell', durationMs: 4500 });
     } catch (cause) {
       const reason = cause instanceof Error ? cause.message : '';
       if (reason === 'permission-denied') setState('blocked');
@@ -43,14 +45,7 @@ export default function NotificationPermissionCard() {
   };
 
   if (state === 'checking') return null;
-  if (state === 'active') {
-    return (
-      <div className="mb-4 flex items-start gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-4">
-        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal-600" />
-        <div><p className="text-sm font-bold text-teal-900">Notificaciones activadas</p><p className="mt-1 text-xs text-teal-700">Te avisaremos sobre pedidos y cotizaciones importantes.</p></div>
-      </div>
-    );
-  }
+  if (state === 'active') return null;
 
   const unavailable = state === 'unsupported' || state === 'blocked';
   return (

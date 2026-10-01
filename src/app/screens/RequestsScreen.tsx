@@ -24,7 +24,7 @@ import {
   OrderHistoryList,
   QuoteHistoryList,
 } from "./requests/CompactHistoryList";
-import { interactionKey, markInteractionUnread, useUnreadInteractions } from "../notifications/unreadInteractions";
+import { interactionKey, markInteractionRead, markInteractionUnread, useUnreadInteractions } from "../notifications/unreadInteractions";
 import {
   countStatusViews,
   filterByStatusView,
@@ -62,6 +62,7 @@ export default function RequestsScreen({
     Record<string, "newest" | "oldest">
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
+  const [showNews, setShowNews] = useState(false);
   const { unread } = useUnreadInteractions();
   const {
     hasBusiness,
@@ -89,11 +90,13 @@ export default function RequestsScreen({
     ...quotes.myQuotes.filter((quote) => quote.status === "ready").map((quote) => ({ kind: "quotes" as const, id: quote.id })),
   ] : [];
   const responseCustomerItems = subTab === "my-orders" ? [
-    ...myOrders.filter((order) => order.recordState === "available" && order.status !== "ready" && unread.has(interactionKey("order", order.id))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status })),
-    ...quotes.myQuotes.filter((quote) => quote.status !== "ready" && unread.has(interactionKey("quote", quote.id))).map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status })),
+    ...myOrders.filter((order) => order.recordState === "available" && order.status !== "ready" && unread.has(interactionKey("order", order.id))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status, title: order.businessName || "Pedido", detail: order.status === "completed" ? "Pedido completado" : order.status === "cancelled" ? "Pedido cancelado" : order.status === "alternative_proposed" ? "Nueva alternativa" : "Estado actualizado", time: order.updatedAt || order.createdAt })),
+    ...quotes.myQuotes.filter((quote) => quote.status !== "ready" && unread.has(interactionKey("quote", quote.id))).map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status, title: quote.itemNameSnapshot, detail: quote.status === "alternative_proposed" ? "Nueva alternativa" : quote.status === "quoted" ? "Cotización respondida" : `Cotización ${quote.status}`, time: quote.updatedAt || quote.createdAt })),
   ] : [];
   const openAttentionItem = (item: { kind: "orders" | "quotes"; id: number; status?: string }) => {
     setRequestType(item.kind);
+    markInteractionRead(item.kind === "quotes" ? "quote" : "order", item.id);
+    setShowNews(false);
     const nextView = statusViewFor(item.kind, item.status ?? "ready") ?? "active";
     setStatusViews((current) => ({ ...current, [`my-orders-${item.kind}`]: nextView }));
     window.setTimeout(() => document.getElementById(`${item.kind === "quotes" ? "quote" : "order"}-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
@@ -380,7 +383,7 @@ export default function RequestsScreen({
         {subTab === "my-orders" && (responseCustomerItems.length > 0 || readyCustomerItems.length > 0) && (
           <div className="mb-3 space-y-2">
             {responseCustomerItems.length > 0 && (
-              <button type="button" onClick={() => openAttentionItem(responseCustomerItems[0])} className="flex w-full items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-3 text-left shadow-sm">
+              <button type="button" onClick={() => setShowNews(true)} className="flex w-full items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-3 text-left shadow-sm">
                 <Bell className="h-7 w-7 shrink-0 text-teal-600" />
                 <span className="min-w-0 flex-1"><span className="block text-sm font-black text-slate-900">{responseCustomerItems.length} {responseCustomerItems.length === 1 ? "nueva respuesta del negocio" : "nuevas respuestas del negocio"}</span><span className="block text-xs text-slate-500">Tienes {responseCustomerItems.length} pedido/solicitud con una nueva respuesta.</span></span>
                 <ChevronRight className="h-5 w-5 text-slate-700" />
@@ -630,6 +633,14 @@ export default function RequestsScreen({
           </>
         )}
       </div>
+      {showNews && (
+        <div className="absolute inset-0 z-[80] flex items-end bg-slate-950/45 p-3 sm:items-center">
+          <div className="mx-auto max-h-[82vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-wide text-teal-600">Novedades</p><h3 className="text-xl font-black">Respuestas del negocio</h3><p className="text-sm text-slate-500">Selecciona una para abrir la solicitud exacta.</p></div><button onClick={() => setShowNews(false)} className="rounded-full bg-slate-100 p-2"><X className="h-5 w-5" /></button></div>
+            <div className="mt-4 space-y-2">{responseCustomerItems.map((item) => <button key={`${item.kind}-${item.id}`} onClick={() => openAttentionItem(item)} className="flex w-full items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 p-3 text-left"><Bell className="h-5 w-5 shrink-0 text-teal-600" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-black">{item.title}</span><span className="block text-xs text-slate-600">{item.detail}</span>{item.time && <span className="mt-1 block text-[10px] text-slate-400">{new Intl.DateTimeFormat("es-CL", { dateStyle: "short", timeStyle: "short" }).format(new Date(item.time))}</span>}</span><ChevronRight className="h-5 w-5" /></button>)}</div>
+          </div>
+        </div>
+      )}
       {showHistoryFilter && (
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
           <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">

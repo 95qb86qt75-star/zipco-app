@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun } from 'lucide-react';
+import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun, Bell, BellOff } from 'lucide-react';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import BottomNav from './screens/BottomNav';
@@ -18,7 +18,7 @@ import Toast, { mergeToastNotification, showAppToast, type ToastNotification } f
 import SplashScreen from './screens/SplashScreen';
 import type { CatalogItem } from './screens/profile/business-config/types';
 import BusinessNotificationMonitor from './notifications/BusinessNotificationMonitor';
-import { disablePushNotifications } from './notifications/pushNotifications';
+import { disablePushNotifications, enablePushNotifications, getExistingPushSubscription, getPushSupport } from './notifications/pushNotifications';
 import { canRunSearch } from './screens/searchConsistency';
 import { fetchLocationSuggestions } from './api/locationSuggestions';
 import { addFavorite, loadFavorites, removeFavorite } from './api/favoritesApi';
@@ -93,6 +93,8 @@ export default function App() {
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems, setFavoriteItems] = useState<FavoriteEntry[]>(getStoredFavorites);
   const [toast, setToast] = useState<ToastNotification | null>(null);
+  const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
+  const [isChangingPush, setIsChangingPush] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
 
   const refreshFavorites = useCallback(async () => {
@@ -180,6 +182,38 @@ export default function App() {
     themeColorMeta?.setAttribute('content', themeColor);
     statusBarMeta?.setAttribute('content', isDarkMode ? 'black-translucent' : 'default');
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (!isRegistrationComplete || getPushSupport() === 'unsupported') {
+      setPushEnabled(null);
+      return;
+    }
+    void getExistingPushSubscription()
+      .then((subscription) => setPushEnabled(Boolean(subscription)))
+      .catch(() => setPushEnabled(false));
+  }, [isRegistrationComplete, activeTab]);
+
+  const togglePushNotifications = async () => {
+    const token = localStorage.getItem('zipco-token');
+    if (!token || pushEnabled === null || isChangingPush) return;
+    setIsChangingPush(true);
+    try {
+      if (pushEnabled) {
+        await disablePushNotifications(token);
+        setPushEnabled(false);
+        showAppToast('', 'success', { title: 'Notificaciones desactivadas', description: 'Puedes volver a activarlas desde Inicio.', icon: 'bell' });
+      } else {
+        await enablePushNotifications(token);
+        setPushEnabled(true);
+        showAppToast('', 'success', { title: 'Notificaciones activadas', description: 'Te avisaremos sobre pedidos y cotizaciones importantes.', icon: 'bell' });
+      }
+    } catch (cause) {
+      const blocked = cause instanceof Error && cause.message === 'permission-denied';
+      showAppToast(blocked ? 'Debes habilitarlas desde los ajustes del dispositivo.' : 'No pudimos cambiar las notificaciones. Intenta nuevamente.', 'error');
+    } finally {
+      setIsChangingPush(false);
+    }
+  };
 
   useEffect(() => {
     const handleToast = (event: Event) => {
@@ -713,6 +747,26 @@ export default function App() {
         >
           {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
+
+        {pushEnabled !== null && (
+          <button
+            type="button"
+            onClick={togglePushNotifications}
+            disabled={isChangingPush}
+            className={`absolute right-20 z-20 p-2.5 rounded-full border transition-all shadow-md disabled:opacity-60 ${
+              pushEnabled
+                ? 'bg-teal-50/95 border-teal-100 text-teal-700 hover:bg-teal-100'
+                : isDarkMode
+                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  : 'bg-white/90 border-white text-slate-500 hover:bg-white'
+            }`}
+            style={{ top: 'max(1.5rem, env(safe-area-inset-top))' }}
+            aria-label={pushEnabled ? 'Desactivar notificaciones' : 'Activar notificaciones'}
+            title={pushEnabled ? 'Desactivar notificaciones' : 'Activar notificaciones'}
+          >
+            {pushEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+          </button>
+        )}
 
         {/* Header */}
         <div
