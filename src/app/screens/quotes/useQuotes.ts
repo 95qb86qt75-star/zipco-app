@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { showAppToast } from '../Toast';
+import { showAppToast, type ToastOptions } from '../Toast';
 import { archiveQuote, deleteQuotePermanently, getBusinessQuotes, getMyQuotes, proposeQuoteAlternative, QuoteApiError, respondQuote, updateQuoteStatus, type QuoteCancellationReason, type QuoteRequest, type QuoteStatus } from './quoteApi';
 
 export default function useQuotes(onSessionExpired: () => void) {
@@ -25,10 +25,15 @@ export default function useQuotes(onSessionExpired: () => void) {
 
   useEffect(() => { void load(); }, [load]);
 
-  const run = useCallback(async (quote: QuoteRequest, operation: () => Promise<unknown>, success: string) => {
+  const run = useCallback(async (quote: QuoteRequest, operation: () => Promise<unknown>, success: string | { message?: string; options: ToastOptions }) => {
     if (updating.has(quote.id)) return;
     setUpdating((current) => new Set(current).add(quote.id));
-    try { await operation(); await load(); showAppToast(success); }
+    try {
+      await operation();
+      await load();
+      if (typeof success === 'string') showAppToast(success);
+      else showAppToast(success.message ?? '', 'success', success.options);
+    }
     catch (cause) {
       if (cause instanceof QuoteApiError && cause.status === 401) onSessionExpired();
       else { showAppToast(cause instanceof Error ? cause.message : 'No se pudo actualizar la cotización.', 'error'); await load(); }
@@ -37,7 +42,13 @@ export default function useQuotes(onSessionExpired: () => void) {
 
   const changeStatus = (quote: QuoteRequest, status: QuoteStatus, reason?: QuoteCancellationReason, reasonDetail?: string) => {
     const token = localStorage.getItem('zipco-token'); if (!token) return;
-    void run(quote, () => updateQuoteStatus(quote.id, status, token, reason, reasonDetail), 'Cotización actualizada.');
+    void run(
+      quote,
+      () => updateQuoteStatus(quote.id, status, token, reason, reasonDetail),
+      status === 'completed'
+        ? { options: { title: 'Recepción confirmada', description: 'Tu solicitud quedó completada. Puedes verla en Historial.', durationMs: 7000 } }
+        : 'Cotización actualizada.',
+    );
   };
   const respond = (quote: QuoteRequest, price: number, message: string) => {
     const token = localStorage.getItem('zipco-token'); if (!token) return;

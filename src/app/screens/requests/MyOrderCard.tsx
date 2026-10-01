@@ -1,4 +1,4 @@
-import { Calendar, ChevronRight, MessageCircle } from "lucide-react";
+import { Bell, Calendar, ChevronRight, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { MyOrder, OrderAction } from "./types";
@@ -47,7 +47,7 @@ export default function MyOrderCard({
     <article
       id={`order-${order.id}`}
       onClick={onOpen}
-      className={`rounded-2xl border p-3 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-white"}`}
+      className={`scroll-mb-36 rounded-2xl border p-3 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-white"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         <ImageWithFallback
@@ -85,7 +85,7 @@ export default function MyOrderCard({
             </p>
           )}
           {order.note && (
-            <p className="mt-1 flex items-center gap-1.5 truncate text-[11px] italic text-slate-500">
+            <p className="mt-1 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11px] italic leading-4 text-slate-500">
               <MessageCircle className="h-3.5 w-3.5 shrink-0" />“{order.note}”
             </p>
           )}
@@ -119,8 +119,9 @@ export default function MyOrderCard({
             event.stopPropagation();
             onAction(action);
           }}
-          className="mt-3 w-full rounded-xl bg-teal-600 py-2 text-xs font-bold text-white disabled:opacity-50"
+          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 py-2 text-xs font-bold text-white disabled:opacity-50 ${action === "complete-reception" ? "zipco-confirm-action border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500" : ""}`}
         >
+          {action === "complete-reception" && <Bell className="zipco-attention-bell h-4 w-4" />}
           {isUpdating
             ? "Guardando..."
             : action === "cancel"

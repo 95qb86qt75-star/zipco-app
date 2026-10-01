@@ -12,7 +12,6 @@ import {
   Minus,
   RefreshCw,
   Trash2,
-  PackageCheck,
   X,
 } from "lucide-react";
 import BusinessOrdersTab from "./requests/BusinessOrdersTab";
@@ -178,6 +177,7 @@ export default function RequestsScreen({
   };
   const changeQuoteStatusAndFollow = (quote: Parameters<typeof quotes.changeStatus>[0], status: Parameters<typeof quotes.changeStatus>[1], reason?: Parameters<typeof quotes.changeStatus>[2], detail?: string) => {
     quotes.changeStatus(quote, status, reason, detail);
+    if (status === "completed") return;
     const nextView = statusViewFor("quotes", status);
     if (nextView) setStatusViews((current) => ({ ...current, [viewKey]: nextView }));
   };
@@ -315,7 +315,7 @@ export default function RequestsScreen({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-24">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
         <NotificationPermissionCard />
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/70 p-1.5 shadow-sm">
           <button
@@ -387,15 +387,15 @@ export default function RequestsScreen({
         {subTab === "my-orders" && (responseCustomerItems.length > 0 || readyCustomerItems.length > 0) && (
           <div className="mb-3 space-y-2">
             {responseCustomerItems.length > 0 && (
-              <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={() => { const next = attentionFilter === "responses" ? null : "responses"; setAttentionFilter(next); if (next) { const view = statusViewFor(requestType, responseCustomerItems[0].status) ?? "pending"; setStatusViews((current) => ({ ...current, [viewKey]: view })); } }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-300 ${attentionFilter === "responses" ? "scale-[1.01] border-teal-500 bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-[0_12px_28px_rgba(20,184,166,0.30)]" : "border-teal-200 bg-teal-50 text-slate-900 shadow-sm"}`}>
+              <motion.button type="button" whileTap={{ scale: 0.995 }} onClick={() => { const next = attentionFilter === "responses" ? null : "responses"; setAttentionFilter(next); if (next) { const view = statusViewFor(requestType, responseCustomerItems[0].status) ?? "pending"; setStatusViews((current) => ({ ...current, [viewKey]: view })); } }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "responses" ? "border-teal-500 bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-[0_12px_28px_rgba(20,184,166,0.30)]" : "border-teal-200 bg-teal-50 text-slate-900 shadow-sm"}`}>
                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "responses" ? "bg-white/20 text-white" : "bg-white text-teal-600"}`}><Bell className="h-6 w-6" /></span>
                 <span className="min-w-0 flex-1"><span className="block text-sm font-black">{responseCustomerItems.length} {responseCustomerItems.length === 1 ? "nueva respuesta del negocio" : "nuevas respuestas del negocio"}</span><span className={`block text-xs ${attentionFilter === "responses" ? "text-white/85" : "text-slate-500"}`}>Tienes {responseCustomerItems.length} {requestType === "orders" ? "pedido" : "cotización"}{responseCustomerItems.length === 1 ? "" : "es"} con una nueva respuesta.</span></span>
                 <ChevronRight className={`h-5 w-5 transition-transform ${attentionFilter === "responses" ? "rotate-90 text-white" : "text-slate-700"}`} />
               </motion.button>
             )}
             {readyCustomerItems.length > 0 && (
-              <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={() => { const next = attentionFilter === "ready" ? null : "ready"; setAttentionFilter(next); if (next) setStatusViews((current) => ({ ...current, [viewKey]: "active" })); }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-300 ${attentionFilter === "ready" ? "scale-[1.01] border-amber-500 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_12px_28px_rgba(245,158,11,0.32)]" : "border-amber-200 bg-amber-50 text-slate-900 shadow-sm"}`}>
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "ready" ? "bg-white/20 text-white" : "bg-white text-amber-500"}`}><PackageCheck className="h-6 w-6" /></span>
+              <motion.button type="button" whileTap={{ scale: 0.995 }} onClick={() => { const next = attentionFilter === "ready" ? null : "ready"; setAttentionFilter(next); if (next) setStatusViews((current) => ({ ...current, [viewKey]: "active" })); }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "ready" ? "border-amber-500 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_12px_28px_rgba(245,158,11,0.32)]" : "border-amber-200 bg-amber-50 text-slate-900 shadow-sm"}`}>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "ready" ? "bg-white/20 text-white" : "bg-white text-amber-500"}`}><Bell className="zipco-attention-bell h-6 w-6" /></span>
                 <span className="min-w-0 flex-1"><span className="block text-sm font-black">{readyCustomerItems.length} {requestType === "orders" ? (readyCustomerItems.length === 1 ? "pedido listo para recibir" : "pedidos listos para recibir") : (readyCustomerItems.length === 1 ? "servicio listo para confirmar" : "servicios listos para confirmar")}</span><span className={`block text-xs ${attentionFilter === "ready" ? "text-white/85" : "text-slate-500"}`}>{requestType === "orders" ? `Tienes ${readyCustomerItems.length} pedido${readyCustomerItems.length === 1 ? "" : "s"} que el negocio marcó como listo.` : `Tienes ${readyCustomerItems.length} servicio${readyCustomerItems.length === 1 ? "" : "s"} marcado${readyCustomerItems.length === 1 ? "" : "s"} como realizado${readyCustomerItems.length === 1 ? "" : "s"}.`}</span></span>
                 <ChevronRight className={`h-5 w-5 transition-transform ${attentionFilter === "ready" ? "rotate-90 text-white" : "text-slate-700"}`} />
               </motion.button>
@@ -597,7 +597,7 @@ export default function RequestsScreen({
                   onRetry={loadOrders}
                   onAction={async (order, action, reason, detail) => {
                     await performAction(order, "customer", action, reason, detail);
-                    const next = action === "cancel" ? "history" : action === "complete-reception" ? "history" : "active";
+                    const next = action === "cancel" ? "history" : "active";
                     setStatusViews((current) => ({ ...current, [viewKey]: next }));
                   }}
                   emptyTitle={emptyCopy.title}

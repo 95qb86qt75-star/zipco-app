@@ -105,7 +105,17 @@ export default function useRequests(onSessionExpired: () => void) {
     try {
       await patchOrderStatus(actionable.id, payload, token);
       const reloaded = await loadOrders();
-      if (reloaded) showAppToast('Pedido actualizado correctamente.');
+      if (reloaded) {
+        if (actor === 'customer' && action === 'complete-reception') {
+          showAppToast('', 'success', {
+            title: 'Recepción confirmada',
+            description: 'Tu pedido quedó completado. Puedes verlo en Historial.',
+            durationMs: 7000,
+          });
+        } else {
+          showAppToast('Pedido actualizado correctamente.');
+        }
+      }
     } catch (error) {
       const policy = getOrderErrorPolicy(error);
       showAppToast(policy.message, 'error');

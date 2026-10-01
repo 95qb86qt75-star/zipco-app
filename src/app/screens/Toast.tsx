@@ -103,7 +103,7 @@ export default function Toast({ notification, onClose }: { notification: ToastNo
       initial={{ opacity: 0, y: -12, scale: 0.98 }}
       animate={{ opacity: isLeaving ? 0 : 1, y: isLeaving ? -8 : 0, scale: isLeaving ? 0.98 : 1 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}
-      className="pointer-events-none fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-[9999] w-[calc(100%-2rem)] max-w-md -translate-x-1/2"
+      className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+3.25rem)] z-[9999] w-[calc(100%-2rem)] max-w-md -translate-x-1/2"
       role="status"
       aria-live="polite"
     >

@@ -93,6 +93,7 @@ export default function App() {
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
   const [favoriteItems, setFavoriteItems] = useState<FavoriteEntry[]>(getStoredFavorites);
   const [toast, setToast] = useState<ToastNotification | null>(null);
+  const [requestsNavigationKey, setRequestsNavigationKey] = useState(0);
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
   const [isChangingPush, setIsChangingPush] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
@@ -177,6 +178,7 @@ export default function App() {
       window.history.replaceState({}, '', `${target.pathname}${target.search}`);
       setCurrentScreen('home');
       setActiveTab('requests');
+      setRequestsNavigationKey((current) => current + 1);
     };
     navigator.serviceWorker?.addEventListener('message', handleNotificationNavigation);
     return () => navigator.serviceWorker?.removeEventListener('message', handleNotificationNavigation);
@@ -439,6 +441,7 @@ export default function App() {
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <RequestsScreen
+            key={requestsNavigationKey}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onBack={() => {

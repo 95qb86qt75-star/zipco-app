@@ -1,5 +1,6 @@
 import { Fragment, useState } from "react";
 import {
+  Bell,
   Calendar,
   CalendarDays,
   Image as ImageIcon,
@@ -61,7 +62,8 @@ export function CustomerQuotes({
           )}
           <QuoteCard
             quote={quote}
-            statusLabel={labels[quote.status]}
+            owner="customer"
+            statusLabel={quote.status === "accepted" && quote.alternativeMessage ? "Alternativa aceptada por ti" : quote.status === "accepted" ? "Aceptada por ti" : labels[quote.status]}
             unread={unread.has(interactionKey("quote", quote.id))}
             onOpen={() => markRead("quote", quote.id)}
           >
@@ -108,7 +110,8 @@ export function CustomerQuotes({
               </button>
             )}
             {quote.status === "ready" && (
-              <button disabled={updating.has(quote.id)} onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); onStatus(quote, "completed"); }} className="mt-2 w-full rounded-xl bg-teal-600 py-2.5 text-xs font-bold text-white">
+              <button disabled={updating.has(quote.id)} onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); onStatus(quote, "completed"); }} className="zipco-confirm-action mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 py-2.5 text-xs font-bold text-white shadow-[0_0_18px_rgba(245,158,11,0.30)]">
+                <Bell className="zipco-attention-bell h-4 w-4" />
                 Confirmar recepción o servicio realizado
               </button>
             )}
@@ -186,7 +189,8 @@ export function BusinessQuotes({
             )}
             <QuoteCard
               quote={quote}
-              statusLabel={quote.status === "requested" ? "Esperando tu respuesta" : quote.status === "accepted" ? "Aceptaste" : quote.status === "ready" ? "Esperando confirmación" : labels[quote.status]}
+              owner="business"
+              statusLabel={quote.status === "requested" ? "Esperando tu respuesta" : quote.status === "alternative_proposed" ? "Alternativa enviada" : quote.status === "accepted" ? "Cliente aceptó" : quote.status === "ready" ? "Esperando confirmación" : labels[quote.status]}
               unread={unread.has(interactionKey("quote", quote.id))}
               onOpen={() => markRead("quote", quote.id)}
             >
@@ -287,18 +291,20 @@ function QuoteCard({
   unread,
   onOpen,
   statusLabel,
+  owner,
 }: {
   quote: QuoteRequest;
   children?: React.ReactNode;
   unread: boolean;
   onOpen: () => void;
   statusLabel: string;
+  owner: "customer" | "business";
 }) {
   return (
     <article
       id={`quote-${quote.id}`}
       onClick={onOpen}
-      className={`rounded-2xl border p-3 shadow-sm transition-colors ${unread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"}`}
+      className={`scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors ${unread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         {quote.referencePhoto ? (
@@ -324,7 +330,7 @@ function QuoteCard({
             )}
           </div>
           <p className="text-xs text-slate-500">{quote.customerName}</p>
-          <p className="mt-1 truncate text-xs text-slate-700">
+          <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-4 text-slate-700">
             {quote.message}
           </p>
           <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
@@ -353,7 +359,12 @@ function QuoteCard({
           {quote.businessMessage}
         </p>
       )}
-      {quote.alternativeMessage && (
+      {owner === "business" && quote.status === "ready" ? (
+        <div className="mt-3 w-full rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2.5 text-xs text-emerald-900">
+          <p className="font-black">Solicitud finalizada</p>
+          <p className="mt-0.5">Cliente notificado. Esperando su confirmación.</p>
+        </div>
+      ) : quote.alternativeMessage && (
         <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
           <p className="font-black">Alternativa del negocio</p><p className="mt-1">{quote.alternativeMessage}</p>
           {quote.alternativeItem && <p className="mt-1">Opción: {quote.alternativeItem}{quote.alternativeQuantity ? ` · Cantidad ${quote.alternativeQuantity}` : ""}</p>}

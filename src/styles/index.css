@@ -13,6 +13,36 @@ body,
   overscroll-behavior: none;
 }
 
+@keyframes zipco-attention-bell {
+  0%, 100% { transform: rotate(0deg); }
+  12% { transform: rotate(13deg); }
+  24% { transform: rotate(-11deg); }
+  36% { transform: rotate(8deg); }
+  48% { transform: rotate(-5deg); }
+  60% { transform: rotate(0deg); }
+}
+
+@keyframes zipco-confirm-glow {
+  0%, 100% { border-color: rgb(253 230 138); box-shadow: 0 0 0 0 rgb(245 158 11 / 0.15); }
+  50% { border-color: rgb(251 146 60); box-shadow: 0 0 0 4px rgb(245 158 11 / 0.18), 0 0 20px rgb(245 158 11 / 0.28); }
+}
+
+.zipco-attention-bell {
+  transform-origin: 50% 12%;
+  animation: zipco-attention-bell 1.8s ease-in-out infinite;
+}
+
+.zipco-confirm-action {
+  animation: zipco-confirm-glow 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zipco-attention-bell,
+  .zipco-confirm-action {
+    animation: none;
+  }
+}
+
 html.dark,
 html.dark body,
 html.dark #root {
