@@ -5,7 +5,6 @@ import {
   Check,
   ChevronRight,
   Image as ImageIcon,
-  MessageCircle,
   Minus,
   RotateCcw,
   Trash2,
@@ -292,83 +291,40 @@ function CompactHistoryList({
                       setSwipedKey(null);
                     }
                   }}
-                  className={`relative grid w-full grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-2xl border py-3 pl-8 pr-3 text-left shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-100 bg-white"}`}
+                  className={`relative grid min-h-[76px] w-full grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border py-2.5 pl-8 pr-2.5 text-left shadow-sm ${isUnread ? "border-sky-400 bg-sky-50 ring-1 ring-sky-200" : "border-slate-100 bg-white"}`}
                 >
                   {item.image ? (
                     <ImageWithFallback
                       src={item.image}
                       alt={item.title}
-                      className="h-16 w-16 rounded-xl object-cover"
+                      className="h-14 w-14 rounded-xl object-cover"
                     />
                   ) : (
-                    <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                       <ImageIcon className="h-6 w-6" />
                     </span>
                   )}
                   <span className="min-w-0">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5">
                       <span className="block truncate text-sm font-black text-slate-900">
                         {item.title}
                       </span>
                       {isUnread && (
-                        <span className="rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-black text-white">
-                          Nueva
-                        </span>
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-sky-500" aria-label="Nueva" />
                       )}
                     </span>
-                    <span className="mt-0.5 block truncate text-xs text-slate-500">
-                      {item.subtitle}
+                    <span className="mt-1 block text-sm font-black text-emerald-700">
+                      {item.price === null ? "—" : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
                     </span>
-                    <span className="mt-1.5 flex items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span className="truncate">{item.schedule}</span>
-                    </span>
-                    {item.note && (
-                      <span className="mt-1 flex items-center gap-1.5 truncate text-[11px] italic text-slate-500">
-                        <MessageCircle className="h-3.5 w-3.5 shrink-0" />“
-                        {item.note}”
-                      </span>
-                    )}
                   </span>
-                  <span className="flex min-w-[92px] flex-col items-end gap-2">
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label={
-                        deleted
-                          ? "Restaurar solicitud"
-                          : "Mover solicitud a Eliminados"
-                      }
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setPendingArchive(item);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key !== "Enter" && event.key !== " ") return;
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setPendingArchive(item);
-                      }}
-                      className={`flex h-8 w-8 items-center justify-center rounded-full ${deleted ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}
-                    >
-                      {deleted ? (
-                        <RotateCcw className="h-4 w-4" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </span>
+                  <span className="flex min-w-[108px] items-center justify-end gap-1.5">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${presentation.classes}`}
                     >
                       <StatusIcon className="h-3.5 w-3.5" />
                       {presentation.label}
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="text-sm font-black text-emerald-600">
-                        {item.price === null ? "—" : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
-                      </span>
-                      <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
-                    </span>
+                    <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
                   </span>
                 </motion.button>
               </div>
