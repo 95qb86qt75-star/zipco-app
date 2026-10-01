@@ -74,7 +74,7 @@ export default function BusinessNotificationMonitor({ onSessionExpired }: { onSe
       if (announcedKeys.current.has(key)) return;
       announcedKeys.current.add(key);
       if (interaction) markInteractionUnread(interaction.kind, interaction.id);
-      showAppToast('', 'info', { title, description, dedupeKey: key, durationMs: 7000, icon: 'bell', actionUrl });
+      showAppToast('', 'info', { title, description, dedupeKey: key, durationMs: 10000, icon: 'bell', actionUrl });
     };
 
     const load = async (announceChanges = true) => {
