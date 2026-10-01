@@ -31,7 +31,7 @@ export function createToastNotification(message: string, type: ToastType = 'succ
     title: options.title,
     description: options.description,
     dedupeKey: options.dedupeKey ?? `${type}:${options.title ?? ''}:${options.description ?? ''}:${message}`,
-    durationMs: options.durationMs ?? (options.title || options.description ? 5000 : 3000),
+    durationMs: options.durationMs ?? (options.title || options.description ? 6500 : 4500),
     icon: options.icon
     , actionUrl: options.actionUrl
   };

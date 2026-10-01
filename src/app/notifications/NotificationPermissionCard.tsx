@@ -33,7 +33,7 @@ export default function NotificationPermissionCard() {
     try {
       await enablePushNotifications(token);
       setState('active');
-      showAppToast('', 'success', { title: 'Notificaciones activadas', description: 'Podrás desactivarlas desde la pantalla de Inicio.', icon: 'bell', durationMs: 4500 });
+      showAppToast('', 'success', { title: 'Notificaciones activadas', description: 'Podrás desactivarlas desde la pantalla de Inicio.', icon: 'bell', durationMs: 6000 });
     } catch (cause) {
       const reason = cause instanceof Error ? cause.message : '';
       if (reason === 'permission-denied') setState('blocked');

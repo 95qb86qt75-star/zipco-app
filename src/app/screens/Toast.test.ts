@@ -11,7 +11,7 @@ describe('Toast', () => {
     expect(markup).toContain('Cambios guardados');
     expect(markup).toContain('Cerrar notificación');
     expect(markup).toContain('role="status"');
-    expect(notification.durationMs).toBe(3000);
+    expect(notification.durationMs).toBe(4500);
   });
 
   it('renders the enriched accessible notification and close control', () => {
@@ -26,7 +26,7 @@ describe('Toast', () => {
     expect(markup).toContain('Cotizaciones: próximamente');
     expect(markup).toContain('Pronto podrás solicitar cotizaciones desde ZIPCO.');
     expect(markup).toContain('aria-label="Cerrar notificación"');
-    expect(notification.durationMs).toBe(5000);
+    expect(notification.durationMs).toBe(6500);
   });
 
   it('does not replace an active notification with an identical duplicate', () => {
