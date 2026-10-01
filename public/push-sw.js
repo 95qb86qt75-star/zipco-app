@@ -28,8 +28,9 @@ self.addEventListener('notificationclick', (event) => {
       || clients.find((candidate) => candidate.url.startsWith(self.location.origin))
       || clients[0];
     if (client) {
-      if ('navigate' in client) await client.navigate(target);
-      return client.focus();
+      client.postMessage({ type: 'ZIPCO_NOTIFICATION_NAVIGATE', url: targetUrl.pathname + targetUrl.search });
+      await client.focus();
+      return;
     }
     return self.clients.openWindow(target);
   }));

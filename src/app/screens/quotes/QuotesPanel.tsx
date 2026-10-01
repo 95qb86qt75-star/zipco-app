@@ -47,6 +47,7 @@ export function CustomerQuotes({
 }) {
   const { unread, markRead } = useUnreadInteractions();
   const [cancelling, setCancelling] = useState<QuoteRequest | null>(null);
+  const [decliningAlternative, setDecliningAlternative] = useState<QuoteRequest | null>(null);
   const [cancelReason, setCancelReason] = useState<QuoteCancellationReason | "">("");
   const [cancelDetail, setCancelDetail] = useState("");
   if (!quotes.length) return <Empty text={emptyText} />;
@@ -60,6 +61,7 @@ export function CustomerQuotes({
           )}
           <QuoteCard
             quote={quote}
+            statusLabel={labels[quote.status]}
             unread={unread.has(interactionKey("quote", quote.id))}
             onOpen={() => markRead("quote", quote.id)}
           >
@@ -70,11 +72,12 @@ export function CustomerQuotes({
                   onClick={(event) => {
                     event.stopPropagation();
                     markRead("quote", quote.id);
-                    onStatus(quote, "declined");
+                    if (quote.status === "alternative_proposed") setDecliningAlternative(quote);
+                    else onStatus(quote, "declined");
                   }}
                   className="rounded-xl border border-red-200 py-2 text-sm font-bold text-red-600"
                 >
-                  Rechazar
+                  {quote.status === "alternative_proposed" ? "Rechazar alternativa" : "Rechazar"}
                 </button>
                 <button
                   disabled={updating.has(quote.id)}
@@ -85,7 +88,7 @@ export function CustomerQuotes({
                   }}
                   className="rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white"
                 >
-                  Aceptar
+                  {quote.status === "alternative_proposed" ? "Aceptar alternativa" : "Aceptar"}
                 </button>
               </div>
             )}
@@ -134,6 +137,9 @@ export function CustomerQuotes({
           </div>
         </div>
       )}
+      {decliningAlternative && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"><div className="w-full max-w-sm rounded-2xl bg-white p-5"><h3 className="text-lg font-black">¿Rechazar esta alternativa?</h3><p className="mt-2 text-sm text-slate-600">La solicitud finalizará y pasará al Historial. El negocio no podrá enviar otra alternativa.</p><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setDecliningAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button onClick={() => { onStatus(decliningAlternative, "declined"); setDecliningAlternative(null); }} className="rounded-xl bg-red-500 py-3 font-bold text-white">Rechazar alternativa</button></div></div></div>
+      )}
     </div>
   );
 }
@@ -149,7 +155,7 @@ export function BusinessQuotes({
   quotes: QuoteRequest[];
   updating: Set<number>;
   onRespond: (quote: QuoteRequest, price: number, message: string) => void;
-  onStatus: (quote: QuoteRequest, status: QuoteStatus) => void;
+  onStatus: (quote: QuoteRequest, status: QuoteStatus, reason?: QuoteCancellationReason, detail?: string) => void;
   onAlternative: (quote: QuoteRequest, payload: { date?: string; time?: string; item?: string; quantity?: number; priceClp?: number; message: string }) => void;
   emptyText?: string;
 }) {
@@ -163,6 +169,10 @@ export function BusinessQuotes({
   const [alternativeQuantity, setAlternativeQuantity] = useState("");
   const [alternativeDate, setAlternativeDate] = useState("");
   const [alternativeTime, setAlternativeTime] = useState("");
+  const [alternativeSchedule, setAlternativeSchedule] = useState<"original" | "new">("original");
+  const [rejecting, setRejecting] = useState<QuoteRequest | null>(null);
+  const [rejectReason, setRejectReason] = useState<QuoteCancellationReason | "">("");
+  const [rejectDetail, setRejectDetail] = useState("");
   const { unread, markRead } = useUnreadInteractions();
   if (!quotes.length) return <Empty text={emptyText} />;
   return (
@@ -176,6 +186,7 @@ export function BusinessQuotes({
             )}
             <QuoteCard
               quote={quote}
+              statusLabel={quote.status === "requested" ? "Esperando tu respuesta" : quote.status === "accepted" ? "Aceptaste" : quote.status === "ready" ? "Esperando confirmación" : labels[quote.status]}
               unread={unread.has(interactionKey("quote", quote.id))}
               onOpen={() => markRead("quote", quote.id)}
             >
@@ -192,7 +203,7 @@ export function BusinessQuotes({
                 >
                   Responder con precio
                 </button>
-                <button onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); setAlternative(quote); setAlternativeMessage(""); setAlternativeItem(""); setAlternativePrice(""); setAlternativeQuantity(""); setAlternativeDate(""); setAlternativeTime(""); }} className="rounded-lg border border-teal-300 bg-teal-50 py-2 text-xs font-bold text-teal-700">Proponer alternativa</button></div>
+                <button onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); setAlternative(quote); setAlternativeMessage(""); setAlternativeItem(""); setAlternativePrice(""); setAlternativeQuantity(""); setAlternativeDate(""); setAlternativeTime(""); setAlternativeSchedule("original"); }} className="rounded-lg border border-teal-300 bg-teal-50 py-2 text-xs font-bold text-teal-700">Proponer alternativa</button><button onClick={(event) => { event.stopPropagation(); setRejecting(quote); setRejectReason(""); setRejectDetail(""); }} className="col-span-2 rounded-lg border border-red-200 bg-red-50 py-2 text-xs font-bold text-red-600">Rechazar solicitud</button></div>
               )}
               {quote.status === "accepted" && (
                 <button disabled={updating.has(quote.id)} onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); onStatus(quote, "ready"); }} className="mt-2 w-full rounded-lg bg-teal-600 py-2 text-xs font-bold text-white">
@@ -259,10 +270,13 @@ export function BusinessQuotes({
           <label className="mt-4 block text-sm font-bold">Explicación obligatoria<textarea value={alternativeMessage} onChange={(event) => setAlternativeMessage(event.target.value)} rows={3} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
           <label className="mt-3 block text-sm font-bold">Producto o servicio alternativo<input value={alternativeItem} onChange={(event) => setAlternativeItem(event.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
           <label className="mt-3 block text-sm font-bold">Precio alternativo<input inputMode="numeric" value={alternativePrice} onChange={(event) => setAlternativePrice(event.target.value.replace(/\D/g, ""))} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
-          <div className="mt-3 grid grid-cols-3 gap-2"><input inputMode="numeric" value={alternativeQuantity} onChange={(event) => setAlternativeQuantity(event.target.value.replace(/\D/g, ""))} placeholder="Cantidad" className="rounded-xl border p-3 text-sm" /><input type="date" value={alternativeDate} onChange={(event) => setAlternativeDate(event.target.value)} className="rounded-xl border p-3 text-sm" /><input type="time" value={alternativeTime} onChange={(event) => setAlternativeTime(event.target.value)} className="rounded-xl border p-3 text-sm" /></div>
-          <div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button disabled={alternativeMessage.trim().length < 3} onClick={() => { onAlternative(alternative, { message: alternativeMessage.trim(), item: alternativeItem.trim() || undefined, priceClp: Number(alternativePrice) >= 100 ? Number(alternativePrice) : undefined, quantity: Number(alternativeQuantity) || undefined, date: alternativeDate || undefined, time: alternativeTime || undefined }); setAlternative(null); }} className="rounded-xl bg-teal-600 py-3 font-bold text-white disabled:opacity-50">Enviar alternativa</button></div>
+          <label className="mt-3 block text-sm font-bold">Cantidad<input inputMode="numeric" value={alternativeQuantity} onChange={(event) => setAlternativeQuantity(event.target.value.replace(/\D/g, ""))} className="mt-2 w-full rounded-xl border p-3 font-normal" /></label>
+          <fieldset className="mt-4"><legend className="text-sm font-bold">¿Deseas mantener la fecha solicitada o proponer una nueva disponibilidad?</legend><div className="mt-2 grid grid-cols-2 gap-2"><button type="button" onClick={() => setAlternativeSchedule("original")} className={`rounded-xl border p-3 text-xs font-bold ${alternativeSchedule === "original" ? "border-teal-500 bg-teal-50 text-teal-700" : "border-slate-200"}`}>Mantener fecha original</button><button type="button" onClick={() => setAlternativeSchedule("new")} className={`rounded-xl border p-3 text-xs font-bold ${alternativeSchedule === "new" ? "border-teal-500 bg-teal-50 text-teal-700" : "border-slate-200"}`}>Proponer nueva fecha y hora</button></div></fieldset>
+          {alternativeSchedule === "new" && <div className="mt-3 grid grid-cols-2 gap-2"><label className="text-xs font-bold">Nueva fecha<input type="date" value={alternativeDate} onChange={(event) => setAlternativeDate(event.target.value)} className="mt-1 w-full rounded-xl border p-3 text-sm font-normal" /></label><label className="text-xs font-bold">Nueva hora<input type="time" value={alternativeTime} onChange={(event) => setAlternativeTime(event.target.value)} className="mt-1 w-full rounded-xl border p-3 text-sm font-normal" /></label></div>}
+          <div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button disabled={alternativeMessage.trim().length < 3 || (alternativeSchedule === "new" && (!alternativeDate || !alternativeTime))} onClick={() => { onAlternative(alternative, { message: alternativeMessage.trim(), item: alternativeItem.trim() || undefined, priceClp: Number(alternativePrice) >= 100 ? Number(alternativePrice) : undefined, quantity: Number(alternativeQuantity) || undefined, date: alternativeSchedule === "new" ? alternativeDate : undefined, time: alternativeSchedule === "new" ? alternativeTime : undefined }); setAlternative(null); }} className="rounded-xl bg-teal-600 py-3 font-bold text-white disabled:opacity-50">Enviar alternativa</button></div>
         </div></div>
       )}
+      {rejecting && <div className="absolute inset-0 z-[60] flex items-end bg-slate-950/45 p-3"><div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5"><h3 className="text-lg font-black">Rechazar solicitud</h3><p className="mt-1 text-sm text-slate-500">Selecciona el motivo del rechazo.</p><div className="mt-4 space-y-2">{([['unavailable','Producto o servicio no disponible'],['cannot_meet_schedule','No puedo cumplir la fecha u horario solicitado'],['outside_service_area','Solicitud fuera de mi zona de atención'],['insufficient_information','Información insuficiente para procesarla'],['no_capacity','Sin capacidad disponible'],['other','Otro motivo']] as Array<[QuoteCancellationReason,string]>).map(([code,label]) => <label key={code} className="flex gap-3 rounded-xl border p-3 text-sm"><input type="radio" checked={rejectReason === code} onChange={() => setRejectReason(code)} />{label}</label>)}{rejectReason === 'other' && <textarea value={rejectDetail} onChange={(event) => setRejectDetail(event.target.value)} rows={3} placeholder="Escribe el motivo" className="w-full rounded-xl border p-3 text-sm" />}</div><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setRejecting(null)} className="rounded-xl border py-3 font-bold">Volver</button><button disabled={!rejectReason || (rejectReason === 'other' && rejectDetail.trim().length < 3)} onClick={() => { onStatus(rejecting, 'declined', rejectReason || undefined, rejectDetail.trim() || undefined); setRejecting(null); }} className="rounded-xl bg-red-500 py-3 font-bold text-white disabled:opacity-50">Rechazar</button></div></div></div>}
     </>
   );
 }
@@ -272,11 +286,13 @@ function QuoteCard({
   children,
   unread,
   onOpen,
+  statusLabel,
 }: {
   quote: QuoteRequest;
   children?: React.ReactNode;
   unread: boolean;
   onOpen: () => void;
+  statusLabel: string;
 }) {
   return (
     <article
@@ -322,7 +338,7 @@ function QuoteCard({
         </div>
         <div className="flex flex-col items-end gap-2">
           <span className="max-w-[88px] rounded-full bg-violet-50 px-2.5 py-1 text-center text-[10px] font-bold leading-tight text-violet-700">
-            {labels[quote.status]}
+            {statusLabel}
           </span>
           {quote.quotedPriceClp !== null && (
             <span className="whitespace-nowrap text-base font-black text-emerald-600">

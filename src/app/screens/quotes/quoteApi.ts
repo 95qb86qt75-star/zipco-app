@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../../api/apiConfig';
 
 export type QuoteStatus = 'requested' | 'quoted' | 'alternative_proposed' | 'accepted' | 'ready' | 'completed' | 'declined' | 'cancelled';
-export type QuoteCancellationReason = 'no_longer_needed' | 'sent_by_mistake' | 'requirements_changed' | 'business_took_too_long' | 'other';
+export type QuoteCancellationReason = 'no_longer_needed' | 'sent_by_mistake' | 'requirements_changed' | 'business_took_too_long' | 'unavailable' | 'cannot_meet_schedule' | 'outside_service_area' | 'insufficient_information' | 'no_capacity' | 'other';
 
 export type QuoteRequest = {
   id: number;

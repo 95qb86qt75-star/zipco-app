@@ -170,6 +170,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const handleNotificationNavigation = (event: MessageEvent) => {
+      const data = event.data as { type?: string; url?: string } | null;
+      if (data?.type !== 'ZIPCO_NOTIFICATION_NAVIGATE' || typeof data.url !== 'string') return;
+      const target = new URL(data.url, window.location.origin);
+      window.history.replaceState({}, '', `${target.pathname}${target.search}`);
+      setCurrentScreen('home');
+      setActiveTab('requests');
+    };
+    navigator.serviceWorker?.addEventListener('message', handleNotificationNavigation);
+    return () => navigator.serviceWorker?.removeEventListener('message', handleNotificationNavigation);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
 
     const themeColor = isDarkMode ? '#020617' : '#ffffff';

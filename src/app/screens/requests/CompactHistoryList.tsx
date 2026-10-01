@@ -29,6 +29,7 @@ type HistoryItem = {
   date: string;
   image: string | null;
   status: "completed" | "cancelled" | "rejected";
+  statusLabel?: string;
   price: number | null;
   priceIsStarting: boolean;
   details: string[];
@@ -114,6 +115,7 @@ function normalizeOrder(
       ? (identity as MyOrder).businessImage
       : (identity as BusinessRequest).customerImage,
     status,
+    statusLabel: undefined,
     price: order.total,
     priceIsStarting: false,
     details: products.map(
@@ -150,16 +152,24 @@ function normalizeQuote(
     date: formatDate(quote.updatedAt || quote.createdAt),
     image: quote.referencePhoto,
     status: quote.status === "completed" ? "completed" : quote.status === "cancelled" ? "cancelled" : "rejected",
-    price: quote.quotedPriceClp ?? quote.startingPriceClpSnapshot,
-    priceIsStarting: quote.quotedPriceClp === null && quote.startingPriceClpSnapshot !== null,
-    details: [],
-    schedule: quote.needNow
+    statusLabel: quote.status === "declined" && quote.alternativeMessage ? "Alternativa rechazada" : undefined,
+    price: quote.alternativePriceClp ?? quote.quotedPriceClp ?? quote.startingPriceClpSnapshot,
+    priceIsStarting: quote.alternativePriceClp === null && quote.quotedPriceClp === null && quote.startingPriceClpSnapshot !== null,
+    details: quote.alternativeMessage ? [
+      `Alternativa propuesta${quote.alternativeItem ? `: ${quote.alternativeItem}` : ""}`,
+      ...(quote.alternativeQuantity ? [`Cantidad: ${quote.alternativeQuantity}`] : []),
+      ...(quote.alternativeDate ? [`Fecha y hora: ${quote.alternativeDate}${quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}`] : []),
+      ...(quote.alternativePriceClp ? [`Precio alternativo: ${money(quote.alternativePriceClp)}`] : []),
+    ] : [],
+    schedule: quote.alternativeDate
+      ? `${quote.alternativeDate}${quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}`
+      : quote.needNow
       ? "Lo necesita ahora"
       : quote.requestedDate && quote.requestedTime
         ? `${quote.requestedDate} · ${quote.requestedTime}`
         : "Horario no disponible",
     note: quote.message,
-    response: quote.businessMessage ?? "",
+    response: quote.alternativeMessage ?? quote.businessMessage ?? "",
     reason: quote.closureReasonDetail || (quote.closureReason && quote.closureReason in reasonLabels
       ? reasonLabels[quote.closureReason as keyof typeof reasonLabels]
       : ""),
@@ -322,7 +332,7 @@ function CompactHistoryList({
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${presentation.classes}`}
                     >
                       <StatusIcon className="h-3.5 w-3.5" />
-                      {presentation.label}
+                      {item.statusLabel ?? presentation.label}
                     </span>
                     <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
                   </span>
@@ -411,7 +421,7 @@ function CompactHistoryList({
               <div
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${statusPresentation[selected.status].classes}`}
               >
-                {statusPresentation[selected.status].label}
+                {selected.statusLabel ?? statusPresentation[selected.status].label}
               </div>
               <p className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="h-4 w-4" />

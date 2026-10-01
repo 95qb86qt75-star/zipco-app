@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowDown,
   ArrowLeft,
@@ -24,7 +25,7 @@ import {
   OrderHistoryList,
   QuoteHistoryList,
 } from "./requests/CompactHistoryList";
-import { interactionKey, markInteractionRead, markInteractionUnread, useUnreadInteractions } from "../notifications/unreadInteractions";
+import { interactionKey, markInteractionUnread, useUnreadInteractions } from "../notifications/unreadInteractions";
 import {
   countStatusViews,
   filterByStatusView,
@@ -62,7 +63,7 @@ export default function RequestsScreen({
     Record<string, "newest" | "oldest">
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
-  const [showNews, setShowNews] = useState(false);
+  const [attentionFilter, setAttentionFilter] = useState<"responses" | "ready" | null>(null);
   const { unread } = useUnreadInteractions();
   const {
     hasBusiness,
@@ -85,22 +86,16 @@ export default function RequestsScreen({
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
   const quoteRecords =
     subTab === "my-orders" ? quotes.myQuotes : quotes.businessQuotes;
-  const readyCustomerItems = subTab === "my-orders" ? [
-    ...myOrders.filter((order) => order.recordState === "available" && order.status === "ready").map((order) => ({ kind: "orders" as const, id: order.id })),
-    ...quotes.myQuotes.filter((quote) => quote.status === "ready").map((quote) => ({ kind: "quotes" as const, id: quote.id })),
-  ] : [];
-  const responseCustomerItems = subTab === "my-orders" ? [
-    ...myOrders.filter((order) => order.recordState === "available" && order.status !== "ready" && unread.has(interactionKey("order", order.id))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status, title: order.businessName || "Pedido", detail: order.status === "completed" ? "Pedido completado" : order.status === "cancelled" ? "Pedido cancelado" : order.status === "alternative_proposed" ? "Nueva alternativa" : "Estado actualizado", time: order.updatedAt || order.createdAt })),
-    ...quotes.myQuotes.filter((quote) => quote.status !== "ready" && unread.has(interactionKey("quote", quote.id))).map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status, title: quote.itemNameSnapshot, detail: quote.status === "alternative_proposed" ? "Nueva alternativa" : quote.status === "quoted" ? "Cotización respondida" : `Cotización ${quote.status}`, time: quote.updatedAt || quote.createdAt })),
-  ] : [];
-  const openAttentionItem = (item: { kind: "orders" | "quotes"; id: number; status?: string }) => {
-    setRequestType(item.kind);
-    markInteractionRead(item.kind === "quotes" ? "quote" : "order", item.id);
-    setShowNews(false);
-    const nextView = statusViewFor(item.kind, item.status ?? "ready") ?? "active";
-    setStatusViews((current) => ({ ...current, [`my-orders-${item.kind}`]: nextView }));
-    window.setTimeout(() => document.getElementById(`${item.kind === "quotes" ? "quote" : "order"}-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
-  };
+  const readyCustomerItems = subTab === "my-orders"
+    ? requestType === "orders"
+      ? myOrders.filter((order) => order.recordState === "available" && order.status === "ready").map((order) => ({ kind: "orders" as const, id: order.id, status: order.status }))
+      : quotes.myQuotes.filter((quote) => quote.status === "ready").map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status }))
+    : [];
+  const responseCustomerItems = subTab === "my-orders"
+    ? requestType === "orders"
+      ? myOrders.filter((order) => order.recordState === "available" && order.status !== "ready" && unread.has(interactionKey("order", order.id))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status }))
+      : quotes.myQuotes.filter((quote) => quote.status !== "ready" && unread.has(interactionKey("quote", quote.id))).map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status }))
+    : [];
   const statusCounts = countStatusViews(
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
@@ -121,13 +116,13 @@ export default function RequestsScreen({
         ? rightTime - leftTime
         : leftTime - rightTime;
     });
-  const filteredMyOrders = sortRecords(
+  let filteredMyOrders = sortRecords(
     filterByStatusView(myOrders, "orders", statusView, historyFilter),
   );
   const filteredBusinessOrders = sortRecords(
     filterByStatusView(requests, "orders", statusView, historyFilter),
   );
-  const filteredQuotes = sortRecords(
+  let filteredQuotes = sortRecords(
     filterByStatusView(
       quoteRecords,
       "quotes",
@@ -141,6 +136,14 @@ export default function RequestsScreen({
         ),
     ),
   );
+  const hasAttentionChoices = subTab === "my-orders" && (readyCustomerItems.length > 0 || responseCustomerItems.length > 0);
+  const suppressAttentionResults = hasAttentionChoices && attentionFilter === null;
+  if (hasAttentionChoices) {
+    const selectedItems = attentionFilter === "ready" ? readyCustomerItems : attentionFilter === "responses" ? responseCustomerItems : [];
+    const selectedIds = new Set(selectedItems.map((item) => item.id));
+    if (requestType === "orders") filteredMyOrders = sortRecords(myOrders.filter((order) => order.recordState === "available" && selectedIds.has(order.id)));
+    else filteredQuotes = sortRecords(quotes.myQuotes.filter((quote) => selectedIds.has(quote.id)));
+  }
   const emptyCopy = {
     pending: {
       title: "No tienes solicitudes pendientes",
@@ -287,7 +290,7 @@ export default function RequestsScreen({
 
         <div className="flex gap-2">
           <button
-            onClick={() => setSubTab("my-orders")}
+            onClick={() => { setSubTab("my-orders"); setAttentionFilter(null); }}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
               subTab === "my-orders"
                 ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
@@ -298,7 +301,7 @@ export default function RequestsScreen({
           </button>
           {hasBusiness && (
             <button
-              onClick={() => setSubTab("my-business")}
+              onClick={() => { setSubTab("my-business"); setAttentionFilter(null); }}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
                 subTab === "my-business"
                   ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
@@ -315,13 +318,13 @@ export default function RequestsScreen({
         <NotificationPermissionCard />
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/70 p-1.5 shadow-sm">
           <button
-            onClick={() => setRequestType("orders")}
+            onClick={() => { setRequestType("orders"); setAttentionFilter(null); }}
             className={`rounded-xl py-2 text-sm font-bold ${requestType === "orders" ? "bg-teal-600 text-white" : "text-slate-600"}`}
           >
             Pedidos
           </button>
           <button
-            onClick={() => setRequestType("quotes")}
+            onClick={() => { setRequestType("quotes"); setAttentionFilter(null); }}
             className={`rounded-xl py-2 text-sm font-bold ${requestType === "quotes" ? "bg-violet-600 text-white" : "text-slate-600"}`}
           >
             Cotizaciones
@@ -383,19 +386,20 @@ export default function RequestsScreen({
         {subTab === "my-orders" && (responseCustomerItems.length > 0 || readyCustomerItems.length > 0) && (
           <div className="mb-3 space-y-2">
             {responseCustomerItems.length > 0 && (
-              <button type="button" onClick={() => setShowNews(true)} className="flex w-full items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-3 text-left shadow-sm">
-                <Bell className="h-7 w-7 shrink-0 text-teal-600" />
-                <span className="min-w-0 flex-1"><span className="block text-sm font-black text-slate-900">{responseCustomerItems.length} {responseCustomerItems.length === 1 ? "nueva respuesta del negocio" : "nuevas respuestas del negocio"}</span><span className="block text-xs text-slate-500">Tienes {responseCustomerItems.length} pedido/solicitud con una nueva respuesta.</span></span>
-                <ChevronRight className="h-5 w-5 text-slate-700" />
-              </button>
+              <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={() => { const next = attentionFilter === "responses" ? null : "responses"; setAttentionFilter(next); if (next) { const view = statusViewFor(requestType, responseCustomerItems[0].status) ?? "pending"; setStatusViews((current) => ({ ...current, [viewKey]: view })); } }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-300 ${attentionFilter === "responses" ? "scale-[1.01] border-teal-500 bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-[0_12px_28px_rgba(20,184,166,0.30)]" : "border-teal-200 bg-teal-50 text-slate-900 shadow-sm"}`}>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "responses" ? "bg-white/20 text-white" : "bg-white text-teal-600"}`}><Bell className="h-6 w-6" /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-black">{responseCustomerItems.length} {responseCustomerItems.length === 1 ? "nueva respuesta del negocio" : "nuevas respuestas del negocio"}</span><span className={`block text-xs ${attentionFilter === "responses" ? "text-white/85" : "text-slate-500"}`}>Tienes {responseCustomerItems.length} {requestType === "orders" ? "pedido" : "cotización"}{responseCustomerItems.length === 1 ? "" : "es"} con una nueva respuesta.</span></span>
+                <ChevronRight className={`h-5 w-5 transition-transform ${attentionFilter === "responses" ? "rotate-90 text-white" : "text-slate-700"}`} />
+              </motion.button>
             )}
             {readyCustomerItems.length > 0 && (
-              <button type="button" onClick={() => openAttentionItem(readyCustomerItems[0])} className="flex w-full items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-left shadow-sm">
-                <PackageCheck className="h-7 w-7 shrink-0 text-amber-500" />
-                <span className="min-w-0 flex-1"><span className="block text-sm font-black text-slate-900">{readyCustomerItems.length} {readyCustomerItems.length === 1 ? "pedido listo para recibir" : "pedidos listos para recibir"}</span><span className="block text-xs text-slate-500">Tienes {readyCustomerItems.length} pedido que el negocio marcó como listo.</span></span>
-                <ChevronRight className="h-5 w-5 text-slate-700" />
-              </button>
+              <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={() => { const next = attentionFilter === "ready" ? null : "ready"; setAttentionFilter(next); if (next) setStatusViews((current) => ({ ...current, [viewKey]: "active" })); }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all duration-300 ${attentionFilter === "ready" ? "scale-[1.01] border-amber-500 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_12px_28px_rgba(245,158,11,0.32)]" : "border-amber-200 bg-amber-50 text-slate-900 shadow-sm"}`}>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "ready" ? "bg-white/20 text-white" : "bg-white text-amber-500"}`}><PackageCheck className="h-6 w-6" /></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-black">{readyCustomerItems.length} {requestType === "orders" ? (readyCustomerItems.length === 1 ? "pedido listo para recibir" : "pedidos listos para recibir") : (readyCustomerItems.length === 1 ? "servicio listo para confirmar" : "servicios listos para confirmar")}</span><span className={`block text-xs ${attentionFilter === "ready" ? "text-white/85" : "text-slate-500"}`}>{requestType === "orders" ? `Tienes ${readyCustomerItems.length} pedido${readyCustomerItems.length === 1 ? "" : "s"} que el negocio marcó como listo.` : `Tienes ${readyCustomerItems.length} servicio${readyCustomerItems.length === 1 ? "" : "s"} marcado${readyCustomerItems.length === 1 ? "" : "s"} como realizado${readyCustomerItems.length === 1 ? "" : "s"}.`}</span></span>
+                <ChevronRight className={`h-5 w-5 transition-transform ${attentionFilter === "ready" ? "rotate-90 text-white" : "text-slate-700"}`} />
+              </motion.button>
             )}
+            <AnimatePresence mode="wait">{attentionFilter === null && <motion.p key="attention-empty" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-white/70 px-3 py-3 text-center text-xs font-semibold text-slate-500">Selecciona un aviso para ver las solicitudes relacionadas.</motion.p>}</AnimatePresence>
           </div>
         )}
         {statusView !== "history" && (
@@ -470,6 +474,7 @@ export default function RequestsScreen({
           </div>
         )}
         {requestType === "quotes" &&
+          !suppressAttentionResults &&
           !quotes.loading &&
           !quotes.error &&
           filteredQuotes.length === 0 && (
@@ -481,6 +486,7 @@ export default function RequestsScreen({
             />
           )}
         {requestType === "quotes" &&
+          !suppressAttentionResults &&
           !quotes.loading &&
           !quotes.error &&
           filteredQuotes.length > 0 &&
@@ -494,19 +500,21 @@ export default function RequestsScreen({
             />
           )}
         {requestType === "quotes" &&
+          !suppressAttentionResults &&
           !quotes.loading &&
           !quotes.error &&
           filteredQuotes.length > 0 &&
           statusView !== "history" &&
           subTab === "my-orders" && (
-            <CustomerQuotes
+            <motion.div key={`quote-attention-${attentionFilter ?? "all"}`} initial={attentionFilter ? { opacity: 0, y: 12 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}><CustomerQuotes
               quotes={filteredQuotes}
               updating={quotes.updating}
               onStatus={changeQuoteStatusAndFollow}
               emptyText={emptyCopy.description}
-            />
+            /></motion.div>
           )}
         {requestType === "quotes" &&
+          !suppressAttentionResults &&
           !quotes.loading &&
           !quotes.error &&
           filteredQuotes.length > 0 &&
@@ -516,13 +524,13 @@ export default function RequestsScreen({
             <BusinessQuotes
               quotes={filteredQuotes}
               updating={quotes.updating}
-              onRespond={quotes.respond}
+              onRespond={(quote, price, message) => { quotes.respond(quote, price, message); setStatusViews((current) => ({ ...current, [viewKey]: "waiting" })); }}
               onStatus={changeQuoteStatusAndFollow}
-              onAlternative={quotes.proposeAlternative}
+              onAlternative={(quote, payload) => { quotes.proposeAlternative(quote, payload); setStatusViews((current) => ({ ...current, [viewKey]: "waiting" })); }}
               emptyText={emptyCopy.description}
             />
           )}
-        {requestType === "orders" && (
+        {requestType === "orders" && !suppressAttentionResults && (
           <>
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-16">
@@ -582,7 +590,7 @@ export default function RequestsScreen({
               !loadError &&
               statusView !== "history" &&
               subTab === "my-orders" && (
-                <MyOrdersTab
+                <motion.div key={`order-attention-${attentionFilter ?? "all"}`} initial={attentionFilter ? { opacity: 0, y: 12 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}><MyOrdersTab
                   myOrders={filteredMyOrders}
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
@@ -594,7 +602,7 @@ export default function RequestsScreen({
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
                   onProposeAlternative={proposeOrderAlternative}
-                />
+                /></motion.div>
               )}
 
             {!isLoading &&
@@ -633,14 +641,6 @@ export default function RequestsScreen({
           </>
         )}
       </div>
-      {showNews && (
-        <div className="absolute inset-0 z-[80] flex items-end bg-slate-950/45 p-3 sm:items-center">
-          <div className="mx-auto max-h-[82vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl">
-            <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-wide text-teal-600">Novedades</p><h3 className="text-xl font-black">Respuestas del negocio</h3><p className="text-sm text-slate-500">Selecciona una para abrir la solicitud exacta.</p></div><button onClick={() => setShowNews(false)} className="rounded-full bg-slate-100 p-2"><X className="h-5 w-5" /></button></div>
-            <div className="mt-4 space-y-2">{responseCustomerItems.map((item) => <button key={`${item.kind}-${item.id}`} onClick={() => openAttentionItem(item)} className="flex w-full items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 p-3 text-left"><Bell className="h-5 w-5 shrink-0 text-teal-600" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-black">{item.title}</span><span className="block text-xs text-slate-600">{item.detail}</span>{item.time && <span className="mt-1 block text-[10px] text-slate-400">{new Intl.DateTimeFormat("es-CL", { dateStyle: "short", timeStyle: "short" }).format(new Date(item.time))}</span>}</span><ChevronRight className="h-5 w-5" /></button>)}</div>
-          </div>
-        </div>
-      )}
       {showHistoryFilter && (
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
           <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
