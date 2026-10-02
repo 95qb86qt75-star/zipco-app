@@ -78,6 +78,14 @@ body,
   box-shadow: 0 10px 26px rgb(15 23 42 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
+.zipco-provider-card {
+  background:
+    radial-gradient(circle at 94% 7%, rgb(224 242 254 / 0.72), transparent 31%),
+    radial-gradient(circle at 5% 96%, rgb(204 251 241 / 0.60), transparent 35%),
+    linear-gradient(145deg, #ffffff 18%, #f8fbff 58%, #f3fffc 100%);
+  box-shadow: 0 9px 24px rgb(15 23 42 / 0.085), inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .zipco-attention-bell,
   .zipco-confirm-action,
