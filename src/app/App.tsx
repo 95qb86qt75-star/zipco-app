@@ -173,13 +173,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has('open')) return;
-    url.searchParams.delete('open');
-    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-  }, []);
-
-  useEffect(() => {
     const handleNotificationNavigation = (event: MessageEvent) => {
       const data = event.data as { type?: string; url?: string } | null;
       if (data?.type !== 'ZIPCO_NOTIFICATION_NAVIGATE' || typeof data.url !== 'string') return;

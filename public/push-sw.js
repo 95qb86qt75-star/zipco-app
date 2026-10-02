@@ -34,6 +34,16 @@ self.addEventListener('notificationclick', (event) => {
       })
     );
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const navigationMessage = {
+      type: 'ZIPCO_NOTIFICATION_NAVIGATE',
+      url: targetUrl.pathname + targetUrl.search
+    };
+    // iOS can keep more than one window for the same installed web app. Tell
+    // every matching client about the destination before focusing one of them,
+    // so the window surfaced by the OS cannot remain on Inicio.
+    clients
+      .filter((candidate) => candidate.url.startsWith(self.location.origin))
+      .forEach((candidate) => candidate.postMessage(navigationMessage));
     const client = clients.find((candidate) => candidate.url.startsWith(self.location.origin) && candidate.visibilityState === 'visible')
       || clients.find((candidate) => candidate.url.startsWith(self.location.origin))
       || clients[0];
@@ -51,7 +61,7 @@ self.addEventListener('notificationclick', (event) => {
           // message-based behavior as a compatible fallback.
         }
       }
-      client.postMessage({ type: 'ZIPCO_NOTIFICATION_NAVIGATE', url: targetUrl.pathname + targetUrl.search });
+      client.postMessage(navigationMessage);
       await client.focus();
       return;
     }
