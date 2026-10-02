@@ -51,8 +51,8 @@ body,
 }
 
 @keyframes zipco-open-hint {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.72; transform: scale(0.98); box-shadow: 0 0 0 0 rgb(139 92 246 / 0.08); }
+  50% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 3px rgb(139 92 246 / 0.13), 0 0 14px rgb(139 92 246 / 0.18); }
 }
 
 .zipco-attention-bell {
@@ -69,6 +69,14 @@ body,
 .zipco-reject-icon { animation: zipco-reject-icon 2s ease-in-out infinite; }
 .zipco-accept-icon { animation: zipco-accept-icon 2s ease-in-out infinite; }
 .zipco-open-hint { animation: zipco-open-hint 1.5s ease-in-out infinite; }
+
+.zipco-proposal-card {
+  background:
+    radial-gradient(circle at 94% 7%, rgb(237 233 254 / 0.72), transparent 31%),
+    radial-gradient(circle at 5% 96%, rgb(204 251 241 / 0.72), transparent 35%),
+    linear-gradient(145deg, #ffffff 18%, #fafaff 58%, #f3fffc 100%);
+  box-shadow: 0 10px 26px rgb(15 23 42 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .zipco-attention-bell,

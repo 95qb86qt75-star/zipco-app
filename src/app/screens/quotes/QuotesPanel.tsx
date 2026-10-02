@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Image as ImageIcon,
   MessageSquareText,
+  MousePointerClick,
   Send,
   XCircle,
 } from "lucide-react";
@@ -354,7 +355,7 @@ function QuoteCard({
       <article
         id={`quote-${quote.id}`}
         onClick={(event) => { handleOpen(event.currentTarget); onToggle?.(); }}
-        className={`scroll-mb-36 rounded-[22px] border bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.09)] transition-colors ${unread ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200"}`}
+        className={`zipco-proposal-card scroll-mb-36 rounded-[22px] border p-3 transition-colors ${unread ? "border-sky-300 ring-2 ring-sky-100" : "border-violet-100"}`}
       >
         <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
           {quote.referencePhoto ? (
@@ -384,9 +385,9 @@ function QuoteCard({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               onClick={(event) => { event.stopPropagation(); handleOpen(event.currentTarget.closest("article") as HTMLElement); onToggle?.(); }}
-              className="mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50 px-3 py-2 text-left"
+              className="mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border border-teal-200 bg-gradient-to-br from-cyan-50 via-teal-50 to-emerald-100/70 px-3 py-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
             >
-              <span className="min-w-0"><span className="block text-[9px] font-black uppercase tracking-[0.15em] text-teal-700">Propuesta del negocio</span><span className="zipco-open-hint mt-0.5 block text-xs font-bold text-teal-700">Toca para abrir</span></span>
+              <span className="min-w-0"><span className="block text-[9px] font-black uppercase tracking-[0.15em] text-teal-700">Propuesta del negocio</span><span className="zipco-open-hint mt-1 inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-100 px-2 py-1 text-[11px] font-black text-violet-700"><MousePointerClick className="h-3.5 w-3.5" />Toca para abrir</span></span>
               <span className="whitespace-nowrap text-lg font-black text-teal-800">{price === null ? "—" : money(price)}</span>
               <ChevronDown className="h-5 w-5 text-teal-700" />
             </motion.button>
