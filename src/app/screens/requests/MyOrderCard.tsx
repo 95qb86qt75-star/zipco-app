@@ -1,4 +1,4 @@
-import { Bell, Calendar, ChevronRight, MessageCircle } from "lucide-react";
+import { Bell, Calendar, CheckCircle2, ChevronRight, MessageCircle, XCircle } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { MyOrder, OrderAction } from "./types";
@@ -112,7 +112,7 @@ export default function MyOrderCard({
         <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900"><p className="font-black">Alternativa del negocio</p><p>{order.alternativeMessage}</p>{order.alternativeItem && <p>Opción: {order.alternativeItem}{order.alternativeQuantity ? ` · Cantidad ${order.alternativeQuantity}` : ""}</p>}{order.alternativeDate && <p>Fecha: {order.alternativeDate}{order.alternativeTime ? ` · ${order.alternativeTime}` : ""}</p>}{order.alternativePriceClp && <p className="font-black">${order.alternativePriceClp.toLocaleString("es-CL")}</p>}</div>
       )}
       {order.status === "alternative_proposed" && (
-        <div className="mt-3 grid grid-cols-2 gap-2"><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("reject-alternative"); }} className="rounded-xl border border-red-200 py-2 text-xs font-bold text-red-600">Rechazar</button><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("accept-alternative"); }} className="rounded-xl bg-teal-600 py-2 text-xs font-bold text-white">Aceptar alternativa</button></div>
+        <div className="mt-3 grid grid-cols-2 gap-2"><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("reject-alternative"); }} className="zipco-proposal-reject flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-xs font-bold text-red-600"><XCircle className="zipco-reject-icon h-4 w-4" />Rechazar propuesta</button><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("accept-alternative"); }} className="zipco-proposal-accept flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-xs font-bold text-white"><CheckCircle2 className="zipco-accept-icon h-4 w-4" />Aceptar propuesta</button></div>
       )}
       {action && (
         <button

@@ -3,8 +3,10 @@ import {
   Bell,
   Calendar,
   CalendarDays,
+  CheckCircle2,
   Image as ImageIcon,
   MessageSquareText,
+  XCircle,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import type { QuoteCancellationReason, QuoteRequest, QuoteStatus } from "./quoteApi";
@@ -77,9 +79,10 @@ export function CustomerQuotes({
                     if (quote.status === "alternative_proposed") setDecliningAlternative(quote);
                     else onStatus(quote, "declined");
                   }}
-                  className="rounded-xl border border-red-200 py-2 text-sm font-bold text-red-600"
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-sm font-bold text-red-600 ${quote.status === "alternative_proposed" ? "zipco-proposal-reject" : ""}`}
                 >
-                  {quote.status === "alternative_proposed" ? "Rechazar alternativa" : "Rechazar"}
+                  {quote.status === "alternative_proposed" && <XCircle className="zipco-reject-icon h-4 w-4" />}
+                  {quote.status === "alternative_proposed" ? "Rechazar propuesta" : "Rechazar"}
                 </button>
                 <button
                   disabled={updating.has(quote.id)}
@@ -88,9 +91,10 @@ export function CustomerQuotes({
                     markRead("quote", quote.id);
                     onStatus(quote, "accepted");
                   }}
-                  className="rounded-xl bg-emerald-500 py-2 text-sm font-bold text-white"
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-sm font-bold text-white ${quote.status === "alternative_proposed" ? "zipco-proposal-accept" : ""}`}
                 >
-                  {quote.status === "alternative_proposed" ? "Aceptar alternativa" : "Aceptar"}
+                  {quote.status === "alternative_proposed" && <CheckCircle2 className="zipco-accept-icon h-4 w-4" />}
+                  {quote.status === "alternative_proposed" ? "Aceptar propuesta" : "Aceptar"}
                 </button>
               </div>
             )}
