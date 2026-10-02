@@ -23,7 +23,17 @@ self.addEventListener('notificationclick', (event) => {
   if (event.notification.data?.orderId && !targetUrl.searchParams.has('orderId')) targetUrl.searchParams.set('orderId', String(event.notification.data.orderId));
   if (event.notification.data?.quoteId && !targetUrl.searchParams.has('quoteId')) targetUrl.searchParams.set('quoteId', String(event.notification.data.quoteId));
   const target = targetUrl.href;
-  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clients) => {
+  event.waitUntil((async () => {
+    // Persist the destination before waking the app. iOS may discard both
+    // postMessage and WindowClient.navigate while resuming a suspended PWA.
+    const navigationCache = await caches.open('zipco-notification-navigation-v1');
+    await navigationCache.put(
+      new Request(new URL('/__zipco_notification_target__', self.location.origin).href),
+      new Response(JSON.stringify({ url: targetUrl.pathname + targetUrl.search, createdAt: Date.now() }), {
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+      })
+    );
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const client = clients.find((candidate) => candidate.url.startsWith(self.location.origin) && candidate.visibilityState === 'visible')
       || clients.find((candidate) => candidate.url.startsWith(self.location.origin))
       || clients[0];
@@ -46,5 +56,5 @@ self.addEventListener('notificationclick', (event) => {
       return;
     }
     return self.clients.openWindow(target);
-  }));
+  })());
 });

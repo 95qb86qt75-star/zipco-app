@@ -98,6 +98,15 @@ export default function App() {
   const [isChangingPush, setIsChangingPush] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
 
+  const openNotificationTarget = useCallback((targetValue: string) => {
+    const target = new URL(targetValue, window.location.origin);
+    if (target.origin !== window.location.origin) return;
+    window.history.replaceState({}, '', `${target.pathname}${target.search}`);
+    setCurrentScreen('home');
+    setActiveTab('requests');
+    setRequestsNavigationKey((current) => current + 1);
+  }, []);
+
   const refreshFavorites = useCallback(async () => {
     const token = localStorage.getItem('zipco-token');
     if (!token) { setFavoriteItems([]); return; }
@@ -174,15 +183,47 @@ export default function App() {
     const handleNotificationNavigation = (event: MessageEvent) => {
       const data = event.data as { type?: string; url?: string } | null;
       if (data?.type !== 'ZIPCO_NOTIFICATION_NAVIGATE' || typeof data.url !== 'string') return;
-      const target = new URL(data.url, window.location.origin);
-      window.history.replaceState({}, '', `${target.pathname}${target.search}`);
-      setCurrentScreen('home');
-      setActiveTab('requests');
-      setRequestsNavigationKey((current) => current + 1);
+      openNotificationTarget(data.url);
     };
     navigator.serviceWorker?.addEventListener('message', handleNotificationNavigation);
     return () => navigator.serviceWorker?.removeEventListener('message', handleNotificationNavigation);
-  }, []);
+  }, [openNotificationTarget]);
+
+  useEffect(() => {
+    let consuming = false;
+    const consumeStoredNotificationTarget = async () => {
+      if (consuming || !('caches' in window)) return;
+      consuming = true;
+      try {
+        const navigationCache = await caches.open('zipco-notification-navigation-v1');
+        const request = new Request(new URL('/__zipco_notification_target__', window.location.origin).href);
+        const response = await navigationCache.match(request);
+        if (!response) return;
+        await navigationCache.delete(request);
+        const payload = await response.json() as { url?: unknown; createdAt?: unknown };
+        const createdAt = Number(payload.createdAt);
+        if (typeof payload.url === 'string' && Number.isFinite(createdAt) && Date.now() - createdAt < 5 * 60 * 1000) {
+          openNotificationTarget(payload.url);
+        }
+      } catch {
+        // Direct navigation and postMessage remain available as fallbacks.
+      } finally {
+        consuming = false;
+      }
+    };
+    const handleResume = () => {
+      if (document.visibilityState === 'visible') void consumeStoredNotificationTarget();
+    };
+    void consumeStoredNotificationTarget();
+    document.addEventListener('visibilitychange', handleResume);
+    window.addEventListener('pageshow', handleResume);
+    window.addEventListener('focus', handleResume);
+    return () => {
+      document.removeEventListener('visibilitychange', handleResume);
+      window.removeEventListener('pageshow', handleResume);
+      window.removeEventListener('focus', handleResume);
+    };
+  }, [openNotificationTarget]);
 
   useEffect(() => {
     localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
