@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  Archive,
   Check,
   Bell,
   ChevronRight,
   Filter,
   List,
   Minus,
+  PackageCheck,
   RefreshCw,
   Trash2,
   X,
@@ -24,7 +26,12 @@ import {
   OrderHistoryList,
   QuoteHistoryList,
 } from "./requests/CompactHistoryList";
-import { interactionKey, markInteractionUnread, useUnreadInteractions } from "../notifications/unreadInteractions";
+import {
+  interactionKey,
+  markInteractionRead,
+  markInteractionUnread,
+  useUnreadInteractions,
+} from "../notifications/unreadInteractions";
 import {
   countStatusViews,
   filterByStatusView,
@@ -62,7 +69,13 @@ export default function RequestsScreen({
     Record<string, "newest" | "oldest">
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
-  const [attentionFilter, setAttentionFilter] = useState<"responses" | "ready" | null>(null);
+  const [attentionFilter, setAttentionFilter] = useState<
+    "responses" | "ready" | null
+  >(null);
+  const [historyTransferId, setHistoryTransferId] = useState<number | null>(
+    null,
+  );
+  const prefersReducedMotion = useReducedMotion();
   const { unread } = useUnreadInteractions();
   const {
     hasBusiness,
@@ -85,16 +98,55 @@ export default function RequestsScreen({
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
   const quoteRecords =
     subTab === "my-orders" ? quotes.myQuotes : quotes.businessQuotes;
-  const readyCustomerItems = subTab === "my-orders"
-    ? requestType === "orders"
-      ? myOrders.filter((order) => order.recordState === "available" && order.status === "ready").map((order) => ({ kind: "orders" as const, id: order.id, status: order.status }))
-      : quotes.myQuotes.filter((quote) => quote.status === "ready").map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status }))
-    : [];
-  const responseCustomerItems = subTab === "my-orders"
-    ? requestType === "orders"
-      ? myOrders.filter((order) => order.recordState === "available" && (order.status === "alternative_proposed" || unread.has(interactionKey("order", order.id)))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status }))
-      : quotes.myQuotes.filter((quote) => quote.status === "quoted" || quote.status === "alternative_proposed").map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status }))
-    : [];
+  const readyCustomerItems =
+    subTab === "my-orders"
+      ? requestType === "orders"
+        ? myOrders
+            .filter(
+              (order) =>
+                order.recordState === "available" && order.status === "ready",
+            )
+            .map((order) => ({
+              kind: "orders" as const,
+              id: order.id,
+              status: order.status,
+            }))
+        : quotes.myQuotes
+            .filter((quote) => quote.status === "ready")
+            .map((quote) => ({
+              kind: "quotes" as const,
+              id: quote.id,
+              status: quote.status,
+            }))
+      : [];
+  const responseCustomerItems =
+    subTab === "my-orders"
+      ? requestType === "orders"
+        ? myOrders
+            .filter(
+              (order) =>
+                order.recordState === "available" &&
+                (order.status === "alternative_proposed" ||
+                  (order.status === "accepted" &&
+                    unread.has(interactionKey("order", order.id)))),
+            )
+            .map((order) => ({
+              kind: "orders" as const,
+              id: order.id,
+              status: order.status,
+            }))
+        : quotes.myQuotes
+            .filter(
+              (quote) =>
+                quote.status === "quoted" ||
+                quote.status === "alternative_proposed",
+            )
+            .map((quote) => ({
+              kind: "quotes" as const,
+              id: quote.id,
+              status: quote.status,
+            }))
+      : [];
   const statusCounts = countStatusViews(
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
@@ -135,13 +187,30 @@ export default function RequestsScreen({
         ),
     ),
   );
-  const hasAttentionChoices = subTab === "my-orders" && (readyCustomerItems.length > 0 || responseCustomerItems.length > 0);
-  const suppressAttentionResults = hasAttentionChoices && attentionFilter === null;
+  const hasAttentionChoices =
+    subTab === "my-orders" &&
+    (readyCustomerItems.length > 0 || responseCustomerItems.length > 0);
+  const suppressAttentionResults =
+    hasAttentionChoices && attentionFilter === null;
   if (hasAttentionChoices) {
-    const selectedItems = attentionFilter === "ready" ? readyCustomerItems : attentionFilter === "responses" ? responseCustomerItems : [];
+    const selectedItems =
+      attentionFilter === "ready"
+        ? readyCustomerItems
+        : attentionFilter === "responses"
+          ? responseCustomerItems
+          : [];
     const selectedIds = new Set(selectedItems.map((item) => item.id));
-    if (requestType === "orders") filteredMyOrders = sortRecords(myOrders.filter((order) => order.recordState === "available" && selectedIds.has(order.id)));
-    else filteredQuotes = sortRecords(quotes.myQuotes.filter((quote) => selectedIds.has(quote.id)));
+    if (requestType === "orders")
+      filteredMyOrders = sortRecords(
+        myOrders.filter(
+          (order) =>
+            order.recordState === "available" && selectedIds.has(order.id),
+        ),
+      );
+    else
+      filteredQuotes = sortRecords(
+        quotes.myQuotes.filter((quote) => selectedIds.has(quote.id)),
+      );
   }
   const emptyCopy = {
     pending: {
@@ -175,11 +244,43 @@ export default function RequestsScreen({
   const selectStatusView = (view: StatusView) => {
     setStatusViews((current) => ({ ...current, [viewKey]: view }));
   };
-  const changeQuoteStatusAndFollow = (quote: Parameters<typeof quotes.changeStatus>[0], status: Parameters<typeof quotes.changeStatus>[1], reason?: Parameters<typeof quotes.changeStatus>[2], detail?: string) => {
+  const changeQuoteStatusAndFollow = (
+    quote: Parameters<typeof quotes.changeStatus>[0],
+    status: Parameters<typeof quotes.changeStatus>[1],
+    reason?: Parameters<typeof quotes.changeStatus>[2],
+    detail?: string,
+  ) => {
     quotes.changeStatus(quote, status, reason, detail);
     if (status === "completed") return;
     const nextView = statusViewFor("quotes", status);
-    if (nextView) setStatusViews((current) => ({ ...current, [viewKey]: nextView }));
+    if (nextView)
+      setStatusViews((current) => ({ ...current, [viewKey]: nextView }));
+  };
+  const completeCustomerOrder = async (
+    order: Extract<(typeof myOrders)[number], { recordState: "available" }>,
+  ) => {
+    markInteractionRead("order", order.id);
+    setAttentionFilter(null);
+    setHistoryTransferId(order.id);
+    const minimumAnimation = new Promise((resolve) =>
+      window.setTimeout(resolve, prefersReducedMotion ? 180 : 1250),
+    );
+    const [completed] = await Promise.all([
+      performAction(order, "customer", "complete-reception"),
+      minimumAnimation,
+    ]);
+    setHistoryTransferId(null);
+    if (!completed) return;
+    setStatusViews((current) => ({ ...current, [viewKey]: "history" }));
+    window.setTimeout(() => {
+      const element = document.getElementById(`order-${order.id}`);
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      element?.classList.add("zipco-notification-target");
+      window.setTimeout(
+        () => element?.classList.remove("zipco-notification-target"),
+        3200,
+      );
+    }, 180);
   };
   const historyOptions: Array<{
     value: HistoryFilter;
@@ -265,17 +366,14 @@ export default function RequestsScreen({
       ...current,
       [`${subTab}-${targetKind}`]: targetView,
     }));
-    window.setTimeout(
-      () => {
-        const element = document.getElementById(
-          `${targetKind === "quotes" ? "quote" : "order"}-${targetKind === "quotes" ? quoteId : orderId}`,
-        );
-        element?.scrollIntoView({ behavior: "smooth", block: "center" });
-        element?.classList.add("zipco-notification-target");
-        window.history.replaceState({}, "", window.location.pathname);
-      },
-      150,
-    );
+    window.setTimeout(() => {
+      const element = document.getElementById(
+        `${targetKind === "quotes" ? "quote" : "order"}-${targetKind === "quotes" ? quoteId : orderId}`,
+      );
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      element?.classList.add("zipco-notification-target");
+      window.history.replaceState({}, "", window.location.pathname);
+    }, 150);
   }, [orderRecords, quoteRecords, subTab]);
 
   return (
@@ -298,7 +396,10 @@ export default function RequestsScreen({
 
         <div className="flex gap-2">
           <button
-            onClick={() => { setSubTab("my-orders"); setAttentionFilter(null); }}
+            onClick={() => {
+              setSubTab("my-orders");
+              setAttentionFilter(null);
+            }}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
               subTab === "my-orders"
                 ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
@@ -309,7 +410,10 @@ export default function RequestsScreen({
           </button>
           {hasBusiness && (
             <button
-              onClick={() => { setSubTab("my-business"); setAttentionFilter(null); }}
+              onClick={() => {
+                setSubTab("my-business");
+                setAttentionFilter(null);
+              }}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
                 subTab === "my-business"
                   ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
@@ -326,13 +430,19 @@ export default function RequestsScreen({
         <NotificationPermissionCard />
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/70 p-1.5 shadow-sm">
           <button
-            onClick={() => { setRequestType("orders"); setAttentionFilter(null); }}
+            onClick={() => {
+              setRequestType("orders");
+              setAttentionFilter(null);
+            }}
             className={`rounded-xl py-2 text-sm font-bold ${requestType === "orders" ? "bg-teal-600 text-white" : "text-slate-600"}`}
           >
             Pedidos
           </button>
           <button
-            onClick={() => { setRequestType("quotes"); setAttentionFilter(null); }}
+            onClick={() => {
+              setRequestType("quotes");
+              setAttentionFilter(null);
+            }}
             className={`rounded-xl py-2 text-sm font-bold ${requestType === "quotes" ? "bg-violet-600 text-white" : "text-slate-600"}`}
           >
             Cotizaciones
@@ -391,25 +501,117 @@ export default function RequestsScreen({
             </button>
           ))}
         </div>
-        {subTab === "my-orders" && (responseCustomerItems.length > 0 || readyCustomerItems.length > 0) && (
-          <div className="mb-3 space-y-2">
-            {responseCustomerItems.length > 0 && (
-              <motion.button type="button" whileTap={{ scale: 0.995 }} onClick={() => { const next = attentionFilter === "responses" ? null : "responses"; setAttentionFilter(next); if (next) { const view = statusViewFor(requestType, responseCustomerItems[0].status) ?? "pending"; setStatusViews((current) => ({ ...current, [viewKey]: view })); } }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "responses" ? "border-amber-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white shadow-[0_12px_30px_rgba(234,88,12,0.34)]" : "border-orange-200 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 shadow-sm"}`}>
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "responses" ? "bg-white/20 text-white shadow-inner" : "bg-white text-orange-500"}`}><Bell className="zipco-attention-bell h-6 w-6" /></span>
-                <span className="min-w-0 flex-1"><span className="block text-sm font-black">{responseCustomerItems.length} {responseCustomerItems.length === 1 ? "nueva respuesta del negocio" : "nuevas respuestas del negocio"}</span><span className={`block text-xs ${attentionFilter === "responses" ? "text-white/85" : "text-slate-500"}`}>Tienes {responseCustomerItems.length} {requestType === "orders" ? "pedido" : "cotización"}{responseCustomerItems.length === 1 ? "" : "es"} con una nueva respuesta.</span></span>
-                <ChevronRight className={`h-5 w-5 transition-transform ${attentionFilter === "responses" ? "rotate-90 text-white" : "text-slate-700"}`} />
-              </motion.button>
-            )}
-            {readyCustomerItems.length > 0 && (
-              <motion.button type="button" whileTap={{ scale: 0.995 }} onClick={() => { const next = attentionFilter === "ready" ? null : "ready"; setAttentionFilter(next); if (next) setStatusViews((current) => ({ ...current, [viewKey]: "active" })); }} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "ready" ? "border-amber-500 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_12px_28px_rgba(245,158,11,0.32)]" : "border-amber-200 bg-amber-50 text-slate-900 shadow-sm"}`}>
-                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "ready" ? "bg-white/20 text-white" : "bg-white text-amber-500"}`}><Bell className="zipco-attention-bell h-6 w-6" /></span>
-                <span className="min-w-0 flex-1"><span className="block text-sm font-black">{readyCustomerItems.length} {requestType === "orders" ? (readyCustomerItems.length === 1 ? "pedido listo para recibir" : "pedidos listos para recibir") : (readyCustomerItems.length === 1 ? "servicio listo para confirmar" : "servicios listos para confirmar")}</span><span className={`block text-xs ${attentionFilter === "ready" ? "text-white/85" : "text-slate-500"}`}>{requestType === "orders" ? `Tienes ${readyCustomerItems.length} pedido${readyCustomerItems.length === 1 ? "" : "s"} que el negocio marcó como listo.` : `Tienes ${readyCustomerItems.length} servicio${readyCustomerItems.length === 1 ? "" : "s"} marcado${readyCustomerItems.length === 1 ? "" : "s"} como realizado${readyCustomerItems.length === 1 ? "" : "s"}.`}</span></span>
-                <ChevronRight className={`h-5 w-5 transition-transform ${attentionFilter === "ready" ? "rotate-90 text-white" : "text-slate-700"}`} />
-              </motion.button>
-            )}
-            <AnimatePresence mode="wait">{attentionFilter === null && <motion.p key="attention-empty" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rounded-xl bg-white/70 px-3 py-3 text-center text-xs font-semibold text-slate-500">Selecciona un aviso para ver las solicitudes relacionadas.</motion.p>}</AnimatePresence>
-          </div>
-        )}
+        {subTab === "my-orders" &&
+          (responseCustomerItems.length > 0 ||
+            readyCustomerItems.length > 0) && (
+            <div className="mb-3 space-y-2">
+              {responseCustomerItems.length > 0 && (
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.995 }}
+                  onClick={() => {
+                    const next =
+                      attentionFilter === "responses" ? null : "responses";
+                    setAttentionFilter(next);
+                    if (next) {
+                      const view =
+                        statusViewFor(
+                          requestType,
+                          responseCustomerItems[0].status,
+                        ) ?? "pending";
+                      setStatusViews((current) => ({
+                        ...current,
+                        [viewKey]: view,
+                      }));
+                    }
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "responses" ? "border-amber-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white shadow-[0_12px_30px_rgba(234,88,12,0.34)]" : "border-orange-200 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 shadow-sm"}`}
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "responses" ? "bg-white/20 text-white shadow-inner" : "bg-white text-orange-500"}`}
+                  >
+                    <Bell className="zipco-attention-bell h-6 w-6" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-black">
+                      {responseCustomerItems.length}{" "}
+                      {responseCustomerItems.length === 1
+                        ? "nueva respuesta del negocio"
+                        : "nuevas respuestas del negocio"}
+                    </span>
+                    <span
+                      className={`block text-xs ${attentionFilter === "responses" ? "text-white/85" : "text-slate-500"}`}
+                    >
+                      Tienes {responseCustomerItems.length}{" "}
+                      {requestType === "orders" ? "pedido" : "cotización"}
+                      {responseCustomerItems.length === 1 ? "" : "es"} con una
+                      nueva respuesta.
+                    </span>
+                  </span>
+                  <ChevronRight
+                    className={`h-5 w-5 transition-transform ${attentionFilter === "responses" ? "rotate-90 text-white" : "text-slate-700"}`}
+                  />
+                </motion.button>
+              )}
+              {readyCustomerItems.length > 0 && (
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.995 }}
+                  onClick={() => {
+                    const next = attentionFilter === "ready" ? null : "ready";
+                    setAttentionFilter(next);
+                    if (next)
+                      setStatusViews((current) => ({
+                        ...current,
+                        [viewKey]: "active",
+                      }));
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "ready" ? "border-amber-500 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_12px_28px_rgba(245,158,11,0.32)]" : "border-amber-200 bg-amber-50 text-slate-900 shadow-sm"}`}
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "ready" ? "bg-white/20 text-white" : "bg-white text-amber-500"}`}
+                  >
+                    <Bell className="zipco-attention-bell h-6 w-6" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-black">
+                      {readyCustomerItems.length}{" "}
+                      {requestType === "orders"
+                        ? readyCustomerItems.length === 1
+                          ? "pedido listo para recibir"
+                          : "pedidos listos para recibir"
+                        : readyCustomerItems.length === 1
+                          ? "servicio listo para confirmar"
+                          : "servicios listos para confirmar"}
+                    </span>
+                    <span
+                      className={`block text-xs ${attentionFilter === "ready" ? "text-white/85" : "text-slate-500"}`}
+                    >
+                      {requestType === "orders"
+                        ? `Tienes ${readyCustomerItems.length} pedido${readyCustomerItems.length === 1 ? "" : "s"} que el negocio marcó como listo.`
+                        : `Tienes ${readyCustomerItems.length} servicio${readyCustomerItems.length === 1 ? "" : "s"} marcado${readyCustomerItems.length === 1 ? "" : "s"} como realizado${readyCustomerItems.length === 1 ? "" : "s"}.`}
+                    </span>
+                  </span>
+                  <ChevronRight
+                    className={`h-5 w-5 transition-transform ${attentionFilter === "ready" ? "rotate-90 text-white" : "text-slate-700"}`}
+                  />
+                </motion.button>
+              )}
+              <AnimatePresence mode="wait">
+                {attentionFilter === null && (
+                  <motion.p
+                    key="attention-empty"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="rounded-xl bg-white/70 px-3 py-3 text-center text-xs font-semibold text-slate-500"
+                  >
+                    Selecciona un aviso para ver las solicitudes relacionadas.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         {statusView !== "history" && (
           <div className="mb-4 flex justify-end">
             <button
@@ -514,12 +716,19 @@ export default function RequestsScreen({
           filteredQuotes.length > 0 &&
           statusView !== "history" &&
           subTab === "my-orders" && (
-            <motion.div key={`quote-attention-${attentionFilter ?? "all"}`} initial={attentionFilter ? { opacity: 0, y: 12 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}><CustomerQuotes
-              quotes={filteredQuotes}
-              updating={quotes.updating}
-              onStatus={changeQuoteStatusAndFollow}
-              emptyText={emptyCopy.description}
-            /></motion.div>
+            <motion.div
+              key={`quote-attention-${attentionFilter ?? "all"}`}
+              initial={attentionFilter ? { opacity: 0, y: 12 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.24 }}
+            >
+              <CustomerQuotes
+                quotes={filteredQuotes}
+                updating={quotes.updating}
+                onStatus={changeQuoteStatusAndFollow}
+                emptyText={emptyCopy.description}
+              />
+            </motion.div>
           )}
         {requestType === "quotes" &&
           !suppressAttentionResults &&
@@ -532,9 +741,21 @@ export default function RequestsScreen({
             <BusinessQuotes
               quotes={filteredQuotes}
               updating={quotes.updating}
-              onRespond={(quote, price, message) => { quotes.respond(quote, price, message); setStatusViews((current) => ({ ...current, [viewKey]: "waiting" })); }}
+              onRespond={(quote, price, message) => {
+                quotes.respond(quote, price, message);
+                setStatusViews((current) => ({
+                  ...current,
+                  [viewKey]: "waiting",
+                }));
+              }}
               onStatus={changeQuoteStatusAndFollow}
-              onAlternative={(quote, payload) => { quotes.proposeAlternative(quote, payload); setStatusViews((current) => ({ ...current, [viewKey]: "waiting" })); }}
+              onAlternative={(quote, payload) => {
+                quotes.proposeAlternative(quote, payload);
+                setStatusViews((current) => ({
+                  ...current,
+                  [viewKey]: "waiting",
+                }));
+              }}
               emptyText={emptyCopy.description}
             />
           )}
@@ -598,19 +819,42 @@ export default function RequestsScreen({
               !loadError &&
               statusView !== "history" &&
               subTab === "my-orders" && (
-                <motion.div key={`order-attention-${attentionFilter ?? "all"}`} initial={attentionFilter ? { opacity: 0, y: 12 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}><MyOrdersTab
-                  myOrders={filteredMyOrders}
-                  updatingOrderIds={updatingOrderIds}
-                  onRetry={loadOrders}
-                  onAction={async (order, action, reason, detail) => {
-                    await performAction(order, "customer", action, reason, detail);
-                    const next = action === "cancel" ? "history" : "active";
-                    setStatusViews((current) => ({ ...current, [viewKey]: next }));
-                  }}
-                  emptyTitle={emptyCopy.title}
-                  emptyDescription={emptyCopy.description}
-                  onProposeAlternative={proposeOrderAlternative}
-                /></motion.div>
+                <motion.div
+                  key={`order-attention-${attentionFilter ?? "all"}`}
+                  initial={attentionFilter ? { opacity: 0, y: 12 } : false}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.24 }}
+                >
+                  <MyOrdersTab
+                    myOrders={filteredMyOrders}
+                    updatingOrderIds={updatingOrderIds}
+                    onRetry={loadOrders}
+                    onAction={async (order, action, reason, detail) => {
+                      if (
+                        action === "complete-reception" &&
+                        order.recordState === "available"
+                      ) {
+                        await completeCustomerOrder(order);
+                        return;
+                      }
+                      await performAction(
+                        order,
+                        "customer",
+                        action,
+                        reason,
+                        detail,
+                      );
+                      const next = action === "cancel" ? "history" : "active";
+                      setStatusViews((current) => ({
+                        ...current,
+                        [viewKey]: next,
+                      }));
+                    }}
+                    emptyTitle={emptyCopy.title}
+                    emptyDescription={emptyCopy.description}
+                    onProposeAlternative={proposeOrderAlternative}
+                  />
+                </motion.div>
               )}
 
             {!isLoading &&
@@ -623,9 +867,21 @@ export default function RequestsScreen({
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
                   onAction={async (order, action, reason, detail) => {
-                    await performAction(order, "business", action, reason, detail);
-                    const next = action === "reject" || action === "complete-delivery" ? "history" : "active";
-                    setStatusViews((current) => ({ ...current, [viewKey]: next }));
+                    await performAction(
+                      order,
+                      "business",
+                      action,
+                      reason,
+                      detail,
+                    );
+                    const next =
+                      action === "reject" || action === "complete-delivery"
+                        ? "history"
+                        : "active";
+                    setStatusViews((current) => ({
+                      ...current,
+                      [viewKey]: next,
+                    }));
                   }}
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
@@ -650,6 +906,78 @@ export default function RequestsScreen({
           </>
         )}
       </div>
+      <AnimatePresence>
+        {historyTransferId !== null && (
+          <motion.div
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/20 px-6 backdrop-blur-[2px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="relative flex w-[210px] flex-col items-center overflow-hidden rounded-[28px] border border-cyan-200/80 bg-white/95 px-5 py-6 shadow-[0_24px_70px_rgba(8,145,178,0.28)]"
+              initial={{ y: 14, scale: 0.94 }}
+              animate={{ y: 0, scale: 1 }}
+              exit={{ y: -8, scale: 0.96, opacity: 0 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-cyan-100/65 via-transparent to-emerald-100/70"
+                animate={
+                  prefersReducedMotion
+                    ? undefined
+                    : { opacity: [0.45, 0.9, 0.45] }
+                }
+                transition={{ duration: 1.1, repeat: Infinity }}
+              />
+              <div className="relative h-[92px] w-[122px]">
+                <motion.div
+                  className="absolute left-1/2 top-0 flex h-10 w-20 -translate-x-1/2 items-center gap-2 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-100 px-2 shadow-md"
+                  animate={
+                    prefersReducedMotion
+                      ? { y: 24, scale: 0.82 }
+                      : {
+                          y: [0, 8, 35],
+                          scale: [1, 0.92, 0.72],
+                          opacity: [1, 1, 0],
+                        }
+                  }
+                  transition={{ duration: 0.85, ease: "easeInOut" }}
+                >
+                  <PackageCheck className="h-4 w-4 text-teal-600" />
+                  <span className="h-2 w-8 rounded-full bg-slate-300" />
+                </motion.div>
+                <motion.div
+                  className="absolute bottom-0 left-1/2 flex h-12 w-[106px] -translate-x-1/2 items-center justify-center rounded-[16px] border border-teal-300 bg-gradient-to-b from-cyan-100/90 to-emerald-200/90 text-teal-700 shadow-[0_0_24px_rgba(20,184,166,0.34)]"
+                  animate={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          boxShadow: [
+                            "0 0 12px rgba(20,184,166,.20)",
+                            "0 0 30px rgba(20,184,166,.50)",
+                            "0 0 12px rgba(20,184,166,.20)",
+                          ],
+                        }
+                  }
+                  transition={{ duration: 1.1, repeat: Infinity }}
+                >
+                  <Archive className="h-7 w-7" />
+                </motion.div>
+              </div>
+              <motion.p
+                className="relative mt-3 text-sm font-black text-slate-900"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                Guardando en Historial
+              </motion.p>
+              <p className="relative mt-1 text-center text-[11px] font-semibold text-slate-500">
+                Pedido recibido conforme
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {showHistoryFilter && (
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
           <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
