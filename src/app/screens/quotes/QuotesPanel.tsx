@@ -3,9 +3,10 @@ import {
   Bell,
   Calendar,
   CalendarDays,
-  CheckCircle2,
+  ChevronRight,
   Image as ImageIcon,
   MessageSquareText,
+  Send,
   XCircle,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -31,6 +32,8 @@ const money = (value: number) =>
     currency: "CLP",
     maximumFractionDigits: 0,
   }).format(value);
+const proposalPrice = (quote: QuoteRequest) =>
+  quote.alternativePriceClp ?? quote.quotedPriceClp ?? quote.startingPriceClpSnapshot;
 
 export function CustomerQuotes({
   quotes,
@@ -69,20 +72,46 @@ export function CustomerQuotes({
             unread={unread.has(interactionKey("quote", quote.id))}
             onOpen={() => markRead("quote", quote.id)}
           >
-            {(quote.status === "quoted" || quote.status === "alternative_proposed") && (
+            {quote.status === "alternative_proposed" && (
+              <div className="mt-4 space-y-3">
+                <button
+                  disabled={updating.has(quote.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    markRead("quote", quote.id);
+                    onStatus(quote, "accepted");
+                  }}
+                  className="zipco-proposal-accept flex min-h-14 w-full items-center rounded-[20px] border-2 border-emerald-300 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-4 text-white shadow-[0_10px_24px_rgba(16,185,129,0.24)] disabled:opacity-50"
+                >
+                  <span className="flex w-11 shrink-0 items-center justify-center border-r border-white/35 pr-3"><Send className="zipco-accept-icon h-5 w-5" /></span>
+                  <span className="flex-1 px-3 text-center text-base font-black">{proposalPrice(quote) === null ? "Aceptar propuesta" : `Aceptar por ${money(proposalPrice(quote)!)}`}</span>
+                  <ChevronRight className="h-6 w-6 shrink-0" />
+                </button>
+                <button
+                  disabled={updating.has(quote.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    markRead("quote", quote.id);
+                    setDecliningAlternative(quote);
+                  }}
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[18px] border border-slate-200 bg-white text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                >
+                  <XCircle className="h-5 w-5" /> Rechazar propuesta
+                </button>
+              </div>
+            )}
+            {quote.status === "quoted" && (
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <button
                   disabled={updating.has(quote.id)}
                   onClick={(event) => {
                     event.stopPropagation();
                     markRead("quote", quote.id);
-                    if (quote.status === "alternative_proposed") setDecliningAlternative(quote);
-                    else onStatus(quote, "declined");
+                    onStatus(quote, "declined");
                   }}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-sm font-bold text-red-600 ${quote.status === "alternative_proposed" ? "zipco-proposal-reject" : ""}`}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-sm font-bold text-red-600"
                 >
-                  {quote.status === "alternative_proposed" && <XCircle className="zipco-reject-icon h-4 w-4" />}
-                  {quote.status === "alternative_proposed" ? "Rechazar propuesta" : "Rechazar"}
+                  Rechazar
                 </button>
                 <button
                   disabled={updating.has(quote.id)}
@@ -91,10 +120,9 @@ export function CustomerQuotes({
                     markRead("quote", quote.id);
                     onStatus(quote, "accepted");
                   }}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-sm font-bold text-white ${quote.status === "alternative_proposed" ? "zipco-proposal-accept" : ""}`}
+                  className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-sm font-bold text-white"
                 >
-                  {quote.status === "alternative_proposed" && <CheckCircle2 className="zipco-accept-icon h-4 w-4" />}
-                  {quote.status === "alternative_proposed" ? "Aceptar propuesta" : "Aceptar"}
+                  Aceptar
                 </button>
               </div>
             )}
@@ -145,7 +173,7 @@ export function CustomerQuotes({
         </div>
       )}
       {decliningAlternative && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"><div className="w-full max-w-sm rounded-2xl bg-white p-5"><h3 className="text-lg font-black">¿Rechazar esta alternativa?</h3><p className="mt-2 text-sm text-slate-600">La solicitud finalizará y pasará al Historial. El negocio no podrá enviar otra alternativa.</p><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setDecliningAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button onClick={() => { onStatus(decliningAlternative, "declined"); setDecliningAlternative(null); }} className="rounded-xl bg-red-500 py-3 font-bold text-white">Rechazar alternativa</button></div></div></div>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"><div className="w-full max-w-sm rounded-2xl bg-white p-5"><h3 className="text-lg font-black">¿Rechazar esta propuesta?</h3><p className="mt-2 text-sm text-slate-600">La solicitud finalizará y pasará al Historial. El negocio no podrá enviar otra propuesta.</p><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setDecliningAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button onClick={() => { onStatus(decliningAlternative, "declined"); setDecliningAlternative(null); }} className="rounded-xl bg-red-500 py-3 font-bold text-white">Rechazar propuesta</button></div></div></div>
       )}
     </div>
   );
@@ -304,13 +332,58 @@ function QuoteCard({
   statusLabel: string;
   owner: "customer" | "business";
 }) {
+  const handleOpen = (element: HTMLElement) => {
+    element.classList.remove("zipco-notification-target");
+    onOpen();
+  };
+  if (owner === "customer" && quote.status === "alternative_proposed") {
+    const price = proposalPrice(quote);
+    return (
+      <article
+        id={`quote-${quote.id}`}
+        onClick={(event) => handleOpen(event.currentTarget)}
+        className={`scroll-mb-36 rounded-[24px] border bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.10)] transition-colors ${unread ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200"}`}
+      >
+        <div className="grid grid-cols-[82px_minmax(0,1fr)_auto] items-start gap-3">
+          {quote.referencePhoto ? (
+            <ImageWithFallback src={quote.referencePhoto} alt={quote.itemNameSnapshot} className="h-[82px] w-[82px] rounded-[17px] object-cover" />
+          ) : (
+            <span className="flex h-[82px] w-[82px] items-center justify-center rounded-[17px] bg-slate-100 text-slate-400"><ImageIcon className="h-6 w-6" /></span>
+          )}
+          <div className="min-w-0 pt-0.5">
+            <h3 className="line-clamp-2 text-[17px] font-black leading-5 text-slate-950">{quote.itemNameSnapshot}</h3>
+            <p className="mt-1 text-sm font-medium text-slate-500">Propuesta recibida</p>
+            <p className="mt-1 line-clamp-2 whitespace-pre-wrap break-words text-sm leading-5 text-slate-600">{quote.message}</p>
+          </div>
+          <span className="inline-flex max-w-[102px] items-center justify-center gap-1 rounded-full bg-violet-50 px-2.5 py-2 text-center text-[11px] font-black leading-tight text-violet-700">
+            <MessageSquareText className="h-4 w-4 shrink-0" /> Nueva propuesta
+          </span>
+        </div>
+        <p className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700">
+          <Calendar className="h-4 w-4 shrink-0" />
+          <span className="truncate">{quote.needNow ? "Lo necesitas ahora" : `Lo necesitas: ${quote.requestedDate} · ${quote.requestedTime}`}</span>
+        </p>
+        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_112px] overflow-hidden rounded-[18px] border border-teal-200 bg-gradient-to-br from-teal-50 via-cyan-50/70 to-emerald-50 p-4 text-teal-950">
+          <div className="min-w-0 pr-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-teal-800">Propuesta del negocio</p>
+            <p className="mt-2 text-[17px] font-black leading-5 text-slate-950">Alternativa del negocio</p>
+            <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-slate-600">{quote.alternativeMessage}</p>
+            {quote.alternativeItem && <p className="mt-1 break-words text-sm text-slate-600">Opción: {quote.alternativeItem}{quote.alternativeQuantity ? ` · Cantidad ${quote.alternativeQuantity}` : ""}</p>}
+            {quote.alternativeDate && <p className="mt-1 text-sm text-slate-600">Fecha: {quote.alternativeDate}{quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}</p>}
+          </div>
+          <div className="flex min-w-0 flex-col justify-center border-l border-teal-200 pl-4 text-right">
+            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Precio total</p>
+            <p className="mt-1 whitespace-nowrap text-[26px] font-black tracking-tight text-teal-800">{price === null ? "—" : money(price)}</p>
+          </div>
+        </div>
+        {children}
+      </article>
+    );
+  }
   return (
     <article
       id={`quote-${quote.id}`}
-      onClick={(event) => {
-        event.currentTarget.classList.remove("zipco-notification-target");
-        onOpen();
-      }}
+      onClick={(event) => handleOpen(event.currentTarget)}
       className={`scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors ${unread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
