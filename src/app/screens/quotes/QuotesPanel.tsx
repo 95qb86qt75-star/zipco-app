@@ -1,11 +1,13 @@
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
+  AlertTriangle,
   Calendar,
   CalendarDays,
   ChevronDown,
   ChevronRight,
+  ChevronsRight,
   Image as ImageIcon,
   MessageSquareText,
   MousePointerClick,
@@ -63,6 +65,7 @@ export function CustomerQuotes({
     const targetId = Number(new URLSearchParams(window.location.search).get("quoteId"));
     return Number.isInteger(targetId) && targetId > 0 ? targetId : null;
   });
+  const rejectSliderRef = useRef<HTMLDivElement>(null);
   if (!quotes.length) return <Empty text={emptyText} />;
   return (
     <div className="space-y-2">
@@ -182,7 +185,47 @@ export function CustomerQuotes({
         </div>
       )}
       {decliningAlternative && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"><div className="w-full max-w-sm rounded-2xl bg-white p-5"><h3 className="text-lg font-black">¿Rechazar esta propuesta?</h3><p className="mt-2 text-sm text-slate-600">La solicitud finalizará y pasará al Historial. El negocio no podrá enviar otra propuesta.</p><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setDecliningAlternative(null)} className="rounded-xl border py-3 font-bold">Volver</button><button onClick={() => { onStatus(decliningAlternative, "declined"); setDecliningAlternative(null); }} className="rounded-xl bg-red-500 py-3 font-bold text-white">Rechazar propuesta</button></div></div></div>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-4 backdrop-blur-sm sm:items-center">
+          <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="w-full max-w-sm rounded-[28px] border border-white/70 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.32)]">
+            <div className="flex items-center gap-3 rounded-[20px] border border-red-200 bg-gradient-to-r from-red-50 to-rose-50 p-3.5 text-red-700">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100"><AlertTriangle className="h-6 w-6" /></span>
+              <div><p className="text-sm font-black">Esta acción finalizará la solicitud.</p><p className="mt-0.5 text-xs leading-4 text-red-600">No podrá enviarse otra propuesta.</p></div>
+            </div>
+            <h3 className="mt-5 text-2xl font-black tracking-tight text-slate-950">¿Rechazar esta propuesta?</h3>
+            <p className="mt-2 text-sm leading-5 text-slate-500">La solicitud pasará a Historial y el negocio no podrá enviar otra propuesta.</p>
+            <div ref={rejectSliderRef} className="relative mt-5 h-16 overflow-hidden rounded-[22px] border border-red-200 bg-gradient-to-r from-red-50 to-rose-100 shadow-inner">
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center pl-12 text-sm font-black text-red-500">Desliza para rechazar</span>
+              <motion.button
+                type="button"
+                drag="x"
+                dragConstraints={rejectSliderRef}
+                dragElastic={0.04}
+                dragSnapToOrigin
+                disabled={updating.has(decliningAlternative.id)}
+                aria-label="Desliza a la derecha para rechazar la propuesta. Presiona Enter para confirmar con teclado."
+                onKeyDown={(event) => {
+                  if ((event.key === "Enter" || event.key === " ") && !updating.has(decliningAlternative.id)) {
+                    event.preventDefault();
+                    onStatus(decliningAlternative, "declined");
+                    setDecliningAlternative(null);
+                  }
+                }}
+                onDragEnd={(_, info) => {
+                  const maxTravel = Math.max(1, (rejectSliderRef.current?.clientWidth ?? 0) - 72);
+                  if (info.offset.x >= maxTravel * 0.88 && !updating.has(decliningAlternative.id)) {
+                    if ("vibrate" in navigator) navigator.vibrate?.(35);
+                    onStatus(decliningAlternative, "declined");
+                    setDecliningAlternative(null);
+                  }
+                }}
+                className="absolute left-1 top-1 flex h-14 w-14 touch-none items-center justify-center rounded-[18px] bg-gradient-to-br from-red-500 to-red-600 text-white shadow-[0_8px_22px_rgba(239,68,68,0.38)] disabled:opacity-50"
+              >
+                <ChevronsRight className="h-7 w-7" />
+              </motion.button>
+            </div>
+            <button onClick={() => setDecliningAlternative(null)} className="mt-3 min-h-12 w-full rounded-[18px] border border-slate-200 bg-white text-sm font-black text-slate-600 transition-colors hover:bg-slate-50">Volver</button>
+          </motion.div>
+        </div>
       )}
     </div>
   );
