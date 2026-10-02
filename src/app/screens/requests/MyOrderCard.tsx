@@ -46,7 +46,10 @@ export default function MyOrderCard({
   return (
     <article
       id={`order-${order.id}`}
-      onClick={onOpen}
+      onClick={(event) => {
+        event.currentTarget.classList.remove("zipco-notification-target");
+        onOpen?.();
+      }}
       className={`scroll-mb-36 rounded-2xl border p-3 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-white"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
@@ -126,7 +129,7 @@ export default function MyOrderCard({
             ? "Guardando..."
             : action === "cancel"
               ? "Cancelar pedido"
-              : "Confirmar recepción"}
+              : "Confirmar pedido recibido conforme"}
         </button>
       )}
     </article>

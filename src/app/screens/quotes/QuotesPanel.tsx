@@ -16,7 +16,7 @@ import {
 const labels = {
   requested: "Esperando respuesta",
   quoted: "Cotización recibida",
-  alternative_proposed: "Alternativa recibida",
+  alternative_proposed: "Esperando tu respuesta",
   accepted: "Aceptada",
   ready: "Lista",
   completed: "Completada",
@@ -112,7 +112,7 @@ export function CustomerQuotes({
             {quote.status === "ready" && (
               <button disabled={updating.has(quote.id)} onClick={(event) => { event.stopPropagation(); markRead("quote", quote.id); onStatus(quote, "completed"); }} className="zipco-confirm-action mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 py-2.5 text-xs font-bold text-white shadow-[0_0_18px_rgba(245,158,11,0.30)]">
                 <Bell className="zipco-attention-bell h-4 w-4" />
-                Confirmar recepción o servicio realizado
+                Confirmar servicio realizado conforme
               </button>
             )}
           </QuoteCard>
@@ -303,7 +303,10 @@ function QuoteCard({
   return (
     <article
       id={`quote-${quote.id}`}
-      onClick={onOpen}
+      onClick={(event) => {
+        event.currentTarget.classList.remove("zipco-notification-target");
+        onOpen();
+      }}
       className={`scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors ${unread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">

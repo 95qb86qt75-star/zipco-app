@@ -57,7 +57,7 @@ html.dark #root {
 .zipco-notification-target {
   position: relative;
   z-index: 2;
-  animation: zipco-notification-focus 1.15s ease-in-out 6;
+  animation: zipco-notification-focus 1.15s ease-in-out infinite;
 }
 
 .zipco-notification-target::after {
