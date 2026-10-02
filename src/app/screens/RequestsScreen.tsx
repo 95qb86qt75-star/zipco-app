@@ -92,8 +92,8 @@ export default function RequestsScreen({
     : [];
   const responseCustomerItems = subTab === "my-orders"
     ? requestType === "orders"
-      ? myOrders.filter((order) => order.recordState === "available" && order.status !== "ready" && unread.has(interactionKey("order", order.id))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status }))
-      : quotes.myQuotes.filter((quote) => quote.status !== "ready" && unread.has(interactionKey("quote", quote.id))).map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status }))
+      ? myOrders.filter((order) => order.recordState === "available" && (order.status === "alternative_proposed" || unread.has(interactionKey("order", order.id)))).map((order) => ({ kind: "orders" as const, id: order.id, status: order.status }))
+      : quotes.myQuotes.filter((quote) => quote.status === "quoted" || quote.status === "alternative_proposed").map((quote) => ({ kind: "quotes" as const, id: quote.id, status: quote.status }))
     : [];
   const statusCounts = countStatusViews(
     requestType === "orders" ? orderRecords : quoteRecords,
@@ -253,6 +253,14 @@ export default function RequestsScreen({
     const targetView = statusViewFor(targetKind, target.status);
     if (!targetView) return;
     setRequestType(targetKind);
+    if (
+      subTab === "my-orders" &&
+      (target.status === "quoted" || target.status === "alternative_proposed")
+    ) {
+      setAttentionFilter("responses");
+    } else if (subTab === "my-orders" && target.status === "ready") {
+      setAttentionFilter("ready");
+    }
     setStatusViews((current) => ({
       ...current,
       [`${subTab}-${targetKind}`]: targetView,
