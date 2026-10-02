@@ -296,9 +296,12 @@ function CompactHistoryList({
                   onDragEnd={(_, info) =>
                     setSwipedKey(info.offset.x < -45 ? item.key : null)
                   }
-                  onClick={() => {
+                  onClick={(event) => {
                     if (isSwiped) {
                       setSwipedKey(null);
+                    } else {
+                      event.currentTarget.classList.remove("zipco-notification-target");
+                      markRead(item.kind, item.id);
                     }
                   }}
                   className={`relative grid min-h-[76px] w-full grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border py-2.5 pl-8 pr-2.5 text-left shadow-sm ${isUnread ? "border-sky-400 bg-sky-50 ring-1 ring-sky-200" : "border-slate-100 bg-white"}`}
@@ -334,7 +337,7 @@ function CompactHistoryList({
                       <StatusIcon className="h-3.5 w-3.5" />
                       {item.statusLabel ?? presentation.label}
                     </span>
-                    <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
+                    <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); event.currentTarget.closest(".zipco-notification-target")?.classList.remove("zipco-notification-target"); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); event.currentTarget.closest(".zipco-notification-target")?.classList.remove("zipco-notification-target"); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
                   </span>
                 </motion.button>
               </div>
