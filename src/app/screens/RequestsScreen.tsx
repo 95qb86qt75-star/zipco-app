@@ -629,6 +629,7 @@ export default function RequestsScreen({
                   }}
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
+                  onProposeAlternative={proposeOrderAlternative}
                 />
               )}
             {!isLoading &&
