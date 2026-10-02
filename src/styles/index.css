@@ -50,6 +50,11 @@ body,
   90% { transform: scale(0.96); }
 }
 
+@keyframes zipco-open-hint {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
 .zipco-attention-bell {
   transform-origin: 50% 12%;
   animation: zipco-attention-bell 1.8s ease-in-out infinite;
@@ -63,6 +68,7 @@ body,
 .zipco-proposal-accept { animation: zipco-accept-glow 2s ease-in-out infinite; }
 .zipco-reject-icon { animation: zipco-reject-icon 2s ease-in-out infinite; }
 .zipco-accept-icon { animation: zipco-accept-icon 2s ease-in-out infinite; }
+.zipco-open-hint { animation: zipco-open-hint 1.5s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .zipco-attention-bell,
@@ -70,7 +76,8 @@ body,
   .zipco-proposal-reject,
   .zipco-proposal-accept,
   .zipco-reject-icon,
-  .zipco-accept-icon {
+  .zipco-accept-icon,
+  .zipco-open-hint {
     animation: none;
   }
 }

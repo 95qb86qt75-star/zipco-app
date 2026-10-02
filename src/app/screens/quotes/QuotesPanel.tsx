@@ -386,7 +386,7 @@ function QuoteCard({
               onClick={(event) => { event.stopPropagation(); handleOpen(event.currentTarget.closest("article") as HTMLElement); onToggle?.(); }}
               className="mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50 px-3 py-2 text-left"
             >
-              <span className="min-w-0"><span className="block text-[9px] font-black uppercase tracking-[0.15em] text-teal-700">Propuesta del negocio</span><span className="mt-0.5 block truncate text-xs font-semibold text-slate-700">{quote.alternativeItem || quote.alternativeMessage}</span></span>
+              <span className="min-w-0"><span className="block text-[9px] font-black uppercase tracking-[0.15em] text-teal-700">Propuesta del negocio</span><span className="zipco-open-hint mt-0.5 block text-xs font-bold text-teal-700">Toca para abrir</span></span>
               <span className="whitespace-nowrap text-lg font-black text-teal-800">{price === null ? "—" : money(price)}</span>
               <ChevronDown className="h-5 w-5 text-teal-700" />
             </motion.button>
