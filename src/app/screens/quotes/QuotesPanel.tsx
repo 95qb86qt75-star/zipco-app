@@ -1,8 +1,10 @@
 import { Fragment, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
   Calendar,
   CalendarDays,
+  ChevronDown,
   ChevronRight,
   Image as ImageIcon,
   MessageSquareText,
@@ -56,6 +58,10 @@ export function CustomerQuotes({
   const [decliningAlternative, setDecliningAlternative] = useState<QuoteRequest | null>(null);
   const [cancelReason, setCancelReason] = useState<QuoteCancellationReason | "">("");
   const [cancelDetail, setCancelDetail] = useState("");
+  const [expandedProposalId, setExpandedProposalId] = useState<number | null>(() => {
+    const targetId = Number(new URLSearchParams(window.location.search).get("quoteId"));
+    return Number.isInteger(targetId) && targetId > 0 ? targetId : null;
+  });
   if (!quotes.length) return <Empty text={emptyText} />;
   return (
     <div className="space-y-2">
@@ -71,6 +77,8 @@ export function CustomerQuotes({
             statusLabel={quote.status === "accepted" && quote.alternativeMessage ? "Alternativa aceptada por ti" : quote.status === "accepted" ? "Aceptada por ti" : labels[quote.status]}
             unread={unread.has(interactionKey("quote", quote.id))}
             onOpen={() => markRead("quote", quote.id)}
+            expanded={expandedProposalId === quote.id}
+            onToggle={() => setExpandedProposalId((current) => current === quote.id ? null : quote.id)}
           >
             {quote.status === "alternative_proposed" && (
               <div className="mt-4 space-y-3">
@@ -324,6 +332,8 @@ function QuoteCard({
   onOpen,
   statusLabel,
   owner,
+  expanded = false,
+  onToggle,
 }: {
   quote: QuoteRequest;
   children?: React.ReactNode;
@@ -331,6 +341,8 @@ function QuoteCard({
   onOpen: () => void;
   statusLabel: string;
   owner: "customer" | "business";
+  expanded?: boolean;
+  onToggle?: () => void;
 }) {
   const handleOpen = (element: HTMLElement) => {
     element.classList.remove("zipco-notification-target");
@@ -341,42 +353,63 @@ function QuoteCard({
     return (
       <article
         id={`quote-${quote.id}`}
-        onClick={(event) => handleOpen(event.currentTarget)}
-        className={`scroll-mb-36 rounded-[24px] border bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.10)] transition-colors ${unread ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200"}`}
+        onClick={(event) => { handleOpen(event.currentTarget); onToggle?.(); }}
+        className={`scroll-mb-36 rounded-[22px] border bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.09)] transition-colors ${unread ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200"}`}
       >
-        <div className="grid grid-cols-[82px_minmax(0,1fr)_auto] items-start gap-3">
+        <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
           {quote.referencePhoto ? (
-            <ImageWithFallback src={quote.referencePhoto} alt={quote.itemNameSnapshot} className="h-[82px] w-[82px] rounded-[17px] object-cover" />
+            <ImageWithFallback src={quote.referencePhoto} alt={quote.itemNameSnapshot} className="h-[62px] w-[62px] rounded-[14px] object-cover" />
           ) : (
-            <span className="flex h-[82px] w-[82px] items-center justify-center rounded-[17px] bg-slate-100 text-slate-400"><ImageIcon className="h-6 w-6" /></span>
+            <span className="flex h-[62px] w-[62px] items-center justify-center rounded-[14px] bg-slate-100 text-slate-400"><ImageIcon className="h-5 w-5" /></span>
           )}
-          <div className="min-w-0 pt-0.5">
-            <h3 className="line-clamp-2 text-[17px] font-black leading-5 text-slate-950">{quote.itemNameSnapshot}</h3>
-            <p className="mt-1 text-sm font-medium text-slate-500">Propuesta recibida</p>
-            <p className="mt-1 line-clamp-2 whitespace-pre-wrap break-words text-sm leading-5 text-slate-600">{quote.message}</p>
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 text-[15px] font-black leading-[18px] text-slate-950">{quote.itemNameSnapshot}</h3>
+            <p className="mt-0.5 whitespace-nowrap text-xs font-medium text-slate-500">Propuesta recibida</p>
+            <p className="mt-0.5 line-clamp-1 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">{quote.message}</p>
           </div>
-          <span className="inline-flex max-w-[102px] items-center justify-center gap-1 rounded-full bg-violet-50 px-2.5 py-2 text-center text-[11px] font-black leading-tight text-violet-700">
-            <MessageSquareText className="h-4 w-4 shrink-0" /> Nueva propuesta
+          <span className="inline-flex max-w-[92px] items-center justify-center gap-1 rounded-full bg-violet-50 px-2 py-1.5 text-center text-[10px] font-black leading-tight text-violet-700">
+            <MessageSquareText className="h-3.5 w-3.5 shrink-0" /> Nueva propuesta
           </span>
         </div>
-        <p className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700">
-          <Calendar className="h-4 w-4 shrink-0" />
+        <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
+          <Calendar className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{quote.needNow ? "Lo necesitas ahora" : `Lo necesitas: ${quote.requestedDate} · ${quote.requestedTime}`}</span>
         </p>
-        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_112px] overflow-hidden rounded-[18px] border border-teal-200 bg-gradient-to-br from-teal-50 via-cyan-50/70 to-emerald-50 p-4 text-teal-950">
-          <div className="min-w-0 pr-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-teal-800">Propuesta del negocio</p>
-            <p className="mt-2 text-[17px] font-black leading-5 text-slate-950">Alternativa del negocio</p>
-            <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-5 text-slate-600">{quote.alternativeMessage}</p>
-            {quote.alternativeItem && <p className="mt-1 break-words text-sm text-slate-600">Opción: {quote.alternativeItem}{quote.alternativeQuantity ? ` · Cantidad ${quote.alternativeQuantity}` : ""}</p>}
-            {quote.alternativeDate && <p className="mt-1 text-sm text-slate-600">Fecha: {quote.alternativeDate}{quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}</p>}
-          </div>
-          <div className="flex min-w-0 flex-col justify-center border-l border-teal-200 pl-4 text-right">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">Precio total</p>
-            <p className="mt-1 whitespace-nowrap text-[26px] font-black tracking-tight text-teal-800">{price === null ? "—" : money(price)}</p>
-          </div>
-        </div>
-        {children}
+        <AnimatePresence initial={false} mode="wait">
+          {!expanded ? (
+            <motion.button
+              key="proposal-collapsed"
+              type="button"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              onClick={(event) => { event.stopPropagation(); handleOpen(event.currentTarget.closest("article") as HTMLElement); onToggle?.(); }}
+              className="mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50 px-3 py-2 text-left"
+            >
+              <span className="min-w-0"><span className="block text-[9px] font-black uppercase tracking-[0.15em] text-teal-700">Propuesta del negocio</span><span className="mt-0.5 block truncate text-xs font-semibold text-slate-700">{quote.alternativeItem || quote.alternativeMessage}</span></span>
+              <span className="whitespace-nowrap text-lg font-black text-teal-800">{price === null ? "—" : money(price)}</span>
+              <ChevronDown className="h-5 w-5 text-teal-700" />
+            </motion.button>
+          ) : (
+            <motion.div key="proposal-expanded" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+              <div className="mt-3 grid grid-cols-[minmax(0,1fr)_100px] overflow-hidden rounded-[16px] border border-teal-200 bg-gradient-to-br from-teal-50 via-cyan-50/70 to-emerald-50 p-3 text-teal-950">
+                <div className="min-w-0 pr-3">
+                  <p className="text-[9px] font-black uppercase tracking-[0.16em] text-teal-800">Propuesta del negocio</p>
+                  <p className="mt-1.5 text-[15px] font-black leading-[18px] text-slate-950">Alternativa del negocio</p>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">{quote.alternativeMessage}</p>
+                  {quote.alternativeItem && <p className="mt-1 break-words text-xs text-slate-600">Opción: {quote.alternativeItem}{quote.alternativeQuantity ? ` · Cantidad ${quote.alternativeQuantity}` : ""}</p>}
+                  {quote.alternativeDate && <p className="mt-1 text-xs text-slate-600">Fecha: {quote.alternativeDate}{quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}</p>}
+                </div>
+                <div className="flex min-w-0 flex-col justify-center border-l border-teal-200 pl-3 text-right">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">Precio total</p>
+                  <p className="mt-1 whitespace-nowrap text-[22px] font-black tracking-tight text-teal-800">{price === null ? "—" : money(price)}</p>
+                </div>
+              </div>
+              {children}
+              <button type="button" onClick={(event) => { event.stopPropagation(); onToggle?.(); }} className="mt-2 w-full text-center text-[11px] font-bold text-slate-500">Ocultar propuesta</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </article>
     );
   }
