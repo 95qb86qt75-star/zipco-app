@@ -1,5 +1,14 @@
 import { type ChangeEvent, useRef, useState } from "react";
-import { ArrowLeft, Camera, ChevronDown, FileText, Minus, Plus, Send, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  ChevronDown,
+  FileText,
+  Minus,
+  Plus,
+  Send,
+  X,
+} from "lucide-react";
 import { API_BASE_URL } from "../api/apiConfig";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { showAppToast } from "./Toast";
@@ -346,7 +355,7 @@ export default function CheckoutScreen({
                 setSelectedHour("");
                 setSelectedMinute("");
               }}
-            className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
+              className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
                 needNow
                   ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/30"
                   : "bg-transparent text-gray-600 hover:bg-white"
@@ -361,7 +370,7 @@ export default function CheckoutScreen({
             <button
               type="button"
               onClick={() => setNeedNow(false)}
-            className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
+              className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
                 !needNow
                   ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md"
                   : "bg-transparent text-gray-600 hover:bg-white"
@@ -494,7 +503,11 @@ export default function CheckoutScreen({
           )}
 
           {/* Summary Display */}
-          {needNow && <p className="px-2 text-xs font-semibold text-orange-700">⚡ Entrega urgente · lo antes posible</p>}
+          {needNow && (
+            <p className="px-2 text-xs font-semibold text-orange-700">
+              ⚡ Entrega urgente · lo antes posible
+            </p>
+          )}
 
           {!needNow && (selectedDate || selectedTime) && (
             <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
@@ -511,57 +524,76 @@ export default function CheckoutScreen({
 
         {/* Personal Note */}
         <div className="mb-3 rounded-2xl border border-slate-200 bg-white/70 p-3">
-          <button type="button" onClick={() => setIsNoteOpen((value) => !value)} className="flex w-full items-center justify-between text-left text-sm font-bold text-gray-900">
-            <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-teal-500" />Agregar nota opcional</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isNoteOpen ? "rotate-180" : ""}`} />
+          <button
+            type="button"
+            onClick={() => setIsNoteOpen((value) => !value)}
+            className="flex w-full items-center justify-between text-left text-sm font-bold text-gray-900"
+          >
+            <span className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-teal-500" />
+              Agregar nota opcional
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isNoteOpen ? "rotate-180" : ""}`}
+            />
           </button>
           {isNoteOpen && (
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Ej: Sin azúcar, decoración personalizada, hora de entrega..."
-            className="zipco-readable-field mt-3 w-full resize-none rounded-xl border border-gray-200 bg-white/80 p-3 text-sm backdrop-blur-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-            rows={3}
-          />
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Ej: Sin azúcar, decoración personalizada, hora de entrega..."
+              className="zipco-readable-field mt-3 w-full resize-none rounded-xl border border-gray-200 bg-white/80 p-3 text-sm backdrop-blur-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              rows={3}
+            />
           )}
         </div>
 
         <div className="mb-4 rounded-2xl border border-slate-200 bg-white/70 p-3">
-          <button type="button" onClick={() => setIsPhotoOpen((value) => !value)} className="flex w-full items-center justify-between text-left text-sm font-bold text-gray-900">
-            <span className="flex items-center gap-2"><Camera className="h-4 w-4 text-teal-500" />Agregar foto de referencia</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isPhotoOpen ? "rotate-180" : ""}`} />
+          <button
+            type="button"
+            onClick={() => setIsPhotoOpen((value) => !value)}
+            className="flex w-full items-center justify-between text-left text-sm font-bold text-gray-900"
+          >
+            <span className="flex items-center gap-2">
+              <Camera className="h-4 w-4 text-teal-500" />
+              Agregar foto de referencia
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isPhotoOpen ? "rotate-180" : ""}`}
+            />
           </button>
 
-          {isPhotoOpen && (referencePhoto ? (
-            <div className="relative bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-3 shadow-sm">
-              <ImageWithFallback
-                src={referencePhoto}
-                alt="Foto de referencia"
-                className="w-full h-44 rounded-xl object-cover"
-              />
+          {isPhotoOpen &&
+            (referencePhoto ? (
+              <div className="relative bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-3 shadow-sm">
+                <ImageWithFallback
+                  src={referencePhoto}
+                  alt="Foto de referencia"
+                  className="w-full h-44 rounded-xl object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setReferencePhoto(null)}
+                  className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-700 hover:text-red-500 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={() => setReferencePhoto(null)}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-700 hover:text-red-500 transition-colors"
+                onClick={() => referencePhotoInputRef.current?.click()}
+                disabled={isUploadingPhoto}
+                className="w-full bg-white/80 text-gray-700 border-2 border-dashed border-teal-200 hover:border-teal-500 rounded-2xl p-4 font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                <X className="w-4 h-4" />
+                <Camera className="w-5 h-5 text-teal-500" />
+                <span>
+                  {isUploadingPhoto
+                    ? "Subiendo foto..."
+                    : "Elegir foto desde galeria o camara"}
+                </span>
               </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => referencePhotoInputRef.current?.click()}
-              disabled={isUploadingPhoto}
-              className="w-full bg-white/80 text-gray-700 border-2 border-dashed border-teal-200 hover:border-teal-500 rounded-2xl p-4 font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              <Camera className="w-5 h-5 text-teal-500" />
-              <span>
-                {isUploadingPhoto
-                  ? "Subiendo foto..."
-                  : "Elegir foto desde galeria o camara"}
-              </span>
-            </button>
-          ))}
+            ))}
 
           <input
             ref={referencePhotoInputRef}
@@ -597,14 +629,22 @@ export default function CheckoutScreen({
 
       {/* Order Button */}
       <div className="zipco-sticky-fade absolute bottom-24 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-transparent px-4 py-2">
-        <button
-          onClick={handleSubmitOrder}
-          disabled={isUploadingPhoto || isSubmitting}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-3 font-semibold text-white shadow-xl shadow-teal-500/30 transition-all hover:shadow-2xl hover:shadow-teal-500/40 active:scale-[0.98]"
-        >
-          <Send className="w-5 h-5" />
-          <span>{isSubmitting ? "Enviando..." : "Realizar pedido"}</span>
-        </button>
+        <div className="flex items-center gap-3 rounded-2xl border border-teal-400/30 bg-slate-950/95 p-2 pl-3 shadow-2xl backdrop-blur-md">
+          <div className="min-w-0 shrink-0 text-white">
+            <p className="text-[10px] font-semibold text-slate-400">Total</p>
+            <p className="text-base font-black text-teal-300">
+              ${calculateTotal().toLocaleString("es-CL")}
+            </p>
+          </div>
+          <button
+            onClick={handleSubmitOrder}
+            disabled={isUploadingPhoto || isSubmitting}
+            className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-500/30 transition-all active:scale-[0.98]"
+          >
+            <Send className="w-5 h-5" />
+            <span>{isSubmitting ? "Enviando..." : "Realizar pedido"}</span>
+          </button>
+        </div>
       </div>
 
       {/* Confirmation Modal */}

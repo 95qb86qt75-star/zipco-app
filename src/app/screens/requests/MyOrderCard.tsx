@@ -59,28 +59,28 @@ export default function MyOrderCard({
       }}
       className={`zipco-customer-order-card zipco-order-${order.status} scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-gradient-to-br from-white to-slate-50"}`}
     >
-      <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
+      <div className="grid grid-cols-[72px_minmax(0,1fr)] items-start gap-3">
         <ImageWithFallback
           src={order.businessImage}
           alt={order.businessName}
           className="h-[72px] w-[72px] rounded-xl object-cover"
         />
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h4 className="truncate text-sm font-black text-slate-950">
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="line-clamp-2 text-sm font-black leading-tight text-slate-950">
               {order.businessName}
             </h4>
-            {isUnread && (
-              <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">
-                Nueva
-              </span>
-            )}
+            <span className="shrink-0 whitespace-nowrap text-base font-black text-emerald-600">
+              {order.total === null
+                ? "—"
+                : `$${order.total.toLocaleString("es-CL")}`}
+            </span>
           </div>
           {order.products.state === "available" ? (
             order.products.items.map((product, index) => (
               <p
                 key={`${product.name}-${index}`}
-                className="truncate text-xs text-slate-700"
+                className="line-clamp-2 text-xs leading-4 text-slate-700"
               >
                 <strong>{product.quantity}x</strong> {product.name}
               </p>
@@ -88,8 +88,13 @@ export default function MyOrderCard({
           ) : (
             <p className="text-xs text-red-600">Producto no disponible</p>
           )}
+          {isUnread && (
+            <span className="mt-1 inline-flex rounded-full bg-sky-500 px-2 py-0.5 text-[9px] font-black text-white">
+              Nueva
+            </span>
+          )}
           {schedule && (
-            <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
+            <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-1 text-[11px] font-semibold text-purple-800">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
               <span className="whitespace-normal leading-tight">
                 {schedule}
@@ -102,9 +107,9 @@ export default function MyOrderCard({
             </p>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="col-span-2 mt-1 flex items-center">
           <OrderStatusBadge status={order.status} />
-          <span className="whitespace-nowrap text-base font-black text-emerald-600">
+          <span className="hidden whitespace-nowrap text-base font-black text-emerald-600">
             {order.total === null
               ? "—"
               : `$${order.total.toLocaleString("es-CL")}`}
@@ -176,7 +181,7 @@ export default function MyOrderCard({
             event.stopPropagation();
             onAction(action);
           }}
-          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold disabled:opacity-50 ${action === "complete-reception" ? "zipco-confirm-action border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 text-white" : "border-2 border-red-300 bg-red-50 text-red-600"}`}
+          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold disabled:opacity-50 ${action === "complete-reception" ? "zipco-confirm-action border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 text-white" : "border border-red-400/70 bg-red-950/10 text-red-500"}`}
         >
           {action === "complete-reception" && (
             <Bell className="zipco-attention-bell h-4 w-4" />

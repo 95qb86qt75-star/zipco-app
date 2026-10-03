@@ -208,7 +208,7 @@ export default function BusinessProfileScreen({
 
     const timeout = setTimeout(() => {
       setShowRemoveTooltip(false);
-    }, 4000);
+    }, 2200);
 
     return () => clearTimeout(timeout);
   }, [showRemoveTooltip]);
@@ -240,6 +240,9 @@ export default function BusinessProfileScreen({
     catalogFilter === "all"
       ? products
       : products.filter((product) => product.pricingMode === catalogFilter);
+  const selectedTotal = products
+    .filter((product) => selectedProducts.includes(product.id))
+    .reduce((total, product) => total + (product.priceClp ?? 0), 0);
 
   const loadCatalog = async () => {
     const businessId = parseBusinessId(business.id);
@@ -320,7 +323,7 @@ export default function BusinessProfileScreen({
         <motion.div
           layout
           onClick={handleCollapsedHeaderClick}
-          animate={{ padding: isScrolled ? "8px" : "24px" }}
+          animate={{ padding: isScrolled ? "8px" : "14px" }}
           transition={{
             layout: { duration: 0.32, ease: "easeInOut" },
             padding: { duration: 0.32, ease: "easeInOut" },
@@ -331,8 +334,8 @@ export default function BusinessProfileScreen({
             <motion.div
               layout
               animate={{
-                width: isScrolled ? 50 : 148,
-                height: isScrolled ? 50 : 148,
+                width: isScrolled ? 48 : 96,
+                height: isScrolled ? 48 : 96,
               }}
               transition={{ duration: 0.32, ease: "easeInOut" }}
               className="relative shrink-0"
@@ -409,7 +412,7 @@ export default function BusinessProfileScreen({
                     transition={{ duration: 0.24, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="space-y-2.5">
+                    <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2 py-0.5 text-[11px] font-bold text-[#0F8F86]">
                           <Store className="w-3 h-3 text-[#14C8B8]" />
@@ -444,7 +447,7 @@ export default function BusinessProfileScreen({
                         )}
                       </div>
 
-                      <div className="inline-flex max-w-full flex-wrap items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100 max-[390px]:gap-2 max-[390px]:px-2.5">
+                      <div className="inline-flex max-w-full items-center gap-2 rounded-full bg-white px-2.5 py-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
                         <span className="text-sm font-bold text-slate-600">
                           Síguenos
                         </span>
@@ -502,7 +505,7 @@ export default function BusinessProfileScreen({
                         : {
                             display: "-webkit-box",
                             WebkitBoxOrient: "vertical",
-                            WebkitLineClamp: 3,
+                            WebkitLineClamp: 1,
                             overflow: "hidden",
                           }
                     }
@@ -688,7 +691,11 @@ export default function BusinessProfileScreen({
                                   : "border-teal-500 bg-[#14C8B8] text-white shadow-sm shadow-teal-500/20 hover:bg-[#0FB5A7]"
                               }`}
                             >
-                              {isSelected ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                              {isSelected ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                <ShoppingCart className="h-4 w-4" />
+                              )}
                               {isSelected ? "Agregado" : "Agregar"}
                             </button>
                           )}
@@ -744,13 +751,24 @@ export default function BusinessProfileScreen({
               className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-3 font-semibold text-white shadow-xl shadow-teal-500/30 transition-all hover:shadow-2xl hover:shadow-teal-500/40 active:scale-[0.98]"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span>Continuar · {selectedProducts.length} {selectedProducts.length === 1 ? "producto" : "productos"}</span>
+              <span className="flex flex-1 items-center justify-between gap-3">
+                <span>
+                  {selectedProducts.length}{" "}
+                  {selectedProducts.length === 1 ? "producto" : "productos"} · $
+                  {selectedTotal.toLocaleString("es-CL")}
+                </span>
+                <span>Continuar →</span>
+              </span>
             </button>
           </div>
         )}
 
       {showRemoveTooltip && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-40 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2 rounded-full border border-emerald-400/40 bg-slate-950/95 px-4 py-2.5 text-white shadow-xl backdrop-blur-md">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-40 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2 rounded-full border border-emerald-400/40 bg-slate-950/95 px-4 py-2.5 text-white shadow-xl backdrop-blur-md"
+        >
           <button
             type="button"
             onClick={() => setShowRemoveTooltip(false)}
@@ -759,7 +777,9 @@ export default function BusinessProfileScreen({
             <X className="w-3.5 h-3.5" />
           </button>
           <Check className="h-5 w-5 shrink-0 rounded-full bg-emerald-500 p-0.5 text-white" />
-          <p className="min-w-0 flex-1 truncate text-xs font-semibold">Producto agregado · toca “Agregado” para quitarlo</p>
+          <p className="min-w-0 flex-1 text-xs font-semibold">
+            Producto agregado
+          </p>
         </motion.div>
       )}
 

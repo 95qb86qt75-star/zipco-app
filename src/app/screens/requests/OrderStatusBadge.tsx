@@ -20,7 +20,7 @@ export default function OrderStatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${STATUS_CLASSES[status]}`}
+      className={`zipco-status-${status} inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${STATUS_CLASSES[status]}`}
     >
       {status === "pending" && (
         <Clock3 className="zipco-pending-clock h-3 w-3 shrink-0" />

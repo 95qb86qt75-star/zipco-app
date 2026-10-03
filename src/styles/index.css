@@ -493,6 +493,19 @@ body {
   box-shadow: 0 10px 30px rgb(2 6 23 / 0.34);
 }
 
+.dark .zipco-status-pending {
+  border: 1px solid rgb(245 158 11 / 0.55);
+  background: rgb(120 53 15 / 0.58) !important;
+  color: #fde68a !important;
+  box-shadow: 0 0 18px rgb(245 158 11 / 0.12);
+}
+
+.dark .zipco-customer-order-card [class~="bg-purple-50"] {
+  border: 1px solid rgb(168 85 247 / 0.45);
+  background-color: rgb(59 7 100 / 0.55) !important;
+  color: #e9d5ff !important;
+}
+
 .zipco-order-pending::before {
   content: "";
   position: absolute;

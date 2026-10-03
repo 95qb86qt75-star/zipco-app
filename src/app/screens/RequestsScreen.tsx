@@ -410,7 +410,14 @@ export default function RequestsScreen({
             }`}
           >
             <ShoppingBag className="h-4 w-4" />
-            Mis Pedidos
+            <span className="flex flex-col items-start leading-tight">
+              <span>Mis Pedidos</span>
+              {!hasBusiness && (
+                <span className="mt-0.5 text-[10px] font-medium opacity-75">
+                  Revisa y gestiona tus solicitudes
+                </span>
+              )}
+            </span>
           </button>
           {hasBusiness && (
             <button
@@ -499,7 +506,7 @@ export default function RequestsScreen({
               key={item.key}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
               onClick={() => selectStatusView(item.key)}
-              className={`min-w-0 rounded-xl px-1.5 py-2.5 text-[11px] font-bold leading-tight shadow-sm transition-all ${
+              className={`flex min-w-0 items-center justify-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-bold leading-tight shadow-sm transition-all ${
                 statusView === item.key
                   ? item.key === "pending"
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white ring-2 ring-amber-300/40 shadow-md shadow-amber-500/20"
@@ -509,8 +516,12 @@ export default function RequestsScreen({
                   : "border border-slate-200 bg-white text-slate-600"
               }`}
             >
-              {item.label}
-              {item.count !== null ? ` (${item.count})` : ""}
+              <span>{item.label}</span>
+              {item.count !== null && (
+                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-black/15 px-1.5 py-0.5 text-[10px]">
+                  {item.count}
+                </span>
+              )}
             </motion.button>
           ))}
         </div>
