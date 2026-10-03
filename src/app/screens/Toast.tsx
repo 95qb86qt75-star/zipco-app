@@ -1,15 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Bell, CheckCircle2, Info, X } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AlertTriangle, Bell, CheckCircle2, Info, X } from "lucide-react";
+import { motion } from "motion/react";
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
+export type ToastType = "success" | "error" | "warning" | "info";
 
 export type ToastOptions = {
   title?: string;
   description?: string;
   dedupeKey?: string;
   durationMs?: number;
-  icon?: 'bell';
+  icon?: "bell";
   actionUrl?: string;
 };
 
@@ -20,35 +20,57 @@ export type ToastNotification = {
   description?: string;
   dedupeKey: string;
   durationMs: number;
-  icon?: 'bell';
+  icon?: "bell";
   actionUrl?: string;
 };
 
-export function createToastNotification(message: string, type: ToastType = 'success', options: ToastOptions = {}): ToastNotification {
+export function createToastNotification(
+  message: string,
+  type: ToastType = "success",
+  options: ToastOptions = {},
+): ToastNotification {
   return {
     message,
     type,
     title: options.title,
     description: options.description,
-    dedupeKey: options.dedupeKey ?? `${type}:${options.title ?? ''}:${options.description ?? ''}:${message}`,
+    dedupeKey:
+      options.dedupeKey ??
+      `${type}:${options.title ?? ""}:${options.description ?? ""}:${message}`,
     durationMs: options.durationMs ?? 7000,
-    icon: options.icon
-    , actionUrl: options.actionUrl
+    icon: options.icon,
+    actionUrl: options.actionUrl,
   };
 }
 
-export function mergeToastNotification(current: ToastNotification | null, next: ToastNotification): ToastNotification {
+export function mergeToastNotification(
+  current: ToastNotification | null,
+  next: ToastNotification,
+): ToastNotification {
   return current?.dedupeKey === next.dedupeKey ? current : next;
 }
 
-export function showAppToast(message: string, type: ToastType = 'success', options: ToastOptions = {}) {
-  window.dispatchEvent(new CustomEvent('zipco-toast', {
-    detail: createToastNotification(message, type, options)
-  }));
+export function showAppToast(
+  message: string,
+  type: ToastType = "success",
+  options: ToastOptions = {},
+) {
+  window.dispatchEvent(
+    new CustomEvent("zipco-toast", {
+      detail: createToastNotification(message, type, options),
+    }),
+  );
 }
 
-export default function Toast({ notification, onClose }: { notification: ToastNotification; onClose: () => void }) {
-  const { message, type, title, description, durationMs, icon, actionUrl } = notification;
+export default function Toast({
+  notification,
+  onClose,
+}: {
+  notification: ToastNotification;
+  onClose: () => void;
+}) {
+  const { message, type, title, description, durationMs, icon, actionUrl } =
+    notification;
   const [isLeaving, setIsLeaving] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,12 +79,35 @@ export default function Toast({ notification, onClose }: { notification: ToastNo
   const isLeavingRef = useRef(false);
   const displayTitle = title || message;
   const tone = {
-    success: { line: 'bg-teal-400', circle: 'bg-teal-50 text-teal-600', border: 'border-teal-100' },
-    error: { line: 'bg-red-500', circle: 'bg-red-50 text-red-600', border: 'border-red-100' },
-    warning: { line: 'bg-amber-500', circle: 'bg-amber-50 text-amber-600', border: 'border-amber-100' },
-    info: { line: 'bg-sky-500', circle: 'bg-sky-50 text-sky-600', border: 'border-sky-100' }
+    success: {
+      line: "bg-teal-400",
+      circle: "bg-teal-50 text-teal-600",
+      border: "border-teal-100",
+    },
+    error: {
+      line: "bg-red-500",
+      circle: "bg-red-50 text-red-600",
+      border: "border-red-100",
+    },
+    warning: {
+      line: "bg-amber-500",
+      circle: "bg-amber-50 text-amber-600",
+      border: "border-amber-100",
+    },
+    info: {
+      line: "bg-sky-500",
+      circle: "bg-sky-50 text-sky-600",
+      border: "border-sky-100",
+    },
   }[type];
-  const TypeIcon = type === 'success' ? CheckCircle2 : type === 'error' ? AlertTriangle : type === 'warning' ? AlertTriangle : Info;
+  const TypeIcon =
+    type === "success"
+      ? CheckCircle2
+      : type === "error"
+        ? AlertTriangle
+        : type === "warning"
+          ? AlertTriangle
+          : Info;
 
   const beginClose = useCallback(() => {
     if (isLeavingRef.current) return;
@@ -90,7 +135,10 @@ export default function Toast({ notification, onClose }: { notification: ToastNo
     if (!timerRef.current || isLeaving) return;
     clearTimeout(timerRef.current);
     timerRef.current = null;
-    remainingRef.current = Math.max(0, remainingRef.current - (Date.now() - startedAtRef.current));
+    remainingRef.current = Math.max(
+      0,
+      remainingRef.current - (Date.now() - startedAtRef.current),
+    );
   };
 
   const resumeTimer = () => {
@@ -101,37 +149,70 @@ export default function Toast({ notification, onClose }: { notification: ToastNo
   return (
     <motion.div
       initial={{ opacity: 0, y: -12, scale: 0.98 }}
-      animate={{ opacity: isLeaving ? 0 : 1, y: isLeaving ? -8 : 0, scale: isLeaving ? 0.98 : 1 }}
-      transition={{ duration: 0.18, ease: 'easeOut' }}
-      className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+3.25rem)] z-[9999] w-[calc(100%-2rem)] max-w-md -translate-x-1/2"
+      animate={{
+        opacity: isLeaving ? 0 : 1,
+        y: isLeaving ? -72 : 0,
+        scale: isLeaving ? 0.97 : 1,
+      }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      drag="y"
+      dragConstraints={{ top: -120, bottom: 0 }}
+      dragElastic={{ top: 0.18, bottom: 0.04 }}
+      onDragStart={pauseTimer}
+      onDragEnd={(_event, info) => {
+        if (info.offset.y < -42 || info.velocity.y < -350) {
+          beginClose();
+          return;
+        }
+        resumeTimer();
+      }}
+      whileDrag={{ scale: 0.99 }}
+      className="pointer-events-none fixed left-1/2 top-[max(0.5rem,env(safe-area-inset-top))] z-[9999] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 touch-pan-x"
       role="status"
       aria-live="polite"
     >
       <div
-          className={`pointer-events-auto relative overflow-hidden rounded-2xl border bg-white px-4 py-3 pr-12 shadow-[0_10px_30px_rgba(15,23,42,0.14)] ${tone.border} ${actionUrl ? 'cursor-pointer' : ''}`}
-          onClick={() => { if (actionUrl) window.location.assign(actionUrl); }}
-          onMouseEnter={pauseTimer}
-          onMouseLeave={resumeTimer}
-        >
-          <span className={`absolute inset-y-0 left-0 w-1.5 ${tone.line}`} />
-          <div className="flex min-w-0 items-start gap-3 pl-1">
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone.circle}`}>
-              {icon === 'bell' ? <Bell className="h-5 w-5" /> : <TypeIcon className="h-5 w-5" />}
-            </span>
-            <div className="min-w-0 pt-0.5">
-              <p className="text-sm font-extrabold leading-5 text-slate-950">{displayTitle}</p>
-              {description && <p className="mt-0.5 text-xs leading-4 text-slate-500">{description}</p>}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={(event) => { event.stopPropagation(); beginClose(); }}
-            aria-label="Cerrar notificación"
-            className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100"
+        className={`pointer-events-auto relative overflow-hidden rounded-2xl border bg-white px-4 py-3 pr-12 shadow-[0_10px_30px_rgba(15,23,42,0.14)] ${tone.border} ${actionUrl ? "cursor-pointer" : ""}`}
+        onClick={() => {
+          if (actionUrl) window.location.assign(actionUrl);
+        }}
+        onMouseEnter={pauseTimer}
+        onMouseLeave={resumeTimer}
+      >
+        <span className={`absolute inset-y-0 left-0 w-1.5 ${tone.line}`} />
+        <div className="flex min-w-0 items-start gap-3 pl-1">
+          <span
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone.circle}`}
           >
-            <X className="h-5 w-5" />
-          </button>
+            {icon === "bell" ? (
+              <Bell className="h-5 w-5" />
+            ) : (
+              <TypeIcon className="h-5 w-5" />
+            )}
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-sm font-extrabold leading-5 text-slate-950">
+              {displayTitle}
+            </p>
+            {description && (
+              <p className="mt-0.5 text-xs leading-4 text-slate-500">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            beginClose();
+          }}
+          aria-label="Cerrar notificación"
+          className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-full text-slate-600 transition-colors hover:bg-slate-100"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
     </motion.div>
   );
 }
