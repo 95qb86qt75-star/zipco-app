@@ -1,29 +1,47 @@
-import { type ChangeEvent, useRef, useState } from 'react';
-import { ArrowLeft, Camera, Minus, Plus, Send, X } from 'lucide-react';
-import { API_BASE_URL } from '../api/apiConfig';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { showAppToast } from './Toast';
+import { type ChangeEvent, useRef, useState } from "react";
+import { ArrowLeft, Camera, Minus, Plus, Send, X } from "lucide-react";
+import { API_BASE_URL } from "../api/apiConfig";
+import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { showAppToast } from "./Toast";
 import {
   buildCreateOrderPayload,
   createOrder,
   CreateOrderError,
   GENERIC_CREATE_ORDER_MESSAGE,
-  hasCompleteDeliverySelection
-} from './createOrderApi';
-import { getCloudinarySecureImageUrl } from './profile/business-config/catalogValidation';
-import type { CatalogItem } from './profile/business-config/types';
-import { nextOrderQuantity } from './checkoutOrderState';
+  hasCompleteDeliverySelection,
+} from "./createOrderApi";
+import { getCloudinarySecureImageUrl } from "./profile/business-config/catalogValidation";
+import type { CatalogItem } from "./profile/business-config/types";
+import { nextOrderQuantity } from "./checkoutOrderState";
 
-export default function CheckoutScreen({ business, currentUserId, selectedProducts, products, onBack, onOrderComplete, onCatalogConflict, onSessionExpired }: { business: any; currentUserId: unknown; selectedProducts: number[]; products: CatalogItem[]; onBack: () => void; onOrderComplete: () => void; onCatalogConflict: () => void; onSessionExpired: () => void }) {
+export default function CheckoutScreen({
+  business,
+  currentUserId,
+  selectedProducts,
+  products,
+  onBack,
+  onOrderComplete,
+  onCatalogConflict,
+  onSessionExpired,
+}: {
+  business: any;
+  currentUserId: unknown;
+  selectedProducts: number[];
+  products: CatalogItem[];
+  onBack: () => void;
+  onOrderComplete: () => void;
+  onCatalogConflict: () => void;
+  onSessionExpired: () => void;
+}) {
   const [quantities, setQuantities] = useState<Record<number, number>>(
-    selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {})
+    selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {}),
   );
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
-  const [selectedHour, setSelectedHour] = useState('');
-  const [selectedMinute, setSelectedMinute] = useState('');
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedHour, setSelectedHour] = useState("");
+  const [selectedMinute, setSelectedMinute] = useState("");
   const [needNow, setNeedNow] = useState(false);
   const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -33,20 +51,26 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
   const idempotencyKey = useRef<string | null>(null);
   const calendarInputRef = useRef<HTMLInputElement>(null);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
-  const availableHours = Array.from({ length: 14 }, (_, index) => String(index + 9).padStart(2, '0'));
-  const availableMinutes = ['00', '10', '20', '30', '40', '50'];
+  const availableHours = Array.from({ length: 14 }, (_, index) =>
+    String(index + 9).padStart(2, "0"),
+  );
+  const availableMinutes = ["00", "10", "20", "30", "40", "50"];
 
   const getDateValue = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'Seleccionar fecha';
+    if (!dateString) return "Seleccionar fecha";
     const date = new Date(`${dateString}T00:00:00`);
-    return date.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' });
+    return date.toLocaleDateString("es-CL", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
   };
 
   const dateOptions = Array.from({ length: 6 }, (_, index) => {
@@ -54,38 +78,46 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
     date.setDate(date.getDate() + index);
     return {
       value: getDateValue(date),
-      weekday: index === 0 ? 'Hoy' : date.toLocaleDateString('es-CL', { weekday: 'short' }),
+      weekday:
+        index === 0
+          ? "Hoy"
+          : date.toLocaleDateString("es-CL", { weekday: "short" }),
       day: date.getDate(),
-      month: date.toLocaleDateString('es-CL', { month: 'short' })
+      month: date.toLocaleDateString("es-CL", { month: "short" }),
     };
   });
 
-  const selectedItems = products.filter((p) => selectedProducts.includes(p.id) && p.kind === 'product' && p.pricingMode === 'fixed_price');
+  const selectedItems = products.filter(
+    (p) =>
+      selectedProducts.includes(p.id) &&
+      p.kind === "product" &&
+      p.pricingMode === "fixed_price",
+  );
 
   const updateSelectedTime = (hour: string, minute: string) => {
     setSelectedHour(hour);
     setSelectedMinute(minute);
-    setSelectedTime(hour && minute ? `${hour}:${minute}` : '');
+    setSelectedTime(hour && minute ? `${hour}:${minute}` : "");
   };
 
   const handleDateSelection = (date: string) => {
     setNeedNow(false);
     setSelectedDate(date);
-    setSelectedTime('');
-    setSelectedHour('');
-    setSelectedMinute('');
+    setSelectedTime("");
+    setSelectedHour("");
+    setSelectedMinute("");
   };
 
   const handleHourSelection = (hour: string) => {
     setSelectedHour(hour);
-    setSelectedMinute('');
-    setSelectedTime('');
+    setSelectedMinute("");
+    setSelectedTime("");
   };
 
   const updateQuantity = (productId: number, delta: number) => {
     setQuantities((prev) => ({
       ...prev,
-      [productId]: nextOrderQuantity(prev[productId] || 1, delta > 0 ? 1 : -1)
+      [productId]: nextOrderQuantity(prev[productId] || 1, delta > 0 ? 1 : -1),
     }));
   };
 
@@ -95,50 +127,70 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
     }, 0);
   };
 
-  const handleReferencePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleReferencePhotoChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'zipco_products');
+    formData.append("file", file);
+    formData.append("upload_preset", "zipco_products");
 
     setIsUploadingPhoto(true);
 
     try {
-      const response = await fetch('https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload', {
-        method: 'POST',
-        body: formData
-      });
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       if (!response.ok) {
-        showAppToast('No se pudo subir la foto', 'error');
+        showAppToast("No se pudo subir la foto", "error");
         return;
       }
 
-      const imageUrl = getCloudinarySecureImageUrl(await response.json() as unknown);
-      if (!imageUrl) { showAppToast('No se pudo subir la foto', 'error'); return; }
+      const imageUrl = getCloudinarySecureImageUrl(
+        (await response.json()) as unknown,
+      );
+      if (!imageUrl) {
+        showAppToast("No se pudo subir la foto", "error");
+        return;
+      }
       setReferencePhoto(imageUrl);
     } catch (error) {
-      showAppToast('No se pudo subir la foto', 'error');
+      showAppToast("No se pudo subir la foto", "error");
     } finally {
       setIsUploadingPhoto(false);
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
   const handleSubmitOrder = async () => {
-    if (!hasCompleteDeliverySelection({ needNow, deliveryDate: selectedDate, deliveryTime: selectedTime })) {
-      showAppToast('Selecciona si lo necesitas ahora o una fecha y hora.', 'warning');
+    if (
+      !hasCompleteDeliverySelection({
+        needNow,
+        deliveryDate: selectedDate,
+        deliveryTime: selectedTime,
+      })
+    ) {
+      showAppToast(
+        "Selecciona si lo necesitas ahora o una fecha y hora.",
+        "warning",
+      );
       return;
     }
-    const token = localStorage.getItem('zipco-token');
+    const token = localStorage.getItem("zipco-token");
     if (!token || selectedItems.length === 0 || submitLock.current) {
-      showAppToast('No se pudo enviar el pedido', 'error');
+      showAppToast("No se pudo enviar el pedido", "error");
       return;
     }
 
-    submitLock.current = true; setIsSubmitting(true);
+    submitLock.current = true;
+    setIsSubmitting(true);
     try {
       idempotencyKey.current ??= crypto.randomUUID();
       const created = await createOrder({
@@ -149,41 +201,50 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
         idempotencyKey: idempotencyKey.current,
         payload: buildCreateOrderPayload({
           businessId: business.id,
-          items: selectedItems.map((product) => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 })),
+          items: selectedItems.map((product) => ({
+            catalogItemId: product.id,
+            quantity: quantities[product.id] || 1,
+          })),
           note,
           needNow,
           deliveryDate: selectedDate,
           deliveryTime: selectedTime,
-          referencePhoto
-        })
+          referencePhoto,
+        }),
       });
       setOfficialTotal(created.total);
       setShowConfirmation(true);
       idempotencyKey.current = null;
     } catch (error) {
-      const message = error instanceof CreateOrderError
-        ? error.message
-        : GENERIC_CREATE_ORDER_MESSAGE;
-      showAppToast(message, 'error');
-      if (error instanceof CreateOrderError && error.status === 409) onCatalogConflict();
-      if (error instanceof CreateOrderError && error.status === 401) onSessionExpired();
+      const message =
+        error instanceof CreateOrderError
+          ? error.message
+          : GENERIC_CREATE_ORDER_MESSAGE;
+      showAppToast(message, "error");
+      if (error instanceof CreateOrderError && error.status === 409)
+        onCatalogConflict();
+      if (error instanceof CreateOrderError && error.status === 401)
+        onSessionExpired();
     } finally {
-      submitLock.current = false; setIsSubmitting(false);
+      submitLock.current = false;
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       {/* Header */}
-      <div
-        className="px-4 pb-4 border-b border-white/50"
-        style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
-      >
+      <div className="zipco-safe-header border-b border-slate-200/60 px-4 pb-3">
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={onBack} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button
+            onClick={onBack}
+            className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h2 className="text-xl font-bold text-gray-900">Resumen del pedido</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            Resumen del pedido
+          </h2>
         </div>
         <div className="flex items-center gap-2">
           <ImageWithFallback
@@ -192,15 +253,19 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             className="w-10 h-10 rounded-full object-cover border-2 border-teal-500"
           />
           <div>
-            <p className="font-semibold text-gray-900 text-sm">{business.name}</p>
+            <p className="font-semibold text-gray-900 text-sm">
+              {business.name}
+            </p>
             <p className="text-xs text-gray-500">{business.type}</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto px-4 pt-4 pb-36">
-        <h3 className="text-base font-bold text-gray-900 mb-3">Productos seleccionados</h3>
+      <div className="flex-1 overflow-auto px-4 pt-5 pb-52">
+        <h3 className="text-base font-bold text-gray-900 mb-3">
+          Productos seleccionados
+        </h3>
 
         {/* Products List */}
         <div className="space-y-3 mb-6">
@@ -216,9 +281,15 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
                   className="w-16 h-16 rounded-xl object-cover"
                 />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 text-sm mb-1">{product.name}</h4>
-                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">{product.description}</p>
-                  <span className="text-base font-bold text-gray-900">${product.priceClp?.toLocaleString('es-CL')}</span>
+                  <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                    {product.name}
+                  </h4>
+                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">
+                    {product.description}
+                  </p>
+                  <span className="text-base font-bold text-gray-900">
+                    ${product.priceClp?.toLocaleString("es-CL")}
+                  </span>
                 </div>
               </div>
 
@@ -248,7 +319,10 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
               <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
                 <span className="text-sm text-gray-600">Subtotal</span>
                 <span className="text-base font-bold text-teal-600">
-                  ${(((product.priceClp ?? 0) * (quantities[product.id] || 1)).toLocaleString('es-CL'))}
+                  $
+                  {(
+                    (product.priceClp ?? 0) * (quantities[product.id] || 1)
+                  ).toLocaleString("es-CL")}
                 </span>
               </div>
             </div>
@@ -261,131 +335,161 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             ¿Para cuándo lo necesitas?
           </label>
 
-          {/* Need Now Button */}
-          <button
-            onClick={() => {
-              setNeedNow(!needNow);
-              if (!needNow) {
-                setSelectedDate('');
-                setSelectedTime('');
-                setSelectedHour('');
-                setSelectedMinute('');
-              }
-            }}
-            className={`w-full py-4 px-6 rounded-2xl font-bold text-base transition-all mb-3 ${
-              needNow
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/30'
-                : 'bg-white/80 text-gray-700 border-2 border-gray-200 hover:border-orange-500'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-2xl">🚀</span>
-              <span>Lo necesito ahora</span>
-            </div>
-          </button>
-
-          <div className={`bg-white/90 backdrop-blur-sm border border-teal-200 rounded-3xl p-4 mb-3 transition-opacity ${needNow ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold text-gray-900">Selecciona fecha y hora</h4>
-              {selectedTime && (
-                <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">
-                  {selectedTime}
-                </span>
-              )}
-            </div>
-
-            <div className="mb-5">
-              <p className="text-sm font-bold text-gray-900 mb-3">Fecha</p>
-              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-                {dateOptions.map((date) => (
-                  <button
-                    key={date.value}
-                    type="button"
-                    onClick={() => handleDateSelection(date.value)}
-                    className={`shrink-0 w-16 rounded-xl border px-2 py-3 text-center transition-all ${
-                      selectedDate === date.value
-                        ? 'bg-gradient-to-b from-teal-500 to-emerald-500 text-white border-teal-500 shadow-md'
-                        : 'bg-white text-gray-900 border-gray-200 hover:border-teal-500'
-                    }`}
-                  >
-                    <span className="block text-xs font-semibold capitalize">{date.weekday}</span>
-                    <span className="block text-xl font-bold leading-tight">{date.day}</span>
-                    <span className="block text-xs capitalize">{date.month}</span>
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => calendarInputRef.current?.showPicker?.() ?? calendarInputRef.current?.click()}
-                  className="shrink-0 w-20 rounded-xl border border-gray-200 bg-white px-2 py-3 text-center text-gray-900 transition-all hover:border-teal-500"
-                >
-                  <span className="block text-xs font-semibold">Abrir</span>
-                  <span className="block text-sm font-bold leading-tight">calendario</span>
-                </button>
+          <div className="mb-3 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
+            <button
+              onClick={() => {
+                setNeedNow(true);
+                setSelectedDate("");
+                setSelectedTime("");
+                setSelectedHour("");
+                setSelectedMinute("");
+              }}
+              className={`rounded-xl px-2 py-3 text-sm font-bold transition-all ${
+                needNow
+                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/30"
+                  : "bg-transparent text-gray-600 hover:bg-white"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-2xl">🚀</span>
+                <span>Lo necesito ahora</span>
               </div>
-              <input
-                ref={calendarInputRef}
-                type="date"
-                value={selectedDate}
-                onChange={(e) => handleDateSelection(e.target.value)}
-                min={getDateValue(new Date())}
-                className="sr-only"
-              />
-            </div>
+            </button>
 
-            {selectedDate && (
-              <div className="animate-in">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-bold text-gray-900">
-                    {selectedHour ? `Minutos para las ${selectedHour}:00` : 'Hora'}
-                  </p>
-                  {selectedHour && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedHour('');
-                        setSelectedMinute('');
-                        setSelectedTime('');
-                      }}
-                      className="text-xs font-semibold text-teal-600"
-                    >
-                      Cambiar hora
-                    </button>
-                  )}
-                </div>
-                {!selectedHour ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {availableHours.map((hour) => (
-                      <button
-                        key={hour}
-                        type="button"
-                        onClick={() => handleHourSelection(hour)}
-                        className="py-2 rounded-xl text-sm font-semibold transition-all bg-white text-gray-900 border border-gray-200 hover:border-teal-500"
-                      >
-                        {hour}:00
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableMinutes.map((minute) => (
-                      <button
-                        key={minute}
-                        type="button"
-                        onClick={() => updateSelectedTime(selectedHour, minute)}
-                        className={`py-2 rounded-xl text-sm font-semibold transition-all ${
-                          selectedMinute === minute
-                            ? 'bg-teal-500 text-white shadow-md'
-                            : 'bg-white text-gray-900 border border-gray-200 hover:border-teal-500'
-                        }`}
-                      >
-                        {selectedHour}:{minute}
-                      </button>
-                    ))}
-                  </div>
+            <button
+              type="button"
+              onClick={() => setNeedNow(false)}
+              className={`rounded-xl px-2 py-3 text-sm font-bold transition-all ${
+                !needNow
+                  ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md"
+                  : "bg-transparent text-gray-600 hover:bg-white"
+              }`}
+            >
+              Programar fecha
+            </button>
+          </div>
+
+          {!needNow && (
+            <div className="mb-3 rounded-3xl border border-teal-200 bg-white/90 p-4 backdrop-blur-sm animate-in">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-bold text-gray-900">
+                  Selecciona fecha y hora
+                </h4>
+                {selectedTime && (
+                  <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded-full">
+                    {selectedTime}
+                  </span>
                 )}
               </div>
-            )}
-          </div>
+
+              <div className="mb-5">
+                <p className="text-sm font-bold text-gray-900 mb-3">Fecha</p>
+                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                  {dateOptions.map((date) => (
+                    <button
+                      key={date.value}
+                      type="button"
+                      onClick={() => handleDateSelection(date.value)}
+                      className={`shrink-0 w-16 rounded-xl border px-2 py-3 text-center transition-all ${
+                        selectedDate === date.value
+                          ? "bg-gradient-to-b from-teal-500 to-emerald-500 text-white border-teal-500 shadow-md"
+                          : "bg-white text-gray-900 border-gray-200 hover:border-teal-500"
+                      }`}
+                    >
+                      <span className="block text-xs font-semibold capitalize">
+                        {date.weekday}
+                      </span>
+                      <span className="block text-xl font-bold leading-tight">
+                        {date.day}
+                      </span>
+                      <span className="block text-xs capitalize">
+                        {date.month}
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      calendarInputRef.current?.showPicker?.() ??
+                      calendarInputRef.current?.click()
+                    }
+                    className="shrink-0 w-20 rounded-xl border border-gray-200 bg-white px-2 py-3 text-center text-gray-900 transition-all hover:border-teal-500"
+                  >
+                    <span className="block text-xs font-semibold">Abrir</span>
+                    <span className="block text-sm font-bold leading-tight">
+                      calendario
+                    </span>
+                  </button>
+                </div>
+                <input
+                  ref={calendarInputRef}
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => handleDateSelection(e.target.value)}
+                  min={getDateValue(new Date())}
+                  className="sr-only"
+                />
+              </div>
+
+              {selectedDate && (
+                <div className="animate-in">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-bold text-gray-900">
+                      {selectedHour
+                        ? `Minutos para las ${selectedHour}:00`
+                        : "Hora"}
+                    </p>
+                    {selectedHour && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedHour("");
+                          setSelectedMinute("");
+                          setSelectedTime("");
+                        }}
+                        className="text-xs font-semibold text-teal-600"
+                      >
+                        Cambiar hora
+                      </button>
+                    )}
+                  </div>
+                  {!selectedHour ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {availableHours.map((hour) => (
+                        <button
+                          key={hour}
+                          type="button"
+                          onClick={() => handleHourSelection(hour)}
+                          className="py-2 rounded-xl text-sm font-semibold transition-all bg-white text-gray-900 border border-gray-200 hover:border-teal-500"
+                        >
+                          {hour}:00
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {availableMinutes.map((minute) => (
+                        <button
+                          key={minute}
+                          type="button"
+                          onClick={() =>
+                            updateSelectedTime(selectedHour, minute)
+                          }
+                          className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                            selectedMinute === minute
+                              ? "bg-teal-500 text-white shadow-md"
+                              : "bg-white text-gray-900 border border-gray-200 hover:border-teal-500"
+                          }`}
+                        >
+                          {selectedHour}:{minute}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Summary Display */}
           {needNow && (
@@ -401,9 +505,9 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
               <p className="text-sm text-teal-800">
                 <strong>📦 Entrega programada:</strong>
                 {selectedDate && ` ${formatDate(selectedDate)}`}
-                {selectedDate && selectedTime && ' a las'}
+                {selectedDate && selectedTime && " a las"}
                 {selectedTime && ` ${selectedTime}`}
-                {!selectedDate && !selectedTime && ' No especificada'}
+                {!selectedDate && !selectedTime && " No especificada"}
               </p>
             </div>
           )}
@@ -451,7 +555,11 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
               className="w-full bg-white/80 text-gray-700 border-2 border-dashed border-teal-200 hover:border-teal-500 rounded-2xl p-4 font-semibold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <Camera className="w-5 h-5 text-teal-500" />
-              <span>{isUploadingPhoto ? 'Subiendo foto...' : 'Elegir foto desde galeria o camara'}</span>
+              <span>
+                {isUploadingPhoto
+                  ? "Subiendo foto..."
+                  : "Elegir foto desde galeria o camara"}
+              </span>
             </button>
           )}
 
@@ -469,27 +577,33 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-600">Total de productos</span>
             <span className="text-sm font-semibold text-gray-900">
-              {selectedItems.reduce((sum, item) => sum + (quantities[item.id] || 1), 0)} unidades
+              {selectedItems.reduce(
+                (sum, item) => sum + (quantities[item.id] || 1),
+                0,
+              )}{" "}
+              unidades
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-lg font-bold text-gray-900">Total estimado</span>
+            <span className="text-lg font-bold text-gray-900">
+              Total estimado
+            </span>
             <span className="text-2xl font-bold text-teal-600">
-              ${calculateTotal().toLocaleString('es-CL')}
+              ${calculateTotal().toLocaleString("es-CL")}
             </span>
           </div>
         </div>
       </div>
 
       {/* Order Button */}
-      <div className="absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
+      <div className="zipco-sticky-fade absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <button
           onClick={handleSubmitOrder}
           disabled={isUploadingPhoto || isSubmitting}
           className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Send className="w-5 h-5" />
-          <span>{isSubmitting ? 'Enviando...' : 'Realizar pedido'}</span>
+          <span>{isSubmitting ? "Enviando..." : "Realizar pedido"}</span>
         </button>
       </div>
 
@@ -498,8 +612,18 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-100 animate-in">
             <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
 
@@ -513,11 +637,16 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             <p className="text-base font-bold text-teal-600 text-center mb-4">
               {business.name}
             </p>
-            {officialTotal !== null && <p className="mb-4 text-center text-sm font-bold text-slate-900">Total confirmado: ${officialTotal.toLocaleString('es-CL')}</p>}
+            {officialTotal !== null && (
+              <p className="mb-4 text-center text-sm font-bold text-slate-900">
+                Total confirmado: ${officialTotal.toLocaleString("es-CL")}
+              </p>
+            )}
 
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
               <p className="text-sm text-blue-800 text-center">
-                Revisa tu barra en la opción <strong>Solicitudes</strong> para ver el estado de tu pedido
+                Revisa tu barra en la opción <strong>Solicitudes</strong> para
+                ver el estado de tu pedido
               </p>
             </div>
 

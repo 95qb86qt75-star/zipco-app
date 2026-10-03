@@ -378,10 +378,7 @@ export default function RequestsScreen({
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
-      <div
-        className="px-4 pb-4 border-b border-white/50"
-        style={{ paddingTop: "max(1.5rem, env(safe-area-inset-top))" }}
-      >
+      <div className="zipco-safe-header border-b border-slate-200/60 px-4 pb-3">
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={onBack}
@@ -492,8 +489,8 @@ export default function RequestsScreen({
               onClick={() => selectStatusView(item.key)}
               className={`min-w-0 rounded-xl px-1.5 py-2.5 text-[11px] font-bold leading-tight shadow-sm transition-all ${
                 statusView === item.key
-                  ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white"
-                  : "bg-white text-slate-600"
+                  ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white ring-2 ring-teal-300/40"
+                  : "border border-slate-200 bg-white text-slate-600"
               }`}
             >
               {item.label}

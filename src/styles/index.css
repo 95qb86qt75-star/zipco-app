@@ -1,6 +1,6 @@
-@import './fonts.css';
-@import './tailwind.css';
-@import './theme.css';
+@import "./fonts.css";
+@import "./tailwind.css";
+@import "./theme.css";
 
 html,
 body,
@@ -14,45 +14,114 @@ body,
 }
 
 @keyframes zipco-attention-bell {
-  0%, 100% { transform: rotate(0deg); }
-  12% { transform: rotate(13deg); }
-  24% { transform: rotate(-11deg); }
-  36% { transform: rotate(8deg); }
-  48% { transform: rotate(-5deg); }
-  60% { transform: rotate(0deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  12% {
+    transform: rotate(13deg);
+  }
+  24% {
+    transform: rotate(-11deg);
+  }
+  36% {
+    transform: rotate(8deg);
+  }
+  48% {
+    transform: rotate(-5deg);
+  }
+  60% {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes zipco-confirm-glow {
-  0%, 100% { border-color: rgb(253 230 138); box-shadow: 0 0 0 0 rgb(245 158 11 / 0.15); }
-  50% { border-color: rgb(251 146 60); box-shadow: 0 0 0 4px rgb(245 158 11 / 0.18), 0 0 20px rgb(245 158 11 / 0.28); }
+  0%,
+  100% {
+    border-color: rgb(253 230 138);
+    box-shadow: 0 0 0 0 rgb(245 158 11 / 0.15);
+  }
+  50% {
+    border-color: rgb(251 146 60);
+    box-shadow:
+      0 0 0 4px rgb(245 158 11 / 0.18),
+      0 0 20px rgb(245 158 11 / 0.28);
+  }
 }
 
 @keyframes zipco-reject-glow {
-  0%, 100% { border-color: rgb(252 165 165); box-shadow: 0 0 0 0 rgb(239 68 68 / 0.10); }
-  50% { border-color: rgb(239 68 68); box-shadow: 0 0 0 3px rgb(239 68 68 / 0.16), 0 0 14px rgb(239 68 68 / 0.20); }
+  0%,
+  100% {
+    border-color: rgb(252 165 165);
+    box-shadow: 0 0 0 0 rgb(239 68 68 / 0.1);
+  }
+  50% {
+    border-color: rgb(239 68 68);
+    box-shadow:
+      0 0 0 3px rgb(239 68 68 / 0.16),
+      0 0 14px rgb(239 68 68 / 0.2);
+  }
 }
 
 @keyframes zipco-accept-glow {
-  0%, 100% { border-color: rgb(110 231 183); box-shadow: 0 0 0 0 rgb(16 185 129 / 0.10); }
-  50% { border-color: rgb(5 150 105); box-shadow: 0 0 0 3px rgb(16 185 129 / 0.16), 0 0 14px rgb(16 185 129 / 0.24); }
+  0%,
+  100% {
+    border-color: rgb(110 231 183);
+    box-shadow: 0 0 0 0 rgb(16 185 129 / 0.1);
+  }
+  50% {
+    border-color: rgb(5 150 105);
+    box-shadow:
+      0 0 0 3px rgb(16 185 129 / 0.16),
+      0 0 14px rgb(16 185 129 / 0.24);
+  }
 }
 
 @keyframes zipco-reject-icon {
-  0%, 72%, 100% { transform: translateX(0); }
-  80% { transform: translateX(-2px); }
-  88% { transform: translateX(2px); }
-  96% { transform: translateX(-1px); }
+  0%,
+  72%,
+  100% {
+    transform: translateX(0);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+  88% {
+    transform: translateX(2px);
+  }
+  96% {
+    transform: translateX(-1px);
+  }
 }
 
 @keyframes zipco-accept-icon {
-  0%, 65%, 100% { transform: scale(1); }
-  78% { transform: scale(1.18); }
-  90% { transform: scale(0.96); }
+  0%,
+  65%,
+  100% {
+    transform: scale(1);
+  }
+  78% {
+    transform: scale(1.18);
+  }
+  90% {
+    transform: scale(0.96);
+  }
 }
 
 @keyframes zipco-open-hint {
-  0%, 100% { opacity: 0.72; transform: scale(0.98); box-shadow: 0 0 0 0 rgb(139 92 246 / 0.08); }
-  50% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 3px rgb(139 92 246 / 0.13), 0 0 14px rgb(139 92 246 / 0.18); }
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.98);
+    box-shadow: 0 0 0 0 rgb(139 92 246 / 0.08);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow:
+      0 0 0 3px rgb(139 92 246 / 0.13),
+      0 0 14px rgb(139 92 246 / 0.18);
+  }
 }
 
 .zipco-attention-bell {
@@ -64,26 +133,40 @@ body,
   animation: zipco-confirm-glow 1.8s ease-in-out infinite;
 }
 
-.zipco-proposal-reject { animation: zipco-reject-glow 2s ease-in-out infinite; }
-.zipco-proposal-accept { animation: zipco-accept-glow 2s ease-in-out infinite; }
-.zipco-reject-icon { animation: zipco-reject-icon 2s ease-in-out infinite; }
-.zipco-accept-icon { animation: zipco-accept-icon 2s ease-in-out infinite; }
-.zipco-open-hint { animation: zipco-open-hint 1.5s ease-in-out infinite; }
+.zipco-proposal-reject {
+  animation: zipco-reject-glow 2s ease-in-out infinite;
+}
+.zipco-proposal-accept {
+  animation: zipco-accept-glow 2s ease-in-out infinite;
+}
+.zipco-reject-icon {
+  animation: zipco-reject-icon 2s ease-in-out infinite;
+}
+.zipco-accept-icon {
+  animation: zipco-accept-icon 2s ease-in-out infinite;
+}
+.zipco-open-hint {
+  animation: zipco-open-hint 1.5s ease-in-out infinite;
+}
 
 .zipco-proposal-card {
   background:
     radial-gradient(circle at 94% 7%, rgb(237 233 254 / 0.72), transparent 31%),
     radial-gradient(circle at 5% 96%, rgb(204 251 241 / 0.72), transparent 35%),
     linear-gradient(145deg, #ffffff 18%, #fafaff 58%, #f3fffc 100%);
-  box-shadow: 0 10px 26px rgb(15 23 42 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.9);
+  box-shadow:
+    0 10px 26px rgb(15 23 42 / 0.09),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
 .zipco-provider-card {
   background:
     radial-gradient(circle at 94% 7%, rgb(224 242 254 / 0.72), transparent 31%),
-    radial-gradient(circle at 5% 96%, rgb(204 251 241 / 0.60), transparent 35%),
+    radial-gradient(circle at 5% 96%, rgb(204 251 241 / 0.6), transparent 35%),
     linear-gradient(145deg, #ffffff 18%, #f8fbff 58%, #f3fffc 100%);
-  box-shadow: 0 9px 24px rgb(15 23 42 / 0.085), inset 0 1px 0 rgb(255 255 255 / 0.9);
+  box-shadow:
+    0 9px 24px rgb(15 23 42 / 0.085),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -105,8 +188,17 @@ html.dark #root {
 }
 
 @keyframes zipco-notification-focus {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(14, 165, 233, .45), 0 10px 28px rgba(14, 165, 233, .16); }
-  50% { box-shadow: 0 0 0 5px rgba(14, 165, 233, .75), 0 14px 34px rgba(14, 165, 233, .32); }
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(14, 165, 233, 0.45),
+      0 10px 28px rgba(14, 165, 233, 0.16);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(14, 165, 233, 0.75),
+      0 14px 34px rgba(14, 165, 233, 0.32);
+  }
 }
 
 .zipco-notification-target {
@@ -117,7 +209,7 @@ html.dark #root {
 }
 
 .zipco-notification-target::after {
-  content: 'Abierta desde la notificación';
+  content: "Abierta desde la notificación";
   position: absolute;
   top: 8px;
   right: 12px;
@@ -131,7 +223,10 @@ html.dark #root {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zipco-notification-target { animation: none; box-shadow: 0 0 0 4px rgba(14, 165, 233, .7); }
+  .zipco-notification-target {
+    animation: none;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.7);
+  }
 }
 
 @supports (height: 100dvh) {
@@ -180,7 +275,12 @@ body {
  * conservan los colores de acción (teal, violeta, naranja y rojo). */
 .dark .zipco-theme-surface {
   background-color: #020617 !important;
-  background-image: linear-gradient(to bottom, #020617, #0f172a 55%, #111827) !important;
+  background-image: linear-gradient(
+    to bottom,
+    #020617,
+    #0f172a 55%,
+    #111827
+  ) !important;
   color: #e2e8f0;
 }
 
@@ -243,7 +343,12 @@ body {
 .dark .zipco-theme-surface [class*="from-blue-50"][class*="via-white"],
 .dark .zipco-theme-surface [class*="from-teal-50"][class*="via-white"] {
   background-color: #020617 !important;
-  background-image: linear-gradient(to bottom right, #020617, #0f172a, #111827) !important;
+  background-image: linear-gradient(
+    to bottom right,
+    #020617,
+    #0f172a,
+    #111827
+  ) !important;
 }
 
 .dark .zipco-theme-surface [class~="bg-red-50"] {
@@ -297,7 +402,9 @@ body {
   color: #ddd6fe !important;
 }
 
-.dark .zipco-theme-surface input:not([type="radio"]):not([type="checkbox"]):not([type="range"]),
+.dark
+  .zipco-theme-surface
+  input:not([type="radio"]):not([type="checkbox"]):not([type="range"]),
 .dark .zipco-theme-surface textarea,
 .dark .zipco-theme-surface select {
   border-color: #475569;
@@ -314,19 +421,42 @@ body {
   opacity: 1;
 }
 
-.dark .zipco-theme-surface [class*="from-orange-50"],
-.dark .zipco-theme-surface [class*="from-amber-50"] {
-  background-image: linear-gradient(to bottom right, #292016, #1e293b) !important;
+.dark .zipco-theme-surface [class~="from-orange-50"],
+.dark .zipco-theme-surface [class~="from-amber-50"] {
+  background-image: linear-gradient(
+    to bottom right,
+    #292016,
+    #1e293b
+  ) !important;
 }
 
-.dark .zipco-theme-surface [class*="from-purple-50"],
-.dark .zipco-theme-surface [class*="from-violet-50"] {
-  background-image: linear-gradient(to bottom right, #211a38, #1e293b) !important;
+.dark .zipco-theme-surface [class~="from-purple-50"],
+.dark .zipco-theme-surface [class~="from-violet-50"] {
+  background-image: linear-gradient(
+    to bottom right,
+    #211a38,
+    #1e293b
+  ) !important;
 }
 
-.dark .zipco-theme-surface [class*="from-teal-50"],
-.dark .zipco-theme-surface [class*="from-emerald-50"] {
-  background-image: linear-gradient(to bottom right, #0b2d2b, #172554) !important;
+.dark .zipco-theme-surface [class~="from-teal-50"],
+.dark .zipco-theme-surface [class~="from-emerald-50"] {
+  background-image: linear-gradient(
+    to bottom right,
+    #0b2d2b,
+    #172554
+  ) !important;
+}
+
+.zipco-safe-header {
+  padding-top: 1rem;
+}
+.dark .zipco-sticky-fade {
+  background-image: linear-gradient(
+    to top,
+    #0f172a 58%,
+    rgba(15, 23, 42, 0)
+  ) !important;
 }
 
 .dark .zipco-theme-navigation {

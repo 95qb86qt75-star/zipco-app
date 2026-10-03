@@ -1,4 +1,11 @@
-import { Bell, Calendar, CheckCircle2, ChevronRight, MessageCircle, XCircle } from "lucide-react";
+import {
+  Bell,
+  Calendar,
+  CheckCircle2,
+  ChevronRight,
+  MessageCircle,
+  XCircle,
+} from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { MyOrder, OrderAction } from "./types";
@@ -50,7 +57,7 @@ export default function MyOrderCard({
         event.currentTarget.classList.remove("zipco-notification-target");
         onOpen?.();
       }}
-      className={`scroll-mb-36 rounded-2xl border p-3 shadow-sm ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-white"}`}
+      className={`scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-gradient-to-br from-white to-slate-50"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         <ImageWithFallback
@@ -109,10 +116,55 @@ export default function MyOrderCard({
         </p>
       )}
       {order.alternativeMessage && (
-        <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900"><p className="font-black">Alternativa del negocio</p><p>{order.alternativeMessage}</p>{order.alternativeItem && <p>Opción: {order.alternativeItem}{order.alternativeQuantity ? ` · Cantidad ${order.alternativeQuantity}` : ""}</p>}{order.alternativeDate && <p>Fecha: {order.alternativeDate}{order.alternativeTime ? ` · ${order.alternativeTime}` : ""}</p>}{order.alternativePriceClp && <p className="font-black">${order.alternativePriceClp.toLocaleString("es-CL")}</p>}</div>
+        <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+          <p className="font-black">Alternativa del negocio</p>
+          <p>{order.alternativeMessage}</p>
+          {order.alternativeItem && (
+            <p>
+              Opción: {order.alternativeItem}
+              {order.alternativeQuantity
+                ? ` · Cantidad ${order.alternativeQuantity}`
+                : ""}
+            </p>
+          )}
+          {order.alternativeDate && (
+            <p>
+              Fecha: {order.alternativeDate}
+              {order.alternativeTime ? ` · ${order.alternativeTime}` : ""}
+            </p>
+          )}
+          {order.alternativePriceClp && (
+            <p className="font-black">
+              ${order.alternativePriceClp.toLocaleString("es-CL")}
+            </p>
+          )}
+        </div>
       )}
       {order.status === "alternative_proposed" && (
-        <div className="mt-3 grid grid-cols-2 gap-2"><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("reject-alternative"); }} className="zipco-proposal-reject flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-xs font-bold text-red-600"><XCircle className="zipco-reject-icon h-4 w-4" />Rechazar propuesta</button><button disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAction("accept-alternative"); }} className="zipco-proposal-accept flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-xs font-bold text-white"><CheckCircle2 className="zipco-accept-icon h-4 w-4" />Aceptar propuesta</button></div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            disabled={isUpdating}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("reject-alternative");
+            }}
+            className="zipco-proposal-reject flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-xs font-bold text-red-600"
+          >
+            <XCircle className="zipco-reject-icon h-4 w-4" />
+            Rechazar propuesta
+          </button>
+          <button
+            disabled={isUpdating}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAction("accept-alternative");
+            }}
+            className="zipco-proposal-accept flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-xs font-bold text-white"
+          >
+            <CheckCircle2 className="zipco-accept-icon h-4 w-4" />
+            Aceptar propuesta
+          </button>
+        </div>
       )}
       {action && (
         <button
@@ -122,9 +174,11 @@ export default function MyOrderCard({
             event.stopPropagation();
             onAction(action);
           }}
-          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 py-2 text-xs font-bold text-white disabled:opacity-50 ${action === "complete-reception" ? "zipco-confirm-action border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500" : ""}`}
+          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-xs font-bold disabled:opacity-50 ${action === "complete-reception" ? "zipco-confirm-action border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 text-white" : "border-2 border-red-300 bg-red-50 text-red-600"}`}
         >
-          {action === "complete-reception" && <Bell className="zipco-attention-bell h-4 w-4" />}
+          {action === "complete-reception" && (
+            <Bell className="zipco-attention-bell h-4 w-4" />
+          )}
           {isUpdating
             ? "Guardando..."
             : action === "cancel"
