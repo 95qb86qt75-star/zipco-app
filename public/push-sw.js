@@ -25,22 +25,65 @@ self.addEventListener('push', (event) => {
   })());
 });
 
+let pendingNavigationTarget = null;
+
+const sendPendingNavigation = async (client) => {
+  let url = pendingNavigationTarget;
+  if (!url) {
+    try {
+      const navigationCache = await caches.open('zipco-notification-navigation-v1');
+      const request = new Request(new URL('/__zipco_notification_target__', self.location.origin).href);
+      const response = await navigationCache.match(request);
+      const payload = response ? await response.json() : null;
+      if (typeof payload?.url === 'string' && Date.now() - Number(payload.createdAt) < 5 * 60 * 1000) {
+        url = payload.url;
+      }
+    } catch {
+      // The in-memory destination and direct URL navigation remain available.
+    }
+  }
+  if (url) client.postMessage({ type: 'ZIPCO_NOTIFICATION_NAVIGATE', url });
+};
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'ZIPCO_NOTIFICATION_NAVIGATED') {
+    pendingNavigationTarget = null;
+    event.waitUntil((async () => {
+      try {
+        const navigationCache = await caches.open('zipco-notification-navigation-v1');
+        await navigationCache.delete(new Request(new URL('/__zipco_notification_target__', self.location.origin).href));
+      } catch {
+        // The cached destination expires after five minutes as a fallback.
+      }
+    })());
+    return;
+  }
+  if (event.data?.type === 'ZIPCO_REQUEST_NOTIFICATION_TARGET' && event.source) {
+    event.waitUntil(sendPendingNavigation(event.source));
+  }
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = new URL(event.notification.data?.url || '/', self.location.origin);
   if (event.notification.data?.orderId && !targetUrl.searchParams.has('orderId')) targetUrl.searchParams.set('orderId', String(event.notification.data.orderId));
   if (event.notification.data?.quoteId && !targetUrl.searchParams.has('quoteId')) targetUrl.searchParams.set('quoteId', String(event.notification.data.quoteId));
   const target = targetUrl.href;
+  pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
   event.waitUntil((async () => {
     // Persist the destination before waking the app. iOS may discard both
     // postMessage and WindowClient.navigate while resuming a suspended PWA.
-    const navigationCache = await caches.open('zipco-notification-navigation-v1');
-    await navigationCache.put(
-      new Request(new URL('/__zipco_notification_target__', self.location.origin).href),
-      new Response(JSON.stringify({ url: targetUrl.pathname + targetUrl.search, createdAt: Date.now() }), {
-        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
-      })
-    );
+    try {
+      const navigationCache = await caches.open('zipco-notification-navigation-v1');
+      await navigationCache.put(
+        new Request(new URL('/__zipco_notification_target__', self.location.origin).href),
+        new Response(JSON.stringify({ url: pendingNavigationTarget, createdAt: Date.now() }), {
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+        })
+      );
+    } catch {
+      // Do not let a WebKit Cache API failure cancel focus/navigation.
+    }
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const navigationMessage = {
       type: 'ZIPCO_NOTIFICATION_NAVIGATE',
@@ -66,16 +109,19 @@ self.addEventListener('notificationclick', (event) => {
           await focusedClient.focus();
           // WebKit can resume the installed PWA after the first message was
           // dispatched. Send the route once more to the client it surfaced.
-          focusedClient.postMessage(navigationMessage);
+          await sendPendingNavigation(focusedClient);
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          await sendPendingNavigation(focusedClient);
           return;
         } catch {
           // Older browsers can reject WindowClient.navigate; retain the
           // message-based behavior as a compatible fallback.
         }
       }
-      client.postMessage(navigationMessage);
+      await sendPendingNavigation(client);
       await client.focus();
-      client.postMessage(navigationMessage);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await sendPendingNavigation(client);
       return;
     }
     return self.clients.openWindow(target);

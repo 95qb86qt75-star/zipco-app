@@ -180,6 +180,9 @@ export default function App() {
     setCurrentScreen("home");
     setActiveTab("requests");
     setRequestsNavigationKey((current) => current + 1);
+    navigator.serviceWorker?.controller?.postMessage({
+      type: "ZIPCO_NOTIFICATION_NAVIGATED",
+    });
   }, []);
 
   const refreshFavorites = useCallback(async () => {
@@ -339,6 +342,11 @@ export default function App() {
         const timer = window.setTimeout(() => {
           resumeTimers.delete(timer);
           void consumeStoredNotificationTarget();
+          const request = { type: "ZIPCO_REQUEST_NOTIFICATION_TARGET" };
+          navigator.serviceWorker?.controller?.postMessage(request);
+          void navigator.serviceWorker?.ready.then((registration) =>
+            registration.active?.postMessage(request),
+          );
         }, delay);
         resumeTimers.add(timer);
       });
