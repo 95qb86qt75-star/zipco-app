@@ -190,8 +190,23 @@ body {
 }
 
 .dark .zipco-theme-surface [class*="bg-gray-50"],
-.dark .zipco-theme-surface [class*="bg-slate-50"] {
+.dark .zipco-theme-surface [class*="bg-gray-100"],
+.dark .zipco-theme-surface [class*="bg-gray-200"],
+.dark .zipco-theme-surface [class*="bg-slate-50"],
+.dark .zipco-theme-surface [class*="bg-slate-100"],
+.dark .zipco-theme-surface [class*="bg-slate-200"] {
   background-color: #1e293b !important;
+}
+
+.dark .zipco-theme-surface [class*="ring-gray-"],
+.dark .zipco-theme-surface [class*="ring-slate-"] {
+  --tw-ring-color: #475569 !important;
+}
+
+.dark .zipco-theme-surface [class*="hover:bg-gray-200"]:hover,
+.dark .zipco-theme-surface [class*="hover:bg-gray-100"]:hover,
+.dark .zipco-theme-surface [class*="hover:bg-slate-100"]:hover {
+  background-color: #334155 !important;
 }
 
 .dark .zipco-theme-surface [class*="text-gray-900"],
