@@ -132,7 +132,8 @@ function normalizeOrder(
     note: order.note,
     response: "",
     reason:
-      order.cancellationReasonDetail || (order.cancellationReason && order.cancellationReason !== "unavailable"
+      order.cancellationReasonDetail ||
+      (order.cancellationReason && order.cancellationReason !== "unavailable"
         ? reasonLabels[order.cancellationReason]
         : ""),
     referencePhoto: order.referencePhoto,
@@ -151,28 +152,54 @@ function normalizeQuote(
     subtitle: owner === "business" ? quote.customerName : "Tu cotización",
     date: formatDate(quote.updatedAt || quote.createdAt),
     image: quote.referencePhoto,
-    status: quote.status === "completed" ? "completed" : quote.status === "cancelled" ? "cancelled" : "rejected",
-    statusLabel: quote.status === "declined" && quote.alternativeMessage ? "Alternativa rechazada" : undefined,
-    price: quote.alternativePriceClp ?? quote.quotedPriceClp ?? quote.startingPriceClpSnapshot,
-    priceIsStarting: quote.alternativePriceClp === null && quote.quotedPriceClp === null && quote.startingPriceClpSnapshot !== null,
-    details: quote.alternativeMessage ? [
-      `Alternativa propuesta${quote.alternativeItem ? `: ${quote.alternativeItem}` : ""}`,
-      ...(quote.alternativeQuantity ? [`Cantidad: ${quote.alternativeQuantity}`] : []),
-      ...(quote.alternativeDate ? [`Fecha y hora: ${quote.alternativeDate}${quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}`] : []),
-      ...(quote.alternativePriceClp ? [`Precio alternativo: ${money(quote.alternativePriceClp)}`] : []),
-    ] : [],
+    status:
+      quote.status === "completed"
+        ? "completed"
+        : quote.status === "cancelled"
+          ? "cancelled"
+          : "rejected",
+    statusLabel:
+      quote.status === "declined" && quote.alternativeMessage
+        ? "Alternativa rechazada"
+        : undefined,
+    price:
+      quote.alternativePriceClp ??
+      quote.quotedPriceClp ??
+      quote.startingPriceClpSnapshot,
+    priceIsStarting:
+      quote.alternativePriceClp === null &&
+      quote.quotedPriceClp === null &&
+      quote.startingPriceClpSnapshot !== null,
+    details: quote.alternativeMessage
+      ? [
+          `Alternativa propuesta${quote.alternativeItem ? `: ${quote.alternativeItem}` : ""}`,
+          ...(quote.alternativeQuantity
+            ? [`Cantidad: ${quote.alternativeQuantity}`]
+            : []),
+          ...(quote.alternativeDate
+            ? [
+                `Fecha y hora: ${quote.alternativeDate}${quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}`,
+              ]
+            : []),
+          ...(quote.alternativePriceClp
+            ? [`Precio alternativo: ${money(quote.alternativePriceClp)}`]
+            : []),
+        ]
+      : [],
     schedule: quote.alternativeDate
       ? `${quote.alternativeDate}${quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}`
       : quote.needNow
-      ? "Lo necesita ahora"
-      : quote.requestedDate && quote.requestedTime
-        ? `${quote.requestedDate} · ${quote.requestedTime}`
-        : "Horario no disponible",
+        ? "Lo necesita ahora"
+        : quote.requestedDate && quote.requestedTime
+          ? `${quote.requestedDate} · ${quote.requestedTime}`
+          : "Horario no disponible",
     note: quote.message,
     response: quote.alternativeMessage ?? quote.businessMessage ?? "",
-    reason: quote.closureReasonDetail || (quote.closureReason && quote.closureReason in reasonLabels
-      ? reasonLabels[quote.closureReason as keyof typeof reasonLabels]
-      : ""),
+    reason:
+      quote.closureReasonDetail ||
+      (quote.closureReason && quote.closureReason in reasonLabels
+        ? reasonLabels[quote.closureReason as keyof typeof reasonLabels]
+        : ""),
     referencePhoto: quote.referencePhoto,
   };
 }
@@ -222,7 +249,10 @@ export function QuoteHistoryList({
         const quote = byId.get(id);
         if (quote) onArchive(quote, archived);
       }}
-      onDelete={(id) => { const quote = byId.get(id); if (quote) onDelete?.(quote); }}
+      onDelete={(id) => {
+        const quote = byId.get(id);
+        if (quote) onDelete?.(quote);
+      }}
     />
   );
 }
@@ -243,17 +273,63 @@ function CompactHistoryList({
     null,
   );
   const [pendingDelete, setPendingDelete] = useState<HistoryItem | null>(null);
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
-  const [bulkAction, setBulkAction] = useState<"archive" | "restore" | "delete" | null>(null);
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [bulkAction, setBulkAction] = useState<
+    "archive" | "restore" | "delete" | null
+  >(null);
   const [swipedKey, setSwipedKey] = useState<string | null>(null);
   const { unread, markRead } = useUnreadInteractions();
   return (
     <>
       {items.length > 0 && (
-        <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+        <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center justify-between gap-3">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" checked={selectedKeys.size === items.length} onChange={(event) => setSelectedKeys(event.target.checked ? new Set(items.map((item) => item.key)) : new Set())} />Seleccionar todo</label>
-            {selectedKeys.size > 0 && <div className="flex gap-1">{deleted ? <><button type="button" onClick={() => setBulkAction("restore")} className="rounded-lg bg-emerald-50 px-2 py-1.5 text-[10px] font-black text-emerald-700">Restaurar ({selectedKeys.size})</button><button type="button" onClick={() => setBulkAction("delete")} className="rounded-lg bg-red-50 px-2 py-1.5 text-[10px] font-black text-red-600">Definitivo ({selectedKeys.size})</button></> : <button type="button" onClick={() => setBulkAction("archive")} className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-black text-red-600">Mover {selectedKeys.size} a Eliminados</button>}</div>}
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
+              <input
+                type="checkbox"
+                checked={selectedKeys.size === items.length}
+                onChange={(event) =>
+                  setSelectedKeys(
+                    event.target.checked
+                      ? new Set(items.map((item) => item.key))
+                      : new Set(),
+                  )
+                }
+              />
+              Seleccionar todo
+            </label>
+            {selectedKeys.size > 0 && (
+              <div className="flex gap-1">
+                {deleted ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setBulkAction("restore")}
+                      className="rounded-lg bg-emerald-50 px-2 py-1.5 text-[10px] font-black text-emerald-700"
+                    >
+                      Restaurar ({selectedKeys.size})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBulkAction("delete")}
+                      className="rounded-lg bg-red-50 px-2 py-1.5 text-[10px] font-black text-red-600"
+                    >
+                      Definitivo ({selectedKeys.size})
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setBulkAction("archive")}
+                    className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-black text-red-600"
+                  >
+                    Mover {selectedKeys.size} a Eliminados
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -273,17 +349,42 @@ function CompactHistoryList({
                 </div>
               )}
               <div className="relative overflow-hidden rounded-2xl">
-                <input type="checkbox" aria-label={`Seleccionar ${item.title}`} checked={selectedKeys.has(item.key)} onChange={(event) => setSelectedKeys((current) => { const next = new Set(current); event.target.checked ? next.add(item.key) : next.delete(item.key); return next; })} className="absolute left-2 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 accent-teal-600" />
+                <input
+                  type="checkbox"
+                  aria-label={`Seleccionar ${item.title}`}
+                  checked={selectedKeys.has(item.key)}
+                  onChange={(event) =>
+                    setSelectedKeys((current) => {
+                      const next = new Set(current);
+                      event.target.checked
+                        ? next.add(item.key)
+                        : next.delete(item.key);
+                      return next;
+                    })
+                  }
+                  className="absolute left-2 top-1/2 z-[1] h-4 w-4 -translate-y-1/2 accent-teal-600"
+                />
                 <div className="absolute inset-y-0 right-0 flex">
-                {deleted && <button type="button" onClick={() => setPendingArchive(item)} className="flex w-24 flex-col items-center justify-center gap-1 bg-emerald-600 text-xs font-black text-white"><RotateCcw className="h-5 w-5" />Restaurar</button>}
-                <button
-                  type="button"
-                  onClick={() => deleted ? setPendingDelete(item) : setPendingArchive(item)}
-                  className="flex w-24 flex-col items-center justify-center gap-1 bg-red-500 text-xs font-black text-white"
-                >
-                  <Trash2 className="h-5 w-5" />
-                  {deleted ? "Definitivo" : "Eliminar"}
-                </button>
+                  {deleted && (
+                    <button
+                      type="button"
+                      onClick={() => setPendingArchive(item)}
+                      className="flex w-24 flex-col items-center justify-center gap-1 bg-emerald-600 text-xs font-black text-white"
+                    >
+                      <RotateCcw className="h-5 w-5" />
+                      Restaurar
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      deleted ? setPendingDelete(item) : setPendingArchive(item)
+                    }
+                    className="flex w-24 flex-col items-center justify-center gap-1 bg-red-500 text-xs font-black text-white"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                    {deleted ? "Definitivo" : "Eliminar"}
+                  </button>
                 </div>
                 <motion.button
                   id={`${item.kind}-${item.id}`}
@@ -300,11 +401,13 @@ function CompactHistoryList({
                     if (isSwiped) {
                       setSwipedKey(null);
                     } else {
-                      event.currentTarget.classList.remove("zipco-notification-target");
+                      event.currentTarget.classList.remove(
+                        "zipco-notification-target",
+                      );
                       markRead(item.kind, item.id);
                     }
                   }}
-                  className={`relative grid min-h-[76px] w-full grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border py-2.5 pl-8 pr-2.5 text-left shadow-sm ${isUnread ? "border-sky-400 bg-sky-50 ring-1 ring-sky-200" : "border-slate-100 bg-white"}`}
+                  className={`relative grid min-h-[76px] w-full grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border py-2.5 pl-8 pr-2.5 text-left shadow-sm transition-colors ${isUnread ? "border-cyan-400 bg-cyan-50 ring-1 ring-cyan-200 dark:border-cyan-400/80 dark:bg-cyan-950/35 dark:ring-cyan-500/30" : "border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-900"}`}
                 >
                   {item.image ? (
                     <ImageWithFallback
@@ -319,15 +422,20 @@ function CompactHistoryList({
                   )}
                   <span className="min-w-0">
                     <span className="flex items-center gap-1.5">
-                      <span className="block truncate text-sm font-black text-slate-900">
+                      <span className="block truncate text-sm font-black text-slate-900 dark:text-slate-100">
                         {item.title}
                       </span>
                       {isUnread && (
-                        <span className="h-2 w-2 shrink-0 rounded-full bg-sky-500" aria-label="Nueva" />
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full bg-sky-500"
+                          aria-label="Nueva"
+                        />
                       )}
                     </span>
                     <span className="mt-1 block text-sm font-black text-emerald-700">
-                      {item.price === null ? "—" : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
+                      {item.price === null
+                        ? "—"
+                        : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
                     </span>
                   </span>
                   <span className="flex min-w-[108px] items-center justify-end gap-1.5">
@@ -337,7 +445,32 @@ function CompactHistoryList({
                       <StatusIcon className="h-3.5 w-3.5" />
                       {item.statusLabel ?? presentation.label}
                     </span>
-                    <span role="button" tabIndex={0} aria-label="Abrir detalle" onClick={(event) => { event.stopPropagation(); event.currentTarget.closest(".zipco-notification-target")?.classList.remove("zipco-notification-target"); markRead(item.kind, item.id); setSelected(item); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); event.currentTarget.closest(".zipco-notification-target")?.classList.remove("zipco-notification-target"); markRead(item.kind, item.id); setSelected(item); } }}><ChevronRight className="h-5 w-5 text-slate-600" /></span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Abrir detalle"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        event.currentTarget
+                          .closest(".zipco-notification-target")
+                          ?.classList.remove("zipco-notification-target");
+                        markRead(item.kind, item.id);
+                        setSelected(item);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          event.currentTarget
+                            .closest(".zipco-notification-target")
+                            ?.classList.remove("zipco-notification-target");
+                          markRead(item.kind, item.id);
+                          setSelected(item);
+                        }
+                      }}
+                    >
+                      <ChevronRight className="h-5 w-5 text-slate-600" />
+                    </span>
                   </span>
                 </motion.button>
               </div>
@@ -346,7 +479,46 @@ function CompactHistoryList({
         })}
       </div>
       {bulkAction && (
-        <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center"><div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl"><h3 className="text-center text-lg font-black">{bulkAction === "archive" ? "Mover a Eliminados" : bulkAction === "restore" ? "Restaurar solicitudes" : "Eliminar definitivamente"}</h3><p className="mt-2 text-center text-sm text-slate-600">{bulkAction === "delete" ? `Eliminarás definitivamente ${selectedKeys.size} solicitudes. Esta acción no se puede deshacer.` : `${bulkAction === "restore" ? "Restaurarás" : "Moverás"} ${selectedKeys.size} solicitudes seleccionadas.`}</p><div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setBulkAction(null)} className="rounded-xl border py-3 text-sm font-bold">Volver</button><button onClick={() => { items.filter((item) => selectedKeys.has(item.key)).forEach((item) => bulkAction === "delete" ? onDelete?.(item.id) : onArchive(item.id, bulkAction === "archive")); setSelectedKeys(new Set()); setBulkAction(null); }} className={`rounded-xl py-3 text-sm font-bold text-white ${bulkAction === "restore" ? "bg-emerald-600" : "bg-red-500"}`}>Continuar</button></div></div></div>
+        <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center">
+          <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
+            <h3 className="text-center text-lg font-black">
+              {bulkAction === "archive"
+                ? "Mover a Eliminados"
+                : bulkAction === "restore"
+                  ? "Restaurar solicitudes"
+                  : "Eliminar definitivamente"}
+            </h3>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              {bulkAction === "delete"
+                ? `Eliminarás definitivamente ${selectedKeys.size} solicitudes. Esta acción no se puede deshacer.`
+                : `${bulkAction === "restore" ? "Restaurarás" : "Moverás"} ${selectedKeys.size} solicitudes seleccionadas.`}
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setBulkAction(null)}
+                className="rounded-xl border py-3 text-sm font-bold"
+              >
+                Volver
+              </button>
+              <button
+                onClick={() => {
+                  items
+                    .filter((item) => selectedKeys.has(item.key))
+                    .forEach((item) =>
+                      bulkAction === "delete"
+                        ? onDelete?.(item.id)
+                        : onArchive(item.id, bulkAction === "archive"),
+                    );
+                  setSelectedKeys(new Set());
+                  setBulkAction(null);
+                }}
+                className={`rounded-xl py-3 text-sm font-bold text-white ${bulkAction === "restore" ? "bg-emerald-600" : "bg-red-500"}`}
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {pendingArchive && (
         <div className="absolute inset-0 z-[60] flex items-end bg-slate-950/45 p-3 sm:items-center">
@@ -394,9 +566,30 @@ function CompactHistoryList({
         <div className="absolute inset-0 z-[70] flex items-end bg-slate-950/45 p-3 sm:items-center">
           <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
             <Trash2 className="mx-auto h-12 w-12 rounded-full bg-red-50 p-3 text-red-500" />
-            <h3 className="mt-4 text-center text-lg font-black">Eliminar definitivamente</h3>
-            <p className="mt-2 text-center text-sm text-slate-600">Esta solicitud dejará de aparecer en tu cuenta y no podrás restaurarla. La otra persona conservará su propio registro.</p>
-            <div className="mt-5 grid grid-cols-2 gap-3"><button onClick={() => setPendingDelete(null)} className="rounded-xl border py-3 text-sm font-bold">Volver</button><button onClick={() => { onDelete?.(pendingDelete.id); setPendingDelete(null); }} className="rounded-xl bg-red-500 py-3 text-sm font-bold text-white">Eliminar</button></div>
+            <h3 className="mt-4 text-center text-lg font-black">
+              Eliminar definitivamente
+            </h3>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Esta solicitud dejará de aparecer en tu cuenta y no podrás
+              restaurarla. La otra persona conservará su propio registro.
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setPendingDelete(null)}
+                className="rounded-xl border py-3 text-sm font-bold"
+              >
+                Volver
+              </button>
+              <button
+                onClick={() => {
+                  onDelete?.(pendingDelete.id);
+                  setPendingDelete(null);
+                }}
+                className="rounded-xl bg-red-500 py-3 text-sm font-bold text-white"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -424,7 +617,8 @@ function CompactHistoryList({
               <div
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${statusPresentation[selected.status].classes}`}
               >
-                {selected.statusLabel ?? statusPresentation[selected.status].label}
+                {selected.statusLabel ??
+                  statusPresentation[selected.status].label}
               </div>
               <p className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar className="h-4 w-4" />

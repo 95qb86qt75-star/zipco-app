@@ -46,7 +46,7 @@ export function classifyBusinessOrders(orders: BusinessRequest[]) {
 export const STATUS_LABELS: Record<DisplayOrderStatus, string> = {
   pending: "Esperando al negocio",
   alternative_proposed: "Alternativa enviada",
-  accepted: "Aceptado",
+  accepted: "En preparación",
   ready: "Listo",
   completed: "Completado",
   rejected: "Rechazado",

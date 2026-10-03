@@ -55,88 +55,94 @@ export default function useRequests(onSessionExpired: () => void) {
     return name;
   }, []);
 
-  const loadOrders = useCallback(async () => {
-    const token = localStorage.getItem("zipco-token");
-    const businessId = localStorage.getItem("zipco-business-id");
-    if (!token) {
-      setIsLoading(false);
-      return false;
-    }
-    setIsLoading(true);
-    setLoadError("");
-    try {
-      const myResponse = await fetch(`${API_BASE_URL}/orders/my-orders`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!myResponse.ok)
-        throw new OrdersApiError(
-          "No se pudieron cargar tus pedidos.",
-          myResponse.status,
-        );
-      const myPayload: unknown = await myResponse.json();
-      const normalized = normalizeMyOrdersPayload(myPayload);
-      setMyOrders(
-        await Promise.all(
-          normalized.map(async (order) => {
-            if (order.businessName)
+  const loadOrders = useCallback(
+    async (silent = false) => {
+      const token = localStorage.getItem("zipco-token");
+      const businessId = localStorage.getItem("zipco-business-id");
+      if (!token) {
+        setIsLoading(false);
+        return false;
+      }
+      if (!silent) setIsLoading(true);
+      setLoadError("");
+      try {
+        const myResponse = await fetch(`${API_BASE_URL}/orders/my-orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!myResponse.ok)
+          throw new OrdersApiError(
+            "No se pudieron cargar tus pedidos.",
+            myResponse.status,
+          );
+        const myPayload: unknown = await myResponse.json();
+        const normalized = normalizeMyOrdersPayload(myPayload);
+        setMyOrders(
+          await Promise.all(
+            normalized.map(async (order) => {
+              if (order.businessName)
+                return {
+                  ...order,
+                  businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
+                };
+              const resolvedName =
+                order.businessId === null
+                  ? ""
+                  : await getBusinessName(order.businessId);
               return {
                 ...order,
+                businessName:
+                  resolvedName ||
+                  (order.businessId === null
+                    ? "Negocio no disponible"
+                    : `Negocio #${order.businessId}`),
                 businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
               };
-            const resolvedName =
-              order.businessId === null
-                ? ""
-                : await getBusinessName(order.businessId);
-            return {
-              ...order,
-              businessName:
-                resolvedName ||
-                (order.businessId === null
-                  ? "Negocio no disponible"
-                  : `Negocio #${order.businessId}`),
-              businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
-            };
-          }),
-        ),
-      );
-
-      if (businessId) {
-        const businessResponse = await fetch(
-          `${API_BASE_URL}/orders/business/${businessId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+            }),
+          ),
         );
-        if (!businessResponse.ok) {
-          throw new OrdersApiError(
-            "No se pudieron cargar los pedidos del negocio.",
-            businessResponse.status,
+
+        if (businessId) {
+          const businessResponse = await fetch(
+            `${API_BASE_URL}/orders/business/${businessId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+          if (!businessResponse.ok) {
+            throw new OrdersApiError(
+              "No se pudieron cargar los pedidos del negocio.",
+              businessResponse.status,
+            );
+          }
+          const businessPayload: unknown = await businessResponse.json();
+          setRequests(normalizeBusinessOrdersPayload(businessPayload));
+        } else {
+          setRequests([]);
+        }
+        return true;
+      } catch (error) {
+        if (error instanceof OrdersApiError && error.status === 401) {
+          showAppToast(
+            "Tu sesión venció. Ingresa nuevamente por SMS.",
+            "error",
+          );
+          onSessionExpired();
+        } else {
+          setLoadError(
+            "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.",
+          );
+          showAppToast(
+            "No se pudieron cargar los pedidos. Intenta nuevamente.",
+            "error",
           );
         }
-        const businessPayload: unknown = await businessResponse.json();
-        setRequests(normalizeBusinessOrdersPayload(businessPayload));
-      } else {
-        setRequests([]);
+        return false;
+      } finally {
+        if (!silent) setIsLoading(false);
       }
-      return true;
-    } catch (error) {
-      if (error instanceof OrdersApiError && error.status === 401) {
-        showAppToast("Tu sesión venció. Ingresa nuevamente por SMS.", "error");
-        onSessionExpired();
-      } else {
-        setLoadError(
-          "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.",
-        );
-        showAppToast(
-          "No se pudieron cargar los pedidos. Intenta nuevamente.",
-          "error",
-        );
-      }
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getBusinessName, onSessionExpired]);
+    },
+    [getBusinessName, onSessionExpired],
+  );
 
   useEffect(() => {
     void loadOrders();

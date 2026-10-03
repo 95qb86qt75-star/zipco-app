@@ -74,7 +74,7 @@ export default function BusinessOrderCard({
       : request.status === "alternative_proposed"
         ? "Alternativa enviada"
         : request.status === "accepted"
-          ? "Pedido aceptado"
+          ? "Preparando pedido"
           : request.status === "ready"
             ? "Cliente notificado"
             : request.status === "completed"

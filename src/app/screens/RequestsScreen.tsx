@@ -74,9 +74,11 @@ export default function RequestsScreen({
   const [attentionFilter, setAttentionFilter] = useState<
     "responses" | "ready" | null
   >(null);
-  const [historyTransferId, setHistoryTransferId] = useState<number | null>(
-    null,
-  );
+  const [historyTransfer, setHistoryTransfer] = useState<{
+    kind: "order" | "quote";
+    id: number;
+    label: string;
+  } | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const { unread } = useUnreadInteractions();
   const {
@@ -153,6 +155,15 @@ export default function RequestsScreen({
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
   );
+  const unreadHistoryCount = (
+    requestType === "orders" ? orderRecords : quoteRecords
+  )
+    .filter((record) => statusViewFor(requestType, record.status) === "history")
+    .filter((record) =>
+      unread.has(
+        interactionKey(requestType === "orders" ? "order" : "quote", record.id),
+      ),
+    ).length;
   const sortRecords = <
     T extends { createdAt?: string | null; updatedAt?: string | null },
   >(
@@ -246,14 +257,32 @@ export default function RequestsScreen({
   const selectStatusView = (view: StatusView) => {
     setStatusViews((current) => ({ ...current, [viewKey]: view }));
   };
-  const changeQuoteStatusAndFollow = (
+  const changeQuoteStatusAndFollow = async (
     quote: Parameters<typeof quotes.changeStatus>[0],
     status: Parameters<typeof quotes.changeStatus>[1],
     reason?: Parameters<typeof quotes.changeStatus>[2],
     detail?: string,
   ) => {
-    quotes.changeStatus(quote, status, reason, detail);
-    if (status === "completed") return;
+    if (status === "completed") {
+      setAttentionFilter(null);
+      setHistoryTransfer({
+        kind: "quote",
+        id: quote.id,
+        label: "Servicio recibido conforme",
+      });
+      const minimumAnimation = new Promise((resolve) =>
+        window.setTimeout(resolve, prefersReducedMotion ? 180 : 1250),
+      );
+      const [completed] = await Promise.all([
+        quotes.changeStatus(quote, status, reason, detail),
+        minimumAnimation,
+      ]);
+      setHistoryTransfer(null);
+      if (completed) markInteractionUnread("quote", quote.id);
+      return;
+    }
+    const changed = await quotes.changeStatus(quote, status, reason, detail);
+    if (!changed) return;
     const nextView = statusViewFor("quotes", status);
     if (nextView)
       setStatusViews((current) => ({ ...current, [viewKey]: nextView }));
@@ -263,7 +292,11 @@ export default function RequestsScreen({
   ) => {
     markInteractionRead("order", order.id);
     setAttentionFilter(null);
-    setHistoryTransferId(order.id);
+    setHistoryTransfer({
+      kind: "order",
+      id: order.id,
+      label: "Pedido recibido conforme",
+    });
     const minimumAnimation = new Promise((resolve) =>
       window.setTimeout(resolve, prefersReducedMotion ? 180 : 1250),
     );
@@ -271,18 +304,9 @@ export default function RequestsScreen({
       performAction(order, "customer", "complete-reception"),
       minimumAnimation,
     ]);
-    setHistoryTransferId(null);
+    setHistoryTransfer(null);
     if (!completed) return;
-    setStatusViews((current) => ({ ...current, [viewKey]: "history" }));
-    window.setTimeout(() => {
-      const element = document.getElementById(`order-${order.id}`);
-      element?.scrollIntoView({ behavior: "smooth", block: "center" });
-      element?.classList.add("zipco-notification-target");
-      window.setTimeout(
-        () => element?.classList.remove("zipco-notification-target"),
-        3200,
-      );
-    }, 180);
+    markInteractionUnread("order", order.id);
   };
   const historyOptions: Array<{
     value: HistoryFilter;
@@ -326,6 +350,15 @@ export default function RequestsScreen({
   useEffect(() => {
     if (!hasBusiness && subTab === "my-business") setSubTab("my-orders");
   }, [hasBusiness, subTab]);
+
+  useEffect(() => {
+    const refresh = () => {
+      void loadOrders(true);
+      void quotes.load(true);
+    };
+    window.addEventListener("zipco-requests-refresh", refresh);
+    return () => window.removeEventListener("zipco-requests-refresh", refresh);
+  }, [loadOrders, quotes.load]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -374,6 +407,10 @@ export default function RequestsScreen({
       );
       element?.scrollIntoView({ behavior: "smooth", block: "center" });
       element?.classList.add("zipco-notification-target");
+      window.setTimeout(
+        () => element?.classList.remove("zipco-notification-target"),
+        4200,
+      );
       window.history.replaceState({}, "", window.location.pathname);
     }, 150);
   }, [orderRecords, quoteRecords, subTab]);
@@ -470,15 +507,13 @@ export default function RequestsScreen({
             ? ([
                 {
                   key: "pending",
-                  label: subTab === "my-business" ? "Solicitudes" : "Enviadas",
+                  label: subTab === "my-business" ? "Nuevas" : "Enviadas",
                   count: statusCounts.pending,
                 },
                 {
                   key: "waiting",
                   label:
-                    subTab === "my-business"
-                      ? "Esperando cliente"
-                      : "Por responder",
+                    subTab === "my-business" ? "Esperando" : "Por responder",
                   count: statusCounts.waiting,
                 },
                 {
@@ -486,7 +521,11 @@ export default function RequestsScreen({
                   label: "En curso",
                   count: statusCounts.active,
                 },
-                { key: "history", label: "Historial", count: null },
+                {
+                  key: "history",
+                  label: "Historial",
+                  count: unreadHistoryCount,
+                },
               ] as const)
             : ([
                 {
@@ -499,7 +538,11 @@ export default function RequestsScreen({
                   label: "En curso",
                   count: statusCounts.active,
                 },
-                { key: "history", label: "Historial", count: null },
+                {
+                  key: "history",
+                  label: "Historial",
+                  count: unreadHistoryCount,
+                },
               ] as const)
           ).map((item) => (
             <motion.button
@@ -898,10 +941,7 @@ export default function RequestsScreen({
                       reason,
                       detail,
                     );
-                    const next =
-                      action === "reject" || action === "complete-delivery"
-                        ? "history"
-                        : "active";
+                    const next = action === "reject" ? "history" : "active";
                     setStatusViews((current) => ({
                       ...current,
                       [viewKey]: next,
@@ -931,7 +971,7 @@ export default function RequestsScreen({
         )}
       </div>
       <AnimatePresence>
-        {historyTransferId !== null && (
+        {historyTransfer !== null && (
           <motion.div
             className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/20 px-6 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
@@ -939,10 +979,14 @@ export default function RequestsScreen({
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="relative flex w-[210px] flex-col items-center overflow-hidden rounded-[28px] border border-cyan-200/80 bg-white/95 px-5 py-6 shadow-[0_24px_70px_rgba(8,145,178,0.28)]"
+              className="relative flex w-[210px] flex-col items-center overflow-hidden rounded-[28px] border border-cyan-200/80 bg-white/95 px-5 py-6 shadow-[0_24px_70px_rgba(8,145,178,0.28)] dark:border-cyan-400/50 dark:bg-slate-900/95"
               initial={{ y: 14, scale: 0.94 }}
               animate={{ y: 0, scale: 1 }}
-              exit={{ y: -8, scale: 0.96, opacity: 0 }}
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { x: 120, y: -260, scale: 0.28, opacity: 0 }
+              }
             >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-br from-cyan-100/65 via-transparent to-emerald-100/70"
@@ -989,14 +1033,14 @@ export default function RequestsScreen({
                 </motion.div>
               </div>
               <motion.p
-                className="relative mt-3 text-sm font-black text-slate-900"
+                className="relative mt-3 text-sm font-black text-slate-900 dark:text-white"
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 Guardando en Historial
               </motion.p>
-              <p className="relative mt-1 text-center text-[11px] font-semibold text-slate-500">
-                Pedido recibido conforme
+              <p className="relative mt-1 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-300">
+                {historyTransfer.label}
               </p>
             </motion.div>
           </motion.div>

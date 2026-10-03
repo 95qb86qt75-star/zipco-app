@@ -428,10 +428,12 @@ export function BusinessQuotes({
                   : quote.status === "alternative_proposed"
                     ? "Alternativa enviada"
                     : quote.status === "accepted"
-                      ? "Cliente aceptó"
-                      : quote.status === "ready"
-                        ? "Esperando confirmación"
-                        : labels[quote.status]
+                      ? "Servicio en curso"
+                      : quote.status === "quoted"
+                        ? "Cotización enviada"
+                        : quote.status === "ready"
+                          ? "Esperando confirmación"
+                          : labels[quote.status]
               }
               unread={unread.has(interactionKey("quote", quote.id))}
               onOpen={() => markRead("quote", quote.id)}
@@ -496,8 +498,8 @@ export function BusinessQuotes({
                   }}
                   className="zipco-confirm-action mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 py-2.5 text-xs font-black text-white"
                 >
-                  <Bell className="zipco-attention-bell h-4 w-4" /> Marcar como
-                  listo o realizado
+                  <Bell className="zipco-attention-bell h-4 w-4" /> Marcar
+                  servicio como realizado
                 </button>
               )}
             </QuoteCard>
@@ -790,6 +792,8 @@ function QuoteCard({
     element.classList.remove("zipco-notification-target");
     onOpen();
   };
+  const displayPhoto =
+    owner === "business" ? quote.customerPhoto : quote.referencePhoto;
   if (owner === "customer" && quote.status === "alternative_proposed") {
     const price = proposalPrice(quote);
     return (
@@ -802,9 +806,9 @@ function QuoteCard({
         className={`zipco-proposal-card zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-violet-100"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
       >
         <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
-          {quote.referencePhoto ? (
+          {displayPhoto ? (
             <ImageWithFallback
-              src={quote.referencePhoto}
+              src={displayPhoto}
               alt={quote.itemNameSnapshot}
               className="h-[62px] w-[62px] rounded-[14px] object-cover"
             />
@@ -910,7 +914,9 @@ function QuoteCard({
                 </div>
                 <div className="flex min-w-0 flex-col justify-center border-l border-teal-200 pl-3 text-right">
                   <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                    Precio total
+                    {quote.status === "requested"
+                      ? "Precio referencial desde"
+                      : "Precio total"}
                   </p>
                   <p className="mt-1 whitespace-nowrap text-[22px] font-black tracking-tight text-teal-800">
                     {price === null ? "—" : money(price)}
@@ -970,9 +976,9 @@ function QuoteCard({
         className={`zipco-provider-card zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-slate-200"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
       >
         <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
-          {quote.referencePhoto ? (
+          {displayPhoto ? (
             <ImageWithFallback
-              src={quote.referencePhoto}
+              src={displayPhoto}
               alt={quote.itemNameSnapshot}
               className="h-[62px] w-[62px] rounded-[14px] object-cover"
             />
@@ -1123,7 +1129,12 @@ function QuoteCard({
                 {price !== null && (
                   <div className="mt-2 flex items-end justify-between border-t border-black/5 pt-2">
                     <span className="text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
-                      Precio total
+                      {quote.status === "requested"
+                        ? "Precio referencial desde"
+                        : quote.status === "accepted" ||
+                            quote.status === "ready"
+                          ? "Propuesta aceptada"
+                          : "Precio total"}
                     </span>
                     <span className="text-xl font-black text-teal-800">
                       {money(price)}
@@ -1155,9 +1166,9 @@ function QuoteCard({
       className={`zipco-customer-order-card zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"} scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
-        {quote.referencePhoto ? (
+        {displayPhoto ? (
           <ImageWithFallback
-            src={quote.referencePhoto}
+            src={displayPhoto}
             alt={quote.itemNameSnapshot}
             className="h-[72px] w-[72px] rounded-xl object-cover"
           />

@@ -126,27 +126,27 @@ body,
 
 .zipco-attention-bell {
   transform-origin: 50% 12%;
-  animation: zipco-attention-bell 1.8s ease-in-out infinite;
+  animation: zipco-attention-bell 1.8s ease-in-out 2;
 }
 
 .zipco-confirm-action {
-  animation: zipco-confirm-glow 1.8s ease-in-out infinite;
+  animation: zipco-confirm-glow 1.8s ease-in-out 2;
 }
 
 .zipco-proposal-reject {
-  animation: zipco-reject-glow 2s ease-in-out infinite;
+  animation: zipco-reject-glow 2s ease-in-out 2;
 }
 .zipco-proposal-accept {
-  animation: zipco-accept-glow 2s ease-in-out infinite;
+  animation: zipco-accept-glow 2s ease-in-out 2;
 }
 .zipco-reject-icon {
-  animation: zipco-reject-icon 2s ease-in-out infinite;
+  animation: zipco-reject-icon 2s ease-in-out 2;
 }
 .zipco-accept-icon {
-  animation: zipco-accept-icon 2s ease-in-out infinite;
+  animation: zipco-accept-icon 2s ease-in-out 2;
 }
 .zipco-open-hint {
-  animation: zipco-open-hint 1.5s ease-in-out infinite;
+  animation: zipco-open-hint 1.5s ease-in-out 2;
 }
 
 .zipco-proposal-card {
@@ -205,7 +205,12 @@ html.dark #root {
   position: relative;
   z-index: 2;
   padding-top: 2.25rem !important;
-  animation: zipco-notification-focus 1.15s ease-in-out infinite;
+  animation: zipco-notification-focus 1.15s ease-in-out 3;
+}
+
+.dark .zipco-notification-target {
+  background-color: rgba(8, 47, 73, 0.72) !important;
+  color: #f8fafc;
 }
 
 .zipco-notification-target::after {
@@ -554,7 +559,7 @@ body {
     var(--zipco-state-glow, #f59e0b) 72%,
     transparent
   ) !important;
-  animation: zipco-state-card-glow 2.2s ease-in-out infinite;
+  animation: zipco-state-card-glow 2.2s ease-in-out 2;
 }
 
 .zipco-new-card::before {
@@ -570,7 +575,7 @@ body {
     var(--zipco-state-glow, #f59e0b),
     transparent
   );
-  animation: zipco-state-scan 2.4s ease-in-out infinite;
+  animation: zipco-state-scan 2.4s ease-in-out 1;
 }
 
 .zipco-online-dot {
