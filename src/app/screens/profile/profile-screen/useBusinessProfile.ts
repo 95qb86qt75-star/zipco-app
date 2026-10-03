@@ -37,6 +37,7 @@ export function useBusinessProfile() {
   const [hasRegisteredBusiness, setHasRegisteredBusiness] = useState(() =>
     Boolean(localStorage.getItem("zipco-business-id")),
   );
+  const [businessStatus, setBusinessStatus] = useState("");
   const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
   const [showBusinessRegistrationForm, setShowBusinessRegistrationForm] =
     useState(false);
@@ -125,6 +126,7 @@ export function useBusinessProfile() {
           localStorage.setItem("zipco-business-id", String(currentBusinessId));
         }
         setHasRegisteredBusiness(true);
+        setBusinessStatus(String(fullBusiness.status ?? ""));
         const loadedType =
           fullBusiness.type === "Servicio" ? "Servicio" : "Negocio";
         setProviderType(loadedType);
@@ -202,7 +204,15 @@ export function useBusinessProfile() {
   const isBusinessReadyToPublish = missingBusinessFields.length === 0;
 
   const handlePublishBusiness = async () => {
+    if (businessStatus === "approved") {
+      showAppToast(
+        `Tu ${providerType.toLowerCase()} ya está publicado.`,
+        "success",
+      );
+      return;
+    }
     if (!isBusinessReadyToPublish) {
+      setBusinessStatus("pending");
       showAppToast(
         `Faltan completar estos campos:\n${missingBusinessFields.join("\n")}`,
         "error",
@@ -425,6 +435,7 @@ export function useBusinessProfile() {
           newBusiness.photo || newBusiness.image || newBusiness.imageUrl || "",
       }));
       setHasRegisteredBusiness(true);
+      setBusinessStatus(String(newBusiness.status ?? "pending"));
       setProviderType(
         businessRegistrationForm.type === "Servicio" ? "Servicio" : "Negocio",
       );
@@ -457,6 +468,7 @@ export function useBusinessProfile() {
     businessInfo,
     providerType,
     hasRegisteredBusiness,
+    businessStatus,
     isEditingBusinessInfo,
     businessSocialForm,
     setBusinessSocialForm,

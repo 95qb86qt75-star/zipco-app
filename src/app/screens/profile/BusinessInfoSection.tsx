@@ -28,6 +28,7 @@ export default function BusinessInfoSection({
   setBusinessSocialForm,
   setShowBusinessConfig,
   isBusinessReadyToPublish,
+  businessStatus,
   handlePublishBusiness,
   isUploadingBusinessPhoto,
   uploadBusinessPhoto,
@@ -337,14 +338,21 @@ export default function BusinessInfoSection({
               <button
                 type="button"
                 onClick={handlePublishBusiness}
-                aria-disabled={!isBusinessReadyToPublish}
+                disabled={businessStatus === "approved"}
+                aria-disabled={
+                  !isBusinessReadyToPublish || businessStatus === "approved"
+                }
                 className={`w-full py-4 px-6 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] mb-4 ${
-                  isBusinessReadyToPublish
-                    ? "bg-[#00BFA5] text-white hover:bg-teal-600 shadow-teal-500/30"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-gray-300/30"
+                  businessStatus === "approved"
+                    ? "border border-emerald-300 bg-emerald-50 text-emerald-700 shadow-emerald-500/10"
+                    : isBusinessReadyToPublish
+                      ? "bg-[#00BFA5] text-white hover:bg-teal-600 shadow-teal-500/30"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-gray-300/30"
                 }`}
               >
-                Publicar {providerType.toLowerCase()}
+                {businessStatus === "approved"
+                  ? `${providerType} publicado`
+                  : `Publicar ${providerType.toLowerCase()}`}
               </button>
               {isEditingBusinessInfo && (
                 <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md bg-white/95 px-4 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.12)] backdrop-blur-md">
