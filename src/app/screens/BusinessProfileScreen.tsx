@@ -214,7 +214,7 @@ export default function BusinessProfileScreen({
 
   return (
     <div
-      className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative"
+      className="zipco-theme-surface size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col relative"
       onWheel={handleProfileWheel}
       onTouchStart={handleProfileTouchStart}
       onTouchMove={handleProfileTouchMove}

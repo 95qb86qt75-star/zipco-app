@@ -368,7 +368,7 @@ export default function NegociosScreen({ onBack, onSelectBusiness, activeTab, se
   };
 
   return (
-    <div className="size-full min-h-0 bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col overflow-hidden">
+    <div className="zipco-theme-surface size-full min-h-0 bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col overflow-hidden">
       {/* Header */}
       <div
         className="px-4 pb-0 border-b border-white/50"

@@ -377,7 +377,7 @@ export default function RequestsScreen({
   }, [orderRecords, quoteRecords, subTab]);
 
   return (
-    <div className="size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+    <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       <div
         className="px-4 pb-4 border-b border-white/50"
         style={{ paddingTop: "max(1.5rem, env(safe-area-inset-top))" }}

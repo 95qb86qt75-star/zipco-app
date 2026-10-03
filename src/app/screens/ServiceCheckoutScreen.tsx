@@ -40,7 +40,7 @@ export default function ServiceCheckoutScreen({ onBack, service, provider, activ
   };
 
   return (
-    <div className="size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+    <div className="zipco-theme-surface size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       {/* Header */}
       <div
         className="px-4 pb-4 border-b border-white/50"

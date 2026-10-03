@@ -175,6 +175,94 @@ body {
   -webkit-text-fill-color: #94a3b8;
 }
 
+/* Las pantallas secundarias comparten esta superficie para que el tema no se
+ * pierda al navegar desde Inicio. Los selectores se limitan a estas vistas y
+ * conservan los colores de acción (teal, violeta, naranja y rojo). */
+.dark .zipco-theme-surface {
+  background-color: #020617 !important;
+  background-image: linear-gradient(to bottom, #020617, #0f172a 55%, #111827) !important;
+  color: #e2e8f0;
+}
+
+.dark .zipco-theme-surface [class*="bg-white"],
+.dark .zipco-theme-navigation {
+  background-color: #111827 !important;
+}
+
+.dark .zipco-theme-surface [class*="bg-gray-50"],
+.dark .zipco-theme-surface [class*="bg-slate-50"] {
+  background-color: #1e293b !important;
+}
+
+.dark .zipco-theme-surface [class*="text-gray-900"],
+.dark .zipco-theme-surface [class*="text-slate-950"],
+.dark .zipco-theme-surface [class*="text-slate-900"] {
+  color: #f8fafc !important;
+}
+
+.dark .zipco-theme-surface [class*="text-gray-700"],
+.dark .zipco-theme-surface [class*="text-slate-700"],
+.dark .zipco-theme-surface [class*="text-slate-800"] {
+  color: #e2e8f0 !important;
+}
+
+.dark .zipco-theme-surface [class*="text-gray-600"],
+.dark .zipco-theme-surface [class*="text-slate-600"] {
+  color: #cbd5e1 !important;
+}
+
+.dark .zipco-theme-surface [class*="text-gray-500"],
+.dark .zipco-theme-surface [class*="text-slate-500"] {
+  color: #94a3b8 !important;
+}
+
+.dark .zipco-theme-surface [class*="border-gray-"],
+.dark .zipco-theme-surface [class*="border-slate-"],
+.dark .zipco-theme-surface [class*="border-white"] {
+  border-color: #334155 !important;
+}
+
+.dark .zipco-theme-surface input:not([type="radio"]):not([type="checkbox"]):not([type="range"]),
+.dark .zipco-theme-surface textarea,
+.dark .zipco-theme-surface select {
+  border-color: #475569;
+  background-color: #0f172a !important;
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #2dd4bf;
+}
+
+.dark .zipco-theme-surface input::placeholder,
+.dark .zipco-theme-surface textarea::placeholder {
+  color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
+  opacity: 1;
+}
+
+.dark .zipco-theme-surface [class*="from-orange-50"],
+.dark .zipco-theme-surface [class*="from-amber-50"] {
+  background-image: linear-gradient(to bottom right, #292016, #1e293b) !important;
+}
+
+.dark .zipco-theme-surface [class*="from-purple-50"],
+.dark .zipco-theme-surface [class*="from-violet-50"] {
+  background-image: linear-gradient(to bottom right, #211a38, #1e293b) !important;
+}
+
+.dark .zipco-theme-surface [class*="from-teal-50"],
+.dark .zipco-theme-surface [class*="from-emerald-50"] {
+  background-image: linear-gradient(to bottom right, #0b2d2b, #172554) !important;
+}
+
+.dark .zipco-theme-navigation {
+  border-top: 1px solid #1e293b;
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.28) !important;
+}
+
+.dark .zipco-theme-navigation [class*="bg-white"] {
+  background-color: #1e293b !important;
+}
+
 /*
  * Los navegadores móviles pueden ampliar automáticamente la página al enfocar
  * controles cuyo texto mide menos de 16 px. Esto mantiene estable el viewport

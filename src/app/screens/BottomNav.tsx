@@ -13,7 +13,7 @@ export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { act
 
   return (
     <div
-      className="absolute bottom-0 left-0 right-0 bg-white px-6 pt-1.5 shadow-[0_-6px_20px_rgba(15,23,42,0.07)]"
+      className="zipco-theme-navigation absolute bottom-0 left-0 right-0 bg-white px-6 pt-1.5 shadow-[0_-6px_20px_rgba(15,23,42,0.07)]"
       style={{ paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex items-center justify-around">
