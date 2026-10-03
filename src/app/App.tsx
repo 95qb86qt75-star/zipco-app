@@ -296,6 +296,7 @@ export default function App() {
 
   useEffect(() => {
     let consuming = false;
+    const resumeTimers = new Set<number>();
     const consumeStoredNotificationTarget = async () => {
       if (consuming || !("caches" in window)) return;
       consuming = true;
@@ -329,14 +330,26 @@ export default function App() {
       }
     };
     const handleResume = () => {
-      if (document.visibilityState === "visible")
-        void consumeStoredNotificationTarget();
+      if (document.visibilityState !== "visible") return;
+
+      // On iOS the app can become visible before notificationclick finishes
+      // persisting its destination. Retry briefly so a resumed PWA never loses
+      // the deep link and remains on Inicio.
+      [0, 200, 700, 1_500].forEach((delay) => {
+        const timer = window.setTimeout(() => {
+          resumeTimers.delete(timer);
+          void consumeStoredNotificationTarget();
+        }, delay);
+        resumeTimers.add(timer);
+      });
     };
-    void consumeStoredNotificationTarget();
+    handleResume();
     document.addEventListener("visibilitychange", handleResume);
     window.addEventListener("pageshow", handleResume);
     window.addEventListener("focus", handleResume);
     return () => {
+      resumeTimers.forEach((timer) => window.clearTimeout(timer));
+      resumeTimers.clear();
       document.removeEventListener("visibilitychange", handleResume);
       window.removeEventListener("pageshow", handleResume);
       window.removeEventListener("focus", handleResume);

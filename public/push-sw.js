@@ -62,7 +62,11 @@ self.addEventListener('notificationclick', (event) => {
       if ('navigate' in client) {
         try {
           const navigatedClient = await client.navigate(target);
-          await (navigatedClient || client).focus();
+          const focusedClient = navigatedClient || client;
+          await focusedClient.focus();
+          // WebKit can resume the installed PWA after the first message was
+          // dispatched. Send the route once more to the client it surfaced.
+          focusedClient.postMessage(navigationMessage);
           return;
         } catch {
           // Older browsers can reject WindowClient.navigate; retain the
@@ -71,6 +75,7 @@ self.addEventListener('notificationclick', (event) => {
       }
       client.postMessage(navigationMessage);
       await client.focus();
+      client.postMessage(navigationMessage);
       return;
     }
     return self.clients.openWindow(target);
