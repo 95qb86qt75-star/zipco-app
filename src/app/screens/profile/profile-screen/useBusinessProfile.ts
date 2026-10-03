@@ -49,6 +49,9 @@ export function useBusinessProfile() {
   });
   const [isUploadingBusinessPhoto, setIsUploadingBusinessPhoto] =
     useState(false);
+  const [isSavingBusinessInfo, setIsSavingBusinessInfo] = useState(false);
+  const [businessInfoSaveSucceeded, setBusinessInfoSaveSucceeded] =
+    useState(false);
 
   const parseKeywords = (value: any): string[] => {
     if (Array.isArray(value)) {
@@ -259,6 +262,7 @@ export function useBusinessProfile() {
   };
 
   const handleStartEditingBusinessInfo = () => {
+    setBusinessInfoSaveSucceeded(false);
     setBusinessSocialForm({
       name: businessInfo.name,
       description: businessInfo.description,
@@ -275,6 +279,9 @@ export function useBusinessProfile() {
       showAppToast("No se pudo guardar el negocio", "error");
       return;
     }
+
+    setIsSavingBusinessInfo(true);
+    setBusinessInfoSaveSucceeded(false);
 
     try {
       const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
@@ -303,10 +310,16 @@ export function useBusinessProfile() {
         instagram: businessSocialForm.instagram,
         facebook: businessSocialForm.facebook,
       }));
-      setIsEditingBusinessInfo(false);
+      setBusinessInfoSaveSucceeded(true);
       showAppToast("Datos del negocio actualizados correctamente", "success");
+      window.setTimeout(() => {
+        setIsEditingBusinessInfo(false);
+        setBusinessInfoSaveSucceeded(false);
+      }, 900);
     } catch (error) {
       showAppToast("No se pudo guardar el negocio", "error");
+    } finally {
+      setIsSavingBusinessInfo(false);
     }
   };
 
@@ -473,6 +486,8 @@ export function useBusinessProfile() {
     businessSocialForm,
     setBusinessSocialForm,
     isUploadingBusinessPhoto,
+    isSavingBusinessInfo,
+    businessInfoSaveSucceeded,
     uploadBusinessPhoto,
     isBusinessFieldMissing,
     isBusinessReadyToPublish,

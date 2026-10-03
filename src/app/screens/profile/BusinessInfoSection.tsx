@@ -1,12 +1,15 @@
 import { useRef } from "react";
 import {
   Camera,
+  Check,
   ChevronRight,
   Facebook,
   ImageIcon,
   Instagram,
   MapPinIcon,
+  LoaderCircle,
   Phone,
+  Save,
   Settings,
   Store,
 } from "lucide-react";
@@ -21,6 +24,8 @@ export default function BusinessInfoSection({
   businessTextClass,
   isEditingBusinessInfo,
   handleSaveBusinessInfo,
+  isSavingBusinessInfo,
+  businessInfoSaveSucceeded,
   handleStartEditingBusinessInfo,
   businessInfo,
   businessSubtextClass,
@@ -82,7 +87,9 @@ export default function BusinessInfoSection({
                     </button>
                   )}
                 </div>
-                <div className="flex items-center gap-3 mb-3">
+                <div
+                  className={`flex items-center gap-3 mb-3 ${isEditingBusinessInfo ? "flex-wrap" : ""}`}
+                >
                   <div className="relative shrink-0">
                     {businessInfo.image ? (
                       <ImageWithFallback
@@ -134,7 +141,7 @@ export default function BusinessInfoSection({
                     )}
                   </div>
                   {isEditingBusinessInfo ? (
-                    <div className="space-y-3 pt-2">
+                    <div className="w-full basis-full space-y-3 pt-3">
                       <div>
                         <label
                           className={`text-xs mb-1 block ${isBusinessProfileTab ? "text-white/70" : "text-gray-500"}`}
@@ -285,6 +292,48 @@ export default function BusinessInfoSection({
                 </div>
               </div>
 
+              {isEditingBusinessInfo && (
+                <div className="mb-4 rounded-2xl border border-teal-400/30 bg-gradient-to-r from-teal-500/10 via-cyan-400/10 to-emerald-400/10 p-2 shadow-lg shadow-teal-500/10 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={handleSaveBusinessInfo}
+                    disabled={isSavingBusinessInfo || businessInfoSaveSucceeded}
+                    aria-live="polite"
+                    className={`flex min-h-14 w-full items-center justify-center gap-3 rounded-xl px-6 py-3.5 font-bold text-white shadow-lg transition-all duration-300 active:scale-[0.98] disabled:cursor-default ${
+                      businessInfoSaveSucceeded
+                        ? "scale-[1.01] bg-emerald-500 shadow-emerald-500/30"
+                        : "bg-gradient-to-r from-[#00A99D] to-[#00C98D] shadow-teal-500/25 hover:brightness-105"
+                    }`}
+                  >
+                    {businessInfoSaveSucceeded ? (
+                      <Check className="h-6 w-6 animate-bounce" />
+                    ) : isSavingBusinessInfo ? (
+                      <LoaderCircle className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Save className="h-5 w-5" />
+                    )}
+                    <span>
+                      {businessInfoSaveSucceeded
+                        ? "Cambios guardados"
+                        : isSavingBusinessInfo
+                          ? "Guardando..."
+                          : "Guardar cambios"}
+                    </span>
+                  </button>
+                  {!businessInfoSaveSucceeded && (
+                    <p
+                      className={`px-2 pb-1 pt-2 text-center text-xs ${
+                        isBusinessProfileTab
+                          ? "text-white/70"
+                          : "text-slate-500"
+                      }`}
+                    >
+                      Guarda primero la información antes de publicarla.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Business Configuration Button */}
               <button
                 onClick={() => setShowBusinessConfig(true)}
@@ -335,35 +384,26 @@ export default function BusinessInfoSection({
                   ))}
               </button>
 
-              <button
-                type="button"
-                onClick={handlePublishBusiness}
-                disabled={businessStatus === "approved"}
-                aria-disabled={
-                  !isBusinessReadyToPublish || businessStatus === "approved"
-                }
-                className={`w-full py-4 px-6 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] mb-4 ${
-                  businessStatus === "approved"
-                    ? "border border-emerald-300 bg-emerald-50 text-emerald-700 shadow-emerald-500/10"
-                    : isBusinessReadyToPublish
-                      ? "bg-[#00BFA5] text-white hover:bg-teal-600 shadow-teal-500/30"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-gray-300/30"
-                }`}
-              >
-                {businessStatus === "approved"
-                  ? `${providerType} publicado`
-                  : `Publicar ${providerType.toLowerCase()}`}
-              </button>
-              {isEditingBusinessInfo && (
-                <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md bg-white/95 px-4 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.12)] backdrop-blur-md">
-                  <button
-                    type="button"
-                    onClick={handleSaveBusinessInfo}
-                    className="w-full rounded-2xl bg-[#14C8B8] px-6 py-4 font-bold text-white shadow-lg shadow-[#14C8B8]/25 transition-all hover:bg-[#0FB6A8] active:scale-[0.98]"
-                  >
-                    Guardar cambios
-                  </button>
-                </div>
+              {!isEditingBusinessInfo && (
+                <button
+                  type="button"
+                  onClick={handlePublishBusiness}
+                  disabled={businessStatus === "approved"}
+                  aria-disabled={
+                    !isBusinessReadyToPublish || businessStatus === "approved"
+                  }
+                  className={`w-full py-4 px-6 rounded-2xl font-semibold shadow-lg transition-all active:scale-[0.98] mb-4 ${
+                    businessStatus === "approved"
+                      ? "border border-emerald-300 bg-emerald-50 text-emerald-700 shadow-emerald-500/10"
+                      : isBusinessReadyToPublish
+                        ? "bg-[#00BFA5] text-white hover:bg-teal-600 shadow-teal-500/30"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-gray-300/30"
+                  }`}
+                >
+                  {businessStatus === "approved"
+                    ? `${providerType} publicado`
+                    : `Publicar ${providerType.toLowerCase()}`}
+                </button>
               )}
             </>
           )}

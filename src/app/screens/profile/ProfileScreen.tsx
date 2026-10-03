@@ -165,6 +165,8 @@ export default function ProfileScreen({
           businessTextClass={businessTextClass}
           isEditingBusinessInfo={businessProfile.isEditingBusinessInfo}
           handleSaveBusinessInfo={businessProfile.handleSaveBusinessInfo}
+          isSavingBusinessInfo={businessProfile.isSavingBusinessInfo}
+          businessInfoSaveSucceeded={businessProfile.businessInfoSaveSucceeded}
           handleStartEditingBusinessInfo={
             businessProfile.handleStartEditingBusinessInfo
           }
