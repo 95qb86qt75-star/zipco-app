@@ -57,7 +57,7 @@ export default function MyOrderCard({
         event.currentTarget.classList.remove("zipco-notification-target");
         onOpen?.();
       }}
-      className={`scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-gradient-to-br from-white to-slate-50"}`}
+      className={`zipco-customer-order-card zipco-order-${order.status} scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-gradient-to-br from-white to-slate-50"}`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         <ImageWithFallback
@@ -91,7 +91,9 @@ export default function MyOrderCard({
           {schedule && (
             <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{schedule}</span>
+              <span className="whitespace-normal leading-tight">
+                {schedule}
+              </span>
             </p>
           )}
           {order.note && (
@@ -179,6 +181,7 @@ export default function MyOrderCard({
           {action === "complete-reception" && (
             <Bell className="zipco-attention-bell h-4 w-4" />
           )}
+          {action === "cancel" && <XCircle className="h-4 w-4" />}
           {isUpdating
             ? "Guardando..."
             : action === "cancel"

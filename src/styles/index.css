@@ -459,6 +459,87 @@ body {
   ) !important;
 }
 
+.zipco-catalog-card,
+.zipco-customer-order-card {
+  isolation: isolate;
+}
+
+.dark .zipco-catalog-card {
+  color: #f8fafc;
+  background-image: linear-gradient(145deg, #111827, #13223a) !important;
+  border-color: rgb(45 212 191 / 0.62) !important;
+  box-shadow: 0 10px 28px rgb(13 148 136 / 0.12);
+}
+
+.dark .zipco-catalog-card[class*="border-violet"] {
+  background-image: linear-gradient(145deg, #111827, #24183d) !important;
+  border-color: rgb(167 139 250 / 0.68) !important;
+  box-shadow: 0 10px 28px rgb(124 58 237 / 0.14);
+}
+
+.dark .zipco-catalog-card h4,
+.dark .zipco-catalog-card [class*="text-slate-950"] {
+  color: #f8fafc !important;
+}
+
+.dark .zipco-catalog-card p,
+.dark .zipco-catalog-card [class*="text-slate-500"] {
+  color: #cbd5e1 !important;
+}
+
+.dark .zipco-customer-order-card {
+  background-image: linear-gradient(145deg, #111827, #122238) !important;
+  border-color: rgb(45 212 191 / 0.42) !important;
+  box-shadow: 0 10px 30px rgb(2 6 23 / 0.34);
+}
+
+.zipco-order-pending::before {
+  content: "";
+  position: absolute;
+  inset: 0 18% auto;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+  animation: zipco-order-progress 2.4s ease-in-out infinite;
+}
+
+.zipco-customer-order-card {
+  position: relative;
+  overflow: hidden;
+}
+.zipco-pending-clock {
+  animation: zipco-pending-clock 1.8s ease-in-out infinite;
+}
+
+@keyframes zipco-order-progress {
+  0%,
+  100% {
+    transform: translateX(-95%);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateX(95%);
+    opacity: 1;
+  }
+}
+
+@keyframes zipco-pending-clock {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zipco-order-pending::before,
+  .zipco-pending-clock {
+    animation: none;
+  }
+}
+
 .dark .zipco-theme-navigation {
   border-top: 1px solid #1e293b;
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.28) !important;

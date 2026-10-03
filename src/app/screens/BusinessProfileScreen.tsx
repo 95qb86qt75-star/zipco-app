@@ -12,7 +12,7 @@ import {
   Store,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import {
   isOwnBusiness,
@@ -129,6 +129,7 @@ export default function BusinessProfileScreen({
   const [catalogFilter, setCatalogFilter] = useState<
     "all" | "fixed_price" | "quote" | "view"
   >("all");
+  const reduceMotion = useReducedMotion();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrolledRef = useRef(false);
   const touchStartYRef = useRef<number | null>(null);
@@ -526,7 +527,7 @@ export default function BusinessProfileScreen({
 
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-auto px-4 pt-3 pb-28"
+        className="flex-1 overflow-auto px-4 pt-3 pb-40"
       >
         <h3 className="text-base font-bold text-gray-900 mb-1.5">
           Productos y servicios
@@ -581,141 +582,154 @@ export default function BusinessProfileScreen({
                 )
                   .filter(([, , count]) => count > 0)
                   .map(([id, label, count]) => (
-                    <button
+                    <motion.button
                       key={id}
                       type="button"
                       onClick={() => setCatalogFilter(id)}
+                      whileTap={reduceMotion ? undefined : { scale: 0.96 }}
                       className={`shrink-0 rounded-full px-3 py-2 text-[11px] font-bold transition-all ${catalogFilter === id ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-sm" : "bg-slate-100 text-slate-600"}`}
                     >
                       {label} ({count})
-                    </button>
+                    </motion.button>
                   ))}
               </div>
             </div>
 
-            <div className="space-y-2">
-              {visibleProducts.map((product) => {
-                const isSelected = selectedProducts.includes(product.id);
-                const action = getCatalogItemAction(product);
-                const canOrder = action === "order";
-                const priceLabel = getPublicCatalogPriceLabel(product);
-                return (
-                  <div
-                    key={product.id}
-                    onClick={() => {
-                      setPreviewProduct(product);
-                    }}
-                    className={`relative overflow-hidden rounded-xl border-2 p-3 shadow-md transition-all ${
-                      canOrder
-                        ? isSelected
-                          ? "border-teal-400 bg-emerald-50 ring-1 ring-teal-200"
-                          : "border-teal-200 bg-gradient-to-br from-white to-teal-50 hover:shadow-md"
-                        : product.pricingMode === "quote"
-                          ? "cursor-pointer border-violet-200 bg-gradient-to-br from-white to-violet-50 hover:shadow-md"
-                          : "cursor-pointer border-slate-200 bg-gradient-to-br from-white to-slate-50 hover:shadow-md"
-                    }`}
-                  >
-                    <div className="grid grid-cols-[56px_minmax(0,1fr)_96px] items-center gap-2.5 min-[430px]:grid-cols-[64px_minmax(0,1fr)_105px]">
-                      <div className="relative">
-                        <ImageWithFallback
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="h-14 w-14 rounded-lg object-cover min-[430px]:h-16 min-[430px]:w-16"
-                        />
-                        <div
-                          className={`absolute -left-1.5 -top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-white shadow-lg ${
-                            canOrder
-                              ? "bg-gradient-to-br from-teal-400 to-emerald-500 shadow-teal-500/30"
-                              : "bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-500/30"
-                          }`}
-                        >
-                          {canOrder ? (
-                            <ShoppingCart className="h-4 w-4 text-white" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-white" />
-                          )}
-                        </div>
-                      </div>
-                      <div className="min-w-0 self-center">
-                        <h4 className="mb-0.5 line-clamp-2 text-[12px] font-bold leading-4 text-slate-950 min-[430px]:text-[13px]">
-                          {product.name}
-                        </h4>
-                        <p className="line-clamp-2 text-[10px] leading-[14px] text-slate-500 min-[430px]:text-[11px]">
-                          {product.description}
-                        </p>
-                      </div>
-                      <div className="flex h-full min-h-14 min-w-0 flex-col items-end justify-between">
-                        {priceLabel && product.pricingMode === "quote" ? (
-                          <span className="text-right text-violet-600">
-                            {priceLabel.startsWith("Desde ") && (
-                              <small className="block text-[9px] font-semibold leading-none text-slate-500">
-                                Desde
-                              </small>
-                            )}
-                            <strong className="text-[15px] font-black leading-none min-[430px]:text-[16px]">
-                              {priceLabel.replace(/^Desde /, "")}
-                            </strong>
-                          </span>
-                        ) : priceLabel ? (
-                          <span className="text-right text-[14px] font-extrabold leading-none text-slate-950 min-[430px]:text-[15px]">
-                            {priceLabel}
-                          </span>
-                        ) : null}
-                        {canOrder && !isOwnBusinessProfile && (
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleOrderToggle(product);
-                            }}
-                            className={`relative inline-flex min-h-8 w-auto items-center justify-center gap-1.5 rounded-lg border px-3 py-1 text-[11px] font-bold shadow-sm transition-all after:absolute after:-inset-y-1.5 after:inset-x-0 ${
-                              isSelected
-                                ? "border-green-500 bg-white text-green-600 shadow-sm"
-                                : "border-teal-500 bg-[#14C8B8] text-white shadow-sm shadow-teal-500/20 hover:bg-[#0FB5A7]"
+            <motion.div layout className="space-y-2">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {visibleProducts.map((product, index) => {
+                  const isSelected = selectedProducts.includes(product.id);
+                  const action = getCatalogItemAction(product);
+                  const canOrder = action === "order";
+                  const priceLabel = getPublicCatalogPriceLabel(product);
+                  return (
+                    <motion.div
+                      key={product.id}
+                      layout
+                      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={
+                        reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }
+                      }
+                      transition={{
+                        duration: 0.22,
+                        delay: reduceMotion ? 0 : index * 0.045,
+                      }}
+                      onClick={() => {
+                        setPreviewProduct(product);
+                      }}
+                      className={`zipco-catalog-card relative min-h-[88px] overflow-hidden rounded-xl border-2 p-3 shadow-md transition-all ${
+                        canOrder
+                          ? isSelected
+                            ? "border-teal-400 bg-emerald-50 ring-1 ring-teal-200"
+                            : "border-teal-200 bg-gradient-to-br from-white to-teal-50 hover:shadow-md"
+                          : product.pricingMode === "quote"
+                            ? "cursor-pointer border-violet-200 bg-gradient-to-br from-white to-violet-50 hover:shadow-md"
+                            : "cursor-pointer border-slate-200 bg-gradient-to-br from-white to-slate-50 hover:shadow-md"
+                      }`}
+                    >
+                      <div className="grid grid-cols-[56px_minmax(0,1fr)_96px] items-center gap-2.5 min-[430px]:grid-cols-[64px_minmax(0,1fr)_105px]">
+                        <div className="relative">
+                          <ImageWithFallback
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="h-14 w-14 rounded-lg object-cover min-[430px]:h-16 min-[430px]:w-16"
+                          />
+                          <div
+                            className={`absolute -left-1.5 -top-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-white shadow-lg ${
+                              canOrder
+                                ? "bg-gradient-to-br from-teal-400 to-emerald-500 shadow-teal-500/30"
+                                : "bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-500/30"
                             }`}
                           >
-                            <ShoppingCart className="h-4 w-4" />
-                            {isSelected ? "Agregado ✓" : "Agregar"}
-                          </button>
-                        )}
-                        {action === "view" || isOwnBusinessProfile ? (
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setPreviewProduct(product);
-                            }}
-                            className="relative inline-flex min-h-8 w-auto items-center justify-center gap-1.5 rounded-lg border border-violet-500 bg-white px-3 py-1 text-[11px] font-bold text-violet-600 shadow-sm transition-all after:absolute after:-inset-y-1.5 after:inset-x-0 hover:bg-violet-50"
-                          >
-                            <Eye className="h-4 w-4" />
-                            Ver detalle
-                          </button>
-                        ) : action === "quote-soon" ? (
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setQuoteItem(product);
-                            }}
-                            className="relative inline-flex min-h-8 w-auto items-center gap-1 rounded-lg bg-gradient-to-r from-violet-600 to-purple-500 px-3 py-1 text-[11px] font-bold text-white shadow-sm after:absolute after:-inset-y-1.5 after:inset-x-0"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            Cotizar
-                          </button>
-                        ) : !canOrder ? (
-                          <button
-                            type="button"
-                            className="relative min-h-8 w-auto rounded-lg border border-violet-400 bg-white px-3 py-1 text-[10px] font-bold leading-3 text-violet-600 shadow-sm after:absolute after:-inset-y-1.5 after:inset-x-0"
-                          >
-                            Solicitar servicio
-                          </button>
-                        ) : null}
+                            {canOrder ? (
+                              <ShoppingCart className="h-4 w-4 text-white" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-white" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="min-w-0 self-center">
+                          <h4 className="mb-0.5 line-clamp-2 text-[12px] font-bold leading-4 text-slate-950 min-[430px]:text-[13px]">
+                            {product.name}
+                          </h4>
+                          <p className="line-clamp-2 text-[10px] leading-[14px] text-slate-500 min-[430px]:text-[11px]">
+                            {product.description}
+                          </p>
+                        </div>
+                        <div className="flex h-full min-h-14 min-w-0 flex-col items-end justify-between">
+                          {priceLabel && product.pricingMode === "quote" ? (
+                            <span className="text-right text-violet-600">
+                              {priceLabel.startsWith("Desde ") && (
+                                <small className="block text-[9px] font-semibold leading-none text-slate-500">
+                                  Desde
+                                </small>
+                              )}
+                              <strong className="text-[15px] font-black leading-none min-[430px]:text-[16px]">
+                                {priceLabel.replace(/^Desde /, "")}
+                              </strong>
+                            </span>
+                          ) : priceLabel ? (
+                            <span className="text-right text-[14px] font-extrabold leading-none text-slate-950 min-[430px]:text-[15px]">
+                              {priceLabel}
+                            </span>
+                          ) : null}
+                          {canOrder && !isOwnBusinessProfile && (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOrderToggle(product);
+                              }}
+                              className={`relative inline-flex min-h-8 w-auto items-center justify-center gap-1.5 rounded-lg border px-3 py-1 text-[11px] font-bold shadow-sm transition-all after:absolute after:-inset-y-1.5 after:inset-x-0 ${
+                                isSelected
+                                  ? "border-green-500 bg-white text-green-600 shadow-sm"
+                                  : "border-teal-500 bg-[#14C8B8] text-white shadow-sm shadow-teal-500/20 hover:bg-[#0FB5A7]"
+                              }`}
+                            >
+                              <ShoppingCart className="h-4 w-4" />
+                              {isSelected ? "Agregado ✓" : "Agregar"}
+                            </button>
+                          )}
+                          {action === "view" || isOwnBusinessProfile ? (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setPreviewProduct(product);
+                              }}
+                              className="relative inline-flex min-h-8 w-auto items-center justify-center gap-1.5 rounded-lg border border-violet-500 bg-white px-3 py-1 text-[11px] font-bold text-violet-600 shadow-sm transition-all after:absolute after:-inset-y-1.5 after:inset-x-0 hover:bg-violet-50"
+                            >
+                              <Eye className="h-4 w-4" />
+                              Ver detalle
+                            </button>
+                          ) : action === "quote-soon" ? (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setQuoteItem(product);
+                              }}
+                              className="relative inline-flex min-h-8 w-auto items-center gap-1 rounded-lg bg-gradient-to-r from-violet-600 to-purple-500 px-3 py-1 text-[11px] font-bold text-white shadow-sm after:absolute after:-inset-y-1.5 after:inset-x-0"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              Cotizar
+                            </button>
+                          ) : !canOrder ? (
+                            <button
+                              type="button"
+                              className="relative min-h-8 w-auto rounded-lg border border-violet-400 bg-white px-3 py-1 text-[10px] font-bold leading-3 text-violet-600 shadow-sm after:absolute after:-inset-y-1.5 after:inset-x-0"
+                            >
+                              Solicitar servicio
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
           </>
         )}
       </div>
@@ -756,30 +770,109 @@ export default function BusinessProfileScreen({
         </div>
       )}
 
-      {previewProduct && (
-        <div className="absolute inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-sm rounded-3xl bg-white p-3 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setPreviewProduct(null)}
-              className="absolute right-4 top-4 z-10 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center text-gray-700 hover:bg-white"
+      <AnimatePresence>
+        {previewProduct && (
+          <motion.div
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreviewProduct(null)}
+          >
+            <motion.div
+              initial={
+                reduceMotion ? false : { opacity: 0, scale: 0.92, y: 22 }
+              }
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, scale: 0.94, y: 18 }
+              }
+              transition={{ type: "spring", stiffness: 310, damping: 28 }}
+              drag={reduceMotion ? false : "y"}
+              dragConstraints={{ top: 0, bottom: 150 }}
+              dragElastic={0.18}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 90) setPreviewProduct(null);
+              }}
+              onClick={(event) => event.stopPropagation()}
+              className="zipco-product-viewer relative w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-slate-950 shadow-2xl"
             >
-              <X className="w-5 h-5" />
-            </button>
-            <ImageWithFallback
-              src={previewProduct.imageUrl}
-              alt={previewProduct.name}
-              className="w-full max-h-[70vh] rounded-2xl object-cover"
-            />
-            <div className="px-2 pt-3">
-              <h4 className="font-bold text-gray-900">{previewProduct.name}</h4>
-              <p className="text-sm text-gray-600">
-                {previewProduct.description}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+              <button
+                type="button"
+                onClick={() => setPreviewProduct(null)}
+                className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-slate-950/75 text-white shadow-lg backdrop-blur-md transition-transform active:scale-90"
+                aria-label="Cerrar detalle"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <ImageWithFallback
+                src={previewProduct.imageUrl}
+                alt={previewProduct.name}
+                className="h-[42vh] min-h-64 w-full bg-black/40 object-contain"
+              />
+              <div className="space-y-2 bg-gradient-to-b from-slate-900 to-slate-950 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-teal-300">
+                      {previewProduct.pricingMode === "quote"
+                        ? "Cotización"
+                        : previewProduct.pricingMode === "view"
+                          ? "Solo información"
+                          : "Precio fijo"}
+                    </span>
+                    <h4 className="mt-1 text-lg font-black text-white">
+                      {previewProduct.name}
+                    </h4>
+                  </div>
+                  {getPublicCatalogPriceLabel(previewProduct) && (
+                    <strong className="shrink-0 text-lg font-black text-teal-300">
+                      {getPublicCatalogPriceLabel(previewProduct)}
+                    </strong>
+                  )}
+                </div>
+                <p className="max-h-24 overflow-y-auto text-sm leading-relaxed text-slate-300">
+                  {previewProduct.description}
+                </p>
+                {!isOwnBusinessProfile &&
+                  getCatalogItemAction(previewProduct) === "order" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleOrderToggle(previewProduct);
+                        setPreviewProduct(null);
+                      }}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 py-3 text-sm font-black text-white shadow-lg shadow-teal-500/20"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      {selectedProducts.includes(previewProduct.id)
+                        ? "Quitar del pedido"
+                        : "Agregar al pedido"}
+                    </button>
+                  )}
+                {!isOwnBusinessProfile &&
+                  getCatalogItemAction(previewProduct) === "quote-soon" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuoteItem(previewProduct);
+                        setPreviewProduct(null);
+                      }}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-500 py-3 text-sm font-black text-white shadow-lg shadow-violet-500/20"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Solicitar cotización
+                    </button>
+                  )}
+                <p className="text-center text-[10px] font-semibold text-slate-500">
+                  Desliza hacia abajo para cerrar
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {quoteItem && parseBusinessId(business.id) !== null && (
         <QuoteRequestModal
           businessId={parseBusinessId(business.id) as number}
