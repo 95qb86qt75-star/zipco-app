@@ -162,6 +162,19 @@ body {
   opacity: 1;
 }
 
+.dark .zipco-readable-field {
+  border-color: #475569;
+  background-color: rgba(15, 23, 42, 0.88);
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #2dd4bf;
+}
+
+.dark .zipco-readable-field::placeholder {
+  color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
+}
+
 /*
  * Los navegadores móviles pueden ampliar automáticamente la página al enfocar
  * controles cuyo texto mide menos de 16 px. Esto mantiene estable el viewport
