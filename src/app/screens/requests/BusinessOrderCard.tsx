@@ -61,11 +61,7 @@ export default function BusinessOrderCard({
   const canAccept =
     request.status === "pending" && request.products.state === "available";
   const action: OrderAction | null =
-    request.status === "accepted"
-      ? "mark-ready"
-      : request.status === "ready"
-        ? "complete-delivery"
-        : null;
+    request.status === "accepted" ? "mark-ready" : null;
   const schedule = formatBusinessDeliverySchedule(request);
   const price = request.alternativePriceClp ?? request.total;
   const statusLabel =
@@ -121,21 +117,21 @@ export default function BusinessOrderCard({
         handleOpen(event.currentTarget);
         onToggle?.();
       }}
-      className={`zipco-provider-card zipco-state-${request.status} ${isUnread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-slate-200"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
+      className={`zipco-provider-card zipco-order-progress-card zipco-state-${request.status} ${isUnread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-slate-200"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
     >
       <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
-        {request.referencePhoto ? (
+        {request.customerImage ? (
           <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              setShowPhoto(true);
+              event.stopPropagation();
             }}
           >
             <ImageWithFallback
-              src={request.referencePhoto}
-              alt="Foto de referencia"
-              className="h-[62px] w-[62px] rounded-[14px] object-cover"
+              src={request.customerImage}
+              alt={request.customerName || "Cliente"}
+              className="h-[62px] w-[62px] rounded-[14px] border border-cyan-300/50 object-cover shadow-[0_0_16px_rgba(34,211,238,0.16)]"
             />
           </button>
         ) : (
@@ -209,14 +205,20 @@ export default function BusinessOrderCard({
                 {request.status === "pending"
                   ? "Pedido del cliente"
                   : request.status === "ready"
-                    ? "Pedido preparado"
-                    : "Seguimiento del pedido"}
+                    ? "Pedido listo"
+                    : request.status === "accepted"
+                      ? "En preparación"
+                      : "Seguimiento del pedido"}
               </span>
               <span className="zipco-open-hint mt-1 inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-100 px-2 py-1 text-[11px] font-black text-violet-700">
                 <MousePointerClick className="h-3.5 w-3.5" />
                 {request.status === "pending"
                   ? "Revisar y responder"
-                  : "Ver seguimiento"}
+                  : request.status === "accepted"
+                    ? "Marcar como listo y notificar"
+                    : request.status === "ready"
+                      ? "Esperando confirmación del cliente"
+                      : "Ver seguimiento"}
               </span>
             </span>
             {price !== null && (
@@ -269,6 +271,34 @@ export default function BusinessOrderCard({
                   ))}
                 </div>
               )}
+              {(request.status === "accepted" ||
+                request.status === "ready") && (
+                <div className="mt-3 grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-1 text-[9px] font-bold text-slate-500">
+                  <span className="rounded-full bg-emerald-500 px-2 py-1 text-white">
+                    Aceptado
+                  </span>
+                  <span className="h-px bg-emerald-300" />
+                  <span
+                    className={`rounded-full px-2 py-1 ${request.status === "accepted" ? "bg-cyan-500 text-white" : "bg-emerald-500 text-white"}`}
+                  >
+                    Preparación
+                  </span>
+                  <span
+                    className={`h-px ${request.status === "ready" ? "bg-emerald-300" : "bg-slate-300"}`}
+                  />
+                  <span
+                    className={`rounded-full px-2 py-1 ${request.status === "ready" ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"}`}
+                  >
+                    Listo
+                  </span>
+                </div>
+              )}
+              {request.status === "ready" && (
+                <p className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-300/50 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-200">
+                  <Bell className="zipco-ready-wave h-4 w-4" /> Esperando que el
+                  cliente confirme la recepción.
+                </p>
+              )}
               {request.note && (
                 <p className="mt-2 flex items-start gap-1.5 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">
                   <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />“
@@ -288,6 +318,13 @@ export default function BusinessOrderCard({
                         ? ` · Cantidad ${request.alternativeQuantity}`
                         : ""}
                     </p>
+                  )}
+                  {request.alternativePhoto && (
+                    <ImageWithFallback
+                      src={request.alternativePhoto}
+                      alt="Referencia de la alternativa"
+                      className="mt-2 h-32 w-full rounded-xl object-cover"
+                    />
                   )}
                 </div>
               )}
@@ -354,7 +391,7 @@ export default function BusinessOrderCard({
                 {isUpdating
                   ? "Guardando..."
                   : action === "mark-ready"
-                    ? "Marcar pedido listo"
+                    ? "Marcar como listo y notificar"
                     : "Confirmar entrega"}
               </button>
             )}

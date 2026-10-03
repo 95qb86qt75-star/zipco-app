@@ -14,7 +14,15 @@ self.addEventListener('push', (event) => {
     renotify: false,
     data: { url: data.url || '/', orderId: data.orderId, quoteId: data.quoteId }
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const visibleClients = clients.filter((client) => client.visibilityState === 'visible');
+    if (visibleClients.length > 0) {
+      visibleClients.forEach((client) => client.postMessage(data));
+      return;
+    }
+    await self.registration.showNotification(title, options);
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {

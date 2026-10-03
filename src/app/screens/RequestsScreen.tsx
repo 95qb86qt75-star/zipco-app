@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Trash2,
   ShoppingBag,
+  Store,
   X,
 } from "lucide-react";
 import BusinessOrdersTab from "./requests/BusinessOrdersTab";
@@ -79,6 +80,7 @@ export default function RequestsScreen({
     id: number;
     label: string;
   } | null>(null);
+  const [activeTransfer, setActiveTransfer] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const { unread } = useUnreadInteractions();
   const {
@@ -155,6 +157,14 @@ export default function RequestsScreen({
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
   );
+  const acceptedBusinessQuotes =
+    subTab === "my-business" && requestType === "quotes"
+      ? quotes.businessQuotes.filter(
+          (quote) =>
+            quote.status === "accepted" &&
+            unread.has(interactionKey("quote", quote.id)),
+        )
+      : [];
   const unreadHistoryCount = (
     requestType === "orders" ? orderRecords : quoteRecords
   )
@@ -279,6 +289,20 @@ export default function RequestsScreen({
       ]);
       setHistoryTransfer(null);
       if (completed) markInteractionUnread("quote", quote.id);
+      return;
+    }
+    if (status === "accepted") {
+      setActiveTransfer("Cotización aceptada");
+      const minimumAnimation = new Promise((resolve) =>
+        window.setTimeout(resolve, prefersReducedMotion ? 160 : 1050),
+      );
+      const [changed] = await Promise.all([
+        quotes.changeStatus(quote, status, reason, detail),
+        minimumAnimation,
+      ]);
+      setActiveTransfer(null);
+      if (changed)
+        setStatusViews((current) => ({ ...current, [viewKey]: "active" }));
       return;
     }
     const changed = await quotes.changeStatus(quote, status, reason, detail);
@@ -441,7 +465,7 @@ export default function RequestsScreen({
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               subTab === "my-orders"
                 ? hasBusiness
-                  ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
+                  ? "bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-lg shadow-cyan-500/20"
                   : "bg-transparent text-teal-600"
                 : "bg-white/60 text-gray-600 hover:bg-white/80"
             }`}
@@ -462,12 +486,13 @@ export default function RequestsScreen({
                 setSubTab("my-business");
                 setAttentionFilter(null);
               }}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
+              className={`flex flex-1 items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
                 subTab === "my-business"
-                  ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
+                  ? "bg-gradient-to-r from-emerald-600 to-green-500 text-white shadow-lg shadow-emerald-500/20"
                   : "bg-white/60 text-gray-600 hover:bg-white/80"
               }`}
             >
+              <Store className="h-4 w-4" />
               Mi Negocio
             </button>
           )}
@@ -500,9 +525,7 @@ export default function RequestsScreen({
             Cotizaciones
           </motion.button>
         </div>
-        <div
-          className={`mb-3 grid gap-2 ${requestType === "quotes" ? "grid-cols-4" : "grid-cols-3"}`}
-        >
+        <div className="mb-3 grid grid-cols-4 gap-2">
           {(requestType === "quotes"
             ? ([
                 {
@@ -532,6 +555,12 @@ export default function RequestsScreen({
                   key: "pending",
                   label: "Pendientes",
                   count: statusCounts.pending,
+                },
+                {
+                  key: "waiting",
+                  label:
+                    subTab === "my-business" ? "Esperando" : "Por responder",
+                  count: statusCounts.waiting,
                 },
                 {
                   key: "active",
@@ -568,6 +597,32 @@ export default function RequestsScreen({
             </motion.button>
           ))}
         </div>
+        {acceptedBusinessQuotes.length > 0 && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+            onClick={() => selectStatusView("active")}
+            className="mb-3 flex w-full items-center gap-3 rounded-2xl border border-emerald-300/70 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-3 text-left text-white shadow-[0_12px_28px_rgba(16,185,129,0.25)]"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Check className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-black">
+                {acceptedBusinessQuotes.length}{" "}
+                {acceptedBusinessQuotes.length === 1
+                  ? "cotización aceptada"
+                  : "cotizaciones aceptadas"}
+              </span>
+              <span className="block text-xs text-white/85">
+                El cliente aceptó tu propuesta. Ya puedes comenzar el servicio.
+              </span>
+            </span>
+            <ChevronRight className="h-5 w-5" />
+          </motion.button>
+        )}
         {subTab === "my-orders" &&
           (responseCustomerItems.length > 0 ||
             readyCustomerItems.length > 0) && (
@@ -592,7 +647,7 @@ export default function RequestsScreen({
                       }));
                     }
                   }}
-                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "responses" ? "border-amber-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white shadow-[0_12px_30px_rgba(234,88,12,0.34)]" : "border-orange-200 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 shadow-sm"}`}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow] duration-300 ${attentionFilter === "responses" ? (requestType === "quotes" ? "border-violet-400 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 text-white shadow-[0_12px_30px_rgba(124,58,237,0.30)]" : "border-amber-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white shadow-[0_12px_30px_rgba(234,88,12,0.34)]") : requestType === "quotes" ? "border-violet-200 bg-gradient-to-r from-violet-50 to-indigo-50 text-slate-900 shadow-sm" : "border-orange-200 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 shadow-sm"}`}
                 >
                   <span
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${attentionFilter === "responses" ? "bg-white/20 text-white shadow-inner" : "bg-white text-orange-500"}`}
@@ -602,17 +657,20 @@ export default function RequestsScreen({
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-black">
                       {responseCustomerItems.length}{" "}
-                      {responseCustomerItems.length === 1
-                        ? "nueva respuesta del negocio"
-                        : "nuevas respuestas del negocio"}
+                      {requestType === "quotes"
+                        ? responseCustomerItems.length === 1
+                          ? "cotización lista para revisar"
+                          : "cotizaciones listas para revisar"
+                        : responseCustomerItems.length === 1
+                          ? "nueva respuesta del negocio"
+                          : "nuevas respuestas del negocio"}
                     </span>
                     <span
                       className={`block text-xs ${attentionFilter === "responses" ? "text-white/85" : "text-slate-500"}`}
                     >
-                      Tienes {responseCustomerItems.length}{" "}
-                      {requestType === "orders" ? "pedido" : "cotización"}
-                      {responseCustomerItems.length === 1 ? "" : "es"} con una
-                      nueva respuesta.
+                      {requestType === "quotes"
+                        ? "El negocio envió una propuesta de precio."
+                        : `Tienes ${responseCustomerItems.length} pedido${responseCustomerItems.length === 1 ? "" : "s"} con una nueva respuesta.`}
                     </span>
                   </span>
                   <ChevronRight
@@ -816,12 +874,8 @@ export default function RequestsScreen({
                 }));
               }}
               onStatus={changeQuoteStatusAndFollow}
-              onAlternative={(quote, payload) => {
-                quotes.proposeAlternative(quote, payload);
-                setStatusViews((current) => ({
-                  ...current,
-                  [viewKey]: "waiting",
-                }));
+              onAlternative={async (quote, payload) => {
+                await quotes.proposeAlternative(quote, payload);
               }}
               emptyText={emptyCopy.description}
             />
@@ -970,6 +1024,35 @@ export default function RequestsScreen({
           </>
         )}
       </div>
+      <AnimatePresence>
+        {activeTransfer && (
+          <motion.div
+            className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/25 px-6 backdrop-blur-[2px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="zipco-hologram-card relative w-[235px] overflow-hidden rounded-[28px] border border-violet-300/70 bg-slate-950/95 p-6 text-center text-white shadow-[0_0_55px_rgba(139,92,246,0.38)]"
+              initial={{ scale: 0.9, y: 16 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 0 }
+                  : { x: 95, y: -240, scale: 0.25, opacity: 0 }
+              }
+            >
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-emerald-400 shadow-[0_0_30px_rgba(45,212,191,0.45)]">
+                <Check className="h-8 w-8" />
+              </span>
+              <p className="mt-4 text-base font-black">{activeTransfer}</p>
+              <p className="mt-1 text-xs text-slate-300">
+                Moviendo el servicio a En curso
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {historyTransfer !== null && (
           <motion.div

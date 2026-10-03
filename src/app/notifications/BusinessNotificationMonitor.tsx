@@ -266,8 +266,8 @@ export default function BusinessNotificationMonitor({
             } else if (previous === "accepted" && quote.status === "ready") {
               announce(
                 `quote-${quote.id}-ready`,
-                "Tu solicitud está lista",
-                `El negocio marcó ${quote.itemNameSnapshot || "tu solicitud"} como lista o realizada.`,
+                "Servicio realizado",
+                `El negocio marcó ${quote.itemNameSnapshot || "tu servicio"} como realizado. Confirma cuando lo hayas recibido conforme.`,
                 { kind: "quote", id: quote.id },
                 `/?open=requests-customer-quotes&quoteId=${quote.id}`,
               );

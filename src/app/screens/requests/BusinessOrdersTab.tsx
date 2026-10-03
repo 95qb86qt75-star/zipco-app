@@ -1,8 +1,9 @@
-import { CalendarDays, ClipboardList } from "lucide-react";
+import { CalendarDays, ClipboardList, Sparkles } from "lucide-react";
 import { Fragment, useState } from "react";
 import BusinessOrderCard from "./BusinessOrderCard";
 import EmptyRequestsState from "./EmptyRequestsState";
 import OrderActionModal from "./OrderActionModal";
+import AlternativeProposalFields from "./AlternativeProposalFields";
 import type { BusinessRequest, ClosureReason, OrderAction } from "./types";
 import {
   interactionKey,
@@ -29,6 +30,7 @@ type Props = {
       item?: string;
       quantity?: number;
       priceClp?: number;
+      photo?: string;
       message: string;
     },
   ) => Promise<void>;
@@ -55,6 +57,8 @@ export default function BusinessOrdersTab({
   const [alternativeQuantity, setAlternativeQuantity] = useState("");
   const [alternativeDate, setAlternativeDate] = useState("");
   const [alternativeTime, setAlternativeTime] = useState("");
+  const [alternativePhoto, setAlternativePhoto] = useState("");
+  const [sendingAlternative, setSendingAlternative] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(() => {
     const targetId = Number(
       new URLSearchParams(window.location.search).get("orderId"),
@@ -108,6 +112,7 @@ export default function BusinessOrdersTab({
                   setAlternativeQuantity("");
                   setAlternativeDate("");
                   setAlternativeTime("");
+                  setAlternativePhoto("");
                 }}
                 isUnread={
                   order.recordState === "available" &&
@@ -173,58 +178,29 @@ export default function BusinessOrdersTab({
       />
       {alternative?.recordState === "available" && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div className="max-h-[88vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5">
+          <div className="relative max-h-[88vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 dark:bg-slate-900">
             <h3 className="text-lg font-black">Proponer una alternativa</h3>
             <p className="mt-1 text-sm text-slate-600">
-              El cliente solo podrá aceptarla o rechazarla.
+              Selecciona qué aspectos quieres modificar. El cliente podrá
+              aceptarla o rechazarla.
             </p>
-            <textarea
-              value={alternativeMessage}
-              onChange={(event) => setAlternativeMessage(event.target.value)}
-              rows={3}
-              placeholder="Explica la alternativa"
-              className="mt-4 w-full rounded-xl border p-3 text-sm"
+            <AlternativeProposalFields
+              original={`${alternative.products.state === "available" ? alternative.products.items.map((item) => `${item.quantity}x ${item.name}`).join(" · ") : "Pedido"} · $${Number(alternative.total).toLocaleString("es-CL")}`}
+              item={alternativeItem}
+              setItem={setAlternativeItem}
+              price={alternativePrice}
+              setPrice={setAlternativePrice}
+              quantity={alternativeQuantity}
+              setQuantity={setAlternativeQuantity}
+              date={alternativeDate}
+              setDate={setAlternativeDate}
+              time={alternativeTime}
+              setTime={setAlternativeTime}
+              message={alternativeMessage}
+              setMessage={setAlternativeMessage}
+              photo={alternativePhoto}
+              setPhoto={setAlternativePhoto}
             />
-            <input
-              value={alternativeItem}
-              onChange={(event) => setAlternativeItem(event.target.value)}
-              placeholder="Producto o servicio alternativo"
-              className="mt-2 w-full rounded-xl border p-3 text-sm"
-            />
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <input
-                inputMode="numeric"
-                value={alternativeQuantity}
-                onChange={(event) =>
-                  setAlternativeQuantity(event.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Cantidad"
-                className="w-full rounded-xl border p-3 text-sm"
-              />
-              <input
-                inputMode="numeric"
-                value={alternativePrice}
-                onChange={(event) =>
-                  setAlternativePrice(event.target.value.replace(/\D/g, ""))
-                }
-                placeholder="Precio"
-                className="w-full rounded-xl border p-3 text-sm"
-              />
-            </div>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <input
-                type="date"
-                value={alternativeDate}
-                onChange={(event) => setAlternativeDate(event.target.value)}
-                className="w-full rounded-xl border p-3 text-sm"
-              />
-              <input
-                type="time"
-                value={alternativeTime}
-                onChange={(event) => setAlternativeTime(event.target.value)}
-                className="w-full rounded-xl border p-3 text-sm"
-              />
-            </div>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setAlternative(null)}
@@ -233,26 +209,50 @@ export default function BusinessOrdersTab({
                 Volver
               </button>
               <button
-                disabled={alternativeMessage.trim().length < 3}
-                onClick={() => {
-                  void onProposeAlternative(alternative.id, {
-                    message: alternativeMessage.trim(),
-                    item: alternativeItem.trim() || undefined,
-                    quantity: Number(alternativeQuantity) || undefined,
-                    priceClp:
-                      Number(alternativePrice) >= 100
-                        ? Number(alternativePrice)
-                        : undefined,
-                    date: alternativeDate || undefined,
-                    time: alternativeTime || undefined,
-                  });
+                disabled={
+                  alternativeMessage.trim().length < 3 || sendingAlternative
+                }
+                onClick={async () => {
+                  setSendingAlternative(true);
+                  const minimumAnimation = new Promise((resolve) =>
+                    window.setTimeout(resolve, 950),
+                  );
+                  await Promise.all([
+                    onProposeAlternative(alternative.id, {
+                      message: alternativeMessage.trim(),
+                      item: alternativeItem.trim() || undefined,
+                      quantity: Number(alternativeQuantity) || undefined,
+                      priceClp:
+                        Number(alternativePrice) >= 100
+                          ? Number(alternativePrice)
+                          : undefined,
+                      date: alternativeDate || undefined,
+                      time: alternativeTime || undefined,
+                      photo: alternativePhoto || undefined,
+                    }),
+                    minimumAnimation,
+                  ]);
+                  setSendingAlternative(false);
                   setAlternative(null);
                 }}
-                className="rounded-xl bg-teal-600 py-3 font-bold text-white disabled:opacity-50"
+                className="zipco-confirm-action rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50"
               >
-                Enviar alternativa
+                {sendingAlternative
+                  ? "Enviando propuesta…"
+                  : "Enviar alternativa"}
               </button>
             </div>
+            {sendingAlternative && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-slate-950/65 backdrop-blur-sm">
+                <div className="zipco-hologram-card rounded-3xl border border-violet-300 bg-slate-950/90 p-5 text-center text-white shadow-[0_0_45px_rgba(139,92,246,.45)]">
+                  <Sparkles className="mx-auto h-9 w-9 text-violet-300" />
+                  <p className="mt-2 font-black">
+                    Alternativa enviada al cliente
+                  </p>
+                  <p className="text-xs text-slate-300">Moviendo a Esperando</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

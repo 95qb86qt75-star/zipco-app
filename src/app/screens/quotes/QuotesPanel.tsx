@@ -2,6 +2,8 @@ import { Fragment, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
+  Ban,
+  Check,
   AlertTriangle,
   Calendar,
   CalendarDays,
@@ -16,6 +18,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import AlternativeProposalFields from "../requests/AlternativeProposalFields";
 import type {
   QuoteCancellationReason,
   QuoteRequest,
@@ -28,7 +31,7 @@ import {
 
 const labels = {
   requested: "Esperando respuesta",
-  quoted: "Cotización recibida",
+  quoted: "Propuesta recibida",
   alternative_proposed: "Esperando tu respuesta",
   accepted: "Aceptada",
   ready: "Lista",
@@ -60,7 +63,7 @@ export function CustomerQuotes({
     status: QuoteStatus,
     reason?: QuoteCancellationReason,
     detail?: string,
-  ) => void;
+  ) => void | Promise<void>;
   emptyText?: string;
 }) {
   const { unread, markRead } = useUnreadInteractions();
@@ -151,9 +154,9 @@ export function CustomerQuotes({
                     markRead("quote", quote.id);
                     onStatus(quote, "declined");
                   }}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-300 bg-red-50 py-2 text-sm font-bold text-red-600"
+                  className="zipco-proposal-reject flex items-center justify-center gap-1.5 rounded-xl border-2 border-rose-400 bg-rose-950/10 py-2.5 text-sm font-black text-rose-500"
                 >
-                  Rechazar
+                  <XCircle className="h-4 w-4" /> Rechazar propuesta
                 </button>
                 <button
                   disabled={updating.has(quote.id)}
@@ -162,9 +165,9 @@ export function CustomerQuotes({
                     markRead("quote", quote.id);
                     onStatus(quote, "accepted");
                   }}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-emerald-500 py-2 text-sm font-bold text-white"
+                  className="zipco-proposal-accept flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-gradient-to-r from-teal-500 to-emerald-500 py-2.5 text-sm font-black text-white shadow-[0_8px_20px_rgba(16,185,129,0.22)]"
                 >
-                  Aceptar
+                  <Check className="h-4 w-4" /> Aceptar propuesta
                 </button>
               </div>
             )}
@@ -178,10 +181,34 @@ export function CustomerQuotes({
                   setCancelReason("");
                   setCancelDetail("");
                 }}
-                className="mt-2 w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-400/60 bg-transparent py-2.5 text-xs font-bold text-rose-500 transition-colors hover:bg-rose-500/10 disabled:opacity-50"
               >
-                Cancelar solicitud
+                <Ban className="h-4 w-4" /> Cancelar completamente la solicitud
               </button>
+            )}
+            {quote.status === "accepted" && (
+              <div className="mt-3 rounded-2xl border border-cyan-300/50 bg-cyan-500/10 p-3">
+                <p className="flex items-center gap-2 text-sm font-black text-cyan-700 dark:text-cyan-200">
+                  <Check className="h-4 w-4" /> Servicio en curso
+                </p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                  El negocio está realizando el servicio. Te avisaremos cuando
+                  lo marque como realizado.
+                </p>
+                <div className="mt-3 flex items-center gap-1 text-[9px] font-bold">
+                  <span className="rounded-full bg-emerald-500 px-2 py-1 text-white">
+                    Propuesta aceptada
+                  </span>
+                  <span className="h-px flex-1 bg-cyan-300" />
+                  <span className="rounded-full bg-cyan-500 px-2 py-1 text-white">
+                    En curso
+                  </span>
+                  <span className="h-px flex-1 bg-slate-300" />
+                  <span className="rounded-full bg-slate-200 px-2 py-1 text-slate-500">
+                    Confirmar
+                  </span>
+                </div>
+              </div>
             )}
             {quote.status === "ready" && (
               <button
@@ -377,6 +404,7 @@ export function BusinessQuotes({
       item?: string;
       quantity?: number;
       priceClp?: number;
+      photo?: string;
       message: string;
     },
   ) => void;
@@ -392,9 +420,8 @@ export function BusinessQuotes({
   const [alternativeQuantity, setAlternativeQuantity] = useState("");
   const [alternativeDate, setAlternativeDate] = useState("");
   const [alternativeTime, setAlternativeTime] = useState("");
-  const [alternativeSchedule, setAlternativeSchedule] = useState<
-    "original" | "new"
-  >("original");
+  const [alternativePhoto, setAlternativePhoto] = useState("");
+  const [sendingAlternative, setSendingAlternative] = useState(false);
   const [rejecting, setRejecting] = useState<QuoteRequest | null>(null);
   const [rejectReason, setRejectReason] = useState<
     QuoteCancellationReason | ""
@@ -469,7 +496,7 @@ export function BusinessQuotes({
                       setAlternativeQuantity("");
                       setAlternativeDate("");
                       setAlternativeTime("");
-                      setAlternativeSchedule("original");
+                      setAlternativePhoto("");
                     }}
                     className="rounded-xl border border-violet-200 bg-violet-50 py-2.5 text-xs font-black text-violet-700"
                   >
@@ -508,7 +535,7 @@ export function BusinessQuotes({
       </div>
       {selected && (
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
-          <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
+          <div className="relative mx-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 dark:bg-slate-900">
             <h3 className="text-lg font-black">Responder cotización</h3>
             <p className="mt-1 text-sm text-slate-500">
               {selected.itemNameSnapshot} · {selected.customerName}
@@ -558,94 +585,29 @@ export function BusinessQuotes({
       )}
       {alternative && (
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
-          <div className="mx-auto w-full max-w-md rounded-3xl bg-white p-5">
+          <div className="relative mx-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 dark:bg-slate-900">
             <h3 className="text-lg font-black">Proponer una alternativa</h3>
             <p className="mt-1 text-sm text-slate-500">
-              El cliente solo podrá aceptarla o rechazarla.
+              Selecciona qué aspectos quieres modificar. El cliente podrá
+              aceptarla o rechazarla.
             </p>
-            <label className="mt-4 block text-sm font-bold">
-              Explicación obligatoria
-              <textarea
-                value={alternativeMessage}
-                onChange={(event) => setAlternativeMessage(event.target.value)}
-                rows={3}
-                className="mt-2 w-full rounded-xl border p-3 font-normal"
-              />
-            </label>
-            <label className="mt-3 block text-sm font-bold">
-              Producto o servicio alternativo
-              <input
-                value={alternativeItem}
-                onChange={(event) => setAlternativeItem(event.target.value)}
-                className="mt-2 w-full rounded-xl border p-3 font-normal"
-              />
-            </label>
-            <label className="mt-3 block text-sm font-bold">
-              Precio alternativo
-              <input
-                inputMode="numeric"
-                value={alternativePrice}
-                onChange={(event) =>
-                  setAlternativePrice(event.target.value.replace(/\D/g, ""))
-                }
-                className="mt-2 w-full rounded-xl border p-3 font-normal"
-              />
-            </label>
-            <label className="mt-3 block text-sm font-bold">
-              Cantidad
-              <input
-                inputMode="numeric"
-                value={alternativeQuantity}
-                onChange={(event) =>
-                  setAlternativeQuantity(event.target.value.replace(/\D/g, ""))
-                }
-                className="mt-2 w-full rounded-xl border p-3 font-normal"
-              />
-            </label>
-            <fieldset className="mt-4">
-              <legend className="text-sm font-bold">
-                ¿Deseas mantener la fecha solicitada o proponer una nueva
-                disponibilidad?
-              </legend>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAlternativeSchedule("original")}
-                  className={`rounded-xl border p-3 text-xs font-bold ${alternativeSchedule === "original" ? "border-teal-500 bg-teal-50 text-teal-700" : "border-slate-200"}`}
-                >
-                  Mantener fecha original
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAlternativeSchedule("new")}
-                  className={`rounded-xl border p-3 text-xs font-bold ${alternativeSchedule === "new" ? "border-teal-500 bg-teal-50 text-teal-700" : "border-slate-200"}`}
-                >
-                  Proponer nueva fecha y hora
-                </button>
-              </div>
-            </fieldset>
-            {alternativeSchedule === "new" && (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <label className="text-xs font-bold">
-                  Nueva fecha
-                  <input
-                    type="date"
-                    value={alternativeDate}
-                    onChange={(event) => setAlternativeDate(event.target.value)}
-                    className="mt-1 w-full rounded-xl border p-3 text-sm font-normal"
-                  />
-                </label>
-                <label className="text-xs font-bold">
-                  Nueva hora
-                  <input
-                    type="time"
-                    value={alternativeTime}
-                    onChange={(event) => setAlternativeTime(event.target.value)}
-                    className="mt-1 w-full rounded-xl border p-3 text-sm font-normal"
-                  />
-                </label>
-              </div>
-            )}
+            <AlternativeProposalFields
+              original={`${alternative.itemNameSnapshot} · ${proposalPrice(alternative) === null ? "Precio por definir" : money(proposalPrice(alternative)!)}`}
+              item={alternativeItem}
+              setItem={setAlternativeItem}
+              price={alternativePrice}
+              setPrice={setAlternativePrice}
+              quantity={alternativeQuantity}
+              setQuantity={setAlternativeQuantity}
+              date={alternativeDate}
+              setDate={setAlternativeDate}
+              time={alternativeTime}
+              setTime={setAlternativeTime}
+              message={alternativeMessage}
+              setMessage={setAlternativeMessage}
+              photo={alternativePhoto}
+              setPhoto={setAlternativePhoto}
+            />
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setAlternative(null)}
@@ -656,34 +618,51 @@ export function BusinessQuotes({
               <button
                 disabled={
                   alternativeMessage.trim().length < 3 ||
-                  (alternativeSchedule === "new" &&
-                    (!alternativeDate || !alternativeTime))
+                  Boolean(alternativeDate) !== Boolean(alternativeTime)
                 }
-                onClick={() => {
-                  onAlternative(alternative, {
-                    message: alternativeMessage.trim(),
-                    item: alternativeItem.trim() || undefined,
-                    priceClp:
-                      Number(alternativePrice) >= 100
-                        ? Number(alternativePrice)
-                        : undefined,
-                    quantity: Number(alternativeQuantity) || undefined,
-                    date:
-                      alternativeSchedule === "new"
-                        ? alternativeDate
-                        : undefined,
-                    time:
-                      alternativeSchedule === "new"
-                        ? alternativeTime
-                        : undefined,
-                  });
+                onClick={async () => {
+                  setSendingAlternative(true);
+                  const minimumAnimation = new Promise((resolve) =>
+                    window.setTimeout(resolve, 950),
+                  );
+                  await Promise.all([
+                    Promise.resolve(
+                      onAlternative(alternative, {
+                        message: alternativeMessage.trim(),
+                        item: alternativeItem.trim() || undefined,
+                        priceClp:
+                          Number(alternativePrice) >= 100
+                            ? Number(alternativePrice)
+                            : undefined,
+                        quantity: Number(alternativeQuantity) || undefined,
+                        date: alternativeDate || undefined,
+                        time: alternativeTime || undefined,
+                        photo: alternativePhoto || undefined,
+                      }),
+                    ),
+                    minimumAnimation,
+                  ]);
+                  setSendingAlternative(false);
                   setAlternative(null);
                 }}
-                className="rounded-xl bg-teal-600 py-3 font-bold text-white disabled:opacity-50"
+                className="zipco-confirm-action rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50"
               >
-                Enviar alternativa
+                {sendingAlternative
+                  ? "Enviando propuesta…"
+                  : "Enviar alternativa"}
               </button>
             </div>
+            {sendingAlternative && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-3xl bg-slate-950/65 backdrop-blur-sm">
+                <div className="zipco-hologram-card rounded-3xl border border-violet-300 bg-slate-950/90 p-5 text-center text-white shadow-[0_0_45px_rgba(139,92,246,.45)]">
+                  <MessageSquareText className="mx-auto h-9 w-9 text-violet-300" />
+                  <p className="mt-2 font-black">
+                    Alternativa enviada al cliente
+                  </p>
+                  <p className="text-xs text-slate-300">Moviendo a Esperando</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1163,7 +1142,7 @@ function QuoteCard({
     <article
       id={`quote-${quote.id}`}
       onClick={(event) => handleOpen(event.currentTarget)}
-      className={`zipco-customer-order-card zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"} scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors`}
+      className={`zipco-customer-order-card ${quote.status === "quoted" ? "zipco-quote-metallic" : ""} zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"} scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         {displayPhoto ? (
@@ -1206,8 +1185,13 @@ function QuoteCard({
             {statusLabel}
           </span>
           {quote.quotedPriceClp !== null && (
-            <span className="whitespace-nowrap text-base font-black text-emerald-600">
-              {money(quote.quotedPriceClp)}
+            <span className="text-right">
+              <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                Precio propuesto
+              </span>
+              <span className="whitespace-nowrap text-base font-black text-emerald-500">
+                {money(quote.quotedPriceClp)}
+              </span>
             </span>
           )}
         </div>
@@ -1215,8 +1199,18 @@ function QuoteCard({
       {quote.businessMessage && (
         <p className="mt-3 flex gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800">
           <MessageSquareText className="h-4 w-4 shrink-0" />
-          {quote.businessMessage}
+          <span>
+            <strong className="block">Respuesta del negocio</strong>
+            {quote.businessMessage}
+          </span>
         </p>
+      )}
+      {quote.alternativePhoto && (
+        <ImageWithFallback
+          src={quote.alternativePhoto}
+          alt="Referencia de la alternativa"
+          className="mt-3 h-36 w-full rounded-xl border border-violet-300/50 object-cover"
+        />
       )}
       {owner === "business" && quote.status === "ready" ? (
         <div className="mt-3 w-full rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2.5 text-xs text-emerald-900">

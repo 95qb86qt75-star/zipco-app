@@ -48,6 +48,7 @@ export type QuoteRequest = {
   alternativeQuantity: number | null;
   alternativePriceClp: number | null;
   alternativeMessage: string | null;
+  alternativePhoto: string | null;
   customerArchivedAt: string | null;
   businessArchivedAt: string | null;
   createdAt: string;
@@ -130,6 +131,7 @@ export const proposeQuoteAlternative = (
     item?: string;
     quantity?: number;
     priceClp?: number;
+    photo?: string;
     message: string;
   },
   token: string,

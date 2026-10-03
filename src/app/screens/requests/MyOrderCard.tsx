@@ -145,6 +145,13 @@ export default function MyOrderCard({
               ${order.alternativePriceClp.toLocaleString("es-CL")}
             </p>
           )}
+          {order.alternativePhoto && (
+            <ImageWithFallback
+              src={order.alternativePhoto}
+              alt="Referencia de la alternativa"
+              className="mt-2 h-32 w-full rounded-xl object-cover"
+            />
+          )}
         </div>
       )}
       {order.status === "alternative_proposed" && (

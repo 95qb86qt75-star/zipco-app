@@ -134,12 +134,13 @@ export default function useQuotes(onSessionExpired: () => void) {
       item?: string;
       quantity?: number;
       priceClp?: number;
+      photo?: string;
       message: string;
     },
   ) => {
     const token = localStorage.getItem("zipco-token");
     if (!token) return;
-    void run(
+    return run(
       quote,
       () => proposeQuoteAlternative(quote.id, payload, token),
       "Alternativa enviada al cliente.",

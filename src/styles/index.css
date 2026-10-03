@@ -498,6 +498,81 @@ body {
   box-shadow: 0 10px 30px rgb(2 6 23 / 0.34);
 }
 
+.zipco-quote-metallic {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 12%, rgb(139 92 246 / 0.18), transparent 32%),
+    linear-gradient(145deg, #f8fafc, #eef2ff 48%, #ecfeff) !important;
+  border-color: rgb(139 92 246 / 0.45) !important;
+}
+
+.dark .zipco-quote-metallic {
+  background:
+    radial-gradient(circle at 88% 10%, rgb(139 92 246 / 0.22), transparent 34%),
+    radial-gradient(circle at 8% 92%, rgb(6 182 212 / 0.14), transparent 36%),
+    linear-gradient(145deg, #151827, #1e1b38 52%, #102a35) !important;
+  border-color: rgb(167 139 250 / 0.7) !important;
+  box-shadow:
+    0 14px 34px rgb(2 6 23 / 0.45),
+    0 0 22px rgb(124 58 237 / 0.1);
+}
+
+.zipco-quote-metallic::after,
+.zipco-hologram-card::after {
+  content: "";
+  position: absolute;
+  inset: -60% auto -60% -35%;
+  width: 24%;
+  transform: rotate(18deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.28),
+    transparent
+  );
+  animation: zipco-metal-sheen 1.4s ease-out 1;
+  pointer-events: none;
+}
+
+.zipco-order-progress-card {
+  border-left-width: 3px !important;
+  border-left-color: var(--zipco-state-glow, #14b8a6) !important;
+}
+
+.zipco-ready-wave {
+  animation: zipco-ready-wave 1.2s ease-out 2;
+}
+
+@keyframes zipco-metal-sheen {
+  from {
+    transform: translateX(0) rotate(18deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(620%) rotate(18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes zipco-ready-wave {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+    transform: rotate(0);
+  }
+  40% {
+    filter: drop-shadow(0 0 8px rgb(16 185 129 / 0.8));
+    transform: rotate(-10deg);
+  }
+  70% {
+    transform: rotate(8deg);
+  }
+}
+
 .dark .zipco-provider-card,
 .dark .zipco-proposal-card {
   color: #f8fafc;
@@ -683,6 +758,11 @@ body {
   .zipco-online-dot,
   .zipco-distance-orbit,
   .zipco-description-link svg {
+    animation: none;
+  }
+  .zipco-quote-metallic::after,
+  .zipco-hologram-card::after,
+  .zipco-ready-wave {
     animation: none;
   }
 }
