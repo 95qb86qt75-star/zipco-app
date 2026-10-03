@@ -10,6 +10,7 @@ import {
   MapPin,
   MessageCircle,
   ShoppingCart,
+  Sparkles,
   Store,
   X,
 } from "lucide-react";
@@ -127,6 +128,7 @@ export default function BusinessProfileScreen({
   const [isScrolled, setIsScrolled] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [quoteItem, setQuoteItem] = useState<CatalogItem | null>(null);
+  const [socialNotice, setSocialNotice] = useState("");
   const [catalogFilter, setCatalogFilter] = useState<
     "all" | "fixed_price" | "quote" | "view"
   >("all");
@@ -212,6 +214,29 @@ export default function BusinessProfileScreen({
 
     return () => clearTimeout(timeout);
   }, [showRemoveTooltip]);
+
+  useEffect(() => {
+    if (!socialNotice) return;
+    const timeout = setTimeout(() => setSocialNotice(""), 3000);
+    return () => clearTimeout(timeout);
+  }, [socialNotice]);
+
+  const openSocialProfile = (
+    network: "Instagram" | "Facebook",
+    value: unknown,
+  ) => {
+    const profile = String(value ?? "").trim();
+    if (!profile) {
+      setSocialNotice(`${business.name} no ha proporcionado ${network}.`);
+      return;
+    }
+    const url = /^https?:\/\//i.test(profile)
+      ? profile
+      : network === "Instagram"
+        ? `https://instagram.com/${profile.replace(/^@/, "")}`
+        : `https://facebook.com/${profile.replace(/^@/, "")}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   const isOwnBusinessProfile = isOwnBusiness(business.userId, currentUserId);
   const businessImage = business.photo || business.imageUrl || business.image;
@@ -334,8 +359,8 @@ export default function BusinessProfileScreen({
             <motion.div
               layout
               animate={{
-                width: isScrolled ? 48 : 96,
-                height: isScrolled ? 48 : 96,
+                width: isScrolled ? 48 : 116,
+                height: isScrolled ? 48 : 116,
               }}
               transition={{ duration: 0.32, ease: "easeInOut" }}
               className="relative shrink-0"
@@ -384,7 +409,9 @@ export default function BusinessProfileScreen({
                       <span className="hidden min-[390px]:inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2.5 py-1 text-[11px] font-bold text-[#0F8F86]">
                         <MapPin className="h-3 w-3 text-[#14C8B8]" />
                         {distanceLabel}
-                        <DistanceInfo />
+                        <span className="zipco-distance-orbit">
+                          <DistanceInfo />
+                        </span>
                       </span>
                     )}
                   </motion.div>
@@ -422,7 +449,9 @@ export default function BusinessProfileScreen({
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#14C8B8]/10 px-2 py-0.5 text-[11px] font-bold text-[#0F8F86]">
                             <MapPin className="w-3 h-3 text-[#14C8B8] fill-[#14C8B8]/15" />
                             {distanceLabel}
-                            <DistanceInfo />
+                            <span className="zipco-distance-orbit">
+                              <DistanceInfo />
+                            </span>
                           </span>
                         )}
                       </div>
@@ -432,7 +461,7 @@ export default function BusinessProfileScreen({
                           className={`inline-flex items-center gap-2 text-[15px] font-bold ${isBusinessOpen ? "text-emerald-600" : "text-red-500"}`}
                         >
                           <span
-                            className={`h-2.5 w-2.5 rounded-full shadow-sm ${isBusinessOpen ? "bg-emerald-500 shadow-emerald-500/30" : "bg-red-500 shadow-red-500/30"}`}
+                            className={`h-2.5 w-2.5 rounded-full shadow-sm ${isBusinessOpen ? "zipco-online-dot bg-emerald-500 shadow-emerald-500/30" : "bg-red-500 shadow-red-500/30"}`}
                           />
                           {isBusinessOpen ? "Abierto ahora" : "Cerrado"}
                         </span>
@@ -454,6 +483,9 @@ export default function BusinessProfileScreen({
                         <span className="h-5 w-px bg-slate-200 max-[390px]:hidden" />
                         <button
                           type="button"
+                          onClick={() =>
+                            openSocialProfile("Instagram", business.instagram)
+                          }
                           className={`rounded-full p-2 transition-all ${
                             business.instagram
                               ? "bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:scale-105"
@@ -467,6 +499,9 @@ export default function BusinessProfileScreen({
                         </button>
                         <button
                           type="button"
+                          onClick={() =>
+                            openSocialProfile("Facebook", business.facebook)
+                          }
                           className={`rounded-full p-2 transition-all ${
                             business.facebook
                               ? "bg-blue-600 hover:scale-105"
@@ -518,9 +553,12 @@ export default function BusinessProfileScreen({
                     onClick={() =>
                       setExpanded((currentExpanded) => !currentExpanded)
                     }
-                    className="mt-1 text-sm font-semibold text-[#0F8F86]"
+                    className="zipco-description-link mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0F8F86]"
                   >
-                    {expanded ? "ver menos" : "ver más"}
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {expanded
+                      ? "Ocultar descripción"
+                      : "Ver descripción del negocio"}
                   </button>
                 </div>
               </motion.div>
@@ -782,6 +820,19 @@ export default function BusinessProfileScreen({
           </p>
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {socialNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="absolute left-1/2 top-24 z-[60] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-amber-300/40 bg-slate-950/95 px-4 py-3 text-center text-xs font-semibold text-white shadow-2xl backdrop-blur-md"
+          >
+            {socialNotice}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {previewProduct && (

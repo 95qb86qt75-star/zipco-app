@@ -120,7 +120,7 @@ export default function BusinessOrderCard({
         handleOpen(event.currentTarget);
         onToggle?.();
       }}
-      className={`zipco-provider-card scroll-mb-36 rounded-[22px] border p-3 transition-colors ${isUnread ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200"}`}
+      className={`zipco-provider-card zipco-state-${request.status} ${isUnread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-slate-200"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
     >
       <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
         {request.referencePhoto ? (
@@ -195,7 +195,7 @@ export default function BusinessOrderCard({
               handleOpen(event.currentTarget.closest("article") as HTMLElement);
               onToggle?.();
             }}
-            className={`mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border bg-gradient-to-r px-3 py-2 text-left ${tone.panel}`}
+            className={`zipco-open-panel mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border bg-gradient-to-r px-3 py-2 text-left ${tone.panel}`}
           >
             <span className="min-w-0">
               <span
