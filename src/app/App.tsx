@@ -277,11 +277,11 @@ export default function App() {
   }, []);
 
   const renderWithToast = (content: any) => (
-    <>
+    <div className="zipco-theme-surface contents">
       {toast && <Toast key={toast.dedupeKey} notification={toast} onClose={closeToast} />}
       {hasStoredSession() && <BusinessNotificationMonitor onSessionExpired={handleLogout} />}
       {content}
-    </>
+    </div>
   );
 
   useEffect(() => {

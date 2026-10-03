@@ -184,17 +184,19 @@ body {
   color: #e2e8f0;
 }
 
-.dark .zipco-theme-surface [class*="bg-white"],
+.dark .zipco-theme-surface [class~="bg-white"],
+.dark .zipco-theme-surface [class*="bg-white/"],
 .dark .zipco-theme-navigation {
   background-color: #111827 !important;
 }
 
-.dark .zipco-theme-surface [class*="bg-gray-50"],
-.dark .zipco-theme-surface [class*="bg-gray-100"],
-.dark .zipco-theme-surface [class*="bg-gray-200"],
-.dark .zipco-theme-surface [class*="bg-slate-50"],
-.dark .zipco-theme-surface [class*="bg-slate-100"],
-.dark .zipco-theme-surface [class*="bg-slate-200"] {
+.dark .zipco-theme-surface [class~="bg-gray-50"],
+.dark .zipco-theme-surface [class~="bg-gray-100"],
+.dark .zipco-theme-surface [class~="bg-gray-200"],
+.dark .zipco-theme-surface [class~="bg-gray-300"],
+.dark .zipco-theme-surface [class~="bg-slate-50"],
+.dark .zipco-theme-surface [class~="bg-slate-100"],
+.dark .zipco-theme-surface [class~="bg-slate-200"] {
   background-color: #1e293b !important;
 }
 
@@ -210,6 +212,7 @@ body {
 }
 
 .dark .zipco-theme-surface [class*="text-gray-900"],
+.dark .zipco-theme-surface [class*="text-gray-800"],
 .dark .zipco-theme-surface [class*="text-slate-950"],
 .dark .zipco-theme-surface [class*="text-slate-900"] {
   color: #f8fafc !important;
@@ -235,6 +238,63 @@ body {
 .dark .zipco-theme-surface [class*="border-slate-"],
 .dark .zipco-theme-surface [class*="border-white"] {
   border-color: #334155 !important;
+}
+
+.dark .zipco-theme-surface [class*="from-blue-50"][class*="via-white"],
+.dark .zipco-theme-surface [class*="from-teal-50"][class*="via-white"] {
+  background-color: #020617 !important;
+  background-image: linear-gradient(to bottom right, #020617, #0f172a, #111827) !important;
+}
+
+.dark .zipco-theme-surface [class~="bg-red-50"] {
+  background-color: #3f171c !important;
+}
+
+.dark .zipco-theme-surface [class~="bg-blue-50"] {
+  background-color: #172554 !important;
+}
+
+.dark .zipco-theme-surface [class~="bg-green-50"],
+.dark .zipco-theme-surface [class~="bg-emerald-50"],
+.dark .zipco-theme-surface [class~="bg-teal-50"] {
+  background-color: #0b2d2b !important;
+}
+
+.dark .zipco-theme-surface [class~="bg-orange-50"],
+.dark .zipco-theme-surface [class~="bg-amber-50"] {
+  background-color: #382410 !important;
+}
+
+.dark .zipco-theme-surface [class~="bg-violet-50"],
+.dark .zipco-theme-surface [class~="bg-purple-50"] {
+  background-color: #271a46 !important;
+}
+
+.dark .zipco-theme-surface [class*="text-red-700"],
+.dark .zipco-theme-surface [class*="text-red-600"] {
+  color: #fca5a5 !important;
+}
+
+.dark .zipco-theme-surface [class*="text-blue-800"],
+.dark .zipco-theme-surface [class*="text-blue-700"] {
+  color: #bfdbfe !important;
+}
+
+.dark .zipco-theme-surface [class*="text-green-700"],
+.dark .zipco-theme-surface [class*="text-emerald-700"],
+.dark .zipco-theme-surface [class*="text-teal-800"],
+.dark .zipco-theme-surface [class*="text-teal-700"] {
+  color: #99f6e4 !important;
+}
+
+.dark .zipco-theme-surface [class*="text-orange-700"],
+.dark .zipco-theme-surface [class*="text-amber-700"] {
+  color: #fed7aa !important;
+}
+
+.dark .zipco-theme-surface [class*="text-violet-700"],
+.dark .zipco-theme-surface [class*="text-purple-700"] {
+  color: #ddd6fe !important;
 }
 
 .dark .zipco-theme-surface input:not([type="radio"]):not([type="checkbox"]):not([type="range"]),
