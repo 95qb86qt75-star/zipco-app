@@ -652,7 +652,7 @@ export default function RequestsScreen({
               ) : (
                 <ArrowUp className="h-3.5 w-3.5" />
               )}
-              {sortDirection === "newest" ? "Más recientes" : "Más antiguas"}
+              {sortDirection === "newest" ? "Recientes" : "Antiguas"}
             </button>
           </div>
         )}
@@ -679,7 +679,7 @@ export default function RequestsScreen({
                 ) : (
                   <ArrowUp className="h-3.5 w-3.5" />
                 )}
-                {sortDirection === "newest" ? "Más recientes" : "Más antiguas"}
+                {sortDirection === "newest" ? "Recientes" : "Antiguas"}
               </button>
               <button
                 onClick={() => setShowHistoryFilter(true)}

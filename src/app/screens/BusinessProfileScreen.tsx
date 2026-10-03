@@ -243,6 +243,10 @@ export default function BusinessProfileScreen({
   const businessType = formatBusinessType(
     business.type || business.category || business.categoryName,
   );
+  const businessDescription =
+    business.description ||
+    "Especialistas en repostería artesanal. Más de 10 años creando momentos dulces para tu familia.";
+  const hasExtendedDescription = businessDescription.trim().length > 72;
   const isBusinessOpen = business.isOpen ?? business.open ?? true;
   const closingTime =
     business.closesAt || business.closeTime || business.closingTime;
@@ -545,21 +549,22 @@ export default function BusinessProfileScreen({
                           }
                     }
                   >
-                    {business.description ||
-                      "Especialistas en repostería artesanal. Más de 10 años creando momentos dulces para tu familia."}
+                    {businessDescription}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpanded((currentExpanded) => !currentExpanded)
-                    }
-                    className="zipco-description-link mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0F8F86]"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {expanded
-                      ? "Ocultar descripción"
-                      : "Ver descripción del negocio"}
-                  </button>
+                  {hasExtendedDescription && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpanded((currentExpanded) => !currentExpanded)
+                      }
+                      className="zipco-description-link mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0F8F86]"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {expanded
+                        ? "Ocultar descripción"
+                        : "Ver descripción completa"}
+                    </button>
+                  )}
                 </div>
               </motion.div>
             )}

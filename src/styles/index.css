@@ -574,15 +574,25 @@ body {
 }
 
 .zipco-online-dot {
-  position: relative;
-}
-.zipco-online-dot::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border: 2px solid rgb(34 197 94 / 0.7);
-  border-radius: 999px;
+  flex: 0 0 auto;
   animation: zipco-online-pulse 1.9s ease-out infinite;
+}
+
+.zipco-new-badge {
+  border: 1px solid rgb(251 146 60 / 0.75);
+  background-image: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+  color: white !important;
+  box-shadow: 0 5px 16px rgb(234 88 12 / 0.25);
+}
+
+.zipco-image-placeholder {
+  background-image: linear-gradient(145deg, #eef2f7, #dbeafe);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+.dark .zipco-image-placeholder {
+  background-image: linear-gradient(145deg, #1e293b, #172554) !important;
+  color: #93c5fd !important;
 }
 
 .zipco-distance-orbit {
@@ -627,12 +637,13 @@ body {
 }
 @keyframes zipco-online-pulse {
   0% {
-    transform: scale(1);
-    opacity: 0.8;
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 0.65);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgb(34 197 94 / 0);
   }
   100% {
-    transform: scale(2.8);
-    opacity: 0;
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 0);
   }
 }
 @keyframes zipco-gold-orbit {
@@ -664,7 +675,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .zipco-new-card,
   .zipco-new-card::before,
-  .zipco-online-dot::after,
+  .zipco-online-dot,
   .zipco-distance-orbit,
   .zipco-description-link svg {
     animation: none;

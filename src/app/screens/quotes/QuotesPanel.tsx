@@ -12,6 +12,7 @@ import {
   MessageSquareText,
   MousePointerClick,
   Send,
+  Zap,
   XCircle,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -829,7 +830,11 @@ function QuoteCard({
           </span>
         </div>
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
-          <Calendar className="h-3.5 w-3.5 shrink-0" />
+          {quote.needNow ? (
+            <Zap className="h-3.5 w-3.5 shrink-0" />
+          ) : (
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+          )}
           <span className="truncate">
             {quote.needNow
               ? "Lo necesitas ahora"
@@ -859,7 +864,7 @@ function QuoteCard({
                 </span>
                 <span className="zipco-open-hint mt-1 inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-100 px-2 py-1 text-[11px] font-black text-violet-700">
                   <MousePointerClick className="h-3.5 w-3.5" />
-                  Toca para abrir
+                  Ver propuesta completa
                 </span>
               </span>
               <span className="whitespace-nowrap text-lg font-black text-teal-800">
@@ -994,7 +999,11 @@ function QuoteCard({
           </span>
         </div>
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
-          <Calendar className="h-3.5 w-3.5 shrink-0" />
+          {quote.needNow ? (
+            <Zap className="h-3.5 w-3.5 shrink-0" />
+          ) : (
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+          )}
           <span className="truncate">
             {quote.needNow
               ? "Lo necesita ahora"
@@ -1030,7 +1039,9 @@ function QuoteCard({
                 </span>
                 <span className="zipco-open-hint mt-1 inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-100 px-2 py-1 text-[11px] font-black text-violet-700">
                   <MousePointerClick className="h-3.5 w-3.5" />
-                  Toca para abrir
+                  {quote.status === "requested"
+                    ? "Revisar y responder"
+                    : "Ver seguimiento"}
                 </span>
               </span>
               {price !== null && (

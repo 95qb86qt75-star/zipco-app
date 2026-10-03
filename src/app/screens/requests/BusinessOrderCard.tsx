@@ -8,6 +8,7 @@ import {
   MousePointerClick,
   PackageCheck,
   Sparkles,
+  Zap,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -138,7 +139,7 @@ export default function BusinessOrderCard({
             />
           </button>
         ) : (
-          <span className="flex h-[62px] w-[62px] items-center justify-center rounded-[14px] bg-slate-100 text-slate-400">
+          <span className="zipco-image-placeholder flex h-[62px] w-[62px] items-center justify-center rounded-[14px] bg-slate-100 text-slate-400">
             <ImageIcon className="h-5 w-5" />
           </span>
         )}
@@ -167,7 +168,7 @@ export default function BusinessOrderCard({
           )}
         </div>
         <span
-          className={`inline-flex max-w-[98px] items-center justify-center gap-1 rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${tone.badge}`}
+          className={`inline-flex max-w-[104px] items-center justify-center gap-1 rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${request.status === "pending" ? "zipco-new-badge" : ""} ${tone.badge}`}
         >
           {request.status === "pending" && (
             <PackageCheck className="zipco-attention-bell h-3.5 w-3.5 shrink-0" />
@@ -177,7 +178,11 @@ export default function BusinessOrderCard({
       </div>
       {schedule && (
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
-          <Calendar className="h-3.5 w-3.5 shrink-0" />
+          {schedule.toLowerCase().includes("ahora") ? (
+            <Zap className="h-3.5 w-3.5 shrink-0" />
+          ) : (
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+          )}
           <span className="truncate">{schedule}</span>
         </p>
       )}
@@ -209,7 +214,9 @@ export default function BusinessOrderCard({
               </span>
               <span className="zipco-open-hint mt-1 inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-100 px-2 py-1 text-[11px] font-black text-violet-700">
                 <MousePointerClick className="h-3.5 w-3.5" />
-                Toca para abrir
+                {request.status === "pending"
+                  ? "Revisar y responder"
+                  : "Ver seguimiento"}
               </span>
             </span>
             {price !== null && (
