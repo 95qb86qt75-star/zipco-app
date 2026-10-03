@@ -147,7 +147,7 @@ export default function ServiceCheckoutScreen({ onBack, service, provider, activ
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Describe detalles adicionales sobre el servicio que necesitas..."
-            className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-none"
+            className="zipco-readable-field w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-none"
             rows={4}
           />
         </div>

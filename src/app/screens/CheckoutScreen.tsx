@@ -418,7 +418,7 @@ export default function CheckoutScreen({ business, currentUserId, selectedProduc
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Ej: Sin azúcar, decoración personalizada, hora de entrega..."
-            className="w-full bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none"
+            className="zipco-readable-field w-full bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none"
             rows={4}
           />
         </div>
