@@ -10,10 +10,12 @@ import {
   ChevronRight,
   Filter,
   List,
+  MessageSquareText,
   Minus,
   PackageCheck,
   RefreshCw,
   Trash2,
+  ShoppingBag,
   X,
 } from "lucide-react";
 import BusinessOrdersTab from "./requests/BusinessOrdersTab";
@@ -391,18 +393,23 @@ export default function RequestsScreen({
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div
+          className={`flex gap-2 ${!hasBusiness ? "rounded-2xl border border-teal-400/20 bg-teal-500/10 p-2" : ""}`}
+        >
           <button
             onClick={() => {
               setSubTab("my-orders");
               setAttentionFilter(null);
             }}
-            className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               subTab === "my-orders"
-                ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
+                ? hasBusiness
+                  ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg"
+                  : "bg-transparent text-teal-600"
                 : "bg-white/60 text-gray-600 hover:bg-white/80"
             }`}
           >
+            <ShoppingBag className="h-4 w-4" />
             Mis Pedidos
           </button>
           {hasBusiness && (
@@ -425,25 +432,29 @@ export default function RequestsScreen({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
         <NotificationPermissionCard />
-        <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white/70 p-1.5 shadow-sm">
-          <button
+        <div className="zipco-request-kind mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
+          <motion.button
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
             onClick={() => {
               setRequestType("orders");
               setAttentionFilter(null);
             }}
-            className={`rounded-xl py-2 text-sm font-bold ${requestType === "orders" ? "bg-teal-600 text-white" : "text-slate-600"}`}
+            className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${requestType === "orders" ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md shadow-teal-500/20" : "text-slate-600"}`}
           >
+            <ShoppingBag className="h-4 w-4" />
             Pedidos
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
             onClick={() => {
               setRequestType("quotes");
               setAttentionFilter(null);
             }}
-            className={`rounded-xl py-2 text-sm font-bold ${requestType === "quotes" ? "bg-violet-600 text-white" : "text-slate-600"}`}
+            className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${requestType === "quotes" ? "bg-gradient-to-r from-violet-600 to-purple-500 text-white shadow-md shadow-violet-500/20" : "text-slate-600"}`}
           >
+            <MessageSquareText className="h-4 w-4" />
             Cotizaciones
-          </button>
+          </motion.button>
         </div>
         <div
           className={`mb-3 grid gap-2 ${requestType === "quotes" ? "grid-cols-4" : "grid-cols-3"}`}
@@ -484,18 +495,23 @@ export default function RequestsScreen({
                 { key: "history", label: "Historial", count: null },
               ] as const)
           ).map((item) => (
-            <button
+            <motion.button
               key={item.key}
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
               onClick={() => selectStatusView(item.key)}
               className={`min-w-0 rounded-xl px-1.5 py-2.5 text-[11px] font-bold leading-tight shadow-sm transition-all ${
                 statusView === item.key
-                  ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white ring-2 ring-teal-300/40"
+                  ? item.key === "pending"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white ring-2 ring-amber-300/40 shadow-md shadow-amber-500/20"
+                    : item.key === "active"
+                      ? "bg-gradient-to-r from-cyan-600 to-teal-500 text-white ring-2 ring-cyan-300/40 shadow-md shadow-cyan-500/20"
+                      : "bg-gradient-to-r from-emerald-600 to-green-500 text-white ring-2 ring-emerald-300/40 shadow-md shadow-emerald-500/20"
                   : "border border-slate-200 bg-white text-slate-600"
               }`}
             >
               {item.label}
               {item.count !== null ? ` (${item.count})` : ""}
-            </button>
+            </motion.button>
           ))}
         </div>
         {subTab === "my-orders" &&

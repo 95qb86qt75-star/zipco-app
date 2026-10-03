@@ -1,5 +1,5 @@
 import { type ChangeEvent, useRef, useState } from "react";
-import { ArrowLeft, Camera, Minus, Plus, Send, X } from "lucide-react";
+import { ArrowLeft, Camera, ChevronDown, FileText, Minus, Plus, Send, X } from "lucide-react";
 import { API_BASE_URL } from "../api/apiConfig";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { showAppToast } from "./Toast";
@@ -47,6 +47,8 @@ export default function CheckoutScreen({
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [officialTotal, setOfficialTotal] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNoteOpen, setIsNoteOpen] = useState(false);
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const submitLock = useRef(false);
   const idempotencyKey = useRef<string | null>(null);
   const calendarInputRef = useRef<HTMLInputElement>(null);
@@ -262,23 +264,23 @@ export default function CheckoutScreen({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto px-4 pt-5 pb-52">
-        <h3 className="text-base font-bold text-gray-900 mb-3">
+      <div className="flex-1 overflow-auto px-4 pt-4 pb-48">
+        <h3 className="mb-2 text-base font-bold text-gray-900">
           Productos seleccionados
         </h3>
 
         {/* Products List */}
-        <div className="space-y-3 mb-6">
+        <div className="mb-4 space-y-2">
           {selectedItems.map((product) => (
             <div
               key={product.id}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-md"
+              className="rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-md backdrop-blur-sm"
             >
-              <div className="flex gap-3 mb-3">
+              <div className="mb-2 flex gap-3">
                 <ImageWithFallback
                   src={product.imageUrl}
                   alt={product.name}
-                  className="w-16 h-16 rounded-xl object-cover"
+                  className="h-14 w-14 rounded-xl object-cover"
                 />
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-900 text-sm mb-1">
@@ -294,12 +296,12 @@ export default function CheckoutScreen({
               </div>
 
               {/* Quantity Controls */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-t border-gray-100 pt-2">
                 <span className="text-sm text-gray-600">Cantidad</span>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => updateQuantity(product.id, -1)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200"
                   >
                     <Minus className="w-4 h-4 text-gray-700" />
                   </button>
@@ -316,7 +318,7 @@ export default function CheckoutScreen({
               </div>
 
               {/* Subtotal */}
-              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
+              <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-2">
                 <span className="text-sm text-gray-600">Subtotal</span>
                 <span className="text-base font-bold text-teal-600">
                   $
@@ -330,12 +332,12 @@ export default function CheckoutScreen({
         </div>
 
         {/* Delivery Date & Time Selection */}
-        <div className="mb-6">
-          <label className="block text-base font-bold text-gray-900 mb-3">
+        <div className="mb-4">
+          <label className="mb-2 block text-base font-bold text-gray-900">
             ¿Para cuándo lo necesitas?
           </label>
 
-          <div className="mb-3 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
+          <div className="mb-2 grid grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
             <button
               onClick={() => {
                 setNeedNow(true);
@@ -344,14 +346,14 @@ export default function CheckoutScreen({
                 setSelectedHour("");
                 setSelectedMinute("");
               }}
-              className={`rounded-xl px-2 py-3 text-sm font-bold transition-all ${
+            className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
                 needNow
                   ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/30"
                   : "bg-transparent text-gray-600 hover:bg-white"
               }`}
             >
               <div className="flex items-center justify-center gap-2">
-                <span className="text-2xl">🚀</span>
+                <span className="text-lg">🚀</span>
                 <span>Lo necesito ahora</span>
               </div>
             </button>
@@ -359,7 +361,7 @@ export default function CheckoutScreen({
             <button
               type="button"
               onClick={() => setNeedNow(false)}
-              className={`rounded-xl px-2 py-3 text-sm font-bold transition-all ${
+            className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
                 !needNow
                   ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md"
                   : "bg-transparent text-gray-600 hover:bg-white"
@@ -492,13 +494,7 @@ export default function CheckoutScreen({
           )}
 
           {/* Summary Display */}
-          {needNow && (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-              <p className="text-sm text-orange-800">
-                <strong>🚀 Entrega urgente:</strong> Lo más pronto posible
-              </p>
-            </div>
-          )}
+          {needNow && <p className="px-2 text-xs font-semibold text-orange-700">⚡ Entrega urgente · lo antes posible</p>}
 
           {!needNow && (selectedDate || selectedTime) && (
             <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
@@ -514,25 +510,29 @@ export default function CheckoutScreen({
         </div>
 
         {/* Personal Note */}
-        <div className="mb-6">
-          <label className="block text-base font-bold text-gray-900 mb-3">
-            Agregar nota personalizada:
-          </label>
+        <div className="mb-3 rounded-2xl border border-slate-200 bg-white/70 p-3">
+          <button type="button" onClick={() => setIsNoteOpen((value) => !value)} className="flex w-full items-center justify-between text-left text-sm font-bold text-gray-900">
+            <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-teal-500" />Agregar nota opcional</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isNoteOpen ? "rotate-180" : ""}`} />
+          </button>
+          {isNoteOpen && (
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Ej: Sin azúcar, decoración personalizada, hora de entrega..."
-            className="zipco-readable-field w-full bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all resize-none"
-            rows={4}
+            className="zipco-readable-field mt-3 w-full resize-none rounded-xl border border-gray-200 bg-white/80 p-3 text-sm backdrop-blur-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+            rows={3}
           />
+          )}
         </div>
 
-        <div className="mb-6">
-          <label className="block text-base font-bold text-gray-900 mb-3">
-            Foto de referencia
-          </label>
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-white/70 p-3">
+          <button type="button" onClick={() => setIsPhotoOpen((value) => !value)} className="flex w-full items-center justify-between text-left text-sm font-bold text-gray-900">
+            <span className="flex items-center gap-2"><Camera className="h-4 w-4 text-teal-500" />Agregar foto de referencia</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isPhotoOpen ? "rotate-180" : ""}`} />
+          </button>
 
-          {referencePhoto ? (
+          {isPhotoOpen && (referencePhoto ? (
             <div className="relative bg-white/80 backdrop-blur-sm border border-teal-100 rounded-2xl p-3 shadow-sm">
               <ImageWithFallback
                 src={referencePhoto}
@@ -561,7 +561,7 @@ export default function CheckoutScreen({
                   : "Elegir foto desde galeria o camara"}
               </span>
             </button>
-          )}
+          ))}
 
           <input
             ref={referencePhotoInputRef}
@@ -596,11 +596,11 @@ export default function CheckoutScreen({
       </div>
 
       {/* Order Button */}
-      <div className="zipco-sticky-fade absolute bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
+      <div className="zipco-sticky-fade absolute bottom-24 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-transparent px-4 py-2">
         <button
           onClick={handleSubmitOrder}
           disabled={isUploadingPhoto || isSubmitting}
-          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-3 font-semibold text-white shadow-xl shadow-teal-500/30 transition-all hover:shadow-2xl hover:shadow-teal-500/40 active:scale-[0.98]"
         >
           <Send className="w-5 h-5" />
           <span>{isSubmitting ? "Enviando..." : "Realizar pedido"}</span>

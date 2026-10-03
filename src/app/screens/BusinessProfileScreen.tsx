@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  Check,
   Clock,
   Eye,
   Facebook,
@@ -681,14 +682,14 @@ export default function BusinessProfileScreen({
                                 event.stopPropagation();
                                 handleOrderToggle(product);
                               }}
-                              className={`relative inline-flex min-h-8 w-auto items-center justify-center gap-1.5 rounded-lg border px-3 py-1 text-[11px] font-bold shadow-sm transition-all after:absolute after:-inset-y-1.5 after:inset-x-0 ${
+                              className={`relative inline-flex h-9 w-auto items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-bold shadow-sm transition-all after:absolute after:-inset-y-1.5 after:inset-x-0 ${
                                 isSelected
                                   ? "border-green-500 bg-white text-green-600 shadow-sm"
                                   : "border-teal-500 bg-[#14C8B8] text-white shadow-sm shadow-teal-500/20 hover:bg-[#0FB5A7]"
                               }`}
                             >
-                              <ShoppingCart className="h-4 w-4" />
-                              {isSelected ? "Agregado ✓" : "Agregar"}
+                              {isSelected ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                              {isSelected ? "Agregado" : "Agregar"}
                             </button>
                           )}
                           {action === "view" || isOwnBusinessProfile ? (
@@ -737,37 +738,29 @@ export default function BusinessProfileScreen({
       {!isOwnBusinessProfile &&
         products.length > 0 &&
         selectedProducts.length > 0 && (
-          <div className="absolute bottom-20 left-0 right-0 px-4 py-3 bg-gradient-to-t from-white via-white/95 to-transparent">
+          <div className="zipco-sticky-fade absolute bottom-24 left-0 right-0 z-40 bg-gradient-to-t from-white via-white/95 to-transparent px-4 py-2">
             <button
               onClick={() => onCheckout(selectedProducts, products)}
-              className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-4 px-6 rounded-full font-semibold shadow-xl shadow-teal-500/30 hover:shadow-2xl hover:shadow-teal-500/40 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-3 font-semibold text-white shadow-xl shadow-teal-500/30 transition-all hover:shadow-2xl hover:shadow-teal-500/40 active:scale-[0.98]"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span>Realizar pedido ({selectedProducts.length})</span>
+              <span>Continuar · {selectedProducts.length} {selectedProducts.length === 1 ? "producto" : "productos"}</span>
             </button>
           </div>
         )}
 
       {showRemoveTooltip && (
-        <div className="absolute bottom-36 left-6 right-6 bg-white/95 backdrop-blur-sm border border-teal-100 rounded-2xl px-3 py-2.5 shadow-lg shadow-slate-900/10">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-40 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2 rounded-full border border-emerald-400/40 bg-slate-950/95 px-4 py-2.5 text-white shadow-xl backdrop-blur-md">
           <button
             type="button"
             onClick={() => setShowRemoveTooltip(false)}
-            className="absolute right-2.5 top-2.5 text-gray-400 hover:text-gray-600"
+            className="order-3 ml-auto shrink-0 text-slate-400 hover:text-white"
           >
             <X className="w-3.5 h-3.5" />
           </button>
-          <div className="flex items-center gap-2 pr-5">
-            <div className="shrink-0 w-7 h-7 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs">
-              ℹ️
-            </div>
-            <p className="text-xs text-gray-700 leading-snug">
-              <strong className="text-gray-900">Para quitarlo:</strong> toca{" "}
-              <strong className="text-green-600">Agregado</strong> y volverá a{" "}
-              <strong className="text-teal-600">Agregar</strong>
-            </p>
-          </div>
-        </div>
+          <Check className="h-5 w-5 shrink-0 rounded-full bg-emerald-500 p-0.5 text-white" />
+          <p className="min-w-0 flex-1 truncate text-xs font-semibold">Producto agregado · toca “Agregado” para quitarlo</p>
+        </motion.div>
       )}
 
       <AnimatePresence>
