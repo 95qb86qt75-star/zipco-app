@@ -65,9 +65,11 @@ export function showAppToast(
 export default function Toast({
   notification,
   onClose,
+  onAction,
 }: {
   notification: ToastNotification;
   onClose: () => void;
+  onAction?: (actionUrl: string) => void;
 }) {
   const { message, type, title, description, durationMs, icon, actionUrl } =
     notification;
@@ -174,7 +176,10 @@ export default function Toast({
       <div
         className={`pointer-events-auto relative overflow-hidden rounded-2xl border bg-white px-4 py-3 pr-12 shadow-[0_10px_30px_rgba(15,23,42,0.14)] ${tone.border} ${actionUrl ? "cursor-pointer" : ""}`}
         onClick={() => {
-          if (actionUrl) window.location.assign(actionUrl);
+          if (!actionUrl) return;
+          if (onAction) onAction(actionUrl);
+          else window.location.assign(actionUrl);
+          beginClose();
         }}
         onMouseEnter={pauseTimer}
         onMouseLeave={resumeTimer}

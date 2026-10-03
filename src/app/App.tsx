@@ -1,39 +1,91 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Search, Mic, MapPinned, User, Heart, FileText, Store, Wrench, Calendar, ArrowLeft, Clock, Star, Instagram, Facebook, Plus, Minus, Send, Check, X, Package, Phone, Mail, MapPinIcon, CreditCard, Settings, LogOut, ChevronRight, Camera, Building2, TrendingUp, Tag, Edit2, Eye, EyeOff, Moon, Sun, Bell, BellOff } from 'lucide-react';
-import { ImageWithFallback } from './components/figma/ImageWithFallback';
-import { motion } from 'motion/react';
-import BottomNav from './screens/BottomNav';
-import RegistrationFlow from './screens/RegistrationFlow';
-import RequestsScreen from './screens/RequestsScreen';
-import CheckoutScreen from './screens/CheckoutScreen';
-import BusinessProfileScreen from './screens/BusinessProfileScreen';
-import ServiceProfileScreen from './screens/ServiceProfileScreen';
-import ServiceCheckoutScreen from './screens/ServiceCheckoutScreen';
-import ServiciosScreen from './screens/RealServiciosScreen';
-import NegociosScreen from './screens/NegociosScreen';
-import GlobalSearchScreen from './screens/GlobalSearchScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import EmptyFavorites from './screens/EmptyFavorites';
-import Toast, { mergeToastNotification, showAppToast, type ToastNotification } from './screens/Toast';
-import SplashScreen from './screens/SplashScreen';
-import type { CatalogItem } from './screens/profile/business-config/types';
-import BusinessNotificationMonitor from './notifications/BusinessNotificationMonitor';
-import { disablePushNotifications, enablePushNotifications, getExistingPushSubscription, getPushSupport } from './notifications/pushNotifications';
-import { canRunSearch } from './screens/searchConsistency';
-import { fetchLocationSuggestions } from './api/locationSuggestions';
-import { addFavorite, loadFavorites, removeFavorite } from './api/favoritesApi';
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  MapPin,
+  Search,
+  Mic,
+  MapPinned,
+  User,
+  Heart,
+  FileText,
+  Store,
+  Wrench,
+  Calendar,
+  ArrowLeft,
+  Clock,
+  Star,
+  Instagram,
+  Facebook,
+  Plus,
+  Minus,
+  Send,
+  Check,
+  X,
+  Package,
+  Phone,
+  Mail,
+  MapPinIcon,
+  CreditCard,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Camera,
+  Building2,
+  TrendingUp,
+  Tag,
+  Edit2,
+  Eye,
+  EyeOff,
+  Moon,
+  Sun,
+  Bell,
+  BellOff,
+} from "lucide-react";
+import { ImageWithFallback } from "./components/figma/ImageWithFallback";
+import { motion } from "motion/react";
+import BottomNav from "./screens/BottomNav";
+import RegistrationFlow from "./screens/RegistrationFlow";
+import RequestsScreen from "./screens/RequestsScreen";
+import CheckoutScreen from "./screens/CheckoutScreen";
+import BusinessProfileScreen from "./screens/BusinessProfileScreen";
+import ServiceProfileScreen from "./screens/ServiceProfileScreen";
+import ServiceCheckoutScreen from "./screens/ServiceCheckoutScreen";
+import ServiciosScreen from "./screens/RealServiciosScreen";
+import NegociosScreen from "./screens/NegociosScreen";
+import GlobalSearchScreen from "./screens/GlobalSearchScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import EmptyFavorites from "./screens/EmptyFavorites";
+import Toast, {
+  mergeToastNotification,
+  showAppToast,
+  type ToastNotification,
+} from "./screens/Toast";
+import SplashScreen from "./screens/SplashScreen";
+import type { CatalogItem } from "./screens/profile/business-config/types";
+import BusinessNotificationMonitor from "./notifications/BusinessNotificationMonitor";
+import {
+  disablePushNotifications,
+  enablePushNotifications,
+  getExistingPushSubscription,
+  getPushSupport,
+} from "./notifications/pushNotifications";
+import { canRunSearch } from "./screens/searchConsistency";
+import { fetchLocationSuggestions } from "./api/locationSuggestions";
+import { addFavorite, loadFavorites, removeFavorite } from "./api/favoritesApi";
 
 const hasStoredSession = () =>
-  Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id'));
+  Boolean(
+    localStorage.getItem("zipco-token") &&
+    localStorage.getItem("zipco-user-id"),
+  );
 
-type FavoriteEntry = { key: string; kind: 'business' | 'service'; item: any };
+type FavoriteEntry = { key: string; kind: "business" | "service"; item: any };
 
-const favoriteKey = (kind: FavoriteEntry['kind'], item: any) =>
-  `${kind}:${String(item?.id ?? item?.name ?? '')}`;
+const favoriteKey = (kind: FavoriteEntry["kind"], item: any) =>
+  `${kind}:${String(item?.id ?? item?.name ?? "")}`;
 
 const getStoredFavorites = (): FavoriteEntry[] => {
   try {
-    const parsed = JSON.parse(localStorage.getItem('zipco-favorites') ?? '[]');
+    const parsed = JSON.parse(localStorage.getItem("zipco-favorites") ?? "[]");
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -42,56 +94,79 @@ const getStoredFavorites = (): FavoriteEntry[] => {
 
 const getStoredLocation = () => {
   try {
-    const savedLocation = localStorage.getItem('zipco-location');
-    if (!savedLocation) return { name: '', lat: null, lng: null };
+    const savedLocation = localStorage.getItem("zipco-location");
+    if (!savedLocation) return { name: "", lat: null, lng: null };
 
     const parsedLocation = JSON.parse(savedLocation);
     return {
-      name: String(parsedLocation.name ?? ''),
-      lat: typeof parsedLocation.lat === 'number' ? parsedLocation.lat : null,
-      lng: typeof parsedLocation.lng === 'number' ? parsedLocation.lng : null
+      name: String(parsedLocation.name ?? ""),
+      lat: typeof parsedLocation.lat === "number" ? parsedLocation.lat : null,
+      lng: typeof parsedLocation.lng === "number" ? parsedLocation.lng : null,
     };
   } catch (error) {
-    return { name: '', lat: null, lng: null };
+    return { name: "", lat: null, lng: null };
   }
 };
 
 export default function App() {
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(
-    () => localStorage.getItem('zipco-registration-complete') === 'true' || hasStoredSession()
+    () =>
+      localStorage.getItem("zipco-registration-complete") === "true" ||
+      hasStoredSession(),
   );
-  const [showSplash, setShowSplash] = useState(() => sessionStorage.getItem('zipco-splash-seen') !== 'true');
+  const [showSplash, setShowSplash] = useState(
+    () => sessionStorage.getItem("zipco-splash-seen") !== "true",
+  );
   const [activeTab, setActiveTab] = useState(() =>
-    new URLSearchParams(window.location.search).get('open')?.startsWith('requests-') ? 'requests' : 'home'
+    new URLSearchParams(window.location.search)
+      .get("open")
+      ?.startsWith("requests-")
+      ? "requests"
+      : "home",
   );
-  const [currentScreen, setCurrentScreen] = useState('home');
-  const [previousScreen, setPreviousScreen] = useState<string>('negocios');
-  const [previousServiceScreen, setPreviousServiceScreen] = useState<'servicios' | 'search' | 'favorites'>('servicios');
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('zipco-theme') === 'dark');
-  const [locationSearch, setLocationSearch] = useState('');
+  const [currentScreen, setCurrentScreen] = useState("home");
+  const [previousScreen, setPreviousScreen] = useState<string>("negocios");
+  const [previousServiceScreen, setPreviousServiceScreen] = useState<
+    "servicios" | "search" | "favorites"
+  >("servicios");
+  const [isDarkMode, setIsDarkMode] = useState(
+    () => localStorage.getItem("zipco-theme") === "dark",
+  );
+  const [locationSearch, setLocationSearch] = useState("");
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [locationSearchError, setLocationSearchError] = useState('');
-  const [locationAutocompleteResults, setLocationAutocompleteResults] = useState<any[]>([]);
-  const [isLocationAutocompleteLoading, setIsLocationAutocompleteLoading] = useState(false);
-  const [hasLocationAutocompleteSearched, setHasLocationAutocompleteSearched] = useState(false);
-  const [pendingLocation, setPendingLocation] = useState('');
-  const [currentLocation, setCurrentLocation] = useState<{ name: string; lat: number | null; lng: number | null }>(getStoredLocation);
+  const [locationSearchError, setLocationSearchError] = useState("");
+  const [locationAutocompleteResults, setLocationAutocompleteResults] =
+    useState<any[]>([]);
+  const [isLocationAutocompleteLoading, setIsLocationAutocompleteLoading] =
+    useState(false);
+  const [hasLocationAutocompleteSearched, setHasLocationAutocompleteSearched] =
+    useState(false);
+  const [pendingLocation, setPendingLocation] = useState("");
+  const [currentLocation, setCurrentLocation] = useState<{
+    name: string;
+    lat: number | null;
+    lng: number | null;
+  }>(getStoredLocation);
   const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
-  const [checkoutData, setCheckoutData] = useState<{ selectedProducts: number[]; products: CatalogItem[] } | null>(null);
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
-  const [globalSearchFilter, setGlobalSearchFilter] = useState('todos');
+  const [checkoutData, setCheckoutData] = useState<{
+    selectedProducts: number[];
+    products: CatalogItem[];
+  } | null>(null);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [globalSearchFilter, setGlobalSearchFilter] = useState("todos");
   const [globalSearchDistance, setGlobalSearchDistance] = useState(10);
-  const [servicesSearchQuery, setServicesSearchQuery] = useState('');
-  const [servicesSearchFilter, setServicesSearchFilter] = useState('todos');
+  const [servicesSearchQuery, setServicesSearchQuery] = useState("");
+  const [servicesSearchFilter, setServicesSearchFilter] = useState("todos");
   const [servicesSearchDistance, setServicesSearchDistance] = useState(10);
   const servicesScrollTopRef = useRef(0);
-  const [businessesSearchQuery, setBusinessesSearchQuery] = useState('');
-  const [businessesSearchFilter, setBusinessesSearchFilter] = useState('todos');
+  const [businessesSearchQuery, setBusinessesSearchQuery] = useState("");
+  const [businessesSearchFilter, setBusinessesSearchFilter] = useState("todos");
   const [businessesSearchDistance, setBusinessesSearchDistance] = useState(10);
   const businessesScrollTopRef = useRef(0);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedServiceItem, setSelectedServiceItem] = useState<any>(null);
-  const [favoriteItems, setFavoriteItems] = useState<FavoriteEntry[]>(getStoredFavorites);
+  const [favoriteItems, setFavoriteItems] =
+    useState<FavoriteEntry[]>(getStoredFavorites);
   const [toast, setToast] = useState<ToastNotification | null>(null);
   const [requestsNavigationKey, setRequestsNavigationKey] = useState(0);
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
@@ -101,101 +176,150 @@ export default function App() {
   const openNotificationTarget = useCallback((targetValue: string) => {
     const target = new URL(targetValue, window.location.origin);
     if (target.origin !== window.location.origin) return;
-    window.history.replaceState({}, '', `${target.pathname}${target.search}`);
-    setCurrentScreen('home');
-    setActiveTab('requests');
+    window.history.replaceState({}, "", `${target.pathname}${target.search}`);
+    setCurrentScreen("home");
+    setActiveTab("requests");
     setRequestsNavigationKey((current) => current + 1);
   }, []);
 
   const refreshFavorites = useCallback(async () => {
-    const token = localStorage.getItem('zipco-token');
-    if (!token) { setFavoriteItems([]); return; }
+    const token = localStorage.getItem("zipco-token");
+    if (!token) {
+      setFavoriteItems([]);
+      return;
+    }
     try {
       const records = await loadFavorites(token);
-      const next = records.map((record) => ({ key: favoriteKey(record.kind, record.business), kind: record.kind, item: record.business }));
+      const next = records.map((record) => ({
+        key: favoriteKey(record.kind, record.business),
+        kind: record.kind,
+        item: record.business,
+      }));
       setFavoriteItems(next);
-      localStorage.setItem('zipco-favorites', JSON.stringify(next));
+      localStorage.setItem("zipco-favorites", JSON.stringify(next));
     } catch (error: any) {
       if (error?.status === 401) handleLogout();
     }
   }, []);
 
-  const toggleFavorite = useCallback(async (kind: FavoriteEntry['kind'], item: any) => {
-    const key = favoriteKey(kind, item);
-    const businessId = Number(item?.id);
-    const token = localStorage.getItem('zipco-token');
-    if (!token || !Number.isInteger(businessId) || businessId <= 0) { showAppToast('Este perfil todavía no está conectado a Favoritos.', 'error'); return; }
-    const wasFavorite = favoriteItems.some((favorite) => favorite.key === key);
-    setFavoriteItems((current) => {
-      const next = current.some((favorite) => favorite.key === key)
-        ? current.filter((favorite) => favorite.key !== key)
-        : [...current, { key, kind, item }];
-      localStorage.setItem('zipco-favorites', JSON.stringify(next));
-      return next;
-    });
-    try {
-      if (wasFavorite) await removeFavorite(businessId, token); else await addFavorite(businessId, kind, token);
-      await refreshFavorites();
-    } catch (error: any) {
-      await refreshFavorites();
-      if (error?.status === 401) handleLogout(); else showAppToast('No se pudo actualizar Favoritos. Intenta nuevamente.', 'error');
-    }
-  }, [favoriteItems, refreshFavorites]);
+  const toggleFavorite = useCallback(
+    async (kind: FavoriteEntry["kind"], item: any) => {
+      const key = favoriteKey(kind, item);
+      const businessId = Number(item?.id);
+      const token = localStorage.getItem("zipco-token");
+      if (!token || !Number.isInteger(businessId) || businessId <= 0) {
+        showAppToast(
+          "Este perfil todavía no está conectado a Favoritos.",
+          "error",
+        );
+        return;
+      }
+      const wasFavorite = favoriteItems.some(
+        (favorite) => favorite.key === key,
+      );
+      setFavoriteItems((current) => {
+        const next = current.some((favorite) => favorite.key === key)
+          ? current.filter((favorite) => favorite.key !== key)
+          : [...current, { key, kind, item }];
+        localStorage.setItem("zipco-favorites", JSON.stringify(next));
+        return next;
+      });
+      try {
+        if (wasFavorite) await removeFavorite(businessId, token);
+        else await addFavorite(businessId, kind, token);
+        await refreshFavorites();
+      } catch (error: any) {
+        await refreshFavorites();
+        if (error?.status === 401) handleLogout();
+        else
+          showAppToast(
+            "No se pudo actualizar Favoritos. Intenta nuevamente.",
+            "error",
+          );
+      }
+    },
+    [favoriteItems, refreshFavorites],
+  );
 
   useEffect(() => {
     if (hasStoredSession()) {
-      localStorage.setItem('zipco-registration-complete', 'true');
+      localStorage.setItem("zipco-registration-complete", "true");
       setIsRegistrationComplete(true);
     }
   }, []);
 
-  useEffect(() => { if (isRegistrationComplete) void refreshFavorites(); }, [isRegistrationComplete, refreshFavorites]);
+  useEffect(() => {
+    if (isRegistrationComplete) void refreshFavorites();
+  }, [isRegistrationComplete, refreshFavorites]);
 
   useEffect(() => {
     if (!currentLocation.name.trim()) return;
 
-    localStorage.setItem('zipco-location', JSON.stringify(currentLocation));
+    localStorage.setItem("zipco-location", JSON.stringify(currentLocation));
   }, [currentLocation]);
 
   const handleLogout = useCallback(() => {
-    const token = localStorage.getItem('zipco-token');
+    const token = localStorage.getItem("zipco-token");
     if (token) void disablePushNotifications(token).catch(() => undefined);
-    localStorage.removeItem('zipco-token');
-    localStorage.removeItem('zipco-user-id');
-    localStorage.removeItem('zipco-registration-complete');
-    localStorage.removeItem('zipco-business-id');
-    localStorage.removeItem('zipco-provider-type');
-    localStorage.removeItem('zipco-favorites');
+    localStorage.removeItem("zipco-token");
+    localStorage.removeItem("zipco-user-id");
+    localStorage.removeItem("zipco-registration-complete");
+    localStorage.removeItem("zipco-business-id");
+    localStorage.removeItem("zipco-provider-type");
+    localStorage.removeItem("zipco-favorites");
     setFavoriteItems([]);
-    setCurrentScreen('home');
-    setActiveTab('home');
+    setCurrentScreen("home");
+    setActiveTab("home");
     setIsRegistrationComplete(false);
   }, []);
 
   useEffect(() => {
     const handleNotificationNavigation = (event: MessageEvent) => {
       const data = event.data as { type?: string; url?: string } | null;
-      if (data?.type !== 'ZIPCO_NOTIFICATION_NAVIGATE' || typeof data.url !== 'string') return;
+      if (
+        data?.type !== "ZIPCO_NOTIFICATION_NAVIGATE" ||
+        typeof data.url !== "string"
+      )
+        return;
       openNotificationTarget(data.url);
     };
-    navigator.serviceWorker?.addEventListener('message', handleNotificationNavigation);
-    return () => navigator.serviceWorker?.removeEventListener('message', handleNotificationNavigation);
+    navigator.serviceWorker?.addEventListener(
+      "message",
+      handleNotificationNavigation,
+    );
+    return () =>
+      navigator.serviceWorker?.removeEventListener(
+        "message",
+        handleNotificationNavigation,
+      );
   }, [openNotificationTarget]);
 
   useEffect(() => {
     let consuming = false;
     const consumeStoredNotificationTarget = async () => {
-      if (consuming || !('caches' in window)) return;
+      if (consuming || !("caches" in window)) return;
       consuming = true;
       try {
-        const navigationCache = await caches.open('zipco-notification-navigation-v1');
-        const request = new Request(new URL('/__zipco_notification_target__', window.location.origin).href);
+        const navigationCache = await caches.open(
+          "zipco-notification-navigation-v1",
+        );
+        const request = new Request(
+          new URL("/__zipco_notification_target__", window.location.origin)
+            .href,
+        );
         const response = await navigationCache.match(request);
         if (!response) return;
         await navigationCache.delete(request);
-        const payload = await response.json() as { url?: unknown; createdAt?: unknown };
+        const payload = (await response.json()) as {
+          url?: unknown;
+          createdAt?: unknown;
+        };
         const createdAt = Number(payload.createdAt);
-        if (typeof payload.url === 'string' && Number.isFinite(createdAt) && Date.now() - createdAt < 5 * 60 * 1000) {
+        if (
+          typeof payload.url === "string" &&
+          Number.isFinite(createdAt) &&
+          Date.now() - createdAt < 5 * 60 * 1000
+        ) {
           openNotificationTarget(payload.url);
         }
       } catch {
@@ -205,37 +329,47 @@ export default function App() {
       }
     };
     const handleResume = () => {
-      if (document.visibilityState === 'visible') void consumeStoredNotificationTarget();
+      if (document.visibilityState === "visible")
+        void consumeStoredNotificationTarget();
     };
     void consumeStoredNotificationTarget();
-    document.addEventListener('visibilitychange', handleResume);
-    window.addEventListener('pageshow', handleResume);
-    window.addEventListener('focus', handleResume);
+    document.addEventListener("visibilitychange", handleResume);
+    window.addEventListener("pageshow", handleResume);
+    window.addEventListener("focus", handleResume);
     return () => {
-      document.removeEventListener('visibilitychange', handleResume);
-      window.removeEventListener('pageshow', handleResume);
-      window.removeEventListener('focus', handleResume);
+      document.removeEventListener("visibilitychange", handleResume);
+      window.removeEventListener("pageshow", handleResume);
+      window.removeEventListener("focus", handleResume);
     };
   }, [openNotificationTarget]);
 
   useEffect(() => {
-    localStorage.setItem('zipco-theme', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem("zipco-theme", isDarkMode ? "dark" : "light");
 
-    const themeColor = isDarkMode ? '#020617' : '#ffffff';
-    const themeColorMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    const statusBarMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-status-bar-style"]');
+    const themeColor = isDarkMode ? "#020617" : "#ffffff";
+    const themeColorMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    const statusBarMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="apple-mobile-web-app-status-bar-style"]',
+    );
 
-    document.documentElement.classList.toggle('dark', isDarkMode);
-    document.documentElement.style.colorScheme = isDarkMode ? 'dark' : 'only light';
-    document.body.style.colorScheme = isDarkMode ? 'dark' : 'only light';
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.style.colorScheme = isDarkMode
+      ? "dark"
+      : "only light";
+    document.body.style.colorScheme = isDarkMode ? "dark" : "only light";
     document.documentElement.style.backgroundColor = themeColor;
     document.body.style.backgroundColor = themeColor;
-    themeColorMeta?.setAttribute('content', themeColor);
-    statusBarMeta?.setAttribute('content', isDarkMode ? 'black-translucent' : 'default');
+    themeColorMeta?.setAttribute("content", themeColor);
+    statusBarMeta?.setAttribute(
+      "content",
+      isDarkMode ? "black-translucent" : "default",
+    );
   }, [isDarkMode]);
 
   useEffect(() => {
-    if (!isRegistrationComplete || getPushSupport() === 'unsupported') {
+    if (!isRegistrationComplete || getPushSupport() === "unsupported") {
       setPushEnabled(null);
       return;
     }
@@ -245,22 +379,37 @@ export default function App() {
   }, [isRegistrationComplete, activeTab]);
 
   const togglePushNotifications = async () => {
-    const token = localStorage.getItem('zipco-token');
+    const token = localStorage.getItem("zipco-token");
     if (!token || pushEnabled === null || isChangingPush) return;
     setIsChangingPush(true);
     try {
       if (pushEnabled) {
         await disablePushNotifications(token);
         setPushEnabled(false);
-        showAppToast('', 'success', { title: 'Notificaciones desactivadas', description: 'Puedes volver a activarlas desde Inicio.', icon: 'bell' });
+        showAppToast("", "success", {
+          title: "Notificaciones desactivadas",
+          description: "Puedes volver a activarlas desde Inicio.",
+          icon: "bell",
+        });
       } else {
         await enablePushNotifications(token);
         setPushEnabled(true);
-        showAppToast('', 'success', { title: 'Notificaciones activadas', description: 'Te avisaremos sobre pedidos y cotizaciones importantes.', icon: 'bell' });
+        showAppToast("", "success", {
+          title: "Notificaciones activadas",
+          description:
+            "Te avisaremos sobre pedidos y cotizaciones importantes.",
+          icon: "bell",
+        });
       }
     } catch (cause) {
-      const blocked = cause instanceof Error && cause.message === 'permission-denied';
-      showAppToast(blocked ? 'Debes habilitarlas desde los ajustes del dispositivo.' : 'No pudimos cambiar las notificaciones. Intenta nuevamente.', 'error');
+      const blocked =
+        cause instanceof Error && cause.message === "permission-denied";
+      showAppToast(
+        blocked
+          ? "Debes habilitarlas desde los ajustes del dispositivo."
+          : "No pudimos cambiar las notificaciones. Intenta nuevamente.",
+        "error",
+      );
     } finally {
       setIsChangingPush(false);
     }
@@ -272,14 +421,23 @@ export default function App() {
       setToast((current) => mergeToastNotification(current, notification));
     };
 
-    window.addEventListener('zipco-toast', handleToast);
-    return () => window.removeEventListener('zipco-toast', handleToast);
+    window.addEventListener("zipco-toast", handleToast);
+    return () => window.removeEventListener("zipco-toast", handleToast);
   }, []);
 
   const renderWithToast = (content: any) => (
     <div className="zipco-theme-surface contents">
-      {toast && <Toast key={toast.dedupeKey} notification={toast} onClose={closeToast} />}
-      {hasStoredSession() && <BusinessNotificationMonitor onSessionExpired={handleLogout} />}
+      {toast && (
+        <Toast
+          key={toast.dedupeKey}
+          notification={toast}
+          onClose={closeToast}
+          onAction={openNotificationTarget}
+        />
+      )}
+      {hasStoredSession() && (
+        <BusinessNotificationMonitor onSessionExpired={handleLogout} />
+      )}
       {content}
     </div>
   );
@@ -320,90 +478,109 @@ export default function App() {
 
   const categories = [
     {
-      id: 'negocios',
-      name: 'Negocios',
+      id: "negocios",
+      name: "Negocios",
       icon: Store,
-      gradient: 'bg-gradient-to-br from-amber-400 via-orange-500 to-red-500',
-      iconColor: 'text-white',
-      textColor: 'text-white'
+      gradient: "bg-gradient-to-br from-amber-400 via-orange-500 to-red-500",
+      iconColor: "text-white",
+      textColor: "text-white",
     },
     {
-      id: 'servicios',
-      name: 'Servicios',
+      id: "servicios",
+      name: "Servicios",
       icon: Wrench,
-      gradient: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
-      iconColor: 'text-white',
-      textColor: 'text-white'
-    }
+      gradient: "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500",
+      iconColor: "text-white",
+      textColor: "text-white",
+    },
   ];
 
   const chileLocationBase = [
-    { name: 'San Bernardo', lat: -33.5922, lng: -70.6996 },
-    { name: 'Santiago', lat: -33.4489, lng: -70.6693 },
-    { name: 'Maipú', lat: -33.5110, lng: -70.7567 },
-    { name: 'Coronel', lat: -37.0333, lng: -73.1333 },
-    { name: 'Concepción', lat: -36.8270, lng: -73.0503 },
-    { name: 'Chiguayante', lat: -36.9256, lng: -73.0286 },
-    { name: 'Valparaíso', lat: -33.0472, lng: -71.6127 },
-    { name: 'Viña del Mar', lat: -33.0153, lng: -71.5500 },
-    { name: 'Talcahuano', lat: -36.7248, lng: -73.1169 },
-    { name: 'Las Condes', lat: -33.4088, lng: -70.5674 },
-    { name: 'Providencia', lat: -33.4263, lng: -70.6171 },
-    { name: 'Ñuñoa', lat: -33.4569, lng: -70.5975 }
+    { name: "San Bernardo", lat: -33.5922, lng: -70.6996 },
+    { name: "Santiago", lat: -33.4489, lng: -70.6693 },
+    { name: "Maipú", lat: -33.511, lng: -70.7567 },
+    { name: "Coronel", lat: -37.0333, lng: -73.1333 },
+    { name: "Concepción", lat: -36.827, lng: -73.0503 },
+    { name: "Chiguayante", lat: -36.9256, lng: -73.0286 },
+    { name: "Valparaíso", lat: -33.0472, lng: -71.6127 },
+    { name: "Viña del Mar", lat: -33.0153, lng: -71.55 },
+    { name: "Talcahuano", lat: -36.7248, lng: -73.1169 },
+    { name: "Las Condes", lat: -33.4088, lng: -70.5674 },
+    { name: "Providencia", lat: -33.4263, lng: -70.6171 },
+    { name: "Ñuñoa", lat: -33.4569, lng: -70.5975 },
   ];
 
   const locationSuggestions = chileLocationBase.filter((city) =>
-    city.name.toLowerCase().includes(locationSearch.toLowerCase().trim())
+    city.name.toLowerCase().includes(locationSearch.toLowerCase().trim()),
   );
 
   const getLocationNameFromResult = (result: any, fallback: string) =>
-    String(result.display_name ?? fallback).split(',').slice(0, 2).map((part) => part.trim()).join(', ');
+    String(result.display_name ?? fallback)
+      .split(",")
+      .slice(0, 2)
+      .map((part) => part.trim())
+      .join(", ");
 
   const getLocationSuggestionLabel = (result: any) => {
-    const parts = String(result.display_name ?? '').split(',').map((part) => part.trim()).filter(Boolean);
-    if (parts[parts.length - 1]?.toLowerCase() === 'chile') {
+    const parts = String(result.display_name ?? "")
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (parts[parts.length - 1]?.toLowerCase() === "chile") {
       parts.pop();
     }
-    return parts.join(', ');
+    return parts.join(", ");
   };
 
   const selectLocationResult = (result: any, fallback: string) => {
     setCurrentLocation({
       name: getLocationNameFromResult(result, fallback),
       lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon)
+      lng: parseFloat(result.lon),
     });
     setShowLocationModal(false);
-    setLocationSearch('');
-    setLocationSearchError('');
+    setLocationSearch("");
+    setLocationSearchError("");
     setLocationAutocompleteResults([]);
     setHasLocationAutocompleteSearched(false);
   };
 
   const updateCurrentLocationFromGeolocation = () => {
     if (!navigator.geolocation) {
-      showAppToast('La geolocalización no está disponible en este navegador.', 'error');
+      showAppToast(
+        "La geolocalización no está disponible en este navegador.",
+        "error",
+      );
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude: lat, longitude: lng } = position.coords;
-        let locationName = 'Ubicación actual';
+        let locationName = "Ubicación actual";
 
         try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+          );
           const data = await response.json();
-          locationName = data.address?.city || data.address?.town || data.address?.suburb || locationName;
+          locationName =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.suburb ||
+            locationName;
         } catch (error) {
-          console.error('No se pudo obtener el nombre de la ubicación', error);
+          console.error("No se pudo obtener el nombre de la ubicación", error);
         }
 
         setCurrentLocation({ name: locationName, lat, lng });
       },
       () => {
-        showAppToast('No se pudo obtener tu ubicación. Revisa los permisos del navegador.', 'error');
-      }
+        showAppToast(
+          "No se pudo obtener tu ubicación. Revisa los permisos del navegador.",
+          "error",
+        );
+      },
     );
   };
 
@@ -411,19 +588,21 @@ export default function App() {
     const query = locationSearch.trim();
     if (!query) return;
 
-    setLocationSearchError('');
+    setLocationSearchError("");
 
     try {
       const data = await fetchLocationSuggestions(query);
 
       if (!Array.isArray(data) || data.length === 0) {
-        setLocationSearchError('No se encontró esa ubicación, intenta con otra');
+        setLocationSearchError(
+          "No se encontró esa ubicación, intenta con otra",
+        );
         return;
       }
 
       selectLocationResult(data[0], query);
     } catch (error) {
-      setLocationSearchError('No se encontró esa ubicación, intenta con otra');
+      setLocationSearchError("No se encontró esa ubicación, intenta con otra");
     }
   };
 
@@ -432,18 +611,20 @@ export default function App() {
     return renderWithToast(
       <SplashScreen
         onComplete={() => {
-          sessionStorage.setItem('zipco-splash-seen', 'true');
+          sessionStorage.setItem("zipco-splash-seen", "true");
           setShowSplash(false);
         }}
-      />
+      />,
     );
   }
 
   if (!isRegistrationComplete) {
-    return renderWithToast(<RegistrationFlow onComplete={() => setIsRegistrationComplete(true)} />);
+    return renderWithToast(
+      <RegistrationFlow onComplete={() => setIsRegistrationComplete(true)} />,
+    );
   }
 
-  if (activeTab === 'profile') {
+  if (activeTab === "profile") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
@@ -452,25 +633,25 @@ export default function App() {
             setActiveTab={setActiveTab}
             onLogout={handleLogout}
             onBack={() => {
-              setActiveTab('home');
-              setCurrentScreen('home');
+              setActiveTab("home");
+              setCurrentScreen("home");
             }}
           />
           <BottomNav
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onNavigate={(tab) => {
-              if (tab === 'home') {
-                setCurrentScreen('home');
+              if (tab === "home") {
+                setCurrentScreen("home");
               }
             }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (activeTab === 'requests') {
+  if (activeTab === "requests") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
@@ -479,33 +660,43 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onBack={() => {
-              setActiveTab('home');
-              setCurrentScreen('home');
+              setActiveTab("home");
+              setCurrentScreen("home");
             }}
           />
           <BottomNav
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onNavigate={(tab) => {
-              if (tab === 'home') {
-                setCurrentScreen('home');
+              if (tab === "home") {
+                setCurrentScreen("home");
               }
             }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (activeTab === 'favorites') {
+  if (activeTab === "favorites") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
-        <div className={`w-full max-w-md h-full relative overflow-hidden ${
-          isDarkMode ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800' : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
-        }`}>
+        <div
+          className={`w-full max-w-md h-full relative overflow-hidden ${
+            isDarkMode
+              ? "bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800"
+              : "bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40"
+          }`}
+        >
           <div className="px-6 pt-8 pb-4">
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Favoritos</h2>
-            <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>
+            <h2
+              className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+            >
+              Favoritos
+            </h2>
+            <p
+              className={`text-sm mt-1 ${isDarkMode ? "text-slate-300" : "text-gray-600"}`}
+            >
               Tus negocios y servicios guardados
             </p>
           </div>
@@ -515,8 +706,8 @@ export default function App() {
               <EmptyFavorites
                 isDarkMode={isDarkMode}
                 onExplore={() => {
-                  setActiveTab('home');
-                  setCurrentScreen('home');
+                  setActiveTab("home");
+                  setCurrentScreen("home");
                 }}
               />
             ) : (
@@ -526,23 +717,40 @@ export default function App() {
                     type="button"
                     key={favorite.key}
                     onClick={() => {
-                      setActiveTab('home');
-                      if (favorite.kind === 'business') {
+                      setActiveTab("home");
+                      if (favorite.kind === "business") {
                         setSelectedBusiness(favorite.item);
-                        setPreviousScreen('favorites');
-                        setCurrentScreen('profile');
+                        setPreviousScreen("favorites");
+                        setCurrentScreen("profile");
                       } else {
                         setSelectedService(favorite.item);
-                        setPreviousServiceScreen('favorites');
-                        setCurrentScreen('service-profile');
+                        setPreviousServiceScreen("favorites");
+                        setCurrentScreen("service-profile");
                       }
                     }}
                     className={`flex w-full items-center gap-3 rounded-2xl p-4 text-left border ${
-                      isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-white border-gray-100 text-gray-900'
+                      isDarkMode
+                        ? "bg-slate-800 border-slate-700 text-slate-100"
+                        : "bg-white border-gray-100 text-gray-900"
                     }`}
                   >
-                    <ImageWithFallback src={favorite.item.image ?? favorite.item.imageUrl ?? favorite.item.photo} alt={favorite.item.name ?? 'Favorito'} className="h-14 w-14 rounded-xl object-cover" />
-                    <div className="min-w-0 flex-1"><strong className="block truncate">{favorite.item.name ?? 'Favorito'}</strong><span className="text-xs text-gray-500">{favorite.kind === 'business' ? 'Negocio' : 'Servicio'}</span></div>
+                    <ImageWithFallback
+                      src={
+                        favorite.item.image ??
+                        favorite.item.imageUrl ??
+                        favorite.item.photo
+                      }
+                      alt={favorite.item.name ?? "Favorito"}
+                      className="h-14 w-14 rounded-xl object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <strong className="block truncate">
+                        {favorite.item.name ?? "Favorito"}
+                      </strong>
+                      <span className="text-xs text-gray-500">
+                        {favorite.kind === "business" ? "Negocio" : "Servicio"}
+                      </span>
+                    </div>
                     <Heart className="h-5 w-5 fill-rose-500 text-rose-500" />
                   </button>
                 ))}
@@ -554,33 +762,33 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onNavigate={(tab) => {
-              if (tab === 'home') {
-                setCurrentScreen('home');
+              if (tab === "home") {
+                setCurrentScreen("home");
               }
             }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'checkout' && selectedBusiness && checkoutData) {
+  if (currentScreen === "checkout" && selectedBusiness && checkoutData) {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <CheckoutScreen
             business={selectedBusiness}
-            currentUserId={localStorage.getItem('zipco-user-id')}
+            currentUserId={localStorage.getItem("zipco-user-id")}
             selectedProducts={checkoutData.selectedProducts}
             products={checkoutData.products}
-            onBack={() => setCurrentScreen('profile')}
+            onBack={() => setCurrentScreen("profile")}
             onOrderComplete={() => {
               setCheckoutData(null);
-              setCurrentScreen('profile');
+              setCurrentScreen("profile");
             }}
             onCatalogConflict={() => {
               setCheckoutData(null);
-              setCurrentScreen('profile');
+              setCurrentScreen("profile");
             }}
             onSessionExpired={handleLogout}
           />
@@ -588,37 +796,42 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onNavigate={(tab) => {
-              if (tab === 'home') {
-                setCurrentScreen('home');
+              if (tab === "home") {
+                setCurrentScreen("home");
               }
             }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'profile' && selectedBusiness) {
+  if (currentScreen === "profile" && selectedBusiness) {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <BusinessProfileScreen
             business={selectedBusiness}
-            currentUserId={localStorage.getItem('zipco-user-id')}
+            currentUserId={localStorage.getItem("zipco-user-id")}
             currentLocation={currentLocation}
-            isFavorite={favoriteItems.some((favorite) => favorite.key === favoriteKey('business', selectedBusiness))}
-            onToggleFavorite={() => toggleFavorite('business', selectedBusiness)}
+            isFavorite={favoriteItems.some(
+              (favorite) =>
+                favorite.key === favoriteKey("business", selectedBusiness),
+            )}
+            onToggleFavorite={() =>
+              toggleFavorite("business", selectedBusiness)
+            }
             onBack={() => {
-              if (previousScreen === 'favorites') {
-                setCurrentScreen('home');
-                setActiveTab('favorites');
+              if (previousScreen === "favorites") {
+                setCurrentScreen("home");
+                setActiveTab("favorites");
               } else {
                 setCurrentScreen(previousScreen);
               }
             }}
             onCheckout={(selectedProducts, products) => {
               setCheckoutData({ selectedProducts, products });
-              setCurrentScreen('checkout');
+              setCurrentScreen("checkout");
             }}
             onSessionExpired={handleLogout}
           />
@@ -626,26 +839,26 @@ export default function App() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onNavigate={(tab) => {
-              if (tab === 'home') {
-                setCurrentScreen('home');
+              if (tab === "home") {
+                setCurrentScreen("home");
               }
             }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'negocios') {
+  if (currentScreen === "negocios") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <NegociosScreen
-            onBack={() => setCurrentScreen('home')}
+            onBack={() => setCurrentScreen("home")}
             onSelectBusiness={(business) => {
               setSelectedBusiness(business);
-              setPreviousScreen('negocios');
-              setCurrentScreen('profile');
+              setPreviousScreen("negocios");
+              setCurrentScreen("profile");
             }}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -657,23 +870,25 @@ export default function App() {
             initialMaxDistance={businessesSearchDistance}
             onMaxDistanceChange={setBusinessesSearchDistance}
             initialScrollTop={businessesScrollTopRef.current}
-            onScrollTopChange={(scrollTop) => { businessesScrollTopRef.current = scrollTop; }}
+            onScrollTopChange={(scrollTop) => {
+              businessesScrollTopRef.current = scrollTop;
+            }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'servicios') {
+  if (currentScreen === "servicios") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiciosScreen
-            onBack={() => setCurrentScreen('home')}
+            onBack={() => setCurrentScreen("home")}
             onSelectService={(service) => {
               setSelectedService(service);
-              setPreviousServiceScreen('servicios');
-              setCurrentScreen('service-profile');
+              setPreviousServiceScreen("servicios");
+              setCurrentScreen("service-profile");
             }}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -685,68 +900,73 @@ export default function App() {
             onMaxDistanceChange={setServicesSearchDistance}
             currentLocation={currentLocation}
             initialScrollTop={servicesScrollTopRef.current}
-            onScrollTopChange={(scrollTop) => { servicesScrollTopRef.current = scrollTop; }}
+            onScrollTopChange={(scrollTop) => {
+              servicesScrollTopRef.current = scrollTop;
+            }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'service-profile') {
+  if (currentScreen === "service-profile") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiceProfileScreen
             service={selectedService}
-            isFavorite={favoriteItems.some((favorite) => favorite.key === favoriteKey('service', selectedService))}
-            onToggleFavorite={() => toggleFavorite('service', selectedService)}
+            isFavorite={favoriteItems.some(
+              (favorite) =>
+                favorite.key === favoriteKey("service", selectedService),
+            )}
+            onToggleFavorite={() => toggleFavorite("service", selectedService)}
             onBack={() => {
-              if (previousServiceScreen === 'favorites') {
-                setCurrentScreen('home');
-                setActiveTab('favorites');
+              if (previousServiceScreen === "favorites") {
+                setCurrentScreen("home");
+                setActiveTab("favorites");
               } else {
                 setCurrentScreen(previousServiceScreen);
               }
             }}
             onRequestService={(serviceItem) => {
               setSelectedServiceItem(serviceItem);
-              setCurrentScreen('service-checkout');
+              setCurrentScreen("service-checkout");
             }}
             onSessionExpired={handleLogout}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'service-checkout') {
+  if (currentScreen === "service-checkout") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiceCheckoutScreen
             service={selectedServiceItem}
             provider={selectedService}
-            onBack={() => setCurrentScreen('service-profile')}
+            onBack={() => setCurrentScreen("service-profile")}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onSessionExpired={handleLogout}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
-  if (currentScreen === 'search') {
+  if (currentScreen === "search") {
     return renderWithToast(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <GlobalSearchScreen
             onBack={() => {
-              setCurrentScreen('home');
-              setGlobalSearchQuery('');
-              setGlobalSearchFilter('todos');
+              setCurrentScreen("home");
+              setGlobalSearchQuery("");
+              setGlobalSearchFilter("todos");
               setGlobalSearchDistance(10);
             }}
             initialQuery={globalSearchQuery}
@@ -760,44 +980,53 @@ export default function App() {
             setActiveTab={setActiveTab}
             onSelectBusiness={(business) => {
               setSelectedBusiness(business);
-              setPreviousScreen('search');
-              setCurrentScreen('profile');
+              setPreviousScreen("search");
+              setCurrentScreen("profile");
             }}
             onSelectService={(service) => {
               setSelectedService(service);
-              setPreviousServiceScreen('search');
-              setCurrentScreen('service-profile');
+              setPreviousServiceScreen("search");
+              setCurrentScreen("service-profile");
             }}
           />
         </div>
-      </div>
+      </div>,
     );
   }
 
   return renderWithToast(
-    <div className={`size-full flex items-center justify-center ${
-      isDarkMode
-        ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800'
-        : 'bg-gradient-to-br from-blue-50 via-white to-blue-100'
-    }`}>
-      {/* Mobile Frame */}
-      <div className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
+    <div
+      className={`size-full flex items-center justify-center ${
         isDarkMode
-          ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800'
-          : 'bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40'
-      }`}>
-
+          ? "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800"
+          : "bg-gradient-to-br from-blue-50 via-white to-blue-100"
+      }`}
+    >
+      {/* Mobile Frame */}
+      <div
+        className={`w-full max-w-md h-full flex flex-col relative overflow-hidden backdrop-blur-sm transition-colors ${
+          isDarkMode
+            ? "bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800"
+            : "bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40"
+        }`}
+      >
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
           className={`absolute right-6 z-20 p-2.5 rounded-full border transition-all shadow-md ${
             isDarkMode
-              ? 'bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700'
-              : 'bg-white/90 border-white text-slate-700 hover:bg-white'
+              ? "bg-slate-800 border-slate-700 text-amber-300 hover:bg-slate-700"
+              : "bg-white/90 border-white text-slate-700 hover:bg-white"
           }`}
-          style={{ top: 'max(1.5rem, env(safe-area-inset-top))' }}
-          aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          style={{ top: "max(1.5rem, env(safe-area-inset-top))" }}
+          aria-label={
+            isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
+          }
         >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {isDarkMode ? (
+            <Sun className="w-4 h-4" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
         </button>
 
         {pushEnabled !== null && (
@@ -807,29 +1036,45 @@ export default function App() {
             disabled={isChangingPush}
             className={`absolute right-20 z-20 p-2.5 rounded-full border transition-all shadow-md disabled:opacity-60 ${
               pushEnabled
-                ? 'bg-teal-50/95 border-teal-100 text-teal-700 hover:bg-teal-100'
+                ? "bg-teal-50/95 border-teal-100 text-teal-700 hover:bg-teal-100"
                 : isDarkMode
-                  ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                  : 'bg-white/90 border-white text-slate-500 hover:bg-white'
+                  ? "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  : "bg-white/90 border-white text-slate-500 hover:bg-white"
             }`}
-            style={{ top: 'max(1.5rem, env(safe-area-inset-top))' }}
-            aria-label={pushEnabled ? 'Desactivar notificaciones' : 'Activar notificaciones'}
-            title={pushEnabled ? 'Desactivar notificaciones' : 'Activar notificaciones'}
+            style={{ top: "max(1.5rem, env(safe-area-inset-top))" }}
+            aria-label={
+              pushEnabled
+                ? "Desactivar notificaciones"
+                : "Activar notificaciones"
+            }
+            title={
+              pushEnabled
+                ? "Desactivar notificaciones"
+                : "Activar notificaciones"
+            }
           >
-            {pushEnabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+            {pushEnabled ? (
+              <Bell className="w-4 h-4" />
+            ) : (
+              <BellOff className="w-4 h-4" />
+            )}
           </button>
         )}
 
         {/* Header */}
         <div
           className="px-6 pb-6"
-          style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}
+          style={{ paddingTop: "max(2rem, env(safe-area-inset-top))" }}
         >
           {/* Logo */}
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-2">
               <MapPin className="w-8 h-8 text-teal-600" strokeWidth={2.5} />
-              <h1 className={`text-3xl tracking-tight ${isDarkMode ? 'text-teal-400' : 'text-teal-700'}`}>ZIPCCO</h1>
+              <h1
+                className={`text-3xl tracking-tight ${isDarkMode ? "text-teal-400" : "text-teal-700"}`}
+              >
+                ZIPCCO
+              </h1>
             </div>
           </div>
 
@@ -852,21 +1097,21 @@ export default function App() {
               value={globalSearchQuery}
               onChange={(e) => setGlobalSearchQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && canRunSearch(globalSearchQuery)) {
-                  setCurrentScreen('search');
+                if (e.key === "Enter" && canRunSearch(globalSearchQuery)) {
+                  setCurrentScreen("search");
                 }
               }}
               placeholder="Qué buscas? ej: torta, gásfiter, hielo"
               className={`w-full border rounded-full py-3 pl-11 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm ${
                 isDarkMode
-                  ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
-                  : 'bg-white border-gray-200 placeholder:text-gray-400'
+                  ? "bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400"
+                  : "bg-white border-gray-200 placeholder:text-gray-400"
               }`}
             />
             <button
               onClick={() => {
                 if (canRunSearch(globalSearchQuery)) {
-                  setCurrentScreen('search');
+                  setCurrentScreen("search");
                 }
               }}
               className="absolute inset-y-0 right-4 flex items-center"
@@ -878,21 +1123,27 @@ export default function App() {
           {/* Location Indicator */}
           <div className="mt-4 flex items-center justify-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-teal-600" />
-            <span className={isDarkMode ? 'text-slate-300' : 'text-gray-600'}>Ubicación actual:</span>
-            <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentLocation.name || 'Sin ubicación'}</span>
-            {!showLocationModal && (
-            <button
-              onClick={() => {
-                setLocationSearch('');
-                setLocationSearchError('');
-                setLocationAutocompleteResults([]);
-                setHasLocationAutocompleteSearched(false);
-                setShowLocationModal(true);
-              }}
-              className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
+            <span className={isDarkMode ? "text-slate-300" : "text-gray-600"}>
+              Ubicación actual:
+            </span>
+            <span
+              className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}
             >
-              Cambiar
-            </button>
+              {currentLocation.name || "Sin ubicación"}
+            </span>
+            {!showLocationModal && (
+              <button
+                onClick={() => {
+                  setLocationSearch("");
+                  setLocationSearchError("");
+                  setLocationAutocompleteResults([]);
+                  setHasLocationAutocompleteSearched(false);
+                  setShowLocationModal(true);
+                }}
+                className="text-teal-600 hover:text-teal-700 underline underline-offset-2 transition-colors"
+              >
+                Cambiar
+              </button>
             )}
           </div>
 
@@ -904,18 +1155,18 @@ export default function App() {
                   value={locationSearch}
                   onChange={(e) => {
                     setLocationSearch(e.target.value);
-                    setLocationSearchError('');
+                    setLocationSearchError("");
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       searchLocationByText();
                     }
                   }}
                   placeholder="Escribe una ciudad o comuna..."
                   className={`flex-1 border rounded-full py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-[#00BFA5] transition-all shadow-sm ${
                     isDarkMode
-                      ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400'
-                      : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'
+                      ? "bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-400"
+                      : "bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
                   }`}
                 />
                 <button
@@ -927,37 +1178,49 @@ export default function App() {
                 </button>
               </div>
               {locationSearch.trim().length >= 3 && (
-                <div className={`mt-2 max-h-56 overflow-auto rounded-2xl border shadow-lg ${
-                  isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-100'
-                }`}>
+                <div
+                  className={`mt-2 max-h-56 overflow-auto rounded-2xl border shadow-lg ${
+                    isDarkMode
+                      ? "bg-slate-900 border-slate-700"
+                      : "bg-white border-gray-100"
+                  }`}
+                >
                   {isLocationAutocompleteLoading ? (
-                    <p className={`px-4 py-3 text-sm ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>
+                    <p
+                      className={`px-4 py-3 text-sm ${isDarkMode ? "text-slate-300" : "text-gray-500"}`}
+                    >
                       Buscando...
                     </p>
                   ) : locationAutocompleteResults.length > 0 ? (
                     locationAutocompleteResults.map((result, index) => (
                       <button
-                        key={`${result.place_id ?? result.osm_id ?? 'location'}-${index}`}
+                        key={`${result.place_id ?? result.osm_id ?? "location"}-${index}`}
                         type="button"
-                        onClick={() => selectLocationResult(result, locationSearch.trim())}
+                        onClick={() =>
+                          selectLocationResult(result, locationSearch.trim())
+                        }
                         className={`w-full text-left px-4 py-3 text-sm border-b last:border-b-0 transition-colors ${
                           isDarkMode
-                            ? 'border-slate-700 text-slate-100 hover:bg-slate-800'
-                            : 'border-gray-100 text-gray-700 hover:bg-teal-50'
+                            ? "border-slate-700 text-slate-100 hover:bg-slate-800"
+                            : "border-gray-100 text-gray-700 hover:bg-teal-50"
                         }`}
                       >
                         {getLocationSuggestionLabel(result)}
                       </button>
                     ))
                   ) : hasLocationAutocompleteSearched ? (
-                    <p className={`px-4 py-3 text-sm ${isDarkMode ? 'text-slate-300' : 'text-gray-500'}`}>
+                    <p
+                      className={`px-4 py-3 text-sm ${isDarkMode ? "text-slate-300" : "text-gray-500"}`}
+                    >
                       No se encontraron resultados
                     </p>
                   ) : null}
                 </div>
               )}
               {locationSearchError && (
-                <p className="mt-2 text-xs text-red-500 text-center">{locationSearchError}</p>
+                <p className="mt-2 text-xs text-red-500 text-center">
+                  {locationSearchError}
+                </p>
               )}
             </div>
           )}
@@ -966,7 +1229,13 @@ export default function App() {
         {/* Main Content */}
         <div className="flex-1 px-6 pb-24 overflow-auto flex flex-col justify-center pt-8">
           <div className="w-full max-w-sm mx-auto">
-            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 mb-12 text-center tracking-tight animate-gradient" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '-0.03em' }}>
+            <h2
+              className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 mb-12 text-center tracking-tight animate-gradient"
+              style={{
+                fontFamily: "system-ui, -apple-system, sans-serif",
+                letterSpacing: "-0.03em",
+              }}
+            >
               ¿Qué necesitas hoy?
             </h2>
 
@@ -978,16 +1247,23 @@ export default function App() {
                   <button
                     key={category.id}
                     onClick={() => {
-                      if (category.id === 'negocios') setCurrentScreen('negocios');
-                      if (category.id === 'servicios') setCurrentScreen('servicios');
+                      if (category.id === "negocios")
+                        setCurrentScreen("negocios");
+                      if (category.id === "servicios")
+                        setCurrentScreen("servicios");
                     }}
                     className={`${category.gradient} rounded-3xl p-12 flex flex-col items-center justify-center gap-6 shadow-2xl hover:shadow-3xl transition-all active:scale-[0.95] border border-white/20 backdrop-blur-sm relative overflow-hidden group min-h-[200px]`}
                   >
                     {/* Shine effect */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-                    <Icon className={`w-20 h-20 ${category.iconColor} relative z-10 drop-shadow-2xl`} strokeWidth={2.5} />
-                    <span className={`text-lg font-bold ${category.textColor} relative z-10 drop-shadow-lg tracking-wide`}>
+                    <Icon
+                      className={`w-20 h-20 ${category.iconColor} relative z-10 drop-shadow-2xl`}
+                      strokeWidth={2.5}
+                    />
+                    <span
+                      className={`text-lg font-bold ${category.textColor} relative z-10 drop-shadow-lg tracking-wide`}
+                    >
                       {category.name}
                     </span>
                   </button>
@@ -1002,29 +1278,45 @@ export default function App() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onNavigate={(tab) => {
-            if (tab === 'home') {
-              setCurrentScreen('home');
+            if (tab === "home") {
+              setCurrentScreen("home");
             }
           }}
         />
 
         {false && showLocationModal && (
-          <div className="absolute inset-0 z-40 bg-black/40 flex items-end" onClick={() => setShowLocationModal(false)}>
+          <div
+            className="absolute inset-0 z-40 bg-black/40 flex items-end"
+            onClick={() => setShowLocationModal(false)}
+          >
             <div
               onClick={(e) => e.stopPropagation()}
               className={`w-full rounded-t-3xl p-5 shadow-2xl border-t ${
-                isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'
+                isDarkMode
+                  ? "bg-slate-900 border-slate-700"
+                  : "bg-white border-gray-200"
               }`}
             >
-              <div className={`w-12 h-1.5 rounded-full mx-auto mb-4 ${isDarkMode ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
-              <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Cambiar ubicación</h3>
-              <p className={`text-xs mb-3 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                Simulación tipo Google Maps: escribe una comuna/ciudad y selecciona una sugerencia.
+              <div
+                className={`w-12 h-1.5 rounded-full mx-auto mb-4 ${isDarkMode ? "bg-slate-600" : "bg-gray-300"}`}
+              ></div>
+              <h3
+                className={`text-lg font-bold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+              >
+                Cambiar ubicación
+              </h3>
+              <p
+                className={`text-xs mb-3 ${isDarkMode ? "text-slate-400" : "text-gray-500"}`}
+              >
+                Simulación tipo Google Maps: escribe una comuna/ciudad y
+                selecciona una sugerencia.
               </p>
 
               <div className="relative mb-3">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                  <Search className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`} />
+                  <Search
+                    className={`w-4 h-4 ${isDarkMode ? "text-slate-400" : "text-gray-400"}`}
+                  />
                 </div>
                 <input
                   type="text"
@@ -1036,8 +1328,8 @@ export default function App() {
                   placeholder="Ej: Coronel, Santiago, Providencia..."
                   className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${
                     isDarkMode
-                      ? 'bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-400'
-                      : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
+                      ? "bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-400"
+                      : "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
                   }`}
                 />
               </div>
@@ -1055,18 +1347,20 @@ export default function App() {
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
                         pendingLocation === city.name
                           ? isDarkMode
-                            ? 'bg-teal-700 text-white'
-                            : 'bg-teal-100 text-teal-900'
+                            ? "bg-teal-700 text-white"
+                            : "bg-teal-100 text-teal-900"
                           : isDarkMode
-                          ? 'bg-slate-800 text-slate-100 hover:bg-slate-700'
-                          : 'bg-blue-50 text-gray-800 hover:bg-blue-100'
+                            ? "bg-slate-800 text-slate-100 hover:bg-slate-700"
+                            : "bg-blue-50 text-gray-800 hover:bg-blue-100"
                       }`}
                     >
                       {city.name}
                     </button>
                   ))
                 ) : (
-                  <p className={`text-sm text-center py-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  <p
+                    className={`text-sm text-center py-4 ${isDarkMode ? "text-slate-400" : "text-gray-500"}`}
+                  >
                     Sin coincidencias. Prueba otra comuna o ciudad.
                   </p>
                 )}
@@ -1076,8 +1370,18 @@ export default function App() {
                 type="button"
                 onClick={() => {
                   if (pendingLocation.trim()) {
-                    const selectedCity = chileLocationBase.find((city) => city.name.toLowerCase() === pendingLocation.trim().toLowerCase());
-                    setCurrentLocation(selectedCity ?? { name: pendingLocation.trim(), lat: currentLocation.lat, lng: currentLocation.lng });
+                    const selectedCity = chileLocationBase.find(
+                      (city) =>
+                        city.name.toLowerCase() ===
+                        pendingLocation.trim().toLowerCase(),
+                    );
+                    setCurrentLocation(
+                      selectedCity ?? {
+                        name: pendingLocation.trim(),
+                        lat: currentLocation.lat,
+                        lng: currentLocation.lng,
+                      },
+                    );
                   }
                   setShowLocationModal(false);
                 }}
@@ -1088,8 +1392,7 @@ export default function App() {
             </div>
           </div>
         )}
-
       </div>
-    </div>
+    </div>,
   );
 }
