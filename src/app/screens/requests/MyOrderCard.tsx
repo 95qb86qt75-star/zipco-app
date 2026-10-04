@@ -7,6 +7,7 @@ import {
   PackageCheck,
   XCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { MyOrder, OrderAction } from "./types";
@@ -29,6 +30,7 @@ export default function MyOrderCard({
   isUnread = false,
   onOpen,
 }: Props) {
+  const [showAgreementDetails, setShowAgreementDetails] = useState(false);
   if (order.recordState === "unavailable")
     return (
       <div className="rounded-2xl border bg-white p-4">
@@ -51,6 +53,13 @@ export default function MyOrderCard({
         ? "complete-reception"
         : null;
   const schedule = formatDeliverySchedule(order, "customer");
+  const hasConfirmedAlternative =
+    Boolean(order.alternativeMessage) &&
+    order.status !== "alternative_proposed";
+  const effectiveTotal =
+    hasConfirmedAlternative && order.alternativePriceClp
+      ? order.alternativePriceClp
+      : order.total;
   return (
     <article
       id={`order-${order.id}`}
@@ -72,9 +81,9 @@ export default function MyOrderCard({
               {order.businessName}
             </h4>
             <span className="shrink-0 whitespace-nowrap text-base font-black text-emerald-600">
-              {order.total === null
+              {effectiveTotal === null
                 ? "—"
-                : `$${order.total.toLocaleString("es-CL")}`}
+                : `$${effectiveTotal.toLocaleString("es-CL")}`}
             </span>
           </div>
           {order.products.state === "available" ? (
@@ -111,9 +120,9 @@ export default function MyOrderCard({
         <div className="col-span-2 mt-1 flex items-center">
           <OrderStatusBadge status={order.status} />
           <span className="hidden whitespace-nowrap text-base font-black text-emerald-600">
-            {order.total === null
+            {effectiveTotal === null
               ? "—"
-              : `$${order.total.toLocaleString("es-CL")}`}
+              : `$${effectiveTotal.toLocaleString("es-CL")}`}
           </span>
         </div>
       </div>
@@ -143,33 +152,65 @@ export default function MyOrderCard({
       )}
       {order.alternativeMessage && (
         <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
-          <p className="font-black">Alternativa del negocio</p>
-          <p>{order.alternativeMessage}</p>
-          {order.alternativeItem && (
-            <p>
-              Opción: {order.alternativeItem}
-              {order.alternativeQuantity
-                ? ` · Cantidad ${order.alternativeQuantity}`
-                : ""}
-            </p>
+          {hasConfirmedAlternative ? (
+            <button
+              type="button"
+              aria-expanded={showAgreementDetails}
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowAgreementDetails((current) => !current);
+              }}
+              className="flex w-full items-center justify-between gap-2 text-left"
+            >
+              <span className="min-w-0 truncate font-bold">
+                Acuerdo confirmado
+                {order.alternativePriceClp
+                  ? ` · $${order.alternativePriceClp.toLocaleString("es-CL")}`
+                  : ""}
+              </span>
+              <ChevronRight
+                className={`h-4 w-4 shrink-0 transition-transform ${showAgreementDetails ? "rotate-90" : ""}`}
+              />
+            </button>
+          ) : (
+            <p className="font-black">Alternativa del negocio</p>
           )}
-          {order.alternativeDate && (
-            <p>
-              Fecha: {order.alternativeDate}
-              {order.alternativeTime ? ` · ${order.alternativeTime}` : ""}
-            </p>
-          )}
-          {order.alternativePriceClp && (
-            <p className="font-black">
-              ${order.alternativePriceClp.toLocaleString("es-CL")}
-            </p>
-          )}
-          {order.alternativePhoto && (
-            <ImageWithFallback
-              src={order.alternativePhoto}
-              alt="Referencia de la alternativa"
-              className="mt-2 h-32 w-full rounded-xl object-cover"
-            />
+          {(!hasConfirmedAlternative || showAgreementDetails) && (
+            <div
+              className={
+                hasConfirmedAlternative
+                  ? "mt-2 border-t border-teal-200 pt-2"
+                  : ""
+              }
+            >
+              <p>{order.alternativeMessage}</p>
+              {order.alternativeItem && (
+                <p>
+                  Opción: {order.alternativeItem}
+                  {order.alternativeQuantity
+                    ? ` · Cantidad ${order.alternativeQuantity}`
+                    : ""}
+                </p>
+              )}
+              {order.alternativeDate && (
+                <p>
+                  Fecha: {order.alternativeDate}
+                  {order.alternativeTime ? ` · ${order.alternativeTime}` : ""}
+                </p>
+              )}
+              {order.alternativePriceClp && !hasConfirmedAlternative && (
+                <p className="font-black">
+                  ${order.alternativePriceClp.toLocaleString("es-CL")}
+                </p>
+              )}
+              {order.alternativePhoto && (
+                <ImageWithFallback
+                  src={order.alternativePhoto}
+                  alt="Referencia de la alternativa"
+                  className="mt-2 h-32 w-full rounded-xl object-cover"
+                />
+              )}
+            </div>
           )}
         </div>
       )}
