@@ -382,15 +382,16 @@ export default function RequestsScreen({
         description:
           "Le avisamos que el servicio fue realizado. Esperamos su confirmación.",
       });
-      const [changed] = await Promise.all([
+      await Promise.all([
         quotes.changeStatus(quote, status, reason, detail),
         new Promise((resolve) =>
           window.setTimeout(resolve, prefersReducedMotion ? 700 : 2800),
         ),
       ]);
       setActiveTransfer(null);
-      if (changed)
-        setStatusViews((current) => ({ ...current, [viewKey]: "ready" }));
+      // Keep the business in En curso after notifying the customer. The
+      // hologram communicates the move and the Listo y notificado counter
+      // updates, but changing tabs here interrupts a batch preparation flow.
       return;
     }
     if (status === "declined") {
@@ -1410,16 +1411,13 @@ export default function RequestsScreen({
                         : Promise.resolve(),
                     ]);
                     if (transfer) setActiveTransfer(null);
-                    const next =
-                      action === "reject"
-                        ? "history"
-                        : action === "mark-ready"
-                          ? "ready"
-                          : "active";
-                    setStatusViews((current) => ({
-                      ...current,
-                      [viewKey]: next,
-                    }));
+                    if (action !== "mark-ready") {
+                      const next = action === "reject" ? "history" : "active";
+                      setStatusViews((current) => ({
+                        ...current,
+                        [viewKey]: next,
+                      }));
+                    }
                   }}
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
