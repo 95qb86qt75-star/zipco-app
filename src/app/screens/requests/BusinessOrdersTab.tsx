@@ -85,15 +85,13 @@ export default function BusinessOrdersTab({
     <>
       {displayed.length > 0 ? (
         <div className="space-y-3">
-          {displayed.map((order, index) => (
+          {displayed.map((order) => (
             <Fragment key={order.clientKey}>
-              {(index === 0 || displayed[index - 1].date !== order.date) && (
-                <div className="flex items-center gap-2 pt-1 text-xs font-bold text-slate-500">
-                  <CalendarDays className="h-4 w-4" />
-                  <span>{order.date}</span>
-                  <span className="h-px flex-1 bg-slate-200" />
-                </div>
-              )}
+              <div className="flex items-center gap-2 pt-1 text-xs font-bold text-slate-500">
+                <CalendarDays className="h-4 w-4" />
+                <span>{order.date}</span>
+                <span className="h-px flex-1 bg-slate-200" />
+              </div>
               <BusinessOrderCard
                 request={order}
                 isUpdating={
