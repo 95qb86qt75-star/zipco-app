@@ -827,6 +827,62 @@ body {
   }
 }
 
+.zipco-now-option.is-active::after {
+  content: "";
+  position: absolute;
+  inset: -35% auto -35% -28%;
+  width: 14%;
+  transform: skewX(-18deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.9),
+    transparent
+  );
+  filter: blur(1px);
+  animation: zipco-now-flash 4s ease-in-out infinite;
+}
+
+.zipco-now-option.is-active .zipco-now-bolt {
+  animation: zipco-now-bolt 4s ease-in-out infinite;
+}
+
+@keyframes zipco-now-bolt {
+  0%,
+  72%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  76% {
+    transform: translateX(-2px) rotate(-8deg) scale(1.08);
+  }
+  80% {
+    transform: translateX(2px) rotate(7deg) scale(1.12);
+  }
+  84% {
+    transform: translateX(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes zipco-now-flash {
+  0%,
+  70% {
+    left: -28%;
+    opacity: 0;
+  }
+  74% {
+    opacity: 0.9;
+  }
+  86% {
+    left: 114%;
+    opacity: 0;
+  }
+  100% {
+    left: 114%;
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .zipco-new-card,
   .zipco-new-card::before,
@@ -838,7 +894,9 @@ body {
   .zipco-quote-metallic::after,
   .zipco-hologram-card::after,
   .zipco-ready-wave,
-  .zipco-flow-hologram {
+  .zipco-flow-hologram,
+  .zipco-now-option.is-active::after,
+  .zipco-now-option.is-active .zipco-now-bolt {
     animation: none;
   }
 }

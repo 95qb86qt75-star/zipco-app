@@ -1,12 +1,14 @@
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  CalendarDays,
   Camera,
   ChevronDown,
   FileText,
   Minus,
   Plus,
   Send,
+  Zap,
   X,
 } from "lucide-react";
 import { API_BASE_URL } from "../api/apiConfig";
@@ -351,12 +353,13 @@ export default function CheckoutScreen({
 
         {/* Delivery Date & Time Selection */}
         <div className="mb-4">
-          <label className="mb-2 block text-base font-bold text-gray-900">
-            ¿Para cuándo lo necesitas?
+          <label className="mb-2 block text-sm font-bold text-gray-900">
+            ¿Cuándo lo necesitas?
           </label>
 
-          <div className="mb-2 grid grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
+          <div className="mb-2 grid grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white/75 p-1 shadow-sm">
             <button
+              type="button"
               onClick={() => {
                 setNeedNow(true);
                 setSelectedDate("");
@@ -364,28 +367,33 @@ export default function CheckoutScreen({
                 setSelectedHour("");
                 setSelectedMinute("");
               }}
-              className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
+              className={`zipco-now-option relative min-h-12 overflow-hidden rounded-xl px-2 py-2 text-sm font-bold transition-all ${
                 needNow
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/30"
+                  ? "is-active bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-md shadow-cyan-500/25"
                   : "bg-transparent text-gray-600 hover:bg-white"
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-lg">🚀</span>
-                <span>Lo necesito ahora</span>
+              <div className="relative z-10 flex items-center justify-center gap-2">
+                <span className="zipco-now-bolt flex h-7 w-7 items-center justify-center rounded-full bg-current/10">
+                  <Zap className="h-4 w-4" fill="currentColor" />
+                </span>
+                <span>Ahora</span>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setNeedNow(false)}
-              className={`rounded-xl px-2 py-2.5 text-sm font-bold transition-all ${
+              className={`min-h-12 rounded-xl px-2 py-2 text-sm font-bold transition-all ${
                 !needNow
                   ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md"
                   : "bg-transparent text-gray-600 hover:bg-white"
               }`}
             >
-              Programar fecha
+              <span className="flex items-center justify-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Programar
+              </span>
             </button>
           </div>
 
