@@ -408,9 +408,9 @@ export default function CheckoutScreen({
           </div>
 
           {!needNow && (
-            <div className="mb-3 rounded-3xl border border-teal-200 bg-white/90 p-4 backdrop-blur-sm animate-in">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-bold text-gray-900">
+            <div className="mb-2 pt-1 animate-in">
+              <div className="mb-2 flex items-center justify-between px-0.5">
+                <h4 className="text-sm font-bold text-gray-900">
                   Selecciona fecha y hora
                 </h4>
                 {selectedTime && (
@@ -420,15 +420,14 @@ export default function CheckoutScreen({
                 )}
               </div>
 
-              <div className="mb-5">
-                <p className="text-sm font-bold text-gray-900 mb-3">Fecha</p>
-                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+              <div className="mb-3">
+                <div className="-mx-0.5 flex gap-2 overflow-x-auto px-0.5 pb-1.5">
                   {dateOptions.map((date) => (
                     <button
                       key={date.value}
                       type="button"
                       onClick={() => handleDateSelection(date.value)}
-                      className={`shrink-0 w-16 rounded-xl border px-2 py-3 text-center transition-all ${
+                      className={`w-[62px] shrink-0 rounded-xl border px-2 py-2 text-center shadow-sm transition-all ${
                         selectedDate === date.value
                           ? "bg-gradient-to-b from-teal-500 to-emerald-500 text-white border-teal-500 shadow-md"
                           : "bg-white text-gray-900 border-gray-200 hover:border-teal-500"
@@ -451,7 +450,7 @@ export default function CheckoutScreen({
                       calendarInputRef.current?.showPicker?.() ??
                       calendarInputRef.current?.click()
                     }
-                    className="shrink-0 w-20 rounded-xl border border-gray-200 bg-white px-2 py-3 text-center text-gray-900 transition-all hover:border-teal-500"
+                    className="w-[74px] shrink-0 rounded-xl border border-gray-200 bg-white px-2 py-2 text-center text-gray-900 shadow-sm transition-all hover:border-teal-500"
                   >
                     <span className="block text-xs font-semibold">Abrir</span>
                     <span className="block text-sm font-bold leading-tight">
@@ -470,7 +469,7 @@ export default function CheckoutScreen({
               </div>
 
               {selectedDate && (
-                <div className="animate-in">
+                <div className="animate-in rounded-2xl border border-teal-200 bg-white/85 p-3 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-bold text-gray-900">
                       {selectedHour
