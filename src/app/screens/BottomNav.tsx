@@ -1,27 +1,41 @@
-import { useEffect, useState } from 'react';
-import { FileText, Heart, Home, UserRound } from 'lucide-react';
-import { getUnreadInteractions } from '../notifications/unreadInteractions';
+import { useEffect, useState } from "react";
+import { FileText, Heart, Home, UserRound } from "lucide-react";
+import {
+  ACTIVE_REQUEST_COUNT_EVENT,
+  getActiveRequestCount,
+} from "../notifications/unreadInteractions";
 
-export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { activeTab: string; setActiveTab: (tab: string) => void; onNavigate?: (tab: string) => void }) {
-  const [pendingCount, setPendingCount] = useState(() => getUnreadInteractions().length);
+export default function BottomNav({
+  activeTab,
+  setActiveTab,
+  onNavigate,
+}: {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  onNavigate?: (tab: string) => void;
+}) {
+  const [pendingCount, setPendingCount] = useState(getActiveRequestCount);
 
   useEffect(() => {
-    const update = (event: Event) => setPendingCount(Math.max(0, Number((event as CustomEvent<number>).detail) || 0));
-    window.addEventListener('zipco-unread-interactions', update);
-    return () => window.removeEventListener('zipco-unread-interactions', update);
+    const update = (event: Event) =>
+      setPendingCount(
+        Math.max(0, Number((event as CustomEvent<number>).detail) || 0),
+      );
+    window.addEventListener(ACTIVE_REQUEST_COUNT_EVENT, update);
+    return () => window.removeEventListener(ACTIVE_REQUEST_COUNT_EVENT, update);
   }, []);
 
   return (
     <div
       className="zipco-theme-navigation absolute bottom-0 left-0 right-0 bg-white px-6 pt-1.5 shadow-[0_-6px_20px_rgba(15,23,42,0.07)]"
-      style={{ paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom))' }}
+      style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}
     >
       <div className="flex items-center justify-around">
         {[
-          { id: 'home', icon: Home, label: 'Inicio' },
-          { id: 'profile', icon: UserRound, label: 'Perfil' },
-          { id: 'favorites', icon: Heart, label: 'Favoritos' },
-          { id: 'requests', icon: FileText, label: 'Solicitudes' }
+          { id: "home", icon: Home, label: "Inicio" },
+          { id: "profile", icon: UserRound, label: "Perfil" },
+          { id: "favorites", icon: Heart, label: "Favoritos" },
+          { id: "requests", icon: FileText, label: "Solicitudes" },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -36,32 +50,40 @@ export default function BottomNav({ activeTab, setActiveTab, onNavigate }: { act
             >
               <div
                 className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all ${
-                  isActive ? 'bg-white shadow-[0_8px_20px_rgba(0,191,165,0.18)] -translate-y-0.5' : ''
+                  isActive
+                    ? "bg-white shadow-[0_8px_20px_rgba(0,191,165,0.18)] -translate-y-0.5"
+                    : ""
                 }`}
               >
                 <Icon
                   className={`h-[24px] w-[24px] transition-colors ${
                     isActive
-                      ? tab.id === 'favorites'
-                        ? 'fill-rose-400 text-rose-500 drop-shadow-[0_8px_10px_rgba(244,63,94,0.28)]'
-                        : 'text-[#00BFA5]'
-                      : tab.id === 'requests'
-                        ? 'text-sky-300 drop-shadow-[0_3px_5px_rgba(59,130,246,0.18)]'
-                        : 'text-slate-300'
+                      ? tab.id === "favorites"
+                        ? "fill-rose-400 text-rose-500 drop-shadow-[0_8px_10px_rgba(244,63,94,0.28)]"
+                        : "text-[#00BFA5]"
+                      : tab.id === "requests"
+                        ? "text-sky-300 drop-shadow-[0_3px_5px_rgba(59,130,246,0.18)]"
+                        : "text-slate-300"
                   }`}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
-                {tab.id === 'home' && !isActive && (
+                {tab.id === "home" && !isActive && (
                   <span className="absolute bottom-2.5 h-2.5 w-2 rounded-t-md bg-gradient-to-t from-[#00BFA5] to-emerald-300 opacity-90" />
                 )}
-                {tab.id === 'requests' && pendingCount > 0 && (
+                {tab.id === "requests" && pendingCount > 0 && (
                   <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-extrabold text-white shadow-md">
-                    {pendingCount > 9 ? '9+' : pendingCount}
+                    {pendingCount > 9 ? "9+" : pendingCount}
                   </span>
                 )}
               </div>
-              <span className={`mt-0.5 text-[11px] font-semibold transition-colors ${isActive ? 'text-[#00BFA5]' : 'text-gray-500'}`}>{tab.label}</span>
-              <span className={`mt-0.5 h-1.5 w-1.5 rounded-full bg-[#00BFA5] transition-opacity ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+              <span
+                className={`mt-0.5 text-[11px] font-semibold transition-colors ${isActive ? "text-[#00BFA5]" : "text-gray-500"}`}
+              >
+                {tab.label}
+              </span>
+              <span
+                className={`mt-0.5 h-1.5 w-1.5 rounded-full bg-[#00BFA5] transition-opacity ${isActive ? "opacity-100" : "opacity-0"}`}
+              />
             </button>
           );
         })}

@@ -4,6 +4,7 @@ import { showAppToast } from "../screens/Toast";
 import { updatePushPresence } from "./pushNotifications";
 import {
   markInteractionUnread,
+  publishActiveRequestCount,
   publishUnreadCount,
   type InteractionKind,
 } from "./unreadInteractions";
@@ -141,6 +142,32 @@ export default function BusinessNotificationMonitor({
         const customerOrders = parseOrders(customerOrdersValue);
         const businessQuotes = parseQuotes(businessQuotesValue);
         const customerQuotes = parseQuotes(customerQuotesValue);
+        const activeOrderStatuses = new Set([
+          "pending",
+          "alternative_proposed",
+          "accepted",
+          "ready",
+        ]);
+        const activeQuoteStatuses = new Set([
+          "requested",
+          "quoted",
+          "alternative_proposed",
+          "accepted",
+          "ready",
+        ]);
+        publishActiveRequestCount(
+          orders.filter((record) => activeOrderStatuses.has(record.status))
+            .length +
+            customerOrders.filter((record) =>
+              activeOrderStatuses.has(record.status),
+            ).length +
+            businessQuotes.filter((record) =>
+              activeQuoteStatuses.has(record.status),
+            ).length +
+            customerQuotes.filter((record) =>
+              activeQuoteStatuses.has(record.status),
+            ).length,
+        );
 
         if (hasBaseline.current && announceChanges) {
           orders

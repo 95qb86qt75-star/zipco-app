@@ -33,6 +33,7 @@ import {
   interactionKey,
   markInteractionRead,
   markInteractionUnread,
+  publishActiveRequestCount,
   useUnreadInteractions,
 } from "../notifications/unreadInteractions";
 import {
@@ -172,6 +173,27 @@ export default function RequestsScreen({
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
   );
+  const activeRequestCount =
+    myOrders.filter(
+      (record) =>
+        record.recordState === "available" &&
+        statusViewFor("orders", record.status) !== "history",
+    ).length +
+    requests.filter(
+      (record) =>
+        record.recordState === "available" &&
+        statusViewFor("orders", record.status) !== "history",
+    ).length +
+    quotes.myQuotes.filter(
+      (record) => statusViewFor("quotes", record.status) !== "history",
+    ).length +
+    quotes.businessQuotes.filter(
+      (record) => statusViewFor("quotes", record.status) !== "history",
+    ).length;
+  useEffect(() => {
+    if (isLoading || quotes.loading) return;
+    publishActiveRequestCount(activeRequestCount);
+  }, [activeRequestCount, isLoading, quotes.loading]);
   const acceptedBusinessQuotes =
     subTab === "my-business" && requestType === "quotes"
       ? quotes.businessQuotes.filter(
