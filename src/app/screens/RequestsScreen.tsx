@@ -85,18 +85,6 @@ export default function RequestsScreen({
     title: string;
     description: string;
   } | null>(null);
-  const [seenRoleInteractions, setSeenRoleInteractions] = useState<Set<string>>(
-    () => {
-      try {
-        const stored = JSON.parse(
-          localStorage.getItem("zipco-seen-request-roles") ?? "[]",
-        );
-        return new Set(Array.isArray(stored) ? stored : []);
-      } catch {
-        return new Set();
-      }
-    },
-  );
   const prefersReducedMotion = useReducedMotion();
   const { unread } = useUnreadInteractions();
   const {
@@ -173,23 +161,31 @@ export default function RequestsScreen({
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
   );
-  const activeRequestCount =
+  const customerRoleBadge =
     myOrders.filter(
       (record) =>
         record.recordState === "available" &&
-        statusViewFor("orders", record.status) !== "history",
-    ).length +
-    requests.filter(
-      (record) =>
-        record.recordState === "available" &&
+        statusViewFor("orders", record.status) !== null &&
         statusViewFor("orders", record.status) !== "history",
     ).length +
     quotes.myQuotes.filter(
-      (record) => statusViewFor("quotes", record.status) !== "history",
+      (record) =>
+        statusViewFor("quotes", record.status) !== null &&
+        statusViewFor("quotes", record.status) !== "history",
+    ).length;
+  const businessRoleBadge =
+    requests.filter(
+      (record) =>
+        record.recordState === "available" &&
+        statusViewFor("orders", record.status) !== null &&
+        statusViewFor("orders", record.status) !== "history",
     ).length +
     quotes.businessQuotes.filter(
-      (record) => statusViewFor("quotes", record.status) !== "history",
+      (record) =>
+        statusViewFor("quotes", record.status) !== null &&
+        statusViewFor("quotes", record.status) !== "history",
     ).length;
+  const activeRequestCount = customerRoleBadge + businessRoleBadge;
   useEffect(() => {
     if (isLoading || quotes.loading) return;
     publishActiveRequestCount(activeRequestCount);
@@ -202,43 +198,6 @@ export default function RequestsScreen({
             unread.has(interactionKey("quote", quote.id)),
         )
       : [];
-  const customerRoleKeys = [...myOrders, ...quotes.myQuotes]
-    .map((record) =>
-      interactionKey(
-        "itemNameSnapshot" in record ? "quote" : "order",
-        record.id,
-      ),
-    )
-    .filter((key) => unread.has(key));
-  const businessRoleKeys = [
-    ...requests
-      .filter((record) => record.recordState === "available")
-      .map((record) => interactionKey("order", record.id)),
-    ...quotes.businessQuotes.map((record) =>
-      interactionKey("quote", record.id),
-    ),
-  ].filter((key) => unread.has(key));
-  const customerRoleUnread = customerRoleKeys.filter(
-    (key) => !seenRoleInteractions.has(`customer:${key}`),
-  ).length;
-  const businessRoleUnread = businessRoleKeys.filter(
-    (key) => !seenRoleInteractions.has(`business:${key}`),
-  ).length;
-  /* Kept separate from card-level read state: opening a role clears only its
-     badge, while activity cards remain until the user reviews each event. */
-  const acknowledgeRole = (role: "customer" | "business", keys: string[]) => {
-    setSeenRoleInteractions((current) => {
-      const next = new Set(current);
-      keys.forEach((key) => next.add(`${role}:${key}`));
-      localStorage.setItem(
-        "zipco-seen-request-roles",
-        JSON.stringify([...next]),
-      );
-      return next;
-    });
-  };
-  const customerRoleBadge = customerRoleUnread;
-  const businessRoleBadge = businessRoleUnread;
   const unreadHistoryCount = (
     requestType === "orders" ? orderRecords : quoteRecords
   )
@@ -580,7 +539,6 @@ export default function RequestsScreen({
             onClick={() => {
               setSubTab("my-orders");
               setAttentionFilter(null);
-              acknowledgeRole("customer", customerRoleKeys);
             }}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               subTab === "my-orders"
@@ -610,7 +568,6 @@ export default function RequestsScreen({
               onClick={() => {
                 setSubTab("my-business");
                 setAttentionFilter(null);
-                acknowledgeRole("business", businessRoleKeys);
               }}
               className={`flex flex-1 items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
                 subTab === "my-business"
