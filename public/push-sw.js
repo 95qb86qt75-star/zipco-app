@@ -174,10 +174,23 @@ self.addEventListener("notificationclick", (event) => {
           if (launchedClient) {
             launchedClient.postMessage(navigationMessage);
             await launchedClient.focus();
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            await sendPendingNavigation(launchedClient);
-            await new Promise((resolve) => setTimeout(resolve, 1_000));
-            await sendPendingNavigation(launchedClient);
+            // A freshly resumed iOS Home Screen client can be inert for a few
+            // seconds. Keep notificationclick alive and retry after WebKit has
+            // attached the page's service-worker message listener.
+            await Promise.all(
+              [500, 1_500, 3_000, 5_000].map(
+                (delay) =>
+                  new Promise((resolve) =>
+                    setTimeout(async () => {
+                      try {
+                        await sendPendingNavigation(launchedClient);
+                      } finally {
+                        resolve();
+                      }
+                    }, delay),
+                  ),
+              ),
+            );
             return;
           }
         } catch {
@@ -214,6 +227,8 @@ self.addEventListener("notificationclick", (event) => {
             await sendPendingNavigation(focusedClient);
             await new Promise((resolve) => setTimeout(resolve, 300));
             await sendPendingNavigation(focusedClient);
+            await new Promise((resolve) => setTimeout(resolve, 2_700));
+            await sendPendingNavigation(focusedClient);
             return;
           } catch {
             // Older browsers can reject WindowClient.navigate; retain the
@@ -223,6 +238,8 @@ self.addEventListener("notificationclick", (event) => {
         await sendPendingNavigation(client);
         await client.focus();
         await new Promise((resolve) => setTimeout(resolve, 300));
+        await sendPendingNavigation(client);
+        await new Promise((resolve) => setTimeout(resolve, 2_700));
         await sendPendingNavigation(client);
         return;
       }
