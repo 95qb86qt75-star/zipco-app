@@ -29,6 +29,8 @@ type Props = {
   setMessage: (value: string) => void;
   photo: string;
   setPhoto: (value: string) => void;
+  priceRequired?: boolean;
+  customerName?: string | null;
 };
 
 const choices: Array<{
@@ -64,11 +66,14 @@ const choices: Array<{
 ];
 
 export default function AlternativeProposalFields(props: Props) {
-  const [selected, setSelected] = useState<Set<ChangeKey>>(() => new Set());
+  const [selected, setSelected] = useState<Set<ChangeKey>>(
+    () => new Set(props.priceRequired ? ["price"] : []),
+  );
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const toggle = (key: ChangeKey) =>
     setSelected((current) => {
+      if (key === "price" && props.priceRequired) return current;
       const next = new Set(current);
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
@@ -105,7 +110,7 @@ export default function AlternativeProposalFields(props: Props) {
       </div>
       <div>
         <h4 className="text-sm font-black text-slate-900 dark:text-white">
-          Selecciona las modificaciones de la solicitud
+          Define qué necesitas ajustar
         </h4>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {choices.map(({ key, label, hint, icon: Icon }) => {
@@ -121,9 +126,19 @@ export default function AlternativeProposalFields(props: Props) {
                   <Icon className="h-5 w-5" />
                   {active && <Check className="h-4 w-4" />}
                 </span>
-                <span className="mt-2 block text-xs font-black">{label}</span>
+                <span className="mt-2 block text-xs font-black">
+                  {key === "price" && props.priceRequired
+                    ? "Precio final"
+                    : label}
+                </span>
                 <span className="mt-0.5 block text-[10px] leading-3 opacity-70">
-                  {hint}
+                  {key === "price" && props.priceRequired
+                    ? `Indica el precio final para la solicitud de ${props.customerName || "tu cliente"}.`
+                    : key === "quantity" && props.customerName
+                      ? `Mantén la cantidad solicitada por ${props.customerName} o propón una nueva.`
+                      : key === "schedule" && props.customerName
+                        ? "Conserva el horario solicitado o indica cuándo tienes disponibilidad."
+                        : hint}
                 </span>
               </button>
             );
@@ -194,9 +209,10 @@ export default function AlternativeProposalFields(props: Props) {
         </div>
       )}
       <label className="block text-sm font-black text-slate-900 dark:text-white">
-        Explícale el cambio a tu cliente
+        Explícale tu respuesta al cliente
         <span className="mt-1 block text-xs font-normal text-slate-500">
-          Deja un breve comentario para que comprenda la nueva propuesta.
+          Deja un comentario breve para que comprenda el precio o cualquier
+          cambio.
         </span>
         <textarea
           value={props.message}

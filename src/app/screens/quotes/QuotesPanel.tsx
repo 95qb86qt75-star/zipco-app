@@ -389,7 +389,11 @@ export function BusinessQuotes({
 }: {
   quotes: QuoteRequest[];
   updating: Set<number>;
-  onRespond: (quote: QuoteRequest, price: number, message: string) => void;
+  onRespond: (
+    quote: QuoteRequest,
+    price: number,
+    message: string,
+  ) => void | Promise<void>;
   onStatus: (
     quote: QuoteRequest,
     status: QuoteStatus,
@@ -453,13 +457,13 @@ export function BusinessQuotes({
                 quote.status === "requested"
                   ? "Esperando tu respuesta"
                   : quote.status === "alternative_proposed"
-                    ? "Alternativa enviada"
+                    ? "Respuesta enviada"
                     : quote.status === "accepted"
                       ? "Servicio en curso"
                       : quote.status === "quoted"
-                        ? "Cotización enviada"
+                        ? "Respuesta enviada"
                         : quote.status === "ready"
-                          ? "Esperando confirmación"
+                          ? "Listo y notificado"
                           : labels[quote.status]
               }
               unread={unread.has(interactionKey("quote", quote.id))}
@@ -477,18 +481,6 @@ export function BusinessQuotes({
                     onClick={(event) => {
                       event.stopPropagation();
                       markRead("quote", quote.id);
-                      setSelected(quote);
-                      setPrice("");
-                      setMessage("");
-                    }}
-                    className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-500 py-2.5 text-xs font-black text-white shadow-[0_8px_18px_rgba(13,148,136,0.22)]"
-                  >
-                    Responder con precio
-                  </button>
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      markRead("quote", quote.id);
                       setAlternative(quote);
                       setAlternativeMessage("");
                       setAlternativeItem("");
@@ -498,9 +490,9 @@ export function BusinessQuotes({
                       setAlternativeTime("");
                       setAlternativePhoto("");
                     }}
-                    className="rounded-xl border border-violet-200 bg-violet-50 py-2.5 text-xs font-black text-violet-700"
+                    className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-500 py-2.5 text-xs font-black text-white shadow-[0_8px_18px_rgba(13,148,136,0.22)]"
                   >
-                    Proponer alternativa
+                    Responder solicitud
                   </button>
                   <button
                     onClick={(event) => {
@@ -586,10 +578,10 @@ export function BusinessQuotes({
       {alternative && (
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
           <div className="relative mx-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 dark:bg-slate-900">
-            <h3 className="text-lg font-black">Proponer una alternativa</h3>
+            <h3 className="text-lg font-black">Responder solicitud</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Selecciona qué aspectos quieres modificar. El cliente podrá
-              aceptarla o rechazarla.
+              Define el precio final y selecciona solo lo que necesitas ajustar.
+              Lo demás se mantendrá como lo solicitó el cliente.
             </p>
             <AlternativeProposalFields
               original={`${alternative.itemNameSnapshot} · ${proposalPrice(alternative) === null ? "Precio por definir" : money(proposalPrice(alternative)!)}`}
@@ -607,6 +599,8 @@ export function BusinessQuotes({
               setMessage={setAlternativeMessage}
               photo={alternativePhoto}
               setPhoto={setAlternativePhoto}
+              priceRequired
+              customerName={alternative.customerName}
             />
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button
@@ -617,28 +611,37 @@ export function BusinessQuotes({
               </button>
               <button
                 disabled={
-                  alternativeMessage.trim().length < 3 ||
+                  Number(alternativePrice) < 100 ||
                   Boolean(alternativeDate) !== Boolean(alternativeTime)
                 }
                 onClick={async () => {
                   setSendingAlternative(true);
                   const minimumAnimation = new Promise((resolve) =>
-                    window.setTimeout(resolve, 950),
+                    window.setTimeout(resolve, 2800),
                   );
                   await Promise.all([
                     Promise.resolve(
-                      onAlternative(alternative, {
-                        message: alternativeMessage.trim(),
-                        item: alternativeItem.trim() || undefined,
-                        priceClp:
-                          Number(alternativePrice) >= 100
-                            ? Number(alternativePrice)
-                            : undefined,
-                        quantity: Number(alternativeQuantity) || undefined,
-                        date: alternativeDate || undefined,
-                        time: alternativeTime || undefined,
-                        photo: alternativePhoto || undefined,
-                      }),
+                      alternativeItem.trim() ||
+                        alternativeQuantity ||
+                        alternativeDate ||
+                        alternativeTime ||
+                        alternativePhoto
+                        ? onAlternative(alternative, {
+                            message:
+                              alternativeMessage.trim() ||
+                              "Te envío una propuesta actualizada.",
+                            item: alternativeItem.trim() || undefined,
+                            priceClp: Number(alternativePrice),
+                            quantity: Number(alternativeQuantity) || undefined,
+                            date: alternativeDate || undefined,
+                            time: alternativeTime || undefined,
+                            photo: alternativePhoto || undefined,
+                          })
+                        : onRespond(
+                            alternative,
+                            Number(alternativePrice),
+                            alternativeMessage.trim(),
+                          ),
                     ),
                     minimumAnimation,
                   ]);
@@ -648,18 +651,21 @@ export function BusinessQuotes({
                 className="zipco-confirm-action rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50"
               >
                 {sendingAlternative
-                  ? "Enviando propuesta…"
-                  : "Enviar alternativa"}
+                  ? "Enviando respuesta…"
+                  : "Enviar respuesta"}
               </button>
             </div>
             {sendingAlternative && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-3xl bg-slate-950/65 backdrop-blur-sm">
-                <div className="zipco-hologram-card rounded-3xl border border-violet-300 bg-slate-950/90 p-5 text-center text-white shadow-[0_0_45px_rgba(139,92,246,.45)]">
+              <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 px-6 backdrop-blur-xl">
+                <div className="zipco-hologram-card zipco-flow-hologram rounded-3xl border border-violet-300 bg-slate-950/90 p-5 text-center text-white shadow-[0_0_45px_rgba(139,92,246,.45)]">
                   <MessageSquareText className="mx-auto h-9 w-9 text-violet-300" />
                   <p className="mt-2 font-black">
-                    Alternativa enviada al cliente
+                    Respuesta enviada al cliente
                   </p>
-                  <p className="text-xs text-slate-300">Moviendo a Esperando</p>
+                  <p className="text-xs text-slate-300">
+                    Esperando la decisión de{" "}
+                    {alternative.customerName || "tu cliente"}
+                  </p>
                 </div>
               </div>
             )}
@@ -1055,8 +1061,8 @@ function QuoteCard({
                     : quote.status === "ready"
                       ? "Solicitud finalizada"
                       : quote.alternativeMessage
-                        ? "Propuesta enviada"
-                        : "Cotización enviada"}
+                        ? "Propuesta con cambios enviada"
+                        : "Respuesta enviada"}
                 </p>
                 {quote.status === "ready" ? (
                   <>
@@ -1142,7 +1148,7 @@ function QuoteCard({
     <article
       id={`quote-${quote.id}`}
       onClick={(event) => handleOpen(event.currentTarget)}
-      className={`zipco-customer-order-card ${quote.status === "quoted" ? "zipco-quote-metallic" : ""} zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"} scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors`}
+      className={`zipco-customer-order-card ${quote.status === "quoted" || quote.status === "alternative_proposed" ? "zipco-quote-metallic" : ""} zipco-state-${quote.status} ${unread ? "zipco-new-card border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-violet-100 bg-white"} scroll-mb-36 rounded-2xl border p-3 shadow-sm transition-colors`}
     >
       <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-start gap-3">
         {displayPhoto ? (

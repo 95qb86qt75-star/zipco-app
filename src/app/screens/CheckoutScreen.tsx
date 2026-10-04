@@ -1,4 +1,4 @@
-import { type ChangeEvent, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -62,6 +62,15 @@ export default function CheckoutScreen({
   const idempotencyKey = useRef<string | null>(null);
   const calendarInputRef = useRef<HTMLInputElement>(null);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!showConfirmation) return;
+    const timer = window.setTimeout(() => {
+      setShowConfirmation(false);
+      onOrderComplete();
+    }, 2800);
+    return () => window.clearTimeout(timer);
+  }, [onOrderComplete, showConfirmation]);
   const availableHours = Array.from({ length: 14 }, (_, index) =>
     String(index + 9).padStart(2, "0"),
   );
@@ -649,8 +658,8 @@ export default function CheckoutScreen({
 
       {/* Confirmation Modal */}
       {showConfirmation && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-100 animate-in">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 p-6 backdrop-blur-xl">
+          <div className="zipco-hologram-card zipco-flow-hologram w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl dark:border dark:border-teal-300/60 dark:bg-slate-950 dark:text-white">
             <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-8 h-8 text-white"

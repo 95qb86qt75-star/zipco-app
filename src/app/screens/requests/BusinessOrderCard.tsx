@@ -68,7 +68,7 @@ export default function BusinessOrderCard({
     request.status === "pending"
       ? "Nuevo pedido"
       : request.status === "alternative_proposed"
-        ? "Alternativa enviada"
+        ? "Propuesta enviada"
         : request.status === "accepted"
           ? "Preparando pedido"
           : request.status === "ready"
@@ -308,7 +308,7 @@ export default function BusinessOrderCard({
               {request.alternativeMessage && (
                 <div className="mt-2 border-t border-black/5 pt-2 text-xs text-slate-600">
                   <p className="font-black text-slate-800">
-                    Alternativa enviada
+                    Propuesta enviada · Esperando decisión del cliente
                   </p>
                   <p className="mt-1">{request.alternativeMessage}</p>
                   {request.alternativeItem && (

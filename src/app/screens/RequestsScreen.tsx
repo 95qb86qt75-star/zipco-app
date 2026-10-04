@@ -80,7 +80,22 @@ export default function RequestsScreen({
     id: number;
     label: string;
   } | null>(null);
-  const [activeTransfer, setActiveTransfer] = useState<string | null>(null);
+  const [activeTransfer, setActiveTransfer] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
+  const [seenRoleInteractions, setSeenRoleInteractions] = useState<Set<string>>(
+    () => {
+      try {
+        const stored = JSON.parse(
+          localStorage.getItem("zipco-seen-request-roles") ?? "[]",
+        );
+        return new Set(Array.isArray(stored) ? stored : []);
+      } catch {
+        return new Set();
+      }
+    },
+  );
   const prefersReducedMotion = useReducedMotion();
   const { unread } = useUnreadInteractions();
   const {
@@ -165,6 +180,43 @@ export default function RequestsScreen({
             unread.has(interactionKey("quote", quote.id)),
         )
       : [];
+  const customerRoleKeys = [...myOrders, ...quotes.myQuotes]
+    .map((record) =>
+      interactionKey(
+        "itemNameSnapshot" in record ? "quote" : "order",
+        record.id,
+      ),
+    )
+    .filter((key) => unread.has(key));
+  const businessRoleKeys = [
+    ...requests
+      .filter((record) => record.recordState === "available")
+      .map((record) => interactionKey("order", record.id)),
+    ...quotes.businessQuotes.map((record) =>
+      interactionKey("quote", record.id),
+    ),
+  ].filter((key) => unread.has(key));
+  const customerRoleUnread = customerRoleKeys.filter(
+    (key) => !seenRoleInteractions.has(`customer:${key}`),
+  ).length;
+  const businessRoleUnread = businessRoleKeys.filter(
+    (key) => !seenRoleInteractions.has(`business:${key}`),
+  ).length;
+  /* Kept separate from card-level read state: opening a role clears only its
+     badge, while activity cards remain until the user reviews each event. */
+  const acknowledgeRole = (role: "customer" | "business", keys: string[]) => {
+    setSeenRoleInteractions((current) => {
+      const next = new Set(current);
+      keys.forEach((key) => next.add(`${role}:${key}`));
+      localStorage.setItem(
+        "zipco-seen-request-roles",
+        JSON.stringify([...next]),
+      );
+      return next;
+    });
+  };
+  const customerRoleBadge = customerRoleUnread;
+  const businessRoleBadge = businessRoleUnread;
   const unreadHistoryCount = (
     requestType === "orders" ? orderRecords : quoteRecords
   )
@@ -245,6 +297,11 @@ export default function RequestsScreen({
       description:
         "Las solicitudes aceptadas que todavía están en proceso aparecerán aquí.",
     },
+    ready: {
+      title: "No tienes solicitudes listas y notificadas",
+      description:
+        "Las solicitudes terminadas que esperan confirmación del cliente aparecerán aquí.",
+    },
     waiting: {
       title: "No tienes cotizaciones esperando respuesta",
       description:
@@ -281,7 +338,7 @@ export default function RequestsScreen({
         label: "Servicio recibido conforme",
       });
       const minimumAnimation = new Promise((resolve) =>
-        window.setTimeout(resolve, prefersReducedMotion ? 180 : 1250),
+        window.setTimeout(resolve, prefersReducedMotion ? 700 : 2800),
       );
       const [completed] = await Promise.all([
         quotes.changeStatus(quote, status, reason, detail),
@@ -292,9 +349,12 @@ export default function RequestsScreen({
       return;
     }
     if (status === "accepted") {
-      setActiveTransfer("Cotización aceptada");
+      setActiveTransfer({
+        title: "Cotización aceptada",
+        description: "Avisamos al negocio. Tu solicitud pasó a En curso.",
+      });
       const minimumAnimation = new Promise((resolve) =>
-        window.setTimeout(resolve, prefersReducedMotion ? 160 : 1050),
+        window.setTimeout(resolve, prefersReducedMotion ? 700 : 2800),
       );
       const [changed] = await Promise.all([
         quotes.changeStatus(quote, status, reason, detail),
@@ -303,6 +363,39 @@ export default function RequestsScreen({
       setActiveTransfer(null);
       if (changed)
         setStatusViews((current) => ({ ...current, [viewKey]: "active" }));
+      return;
+    }
+    if (status === "ready") {
+      setActiveTransfer({
+        title: "Cliente notificado",
+        description:
+          "Le avisamos que el servicio fue realizado. Esperamos su confirmación.",
+      });
+      const [changed] = await Promise.all([
+        quotes.changeStatus(quote, status, reason, detail),
+        new Promise((resolve) =>
+          window.setTimeout(resolve, prefersReducedMotion ? 700 : 2800),
+        ),
+      ]);
+      setActiveTransfer(null);
+      if (changed)
+        setStatusViews((current) => ({ ...current, [viewKey]: "ready" }));
+      return;
+    }
+    if (status === "declined") {
+      setActiveTransfer({
+        title: "Propuesta rechazada",
+        description: "Avisamos al negocio sobre tu decisión.",
+      });
+      const [changed] = await Promise.all([
+        quotes.changeStatus(quote, status, reason, detail),
+        new Promise((resolve) =>
+          window.setTimeout(resolve, prefersReducedMotion ? 700 : 2800),
+        ),
+      ]);
+      setActiveTransfer(null);
+      if (changed)
+        setStatusViews((current) => ({ ...current, [viewKey]: "history" }));
       return;
     }
     const changed = await quotes.changeStatus(quote, status, reason, detail);
@@ -322,7 +415,7 @@ export default function RequestsScreen({
       label: "Pedido recibido conforme",
     });
     const minimumAnimation = new Promise((resolve) =>
-      window.setTimeout(resolve, prefersReducedMotion ? 180 : 1250),
+      window.setTimeout(resolve, prefersReducedMotion ? 700 : 2800),
     );
     const [completed] = await Promise.all([
       performAction(order, "customer", "complete-reception"),
@@ -461,6 +554,7 @@ export default function RequestsScreen({
             onClick={() => {
               setSubTab("my-orders");
               setAttentionFilter(null);
+              acknowledgeRole("customer", customerRoleKeys);
             }}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               subTab === "my-orders"
@@ -479,12 +573,18 @@ export default function RequestsScreen({
                 </span>
               )}
             </span>
+            {customerRoleBadge > 0 && (
+              <span className="zipco-role-badge">
+                {customerRoleBadge > 9 ? "9+" : customerRoleBadge}
+              </span>
+            )}
           </button>
           {hasBusiness && (
             <button
               onClick={() => {
                 setSubTab("my-business");
                 setAttentionFilter(null);
+                acknowledgeRole("business", businessRoleKeys);
               }}
               className={`flex flex-1 items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
                 subTab === "my-business"
@@ -494,6 +594,11 @@ export default function RequestsScreen({
             >
               <Store className="h-4 w-4" />
               Mi Negocio
+              {businessRoleBadge > 0 && (
+                <span className="zipco-role-badge">
+                  {businessRoleBadge > 9 ? "9+" : businessRoleBadge}
+                </span>
+              )}
             </button>
           )}
         </div>
@@ -525,7 +630,122 @@ export default function RequestsScreen({
             Cotizaciones
           </motion.button>
         </div>
-        <div className="mb-3 grid grid-cols-4 gap-2">
+        {acceptedBusinessQuotes.length > 0 && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+            onClick={() => {
+              acceptedBusinessQuotes.forEach((quote) =>
+                markInteractionRead("quote", quote.id),
+              );
+              setRequestType("quotes");
+              selectStatusView("active");
+            }}
+            className="mb-3 flex w-full items-center gap-3 rounded-2xl border border-emerald-300/70 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-3 text-left text-white shadow-[0_12px_28px_rgba(16,185,129,0.25)]"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Check className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-black">
+                {acceptedBusinessQuotes.length}{" "}
+                {acceptedBusinessQuotes.length === 1
+                  ? "cotización aceptada"
+                  : "cotizaciones aceptadas"}
+              </span>
+              <span className="block text-xs text-white/85">
+                El cliente aceptó tu propuesta. Ya puedes comenzar el servicio.
+              </span>
+            </span>
+            <ChevronRight className="h-5 w-5" />
+          </motion.button>
+        )}
+        {subTab === "my-orders" &&
+          (responseCustomerItems.length > 0 ||
+            readyCustomerItems.length > 0) && (
+            <div className="mb-3 space-y-2">
+              {responseCustomerItems.length > 0 && (
+                <motion.button
+                  type="button"
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    setAttentionFilter("responses");
+                    const view =
+                      statusViewFor(
+                        requestType,
+                        responseCustomerItems[0].status,
+                      ) ?? "waiting";
+                    setStatusViews((current) => ({
+                      ...current,
+                      [viewKey]: view,
+                    }));
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left text-white shadow-lg ${requestType === "quotes" ? "border-violet-400 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600" : "border-orange-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600"}`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    <Bell className="zipco-attention-bell h-6 w-6" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-black">
+                      {responseCustomerItems.length}{" "}
+                      {requestType === "quotes"
+                        ? responseCustomerItems.length === 1
+                          ? "cotización lista para revisar"
+                          : "cotizaciones listas para revisar"
+                        : responseCustomerItems.length === 1
+                          ? "nueva respuesta del negocio"
+                          : "nuevas respuestas del negocio"}
+                    </span>
+                    <span className="block text-xs text-white/85">
+                      Toca para revisar{" "}
+                      {responseCustomerItems.length === 1
+                        ? "la solicitud"
+                        : "las solicitudes"}
+                      .
+                    </span>
+                  </span>
+                  <ChevronRight className="h-5 w-5" />
+                </motion.button>
+              )}
+              {readyCustomerItems.length > 0 && (
+                <motion.button
+                  type="button"
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    setAttentionFilter("ready");
+                    setStatusViews((current) => ({
+                      ...current,
+                      [viewKey]: "ready",
+                    }));
+                  }}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-3 text-left text-slate-900 shadow-md dark:from-amber-950/70 dark:to-orange-950/50 dark:text-white"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-500">
+                    <Bell className="zipco-attention-bell h-6 w-6" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-black">
+                      {readyCustomerItems.length}{" "}
+                      {requestType === "orders"
+                        ? readyCustomerItems.length === 1
+                          ? "pedido listo para recibir"
+                          : "pedidos listos para recibir"
+                        : readyCustomerItems.length === 1
+                          ? "servicio listo para confirmar"
+                          : "servicios listos para confirmar"}
+                    </span>
+                    <span className="block text-xs text-slate-500 dark:text-slate-300">
+                      El negocio ya finalizó y te notificó.
+                    </span>
+                  </span>
+                  <ChevronRight className="h-5 w-5" />
+                </motion.button>
+              )}
+            </div>
+          )}
+        <div className="zipco-status-tabs mb-3 flex gap-1.5 overflow-x-auto pb-1">
           {(requestType === "quotes"
             ? ([
                 {
@@ -536,7 +756,9 @@ export default function RequestsScreen({
                 {
                   key: "waiting",
                   label:
-                    subTab === "my-business" ? "Esperando" : "Por responder",
+                    subTab === "my-business"
+                      ? "Esperando cliente"
+                      : "Por responder",
                   count: statusCounts.waiting,
                 },
                 {
@@ -544,6 +766,18 @@ export default function RequestsScreen({
                   label: "En curso",
                   count: statusCounts.active,
                 },
+                ...(statusCounts.ready > 0
+                  ? [
+                      {
+                        key: "ready",
+                        label:
+                          subTab === "my-business"
+                            ? "Listo y notificado"
+                            : "Listos",
+                        count: statusCounts.ready,
+                      } as const,
+                    ]
+                  : []),
                 {
                   key: "history",
                   label: "Historial",
@@ -559,7 +793,9 @@ export default function RequestsScreen({
                 {
                   key: "waiting",
                   label:
-                    subTab === "my-business" ? "Esperando" : "Por responder",
+                    subTab === "my-business"
+                      ? "Esperando cliente"
+                      : "Por responder",
                   count: statusCounts.waiting,
                 },
                 {
@@ -567,6 +803,18 @@ export default function RequestsScreen({
                   label: "En curso",
                   count: statusCounts.active,
                 },
+                ...(statusCounts.ready > 0
+                  ? [
+                      {
+                        key: "ready",
+                        label:
+                          subTab === "my-business"
+                            ? "Listo y notificado"
+                            : "Listos",
+                        count: statusCounts.ready,
+                      } as const,
+                    ]
+                  : []),
                 {
                   key: "history",
                   label: "Historial",
@@ -578,13 +826,15 @@ export default function RequestsScreen({
               key={item.key}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
               onClick={() => selectStatusView(item.key)}
-              className={`flex min-w-0 items-center justify-center gap-1 rounded-xl px-1.5 py-2.5 text-[11px] font-bold leading-tight shadow-sm transition-all ${
+              className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-bold leading-[11px] shadow-sm transition-all ${item.key === "ready" ? "min-w-[92px]" : "min-w-[66px]"} ${
                 statusView === item.key
                   ? item.key === "pending"
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white ring-2 ring-amber-300/40 shadow-md shadow-amber-500/20"
                     : item.key === "active"
                       ? "bg-gradient-to-r from-cyan-600 to-teal-500 text-white ring-2 ring-cyan-300/40 shadow-md shadow-cyan-500/20"
-                      : "bg-gradient-to-r from-emerald-600 to-green-500 text-white ring-2 ring-emerald-300/40 shadow-md shadow-emerald-500/20"
+                      : item.key === "ready"
+                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white ring-2 ring-orange-300/40 shadow-md shadow-orange-500/20"
+                        : "bg-gradient-to-r from-emerald-600 to-green-500 text-white ring-2 ring-emerald-300/40 shadow-md shadow-emerald-500/20"
                   : "border border-slate-200 bg-white text-slate-600"
               }`}
             >
@@ -597,7 +847,7 @@ export default function RequestsScreen({
             </motion.button>
           ))}
         </div>
-        {acceptedBusinessQuotes.length > 0 && (
+        {false && acceptedBusinessQuotes.length > 0 && (
           <motion.button
             type="button"
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
@@ -623,7 +873,8 @@ export default function RequestsScreen({
             <ChevronRight className="h-5 w-5" />
           </motion.button>
         )}
-        {subTab === "my-orders" &&
+        {false &&
+          subTab === "my-orders" &&
           (responseCustomerItems.length > 0 ||
             readyCustomerItems.length > 0) && (
             <div className="mb-3 space-y-2">
@@ -867,15 +1118,20 @@ export default function RequestsScreen({
               quotes={filteredQuotes}
               updating={quotes.updating}
               onRespond={(quote, price, message) => {
-                quotes.respond(quote, price, message);
+                const response = quotes.respond(quote, price, message);
                 setStatusViews((current) => ({
                   ...current,
                   [viewKey]: "waiting",
                 }));
+                return response;
               }}
               onStatus={changeQuoteStatusAndFollow}
               onAlternative={async (quote, payload) => {
                 await quotes.proposeAlternative(quote, payload);
+                setStatusViews((current) => ({
+                  ...current,
+                  [viewKey]: "waiting",
+                }));
               }}
               emptyText={emptyCopy.description}
             />
@@ -958,13 +1214,37 @@ export default function RequestsScreen({
                         await completeCustomerOrder(order);
                         return;
                       }
-                      await performAction(
-                        order,
-                        "customer",
-                        action,
-                        reason,
-                        detail,
-                      );
+                      const transfer =
+                        action === "accept-alternative"
+                          ? {
+                              title: "Propuesta aceptada",
+                              description: `Avisamos a ${order.businessName}. Tu pedido pasó a En curso.`,
+                            }
+                          : action === "reject-alternative"
+                            ? {
+                                title: "Propuesta rechazada",
+                                description: `Avisamos a ${order.businessName} sobre tu decisión.`,
+                              }
+                            : null;
+                      if (transfer) setActiveTransfer(transfer);
+                      await Promise.all([
+                        performAction(
+                          order,
+                          "customer",
+                          action,
+                          reason,
+                          detail,
+                        ),
+                        transfer
+                          ? new Promise((resolve) =>
+                              window.setTimeout(
+                                resolve,
+                                prefersReducedMotion ? 700 : 2800,
+                              ),
+                            )
+                          : Promise.resolve(),
+                      ]);
+                      if (transfer) setActiveTransfer(null);
                       const next = action === "cancel" ? "history" : "active";
                       setStatusViews((current) => ({
                         ...current,
@@ -988,14 +1268,38 @@ export default function RequestsScreen({
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
                   onAction={async (order, action, reason, detail) => {
-                    await performAction(
-                      order,
-                      "business",
-                      action,
-                      reason,
-                      detail,
-                    );
-                    const next = action === "reject" ? "history" : "active";
+                    const transfer =
+                      action === "accept"
+                        ? {
+                            title: "Pedido aceptado",
+                            description:
+                              "Pasó a En curso. Cuando esté listo, notifícale al cliente.",
+                          }
+                        : action === "mark-ready"
+                          ? {
+                              title: "Cliente notificado",
+                              description: `Avisamos a ${order.customerName || "tu cliente"}. Esperamos su confirmación.`,
+                            }
+                          : null;
+                    if (transfer) setActiveTransfer(transfer);
+                    await Promise.all([
+                      performAction(order, "business", action, reason, detail),
+                      transfer
+                        ? new Promise((resolve) =>
+                            window.setTimeout(
+                              resolve,
+                              prefersReducedMotion ? 700 : 2800,
+                            ),
+                          )
+                        : Promise.resolve(),
+                    ]);
+                    if (transfer) setActiveTransfer(null);
+                    const next =
+                      action === "reject"
+                        ? "history"
+                        : action === "mark-ready"
+                          ? "ready"
+                          : "active";
                     setStatusViews((current) => ({
                       ...current,
                       [viewKey]: next,
@@ -1003,7 +1307,13 @@ export default function RequestsScreen({
                   }}
                   emptyTitle={emptyCopy.title}
                   emptyDescription={emptyCopy.description}
-                  onProposeAlternative={proposeOrderAlternative}
+                  onProposeAlternative={async (id, payload) => {
+                    await proposeOrderAlternative(id, payload);
+                    setStatusViews((current) => ({
+                      ...current,
+                      [viewKey]: "waiting",
+                    }));
+                  }}
                 />
               )}
             {!isLoading &&
@@ -1027,13 +1337,13 @@ export default function RequestsScreen({
       <AnimatePresence>
         {activeTransfer && (
           <motion.div
-            className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/25 px-6 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/55 px-6 backdrop-blur-xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="zipco-hologram-card relative w-[235px] overflow-hidden rounded-[28px] border border-violet-300/70 bg-slate-950/95 p-6 text-center text-white shadow-[0_0_55px_rgba(139,92,246,0.38)]"
+              className="zipco-hologram-card zipco-flow-hologram relative w-[235px] overflow-hidden rounded-[28px] border border-violet-300/70 bg-slate-950/95 p-6 text-center text-white shadow-[0_0_55px_rgba(139,92,246,0.38)]"
               initial={{ scale: 0.9, y: 16 }}
               animate={{ scale: 1, y: 0 }}
               exit={
@@ -1045,9 +1355,11 @@ export default function RequestsScreen({
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-emerald-400 shadow-[0_0_30px_rgba(45,212,191,0.45)]">
                 <Check className="h-8 w-8" />
               </span>
-              <p className="mt-4 text-base font-black">{activeTransfer}</p>
+              <p className="mt-4 text-base font-black">
+                {activeTransfer.title}
+              </p>
               <p className="mt-1 text-xs text-slate-300">
-                Moviendo el servicio a En curso
+                {activeTransfer.description}
               </p>
             </motion.div>
           </motion.div>
@@ -1056,7 +1368,7 @@ export default function RequestsScreen({
       <AnimatePresence>
         {historyTransfer !== null && (
           <motion.div
-            className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/20 px-6 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/55 px-6 backdrop-blur-xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronRight,
   MessageCircle,
+  PackageCheck,
   XCircle,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -117,10 +118,28 @@ export default function MyOrderCard({
         </div>
       </div>
       {order.status === "accepted" && (
-        <p className="mt-3 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
-          El negocio está preparando tu pedido.
-          <ChevronRight className="h-4 w-4" />
-        </p>
+        <div className="mt-3 rounded-2xl border border-cyan-300/55 bg-gradient-to-r from-cyan-50 via-sky-50 to-teal-50 p-3 dark:from-cyan-950/50 dark:via-slate-900 dark:to-teal-950/40">
+          <p className="flex items-center justify-between text-xs font-black text-cyan-700 dark:text-cyan-200">
+            <span className="flex items-center gap-2">
+              <PackageCheck className="zipco-ready-wave h-4 w-4" /> El negocio
+              está preparando tu pedido
+            </span>
+            <ChevronRight className="h-4 w-4" />
+          </p>
+          <div className="mt-3 grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-1 text-[9px] font-bold">
+            <span className="rounded-full bg-emerald-500 px-2 py-1 text-white">
+              Aceptado
+            </span>
+            <span className="h-px bg-cyan-300" />
+            <span className="zipco-working-step rounded-full bg-cyan-500 px-2 py-1 text-white">
+              Preparación
+            </span>
+            <span className="h-px bg-slate-300 dark:bg-slate-600" />
+            <span className="rounded-full bg-slate-200 px-2 py-1 text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+              Listo
+            </span>
+          </div>
+        </div>
       )}
       {order.alternativeMessage && (
         <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">

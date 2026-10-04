@@ -215,7 +215,7 @@ export default function BusinessOrdersTab({
                 onClick={async () => {
                   setSendingAlternative(true);
                   const minimumAnimation = new Promise((resolve) =>
-                    window.setTimeout(resolve, 950),
+                    window.setTimeout(resolve, 2800),
                   );
                   await Promise.all([
                     onProposeAlternative(alternative.id, {
@@ -243,13 +243,16 @@ export default function BusinessOrdersTab({
               </button>
             </div>
             {sendingAlternative && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-slate-950/65 backdrop-blur-sm">
-                <div className="zipco-hologram-card rounded-3xl border border-violet-300 bg-slate-950/90 p-5 text-center text-white shadow-[0_0_45px_rgba(139,92,246,.45)]">
+              <div className="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 px-6 backdrop-blur-xl">
+                <div className="zipco-hologram-card zipco-flow-hologram rounded-3xl border border-violet-300 bg-slate-950/90 p-5 text-center text-white shadow-[0_0_45px_rgba(139,92,246,.45)]">
                   <Sparkles className="mx-auto h-9 w-9 text-violet-300" />
                   <p className="mt-2 font-black">
                     Alternativa enviada al cliente
                   </p>
-                  <p className="text-xs text-slate-300">Moviendo a Esperando</p>
+                  <p className="text-xs text-slate-300">
+                    Esperando la decisión de{" "}
+                    {alternative.customerName || "tu cliente"}
+                  </p>
                 </div>
               </div>
             )}

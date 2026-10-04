@@ -10,7 +10,7 @@ describe("request status grouping", () => {
     expect(statusViewFor("orders", "pending")).toBe("pending");
     expect(statusViewFor("orders", "alternative_proposed")).toBe("waiting");
     expect(statusViewFor("orders", "accepted")).toBe("active");
-    expect(statusViewFor("orders", "ready")).toBe("active");
+    expect(statusViewFor("orders", "ready")).toBe("ready");
     expect(statusViewFor("orders", "completed")).toBe("history");
   });
 
@@ -19,7 +19,7 @@ describe("request status grouping", () => {
     expect(statusViewFor("quotes", "quoted")).toBe("waiting");
     expect(statusViewFor("quotes", "accepted")).toBe("active");
     expect(statusViewFor("quotes", "alternative_proposed")).toBe("waiting");
-    expect(statusViewFor("quotes", "ready")).toBe("active");
+    expect(statusViewFor("quotes", "ready")).toBe("ready");
     expect(statusViewFor("quotes", "completed")).toBe("history");
     expect(statusViewFor("quotes", "declined")).toBe("history");
   });
@@ -46,7 +46,7 @@ describe("request status grouping", () => {
         ],
         "orders",
       ),
-    ).toEqual({ pending: 1, waiting: 0, active: 2, history: 1 });
+    ).toEqual({ pending: 1, waiting: 0, active: 1, ready: 1, history: 1 });
   });
 
   it("keeps archived requests out of normal history and exposes them in Eliminados", () => {

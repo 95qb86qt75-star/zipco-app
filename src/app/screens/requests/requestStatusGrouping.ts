@@ -1,5 +1,5 @@
 export type RequestKind = "orders" | "quotes";
-export type StatusView = "pending" | "waiting" | "active" | "history";
+export type StatusView = "pending" | "waiting" | "active" | "ready" | "history";
 export type HistoryFilter =
   "all" | "completed" | "cancelled" | "rejected" | "deleted";
 
@@ -12,7 +12,8 @@ export function statusViewFor(
   if (kind === "orders") {
     if (status === "pending") return "pending";
     if (status === "alternative_proposed") return "waiting";
-    if (status === "accepted" || status === "ready") return "active";
+    if (status === "accepted") return "active";
+    if (status === "ready") return "ready";
     if (
       status === "completed" ||
       status === "rejected" ||
@@ -24,7 +25,8 @@ export function statusViewFor(
   if (status === "requested") return "pending";
   if (status === "quoted" || status === "alternative_proposed")
     return "waiting";
-  if (status === "accepted" || status === "ready") return "active";
+  if (status === "accepted") return "active";
+  if (status === "ready") return "ready";
   if (status === "completed" || status === "declined" || status === "cancelled")
     return "history";
   return null;
@@ -37,7 +39,7 @@ export function countStatusViews(records: StatusRecord[], kind: RequestKind) {
       if (view) counts[view] += 1;
       return counts;
     },
-    { pending: 0, waiting: 0, active: 0, history: 0 },
+    { pending: 0, waiting: 0, active: 0, ready: 0, history: 0 },
   );
 }
 
