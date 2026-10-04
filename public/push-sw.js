@@ -156,6 +156,7 @@ self.addEventListener("notificationclick", (event) => {
       const isAppleMobile = /iPhone|iPad|iPod/i.test(
         self.navigator?.userAgent || "",
       );
+      let appleLaunchTarget = null;
       if (isAppleMobile) {
         try {
           // A distinct pathname is intentional. iOS may treat `/?open=...` as
@@ -170,6 +171,7 @@ self.addEventListener("notificationclick", (event) => {
             launchUrl.searchParams.set(key, value),
           );
           launchUrl.searchParams.set("notificationLaunch", String(Date.now()));
+          appleLaunchTarget = launchUrl.href;
           const launchedClient = await self.clients.openWindow(launchUrl.href);
           if (launchedClient) {
             launchedClient.postMessage(navigationMessage);
@@ -219,7 +221,14 @@ self.addEventListener("notificationclick", (event) => {
         // existing window preserves the target in the URL and works on resume.
         if ("navigate" in client) {
           try {
-            const navigatedClient = await client.navigate(target);
+            // If openWindow only resumed the existing iOS PWA and returned no
+            // client, navigating to the root query repeats the WebKit failure
+            // that leaves ZIPCO on Inicio. Use the distinct launch pathname in
+            // this fallback too, so every Apple path performs a real document
+            // navigation before React canonicalizes the URL.
+            const navigatedClient = await client.navigate(
+              appleLaunchTarget || target,
+            );
             const focusedClient = navigatedClient || client;
             await focusedClient.focus();
             // WebKit can resume the installed PWA after the first message was
@@ -243,7 +252,7 @@ self.addEventListener("notificationclick", (event) => {
         await sendPendingNavigation(client);
         return;
       }
-      return self.clients.openWindow(target);
+      return self.clients.openWindow(appleLaunchTarget || target);
     })(),
   );
 });
