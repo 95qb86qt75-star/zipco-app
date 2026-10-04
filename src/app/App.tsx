@@ -115,7 +115,9 @@ export default function App() {
       hasStoredSession(),
   );
   const [showSplash, setShowSplash] = useState(
-    () => sessionStorage.getItem("zipco-splash-seen") !== "true",
+    () =>
+      !hasStoredSession() &&
+      sessionStorage.getItem("zipco-splash-seen") !== "true",
   );
   const [activeTab, setActiveTab] = useState(() =>
     new URLSearchParams(window.location.search)
