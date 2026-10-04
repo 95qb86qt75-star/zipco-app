@@ -161,6 +161,28 @@ export default function RequestsScreen({
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
   );
+  const businessOrderStatusCounts = countStatusViews(
+    requests.filter((record) => record.recordState === "available"),
+    "orders",
+  );
+  const businessQuoteStatusCounts = countStatusViews(
+    quotes.businessQuotes,
+    "quotes",
+  );
+  const businessActivityCards = (
+    [
+      ...(["pending", "waiting", "active", "ready"] as const).map((view) => ({
+        kind: "orders" as const,
+        view,
+        count: businessOrderStatusCounts[view],
+      })),
+      ...(["pending", "waiting", "active", "ready"] as const).map((view) => ({
+        kind: "quotes" as const,
+        view,
+        count: businessQuoteStatusCounts[view],
+      })),
+    ] as const
+  ).filter((item) => item.count > 0);
   const customerRoleBadge =
     myOrders.filter(
       (record) =>
@@ -613,7 +635,85 @@ export default function RequestsScreen({
             Cotizaciones
           </motion.button>
         </div>
-        {acceptedBusinessQuotes.length > 0 && (
+        {subTab === "my-business" && businessActivityCards.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {businessActivityCards.map((item) => {
+              const singular = item.count === 1;
+              const noun =
+                item.kind === "orders"
+                  ? singular
+                    ? "pedido"
+                    : "pedidos"
+                  : singular
+                    ? "cotización"
+                    : "cotizaciones";
+              const title =
+                item.view === "pending"
+                  ? `${item.count} ${noun} ${item.kind === "orders" ? (singular ? "pendiente" : "pendientes") : singular ? "nueva" : "nuevas"}`
+                  : item.view === "waiting"
+                    ? `${item.count} ${noun} esperando al cliente`
+                    : item.view === "active"
+                      ? `${item.count} ${noun} en curso`
+                      : `${item.count} ${noun} ${
+                          item.kind === "quotes"
+                            ? singular
+                              ? "lista y notificada"
+                              : "listas y notificadas"
+                            : singular
+                              ? "listo y notificado"
+                              : "listos y notificados"
+                        }`;
+              const description =
+                item.view === "pending"
+                  ? "Toca para revisar y responder."
+                  : item.view === "waiting"
+                    ? "Tu respuesta fue enviada; falta la decisión del cliente."
+                    : item.view === "active"
+                      ? item.kind === "orders"
+                        ? "Continúa con la preparación del pedido."
+                        : "Ya puedes comenzar el servicio."
+                      : "El cliente fue avisado; falta su confirmación.";
+              return (
+                <motion.button
+                  key={`${item.kind}-${item.view}`}
+                  type="button"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                  onClick={() => {
+                    setRequestType(item.kind);
+                    setAttentionFilter("browse");
+                    setStatusViews((current) => ({
+                      ...current,
+                      [`my-business-${item.kind}`]: item.view,
+                    }));
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-md ${
+                    item.view === "pending"
+                      ? "border-orange-300 bg-gradient-to-r from-amber-400 to-orange-500 text-white"
+                      : item.view === "waiting"
+                        ? "border-violet-300 bg-gradient-to-r from-violet-600 to-purple-500 text-white"
+                        : item.view === "active"
+                          ? "border-teal-300 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white"
+                          : "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 dark:from-amber-950/70 dark:to-orange-950/50 dark:text-white"
+                  }`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    <Bell className="zipco-attention-bell h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-black">{title}</span>
+                    <span className="block text-xs opacity-85">
+                      {description}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-5 w-5" />
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
+        {false && acceptedBusinessQuotes.length > 0 && (
           <motion.button
             type="button"
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
