@@ -149,6 +149,29 @@ self.addEventListener("notificationclick", (event) => {
         type: "ZIPCO_NOTIFICATION_NAVIGATE",
         url: targetUrl.pathname + targetUrl.search,
       };
+      // WebKit can report a successful navigate() while merely resuming the
+      // suspended standalone window at its previous route. Asking iOS to open
+      // the deep link first makes the launch URL authoritative; it normally
+      // reuses the installed PWA instead of creating a second window.
+      const isAppleMobile = /iPhone|iPad|iPod/i.test(
+        self.navigator?.userAgent || "",
+      );
+      if (isAppleMobile) {
+        try {
+          const launchedClient = await self.clients.openWindow(target);
+          if (launchedClient) {
+            launchedClient.postMessage(navigationMessage);
+            await launchedClient.focus();
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            await sendPendingNavigation(launchedClient);
+            await new Promise((resolve) => setTimeout(resolve, 1_000));
+            await sendPendingNavigation(launchedClient);
+            return;
+          }
+        } catch {
+          // Continue with the cross-browser existing-window fallback below.
+        }
+      }
       // iOS can keep more than one window for the same installed web app. Tell
       // every matching client about the destination before focusing one of them,
       // so the window surfaced by the OS cannot remain on Inicio.
