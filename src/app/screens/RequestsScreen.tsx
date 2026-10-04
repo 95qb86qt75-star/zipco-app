@@ -76,6 +76,9 @@ export default function RequestsScreen({
   const [attentionFilter, setAttentionFilter] = useState<
     "responses" | "ready" | "browse" | null
   >(null);
+  const [selectedBusinessActivity, setSelectedBusinessActivity] = useState<
+    string | null
+  >(null);
   const [historyTransfer, setHistoryTransfer] = useState<{
     kind: "order" | "quote";
     id: number;
@@ -328,6 +331,7 @@ export default function RequestsScreen({
   }[statusView];
 
   const selectStatusView = (view: StatusView) => {
+    setSelectedBusinessActivity(null);
     setAttentionFilter("browse");
     setStatusViews((current) => ({ ...current, [viewKey]: view }));
   };
@@ -561,6 +565,7 @@ export default function RequestsScreen({
             onClick={() => {
               setSubTab("my-orders");
               setAttentionFilter(null);
+              setSelectedBusinessActivity(null);
             }}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
               subTab === "my-orders"
@@ -590,6 +595,7 @@ export default function RequestsScreen({
               onClick={() => {
                 setSubTab("my-business");
                 setAttentionFilter(null);
+                setSelectedBusinessActivity(null);
               }}
               className={`flex flex-1 items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${
                 subTab === "my-business"
@@ -617,6 +623,7 @@ export default function RequestsScreen({
             onClick={() => {
               setRequestType("orders");
               setAttentionFilter(null);
+              setSelectedBusinessActivity(null);
             }}
             className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${requestType === "orders" ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md shadow-teal-500/20" : "text-slate-600"}`}
           >
@@ -628,6 +635,7 @@ export default function RequestsScreen({
             onClick={() => {
               setRequestType("quotes");
               setAttentionFilter(null);
+              setSelectedBusinessActivity(null);
             }}
             className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${requestType === "quotes" ? "bg-gradient-to-r from-violet-600 to-purple-500 text-white shadow-md shadow-violet-500/20" : "text-slate-600"}`}
           >
@@ -638,6 +646,8 @@ export default function RequestsScreen({
         {subTab === "my-business" && businessActivityCards.length > 0 && (
           <div className="mb-3 space-y-2">
             {businessActivityCards.map((item) => {
+              const activityKey = `${item.kind}-${item.view}`;
+              const isSelected = selectedBusinessActivity === activityKey;
               const singular = item.count === 1;
               const noun =
                 item.kind === "orders"
@@ -675,7 +685,7 @@ export default function RequestsScreen({
                       : "El cliente fue avisado; falta su confirmación.";
               return (
                 <motion.button
-                  key={`${item.kind}-${item.view}`}
+                  key={activityKey}
                   type="button"
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -683,31 +693,54 @@ export default function RequestsScreen({
                   onClick={() => {
                     setRequestType(item.kind);
                     setAttentionFilter("browse");
+                    setSelectedBusinessActivity(activityKey);
                     setStatusViews((current) => ({
                       ...current,
                       [`my-business-${item.kind}`]: item.view,
                     }));
                   }}
-                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-md ${
-                    item.view === "pending"
-                      ? "border-orange-300 bg-gradient-to-r from-amber-400 to-orange-500 text-white"
-                      : item.view === "waiting"
-                        ? "border-violet-300 bg-gradient-to-r from-violet-600 to-purple-500 text-white"
-                        : item.view === "active"
-                          ? "border-teal-300 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white"
-                          : "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 dark:from-amber-950/70 dark:to-orange-950/50 dark:text-white"
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow,color] duration-300 ${
+                    isSelected
+                      ? item.view === "pending"
+                        ? "border-orange-400 bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-[0_12px_28px_rgba(234,88,12,0.28)]"
+                        : item.view === "waiting"
+                          ? "border-violet-400 bg-gradient-to-r from-violet-600 to-purple-500 text-white shadow-[0_12px_28px_rgba(124,58,237,0.25)]"
+                          : item.view === "active"
+                            ? "border-teal-400 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-[0_12px_28px_rgba(13,148,136,0.26)]"
+                            : "border-orange-400 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_12px_28px_rgba(245,158,11,0.25)]"
+                      : item.view === "pending"
+                        ? "border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 shadow-sm dark:border-amber-800/70 dark:from-amber-950/55 dark:to-orange-950/35 dark:text-white"
+                        : item.view === "waiting"
+                          ? "border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 text-slate-900 shadow-sm dark:border-violet-800/70 dark:from-violet-950/55 dark:to-purple-950/35 dark:text-white"
+                          : item.view === "active"
+                            ? "border-teal-200 bg-gradient-to-r from-emerald-50 to-cyan-50 text-slate-900 shadow-sm dark:border-teal-800/70 dark:from-emerald-950/50 dark:to-cyan-950/35 dark:text-white"
+                            : "border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 shadow-sm dark:border-amber-800/70 dark:from-amber-950/55 dark:to-orange-950/35 dark:text-white"
                   }`}
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+                      isSelected
+                        ? "bg-white/20 text-white"
+                        : item.view === "active"
+                          ? "bg-white text-teal-600 dark:bg-white/10 dark:text-teal-300"
+                          : item.view === "waiting"
+                            ? "bg-white text-violet-600 dark:bg-white/10 dark:text-violet-300"
+                            : "bg-white text-amber-600 dark:bg-white/10 dark:text-amber-300"
+                    }`}
+                  >
                     <Bell className="zipco-attention-bell h-5 w-5" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-black">{title}</span>
-                    <span className="block text-xs opacity-85">
+                    <span
+                      className={`block text-xs ${isSelected ? "text-white/85" : "text-slate-500 dark:text-slate-300"}`}
+                    >
                       {description}
                     </span>
                   </span>
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight
+                    className={`h-5 w-5 transition-transform ${isSelected ? "rotate-90 text-white" : "text-slate-600 dark:text-slate-300"}`}
+                  />
                 </motion.button>
               );
             })}
