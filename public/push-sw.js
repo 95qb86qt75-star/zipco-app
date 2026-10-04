@@ -158,7 +158,19 @@ self.addEventListener("notificationclick", (event) => {
       );
       if (isAppleMobile) {
         try {
-          const launchedClient = await self.clients.openWindow(target);
+          // A distinct pathname is intentional. iOS may treat `/?open=...` as
+          // the already-open home URL and resume it without applying the query.
+          // Changing the pathname forces a real navigation while the SPA still
+          // reads the same `open`, `orderId` and `quoteId` parameters.
+          const launchUrl = new URL(
+            "/__zipco_notification_open__",
+            self.location.origin,
+          );
+          targetUrl.searchParams.forEach((value, key) =>
+            launchUrl.searchParams.set(key, value),
+          );
+          launchUrl.searchParams.set("notificationLaunch", String(Date.now()));
+          const launchedClient = await self.clients.openWindow(launchUrl.href);
           if (launchedClient) {
             launchedClient.postMessage(navigationMessage);
             await launchedClient.focus();

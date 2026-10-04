@@ -178,7 +178,11 @@ export default function App() {
     if (target.origin !== window.location.origin) return;
     const destination = target.searchParams.get("open");
     if (!destination?.startsWith("requests-")) return;
-    window.history.replaceState({}, "", `${target.pathname}${target.search}`);
+    // Notification launches can use a dedicated pathname on iOS to force
+    // WebKit to leave the suspended home route. Once React receives it, keep a
+    // canonical root URL while preserving the request destination parameters.
+    target.searchParams.delete("notificationLaunch");
+    window.history.replaceState({}, "", `/${target.search}`);
     setCurrentScreen("home");
     setActiveTab("requests");
     setRequestsNavigationKey((current) => current + 1);
