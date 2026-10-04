@@ -176,6 +176,8 @@ export default function App() {
   const openNotificationTarget = useCallback((targetValue: string) => {
     const target = new URL(targetValue, window.location.origin);
     if (target.origin !== window.location.origin) return;
+    const destination = target.searchParams.get("open");
+    if (!destination?.startsWith("requests-")) return;
     window.history.replaceState({}, "", `${target.pathname}${target.search}`);
     setCurrentScreen("home");
     setActiveTab("requests");
@@ -313,7 +315,6 @@ export default function App() {
         );
         const response = await navigationCache.match(request);
         if (!response) return;
-        await navigationCache.delete(request);
         const payload = (await response.json()) as {
           url?: unknown;
           createdAt?: unknown;
@@ -338,7 +339,7 @@ export default function App() {
       // On iOS the app can become visible before notificationclick finishes
       // persisting its destination. Retry briefly so a resumed PWA never loses
       // the deep link and remains on Inicio.
-      [0, 200, 700, 1_500].forEach((delay) => {
+      [0, 200, 700, 1_500, 3_000, 5_000, 8_000].forEach((delay) => {
         const timer = window.setTimeout(() => {
           resumeTimers.delete(timer);
           void consumeStoredNotificationTarget();

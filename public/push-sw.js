@@ -66,6 +66,17 @@ const sendPendingNavigation = async (client) => {
   if (url) client.postMessage({ type: "ZIPCO_NOTIFICATION_NAVIGATE", url });
 };
 
+const normalizeNotificationTarget = (notificationData = {}) => {
+  const targetUrl = new URL(notificationData.url || "/", self.location.origin);
+  if (notificationData.orderId && !targetUrl.searchParams.has("orderId")) {
+    targetUrl.searchParams.set("orderId", String(notificationData.orderId));
+  }
+  if (notificationData.quoteId && !targetUrl.searchParams.has("quoteId")) {
+    targetUrl.searchParams.set("quoteId", String(notificationData.quoteId));
+  }
+  return targetUrl;
+};
+
 self.addEventListener("message", (event) => {
   if (event.data?.type === "ZIPCO_NOTIFICATION_NAVIGATED") {
     pendingNavigationTarget = null;
@@ -98,26 +109,7 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = new URL(
-    event.notification.data?.url || "/",
-    self.location.origin,
-  );
-  if (
-    event.notification.data?.orderId &&
-    !targetUrl.searchParams.has("orderId")
-  )
-    targetUrl.searchParams.set(
-      "orderId",
-      String(event.notification.data.orderId),
-    );
-  if (
-    event.notification.data?.quoteId &&
-    !targetUrl.searchParams.has("quoteId")
-  )
-    targetUrl.searchParams.set(
-      "quoteId",
-      String(event.notification.data.quoteId),
-    );
+  const targetUrl = normalizeNotificationTarget(event.notification.data);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
   event.waitUntil(
