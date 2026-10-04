@@ -827,59 +827,80 @@ body {
   }
 }
 
-.zipco-now-option.is-active::after {
+.zipco-now-option.is-active::before {
   content: "";
   position: absolute;
-  inset: -35% auto -35% -28%;
-  width: 14%;
-  transform: skewX(-18deg);
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(255 255 255 / 0.9),
-    transparent
-  );
-  filter: blur(1px);
-  animation: zipco-now-flash 4s ease-in-out infinite;
+  inset: 0;
+  background:
+    radial-gradient(circle at 72% 35%, rgb(99 102 241 / 0.28), transparent 23%),
+    radial-gradient(circle at 28% 82%, rgb(30 41 59 / 0.8), transparent 34%);
+  animation: zipco-storm-sky 5.2s steps(1, end) infinite;
+}
+
+.zipco-storm-lightning {
+  z-index: 1;
+  fill: none;
+  stroke: #fde68a;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px #f59e0b) drop-shadow(0 0 8px #fbbf24);
+  opacity: 0;
+  animation: zipco-storm-lightning 5.2s steps(1, end) infinite;
 }
 
 .zipco-now-option.is-active .zipco-now-bolt {
-  animation: zipco-now-bolt 4s ease-in-out infinite;
+  animation: zipco-now-bolt 5.2s ease-in-out infinite;
 }
 
 @keyframes zipco-now-bolt {
   0%,
-  72%,
+  68%,
   100% {
     transform: translateX(0) rotate(0);
   }
-  76% {
+  70% {
     transform: translateX(-2px) rotate(-8deg) scale(1.08);
   }
-  80% {
+  72% {
     transform: translateX(2px) rotate(7deg) scale(1.12);
   }
-  84% {
+  74% {
     transform: translateX(0) rotate(0) scale(1);
   }
 }
 
-@keyframes zipco-now-flash {
+@keyframes zipco-storm-lightning {
   0%,
-  70% {
-    left: -28%;
-    opacity: 0;
-  }
-  74% {
-    opacity: 0.9;
-  }
-  86% {
-    left: 114%;
-    opacity: 0;
-  }
+  67%,
+  71%,
+  73%,
   100% {
-    left: 114%;
     opacity: 0;
+  }
+  68%,
+  72% {
+    opacity: 0.95;
+  }
+  69% {
+    opacity: 0.28;
+  }
+}
+
+@keyframes zipco-storm-sky {
+  0%,
+  67%,
+  71%,
+  73%,
+  100% {
+    filter: brightness(1);
+  }
+  68%,
+  72% {
+    filter: brightness(1.55);
+  }
+  69% {
+    filter: brightness(1.12);
   }
 }
 
@@ -895,8 +916,9 @@ body {
   .zipco-hologram-card::after,
   .zipco-ready-wave,
   .zipco-flow-hologram,
-  .zipco-now-option.is-active::after,
-  .zipco-now-option.is-active .zipco-now-bolt {
+  .zipco-now-option.is-active::before,
+  .zipco-now-option.is-active .zipco-now-bolt,
+  .zipco-storm-lightning {
     animation: none;
   }
 }

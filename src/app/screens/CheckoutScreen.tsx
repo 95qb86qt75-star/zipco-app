@@ -369,12 +369,22 @@ export default function CheckoutScreen({
               }}
               className={`zipco-now-option relative min-h-12 overflow-hidden rounded-xl px-2 py-2 text-sm font-bold transition-all ${
                 needNow
-                  ? "is-active bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-md shadow-cyan-500/25"
+                  ? "is-active bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 text-white shadow-md shadow-indigo-950/30"
                   : "bg-transparent text-gray-600 hover:bg-white"
               }`}
             >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 180 52"
+                preserveAspectRatio="none"
+                className="zipco-storm-lightning absolute inset-0 h-full w-full"
+              >
+                <path d="M142 -2 112 18 128 22 92 54" />
+                <path d="m113 18-22 1-12 13" />
+                <path d="m127 22 20 7 10 13" />
+              </svg>
               <div className="relative z-10 flex items-center justify-center gap-2">
-                <span className="zipco-now-bolt flex h-7 w-7 items-center justify-center rounded-full bg-current/10">
+                <span className="zipco-now-bolt flex h-7 w-7 items-center justify-center rounded-full bg-amber-400/15 text-amber-300 shadow-[0_0_14px_rgba(251,191,36,0.18)]">
                   <Zap className="h-4 w-4" fill="currentColor" />
                 </span>
                 <span>Ahora</span>
