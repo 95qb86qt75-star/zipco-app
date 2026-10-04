@@ -446,16 +446,15 @@ export default function CheckoutScreen({
                   ))}
                   <button
                     type="button"
+                    aria-label="Abrir calendario"
                     onClick={() =>
                       calendarInputRef.current?.showPicker?.() ??
                       calendarInputRef.current?.click()
                     }
-                    className="w-[74px] shrink-0 rounded-xl border border-gray-200 bg-white px-2 py-2 text-center text-gray-900 shadow-sm transition-all hover:border-teal-500"
+                    className="flex min-h-[68px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white px-2 py-2 text-center text-gray-900 shadow-sm transition-all hover:border-teal-500"
                   >
-                    <span className="block text-xs font-semibold">Abrir</span>
-                    <span className="block text-sm font-bold leading-tight">
-                      calendario
-                    </span>
+                    <CalendarDays className="h-5 w-5 text-teal-600" />
+                    <span className="block text-xs font-bold">Más</span>
                   </button>
                 </div>
                 <input
