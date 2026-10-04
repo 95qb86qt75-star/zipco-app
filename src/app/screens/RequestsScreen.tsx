@@ -73,7 +73,7 @@ export default function RequestsScreen({
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
   const [attentionFilter, setAttentionFilter] = useState<
-    "responses" | "ready" | null
+    "responses" | "ready" | "browse" | null
   >(null);
   const [historyTransfer, setHistoryTransfer] = useState<{
     kind: "order" | "quote";
@@ -267,7 +267,10 @@ export default function RequestsScreen({
     (readyCustomerItems.length > 0 || responseCustomerItems.length > 0);
   const suppressAttentionResults =
     hasAttentionChoices && attentionFilter === null;
-  if (hasAttentionChoices) {
+  if (
+    hasAttentionChoices &&
+    (attentionFilter === "responses" || attentionFilter === "ready")
+  ) {
     const selectedItems =
       attentionFilter === "ready"
         ? readyCustomerItems
@@ -322,6 +325,7 @@ export default function RequestsScreen({
   }[statusView];
 
   const selectStatusView = (view: StatusView) => {
+    setAttentionFilter("browse");
     setStatusViews((current) => ({ ...current, [viewKey]: view }));
   };
   const changeQuoteStatusAndFollow = async (
