@@ -62,7 +62,6 @@ export default function CheckoutScreen({
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const submitLock = useRef(false);
   const idempotencyKey = useRef<string | null>(null);
-  const calendarInputRef = useRef<HTMLInputElement>(null);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -444,27 +443,19 @@ export default function CheckoutScreen({
                       </span>
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    aria-label="Abrir calendario"
-                    onClick={() =>
-                      calendarInputRef.current?.showPicker?.() ??
-                      calendarInputRef.current?.click()
-                    }
-                    className="flex min-h-[68px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-gray-200 bg-white px-2 py-2 text-center text-gray-900 shadow-sm transition-all hover:border-teal-500"
-                  >
+                  <label className="relative flex min-h-[68px] w-[62px] shrink-0 cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border border-gray-200 bg-white px-2 py-2 text-center text-gray-900 shadow-sm transition-all hover:border-teal-500">
                     <CalendarDays className="h-5 w-5 text-teal-600" />
                     <span className="block text-xs font-bold">Más</span>
-                  </button>
+                    <input
+                      type="date"
+                      aria-label="Abrir calendario"
+                      value={selectedDate}
+                      onChange={(e) => handleDateSelection(e.target.value)}
+                      min={getDateValue(new Date())}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    />
+                  </label>
                 </div>
-                <input
-                  ref={calendarInputRef}
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => handleDateSelection(e.target.value)}
-                  min={getDateValue(new Date())}
-                  className="sr-only"
-                />
               </div>
 
               {selectedDate && (
