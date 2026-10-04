@@ -276,6 +276,7 @@ export default function App() {
     localStorage.removeItem("zipco-business-id");
     localStorage.removeItem("zipco-provider-type");
     localStorage.removeItem("zipco-favorites");
+    localStorage.removeItem("zipco-request-status-snapshot-v1");
     setFavoriteItems([]);
     setCurrentScreen("home");
     setActiveTab("home");
@@ -300,6 +301,22 @@ export default function App() {
       navigator.serviceWorker?.removeEventListener(
         "message",
         handleNotificationNavigation,
+      );
+  }, [openNotificationTarget]);
+
+  useEffect(() => {
+    const handleRecoveredNotification = (event: Event) => {
+      const target = (event as CustomEvent<unknown>).detail;
+      if (typeof target === "string") openNotificationTarget(target);
+    };
+    window.addEventListener(
+      "zipco-notification-open",
+      handleRecoveredNotification,
+    );
+    return () =>
+      window.removeEventListener(
+        "zipco-notification-open",
+        handleRecoveredNotification,
       );
   }, [openNotificationTarget]);
 

@@ -11,6 +11,7 @@ import {
 
 const POLL_INTERVAL_MS = 15_000;
 const PRESENCE_INTERVAL_MS = 5_000;
+const STATUS_SNAPSHOT_KEY = "zipco-request-status-snapshot-v1";
 
 type Interaction = {
   id: number;
@@ -18,6 +19,31 @@ type Interaction = {
   customerName?: string | null;
   itemNameSnapshot?: string;
 };
+
+type StatusSnapshot = {
+  customerOrders: Array<[number, string]>;
+  customerQuotes: Array<[number, string]>;
+};
+
+function readStatusSnapshot(): StatusSnapshot | null {
+  try {
+    const parsed = JSON.parse(
+      localStorage.getItem(STATUS_SNAPSHOT_KEY) ?? "null",
+    ) as Partial<StatusSnapshot> | null;
+    if (
+      !parsed ||
+      !Array.isArray(parsed.customerOrders) ||
+      !Array.isArray(parsed.customerQuotes)
+    )
+      return null;
+    return {
+      customerOrders: parsed.customerOrders,
+      customerQuotes: parsed.customerQuotes,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export function parseOrders(value: unknown): Interaction[] {
   if (!Array.isArray(value)) return [];
@@ -85,6 +111,13 @@ export default function BusinessNotificationMonitor({
       return;
     }
 
+    const storedSnapshot = readStatusSnapshot();
+    if (storedSnapshot) {
+      customerOrderStatuses.current = new Map(storedSnapshot.customerOrders);
+      customerQuoteStatuses.current = new Map(storedSnapshot.customerQuotes);
+      hasBaseline.current = true;
+    }
+
     let stopped = false;
     const reportPresence = (isForeground: boolean) => {
       void updatePushPresence(token, isForeground).catch(() => {
@@ -111,7 +144,10 @@ export default function BusinessNotificationMonitor({
       });
     };
 
-    const load = async (announceChanges = true) => {
+    const load = async (
+      announceChanges = true,
+      navigateToCustomerChange = false,
+    ) => {
       if (document.visibilityState !== "visible") return;
       try {
         const [
@@ -169,6 +205,7 @@ export default function BusinessNotificationMonitor({
             ).length,
         );
 
+        let customerNavigationTarget: string | null = null;
         if (hasBaseline.current && announceChanges) {
           orders
             .filter(
@@ -231,6 +268,9 @@ export default function BusinessNotificationMonitor({
                 { kind: "order", id: order.id },
                 `/?open=requests-customer&orderId=${order.id}`,
               );
+              if (navigateToCustomerChange && !customerNavigationTarget) {
+                customerNavigationTarget = `/?open=requests-customer&orderId=${order.id}`;
+              }
             }
           });
           businessQuotes.forEach((quote) => {
@@ -290,6 +330,9 @@ export default function BusinessNotificationMonitor({
                 { kind: "quote", id: quote.id },
                 `/?open=requests-customer-quotes&quoteId=${quote.id}`,
               );
+              if (navigateToCustomerChange && !customerNavigationTarget) {
+                customerNavigationTarget = `/?open=requests-customer-quotes&quoteId=${quote.id}`;
+              }
             } else if (previous === "accepted" && quote.status === "ready") {
               announce(
                 `quote-${quote.id}-ready`,
@@ -298,6 +341,9 @@ export default function BusinessNotificationMonitor({
                 { kind: "quote", id: quote.id },
                 `/?open=requests-customer-quotes&quoteId=${quote.id}`,
               );
+              if (navigateToCustomerChange && !customerNavigationTarget) {
+                customerNavigationTarget = `/?open=requests-customer-quotes&quoteId=${quote.id}`;
+              }
             }
           });
         }
@@ -316,7 +362,21 @@ export default function BusinessNotificationMonitor({
         customerQuoteStatuses.current = new Map(
           customerQuotes.map((quote) => [quote.id, quote.status]),
         );
+        localStorage.setItem(
+          STATUS_SNAPSHOT_KEY,
+          JSON.stringify({
+            customerOrders: [...customerOrderStatuses.current],
+            customerQuotes: [...customerQuoteStatuses.current],
+          } satisfies StatusSnapshot),
+        );
         hasBaseline.current = true;
+        if (customerNavigationTarget) {
+          window.dispatchEvent(
+            new CustomEvent("zipco-notification-open", {
+              detail: customerNavigationTarget,
+            }),
+          );
+        }
       } catch {
         // El siguiente ciclo vuelve a intentar sin interrumpir la experiencia.
       }
@@ -349,7 +409,7 @@ export default function BusinessNotificationMonitor({
     const handleVisibility = () => {
       const isVisible = document.visibilityState === "visible";
       reportPresence(isVisible);
-      if (isVisible) void load(false);
+      if (isVisible) void load(true, true);
     };
     const handlePageHide = () => reportPresence(false);
 
@@ -360,7 +420,10 @@ export default function BusinessNotificationMonitor({
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pagehide", handlePageHide);
     reportPresence(true);
-    void load();
+    // A notification tap can cold-start the iOS PWA without preserving its
+    // deep link. When a persisted baseline exists, the server-side status
+    // difference is authoritative enough to recover the related request.
+    void load(true, Boolean(storedSnapshot));
     const interval = window.setInterval(() => void load(), POLL_INTERVAL_MS);
     const presenceInterval = window.setInterval(
       () => reportPresence(document.visibilityState === "visible"),
