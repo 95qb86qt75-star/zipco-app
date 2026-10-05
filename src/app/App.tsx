@@ -1079,11 +1079,13 @@ export default function App() {
             type="button"
             onClick={togglePushNotifications}
             disabled={isChangingPush}
-            className={`absolute right-20 z-20 p-2.5 rounded-full border transition-all shadow-md disabled:opacity-60 ${
+            className={`absolute right-20 z-20 p-2.5 rounded-full border transition-all shadow-md disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 ${
               pushEnabled
-                ? "bg-teal-50/95 border-teal-100 text-teal-700 hover:bg-teal-100"
+                ? isDarkMode
+                  ? "bg-teal-950/75 border-teal-400/45 text-teal-200 shadow-teal-950/50 ring-1 ring-inset ring-teal-300/10 hover:bg-teal-900/80 hover:text-teal-100"
+                  : "bg-teal-50/95 border-teal-100 text-teal-700 hover:bg-teal-100"
                 : isDarkMode
-                  ? "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  ? "bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700"
                   : "bg-white/90 border-white text-slate-500 hover:bg-white"
             }`}
             style={{ top: "max(1.5rem, env(safe-area-inset-top))" }}
