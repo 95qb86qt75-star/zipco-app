@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import {
+  ArrowLeft,
   Camera,
   Check,
   ChevronRight,
@@ -27,6 +28,7 @@ export default function BusinessInfoSection({
   isSavingBusinessInfo,
   businessInfoSaveSucceeded,
   handleStartEditingBusinessInfo,
+  handleCancelEditingBusinessInfo,
   businessInfo,
   businessSubtextClass,
   businessSocialForm,
@@ -73,22 +75,36 @@ export default function BusinessInfoSection({
                       : "border-white/50"
                 }`}
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
                   <h4 className={`font-bold ${businessTextClass}`}>
                     🏪 Datos del {providerType}
                   </h4>
-                  {!isEditingBusinessInfo && (
+                  {isEditingBusinessInfo ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditingBusinessInfo}
+                      disabled={isSavingBusinessInfo}
+                      className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                        isBusinessProfileTab
+                          ? "border-white/25 bg-white/10 text-white hover:bg-white/15"
+                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      Volver
+                    </button>
+                  ) : (
                     <button
                       type="button"
                       onClick={handleStartEditingBusinessInfo}
-                      className="text-teal-600 text-sm font-semibold hover:text-teal-700"
+                      className="min-h-9 rounded-full px-3 text-sm font-bold text-teal-400 transition-colors hover:bg-teal-500/10"
                     >
                       Editar
                     </button>
                   )}
                 </div>
                 <div
-                  className={`flex items-center gap-3 mb-3 ${isEditingBusinessInfo ? "flex-wrap" : ""}`}
+                  className="mb-3 flex flex-wrap items-start gap-3"
                 >
                   <div className="relative shrink-0">
                     {businessInfo.image ? (
@@ -122,26 +138,48 @@ export default function BusinessInfoSection({
                       }}
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1 pt-1">
                     <h5 className={`font-semibold ${businessTextClass}`}>
                       {businessInfo.name}
                     </h5>
+                    <span
+                      className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                        isBusinessProfileTab
+                          ? "bg-teal-400/15 text-teal-200"
+                          : "bg-teal-50 text-teal-700"
+                      }`}
+                    >
+                      {providerType}
+                    </span>
                     {isBusinessFieldMissing("Nombre del negocio") && (
                       <p className="text-xs text-[#EF4444] mt-1">
                         Campo requerido para publicar
                       </p>
                     )}
-                    <p className={`text-xs ${businessSubtextClass}`}>
-                      {businessInfo.description}
-                    </p>
-                    {isBusinessFieldMissing("Descripción") && (
-                      <p className="text-xs text-[#EF4444] mt-1">
-                        Campo requerido para publicar
-                      </p>
-                    )}
                   </div>
+                  {!isEditingBusinessInfo && (
+                    <div
+                      className={`w-full basis-full rounded-xl border px-3.5 py-3 ${
+                        isBusinessProfileTab
+                          ? "border-white/10 bg-slate-950/25"
+                          : "border-slate-100 bg-slate-50"
+                      }`}
+                    >
+                      <p
+                        className={`whitespace-pre-wrap break-words text-sm leading-5 ${businessSubtextClass}`}
+                      >
+                        {businessInfo.description ||
+                          "Aún no has agregado una descripción."}
+                      </p>
+                      {isBusinessFieldMissing("Descripción") && (
+                        <p className="mt-1 text-xs text-[#EF4444]">
+                          Campo requerido para publicar
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {isEditingBusinessInfo ? (
-                    <div className="w-full basis-full space-y-3 pt-3">
+                    <div className="animate-in fade-in slide-in-from-top-2 w-full basis-full space-y-3 pt-3 duration-300">
                       <div>
                         <label
                           className={`text-xs mb-1 block ${isBusinessProfileTab ? "text-white/70" : "text-gray-500"}`}
@@ -220,7 +258,7 @@ export default function BusinessInfoSection({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2 pt-1">
+                    <div className="w-full basis-full space-y-2 pt-1">
                       {businessInfo.instagram && (
                         <div className="flex items-center gap-2 text-sm">
                           <Instagram className="w-4 h-4 text-pink-500" />
@@ -250,16 +288,30 @@ export default function BusinessInfoSection({
                         </div>
                       )}
                       {!businessInfo.instagram && !businessInfo.facebook && (
-                        <div
-                          className={`border rounded-xl p-3 text-xs ${
+                        <button
+                          type="button"
+                          onClick={handleStartEditingBusinessInfo}
+                          className={`group flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 ${
                             isBusinessProfileTab
-                              ? "bg-white/10 border-white/20 text-white"
-                              : "bg-yellow-50 border-yellow-200 text-yellow-800"
+                              ? "border-teal-300/25 bg-teal-400/10 text-white"
+                              : "border-teal-200 bg-teal-50 text-slate-800"
                           }`}
                         >
-                          Agrega tus redes sociales para generar más confianza
-                          en tus clientes
-                        </div>
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-blue-600 text-white shadow-sm">
+                            <Instagram className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <strong className="block text-sm">
+                              Agregar redes sociales
+                            </strong>
+                            <span
+                              className={`mt-0.5 block text-xs ${businessSubtextClass}`}
+                            >
+                              Añade Instagram o Facebook desde aquí.
+                            </span>
+                          </span>
+                          <ChevronRight className="h-5 w-5 shrink-0 text-teal-400 transition-transform group-hover:translate-x-0.5" />
+                        </button>
                       )}
                     </div>
                   )}

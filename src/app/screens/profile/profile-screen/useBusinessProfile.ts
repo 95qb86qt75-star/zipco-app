@@ -272,6 +272,17 @@ export function useBusinessProfile() {
     setIsEditingBusinessInfo(true);
   };
 
+  const handleCancelEditingBusinessInfo = () => {
+    setBusinessSocialForm({
+      name: businessInfo.name,
+      description: businessInfo.description,
+      instagram: businessInfo.instagram,
+      facebook: businessInfo.facebook,
+    });
+    setBusinessInfoSaveSucceeded(false);
+    setIsEditingBusinessInfo(false);
+  };
+
   const handleSaveBusinessInfo = async () => {
     const token = localStorage.getItem("zipco-token");
 
@@ -493,6 +504,7 @@ export function useBusinessProfile() {
     isBusinessReadyToPublish,
     handlePublishBusiness,
     handleStartEditingBusinessInfo,
+    handleCancelEditingBusinessInfo,
     handleSaveBusinessInfo,
     businessRegistrationForm,
     setBusinessRegistrationForm,

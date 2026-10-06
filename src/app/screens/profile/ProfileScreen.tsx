@@ -180,6 +180,9 @@ export default function ProfileScreen({
           handleStartEditingBusinessInfo={
             businessProfile.handleStartEditingBusinessInfo
           }
+          handleCancelEditingBusinessInfo={
+            businessProfile.handleCancelEditingBusinessInfo
+          }
           businessInfo={businessProfile.businessInfo}
           businessSubtextClass={businessSubtextClass}
           businessSocialForm={businessProfile.businessSocialForm}
