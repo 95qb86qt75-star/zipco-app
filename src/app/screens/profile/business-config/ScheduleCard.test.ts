@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { businessDays, emptySchedule } from "./businessConfigData";
-import ScheduleCard, { groupSchedule } from "./ScheduleCard";
+import ScheduleCard, { groupSchedule, TimePickerSheet } from "./ScheduleCard";
 import ScheduleEditorScreen from "./ScheduleEditorScreen";
 import ScheduleSummaryCard from "./ScheduleSummaryCard";
 
@@ -102,5 +102,26 @@ describe("ScheduleCard grouping", () => {
     expect(html).toContain("Editar Lunes");
     expect(html).toContain("Eliminar Lunes");
     expect(html).not.toContain("Días sin configurar");
+  });
+
+  it("uses a mobile 24-hour sheet with quarter-hour choices", () => {
+    const html = renderToStaticMarkup(
+      createElement(TimePickerSheet, {
+        kind: "open",
+        value: "08:00",
+        onClose: vi.fn(),
+        onConfirm: vi.fn(),
+      }),
+    );
+
+    expect(html).toContain("Hora de apertura");
+    expect(html).toContain("08:00");
+    expect(html).toContain(">15<");
+    expect(html).toContain(">30<");
+    expect(html).toContain(">45<");
+    expect(html).toContain("Confirmar hora");
+    expect(html).not.toContain("AM");
+    expect(html).not.toContain("PM");
+    expect(html).not.toContain("<select");
   });
 });

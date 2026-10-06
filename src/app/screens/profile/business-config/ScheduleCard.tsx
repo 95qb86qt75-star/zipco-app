@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useMemo,
   useState,
   type Dispatch,
@@ -10,10 +11,12 @@ import {
   ChevronDown,
   Clock,
   Moon,
+  Minus,
   Pencil,
   Plus,
   Sun,
   Trash2,
+  X,
 } from "lucide-react";
 import type { BusinessDay, BusinessSchedule, ScheduleDayId } from "./types";
 
@@ -80,17 +83,21 @@ function groupLabel(group: ScheduleGroup, days: BusinessDay[]) {
 function TimeField({
   label,
   value,
-  onChange,
+  onOpen,
   kind,
 }: {
   label: string;
   value: string;
-  onChange: (value: string) => void;
+  onOpen: () => void;
   kind: "open" | "close";
 }) {
   const Icon = kind === "open" ? Sun : Moon;
   return (
-    <label className="relative flex min-h-[58px] min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(15,23,42,0.05)] transition focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-500/15 dark:border-slate-600 dark:bg-slate-800">
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative flex min-h-[58px] min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-[0_2px_8px_rgba(15,23,42,0.05)] transition hover:border-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/30 dark:border-slate-600 dark:bg-slate-800"
+    >
       <Icon
         className={`h-6 w-6 shrink-0 ${kind === "open" ? "text-amber-500" : "text-violet-500"}`}
       />
@@ -99,18 +106,173 @@ function TimeField({
           {label}
         </span>
         <span className="block whitespace-nowrap text-base font-bold text-[#10172F] dark:text-white">
-          {parseTime(value)}
+          {value}
         </span>
       </span>
       <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-      <input
-        type="time"
-        aria-label={label}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-      />
-    </label>
+    </button>
+  );
+}
+
+export function TimePickerSheet({
+  kind,
+  value,
+  onClose,
+  onConfirm,
+}: {
+  kind: "open" | "close";
+  value: string;
+  onClose: () => void;
+  onConfirm: (value: string) => void;
+}) {
+  const [initialHour = "08", initialMinute = "00"] = value.split(":");
+  const [hour, setHour] = useState(Number(initialHour));
+  const [minute, setMinute] = useState(initialMinute);
+  const label = kind === "open" ? "apertura" : "cierre";
+  const quickTimes =
+    kind === "open"
+      ? ["08:00", "09:00", "10:00", "12:00"]
+      : ["18:00", "19:00", "20:00", "21:00"];
+  const selectedValue = `${String(hour).padStart(2, "0")}:${minute}`;
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  const selectQuickTime = (time: string) => {
+    const [nextHour, nextMinute] = time.split(":");
+    setHour(Number(nextHour));
+    setMinute(nextMinute);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end bg-slate-950/55 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="zipco-time-picker-title"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="animate-in slide-in-from-bottom-6 w-full rounded-t-[24px] border-t border-white/60 bg-white px-4 pb-4 pt-3 shadow-2xl duration-200 dark:border-slate-700 dark:bg-slate-900"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="mx-auto mb-3 h-1.5 w-11 rounded-full bg-slate-200 dark:bg-slate-700" />
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3
+              id="zipco-time-picker-title"
+              className="text-lg font-black text-[#10172F] dark:text-white"
+            >
+              Hora de {label}
+            </h3>
+            <p className="mt-0.5 text-xs text-[#667085] dark:text-slate-300">
+              Usa formato de 24 horas.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar selector de hora"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 active:scale-95 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+            Accesos rápidos
+          </p>
+          <div className="grid grid-cols-4 gap-2">
+            {quickTimes.map((time) => (
+              <button
+                key={time}
+                type="button"
+                onClick={() => selectQuickTime(time)}
+                className={`min-h-11 rounded-xl border text-sm font-bold transition active:scale-95 ${selectedValue === time ? "border-teal-500 bg-teal-500 text-white" : "border-slate-200 bg-white text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"}`}
+              >
+                {time}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-[1fr_auto] gap-4">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+              Hora
+            </p>
+            <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2 rounded-2xl bg-slate-50 p-2 dark:bg-slate-800/70">
+              <button
+                type="button"
+                onClick={() => setHour((current) => (current + 23) % 24)}
+                aria-label="Restar una hora"
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm active:scale-95 dark:bg-slate-700 dark:text-white"
+              >
+                <Minus className="h-5 w-5" />
+              </button>
+              <strong className="text-center text-3xl font-black tabular-nums text-[#10172F] dark:text-white">
+                {String(hour).padStart(2, "0")}
+              </strong>
+              <button
+                type="button"
+                onClick={() => setHour((current) => (current + 1) % 24)}
+                aria-label="Sumar una hora"
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-teal-600 shadow-sm active:scale-95 dark:bg-slate-700 dark:text-teal-300"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+              Minutos
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {["00", "15", "30", "45"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setMinute(option)}
+                  className={`h-11 min-w-12 rounded-xl border text-sm font-black transition active:scale-95 ${minute === option ? "border-teal-500 bg-teal-500 text-white" : "border-slate-200 bg-white text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between rounded-2xl bg-teal-50 px-4 py-3 dark:bg-teal-400/10">
+          <span className="text-sm font-semibold text-teal-800 dark:text-teal-200">
+            Hora seleccionada
+          </span>
+          <strong className="text-xl font-black tabular-nums text-teal-700 dark:text-teal-300">
+            {selectedValue}
+          </strong>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onConfirm(selectedValue)}
+          className="mt-4 min-h-[52px] w-full rounded-2xl bg-gradient-to-r from-[#0F9F98] to-[#00BFA5] px-4 font-black text-white shadow-lg shadow-teal-500/20 active:scale-[0.98]"
+        >
+          Confirmar hora
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -122,6 +284,9 @@ export default function ScheduleCard({
   const [selectedDayIds, setSelectedDayIds] = useState<ScheduleDayId[]>([]);
   const [draftOpen, setDraftOpen] = useState(DEFAULT_OPEN);
   const [draftClose, setDraftClose] = useState(DEFAULT_CLOSE);
+  const [activeTimePicker, setActiveTimePicker] = useState<
+    "open" | "close" | null
+  >(null);
   const [selectionError, setSelectionError] = useState(false);
   const scheduleGroups = useMemo(
     () => groupSchedule(days, schedule),
@@ -214,14 +379,14 @@ export default function ScheduleCard({
           <TimeField
             label="Apertura"
             value={draftOpen}
-            onChange={setDraftOpen}
+            onOpen={() => setActiveTimePicker("open")}
             kind="open"
           />
           <span className="font-black text-slate-400">–</span>
           <TimeField
             label="Cierre"
             value={draftClose}
-            onChange={setDraftClose}
+            onOpen={() => setActiveTimePicker("close")}
             kind="close"
           />
         </div>
@@ -307,6 +472,19 @@ export default function ScheduleCard({
           Los días que no tengan un horario asignado se considerarán cerrados.
         </p>
       </div>
+
+      {activeTimePicker && (
+        <TimePickerSheet
+          kind={activeTimePicker}
+          value={activeTimePicker === "open" ? draftOpen : draftClose}
+          onClose={() => setActiveTimePicker(null)}
+          onConfirm={(nextValue) => {
+            if (activeTimePicker === "open") setDraftOpen(nextValue);
+            else setDraftClose(nextValue);
+            setActiveTimePicker(null);
+          }}
+        />
+      )}
     </section>
   );
 }
