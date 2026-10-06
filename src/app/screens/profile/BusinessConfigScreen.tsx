@@ -369,19 +369,19 @@ export default function BusinessConfigScreen({
   }
 
   return (
-    <div className="size-full relative flex flex-col bg-[#F0F4FF]">
+    <div className="relative flex size-full flex-col bg-[#F0F4FF] dark:bg-slate-950">
       <div
-        className="px-4 pb-4 border-b border-white/50"
+        className="border-b border-white/50 bg-white/65 px-4 pb-4 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
         style={{ paddingTop: "max(1.5rem, env(safe-area-inset-top))" }}
       >
         <div className="flex items-center gap-3 mb-3">
           <button
             onClick={handleBackPress}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="-ml-2 rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-slate-800"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-slate-100" />
           </button>
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             Configuración de{" "}
             {providerType === "Servicio" ? "Servicio" : "Negocio"}
           </h2>
