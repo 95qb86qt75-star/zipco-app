@@ -346,32 +346,49 @@ export default function BusinessInfoSection({
 
               {isEditingBusinessInfo && (
                 <div className="mb-4 rounded-2xl border border-teal-400/30 bg-gradient-to-r from-teal-500/10 via-cyan-400/10 to-emerald-400/10 p-2 shadow-lg shadow-teal-500/10 backdrop-blur-sm">
-                  <button
-                    type="button"
-                    onClick={handleSaveBusinessInfo}
-                    disabled={isSavingBusinessInfo || businessInfoSaveSucceeded}
-                    aria-live="polite"
-                    className={`flex min-h-14 w-full items-center justify-center gap-3 rounded-xl px-6 py-3.5 font-bold text-white shadow-lg transition-all duration-300 active:scale-[0.98] disabled:cursor-default ${
-                      businessInfoSaveSucceeded
-                        ? "scale-[1.01] bg-emerald-500 shadow-emerald-500/30"
-                        : "bg-gradient-to-r from-[#00A99D] to-[#00C98D] shadow-teal-500/25 hover:brightness-105"
-                    }`}
-                  >
-                    {businessInfoSaveSucceeded ? (
-                      <Check className="h-6 w-6 animate-bounce" />
-                    ) : isSavingBusinessInfo ? (
-                      <LoaderCircle className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <Save className="h-5 w-5" />
-                    )}
-                    <span>
-                      {businessInfoSaveSucceeded
-                        ? "Cambios guardados"
-                        : isSavingBusinessInfo
-                          ? "Guardando..."
-                          : "Guardar cambios"}
-                    </span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCancelEditingBusinessInfo}
+                      disabled={isSavingBusinessInfo}
+                      className={`flex min-h-14 shrink-0 items-center justify-center gap-1.5 rounded-xl border px-3 text-sm font-bold transition-all active:scale-[0.97] disabled:opacity-50 ${
+                        isBusinessProfileTab
+                          ? "border-white/25 bg-white/10 text-white hover:bg-white/15"
+                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Volver
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveBusinessInfo}
+                      disabled={
+                        isSavingBusinessInfo || businessInfoSaveSucceeded
+                      }
+                      aria-live="polite"
+                      className={`flex min-h-14 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-3.5 font-bold text-white shadow-lg transition-all duration-300 active:scale-[0.98] disabled:cursor-default ${
+                        businessInfoSaveSucceeded
+                          ? "scale-[1.01] bg-emerald-500 shadow-emerald-500/30"
+                          : "bg-gradient-to-r from-[#00A99D] to-[#00C98D] shadow-teal-500/25 hover:brightness-105"
+                      }`}
+                    >
+                      {businessInfoSaveSucceeded ? (
+                        <Check className="h-6 w-6 animate-bounce" />
+                      ) : isSavingBusinessInfo ? (
+                        <LoaderCircle className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Save className="h-5 w-5" />
+                      )}
+                      <span>
+                        {businessInfoSaveSucceeded
+                          ? "Cambios guardados"
+                          : isSavingBusinessInfo
+                            ? "Guardando..."
+                            : "Guardar cambios"}
+                      </span>
+                    </button>
+                  </div>
                   {!businessInfoSaveSucceeded && (
                     <p
                       className={`px-2 pb-1 pt-2 text-center text-xs ${
