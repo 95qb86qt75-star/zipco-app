@@ -15,6 +15,7 @@ import {
   MousePointerClick,
   Send,
   Zap,
+  X,
   XCircle,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -773,6 +774,7 @@ function QuoteCard({
   expanded?: boolean;
   onToggle?: () => void;
 }) {
+  const [showReferencePhoto, setShowReferencePhoto] = useState(false);
   const handleOpen = (element: HTMLElement) => {
     element.classList.remove("zipco-notification-target");
     onOpen();
@@ -1127,6 +1129,45 @@ function QuoteCard({
                   </div>
                 )}
               </div>
+              {quote.referencePhoto && (
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={{ scale: 0.985 }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setShowReferencePhoto(true);
+                  }}
+                  className="relative mt-2.5 flex w-full items-center gap-3 overflow-hidden rounded-[16px] border border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-cyan-50 px-3 py-2.5 text-left shadow-[0_7px_20px_rgba(124,58,237,0.13)]"
+                >
+                  <motion.span
+                    animate={{
+                      scale: [1, 1.08, 1],
+                      boxShadow: [
+                        "0 0 0 0 rgba(124,58,237,0)",
+                        "0 0 0 7px rgba(124,58,237,0.12)",
+                        "0 0 0 0 rgba(124,58,237,0)",
+                      ],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white"
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                  </motion.span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-black text-violet-950">
+                      Imagen adjunta
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-4 text-violet-700">
+                      El cliente agregó una foto de referencia.
+                    </span>
+                  </span>
+                  <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-black text-violet-700 shadow-sm">
+                    Abrir
+                  </span>
+                </motion.button>
+              )}
               {children}
               <button
                 type="button"
@@ -1138,6 +1179,48 @@ function QuoteCard({
               >
                 Ocultar detalle
               </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showReferencePhoto && quote.referencePhoto && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowReferencePhoto(false);
+              }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-sm"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Imagen adjunta por el cliente"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.94 }}
+                onClick={(event) => event.stopPropagation()}
+                className="relative flex max-h-full w-full max-w-lg items-center justify-center"
+              >
+                <ImageWithFallback
+                  src={quote.referencePhoto}
+                  alt={`Imagen adjunta de ${quote.itemNameSnapshot}`}
+                  className="max-h-[82vh] w-auto max-w-full rounded-[20px] object-contain shadow-2xl"
+                />
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setShowReferencePhoto(false);
+                  }}
+                  className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/75 text-white shadow-lg backdrop-blur"
+                  aria-label="Cerrar imagen"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
