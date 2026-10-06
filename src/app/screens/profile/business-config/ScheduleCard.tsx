@@ -1,5 +1,6 @@
 import React, {
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -124,6 +125,7 @@ export default function ScheduleCard({
   const [draftOpen, setDraftOpen] = useState(DEFAULT_OPEN);
   const [draftClose, setDraftClose] = useState(DEFAULT_CLOSE);
   const [selectionError, setSelectionError] = useState(false);
+  const builderRef = useRef<HTMLDivElement>(null);
   const scheduleGroups = useMemo(
     () => groupSchedule(days, schedule),
     [days, schedule],
@@ -173,15 +175,19 @@ export default function ScheduleCard({
   };
 
   const configureClosedDays = () => {
-    setSelectedDayIds(closedDays.map((day) => day.id));
+    setSelectedDayIds(closedDays.length === 1 ? [closedDays[0].id] : []);
     setDraftOpen(DEFAULT_OPEN);
     setDraftClose(DEFAULT_CLOSE);
     setSelectionError(false);
+    builderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <section className="space-y-[18px]">
-      <div className="rounded-[20px] border border-teal-200/70 bg-teal-50/40 p-4 shadow-[0_4px_16px_rgba(15,159,152,0.06)] dark:border-teal-400/20 dark:bg-teal-400/5">
+      <div
+        ref={builderRef}
+        className="scroll-mt-4 rounded-[20px] border border-teal-200/70 bg-teal-50/40 p-4 shadow-[0_4px_16px_rgba(15,159,152,0.06)] dark:border-teal-400/20 dark:bg-teal-400/5"
+      >
         <div className="mb-4 flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300">
             <Clock className="h-5 w-5" />
@@ -294,7 +300,7 @@ export default function ScheduleCard({
             </div>
           ))}
 
-          {closedDays.length > 0 && (
+          {scheduleGroups.length > 0 && closedDays.length > 0 && (
             <div className="flex items-center gap-2.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-3 dark:border-slate-600 dark:bg-slate-800/60">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300">
                 <Ban className="h-5 w-5" />
@@ -323,10 +329,16 @@ export default function ScheduleCard({
             </div>
           )}
 
-          {scheduleGroups.length === 0 && closedDays.length === 0 && (
-            <p className="rounded-xl border border-dashed p-4 text-center text-xs text-slate-500">
-              No hay horarios configurados.
-            </p>
+          {scheduleGroups.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-4 py-6 text-center dark:border-slate-600 dark:bg-slate-800/50">
+              <CalendarDays className="mx-auto h-7 w-7 text-slate-300 dark:text-slate-500" />
+              <p className="mt-2 text-sm font-bold text-slate-600 dark:text-slate-200">
+                Aún no hay horarios configurados
+              </p>
+              <p className="mt-1 text-xs text-slate-400 dark:text-slate-400">
+                Selecciona los días y añade tu primer horario arriba.
+              </p>
+            </div>
           )}
         </div>
       </div>

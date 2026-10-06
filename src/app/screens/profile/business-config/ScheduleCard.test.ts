@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { businessDays, emptySchedule } from "./businessConfigData";
-import { groupSchedule } from "./ScheduleCard";
+import ScheduleCard, { groupSchedule } from "./ScheduleCard";
 import ScheduleEditorScreen from "./ScheduleEditorScreen";
 import ScheduleSummaryCard from "./ScheduleSummaryCard";
 
@@ -72,5 +72,35 @@ describe("ScheduleCard grouping", () => {
     expect(html).toContain("Agrupa los días que tienen el mismo horario");
     expect(html).toContain("Guardar horarios");
     expect(html).toContain("Guardar cambios");
+  });
+
+  it("shows a true empty state before any schedule is configured", () => {
+    const html = renderToStaticMarkup(
+      createElement(ScheduleCard, {
+        days: businessDays,
+        schedule: emptySchedule,
+        setSchedule: vi.fn(),
+      }),
+    );
+
+    expect(html).toContain("Aún no hay horarios configurados");
+    expect(html).not.toContain("Días sin configurar");
+  });
+
+  it("keeps edit and delete controls for configured schedules", () => {
+    const schedule = structuredClone(emptySchedule);
+    schedule.monday = { enabled: true, open: "08:00", close: "20:00" };
+
+    const html = renderToStaticMarkup(
+      createElement(ScheduleCard, {
+        days: businessDays,
+        schedule,
+        setSchedule: vi.fn(),
+      }),
+    );
+
+    expect(html).toContain("Editar Lunes");
+    expect(html).toContain("Eliminar Lunes");
+    expect(html).toContain("Días sin configurar");
   });
 });
