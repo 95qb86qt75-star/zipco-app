@@ -992,6 +992,23 @@ body {
   background-color: #1e293b !important;
 }
 
+/* Keep the Personal/Negocio segmented control readable in both profile themes. */
+.zipco-profile-role-tab--light {
+  color: #334155 !important;
+}
+
+.zipco-profile-role-tab--light[aria-selected="true"] {
+  color: #0f766e !important;
+}
+
+.zipco-profile-role-tab--dark {
+  color: #e2e8f0 !important;
+}
+
+.zipco-profile-role-tab--dark[aria-selected="true"] {
+  color: #ffffff !important;
+}
+
 /*
  * Los navegadores móviles pueden ampliar automáticamente la página al enfocar
  * controles cuyo texto mide menos de 16 px. Esto mantiene estable el viewport

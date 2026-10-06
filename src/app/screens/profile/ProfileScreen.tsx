@@ -157,17 +157,9 @@ export default function ProfileScreen({
                   onClick={() =>
                     setProfileTab(tab.id as "personal" | "negocio")
                   }
-                  className={`relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2 ${
-                    profileTab === tab.id
-                      ? tab.id === "negocio"
-                        ? "text-white"
-                        : "text-teal-700"
-                      : isBusinessProfileTab
-                        ? "text-slate-200 hover:text-white"
-                        : "text-slate-600 hover:text-slate-900"
-                  }`}
+                  className={`zipco-profile-role-tab relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2 ${isBusinessProfileTab ? "zipco-profile-role-tab--dark" : "zipco-profile-role-tab--light"}`}
                 >
-                  {tab.label}
+                  {tab.label || "Negocio"}
                 </button>
               ))}
             </div>
