@@ -70,7 +70,7 @@ describe("ScheduleCard grouping", () => {
     );
 
     expect(html).toContain("Agrupa los días que tienen el mismo horario");
-    expect(html).toContain("Aplicar horarios");
+    expect(html).toContain("Guardar horarios");
     expect(html).toContain("Guardar cambios");
   });
 });

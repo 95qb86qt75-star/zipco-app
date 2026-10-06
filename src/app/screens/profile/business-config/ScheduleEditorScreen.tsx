@@ -73,7 +73,7 @@ export default function ScheduleEditorScreen({
           className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-500 px-5 font-black text-white shadow-lg shadow-teal-500/20 transition active:scale-[0.98]"
         >
           <Save className="h-5 w-5" />
-          Aplicar horarios
+          Guardar horarios
         </button>
         <p className="mt-2 text-center text-[11px] text-slate-500 dark:text-slate-400">
           Después confirma con “Guardar cambios” en Configuración.
