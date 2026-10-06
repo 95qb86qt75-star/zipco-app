@@ -1,4 +1,9 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import React, {
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { Check, Clock, Pencil, Plus, X } from "lucide-react";
 import type { BusinessDay, BusinessSchedule, ScheduleDayId } from "./types";
 
@@ -199,10 +204,10 @@ export default function ScheduleCard({
       <div className="mb-4">
         <h4 className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
           <Clock className="h-5 w-5 text-teal-500" />
-          Horarios de Atención
+          Añadir o editar horario
         </h4>
         <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-300">
-          Selecciona los días que comparten el mismo horario.
+          Selecciona los días y aplica una hora de apertura y cierre.
         </p>
       </div>
 

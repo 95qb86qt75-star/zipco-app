@@ -10,7 +10,8 @@ import LocationPrivacyCard from "./business-config/LocationPrivacyCard";
 import PhysicalAttendanceCard from "./business-config/PhysicalAttendanceCard";
 import ProductManagerCard from "./business-config/ProductManagerCard";
 import SaveChangesBar from "./business-config/SaveChangesBar";
-import ScheduleCard from "./business-config/ScheduleCard";
+import ScheduleEditorScreen from "./business-config/ScheduleEditorScreen";
+import ScheduleSummaryCard from "./business-config/ScheduleSummaryCard";
 import ServiceAttendanceCard from "./business-config/ServiceAttendanceCard";
 import UnsavedChangesModal from "./business-config/UnsavedChangesModal";
 import {
@@ -41,6 +42,7 @@ export default function BusinessConfigScreen({
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [fullAddress, setFullAddress] = useState("");
   const [schedule, setSchedule] = useState(emptySchedule);
+  const [showScheduleEditor, setShowScheduleEditor] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [hasPhysicalStore, setHasPhysicalStore] = useState(true);
@@ -256,7 +258,10 @@ export default function BusinessConfigScreen({
         );
         setHasUnsavedChanges(false);
       } catch (error) {
-        showAppToast(`No se pudo cargar la configuración del ${providerLabel}`, "error");
+        showAppToast(
+          `No se pudo cargar la configuración del ${providerLabel}`,
+          "error",
+        );
       }
     };
 
@@ -268,7 +273,10 @@ export default function BusinessConfigScreen({
     const token = localStorage.getItem("zipco-token");
 
     if (!businessId || !token) {
-      showAppToast(`No se pudo guardar la configuración del ${providerLabel}`, "error");
+      showAppToast(
+        `No se pudo guardar la configuración del ${providerLabel}`,
+        "error",
+      );
       return;
     }
 
@@ -335,9 +343,30 @@ export default function BusinessConfigScreen({
         onBack();
       }
     } catch (error) {
-      showAppToast(`No se pudo guardar la configuración del ${providerLabel}`, "error");
+      showAppToast(
+        `No se pudo guardar la configuración del ${providerLabel}`,
+        "error",
+      );
     }
   };
+
+  if (showScheduleEditor) {
+    return (
+      <ScheduleEditorScreen
+        days={businessDays}
+        initialSchedule={schedule}
+        onCancel={() => setShowScheduleEditor(false)}
+        onApply={(nextSchedule) => {
+          handleScheduleChange(nextSchedule);
+          setShowScheduleEditor(false);
+          showAppToast(
+            "Horarios preparados. Guarda los cambios para confirmar.",
+            "success",
+          );
+        }}
+      />
+    );
+  }
 
   return (
     <div className="size-full relative flex flex-col bg-[#F0F4FF]">
@@ -425,10 +454,10 @@ export default function BusinessConfigScreen({
           setHasLocationSearched={setHasLocationSearched}
           onSelectLocationSuggestion={selectLocationSuggestion}
         />
-        <ScheduleCard
+        <ScheduleSummaryCard
           days={businessDays}
           schedule={schedule}
-          setSchedule={handleScheduleChange}
+          onEdit={() => setShowScheduleEditor(true)}
         />
         <ProductManagerCard
           catalog={catalog}

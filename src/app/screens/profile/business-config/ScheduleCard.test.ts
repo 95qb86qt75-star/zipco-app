@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
 import { businessDays, emptySchedule } from "./businessConfigData";
 import { groupSchedule } from "./ScheduleCard";
+import ScheduleEditorScreen from "./ScheduleEditorScreen";
+import ScheduleSummaryCard from "./ScheduleSummaryCard";
 
 describe("ScheduleCard grouping", () => {
   it("groups days that share opening and closing times", () => {
@@ -34,5 +38,39 @@ describe("ScheduleCard grouping", () => {
       "wednesday",
       "sunday",
     ]);
+  });
+
+  it("shows a compact summary in the general configuration screen", () => {
+    const schedule = structuredClone(emptySchedule);
+    schedule.monday = { enabled: true, open: "08:00", close: "20:00" };
+    schedule.tuesday = { enabled: true, open: "08:00", close: "20:00" };
+
+    const html = renderToStaticMarkup(
+      createElement(ScheduleSummaryCard, {
+        days: businessDays,
+        schedule,
+        onEdit: vi.fn(),
+      }),
+    );
+
+    expect(html).toContain("Horarios de Atención");
+    expect(html).toContain("Editar");
+    expect(html).toContain("Lunes · Martes");
+    expect(html).toContain("8:00–20:00");
+  });
+
+  it("renders schedule editing as an independent screen", () => {
+    const html = renderToStaticMarkup(
+      createElement(ScheduleEditorScreen, {
+        days: businessDays,
+        initialSchedule: emptySchedule,
+        onCancel: vi.fn(),
+        onApply: vi.fn(),
+      }),
+    );
+
+    expect(html).toContain("Agrupa los días que tienen el mismo horario");
+    expect(html).toContain("Aplicar horarios");
+    expect(html).toContain("Guardar cambios");
   });
 });
