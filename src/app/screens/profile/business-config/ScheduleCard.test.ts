@@ -101,6 +101,6 @@ describe("ScheduleCard grouping", () => {
 
     expect(html).toContain("Editar Lunes");
     expect(html).toContain("Eliminar Lunes");
-    expect(html).toContain("Días sin configurar");
+    expect(html).not.toContain("Días sin configurar");
   });
 });

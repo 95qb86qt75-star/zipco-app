@@ -1,12 +1,10 @@
 import React, {
   useMemo,
-  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
 import {
-  Ban,
   CalendarDays,
   Check,
   ChevronDown,
@@ -125,12 +123,10 @@ export default function ScheduleCard({
   const [draftOpen, setDraftOpen] = useState(DEFAULT_OPEN);
   const [draftClose, setDraftClose] = useState(DEFAULT_CLOSE);
   const [selectionError, setSelectionError] = useState(false);
-  const builderRef = useRef<HTMLDivElement>(null);
   const scheduleGroups = useMemo(
     () => groupSchedule(days, schedule),
     [days, schedule],
   );
-  const closedDays = days.filter((day) => !schedule[day.id]?.enabled);
 
   const toggleDay = (dayId: ScheduleDayId) => {
     setSelectionError(false);
@@ -174,20 +170,9 @@ export default function ScheduleCard({
     );
   };
 
-  const configureClosedDays = () => {
-    setSelectedDayIds(closedDays.length === 1 ? [closedDays[0].id] : []);
-    setDraftOpen(DEFAULT_OPEN);
-    setDraftClose(DEFAULT_CLOSE);
-    setSelectionError(false);
-    builderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <section className="space-y-[18px]">
-      <div
-        ref={builderRef}
-        className="scroll-mt-4 rounded-[20px] border border-teal-200/70 bg-teal-50/40 p-4 shadow-[0_4px_16px_rgba(15,159,152,0.06)] dark:border-teal-400/20 dark:bg-teal-400/5"
-      >
+      <div className="rounded-[20px] border border-teal-200/70 bg-teal-50/40 p-4 shadow-[0_4px_16px_rgba(15,159,152,0.06)] dark:border-teal-400/20 dark:bg-teal-400/5">
         <div className="mb-4 flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300">
             <Clock className="h-5 w-5" />
@@ -299,35 +284,6 @@ export default function ScheduleCard({
               </button>
             </div>
           ))}
-
-          {scheduleGroups.length > 0 && closedDays.length > 0 && (
-            <div className="flex items-center gap-2.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-3 dark:border-slate-600 dark:bg-slate-800/60">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300">
-                <Ban className="h-5 w-5" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <strong className="block text-xs font-black text-slate-800 dark:text-white">
-                  {closedDays.length === 1
-                    ? closedDays[0].name
-                    : "Días sin configurar"}
-                </strong>
-                <span className="block text-[11px] text-slate-500 dark:text-slate-300">
-                  {closedDays.length === 1
-                    ? "Cerrado"
-                    : closedDays
-                        .map((day) => shortDayNames[day.id])
-                        .join(" · ")}
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={configureClosedDays}
-                className="shrink-0 rounded-full bg-slate-100 px-3 py-2 text-[11px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-100"
-              >
-                + {closedDays.length === 1 ? "Abrir este día" : "Configurar"}
-              </button>
-            </div>
-          )}
 
           {scheduleGroups.length === 0 && (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-4 py-6 text-center dark:border-slate-600 dark:bg-slate-800/50">
