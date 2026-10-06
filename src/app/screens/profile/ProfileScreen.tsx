@@ -129,8 +129,22 @@ export default function ProfileScreen({
           </div>
           {businessProfile.hasRegisteredBusiness && (
             <div
-              className={`grid grid-cols-2 gap-1 rounded-full p-1 ${isBusinessProfileTab ? "bg-white/20" : "bg-[#F3F4F6]"}`}
+              role="tablist"
+              aria-label="Cambiar tipo de perfil"
+              className={`relative grid grid-cols-2 rounded-full border p-1 shadow-inner ${
+                isBusinessProfileTab
+                  ? "border-slate-500/80 bg-slate-950/55"
+                  : "border-slate-200 bg-slate-200/90"
+              }`}
             >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none absolute bottom-1 top-1 left-1 w-[calc(50%-0.25rem)] rounded-full shadow-md transition-transform duration-300 ease-out motion-reduce:transition-none ${
+                  isBusinessProfileTab
+                    ? "translate-x-full bg-gradient-to-r from-teal-500 to-cyan-500"
+                    : "translate-x-0 bg-white"
+                }`}
+              />
               {[
                 { id: "personal", label: "Personal" },
                 { id: "negocio", label: businessProfile.providerType },
@@ -138,15 +152,19 @@ export default function ProfileScreen({
                 <button
                   key={tab.id}
                   type="button"
+                  role="tab"
+                  aria-selected={profileTab === tab.id}
                   onClick={() =>
                     setProfileTab(tab.id as "personal" | "negocio")
                   }
-                  className={`py-2 px-4 rounded-full text-sm font-semibold transition-all ${
+                  className={`relative z-10 min-h-10 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2 ${
                     profileTab === tab.id
-                      ? `bg-white ${tab.id === "negocio" ? "text-[#1E3A5F]" : "text-[#00BFA5]"} shadow-sm`
+                      ? tab.id === "negocio"
+                        ? "text-white"
+                        : "text-teal-700"
                       : isBusinessProfileTab
-                        ? "bg-transparent text-white/70"
-                        : "bg-transparent text-gray-500"
+                        ? "text-slate-200 hover:text-white"
+                        : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {tab.label}
