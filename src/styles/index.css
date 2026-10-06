@@ -1001,6 +1001,10 @@ body {
   color: #0f766e !important;
 }
 
+.dark .zipco-profile-role-tab--light[aria-selected="true"] {
+  color: #5eead4 !important;
+}
+
 .zipco-profile-role-tab--dark {
   color: #e2e8f0 !important;
 }
