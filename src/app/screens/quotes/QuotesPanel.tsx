@@ -1077,17 +1077,17 @@ function QuoteCard({
                     </p>
                   </>
                 ) : quote.alternativeMessage ? (
-                  <div className="grid grid-cols-[minmax(0,1fr)_96px] items-stretch gap-3">
-                    <div className="min-w-0 py-0.5">
+                  <div className="grid grid-cols-[minmax(0,1fr)_88px] items-stretch gap-2.5">
+                    <div className="min-w-0 py-1">
                       <p
-                        className={`text-[10px] font-black uppercase tracking-[0.18em] ${tone.accent}`}
+                        className={`whitespace-nowrap text-[8.5px] font-black uppercase leading-none tracking-[0.1em] ${tone.accent}`}
                       >
                         Propuesta con cambios enviada
                       </p>
-                      <p className="mt-2 text-[17px] font-black leading-5 text-slate-950">
+                      <p className="mt-2.5 text-[18px] font-black leading-[21px] tracking-[-0.025em] text-slate-950">
                         Alternativa del negocio
                       </p>
-                      <p className="mt-1.5 whitespace-pre-wrap break-words text-[13px] font-medium leading-[18px] text-slate-600">
+                      <p className="mt-1.5 whitespace-pre-wrap break-words text-[14px] font-semibold leading-[19px] tracking-[-0.01em] text-slate-600">
                         {quote.alternativeMessage}
                       </p>
                       {quote.alternativeItem && (
@@ -1108,11 +1108,11 @@ function QuoteCard({
                       )}
                     </div>
                     {price !== null && (
-                      <div className="flex min-w-0 flex-col justify-center border-l border-violet-200/80 pl-3 text-right">
-                        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+                      <div className="flex min-w-0 flex-col justify-center border-l border-violet-200/80 pl-2.5 text-right">
+                        <p className="whitespace-nowrap text-[8.5px] font-black uppercase leading-none tracking-[0.11em] text-slate-400">
                           Precio total
                         </p>
-                        <p className="mt-2 whitespace-nowrap text-[23px] font-black leading-none tracking-tight text-teal-800">
+                        <p className="mt-2.5 whitespace-nowrap text-[26px] font-black leading-none tracking-[-0.045em] text-teal-800">
                           {money(price)}
                         </p>
                       </div>
