@@ -74,7 +74,7 @@ describe("ProposalPhotoAttachment", () => {
       expect(markup).toContain(
         "El negocio adjuntó una imagen de su alternativa",
       );
-      expect(markup).toContain("proposal.jpg");
+      expect(markup).toContain("zipco-animated-photo-icon");
       expect(markup).toContain("Abrir");
     },
   );
@@ -94,7 +94,7 @@ describe("ProposalPhotoAttachment", () => {
 
     expect(markup).toContain("Foto de la propuesta");
     expect(markup).toContain("El cliente agregó una foto de referencia.");
-    expect(markup).toContain("proposal.jpg");
+    expect(markup.match(/zipco-animated-photo-icon/g)).toHaveLength(2);
   });
 
   it("renders the full image viewer in its open state", () => {
@@ -111,6 +111,7 @@ describe("ProposalPhotoAttachment", () => {
     expect(markup).toContain('aria-modal="true"');
     expect(markup).toContain("Foto ampliada de la propuesta");
     expect(markup).toContain("Cerrar foto de la propuesta");
+    expect(markup).toContain("proposal.jpg");
   });
 
   it("keeps the viewer closed initially", () => {

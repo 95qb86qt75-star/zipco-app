@@ -30,6 +30,7 @@ import {
   useUnreadInteractions,
 } from "../../notifications/unreadInteractions";
 import ProposalPhotoAttachment from "./ProposalPhotoAttachment";
+import AnimatedPhotoIcon from "./AnimatedPhotoIcon";
 
 const labels = {
   requested: "Esperando respuesta",
@@ -1165,20 +1166,7 @@ export function QuoteCard({
                   }}
                   className="relative mt-2.5 flex w-full items-center gap-3 overflow-hidden rounded-[16px] border border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-cyan-50 px-3 py-2.5 text-left shadow-[0_7px_20px_rgba(124,58,237,0.13)]"
                 >
-                  <motion.span
-                    animate={{
-                      scale: [1, 1.08, 1],
-                      boxShadow: [
-                        "0 0 0 0 rgba(124,58,237,0)",
-                        "0 0 0 7px rgba(124,58,237,0.12)",
-                        "0 0 0 0 rgba(124,58,237,0)",
-                      ],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white"
-                  >
-                    <ImageIcon className="h-5 w-5" />
-                  </motion.span>
+                  <AnimatedPhotoIcon />
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-black text-violet-950">
                       Imagen adjunta

@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import AnimatedPhotoIcon from "./AnimatedPhotoIcon";
 
 type ViewProps = {
   photoUrl: string;
@@ -25,11 +26,7 @@ export function ProposalPhotoAttachmentView({
         }}
         className="mt-2.5 flex min-h-16 w-full items-center gap-3 overflow-hidden rounded-[16px] border border-violet-300 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-cyan-50 p-2.5 text-left shadow-[0_7px_20px_rgba(124,58,237,0.13)] dark:border-violet-500/60 dark:from-violet-950/80 dark:via-fuchsia-950/70 dark:to-cyan-950/70"
       >
-        <ImageWithFallback
-          src={photoUrl}
-          alt="Foto de la propuesta"
-          className="h-14 w-14 shrink-0 rounded-xl object-cover"
-        />
+        <AnimatedPhotoIcon />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-black text-violet-950 dark:text-violet-100">
             Foto de la propuesta
