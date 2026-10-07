@@ -1053,7 +1053,11 @@ function QuoteCard({
               className="overflow-hidden"
             >
               <div
-                className={`mt-3 rounded-[16px] border bg-gradient-to-br p-3 ${tone.panel}`}
+                className={
+                  quote.alternativeMessage
+                    ? `mt-3 grid grid-cols-[minmax(0,1fr)_100px] overflow-hidden rounded-[16px] border bg-gradient-to-br p-3 text-violet-950 ${tone.panel}`
+                    : `mt-3 rounded-[16px] border bg-gradient-to-br p-3 ${tone.panel}`
+                }
               >
                 {!quote.alternativeMessage && (
                   <p
@@ -1077,7 +1081,7 @@ function QuoteCard({
                     </p>
                   </>
                 ) : quote.alternativeMessage ? (
-                  <div className="grid grid-cols-[minmax(0,1fr)_100px] overflow-hidden">
+                  <>
                     <div className="min-w-0 pr-3">
                       <p
                         className={`text-[9px] font-black uppercase tracking-[0.16em] ${tone.accent}`}
@@ -1112,12 +1116,12 @@ function QuoteCard({
                         <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
                           Precio total
                         </p>
-                        <p className="mt-1 whitespace-nowrap text-[22px] font-black tracking-tight text-teal-800">
+                        <p className="mt-1 whitespace-nowrap text-[22px] font-black tracking-tight text-violet-800">
                           {money(price)}
                         </p>
                       </div>
                     )}
-                  </div>
+                  </>
                 ) : (
                   <>
                     <p className="mt-1.5 whitespace-pre-wrap break-words text-sm font-semibold leading-5 text-slate-800">
