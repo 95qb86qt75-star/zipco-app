@@ -29,6 +29,7 @@ import {
   interactionKey,
   useUnreadInteractions,
 } from "../../notifications/unreadInteractions";
+import ProposalPhotoAttachment from "./ProposalPhotoAttachment";
 
 const labels = {
   requested: "Esperando respuesta",
@@ -755,7 +756,7 @@ export function BusinessQuotes({
   );
 }
 
-function QuoteCard({
+export function QuoteCard({
   quote,
   children,
   unread,
@@ -910,6 +911,7 @@ function QuoteCard({
                   </p>
                 </div>
               </div>
+              <ProposalPhotoAttachment photoUrl={quote.alternativePhoto} />
               {children}
               <button
                 type="button"
@@ -1150,6 +1152,7 @@ function QuoteCard({
                   </div>
                 )}
               </div>
+              <ProposalPhotoAttachment photoUrl={quote.alternativePhoto} />
               {quote.referencePhoto && (
                 <motion.button
                   type="button"
