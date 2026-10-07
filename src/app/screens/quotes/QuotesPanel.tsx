@@ -1053,7 +1053,11 @@ function QuoteCard({
               className="overflow-hidden"
             >
               <div
-                className={`mt-3 rounded-[16px] border bg-gradient-to-br p-3 ${tone.panel}`}
+                className={`mt-3 border bg-gradient-to-br ${
+                  quote.alternativeMessage
+                    ? "min-h-[120px] rounded-[20px] px-4 py-[18px] shadow-[0_4px_14px_rgba(15,118,110,0.06)]"
+                    : "rounded-[16px] p-3"
+                } ${tone.panel}`}
               >
                 {!quote.alternativeMessage && (
                   <p
@@ -1077,17 +1081,17 @@ function QuoteCard({
                     </p>
                   </>
                 ) : quote.alternativeMessage ? (
-                  <div className="grid grid-cols-[minmax(0,1fr)_88px] items-stretch gap-2.5">
-                    <div className="min-w-0 py-1">
+                  <div className="grid min-h-[84px] grid-cols-[minmax(0,68fr)_minmax(0,32fr)] items-stretch">
+                    <div className="flex min-w-0 flex-col justify-center pr-3.5">
                       <p
-                        className={`whitespace-nowrap text-[8.5px] font-black uppercase leading-none tracking-[0.1em] ${tone.accent}`}
+                        className={`whitespace-nowrap text-[9px] font-black uppercase leading-none tracking-[0.08em] ${tone.accent}`}
                       >
                         Propuesta con cambios enviada
                       </p>
-                      <p className="mt-2.5 text-[18px] font-black leading-[21px] tracking-[-0.025em] text-slate-950">
+                      <p className="mt-2.5 text-[20px] font-black leading-[1.15] tracking-[-0.03em] text-slate-950">
                         Alternativa del negocio
                       </p>
-                      <p className="mt-1.5 whitespace-pre-wrap break-words text-[14px] font-semibold leading-[19px] tracking-[-0.01em] text-slate-600">
+                      <p className="mt-[7px] whitespace-pre-wrap break-words text-[15px] font-semibold leading-[1.3] tracking-[-0.01em] text-slate-600">
                         {quote.alternativeMessage}
                       </p>
                       {quote.alternativeItem && (
@@ -1108,11 +1112,11 @@ function QuoteCard({
                       )}
                     </div>
                     {price !== null && (
-                      <div className="flex min-w-0 flex-col justify-center border-l border-violet-200/80 pl-2.5 text-right">
-                        <p className="whitespace-nowrap text-[8.5px] font-black uppercase leading-none tracking-[0.11em] text-slate-400">
+                      <div className="flex min-w-0 flex-col items-center justify-center border-l border-violet-200/80 pl-3 text-center">
+                        <p className="whitespace-nowrap text-[9px] font-black uppercase leading-none tracking-[0.12em] text-slate-400">
                           Precio total
                         </p>
-                        <p className="mt-2.5 whitespace-nowrap text-[26px] font-black leading-none tracking-[-0.045em] text-teal-800">
+                        <p className="mt-3 whitespace-nowrap text-[30px] font-black leading-none tracking-[-0.05em] text-teal-800">
                           {money(price)}
                         </p>
                       </div>
