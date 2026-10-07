@@ -981,7 +981,7 @@ function QuoteCard({
             <p className="mt-0.5 truncate text-xs font-semibold text-slate-500">
               {quote.customerName}
             </p>
-            <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-slate-600">
+            <p className="mt-1 line-clamp-2 text-[13px] font-medium leading-[17px] text-slate-700">
               {quote.message}
             </p>
           </div>
@@ -1055,17 +1055,17 @@ function QuoteCard({
               <div
                 className={`mt-3 rounded-[16px] border bg-gradient-to-br p-3 ${tone.panel}`}
               >
-                <p
-                  className={`text-[9px] font-black uppercase tracking-[0.16em] ${tone.accent}`}
-                >
-                  {quote.status === "requested"
-                    ? "Solicitud del cliente"
-                    : quote.status === "ready"
-                      ? "Solicitud finalizada"
-                      : quote.alternativeMessage
-                        ? "Propuesta con cambios enviada"
+                {!quote.alternativeMessage && (
+                  <p
+                    className={`text-[9px] font-black uppercase tracking-[0.16em] ${tone.accent}`}
+                  >
+                    {quote.status === "requested"
+                      ? "Solicitud del cliente"
+                      : quote.status === "ready"
+                        ? "Solicitud finalizada"
                         : "Respuesta enviada"}
-                </p>
+                  </p>
+                )}
                 {quote.status === "ready" ? (
                   <>
                     <p className="mt-1.5 text-[15px] font-black text-slate-950">
@@ -1077,30 +1077,47 @@ function QuoteCard({
                     </p>
                   </>
                 ) : quote.alternativeMessage ? (
-                  <>
-                    <p className="mt-1.5 text-[15px] font-black text-slate-950">
-                      Alternativa del negocio
-                    </p>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">
-                      {quote.alternativeMessage}
-                    </p>
-                    {quote.alternativeItem && (
-                      <p className="mt-1 text-xs text-slate-600">
-                        Opción: {quote.alternativeItem}
-                        {quote.alternativeQuantity
-                          ? ` · Cantidad ${quote.alternativeQuantity}`
-                          : ""}
+                  <div className="grid grid-cols-[minmax(0,1fr)_96px] items-stretch gap-3">
+                    <div className="min-w-0 py-0.5">
+                      <p
+                        className={`text-[10px] font-black uppercase tracking-[0.18em] ${tone.accent}`}
+                      >
+                        Propuesta con cambios enviada
                       </p>
-                    )}
-                    {quote.alternativeDate && (
-                      <p className="mt-1 text-xs text-slate-600">
-                        Fecha: {quote.alternativeDate}
-                        {quote.alternativeTime
-                          ? ` · ${quote.alternativeTime}`
-                          : ""}
+                      <p className="mt-2 text-[17px] font-black leading-5 text-slate-950">
+                        Alternativa del negocio
                       </p>
+                      <p className="mt-1.5 whitespace-pre-wrap break-words text-[13px] font-medium leading-[18px] text-slate-600">
+                        {quote.alternativeMessage}
+                      </p>
+                      {quote.alternativeItem && (
+                        <p className="mt-1.5 text-xs text-slate-600">
+                          Opción: {quote.alternativeItem}
+                          {quote.alternativeQuantity
+                            ? ` · Cantidad ${quote.alternativeQuantity}`
+                            : ""}
+                        </p>
+                      )}
+                      {quote.alternativeDate && (
+                        <p className="mt-1 text-xs text-slate-600">
+                          Fecha: {quote.alternativeDate}
+                          {quote.alternativeTime
+                            ? ` · ${quote.alternativeTime}`
+                            : ""}
+                        </p>
+                      )}
+                    </div>
+                    {price !== null && (
+                      <div className="flex min-w-0 flex-col justify-center border-l border-violet-200/80 pl-3 text-right">
+                        <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+                          Precio total
+                        </p>
+                        <p className="mt-2 whitespace-nowrap text-[23px] font-black leading-none tracking-tight text-teal-800">
+                          {money(price)}
+                        </p>
+                      </div>
                     )}
-                  </>
+                  </div>
                 ) : (
                   <>
                     <p className="mt-1.5 whitespace-pre-wrap break-words text-sm font-semibold leading-5 text-slate-800">
@@ -1113,7 +1130,7 @@ function QuoteCard({
                     )}
                   </>
                 )}
-                {price !== null && (
+                {price !== null && !quote.alternativeMessage && (
                   <div className="mt-2 flex items-end justify-between border-t border-black/5 pt-2">
                     <span className="text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
                       {quote.status === "requested"
