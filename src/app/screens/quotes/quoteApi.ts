@@ -51,6 +51,7 @@ export type QuoteRequest = {
   alternativePhoto: string | null;
   customerArchivedAt: string | null;
   businessArchivedAt: string | null;
+  respondedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };

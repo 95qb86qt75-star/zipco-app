@@ -31,6 +31,7 @@ import {
 } from "../../notifications/unreadInteractions";
 import ProposalPhotoAttachment from "./ProposalPhotoAttachment";
 import AnimatedPhotoIcon from "./AnimatedPhotoIcon";
+import { formatQuoteRespondedAt } from "./quoteResponseTime";
 
 const labels = {
   requested: "Esperando respuesta",
@@ -777,6 +778,7 @@ export function QuoteCard({
   onToggle?: () => void;
 }) {
   const [showReferencePhoto, setShowReferencePhoto] = useState(false);
+  const respondedAtLabel = formatQuoteRespondedAt(quote.respondedAt);
   const handleOpen = (element: HTMLElement) => {
     element.classList.remove("zipco-notification-target");
     onOpen();
@@ -817,10 +819,17 @@ export function QuoteCard({
               {quote.message}
             </p>
           </div>
-          <span className="inline-flex max-w-[92px] items-center justify-center gap-1 rounded-full bg-violet-50 px-2 py-1.5 text-center text-[10px] font-black leading-tight text-violet-700">
-            <MessageSquareText className="h-3.5 w-3.5 shrink-0" /> Nueva
-            propuesta
-          </span>
+          <div className="flex max-w-[112px] flex-col items-end gap-1">
+            <span className="inline-flex max-w-[92px] items-center justify-center gap-1 rounded-full bg-violet-50 px-2 py-1.5 text-center text-[10px] font-black leading-tight text-violet-700">
+              <MessageSquareText className="h-3.5 w-3.5 shrink-0" /> Nueva
+              propuesta
+            </span>
+            {respondedAtLabel && (
+              <span className="whitespace-nowrap text-right text-[9px] font-semibold leading-3 text-slate-500 dark:text-slate-400">
+                {respondedAtLabel}
+              </span>
+            )}
+          </div>
         </div>
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
           {quote.needNow ? (
@@ -988,11 +997,18 @@ export function QuoteCard({
               {quote.message}
             </p>
           </div>
-          <span
-            className={`inline-flex max-w-[98px] items-center justify-center rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${tone.badge}`}
-          >
-            {statusLabel}
-          </span>
+          <div className="flex max-w-[112px] flex-col items-end gap-1">
+            <span
+              className={`inline-flex max-w-[98px] items-center justify-center rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${tone.badge}`}
+            >
+              {statusLabel}
+            </span>
+            {respondedAtLabel && (
+              <span className="whitespace-nowrap text-right text-[9px] font-semibold leading-3 text-slate-500 dark:text-slate-400">
+                {respondedAtLabel}
+              </span>
+            )}
+          </div>
         </div>
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
           {quote.needNow ? (
