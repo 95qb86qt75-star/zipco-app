@@ -1082,7 +1082,7 @@ function QuoteCard({
                       <p
                         className={`text-[9px] font-black uppercase tracking-[0.16em] ${tone.accent}`}
                       >
-                        Propuesta con cambios enviada
+                        Propuesta del negocio
                       </p>
                       <p className="mt-1.5 text-[15px] font-black leading-[18px] text-slate-950">
                         Alternativa del negocio
