@@ -1323,7 +1323,7 @@ export function QuoteCard({
         </div>
       </div>
       {quote.status === "quoted" && quote.quotedPriceClp !== null && (
-        <div className="mt-2 grid grid-cols-[minmax(112px,1fr)_auto] items-center gap-2 border-t border-slate-300/40 pt-2 min-[360px]:ml-[62px]">
+        <div className="mt-2 grid grid-cols-[minmax(120px,1fr)_auto] items-center gap-2 border-t border-slate-300/40 pt-2 min-[360px]:ml-[44px]">
           <span className="flex min-w-0 items-center gap-2.5">
             <span className="relative h-5 w-5 shrink-0" aria-hidden="true">
               <Tag className="h-5 w-5 fill-emerald-400 text-emerald-400" />
