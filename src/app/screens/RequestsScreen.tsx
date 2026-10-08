@@ -1454,7 +1454,7 @@ export default function RequestsScreen({
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="relative flex w-[210px] flex-col items-center overflow-hidden rounded-[28px] border border-cyan-200/80 bg-white/95 px-5 py-6 shadow-[0_24px_70px_rgba(8,145,178,0.28)] dark:border-cyan-400/50 dark:bg-slate-900/95"
+              className="relative flex w-[210px] flex-col items-center overflow-hidden rounded-[28px] border border-cyan-200/80 bg-white/95 px-5 py-6 shadow-[0_24px_70px_rgba(8,145,178,0.28)] dark:border-cyan-300/70 dark:bg-slate-50/95 dark:shadow-[0_24px_70px_rgba(34,211,238,0.22)]"
               initial={{ y: 14, scale: 0.94 }}
               animate={{ y: 0, scale: 1 }}
               exit={
@@ -1508,13 +1508,13 @@ export default function RequestsScreen({
                 </motion.div>
               </div>
               <motion.p
-                className="relative mt-3 text-sm font-black text-slate-900 dark:text-white"
+                className="relative mt-3 text-sm font-black text-slate-900"
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 Guardando en Historial
               </motion.p>
-              <p className="relative mt-1 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-300">
+              <p className="relative mt-1 text-center text-[11px] font-semibold text-slate-500">
                 {historyTransfer.label}
               </p>
             </motion.div>
