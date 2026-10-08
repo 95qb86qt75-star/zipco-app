@@ -97,6 +97,19 @@ describe("ProposalPhotoAttachment", () => {
     expect(markup.match(/zipco-animated-photo-icon/g)).toHaveLength(2);
   });
 
+  it("keeps accepted negotiation details collapsed and shows the agreed price", () => {
+    const markup = renderQuote("customer", {
+      ...quote,
+      status: "accepted",
+      businessMessage: "Respuesta que debe iniciar oculta",
+    });
+
+    expect(markup).toContain("Ver detalle de la negociación");
+    expect(markup).toContain("$4.200");
+    expect(markup).not.toContain("Respuesta que debe iniciar oculta");
+    expect(markup).toContain('aria-expanded="false"');
+  });
+
   it("renders the full image viewer in its open state", () => {
     const markup = renderToStaticMarkup(
       React.createElement(ProposalPhotoAttachmentView, {

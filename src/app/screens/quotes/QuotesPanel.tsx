@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronsRight,
   Image as ImageIcon,
+  LoaderCircle,
   MessageSquareText,
   MousePointerClick,
   Send,
@@ -198,42 +199,68 @@ export function CustomerQuotes({
               </button>
             )}
             {quote.status === "accepted" && (
-              <div className="mt-3 rounded-2xl border border-cyan-300/50 bg-cyan-500/10 p-3">
+              <div className="mt-3 rounded-2xl border border-cyan-300/70 bg-cyan-50/90 p-3 shadow-[0_8px_22px_rgba(6,182,212,0.10)] dark:bg-cyan-950/35">
                 <p className="flex items-center gap-2 text-sm font-black text-cyan-700 dark:text-cyan-200">
-                  <Check className="h-4 w-4" /> Servicio en curso
+                  <LoaderCircle className="h-4 w-4 motion-safe:animate-spin" />
+                  Servicio en curso
                 </p>
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                   El negocio está realizando el servicio. Te avisaremos cuando
                   lo marque como realizado.
                 </p>
                 <div className="mt-3 flex items-center gap-1 text-[9px] font-bold">
-                  <span className="rounded-full bg-emerald-500 px-2 py-1 text-white">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-white shadow-sm">
+                    <Check className="h-3 w-3" strokeWidth={3} />
                     Propuesta aceptada
                   </span>
                   <span className="h-px flex-1 bg-cyan-300" />
-                  <span className="rounded-full bg-cyan-500 px-2 py-1 text-white">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-600 px-2 py-1 text-white shadow-sm">
+                    <LoaderCircle className="h-3 w-3 motion-safe:animate-spin" />
                     En curso
                   </span>
                   <span className="h-px flex-1 bg-slate-300" />
-                  <span className="rounded-full bg-slate-200 px-2 py-1 text-slate-500">
+                  <span className="rounded-full bg-slate-200 px-2 py-1 text-slate-500 dark:bg-slate-700 dark:text-slate-300">
                     Confirmar
                   </span>
                 </div>
               </div>
             )}
             {quote.status === "ready" && (
-              <button
-                disabled={updating.has(quote.id)}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  markRead("quote", quote.id);
-                  onStatus(quote, "completed");
-                }}
-                className="zipco-confirm-action mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-300 bg-gradient-to-r from-teal-600 to-emerald-500 py-2.5 text-xs font-bold text-white shadow-[0_0_18px_rgba(245,158,11,0.30)]"
-              >
-                <Bell className="zipco-attention-bell h-4 w-4" />
-                Confirmar servicio realizado conforme
-              </button>
+              <div className="mt-3 rounded-2xl border border-amber-400 bg-amber-50/95 p-3 shadow-[0_8px_24px_rgba(245,158,11,0.20)] dark:bg-amber-950/40">
+                <p className="flex items-center gap-2 text-sm font-black text-amber-800 dark:text-amber-200">
+                  <Bell className="zipco-attention-bell h-4 w-4" />
+                  Servicio listo para confirmar
+                </p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                  El negocio informó que terminó. Confirma cuando lo hayas
+                  recibido conforme.
+                </p>
+                <div className="mt-3 flex items-center gap-1 text-[9px] font-bold">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-white">
+                    <Check className="h-3 w-3" strokeWidth={3} /> Aceptada
+                  </span>
+                  <span className="h-px flex-1 bg-emerald-300" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-600 px-2 py-1 text-white">
+                    <Check className="h-3 w-3" strokeWidth={3} /> Realizado
+                  </span>
+                  <span className="h-px flex-1 bg-amber-400" />
+                  <span className="rounded-full bg-amber-400 px-2 py-1 text-slate-950 shadow-sm">
+                    Confirmar
+                  </span>
+                </div>
+                <button
+                  disabled={updating.has(quote.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    markRead("quote", quote.id);
+                    onStatus(quote, "completed");
+                  }}
+                  className="zipco-confirm-action mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-yellow-300 bg-gradient-to-r from-amber-400 to-yellow-300 px-3 py-2.5 text-xs font-black text-slate-950 shadow-[0_0_22px_rgba(250,204,21,0.38)] disabled:opacity-50"
+                >
+                  <Bell className="zipco-attention-bell h-4 w-4" />
+                  Confirmar servicio realizado conforme
+                </button>
+              </div>
             )}
           </QuoteCard>
         </Fragment>
@@ -785,6 +812,7 @@ export function QuoteCard({
   onToggle?: () => void;
 }) {
   const [showReferencePhoto, setShowReferencePhoto] = useState(false);
+  const [showNegotiationDetails, setShowNegotiationDetails] = useState(false);
   const respondedAtLabel = formatQuoteRespondedAt(quote.respondedAt);
   const handleOpen = (element: HTMLElement) => {
     element.classList.remove("zipco-notification-target");
@@ -1262,6 +1290,14 @@ export function QuoteCard({
       </article>
     );
   }
+  const canCollapseNegotiation =
+    owner === "customer" &&
+    (quote.status === "accepted" || quote.status === "ready");
+  const showNegotiation = !canCollapseNegotiation || showNegotiationDetails;
+  const displayedCustomerPrice =
+    quote.status === "accepted" || quote.status === "ready"
+      ? proposalPrice(quote)
+      : quote.quotedPriceClp;
   return (
     <article
       id={`quote-${quote.id}`}
@@ -1310,19 +1346,19 @@ export function QuoteCard({
           <span className="max-w-[88px] rounded-full bg-violet-50 px-2.5 py-1 text-center text-[10px] font-bold leading-tight text-violet-700">
             {statusLabel}
           </span>
-          {quote.status !== "quoted" && quote.quotedPriceClp !== null && (
+          {quote.status !== "quoted" && displayedCustomerPrice !== null && (
             <span className="text-right">
               <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
                 Precio propuesto
               </span>
               <span className="whitespace-nowrap text-base font-black text-emerald-500">
-                {money(quote.quotedPriceClp)}
+                {money(displayedCustomerPrice)}
               </span>
             </span>
           )}
         </div>
       </div>
-      {quote.status === "quoted" && quote.quotedPriceClp !== null && (
+      {quote.status === "quoted" && displayedCustomerPrice !== null && (
         <div className="mt-2 grid grid-cols-[minmax(120px,1fr)_auto] items-center gap-2 border-t border-slate-300/40 pt-2 min-[360px]:ml-[44px]">
           <span className="flex min-w-0 items-center gap-2.5">
             <span className="relative h-5 w-5 shrink-0" aria-hidden="true">
@@ -1334,7 +1370,7 @@ export function QuoteCard({
                 Precio propuesto
               </span>
               <span className="mt-0.5 block whitespace-nowrap text-base font-black text-emerald-400">
-                {money(quote.quotedPriceClp)}
+                {money(displayedCustomerPrice)}
               </span>
             </span>
           </span>
@@ -1350,57 +1386,100 @@ export function QuoteCard({
           </span>
         </div>
       )}
-      {quote.businessMessage && (
-        <p className="mt-3 flex gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800 dark:text-violet-200">
-          <MessageSquareText className="h-4 w-4 shrink-0" />
-          <span>
-            <strong className="block">Respuesta del negocio</strong>
-            {quote.businessMessage}
-          </span>
-        </p>
+      {canCollapseNegotiation && children}
+      {canCollapseNegotiation && (
+        <button
+          type="button"
+          aria-expanded={showNegotiationDetails}
+          onClick={(event) => {
+            event.stopPropagation();
+            setShowNegotiationDetails((current) => !current);
+          }}
+          className="mt-2.5 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-violet-300/70 bg-violet-500/10 px-3 text-xs font-black text-violet-700 transition-colors hover:bg-violet-500/15 dark:text-violet-200"
+        >
+          {showNegotiationDetails
+            ? "Ocultar detalle de la negociación"
+            : "Ver detalle de la negociación"}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${showNegotiationDetails ? "rotate-180" : ""}`}
+          />
+        </button>
       )}
-      {quote.alternativePhoto && (
-        <ImageWithFallback
-          src={quote.alternativePhoto}
-          alt="Referencia de la alternativa"
-          className="mt-3 h-36 w-full rounded-xl border border-violet-300/50 object-cover"
-        />
-      )}
-      {owner === "business" && quote.status === "ready" ? (
-        <div className="mt-3 w-full rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2.5 text-xs text-emerald-900">
-          <p className="font-black">Solicitud finalizada</p>
-          <p className="mt-0.5">
-            Cliente notificado. Esperando su confirmación.
-          </p>
-        </div>
-      ) : (
-        quote.alternativeMessage && (
-          <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
-            <p className="font-black">Alternativa del negocio</p>
-            <p className="mt-1">{quote.alternativeMessage}</p>
-            {quote.alternativeItem && (
-              <p className="mt-1">
-                Opción: {quote.alternativeItem}
-                {quote.alternativeQuantity
-                  ? ` · Cantidad ${quote.alternativeQuantity}`
-                  : ""}
+      <AnimatePresence initial={false}>
+        {showNegotiation && (
+          <motion.div
+            key="negotiation-details"
+            initial={canCollapseNegotiation ? { opacity: 0, height: 0 } : false}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            {canCollapseNegotiation && displayedCustomerPrice !== null && (
+              <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-300/60 bg-emerald-50/80 px-3 py-2 dark:bg-emerald-950/35">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                  Precio final acordado
+                </span>
+                <strong className="whitespace-nowrap text-base font-black text-emerald-600 dark:text-emerald-300">
+                  {money(displayedCustomerPrice)}
+                </strong>
+              </div>
+            )}
+            {quote.businessMessage && (
+              <p className="mt-3 flex gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800 dark:text-violet-200">
+                <MessageSquareText className="h-4 w-4 shrink-0" />
+                <span>
+                  <strong className="block">Respuesta del negocio</strong>
+                  {quote.businessMessage}
+                </span>
               </p>
             )}
-            {quote.alternativeDate && (
-              <p className="mt-1">
-                Fecha: {quote.alternativeDate}
-                {quote.alternativeTime ? ` · ${quote.alternativeTime}` : ""}
-              </p>
+            {quote.alternativePhoto && (
+              <ImageWithFallback
+                src={quote.alternativePhoto}
+                alt="Referencia de la alternativa"
+                className="mt-3 h-36 w-full rounded-xl border border-violet-300/50 object-cover"
+              />
             )}
-            {quote.alternativePriceClp && (
-              <p className="mt-1 font-black">
-                {money(quote.alternativePriceClp)}
-              </p>
+            {owner === "business" && quote.status === "ready" ? (
+              <div className="mt-3 w-full rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2.5 text-xs text-emerald-900">
+                <p className="font-black">Solicitud finalizada</p>
+                <p className="mt-0.5">
+                  Cliente notificado. Esperando su confirmación.
+                </p>
+              </div>
+            ) : (
+              quote.alternativeMessage && (
+                <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+                  <p className="font-black">Alternativa del negocio</p>
+                  <p className="mt-1">{quote.alternativeMessage}</p>
+                  {quote.alternativeItem && (
+                    <p className="mt-1">
+                      Opción: {quote.alternativeItem}
+                      {quote.alternativeQuantity
+                        ? ` · Cantidad ${quote.alternativeQuantity}`
+                        : ""}
+                    </p>
+                  )}
+                  {quote.alternativeDate && (
+                    <p className="mt-1">
+                      Fecha: {quote.alternativeDate}
+                      {quote.alternativeTime
+                        ? ` · ${quote.alternativeTime}`
+                        : ""}
+                    </p>
+                  )}
+                  {quote.alternativePriceClp && (
+                    <p className="mt-1 font-black">
+                      {money(quote.alternativePriceClp)}
+                    </p>
+                  )}
+                </div>
+              )
             )}
-          </div>
-        )
-      )}
-      {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {!canCollapseNegotiation && children}
     </article>
   );
 }
