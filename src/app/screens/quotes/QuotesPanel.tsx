@@ -1323,7 +1323,7 @@ export function QuoteCard({
         </div>
       </div>
       {quote.status === "quoted" && quote.quotedPriceClp !== null && (
-        <div className="ml-[84px] mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-slate-300/40 pt-2">
+        <div className="mt-2 grid grid-cols-[minmax(112px,1fr)_auto] items-center gap-2 border-t border-slate-300/40 pt-2 min-[360px]:ml-[62px]">
           <span className="flex min-w-0 items-center gap-2.5">
             <span className="relative h-5 w-5 shrink-0" aria-hidden="true">
               <Tag className="h-5 w-5 fill-emerald-400 text-emerald-400" />
@@ -1338,10 +1338,10 @@ export function QuoteCard({
               </span>
             </span>
           </span>
-          <span className="flex min-w-0 items-center border-l border-slate-400/60 pl-3">
-            <span className="inline-flex max-w-[132px] items-center gap-1.5 rounded-full border border-violet-500/60 bg-violet-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200">
+          <span className="flex min-w-0 items-center border-l border-slate-400/60 pl-2">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-violet-500/60 bg-violet-500/10 px-2 py-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200 min-[390px]:px-2.5">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">
+              <span>
                 {quote.needNow
                   ? "Lo necesita ahora"
                   : `${quote.requestedDate} · ${quote.requestedTime}`}
