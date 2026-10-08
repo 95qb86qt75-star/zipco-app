@@ -175,7 +175,7 @@ export function CustomerQuotes({
                   }}
                   className="zipco-proposal-accept flex min-h-14 items-center justify-center gap-2.5 rounded-[20px] border-2 border-cyan-300 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-2.5 py-2 text-sm font-black leading-tight text-white shadow-[0_0_22px_rgba(20,184,166,0.3)] transition-transform active:scale-[0.98]"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-200/90 text-teal-700 shadow-[0_0_18px_rgba(103,232,249,0.38)]">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/90 text-teal-800 shadow-[0_0_20px_rgba(207,250,254,0.55)] dark:border-cyan-100 dark:bg-cyan-100 dark:text-teal-900">
                     <Check className="h-5 w-5" strokeWidth={3} />
                   </span>
                   <span>Aceptar propuesta</span>
@@ -1324,13 +1324,13 @@ export function QuoteCard({
       </div>
       {quote.status === "quoted" && quote.quotedPriceClp !== null && (
         <div className="ml-[84px] mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-slate-300/40 pt-2">
-          <span className="min-w-0">
-            <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-              Precio propuesto
-            </span>
-            <span className="mt-0.5 flex items-center gap-2">
-              <Tag className="h-5 w-5 shrink-0 fill-emerald-400 text-emerald-400" />
-              <span className="whitespace-nowrap text-base font-black text-emerald-400">
+          <span className="flex min-w-0 items-center gap-2.5">
+            <Tag className="h-5 w-5 shrink-0 fill-emerald-400 text-emerald-400" />
+            <span className="min-w-0">
+              <span className="block whitespace-nowrap text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                Precio propuesto
+              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-base font-black text-emerald-400">
                 {money(quote.quotedPriceClp)}
               </span>
             </span>
