@@ -175,7 +175,7 @@ export function CustomerQuotes({
                   }}
                   className="zipco-proposal-accept flex min-h-14 items-center justify-center gap-2.5 rounded-[20px] border-2 border-cyan-300 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-2.5 py-2 text-sm font-black leading-tight text-white shadow-[0_0_22px_rgba(20,184,166,0.3)] transition-transform active:scale-[0.98]"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/80 bg-white/90 text-teal-800 shadow-[0_0_20px_rgba(207,250,254,0.55)] dark:border-cyan-100 dark:bg-cyan-100 dark:text-teal-900">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-100 bg-cyan-50 text-[#115e59] shadow-[0_0_20px_rgba(207,250,254,0.55)] dark:border-cyan-100 dark:bg-cyan-50 dark:text-[#115e59]">
                     <Check className="h-5 w-5" strokeWidth={3} />
                   </span>
                   <span>Aceptar propuesta</span>
@@ -1348,7 +1348,7 @@ export function QuoteCard({
         </div>
       )}
       {quote.businessMessage && (
-        <p className="mt-3 flex gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800">
+        <p className="mt-3 flex gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800 dark:text-violet-200">
           <MessageSquareText className="h-4 w-4 shrink-0" />
           <span>
             <strong className="block">Respuesta del negocio</strong>
