@@ -1325,7 +1325,10 @@ export function QuoteCard({
       {quote.status === "quoted" && quote.quotedPriceClp !== null && (
         <div className="ml-[84px] mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-slate-300/40 pt-2">
           <span className="flex min-w-0 items-center gap-2.5">
-            <Tag className="h-5 w-5 shrink-0 fill-emerald-400 text-emerald-400" />
+            <span className="relative h-5 w-5 shrink-0" aria-hidden="true">
+              <Tag className="h-5 w-5 fill-emerald-400 text-emerald-400" />
+              <span className="absolute left-[4px] top-[4px] h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_0_0.5px_rgba(15,23,42,0.2)] dark:bg-[#15172b]" />
+            </span>
             <span className="min-w-0">
               <span className="block whitespace-nowrap text-[9px] font-bold uppercase tracking-wide text-slate-400">
                 Precio propuesto
