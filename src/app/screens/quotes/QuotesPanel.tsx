@@ -14,6 +14,7 @@ import {
   MessageSquareText,
   MousePointerClick,
   Send,
+  Tag,
   Zap,
   X,
   XCircle,
@@ -150,7 +151,7 @@ export function CustomerQuotes({
               </div>
             )}
             {quote.status === "quoted" && (
-              <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] gap-2.5">
                 <button
                   disabled={updating.has(quote.id)}
                   onClick={(event) => {
@@ -158,9 +159,12 @@ export function CustomerQuotes({
                     markRead("quote", quote.id);
                     onStatus(quote, "declined");
                   }}
-                  className="zipco-proposal-reject flex items-center justify-center gap-1.5 rounded-xl border-2 border-rose-400 bg-rose-950/10 py-2.5 text-sm font-black text-rose-500"
+                  className="zipco-proposal-reject flex min-h-14 items-center justify-center gap-2.5 rounded-[20px] border-2 border-rose-500 bg-gradient-to-r from-rose-950/15 to-fuchsia-950/10 px-2.5 py-2 text-sm font-black leading-tight text-rose-500 shadow-[0_0_18px_rgba(244,63,94,0.12)] transition-transform active:scale-[0.98]"
                 >
-                  <XCircle className="h-4 w-4" /> Rechazar propuesta
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-500 text-slate-950 shadow-[0_0_18px_rgba(244,63,94,0.35)]">
+                    <X className="h-5 w-5" strokeWidth={3} />
+                  </span>
+                  <span>Rechazar propuesta</span>
                 </button>
                 <button
                   disabled={updating.has(quote.id)}
@@ -169,9 +173,12 @@ export function CustomerQuotes({
                     markRead("quote", quote.id);
                     onStatus(quote, "accepted");
                   }}
-                  className="zipco-proposal-accept flex items-center justify-center gap-1.5 rounded-xl border-2 border-emerald-300 bg-gradient-to-r from-teal-500 to-emerald-500 py-2.5 text-sm font-black text-white shadow-[0_8px_20px_rgba(16,185,129,0.22)]"
+                  className="zipco-proposal-accept flex min-h-14 items-center justify-center gap-2.5 rounded-[20px] border-2 border-cyan-300 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-2.5 py-2 text-sm font-black leading-tight text-white shadow-[0_0_22px_rgba(20,184,166,0.3)] transition-transform active:scale-[0.98]"
                 >
-                  <Check className="h-4 w-4" /> Aceptar propuesta
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-200/90 text-teal-700 shadow-[0_0_18px_rgba(103,232,249,0.38)]">
+                    <Check className="h-5 w-5" strokeWidth={3} />
+                  </span>
+                  <span>Aceptar propuesta</span>
                 </button>
               </div>
             )}
@@ -1288,20 +1295,22 @@ export function QuoteCard({
           <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-4 text-slate-700">
             {quote.message}
           </p>
-          <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
-            <Calendar className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">
-              {quote.needNow
-                ? "Lo necesita ahora"
-                : `${quote.requestedDate} · ${quote.requestedTime}`}
-            </span>
-          </p>
+          {quote.status !== "quoted" && (
+            <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[11px] text-purple-800">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">
+                {quote.needNow
+                  ? "Lo necesita ahora"
+                  : `${quote.requestedDate} · ${quote.requestedTime}`}
+              </span>
+            </p>
+          )}
         </div>
         <div className="flex flex-col items-end gap-2">
           <span className="max-w-[88px] rounded-full bg-violet-50 px-2.5 py-1 text-center text-[10px] font-bold leading-tight text-violet-700">
             {statusLabel}
           </span>
-          {quote.quotedPriceClp !== null && (
+          {quote.status !== "quoted" && quote.quotedPriceClp !== null && (
             <span className="text-right">
               <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
                 Precio propuesto
@@ -1313,6 +1322,31 @@ export function QuoteCard({
           )}
         </div>
       </div>
+      {quote.status === "quoted" && quote.quotedPriceClp !== null && (
+        <div className="ml-[84px] mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-slate-300/40 pt-2">
+          <span className="min-w-0">
+            <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+              Precio propuesto
+            </span>
+            <span className="mt-0.5 flex items-center gap-2">
+              <Tag className="h-5 w-5 shrink-0 fill-emerald-400 text-emerald-400" />
+              <span className="whitespace-nowrap text-base font-black text-emerald-400">
+                {money(quote.quotedPriceClp)}
+              </span>
+            </span>
+          </span>
+          <span className="flex min-w-0 items-center border-l border-slate-400/60 pl-3">
+            <span className="inline-flex max-w-[132px] items-center gap-1.5 rounded-full border border-violet-500/60 bg-violet-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">
+                {quote.needNow
+                  ? "Lo necesita ahora"
+                  : `${quote.requestedDate} · ${quote.requestedTime}`}
+              </span>
+            </span>
+          </span>
+        </div>
+      )}
       {quote.businessMessage && (
         <p className="mt-3 flex gap-2 rounded-xl bg-violet-50 px-3 py-2 text-xs text-violet-800">
           <MessageSquareText className="h-4 w-4 shrink-0" />
