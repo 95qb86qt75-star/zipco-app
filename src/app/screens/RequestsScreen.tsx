@@ -43,6 +43,7 @@ import {
   type HistoryFilter,
   type StatusView,
 } from "./requests/requestStatusGrouping";
+import { getCustomerAttentionItems } from "./requests/requestAttentionSummary";
 
 export default function RequestsScreen({
   onBack,
@@ -111,55 +112,22 @@ export default function RequestsScreen({
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
   const quoteRecords =
     subTab === "my-orders" ? quotes.myQuotes : quotes.businessQuotes;
+  const customerOrderAttention = getCustomerAttentionItems(
+    myOrders,
+    "orders",
+    unread,
+  );
+  const customerQuoteAttention = getCustomerAttentionItems(
+    quotes.myQuotes,
+    "quotes",
+    unread,
+  );
+  const selectedCustomerAttention =
+    requestType === "orders" ? customerOrderAttention : customerQuoteAttention;
   const readyCustomerItems =
-    subTab === "my-orders"
-      ? requestType === "orders"
-        ? myOrders
-            .filter(
-              (order) =>
-                order.recordState === "available" && order.status === "ready",
-            )
-            .map((order) => ({
-              kind: "orders" as const,
-              id: order.id,
-              status: order.status,
-            }))
-        : quotes.myQuotes
-            .filter((quote) => quote.status === "ready")
-            .map((quote) => ({
-              kind: "quotes" as const,
-              id: quote.id,
-              status: quote.status,
-            }))
-      : [];
+    subTab === "my-orders" ? selectedCustomerAttention.ready : [];
   const responseCustomerItems =
-    subTab === "my-orders"
-      ? requestType === "orders"
-        ? myOrders
-            .filter(
-              (order) =>
-                order.recordState === "available" &&
-                (order.status === "alternative_proposed" ||
-                  (order.status === "accepted" &&
-                    unread.has(interactionKey("order", order.id)))),
-            )
-            .map((order) => ({
-              kind: "orders" as const,
-              id: order.id,
-              status: order.status,
-            }))
-        : quotes.myQuotes
-            .filter(
-              (quote) =>
-                quote.status === "quoted" ||
-                quote.status === "alternative_proposed",
-            )
-            .map((quote) => ({
-              kind: "quotes" as const,
-              id: quote.id,
-              status: quote.status,
-            }))
-      : [];
+    subTab === "my-orders" ? selectedCustomerAttention.responses : [];
   const statusCounts = countStatusViews(
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
@@ -187,17 +155,31 @@ export default function RequestsScreen({
     ] as const
   ).filter((item) => item.count > 0);
   const customerRoleBadge =
-    myOrders.filter(
-      (record) =>
-        record.recordState === "available" &&
-        statusViewFor("orders", record.status) !== null &&
-        statusViewFor("orders", record.status) !== "history",
-    ).length +
-    quotes.myQuotes.filter(
-      (record) =>
-        statusViewFor("quotes", record.status) !== null &&
-        statusViewFor("quotes", record.status) !== "history",
-    ).length;
+    customerOrderAttention.count + customerQuoteAttention.count;
+  const customerAttentionCards = (
+    [
+      {
+        kind: "orders" as const,
+        filter: "responses" as const,
+        items: customerOrderAttention.responses,
+      },
+      {
+        kind: "orders" as const,
+        filter: "ready" as const,
+        items: customerOrderAttention.ready,
+      },
+      {
+        kind: "quotes" as const,
+        filter: "responses" as const,
+        items: customerQuoteAttention.responses,
+      },
+      {
+        kind: "quotes" as const,
+        filter: "ready" as const,
+        items: customerQuoteAttention.ready,
+      },
+    ] as const
+  ).filter((card) => card.items.length > 0);
   const businessRoleBadge =
     requests.filter(
       (record) =>
@@ -269,8 +251,7 @@ export default function RequestsScreen({
     ),
   );
   const hasAttentionChoices =
-    subTab === "my-orders" &&
-    (readyCustomerItems.length > 0 || responseCustomerItems.length > 0);
+    subTab === "my-orders" && customerAttentionCards.length > 0;
   const suppressAttentionResults =
     hasAttentionChoices && attentionFilter === null;
   if (
@@ -623,25 +604,39 @@ export default function RequestsScreen({
             whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
             onClick={() => {
               setRequestType("orders");
-              setAttentionFilter(null);
+              setAttentionFilter(subTab === "my-orders" ? "browse" : null);
               setSelectedBusinessActivity(null);
             }}
             className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${requestType === "orders" ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md shadow-teal-500/20" : "text-slate-600"}`}
           >
             <ShoppingBag className="h-4 w-4" />
             Pedidos
+            {subTab === "my-orders" && customerOrderAttention.count > 0 && (
+              <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-black text-white">
+                {customerOrderAttention.count > 9
+                  ? "9+"
+                  : customerOrderAttention.count}
+              </span>
+            )}
           </motion.button>
           <motion.button
             whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
             onClick={() => {
               setRequestType("quotes");
-              setAttentionFilter(null);
+              setAttentionFilter(subTab === "my-orders" ? "browse" : null);
               setSelectedBusinessActivity(null);
             }}
             className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${requestType === "quotes" ? "bg-gradient-to-r from-violet-600 to-purple-500 text-white shadow-md shadow-violet-500/20" : "text-slate-600"}`}
           >
             <MessageSquareText className="h-4 w-4" />
             Cotizaciones
+            {subTab === "my-orders" && customerQuoteAttention.count > 0 && (
+              <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-black text-white">
+                {customerQuoteAttention.count > 9
+                  ? "9+"
+                  : customerQuoteAttention.count}
+              </span>
+            )}
           </motion.button>
         </div>
         {subTab === "my-business" && businessActivityCards.length > 0 && (
@@ -779,89 +774,60 @@ export default function RequestsScreen({
             <ChevronRight className="h-5 w-5" />
           </motion.button>
         )}
-        {subTab === "my-orders" &&
-          (responseCustomerItems.length > 0 ||
-            readyCustomerItems.length > 0) && (
-            <div className="mb-3 space-y-2">
-              {responseCustomerItems.length > 0 && (
+        {subTab === "my-orders" && customerAttentionCards.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {customerAttentionCards.map((card) => {
+              const count = card.items.length;
+              const isQuote = card.kind === "quotes";
+              const isReady = card.filter === "ready";
+              const title = isReady
+                ? isQuote
+                  ? `${count} ${count === 1 ? "servicio listo" : "servicios listos"} para confirmar`
+                  : `${count} ${count === 1 ? "pedido listo" : "pedidos listos"} para recibir`
+                : isQuote
+                  ? `${count} ${count === 1 ? "cotización lista" : "cotizaciones listas"} para revisar`
+                  : `${count} ${count === 1 ? "nueva respuesta" : "nuevas respuestas"} del negocio`;
+
+              return (
                 <motion.button
+                  key={`${card.kind}-${card.filter}`}
                   type="button"
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   onClick={() => {
-                    setAttentionFilter("responses");
-                    const view =
-                      statusViewFor(
-                        requestType,
-                        responseCustomerItems[0].status,
-                      ) ?? "waiting";
+                    setRequestType(card.kind);
+                    setAttentionFilter(card.filter);
+                    const nextView = isReady
+                      ? "ready"
+                      : (statusViewFor(card.kind, card.items[0].status) ??
+                        "waiting");
                     setStatusViews((current) => ({
                       ...current,
-                      [viewKey]: view,
+                      [`my-orders-${card.kind}`]: nextView,
                     }));
                   }}
-                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left text-white shadow-lg ${requestType === "quotes" ? "border-violet-400 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600" : "border-orange-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600"}`}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-lg ${isReady ? "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 dark:from-amber-950/70 dark:to-orange-950/50 dark:text-white" : isQuote ? "border-violet-400 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 text-white" : "border-orange-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white"}`}
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isReady ? "bg-white text-orange-500 dark:bg-white/10" : "bg-white/20"}`}
+                  >
                     <Bell className="zipco-attention-bell h-6 w-6" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-black">
-                      {responseCustomerItems.length}{" "}
-                      {requestType === "quotes"
-                        ? responseCustomerItems.length === 1
-                          ? "cotización lista para revisar"
-                          : "cotizaciones listas para revisar"
-                        : responseCustomerItems.length === 1
-                          ? "nueva respuesta del negocio"
-                          : "nuevas respuestas del negocio"}
-                    </span>
-                    <span className="block text-xs text-white/85">
-                      Toca para revisar{" "}
-                      {responseCustomerItems.length === 1
-                        ? "la solicitud"
-                        : "las solicitudes"}
-                      .
+                    <span className="block text-sm font-black">{title}</span>
+                    <span
+                      className={`block text-xs ${isReady ? "text-slate-500 dark:text-slate-300" : "text-white/85"}`}
+                    >
+                      {isReady
+                        ? "El negocio ya finalizó y te notificó."
+                        : `Toca para revisar ${count === 1 ? "la solicitud" : "las solicitudes"}.`}
                     </span>
                   </span>
                   <ChevronRight className="h-5 w-5" />
                 </motion.button>
-              )}
-              {readyCustomerItems.length > 0 && (
-                <motion.button
-                  type="button"
-                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  onClick={() => {
-                    setAttentionFilter("ready");
-                    setStatusViews((current) => ({
-                      ...current,
-                      [viewKey]: "ready",
-                    }));
-                  }}
-                  className="flex w-full items-center gap-3 rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-3 text-left text-slate-900 shadow-md dark:from-amber-950/70 dark:to-orange-950/50 dark:text-white"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-500">
-                    <Bell className="zipco-attention-bell h-6 w-6" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-black">
-                      {readyCustomerItems.length}{" "}
-                      {requestType === "orders"
-                        ? readyCustomerItems.length === 1
-                          ? "pedido listo para recibir"
-                          : "pedidos listos para recibir"
-                        : readyCustomerItems.length === 1
-                          ? "servicio listo para confirmar"
-                          : "servicios listos para confirmar"}
-                    </span>
-                    <span className="block text-xs text-slate-500 dark:text-slate-300">
-                      El negocio ya finalizó y te notificó.
-                    </span>
-                  </span>
-                  <ChevronRight className="h-5 w-5" />
-                </motion.button>
-              )}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
         <div className="zipco-status-tabs mb-3 flex gap-1.5 overflow-x-auto pb-1">
           {(requestType === "quotes"
             ? ([
