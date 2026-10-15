@@ -4,6 +4,7 @@ import BusinessOrderCard from "./BusinessOrderCard";
 import EmptyRequestsState from "./EmptyRequestsState";
 import OrderActionModal from "./OrderActionModal";
 import AlternativeProposalFields from "./AlternativeProposalFields";
+import { hasRequestProcess } from './requestProcess';
 import type { BusinessRequest, ClosureReason, OrderAction } from "./types";
 import {
   interactionKey,
@@ -160,7 +161,7 @@ export default function BusinessOrdersTab({
       )}
 
       <OrderActionModal
-        processAcceptance={selection?.order.requestProcess !== undefined}
+        processAcceptance={selection ? hasRequestProcess(selection.order) : false}
         key={
           selection
             ? `${selection.order.clientKey}-${selection.action}`

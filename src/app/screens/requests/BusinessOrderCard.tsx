@@ -1,21 +1,19 @@
+import { OrderCardDisclosure, OrderPricePanel } from './OrderCardPanels';
+import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
+import { BusinessOrderHeader } from './OrderCardHeaders';
+import OrderReferencePhoto from './OrderReferencePhoto';
 import ProcessOrderCard from './ProcessOrderCard';
 import { hasRequestProcess } from './requestProcess';
 import {
   Bell,
   Calendar,
   Check,
-  ChevronDown,
-  Image as ImageIcon,
   MessageCircle,
-  MousePointerClick,
-  PackageCheck,
   Sparkles,
   Zap,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import OrderStatusBadge from "./OrderStatusBadge";
 import type { BusinessRequest, OrderAction } from "./types";
 import { formatBusinessDeliverySchedule } from "./utils";
@@ -43,8 +41,7 @@ export default function BusinessOrderCard({
   expanded = false,
   onToggle,
 }: Props) {
-  const [showPhoto, setShowPhoto] = useState(false);
-  if (hasRequestProcess(request)) return <ProcessOrderCard order={request} business isUpdating={isUpdating} onAccept={() => onAction('accept')} onRetry={onRetry} onOpen={onOpen} />;
+  if (hasRequestProcess(request)) return <ProcessOrderCard order={request} business isUpdating={isUpdating} onAccept={() => onAction('accept')} onRetry={onRetry} onOpen={onOpen} isUnread={isUnread} expanded={expanded} onToggle={onToggle} />;
   if (request.recordState === "unavailable")
     return (
       <div className="rounded-2xl border bg-white p-4">
@@ -122,59 +119,8 @@ export default function BusinessOrderCard({
       }}
       className={`zipco-provider-card zipco-order-progress-card zipco-state-${request.status} ${isUnread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-slate-200"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
     >
-      <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
-        {request.customerImage ? (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              event.stopPropagation();
-            }}
-          >
-            <ImageWithFallback
-              src={request.customerImage}
-              alt={request.customerName || "Cliente"}
-              className="h-[62px] w-[62px] rounded-[14px] border border-cyan-300/50 object-cover shadow-[0_0_16px_rgba(34,211,238,0.16)]"
-            />
-          </button>
-        ) : (
-          <span className="zipco-image-placeholder flex h-[62px] w-[62px] items-center justify-center rounded-[14px] bg-slate-100 text-slate-400">
-            <ImageIcon className="h-5 w-5" />
-          </span>
-        )}
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h4 className="truncate text-[15px] font-black leading-[18px] text-slate-950">
-              {request.customerName || "Cliente"}
-            </h4>
-            {isUnread && (
-              <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">
-                Nueva
-              </span>
-            )}
-          </div>
-          {request.products.state === "available" ? (
-            request.products.items.slice(0, 2).map((product, index) => (
-              <p
-                key={`${product.name}-${index}`}
-                className="truncate text-xs text-slate-700"
-              >
-                <strong>{product.quantity}x</strong> {product.name}
-              </p>
-            ))
-          ) : (
-            <p className="text-xs text-red-600">Producto no disponible</p>
-          )}
-        </div>
-        <span
-          className={`inline-flex max-w-[104px] items-center justify-center gap-1 rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${request.status === "pending" ? "zipco-new-badge" : ""} ${tone.badge}`}
-        >
-          {request.status === "pending" && (
-            <PackageCheck className="zipco-attention-bell h-3.5 w-3.5 shrink-0" />
-          )}
-          {statusLabel}
-        </span>
-      </div>
+      <BusinessOrderHeader name={request.customerName} image={request.customerImage} products={request.products}
+        isUnread={isUnread} statusLabel={statusLabel} badgeClass={tone.badge} attention={request.status === 'pending'} />
       {schedule && (
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
           {schedule.toLowerCase().includes("ahora") ? (
@@ -188,49 +134,11 @@ export default function BusinessOrderCard({
 
       <AnimatePresence initial={false} mode="wait">
         {!expanded ? (
-          <motion.button
-            key="business-order-collapsed"
-            type="button"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            onClick={(event) => {
-              event.stopPropagation();
-              handleOpen(event.currentTarget.closest("article") as HTMLElement);
-              onToggle?.();
-            }}
-            className={`zipco-open-panel mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border bg-gradient-to-r px-3 py-2 text-left ${tone.panel}`}
-          >
-            <span className="min-w-0">
-              <span
-                className={`block text-[9px] font-black uppercase tracking-[0.15em] ${tone.accent}`}
-              >
-                {request.status === "pending"
-                  ? "Pedido del cliente"
-                  : request.status === "ready"
-                    ? "Pedido listo"
-                    : request.status === "accepted"
-                      ? "En preparación"
-                      : "Seguimiento del pedido"}
-              </span>
-              <span className="zipco-open-hint mt-1 inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-100 px-2 py-1 text-[11px] font-black text-violet-700">
-                <MousePointerClick className="h-3.5 w-3.5" />
-                {request.status === "pending"
-                  ? "Revisar y responder"
-                  : request.status === "accepted"
-                    ? "Marcar como listo y notificar"
-                    : request.status === "ready"
-                      ? "Esperando confirmación del cliente"
-                      : "Ver seguimiento"}
-              </span>
-            </span>
-            {price !== null && (
-              <span className="whitespace-nowrap text-lg font-black text-teal-800">
-                ${price.toLocaleString("es-CL")}
-              </span>
-            )}
-            <ChevronDown className={`h-5 w-5 ${tone.accent}`} />
-          </motion.button>
+          <OrderCardDisclosure
+            title={request.status === 'pending' ? 'Pedido del cliente' : request.status === 'ready' ? 'Pedido listo' : request.status === 'accepted' ? 'En preparación' : 'Seguimiento del pedido'}
+            hint={request.status === 'pending' ? 'Revisar y responder' : request.status === 'accepted' ? 'Marcar como listo y notificar' : request.status === 'ready' ? 'Esperando confirmación del cliente' : 'Ver seguimiento'}
+            price={price} panelClass={tone.panel} accentClass={tone.accent}
+            onOpen={() => { onOpen?.(); onToggle?.(); }} />
         ) : (
           <motion.div
             key="business-order-expanded"
@@ -331,52 +239,9 @@ export default function BusinessOrderCard({
                   )}
                 </div>
               )}
-              {price !== null && (
-                <div className="mt-2 flex items-end justify-between border-t border-black/5 pt-2">
-                  <span className="text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
-                    Precio total
-                  </span>
-                  <span className="text-xl font-black text-teal-800">
-                    ${price.toLocaleString("es-CL")}
-                  </span>
-                </div>
-              )}
+              {price !== null && <OrderPricePanel price={price} />}
             </div>
-            {request.referencePhoto && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setShowPhoto(true);
-                }}
-                className="group relative mt-3 flex min-h-14 w-full items-center gap-3 overflow-hidden rounded-[16px] border border-cyan-300/70 bg-gradient-to-r from-cyan-50 via-white to-teal-50 px-3 text-left shadow-[0_6px_18px_rgba(34,211,238,0.13)] transition active:scale-[0.98] dark:border-cyan-400/30 dark:from-cyan-400/10 dark:via-slate-900 dark:to-teal-400/10"
-              >
-                <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-cyan-200/20 to-transparent dark:via-cyan-300/5" />
-                <motion.span
-                  aria-hidden="true"
-                  animate={{ scale: [1, 1.1, 1], rotate: [0, -5, 5, 0] }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-[0_0_16px_rgba(34,211,238,0.55)]"
-                >
-                  <ImageIcon className="h-5 w-5" />
-                </motion.span>
-                <span className="relative min-w-0 flex-1">
-                  <strong className="block text-sm font-black text-slate-900 dark:text-white">
-                    Imagen adjunta
-                  </strong>
-                  <span className="block text-xs text-slate-500 dark:text-slate-300">
-                    El cliente agregó una foto de referencia.
-                  </span>
-                </span>
-                <span className="relative shrink-0 rounded-full bg-teal-500 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-transform group-hover:scale-105">
-                  Abrir
-                </span>
-              </button>
-            )}
+            <OrderReferencePhoto src={request.referencePhoto} />
             {request.status === "pending" && (
               <div className="mt-3 grid gap-2">
                 <button
@@ -446,58 +311,7 @@ export default function BusinessOrderCard({
           </motion.div>
         )}
       </AnimatePresence>
-      <AnimatePresence>
-        {showPhoto && request.referencePhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 p-4 backdrop-blur-md"
-            onClick={() => setShowPhoto(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Imagen adjunta por el cliente"
-          >
-            <div
-              className="flex items-center justify-between gap-3 pb-3 text-white"
-              style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
-            >
-              <div>
-                <strong className="block text-base font-black">
-                  Imagen adjunta
-                </strong>
-                <span className="text-xs text-slate-300">
-                  Foto de referencia del cliente
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPhoto(false)}
-                aria-label="Cerrar imagen"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white active:scale-95"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black/30"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <ImageWithFallback
-                src={request.referencePhoto}
-                alt="Foto de referencia"
-                className="max-h-full max-w-full object-contain"
-              />
-            </motion.div>
-            <p className="pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-3 text-center text-xs text-slate-400">
-              Toca fuera de la imagen para cerrar.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </article>
   );
 }

@@ -1,5 +1,7 @@
 import type { RequestProcessSummary } from './requestProcess';
 import useAgreement, { type AgreementState } from './useAgreement';
+import OrderReferencePhoto from './OrderReferencePhoto';
+import { OrderPricePanel } from './OrderCardPanels';
 
 const money = (value: number) => new Intl.NumberFormat('es-CL', {
   style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
@@ -23,24 +25,23 @@ export function AgreementContent({ state, retry }: { state: AgreementState; retr
         <p>{money(item.unitPriceClpSnapshot)} por unidad · Subtotal {money(item.subtotalClp)}</p>
       </li>)}
     </ul>
-    <p className="font-black">Total: {money(a.totalPriceClp)}</p>
+    <OrderPricePanel price={a.totalPriceClp} label="Total:" />
     {a.scheduledFor && <p>Fecha y hora: {new Intl.DateTimeFormat('es-CL', {
       timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short',
     }).format(new Date(a.scheduledFor))}</p>}
     {a.subjectSnapshot.needNow && <p>Solicitado para ahora</p>}
     {a.subjectSnapshot.note && <p className="whitespace-pre-wrap">Nota: {a.subjectSnapshot.note}</p>}
-    {a.subjectSnapshot.referencePhoto && <figure>
-      <figcaption>Foto de referencia</figcaption>
-      <a href={a.subjectSnapshot.referencePhoto} target="_blank" rel="noreferrer" aria-label="Abrir foto de referencia">
-        <img src={a.subjectSnapshot.referencePhoto} alt="Foto de referencia" className="mt-2 max-h-64 w-full rounded-xl object-contain" />
-      </a>
-    </figure>}
+    <OrderReferencePhoto src={a.subjectSnapshot.referencePhoto} />
   </div>;
 }
 
 export default function AcceptedConditions({ process }: { process: RequestProcessSummary | null | undefined }) {
   const { state, retry } = useAgreement(process);
-  return <section aria-label="Condiciones aceptadas" className="mt-3 space-y-3 rounded-2xl border border-teal-200 bg-white p-4 text-sm text-slate-900 dark:bg-slate-900 dark:text-slate-100">
+  return <AcceptedConditionsPanel state={state} retry={retry} />;
+}
+
+export function AcceptedConditionsPanel({ state, retry }: { state: AgreementState; retry: () => void }) {
+  return <section aria-label="Condiciones aceptadas" className="mt-3 space-y-3 rounded-[16px] border border-emerald-200 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100/70 p-3 text-sm text-slate-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40 dark:text-slate-100">
     <h4 className="font-black">Condiciones aceptadas</h4>
     <AgreementContent state={state} retry={retry} />
   </section>;

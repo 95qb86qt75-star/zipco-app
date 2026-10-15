@@ -23,7 +23,7 @@ describe('2A presentation and legacy compatibility', () => {
     const request = normalizeBusinessOrdersPayload([{ ...rawOrder, requestProcess: pendingProcess }])[0];
     const html = render(React.createElement(BusinessOrderCard, { request, ...callbacks, expanded: true }));
     expect(html.match(/Aceptar pedido/g)).toHaveLength(1);
-    expect(html).toContain('Nota de prueba'); expect(html).toContain('photo.jpg');
+    expect(html).toContain('Nota de prueba'); expect(html).toContain('Imagen adjunta');
     for (const text of ['Proponer alternativa', 'Rechazar pedido', 'Marcar como listo', 'Cancelar pedido', 'Confirmar entrega']) expect(html).not.toContain(text);
   });
   it('hides all customer actions for 2A', () => {
@@ -80,7 +80,7 @@ describe('2A presentation and legacy compatibility', () => {
   });
   it('renders accepted snapshots, prices, quantities and Chilean schedule', () => {
     const html = render(React.createElement(AgreementContent, { state: { status: 'loaded', agreement: agreementFixture }, retry: () => undefined }));
-    for (const text of ['Producto acordado', 'Descripción acordada', 'Subtotal', 'Total:', 'Fecha y hora:', 'Nota acordada', 'agreement.jpg']) expect(html).toContain(text);
+    for (const text of ['Producto acordado', 'Descripción acordada', 'Subtotal', 'Total:', 'Fecha y hora:', 'Nota acordada', 'Imagen adjunta']) expect(html).toContain(text);
     expect(html).not.toContain('Reserva');
   });
   it('omits absent note and photo without replacing them with list values', () => {
