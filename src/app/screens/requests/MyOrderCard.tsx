@@ -1,3 +1,5 @@
+import ProcessOrderCard from './ProcessOrderCard';
+import { hasRequestProcess } from './requestProcess';
 import {
   Bell,
   Calendar,
@@ -31,6 +33,7 @@ export default function MyOrderCard({
   onOpen,
 }: Props) {
   const [showAgreementDetails, setShowAgreementDetails] = useState(false);
+  if (hasRequestProcess(order)) return <ProcessOrderCard order={order} isUpdating={isUpdating} onRetry={onRetry} onOpen={onOpen} />;
   if (order.recordState === "unavailable")
     return (
       <div className="rounded-2xl border bg-white p-4">

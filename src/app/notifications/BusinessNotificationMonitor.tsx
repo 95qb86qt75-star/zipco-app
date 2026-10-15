@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
+import { createCustomerOrderNotices } from './orderNotice';
+import { createNotificationRefreshQueue } from './notificationRefreshQueue';
 import { API_BASE_URL } from "../api/apiConfig";
 import { showAppToast } from "../screens/Toast";
 import { updatePushPresence } from "./pushNotifications";
@@ -14,6 +17,7 @@ const PRESENCE_INTERVAL_MS = 5_000;
 const STATUS_SNAPSHOT_KEY = "zipco-request-status-snapshot-v1";
 
 type Interaction = {
+  requestProcess?: RequestProcessSummary | null; requestProcessInvalid?: boolean;
   id: number;
   status: string;
   customerName?: string | null;
@@ -56,6 +60,7 @@ export function parseOrders(value: unknown): Interaction[] {
       {
         id,
         status: record.status,
+        ...(Object.prototype.hasOwnProperty.call(record, 'requestProcess') ? normalizeOrderProcess(record.requestProcess) : {}),
         customerName:
           typeof record.customerName === "string" ? record.customerName : null,
         ...(typeof record.itemNameSnapshot === "string"
@@ -144,11 +149,12 @@ export default function BusinessNotificationMonitor({
       });
     };
 
-    const load = async (
-      announceChanges = true,
-      navigateToCustomerChange = false,
-    ) => {
-      if (document.visibilityState !== "visible") return;
+    const customerNotices = createCustomerOrderNotices((key, [title, description], orderId) => {
+      announce(key, title, description, { kind: 'order', id: orderId },
+        `/?open=requests-customer&orderId=${orderId}`);
+    });
+    const load = createNotificationRefreshQueue(async ({ navigate: navigateToCustomerChange, pushedOrderIds }) => {
+      if (stopped || document.visibilityState !== "visible") return false;
       try {
         const [
           ordersValue,
@@ -173,7 +179,7 @@ export default function BusinessNotificationMonitor({
             : Promise.resolve([]),
           loadJson("/quotes/my-quotes", token, onSessionExpired),
         ]);
-        if (stopped) return;
+        if (stopped) return false;
         const orders = parseOrders(ordersValue);
         const customerOrders = parseOrders(customerOrdersValue);
         const businessQuotes = parseQuotes(businessQuotesValue);
@@ -206,7 +212,7 @@ export default function BusinessNotificationMonitor({
         );
 
         let customerNavigationTarget: string | null = null;
-        if (hasBaseline.current && announceChanges) {
+        if (hasBaseline.current) {
           orders
             .filter(
               (order) =>
@@ -238,40 +244,6 @@ export default function BusinessNotificationMonitor({
               { kind: "order", id: order.id },
               `/?open=requests-business&orderId=${order.id}`,
             );
-          });
-          customerOrders.forEach((order) => {
-            const previous = customerOrderStatuses.current.get(order.id);
-            if (!previous || previous === order.status) return;
-            const copy = {
-              alternative_proposed: [
-                "Nueva alternativa del negocio",
-                "El negocio propuso otra opción para tu pedido.",
-              ],
-              accepted: ["Pedido aceptado", "El negocio acepto tu pedido."],
-              rejected: ["Pedido rechazado", "El negocio rechazo tu pedido."],
-              ready: [
-                "Tu pedido esta listo",
-                "El negocio marco tu pedido como listo.",
-              ],
-              completed: [
-                "Pedido completado",
-                "Tu pedido fue marcado como completado.",
-              ],
-            } as const;
-            if (order.status in copy) {
-              const [title, description] =
-                copy[order.status as keyof typeof copy];
-              announce(
-                `order-${order.id}-${order.status}`,
-                title,
-                description,
-                { kind: "order", id: order.id },
-                `/?open=requests-customer&orderId=${order.id}`,
-              );
-              if (navigateToCustomerChange && !customerNavigationTarget) {
-                customerNavigationTarget = `/?open=requests-customer&orderId=${order.id}`;
-              }
-            }
           });
           businessQuotes.forEach((quote) => {
             const previous = businessQuoteStatuses.current.get(quote.id);
@@ -348,13 +320,17 @@ export default function BusinessNotificationMonitor({
           });
         }
 
+        const notifiedOrderId = customerNotices(customerOrders, customerOrderStatuses.current, hasBaseline.current, pushedOrderIds);
+        if (navigateToCustomerChange && notifiedOrderId !== null) {
+          customerNavigationTarget = `/?open=requests-customer&orderId=${notifiedOrderId}`;
+        }
         publishUnreadCount();
         window.dispatchEvent(new CustomEvent("zipco-requests-refresh"));
         orderStatuses.current = new Map(
           orders.map((order) => [order.id, order.status]),
         );
         customerOrderStatuses.current = new Map(
-          customerOrders.map((order) => [order.id, order.status]),
+          customerOrders.map((order) => [order.id, orderNotificationState(order)]),
         );
         businessQuoteStatuses.current = new Map(
           businessQuotes.map((quote) => [quote.id, quote.status]),
@@ -377,39 +353,20 @@ export default function BusinessNotificationMonitor({
             }),
           );
         }
+        return true;
       } catch {
         // El siguiente ciclo vuelve a intentar sin interrumpir la experiencia.
+        return false;
       }
-    };
+    });
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
-      const data = event.data as Record<string, unknown> | null;
-      if (!data || typeof data.type !== "string") return;
-      const key =
-        typeof data.tag === "string"
-          ? data.tag
-          : `${data.type}:${String(data.orderId ?? data.quoteId ?? "")}`;
-      const orderId = Number(data.orderId);
-      const quoteId = Number(data.quoteId);
-      announce(
-        key,
-        typeof data.title === "string"
-          ? data.title
-          : "Nueva actividad en ZIPCO",
-        typeof data.body === "string" ? data.body : "Revisa tus Solicitudes.",
-        Number.isInteger(orderId) && orderId > 0
-          ? { kind: "order", id: orderId }
-          : Number.isInteger(quoteId) && quoteId > 0
-            ? { kind: "quote", id: quoteId }
-            : undefined,
-        typeof data.url === "string" ? data.url : undefined,
-      );
-      void load(false);
+      void load(false, event.data);
     };
     const handleVisibility = () => {
       const isVisible = document.visibilityState === "visible";
       reportPresence(isVisible);
-      if (isVisible) void load(true, true);
+      if (isVisible) void load(true);
     };
     const handlePageHide = () => reportPresence(false);
 
@@ -423,7 +380,7 @@ export default function BusinessNotificationMonitor({
     // A notification tap can cold-start the iOS PWA without preserving its
     // deep link. When a persisted baseline exists, the server-side status
     // difference is authoritative enough to recover the related request.
-    void load(true, Boolean(storedSnapshot));
+    void load(Boolean(storedSnapshot));
     const interval = window.setInterval(() => void load(), POLL_INTERVAL_MS);
     const presenceInterval = window.setInterval(
       () => reportPresence(document.visibilityState === "visible"),

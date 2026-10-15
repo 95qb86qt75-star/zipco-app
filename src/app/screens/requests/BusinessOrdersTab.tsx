@@ -160,6 +160,7 @@ export default function BusinessOrdersTab({
       )}
 
       <OrderActionModal
+        processAcceptance={selection?.order.requestProcess !== undefined}
         key={
           selection
             ? `${selection.order.clientKey}-${selection.action}`

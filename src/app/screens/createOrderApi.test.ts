@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { PAST_SCHEDULE_MESSAGE, DST_SCHEDULE_MESSAGE } from './requests/requestProcessErrors';
 import {
   buildCreateOrderPayload,
   createOrder,
@@ -73,6 +74,10 @@ describe('delivery selection', () => {
 });
 
 describe('createOrder', () => {
+  it.each([PAST_SCHEDULE_MESSAGE, DST_SCHEDULE_MESSAGE])('shows the approved schedule validation message: %s', async (message) => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({ message }), { status: 400 }));
+    await expect(createOrder({ ...input, fetchImpl })).rejects.toMatchObject({ status: 400, message });
+  });
   it('does not fetch when checkout is forced for the owner', async () => {
     const fetchImpl = vi.fn();
     await expect(createOrder({ ...input, currentUserId: '35', fetchImpl })).rejects.toMatchObject({

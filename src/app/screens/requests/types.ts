@@ -1,3 +1,5 @@
+import type { RequestProcessSummary } from './requestProcess';
+
 export const ORDER_STATUSES = [
   "pending",
   "alternative_proposed",
@@ -25,7 +27,7 @@ export type OrderDataIssue =
   | "businessPhone"
   | "businessImage"
   | "customerName"
-  | "customerPhone"
+  | "requestProcess"
   | "customerImage"
   | "note"
   | "referencePhoto"
@@ -78,6 +80,7 @@ type UnavailableOrderIdentity = {
 export type OrderIdentity = AvailableOrderIdentity | UnavailableOrderIdentity;
 
 type CommonOrderData = {
+  requestProcess?: RequestProcessSummary | null; requestProcessInvalid?: boolean;
   clientKey: string;
   businessId: number | null;
   userId: number | null;
@@ -107,7 +110,6 @@ type CommonOrderData = {
 export type BusinessRequest = OrderIdentity &
   CommonOrderData & {
     customerName: string;
-    customerPhone: string;
     customerImage: string;
     distance: string;
   };

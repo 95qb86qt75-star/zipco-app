@@ -1,15 +1,21 @@
+import { hasRequestProcess, type RequestProcessSummary } from './requestProcess';
 export type RequestKind = "orders" | "quotes";
-export type StatusView = "pending" | "waiting" | "active" | "ready" | "history";
+export type StatusView = "pending" | "waiting" | "active" | "ready" | "history" | "coordination";
 export type HistoryFilter =
   "all" | "completed" | "cancelled" | "rejected" | "deleted";
 
-type StatusRecord = { status: string; archivedAt?: string | null };
+type StatusRecord = { status: string; archivedAt?: string | null; requestProcess?: RequestProcessSummary | null; requestProcessInvalid?: boolean };
 
 export function statusViewFor(
   kind: RequestKind,
   status: string,
+  requestProcess?: RequestProcessSummary | null,
+  requestProcessInvalid = false,
 ): StatusView | null {
   if (kind === "orders") {
+    if (hasRequestProcess({ requestProcess, requestProcessInvalid }) && !['completed', 'rejected', 'cancelled'].includes(status)) {
+      return requestProcess?.state === 'AWAITING_BUSINESS_RESPONSE' ? 'pending' : 'coordination';
+    }
     if (status === "pending") return "pending";
     if (status === "alternative_proposed") return "waiting";
     if (status === "accepted") return "active";
@@ -35,11 +41,11 @@ export function statusViewFor(
 export function countStatusViews(records: StatusRecord[], kind: RequestKind) {
   return records.reduce(
     (counts, record) => {
-      const view = statusViewFor(kind, record.status);
+      const view = statusViewFor(kind, record.status, record.requestProcess, record.requestProcessInvalid);
       if (view) counts[view] += 1;
       return counts;
     },
-    { pending: 0, waiting: 0, active: 0, ready: 0, history: 0 },
+    { pending: 0, waiting: 0, active: 0, ready: 0, history: 0, coordination: 0 },
   );
 }
 
@@ -51,7 +57,7 @@ export function filterByStatusView<T extends StatusRecord>(
   isArchived: (record: T) => boolean = (record) => Boolean(record.archivedAt),
 ) {
   return records.filter((record) => {
-    if (statusViewFor(kind, record.status) !== view) return false;
+    if (statusViewFor(kind, record.status, record.requestProcess, record.requestProcessInvalid) !== view) return false;
     if (view !== "history") return true;
     const archived = isArchived(record);
     if (historyFilter === "deleted") return archived;

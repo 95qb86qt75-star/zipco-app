@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createFixedOrderAcceptance } from './fixedOrderAcceptance';
+import { hasRequestProcess } from './requestProcess';
+import { RequestProcessError, REFRESH_CONDITIONS_MESSAGE } from './requestProcessErrors';
+import { mergeProcessOrderUpdates } from './processOrderUpdates';
+import { readBusinessOrderForRecovery } from './requestProcessApi';
+import { parsePositiveInteger } from './orderValueParsers';
 import { API_BASE_URL } from "../../api/apiConfig";
 import { showAppToast } from "../Toast";
 import { createOrderOperationGuard } from "./orderActionGuard";
@@ -38,6 +44,9 @@ export default function useRequests(onSessionExpired: () => void) {
     () => new Set(),
   );
   const guardRef = useRef(createOrderOperationGuard());
+  const acceptanceRef = useRef(createFixedOrderAcceptance());
+  const currentOrders = useRef<Array<BusinessRequest | MyOrder>>([]);
+  currentOrders.current = [...requests, ...myOrders];
   const businessNameCache = useRef(new Map<number, string>());
   const hasBusiness =
     typeof window !== "undefined" &&
@@ -76,8 +85,7 @@ export default function useRequests(onSessionExpired: () => void) {
           );
         const myPayload: unknown = await myResponse.json();
         const normalized = normalizeMyOrdersPayload(myPayload);
-        setMyOrders(
-          await Promise.all(
+        const customerOrders = await Promise.all(
             normalized.map(async (order) => {
               if (order.businessName)
                 return {
@@ -98,8 +106,8 @@ export default function useRequests(onSessionExpired: () => void) {
                 businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
               };
             }),
-          ),
-        );
+          );
+        setMyOrders((current) => mergeProcessOrderUpdates(customerOrders, current));
 
         if (businessId) {
           const businessResponse = await fetch(
@@ -115,7 +123,7 @@ export default function useRequests(onSessionExpired: () => void) {
             );
           }
           const businessPayload: unknown = await businessResponse.json();
-          setRequests(normalizeBusinessOrdersPayload(businessPayload));
+          setRequests((current) => mergeProcessOrderUpdates(normalizeBusinessOrdersPayload(businessPayload), current));
         } else {
           setRequests([]);
         }
@@ -148,6 +156,12 @@ export default function useRequests(onSessionExpired: () => void) {
     void loadOrders();
   }, [loadOrders]);
 
+  useEffect(() => {
+    for (const order of [...requests, ...myOrders]) {
+      if (order.requestProcess) acceptanceRef.current.acknowledge(order.requestProcess);
+    }
+  }, [requests, myOrders]);
+
   const performAction = useCallback(
     async (
       order: BusinessRequest | MyOrder,
@@ -156,6 +170,16 @@ export default function useRequests(onSessionExpired: () => void) {
       cancellationReason?: ClosureReason,
       reasonDetail?: string,
     ) => {
+      const current = currentOrders.current.find((item) => item.id === order.id);
+      if (current && hasRequestProcess(current) &&
+        (!hasRequestProcess(order) || current.requestProcess?.id !== order.requestProcess?.id ||
+          current.requestProcess?.version !== order.requestProcess?.version ||
+          current.requestProcess?.currentProposalId !== order.requestProcess?.currentProposalId ||
+          !canSubmitOrderStatus(current, actor, action))) {
+        showAppToast(REFRESH_CONDITIONS_MESSAGE, 'error');
+        await loadOrders(true);
+        return false;
+      }
       if (!canSubmitOrderStatus(order, actor, action)) return false;
       const actionable = getActionableOrder(order);
       const payload = actionToPayload(action, cancellationReason, reasonDetail);
@@ -170,6 +194,25 @@ export default function useRequests(onSessionExpired: () => void) {
 
       setUpdatingOrderIds((current) => new Set(current).add(actionable.id));
       try {
+        if (hasRequestProcess(order)) {
+          if (!order.requestProcess) return false;
+          const result = await acceptanceRef.current.accept(actionable.id, order.requestProcess, token, async () => {
+            const businessId = parsePositiveInteger(localStorage.getItem('zipco-business-id'));
+            if (!businessId) throw new RequestProcessError('No se pudo verificar el negocio. Actualiza la pantalla.', 0);
+            const latest = await readBusinessOrderForRecovery(actionable.id, businessId, token);
+            if (latest) setRequests((items) => mergeProcessOrderUpdates(
+              items.map((item) => item.id === latest.id ? latest : item), items,
+            ));
+            return latest;
+          });
+          if (!result) return false;
+          const update = <T extends BusinessRequest | MyOrder>(items: T[]): T[] => items.map((item) =>
+            item.id === result.orderId ? { ...item, status: result.orderStatus, requestProcess: result.requestProcess } : item);
+          setRequests(update);
+          setMyOrders(update);
+          showAppToast('Pedido aceptado. Coordinación pendiente.');
+          return true;
+        }
         await patchOrderStatus(actionable.id, payload, token);
         const reloaded = await loadOrders();
         if (reloaded) {
@@ -187,7 +230,7 @@ export default function useRequests(onSessionExpired: () => void) {
       } catch (error) {
         const policy = getOrderErrorPolicy(error);
         showAppToast(policy.message, "error");
-        if (policy.reload) await loadOrders();
+        if (policy.reload || (error instanceof RequestProcessError && error.refreshConditions)) await loadOrders();
         if (policy.expireSession) onSessionExpired();
         return false;
       } finally {
@@ -204,6 +247,7 @@ export default function useRequests(onSessionExpired: () => void) {
 
   const setArchived = useCallback(
     async (id: number, archived: boolean) => {
+      if ([...requests, ...myOrders].some((order) => order.id === id && hasRequestProcess(order))) return;
       const token = localStorage.getItem("zipco-token");
       if (!token) return;
       try {
@@ -216,18 +260,19 @@ export default function useRequests(onSessionExpired: () => void) {
         );
       } catch (error) {
         showAppToast(
-          error instanceof Error
+          error instanceof OrdersApiError
             ? error.message
             : "No se pudo actualizar el historial.",
           "error",
         );
       }
     },
-    [loadOrders],
+    [loadOrders, requests, myOrders],
   );
 
   const deletePermanently = useCallback(
     async (id: number) => {
+      if ([...requests, ...myOrders].some((order) => order.id === id && hasRequestProcess(order))) return;
       const token = localStorage.getItem("zipco-token");
       if (!token) return;
       try {
@@ -236,14 +281,14 @@ export default function useRequests(onSessionExpired: () => void) {
         showAppToast("Pedido eliminado definitivamente.");
       } catch (error) {
         showAppToast(
-          error instanceof Error
+          error instanceof OrdersApiError
             ? error.message
             : "No se pudo eliminar el pedido.",
           "error",
         );
       }
     },
-    [loadOrders],
+    [loadOrders, requests, myOrders],
   );
 
   const proposeAlternative = useCallback(
@@ -261,19 +306,21 @@ export default function useRequests(onSessionExpired: () => void) {
       const token = localStorage.getItem("zipco-token");
       if (!token) return;
       try {
+        const order = requests.find((item) => item.id === id);
+        if (!order || hasRequestProcess(order)) return;
         await proposeOrderAlternative(id, payload, token);
         await loadOrders();
         showAppToast("Alternativa enviada al cliente.");
       } catch (error) {
         showAppToast(
-          error instanceof Error
+          error instanceof OrdersApiError
             ? error.message
             : "No se pudo enviar la alternativa.",
           "error",
         );
       }
     },
-    [loadOrders],
+    [loadOrders, requests],
   );
 
   return {

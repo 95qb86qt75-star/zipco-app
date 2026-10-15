@@ -1,4 +1,6 @@
 import { isOwnBusiness } from './businessOwnership';
+import { normalizeOrderProcess, type RequestProcessSummary } from './requests/requestProcess';
+import { approvedScheduleMessage } from './requests/requestProcessErrors';
 import { parseNonNegativeInteger } from './requests/orderValueParsers';
 
 export const OWN_BUSINESS_ORDER_MESSAGE = 'No puedes realizar pedidos en tu propio negocio.';
@@ -27,7 +29,7 @@ export function buildCreateOrderPayload(draft: CreateOrderDraft): CreateOrderPay
     referencePhoto: draft.referencePhoto
   };
 }
-export type CreatedOrder = { id: number; total: number; items: OrderItemResponse[] };
+export type CreatedOrder = { id: number; total: number; items: OrderItemResponse[]; requestProcess?: RequestProcessSummary | null };
 export type OrderItemResponse = { id: number; orderId: number; catalogItemId: number | null; nameSnapshot: string; unitPriceClpSnapshot: number; quantity: number; subtotalClp: number };
 
 export class CreateOrderError extends Error { constructor(message: string, readonly status: number | null) { super(message); this.name = 'CreateOrderError'; } }
@@ -47,7 +49,8 @@ export function normalizeCreatedOrder(value: unknown): CreatedOrder {
   const matchingOrder = validItems.every((item) => item.orderId === value.id);
   const matchingTotal = validItems.reduce((sum, item) => sum + item.subtotalClp, 0) === total;
   if (itemIds.size !== validItems.length || !matchingOrder || !matchingTotal) throw new CreateOrderError('La respuesta del pedido no tiene un formato válido.', null);
-  return { id: value.id, total, items: validItems };
+  return { id: value.id, total, items: validItems,
+    ...(Object.prototype.hasOwnProperty.call(value, 'requestProcess') ? normalizeOrderProcess(value.requestProcess) : {}) };
 }
 
 type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; fetchImpl?: typeof fetch };
@@ -59,7 +62,10 @@ export async function createOrder({ url, token, currentUserId, businessUserId, p
   catch { throw new CreateOrderError('No se pudo conectar. Intenta nuevamente.', null); }
   if (!response.ok) {
     const messages: Record<number, string> = { 400: 'Revisa los datos del pedido.', 401: 'Tu sesión venció. Ingresa nuevamente.', 403: OWN_BUSINESS_ORDER_MESSAGE, 404: 'El negocio o uno de sus artículos ya no está disponible.', 409: CATALOG_CHANGED_MESSAGE };
-    throw new CreateOrderError(messages[response.status] ?? GENERIC_CREATE_ORDER_MESSAGE, response.status);
+    let body: unknown = null;
+    try { body = await response.json(); } catch { /* Only approved messages may be displayed. */ }
+    const schedule = [400, 422].includes(response.status) ? approvedScheduleMessage(body) : null;
+    throw new CreateOrderError(schedule ?? messages[response.status] ?? GENERIC_CREATE_ORDER_MESSAGE, response.status);
   }
   try { return normalizeCreatedOrder(await response.json() as unknown); }
   catch (error) { if (error instanceof CreateOrderError) throw error; throw new CreateOrderError('La respuesta del pedido no tiene un formato válido.', response.status); }

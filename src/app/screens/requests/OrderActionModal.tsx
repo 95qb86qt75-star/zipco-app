@@ -34,6 +34,7 @@ type Props = {
   isSubmitting: boolean;
   onClose: () => void;
   onConfirm: (reason?: ClosureReason, detail?: string) => void;
+  processAcceptance?: boolean;
 };
 
 export default function OrderActionModal({
@@ -41,6 +42,7 @@ export default function OrderActionModal({
   isSubmitting,
   onClose,
   onConfirm,
+  processAcceptance = false,
 }: Props) {
   const [reason, setReason] = useState<ClosureReason | null>(null);
   const [detail, setDetail] = useState("");
@@ -68,7 +70,7 @@ export default function OrderActionModal({
           {copy.title}
         </h3>
         <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">
-          {copy.description}
+          {processAcceptance ? 'Al aceptar, el pedido pasará a Coordinación pendiente con estas condiciones.' : copy.description}
         </p>
         {needsReason && (
           <fieldset className="mt-4 space-y-2">

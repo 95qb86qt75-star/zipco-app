@@ -13,5 +13,5 @@ export function getOrderErrorPolicy(error: unknown): OrderErrorPolicy {
   if (error.status === 401) {
     return { message: 'Tu sesión venció. Ingresa nuevamente por SMS.', reload: false, expireSession: true };
   }
-  return { message: error.message, reload: error.status === 409, expireSession: false };
+  return { message: error.message, reload: error.status === 409 || error.refreshRequired, expireSession: false };
 }

@@ -1,3 +1,4 @@
+import { normalizeOrderProcess, hasRequestProcess, canAcceptFixedOrder } from './requestProcess';
 import {
   isPresent,
   isRecord,
@@ -188,7 +189,6 @@ function normalizeCandidate(
       : {
           ...unavailable,
           customerName: "Cliente",
-          customerPhone: "",
           customerImage: "",
           distance: "",
         };
@@ -255,6 +255,8 @@ function normalizeCandidate(
 
   const common = {
     ...identity,
+    ...(Object.prototype.hasOwnProperty.call(record, 'requestProcess')
+      ? normalizeOrderProcess(record.requestProcess) : {}),
     clientKey,
     businessId,
     userId,
@@ -342,11 +344,6 @@ function normalizeCandidate(
               "customerName",
               dataIssues,
             ) || "Cliente",
-          customerPhone: readOptionalText(
-            record.customerPhone ?? user?.phone,
-            "customerPhone",
-            dataIssues,
-          ),
           customerImage:
             readOptionalImage(
               record.customerImage ?? user?.profileImage ?? user?.photo,
@@ -357,6 +354,7 @@ function normalizeCandidate(
         } satisfies BusinessRequest);
 
   normalized.dataIssues = uniqueIssues(dataIssues);
+  if (normalized.requestProcessInvalid) normalized.dataIssues.push('requestProcess');
   if (
     normalized.identityIssues.length > 0 ||
     normalized.dataIssues.length > 0
@@ -409,6 +407,10 @@ export function canSubmitOrderStatus(
   action: OrderAction,
 ): boolean {
   if (order.recordState !== "available") return false;
+  if (hasRequestProcess(order)) {
+    return actor === 'business' && action === 'accept' &&
+      canAcceptFixedOrder(order) && order.products.state === 'available';
+  }
   if (actor === "customer") {
     return (
       (action === "cancel" && order.status === "pending") ||

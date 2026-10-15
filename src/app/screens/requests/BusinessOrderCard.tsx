@@ -1,3 +1,5 @@
+import ProcessOrderCard from './ProcessOrderCard';
+import { hasRequestProcess } from './requestProcess';
 import {
   Bell,
   Calendar,
@@ -42,6 +44,7 @@ export default function BusinessOrderCard({
   onToggle,
 }: Props) {
   const [showPhoto, setShowPhoto] = useState(false);
+  if (hasRequestProcess(request)) return <ProcessOrderCard order={request} business isUpdating={isUpdating} onAccept={() => onAction('accept')} onRetry={onRetry} onOpen={onOpen} />;
   if (request.recordState === "unavailable")
     return (
       <div className="rounded-2xl border bg-white p-4">

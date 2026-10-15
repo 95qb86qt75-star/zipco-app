@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ProcessHistoryCard from './ProcessHistoryCard';
+import { hasRequestProcess } from './requestProcess';
 import {
   Calendar,
   CalendarDays,
@@ -21,6 +23,7 @@ import {
 } from "../../notifications/unreadInteractions";
 
 type HistoryItem = {
+  processOrder?: MyOrder | BusinessRequest;
   key: string;
   id: number;
   kind: InteractionKind;
@@ -104,6 +107,7 @@ function normalizeOrder(
   const identity = isCustomer ? (order as MyOrder) : (order as BusinessRequest);
   return {
     key: order.clientKey,
+    ...(hasRequestProcess(order) ? { processOrder: order } : {}),
     id: order.recordState === "available" ? order.id : 0,
     kind: "order",
     title: products.map((product) => product.name).join(", ") || "Pedido",
@@ -281,19 +285,20 @@ function CompactHistoryList({
   >(null);
   const [swipedKey, setSwipedKey] = useState<string | null>(null);
   const { unread, markRead } = useUnreadInteractions();
+  const actionableItems = items.filter((item) => !item.processOrder);
   return (
     <>
-      {items.length > 0 && (
+      {actionableItems.length > 0 && (
         <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center justify-between gap-3">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
               <input
                 type="checkbox"
-                checked={selectedKeys.size === items.length}
+                checked={selectedKeys.size === actionableItems.length}
                 onChange={(event) =>
                   setSelectedKeys(
                     event.target.checked
-                      ? new Set(items.map((item) => item.key))
+                      ? new Set(actionableItems.map((item) => item.key))
                       : new Set(),
                   )
                 }
@@ -335,6 +340,7 @@ function CompactHistoryList({
       )}
       <div className="space-y-2.5">
         {items.map((item, index) => {
+          if (item.processOrder) return <ProcessHistoryCard key={item.key} order={item.processOrder} />;
           const presentation = statusPresentation[item.status];
           const StatusIcon = presentation.icon;
           const isUnread = unread.has(interactionKey(item.kind, item.id));

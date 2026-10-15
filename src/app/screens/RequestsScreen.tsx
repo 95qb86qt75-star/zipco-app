@@ -184,8 +184,8 @@ export default function RequestsScreen({
     requests.filter(
       (record) =>
         record.recordState === "available" &&
-        statusViewFor("orders", record.status) !== null &&
-        statusViewFor("orders", record.status) !== "history",
+        statusViewFor("orders", record.status, record.requestProcess, record.requestProcessInvalid) !== null &&
+        statusViewFor("orders", record.status, record.requestProcess, record.requestProcessInvalid) !== "history",
     ).length +
     quotes.businessQuotes.filter(
       (record) =>
@@ -208,7 +208,7 @@ export default function RequestsScreen({
   const unreadHistoryCount = (
     requestType === "orders" ? orderRecords : quoteRecords
   )
-    .filter((record) => statusViewFor(requestType, record.status) === "history")
+    .filter((record) => statusViewFor(requestType, record.status, 'requestProcess' in record ? record.requestProcess : undefined, 'requestProcessInvalid' in record ? record.requestProcessInvalid : false) === "history")
     .filter((record) =>
       unread.has(
         interactionKey(requestType === "orders" ? "order" : "quote", record.id),
@@ -278,6 +278,7 @@ export default function RequestsScreen({
       );
   }
   const emptyCopy = {
+    coordination: { title: 'No tienes pedidos en Coordinación', description: 'Los pedidos aceptados de esta etapa aparecerán aquí.' },
     pending: {
       title: "No tienes solicitudes pendientes",
       description: "Cuando algo requiera atención aparecerá aquí.",
@@ -496,9 +497,10 @@ export default function RequestsScreen({
     if (!target) return;
     const targetKind =
       Number.isInteger(quoteId) && quoteId > 0 ? "quotes" : "orders";
-    const targetView = statusViewFor(targetKind, target.status);
+    const targetView = statusViewFor(targetKind, target.status, 'requestProcess' in target ? target.requestProcess : undefined, 'requestProcessInvalid' in target ? target.requestProcessInvalid : false);
     if (!targetView) return;
     setRequestType(targetKind);
+    if (targetView === 'coordination') setAttentionFilter('browse');
     if (
       subTab === "my-orders" &&
       (target.status === "quoted" || target.status === "alternative_proposed")
@@ -798,7 +800,7 @@ export default function RequestsScreen({
                     setAttentionFilter(card.filter);
                     const nextView = isReady
                       ? "ready"
-                      : (statusViewFor(card.kind, card.items[0].status) ??
+                      : (statusViewFor(card.kind, card.items[0].status, card.items[0].requestProcess, card.items[0].requestProcessInvalid) ??
                         "waiting");
                     setStatusViews((current) => ({
                       ...current,
@@ -868,6 +870,7 @@ export default function RequestsScreen({
                 },
               ] as const)
             : ([
+                ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "pending",
                   label: "Pendientes",
@@ -974,6 +977,8 @@ export default function RequestsScreen({
                         statusViewFor(
                           requestType,
                           responseCustomerItems[0].status,
+                          responseCustomerItems[0].requestProcess,
+                          responseCustomerItems[0].requestProcessInvalid,
                         ) ?? "pending";
                       setStatusViews((current) => ({
                         ...current,
@@ -1290,6 +1295,7 @@ export default function RequestsScreen({
                     updatingOrderIds={updatingOrderIds}
                     onRetry={loadOrders}
                     onAction={async (order, action, reason, detail) => {
+                      if (order.requestProcess !== undefined) return;
                       if (
                         action === "complete-reception" &&
                         order.recordState === "available"
@@ -1351,6 +1357,11 @@ export default function RequestsScreen({
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
                   onAction={async (order, action, reason, detail) => {
+                    if (order.requestProcess !== undefined) {
+                      const accepted = await performAction(order, 'business', action, reason, detail);
+                      if (accepted) selectStatusView('coordination');
+                      return;
+                    }
                     const transfer =
                       action === "accept"
                         ? {
