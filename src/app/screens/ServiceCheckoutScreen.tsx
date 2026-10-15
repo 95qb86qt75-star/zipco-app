@@ -1,10 +1,8 @@
 import React, { useRef, useState } from "react";
 import {
   ArrowLeft,
-  Calendar,
   Camera,
   Check,
-  Clock,
   Send,
   X,
 } from "lucide-react";
@@ -12,13 +10,14 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import BottomNav from "./BottomNav";
 import { API_BASE_URL } from "../api/apiConfig";
 import {
-  buildCreateOrderPayload,
   createOrder,
   CreateOrderError,
-  hasCompleteDeliverySelection,
 } from "./createOrderApi";
 import { getCloudinarySecureImageUrl } from "./profile/business-config/catalogValidation";
 import { showAppToast } from "./Toast";
+import OrderMomentSelector from './OrderMomentSelector';
+import { selectOrderMoment, type OrderMoment } from './orderMoment';
+import { createOrderCreationIntent, OrderSelectionError } from './orderCreationIntent';
 
 export default function ServiceCheckoutScreen({
   onBack,
@@ -37,15 +36,21 @@ export default function ServiceCheckoutScreen({
 }) {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
-  const [scheduleOption, setScheduleOption] = useState<
-    "now" | "schedule" | null
-  >(null);
+  const [scheduleOption, setScheduleOption] = useState<OrderMoment | null>(null);
   const [message, setMessage] = useState("");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const idempotencyKey = useRef<string | null>(null);
+  const creationIntent = useRef(createOrderCreationIntent());
+
+  const handleMomentSelection = (moment: OrderMoment) => {
+    if (moment === scheduleOption) return;
+    const selection = selectOrderMoment(moment);
+    setScheduleOption(selection.moment);
+    setDeliveryDate(selection.date);
+    setDeliveryTime(selection.time);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,47 +82,35 @@ export default function ServiceCheckoutScreen({
   };
 
   const handleSubmit = async () => {
-    const needNow = scheduleOption === "now";
-    if (
-      !scheduleOption ||
-      !hasCompleteDeliverySelection({ needNow, deliveryDate, deliveryTime })
-    ) {
-      showAppToast("Selecciona cuándo necesitas el servicio.", "warning");
-      return;
-    }
+    if (creationIntent.current.isBlocked()) return;
     const token = localStorage.getItem("zipco-token");
     if (!token || isSubmitting || isUploading) return;
     setIsSubmitting(true);
     try {
-      idempotencyKey.current ??= crypto.randomUUID();
-      await createOrder({
+      const created = await creationIntent.current.submit({
+        identity: JSON.stringify([localStorage.getItem('zipco-user-id'), provider.id, provider.userId]),
+        selection: { moment: scheduleOption, date: deliveryDate, time: deliveryTime },
+        details: { businessId: Number(provider.id), items: [{ catalogItemId: Number(service.id), quantity: 1 }],
+          note: message, referencePhoto: uploadedImage },
+      }, (payload, idempotencyKey) => createOrder({
         url: `${API_BASE_URL}/orders`,
         token,
         currentUserId: localStorage.getItem("zipco-user-id"),
         businessUserId: provider.userId,
-        idempotencyKey: idempotencyKey.current,
-        payload: buildCreateOrderPayload({
-          businessId: Number(provider.id),
-          items: [{ catalogItemId: Number(service.id), quantity: 1 }],
-          note: message,
-          needNow,
-          deliveryDate,
-          deliveryTime,
-          referencePhoto: uploadedImage,
-        }),
-      });
+        idempotencyKey, payload,
+      }), (message) => showAppToast(message, 'warning'));
+      if (!created) return;
       setShowNotification(true);
-      idempotencyKey.current = null;
       setTimeout(() => {
         setShowNotification(false);
         onBack();
       }, 2800);
     } catch (error) {
       showAppToast(
-        error instanceof CreateOrderError
+        error instanceof CreateOrderError || error instanceof OrderSelectionError
           ? error.message
           : "No se pudo solicitar el servicio.",
-        "error",
+        error instanceof OrderSelectionError ? 'warning' : 'error',
       );
       if (error instanceof CreateOrderError && error.status === 401)
         onSessionExpired?.();
@@ -178,38 +171,10 @@ export default function ServiceCheckoutScreen({
             ¿Cuándo lo necesitas?
           </h4>
 
-          {/* Two Options */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <button
-              onClick={() => {
-                setScheduleOption("now");
-                setDeliveryDate("");
-                setDeliveryTime("");
-              }}
-              className={`py-3 px-4 rounded-xl font-semibold text-sm transition-all flex flex-col items-center justify-center gap-2 ${
-                scheduleOption === "now"
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <Clock className="w-6 h-6" />
-              Lo necesito AHORA
-            </button>
+          <OrderMomentSelector variant="service" moment={scheduleOption} onChange={handleMomentSelection}
+            time={deliveryTime} onTimeChange={setDeliveryTime} />
 
-            <button
-              onClick={() => setScheduleOption("schedule")}
-              className={`py-3 px-4 rounded-xl font-semibold text-sm transition-all flex flex-col items-center justify-center gap-2 ${
-                scheduleOption === "schedule"
-                  ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <Calendar className="w-6 h-6" />
-              Agendar
-            </button>
-          </div>
-
-          {/* Date and Time Pickers - Only show when "Agendar" is selected */}
+          {/* Date and time selection for Programar */}
           {scheduleOption === "schedule" && (
             <div className="space-y-3 bg-purple-50 border border-purple-200 rounded-xl p-4">
               <div>
@@ -293,7 +258,7 @@ export default function ServiceCheckoutScreen({
 
         {/* Submit Button */}
         <button
-          onClick={() => void handleSubmit()}
+          onClick={handleSubmit}
           disabled={isSubmitting || isUploading}
           className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 mb-4"
         >
@@ -302,7 +267,7 @@ export default function ServiceCheckoutScreen({
             ? "Enviando…"
             : isUploading
               ? "Subiendo foto…"
-              : "Solicitar Servicio"}
+              : creationIntent.current.hasPending() ? 'Reintentar envío' : "Solicitar Servicio"}
         </button>
       </div>
 

@@ -10,22 +10,22 @@ import {
   Plus,
   RotateCcw,
   Send,
-  Zap,
   X,
 } from "lucide-react";
 import { API_BASE_URL } from "../api/apiConfig";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { showAppToast } from "./Toast";
 import {
-  buildCreateOrderPayload,
   createOrder,
   CreateOrderError,
   GENERIC_CREATE_ORDER_MESSAGE,
-  hasCompleteDeliverySelection,
 } from "./createOrderApi";
 import { getCloudinarySecureImageUrl } from "./profile/business-config/catalogValidation";
 import type { CatalogItem } from "./profile/business-config/types";
 import { nextOrderQuantity } from "./checkoutOrderState";
+import OrderMomentSelector from './OrderMomentSelector';
+import { selectOrderMoment, type OrderMoment } from './orderMoment';
+import { createOrderCreationIntent, OrderSelectionError } from './orderCreationIntent';
 
 export default function CheckoutScreen({
   business,
@@ -55,7 +55,8 @@ export default function CheckoutScreen({
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedHour, setSelectedHour] = useState("");
   const [selectedMinute, setSelectedMinute] = useState("");
-  const [needNow, setNeedNow] = useState(false);
+  const [orderMoment, setOrderMoment] = useState<OrderMoment>('schedule');
+  const needNow = orderMoment === 'now';
   const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [officialTotal, setOfficialTotal] = useState<number | null>(null);
@@ -64,8 +65,7 @@ export default function CheckoutScreen({
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
   const [photoZoom, setPhotoZoom] = useState(1);
-  const submitLock = useRef(false);
-  const idempotencyKey = useRef<string | null>(null);
+  const creationIntent = useRef(createOrderCreationIntent());
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -126,11 +126,20 @@ export default function CheckoutScreen({
   };
 
   const handleDateSelection = (date: string) => {
-    setNeedNow(false);
     setSelectedDate(date);
     setSelectedTime("");
     setSelectedHour("");
     setSelectedMinute("");
+  };
+
+  const handleMomentSelection = (moment: OrderMoment) => {
+    if (moment === orderMoment) return;
+    const selection = selectOrderMoment(moment);
+    setOrderMoment(selection.moment);
+    setSelectedDate(selection.date);
+    setSelectedTime(selection.time);
+    setSelectedHour('');
+    setSelectedMinute('');
   };
 
   const handleHourSelection = (hour: string) => {
@@ -195,63 +204,44 @@ export default function CheckoutScreen({
   };
 
   const handleSubmitOrder = async () => {
-    if (
-      !hasCompleteDeliverySelection({
-        needNow,
-        deliveryDate: selectedDate,
-        deliveryTime: selectedTime,
-      })
-    ) {
-      showAppToast(
-        "Selecciona si lo necesitas ahora o una fecha y hora.",
-        "warning",
-      );
-      return;
-    }
+    if (creationIntent.current.isBlocked()) return;
     const token = localStorage.getItem("zipco-token");
-    if (!token || selectedItems.length === 0 || submitLock.current) {
+    if (!token || selectedItems.length === 0) {
       showAppToast("No se pudo enviar el pedido", "error");
       return;
     }
 
-    submitLock.current = true;
     setIsSubmitting(true);
     try {
-      idempotencyKey.current ??= crypto.randomUUID();
-      const created = await createOrder({
+      const created = await creationIntent.current.submit({
+        identity: JSON.stringify([currentUserId, business.id, business.userId]),
+        selection: { moment: orderMoment, date: selectedDate, time: selectedTime },
+        details: {
+          businessId: business.id,
+          items: selectedItems.map((product) => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 })),
+          note, referencePhoto,
+        },
+      }, (payload, idempotencyKey) => createOrder({
         url: `${API_BASE_URL}/orders`,
         token,
         currentUserId,
         businessUserId: business.userId,
-        idempotencyKey: idempotencyKey.current,
-        payload: buildCreateOrderPayload({
-          businessId: business.id,
-          items: selectedItems.map((product) => ({
-            catalogItemId: product.id,
-            quantity: quantities[product.id] || 1,
-          })),
-          note,
-          needNow,
-          deliveryDate: selectedDate,
-          deliveryTime: selectedTime,
-          referencePhoto,
-        }),
-      });
+        idempotencyKey, payload,
+      }), (message) => showAppToast(message, 'warning'));
+      if (!created) return;
       setOfficialTotal(created.total);
       setShowConfirmation(true);
-      idempotencyKey.current = null;
     } catch (error) {
       const message =
-        error instanceof CreateOrderError
+        error instanceof CreateOrderError || error instanceof OrderSelectionError
           ? error.message
           : GENERIC_CREATE_ORDER_MESSAGE;
-      showAppToast(message, "error");
-      if (error instanceof CreateOrderError && error.status === 409)
+      showAppToast(message, error instanceof OrderSelectionError ? 'warning' : 'error');
+      if (error instanceof CreateOrderError && error.status === 409 && error.outcome === 'not-created')
         onCatalogConflict();
       if (error instanceof CreateOrderError && error.status === 401)
         onSessionExpired();
     } finally {
-      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
@@ -360,57 +350,10 @@ export default function CheckoutScreen({
             ¿Cuándo lo necesitas?
           </label>
 
-          <div className="mb-2 grid grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white/75 p-1 shadow-sm">
-            <button
-              type="button"
-              onClick={() => {
-                setNeedNow(true);
-                setSelectedDate("");
-                setSelectedTime("");
-                setSelectedHour("");
-                setSelectedMinute("");
-              }}
-              className={`zipco-now-option relative min-h-12 overflow-hidden rounded-xl px-2 py-2 text-sm font-bold transition-all ${
-                needNow
-                  ? "is-active bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 text-white shadow-md shadow-indigo-950/30"
-                  : "bg-transparent text-gray-600 hover:bg-white"
-              }`}
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 180 52"
-                preserveAspectRatio="none"
-                className="zipco-storm-lightning absolute inset-0 h-full w-full"
-              >
-                <path d="M142 -2 112 18 128 22 92 54" />
-                <path d="m113 18-22 1-12 13" />
-                <path d="m127 22 20 7 10 13" />
-              </svg>
-              <div className="relative z-10 flex items-center justify-center gap-2">
-                <span className="zipco-now-bolt flex h-7 w-7 items-center justify-center rounded-full bg-amber-400/15 text-amber-300 shadow-[0_0_14px_rgba(251,191,36,0.18)]">
-                  <Zap className="h-4 w-4" fill="currentColor" />
-                </span>
-                <span>Ahora</span>
-              </div>
-            </button>
+          <OrderMomentSelector moment={orderMoment} onChange={handleMomentSelection}
+            time={selectedTime} onTimeChange={setSelectedTime} />
 
-            <button
-              type="button"
-              onClick={() => setNeedNow(false)}
-              className={`min-h-12 rounded-xl px-2 py-2 text-sm font-bold transition-all ${
-                !needNow
-                  ? "bg-gradient-to-r from-teal-600 to-emerald-500 text-white shadow-md"
-                  : "bg-transparent text-gray-600 hover:bg-white"
-              }`}
-            >
-              <span className="flex items-center justify-center gap-2">
-                <CalendarDays className="h-4 w-4" />
-                Programar
-              </span>
-            </button>
-          </div>
-
-          {!needNow && (
+          {orderMoment === 'schedule' && (
             <div className="mb-2 pt-1 animate-in">
               <div className="mb-2 flex items-center justify-between px-0.5">
                 <h4 className="text-sm font-bold text-gray-900">
@@ -532,7 +475,7 @@ export default function CheckoutScreen({
           {!needNow && (selectedDate || selectedTime) && (
             <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
               <p className="text-sm text-teal-800">
-                <strong>📦 Entrega programada:</strong>
+                <strong>{orderMoment === 'today' ? '📦 Entrega para hoy:' : '📦 Entrega programada:'}</strong>
                 {selectedDate && ` ${formatDate(selectedDate)}`}
                 {selectedDate && selectedTime && " a las"}
                 {selectedTime && ` ${selectedTime}`}
@@ -750,7 +693,7 @@ export default function CheckoutScreen({
             className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-500/30 transition-all active:scale-[0.98]"
           >
             <Send className="w-5 h-5" />
-            <span>{isSubmitting ? "Enviando..." : "Realizar pedido"}</span>
+            <span>{isSubmitting ? "Enviando..." : creationIntent.current.hasPending() ? 'Reintentar envío' : "Realizar pedido"}</span>
           </button>
         </div>
       </div>

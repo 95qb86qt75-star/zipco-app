@@ -74,6 +74,22 @@ describe('delivery selection', () => {
 });
 
 describe('createOrder', () => {
+  it.each([400, 401, 403, 404, 422])('classifies a known HTTP rejection as not-created (%s)', async (status) => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response('{}', { status }));
+    await expect(createOrder({ ...input, fetchImpl })).rejects.toMatchObject({ outcome: 'not-created' });
+  });
+  it.each([408, 409, 429, 500, 503, 418])('keeps unconfirmed HTTP outcomes uncertain (%s)', async (status) => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response('{}', { status }));
+    await expect(createOrder({ ...input, fetchImpl })).rejects.toMatchObject({ outcome: 'uncertain' });
+  });
+  it.each([new TypeError('network'), new DOMException('timeout', 'AbortError')])('keeps transport failures uncertain', async (error) => {
+    const fetchImpl = vi.fn().mockRejectedValue(error);
+    await expect(createOrder({ ...input, fetchImpl })).rejects.toMatchObject({ status: null, outcome: 'uncertain' });
+  });
+  it.each(['<html>unexpected</html>', '{}'])('keeps an unreadable successful response uncertain (%s)', async (body) => {
+    const fetchImpl = vi.fn().mockResolvedValue(new Response(body, { status: 201 }));
+    await expect(createOrder({ ...input, fetchImpl })).rejects.toMatchObject({ outcome: 'uncertain' });
+  });
   it.each([PAST_SCHEDULE_MESSAGE, DST_SCHEDULE_MESSAGE])('shows the approved schedule validation message: %s', async (message) => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({ message }), { status: 400 }));
     await expect(createOrder({ ...input, fetchImpl })).rejects.toMatchObject({ status: 400, message });

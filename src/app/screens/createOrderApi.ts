@@ -32,7 +32,11 @@ export function buildCreateOrderPayload(draft: CreateOrderDraft): CreateOrderPay
 export type CreatedOrder = { id: number; total: number; items: OrderItemResponse[]; requestProcess?: RequestProcessSummary | null };
 export type OrderItemResponse = { id: number; orderId: number; catalogItemId: number | null; nameSnapshot: string; unitPriceClpSnapshot: number; quantity: number; subtotalClp: number };
 
-export class CreateOrderError extends Error { constructor(message: string, readonly status: number | null) { super(message); this.name = 'CreateOrderError'; } }
+export class CreateOrderError extends Error {
+  constructor(message: string, readonly status: number | null, readonly outcome: 'uncertain' | 'not-created' = 'uncertain') {
+    super(message); this.name = 'CreateOrderError';
+  }
+}
 const positive = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 function normalizeItem(value: unknown): OrderItemResponse | null {
@@ -55,8 +59,8 @@ export function normalizeCreatedOrder(value: unknown): CreatedOrder {
 
 type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; fetchImpl?: typeof fetch };
 export async function createOrder({ url, token, currentUserId, businessUserId, payload, idempotencyKey, fetchImpl = fetch }: Input): Promise<CreatedOrder> {
-  if (isOwnBusiness(businessUserId, currentUserId)) throw new CreateOrderError(OWN_BUSINESS_ORDER_MESSAGE, null);
-  if (!idempotencyKey) throw new CreateOrderError('No se pudo preparar el envÃ­o seguro del pedido.', null);
+  if (isOwnBusiness(businessUserId, currentUserId)) throw new CreateOrderError(OWN_BUSINESS_ORDER_MESSAGE, null, 'not-created');
+  if (!idempotencyKey) throw new CreateOrderError('No se pudo preparar el envÃ­o seguro del pedido.', null, 'not-created');
   let response: Response;
   try { response = await fetchImpl(url, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) }); }
   catch { throw new CreateOrderError('No se pudo conectar. Intenta nuevamente.', null); }
@@ -65,7 +69,10 @@ export async function createOrder({ url, token, currentUserId, businessUserId, p
     let body: unknown = null;
     try { body = await response.json(); } catch { /* Only approved messages may be displayed. */ }
     const schedule = [400, 422].includes(response.status) ? approvedScheduleMessage(body) : null;
-    throw new CreateOrderError(schedule ?? messages[response.status] ?? GENERIC_CREATE_ORDER_MESSAGE, response.status);
+    // Known validation/auth/resource rejections do not create an order. A generic
+    // conflict may concern idempotency, so never release its intention implicitly.
+    const outcome = [400, 401, 403, 404, 422].includes(response.status) ? 'not-created' : 'uncertain';
+    throw new CreateOrderError(schedule ?? messages[response.status] ?? GENERIC_CREATE_ORDER_MESSAGE, response.status, outcome);
   }
   try { return normalizeCreatedOrder(await response.json() as unknown); }
   catch (error) { if (error instanceof CreateOrderError) throw error; throw new CreateOrderError('La respuesta del pedido no tiene un formato válido.', response.status); }
