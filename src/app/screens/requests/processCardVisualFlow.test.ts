@@ -14,6 +14,7 @@ vi.mock('react', async (original) => ({
 }));
 vi.mock('./useAgreement', () => ({ default: () => ({ state: hooks.agreement, retry: hooks.retry }) }));
 import ProcessOrderCard from './ProcessOrderCard';
+import CoordinationActions from './CoordinationActions';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { OrderCardDisclosure } from './OrderCardPanels';
 import { BusinessOrderHeader, CustomerOrderHeader } from './OrderCardHeaders';
@@ -44,6 +45,61 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each([true, false])('uses participant-specific pending labels and photo context (business=%s)', (business) => {
+    const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0]
+      : normalizeMyOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const compact = render({ ...props, order, business });
+    const disclosure = elements(compact).find((node) => node.type === OrderCardDisclosure)!;
+    expect(disclosure.props.title).toBe(business ? 'Pedido del cliente' : 'Tu pedido');
+    expect(disclosure.props.hint).toBe(business ? 'Revisar y responder' : 'Revisar pedido');
+    const expanded = render({ ...props, order, business, expanded: true, onToggle: vi.fn() });
+    expect(elements(expanded).find((node) => node.type === OrderReferencePhoto)?.props.business).toBe(business);
+  });
+
+  it('keeps actions before expanded conditions and mounted independently of the disclosure', () => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    const order = normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
+    let view = render({ ...props, order, business: true });
+    const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
+    expect(disclosure.props.title).toBe('Condiciones aceptadas');
+    expect(disclosure.props.price).toBe(agreementFixture.totalPriceClp);
+    expect(elements(view).some((node) => node.type === CoordinationActions)).toBe(true);
+    expect(elements(view).some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
+    (disclosure.props.onOpen as () => void)();
+    view = render({ ...props, order, business: true });
+    const nodes = elements(view);
+    expect(nodes.findIndex((node) => node.type === CoordinationActions)).toBeLessThan(nodes.findIndex((node) => node.type === AcceptedConditionsPanel));
+    expect(nodes.find((node) => node.type === OrderCardDisclosure)?.props.expanded).toBe(true);
+  });
+
+  it.each([true, false])('uses the approved photo subtitle before and after acceptance (business=%s)', (business) => {
+    const expected = business ? 'El cliente agregó una foto de referencia.' : 'Agregaste una foto de referencia.';
+    expect(renderToStaticMarkup(React.createElement(OrderReferencePhoto, { src: raw.referencePhoto, business }))).toContain(expected);
+    const content = AgreementContent({ state: { status: 'loaded', agreement: agreementFixture }, retry: vi.fn(), business });
+    expect(renderToStaticMarkup(content)).toContain(expected);
+    expect(elements(content).find((node) => node.type === OrderReferencePhoto)?.props.src).toBe(agreementFixture.subjectSnapshot.referencePhoto);
+  });
+
+  it.each(['loading', 'absent', 'error'] as const)('never fills compact conditions from stale list data (%s)', (status) => {
+    hooks.agreement = status === 'error' ? { status, message: 'Error recuperable' } : { status };
+    const order = normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
+    const compact = render({ ...props, order, business: true });
+    expect(elements(compact).find((node) => node.type === OrderCardDisclosure)?.props.price).toBeNull();
+    expect(elements(compact).some((node) => node.type === CoordinationActions)).toBe(false);
+    const expanded = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });
+    const html = renderToStaticMarkup(expanded);
+    expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
+    expect(html).not.toContain('Producto de prueba');
+    expect(html).toContain(status === 'loading' ? 'Cargando condiciones' : status === 'absent' ? 'Actualiza el pedido' : 'Reintentar');
+  });
+
+  it.each([true, false])('propagates photo context through accepted conditions and history links (business=%s)', (business) => {
+    const panel = AcceptedConditionsPanel({ state: { status: 'loaded', agreement: agreementFixture }, retry: vi.fn(), business, history: true });
+    expect(elements(panel).find((node) => node.type === AgreementContent)?.props.business).toBe(business);
+    const html = renderToStaticMarkup(panel);
+    expect(html).toContain(business ? 'El cliente agregó una foto de referencia.' : 'Agregaste una foto de referencia.');
+    expect(html).toContain(`participant=${business ? 'business' : 'customer'}&amp;volver=historial`);
+  });
   it.each([true, false])('labels the initial business card Nuevo pedido independently of unread state (%s)', (isUnread) => {
     const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
     const view = render({ ...props, order, business: true, isUnread });

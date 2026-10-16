@@ -26,6 +26,9 @@ export default function CoordinationActions({ order, business, service, refresh 
   return <section aria-label="Acciones de coordinación" className="mt-3 space-y-3 rounded-2xl border border-teal-200 bg-teal-50/70 p-3"
     onClick={(event) => event.stopPropagation()}>
     <h4 className="text-sm font-black text-teal-900">Coordinación</h4>
+    {business && ['COORDINATION_PENDING', 'COORDINATING'].includes(process?.state ?? '') &&
+      process?.coordination?.customerContactAuthorized === false &&
+      <p role="status" className="text-sm text-slate-700">Esperando autorización de contacto del cliente.</p>}
     {operation.message && <p role="alert" className="text-sm text-slate-700">{operation.message}</p>}
     {recoveryOnly ? <>
       <p role="alert" className="text-sm">{operation.storageWarning() || (operation.restored()

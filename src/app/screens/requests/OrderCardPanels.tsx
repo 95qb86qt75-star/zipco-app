@@ -2,11 +2,11 @@ import { motion } from 'motion/react';
 import { ChevronDown, MousePointerClick } from 'lucide-react';
 
 // Extracted from the existing compact business card, without status transitions.
-export function OrderCardDisclosure({ title, hint, price, panelClass, accentClass, onOpen }: {
+export function OrderCardDisclosure({ title, hint, price, panelClass, accentClass, onOpen, expanded = false }: {
   title: string; hint: string; price: number | null;
-  panelClass: string; accentClass: string; onOpen: () => void;
+  panelClass: string; accentClass: string; onOpen: () => void; expanded?: boolean;
 }) {
-  return <motion.button type="button" aria-expanded={false}
+  return <motion.button type="button" aria-expanded={expanded}
     initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
     onClick={(event) => {
       event.stopPropagation();
@@ -21,7 +21,7 @@ export function OrderCardDisclosure({ title, hint, price, panelClass, accentClas
       </span>
     </span>
     {price !== null && <span className="whitespace-nowrap text-lg font-black text-teal-800">${price.toLocaleString('es-CL')}</span>}
-    <ChevronDown className={`h-5 w-5 ${accentClass}`} />
+    <ChevronDown className={`h-5 w-5 ${expanded ? 'rotate-180' : ''} ${accentClass}`} />
   </motion.button>;
 }
 

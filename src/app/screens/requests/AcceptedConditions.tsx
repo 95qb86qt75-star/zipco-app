@@ -7,7 +7,7 @@ const money = (value: number) => new Intl.NumberFormat('es-CL', {
   style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
 }).format(value);
 
-export function AgreementContent({ state, retry }: { state: AgreementState; retry: () => void }) {
+export function AgreementContent({ state, retry, business = false }: { state: AgreementState; retry: () => void; business?: boolean }) {
   if (state.status === 'absent') return <p role="status">Las condiciones aceptadas aún no están disponibles. Actualiza el pedido.</p>;
   if (state.status === 'loading') return <p role="status">Cargando condiciones aceptadas…</p>;
   if (state.status === 'error') return <div role="alert">
@@ -31,7 +31,7 @@ export function AgreementContent({ state, retry }: { state: AgreementState; retr
     }).format(new Date(a.scheduledFor))}</p>}
     {a.subjectSnapshot.needNow && <p>Solicitado para ahora</p>}
     {a.subjectSnapshot.note && <p className="whitespace-pre-wrap">Nota: {a.subjectSnapshot.note}</p>}
-    <OrderReferencePhoto src={a.subjectSnapshot.referencePhoto} />
+    <OrderReferencePhoto src={a.subjectSnapshot.referencePhoto} business={business} />
   </div>;
 }
 
@@ -44,6 +44,6 @@ export function AcceptedConditionsPanel({ state, retry, business = false, histor
   return <section aria-label="Condiciones aceptadas" className="mt-3 space-y-3 rounded-[16px] border border-emerald-200 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100/70 p-3 text-sm text-slate-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40 dark:text-slate-100">
     <h4 className="font-black">Condiciones aceptadas</h4>
     {state.status === 'loaded' && <a className="inline-flex min-h-11 items-center font-bold text-teal-700" href={`/solicitudes/procesos/${state.agreement.requestProcessId}/acuerdo?participant=${business ? 'business' : 'customer'}${history ? '&volver=historial' : ''}`}>Abrir acuerdo</a>}
-    <AgreementContent state={state} retry={retry} />
+    <AgreementContent state={state} retry={retry} business={business} />
   </section>;
 }

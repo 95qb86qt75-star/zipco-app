@@ -29,16 +29,32 @@ describe('Requests screen with mixed server generations', () => {
   const render = () => renderToStaticMarkup(React.createElement(RequestsScreen, {
     activeTab: 'requests', setActiveTab: () => undefined, onBack: () => undefined, onSessionExpired: () => undefined,
   }));
-  it('keeps legacy QA responses without a coordination group', () => {
+  it('keeps legacy QA responses and preparation activity with the new business tab labels', () => {
     state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted' }]);
     const html = render();
-    expect(html).toContain('En curso'); expect(html).not.toContain('Coordinación');
+    expect(html).toContain('En curso'); expect(html).toContain('Por coordinar');
     expect(html).toContain('Continúa con la preparación del pedido.');
   });
   it('adds the coordination group without creating a preparation activity for 2A', () => {
     state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
     const html = render();
-    expect(html).toContain('Coordinación');
+    expect(html).toContain('Por coordinar');
     expect(html).not.toContain('Continúa con la preparación del pedido.');
+  });
+  it('renders the approved business order and preserves the legacy ready tab', () => {
+    state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'ready' }]);
+    const html = render();
+    const tabs = html.slice(html.indexOf('zipco-status-tabs'));
+    const labels = ['Pendientes', 'Por coordinar', 'Esperando respuesta', 'En curso', 'Listo y notificado', 'Historial'];
+    const positions = labels.map((label) => tabs.indexOf(`<span>${label}</span>`));
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+  });
+  it.each(['?open=requests-customer', '?open=requests-business-quotes'])('preserves the other tab presentations (%s)', (search) => {
+    state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
+    window.location.search = search;
+    const html = render();
+    expect(html).not.toContain('Por coordinar');
+    expect(html).toContain(search.includes('quotes') ? 'Esperando cliente' : 'Por responder');
   });
 });

@@ -44,6 +44,7 @@ import {
   type StatusView,
 } from "./requests/requestStatusGrouping";
 import { getCustomerAttentionItems } from "./requests/requestAttentionSummary";
+import { businessOrderTabs } from "./requests/orderTabs";
 
 export default function RequestsScreen({
   onBack,
@@ -871,7 +872,7 @@ export default function RequestsScreen({
                   count: unreadHistoryCount,
                 },
               ] as const)
-            : ([
+            : subTab === "my-business" ? businessOrderTabs(statusCounts, unreadHistoryCount) : ([
                 ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "pending",
@@ -880,10 +881,7 @@ export default function RequestsScreen({
                 },
                 {
                   key: "waiting",
-                  label:
-                    subTab === "my-business"
-                      ? "Esperando cliente"
-                      : "Por responder",
+                  label: "Por responder",
                   count: statusCounts.waiting,
                 },
                 {
@@ -895,10 +893,7 @@ export default function RequestsScreen({
                   ? [
                       {
                         key: "ready",
-                        label:
-                          subTab === "my-business"
-                            ? "Listo y notificado"
-                            : "Listos",
+                        label: "Listos",
                         count: statusCounts.ready,
                       } as const,
                     ]

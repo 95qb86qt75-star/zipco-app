@@ -72,9 +72,20 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}
-    <AnimatePresence initial={false} mode="wait">
-      {!isExpanded ? <OrderCardDisclosure key="collapsed" title={awaiting ? 'Pedido del cliente' : hasConditions ? 'Condiciones aceptadas' : 'Estado del proceso'}
-        hint={awaiting ? 'Revisar y responder' : hasConditions ? 'Revisar condiciones' : 'Actualizar pedido'} price={price}
+    {hasConditions ? <>
+      <OrderCardDisclosure title="Condiciones aceptadas" hint={isExpanded ? 'Ocultar condiciones' : 'Revisar condiciones'}
+        price={price} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} />
+      {coordination && accepted && <CoordinationActions key="coordination-actions" order={order} business={business}
+        service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />}
+      <AnimatePresence initial={false}>
+        {isExpanded && <motion.div key="conditions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+          onClick={(event) => event.stopPropagation()}>
+          <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} />
+        </motion.div>}
+      </AnimatePresence>
+    </> : <AnimatePresence initial={false} mode="wait">
+      {!isExpanded ? <OrderCardDisclosure key="collapsed" title={awaiting ? (business ? 'Pedido del cliente' : 'Tu pedido') : 'Estado del proceso'}
+        hint={awaiting ? (business ? 'Revisar y responder' : 'Revisar pedido') : 'Actualizar pedido'} price={price}
         panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} />
         : <motion.div key="expanded" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
           {awaiting && <>
@@ -89,19 +100,17 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
               {order.note && <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">Nota: {order.note}</p>}
               {price !== null && <OrderPricePanel price={price} />}
             </div>
-            {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} />}
+            {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={business} />}
             {business && order.recordState === 'available' && canAcceptFixedOrder(order) && products.state === 'available' &&
               <button type="button" disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAccept?.(); }}
                 className="zipco-proposal-accept mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-[16px] border-2 border-emerald-300 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-3 text-sm font-black text-white shadow-[0_8px_20px_rgba(16,185,129,0.22)] disabled:opacity-50">
                 <Check className="zipco-accept-icon h-4 w-4" />{isUpdating ? 'Guardando…' : `Aceptar pedido${price === null ? '' : ` por $${price.toLocaleString('es-CL')}`}`}
               </button>}
           </>}
-          {(coordination || process?.agreementPublicId) && <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} />}
-          {coordination && accepted && <CoordinationActions order={order} business={business} service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />}
           <button type="button" aria-expanded={true} onClick={(event) => { event.stopPropagation(); toggle(); }}
             className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>
         </motion.div>}
-    </AnimatePresence>
+    </AnimatePresence>}
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>
     </div>}

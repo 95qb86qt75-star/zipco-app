@@ -5,7 +5,7 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 // Shared reference-photo CTA and viewer extracted from BusinessOrderCard.
 // Profile images never enter this component.
-export default function OrderReferencePhoto({ src }: { src: string | null }) {
+export default function OrderReferencePhoto({ src, business = true }: { src: string | null; business?: boolean }) {
   const [showPhoto, setShowPhoto] = useState(false);
   if (!src) return null;
   return <>
@@ -35,7 +35,7 @@ export default function OrderReferencePhoto({ src }: { src: string | null }) {
           Imagen adjunta
         </strong>
         <span className="block text-xs text-slate-500 dark:text-slate-300">
-          El cliente agregó una foto de referencia.
+          {business ? 'El cliente agregó una foto de referencia.' : 'Agregaste una foto de referencia.'}
         </span>
       </span>
       <span className="relative shrink-0 rounded-full bg-teal-500 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-transform group-hover:scale-105">
@@ -52,7 +52,7 @@ export default function OrderReferencePhoto({ src }: { src: string | null }) {
           onClick={(event) => { event.stopPropagation(); setShowPhoto(false); }}
           role="dialog"
           aria-modal="true"
-          aria-label="Imagen adjunta por el cliente"
+          aria-label={business ? 'Imagen adjunta por el cliente' : 'Imagen adjunta por ti'}
         >
           <div
             className="flex items-center justify-between gap-3 pb-3 text-white"
@@ -63,7 +63,7 @@ export default function OrderReferencePhoto({ src }: { src: string | null }) {
                 Imagen adjunta
               </strong>
               <span className="text-xs text-slate-300">
-                Foto de referencia del cliente
+                {business ? 'Foto de referencia del cliente' : 'Tu foto de referencia'}
               </span>
             </div>
             <button

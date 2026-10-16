@@ -42,7 +42,7 @@ function AgreementPage({ id, session }: { id: number; session: CoordinationSessi
   return <main className="mx-auto min-h-screen max-w-lg space-y-4 bg-white p-4 text-slate-900">
     <a className="inline-flex min-h-12 items-center font-bold text-teal-700" href={`/?open=requests-${participant}${destination}`}>Volver a Solicitudes</a>
     <h1 className="text-xl font-black">Condiciones aceptadas</h1>
-    <AgreementContent state={readCoordinationSession() === session ? state : { status: 'loading' }} retry={() => setAttempt((value) => value + 1)} />
+    <AgreementContent state={readCoordinationSession() === session ? state : { status: 'loading' }} retry={() => setAttempt((value) => value + 1)} business={participant === 'business'} />
   </main>;
 }
 

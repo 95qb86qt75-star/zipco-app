@@ -35,6 +35,16 @@ beforeEach(() => { hooks.slots = []; hooks.cursor = 0; hooks.busy = false; hooks
   hooks.update.mockReset(); hooks.run.mockReset().mockResolvedValue(true); vi.stubGlobal('React', React); });
 afterEach(() => vi.unstubAllGlobals());
 describe('coordination presentation and deliberate consent', () => {
+  it('explains missing customer consent only to the business when explicitly false', () => {
+    const message = 'Esperando autorización de contacto del cliente.';
+    expect(renderToStaticMarkup(render(true))).toContain(message);
+    expect(renderToStaticMarkup(render(false))).not.toContain(message);
+    for (const coordination of [undefined, { customerContactAuthorized: true, businessContactAuthorized: false }]) {
+      const input = { ...raw, requestProcess: { ...raw.requestProcess, coordination } };
+      expect(renderToStaticMarkup(render(true, false, input))).not.toContain(message);
+    }
+    expect(hooks.run).not.toHaveBeenCalled();
+  });
   it('shows approved customer copy and Ahora no dispatches nothing', () => {
     let view = render(false);
     expect(renderToStaticMarkup(view)).toContain('¿Autorizas compartir con Negocio de prueba el teléfono de tu perfil');
