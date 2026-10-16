@@ -45,6 +45,24 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each([false, true])('shows the customer total once, in the disclosure, and status in the header (accepted=%s)', (accepted) => {
+    hooks.agreement = accepted ? { status: 'loaded', agreement: agreementFixture } : { status: 'absent' };
+    const order = normalizeMyOrdersPayload([{ ...raw, status: accepted ? 'accepted' : 'pending', requestProcess: accepted ? coordinationProcess : pendingProcess }])[0];
+    const view = render({ ...props, order });
+    const header = elements(view).find((node) => node.type === CustomerOrderHeader)!;
+    expect(header.props.statusInCorner).toBe(true);
+    const headerHtml = renderToStaticMarkup(header);
+    expect(headerHtml).toContain(accepted ? 'Coordinación pendiente' : 'Pendiente de respuesta');
+    expect(headerHtml).not.toContain('$');
+    const html = renderToStaticMarkup(view);
+    expect(html.match(/\$2\.000/g)).toHaveLength(1);
+    expect(elements(view).find((node) => node.type === OrderCardDisclosure)?.props.price).toBe(2000);
+  });
+  it('preserves the historical customer header price when no corner status is requested', () => {
+    const html = renderToStaticMarkup(React.createElement(CustomerOrderHeader, { name: raw.businessName, image: raw.businessImage,
+      products: { state: 'available', items: [] }, total: 2000, status: React.createElement('span', null, 'Estado histórico') }));
+    expect(html).toContain('$2.000'); expect(html).toContain('Estado histórico');
+  });
   it.each([true, false])('uses participant-specific pending labels and photo context (business=%s)', (business) => {
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0]
       : normalizeMyOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];

@@ -873,12 +873,12 @@ export default function RequestsScreen({
                 },
               ] as const)
             : subTab === "my-business" ? businessOrderTabs(statusCounts, unreadHistoryCount) : ([
-                ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "pending",
                   label: "Pendientes",
                   count: statusCounts.pending,
                 },
+                ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "waiting",
                   label: "Por responder",
@@ -909,7 +909,7 @@ export default function RequestsScreen({
               key={item.key}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
               onClick={() => selectStatusView(item.key)}
-              className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-bold leading-[11px] shadow-sm transition-all ${item.key === "ready" ? "min-w-[92px]" : "min-w-[66px]"} ${
+              className={`flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-[11px] font-bold leading-tight shadow-sm transition-all ${
                 statusView === item.key
                   ? item.key === "pending"
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white ring-2 ring-amber-300/40 shadow-md shadow-amber-500/20"

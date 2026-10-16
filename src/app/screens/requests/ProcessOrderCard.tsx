@@ -48,7 +48,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     badge: 'bg-slate-100 text-slate-700', panel: 'border-slate-200 from-white to-slate-50', accent: 'text-slate-700',
   };
   const toggle = () => { onOpen?.(); if (onToggle) onToggle(); else setLocalExpanded((value) => !value); };
-  const badge = <span role="status" className={`rounded-full px-2 py-1.5 text-[10px] font-black ${tone.badge}`}>{stateLabel}</span>;
+  const badge = <span role="status" className={`inline-flex max-w-full items-center justify-center rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${tone.badge}`}>{stateLabel}</span>;
   const styleState = awaiting ? 'pending' : coordination ? 'coordination' : 'unavailable';
 
   return <article id={`order-${order.id}`} tabIndex={0}
@@ -68,7 +68,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     {business ? <BusinessOrderHeader name={name} image={image} products={products} isUnread={isUnread}
       statusLabel={stateLabel} badgeClass={tone.badge} attention={awaiting} unavailableText={unavailableText} />
       : <CustomerOrderHeader name={name} image={image} products={products} total={price} isUnread={isUnread}
-        status={badge} unavailableText={unavailableText} />}
+        status={badge} statusInCorner unavailableText={unavailableText} />}
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}

@@ -65,8 +65,8 @@ export function BusinessOrderHeader({ name, image, products, isUnread = false, s
 }
 
 // Extracted from the pre-2A customer header, with slots for schedule and state.
-export function CustomerOrderHeader({ name, image, products, isUnread = false, total, status, children, unavailableText = "Producto no disponible" }:
-  IdentityProps & { total: number | null; status: ReactNode; children?: ReactNode }) {
+export function CustomerOrderHeader({ name, image, products, isUnread = false, total, status, children, statusInCorner = false, unavailableText = "Producto no disponible" }:
+  IdentityProps & { total: number | null; status: ReactNode; children?: ReactNode; statusInCorner?: boolean }) {
   return (
     <div className="grid grid-cols-[72px_minmax(0,1fr)] items-start gap-3">
       <ImageWithFallback
@@ -79,11 +79,11 @@ export function CustomerOrderHeader({ name, image, products, isUnread = false, t
           <h4 className="line-clamp-2 text-sm font-black leading-tight text-slate-950">
             {name}
           </h4>
-          <span className="shrink-0 whitespace-nowrap text-base font-black text-emerald-600">
+          {statusInCorner ? <span className="inline-flex max-w-[104px] shrink-0 justify-end">{status}</span> : <span className="shrink-0 whitespace-nowrap text-base font-black text-emerald-600">
             {total === null
               ? "—"
               : `$${total.toLocaleString("es-CL")}`}
-          </span>
+          </span>}
         </div>
         {products.state === "available" ? (
           products.items.map((product, index) => (
@@ -104,14 +104,14 @@ export function CustomerOrderHeader({ name, image, products, isUnread = false, t
         )}
         {children}
       </div>
-      <div className="col-span-2 mt-1 flex items-center">
+      {!statusInCorner && <div className="col-span-2 mt-1 flex items-center">
         {status}
         <span className="hidden whitespace-nowrap text-base font-black text-emerald-600">
           {total === null
             ? "—"
             : `$${total.toLocaleString("es-CL")}`}
         </span>
-      </div>
+      </div>}
     </div>
   );
 }
