@@ -25,6 +25,8 @@ export function processApiError(status: number, body: unknown, agreement = false
   if (status === 404) return new RequestProcessError(agreement ? 'El acuerdo ya no está disponible. Actualiza el pedido.' : 'El pedido ya no está disponible. Actualiza la pantalla.', status, !agreement);
   if (status === 409) {
     const code = isRecord(body) && typeof body.code === 'string' ? body.code : '';
+    if (code === 'INVALID_PROFILE_CONTACT') return new RequestProcessError('Revisa el teléfono internacional de tu perfil antes de continuar.', status, true);
+    if (code === 'CONTACT_CONSENT_REQUIRED') return new RequestProcessError('La otra parte todavía debe autorizar compartir su teléfono para este pedido.', status, true);
     if (code === 'ACTION_NOT_AVAILABLE_IN_2A') return new RequestProcessError('Disponible en una próxima etapa de prueba.', status, true);
     if (code === 'INVALID_REQUEST_PROCESS') return new RequestProcessError('No se pudo validar el proceso. Actualiza la pantalla.', status, true);
     // STALE_VERSION, INCOMPATIBLE_STATE, PROPOSAL_MISMATCH and IDEMPOTENCY_KEY_REUSED

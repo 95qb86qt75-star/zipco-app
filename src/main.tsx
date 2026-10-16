@@ -2,9 +2,10 @@
   import { createRoot } from "react-dom/client";
   import { registerSW } from "virtual:pwa-register";
   import App from "./app/App.tsx";
+  import AgreementRoute from './app/screens/requests/AgreementRoute';
   import "./styles/index.css";
 
-  createRoot(document.getElementById("root")!).render(<App />);
+  createRoot(document.getElementById("root")!).render(<AgreementRoute><App /></AgreementRoute>);
 
   if ("serviceWorker" in navigator) {
     const hadControllerAtStartup = Boolean(navigator.serviceWorker.controller);

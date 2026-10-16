@@ -26,14 +26,14 @@ export async function acceptFixedOrder(process: RequestProcessSummary, orderId: 
   return { orderId, orderStatus: 'accepted', requestProcess: confirmed };
 }
 
-export async function readAgreement(processId: number, agreementPublicId: string, token: string, signal?: AbortSignal) {
+export async function readAgreement(processId: number, agreementPublicId: string | null, token: string, signal?: AbortSignal) {
   const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/agreement`, {
-    headers: { Authorization: `Bearer ${token}` }, signal,
+    headers: { Authorization: `Bearer ${token}` }, signal, cache: 'no-store',
   });
   const body = await bodyOf(response);
   if (!response.ok) throw processApiError(response.status, body, true);
   const agreement = normalizeAgreement(body);
-  if (!agreement || agreement.requestProcessId !== processId || agreement.agreementPublicId !== agreementPublicId)
+  if (!agreement || agreement.requestProcessId !== processId || (agreementPublicId !== null && agreement.agreementPublicId !== agreementPublicId))
     throw new RequestProcessError('No se pudieron verificar las condiciones aceptadas. Intenta nuevamente.', 502);
   return agreement;
 }

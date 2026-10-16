@@ -65,7 +65,8 @@ export default function RequestsScreen({
     openTarget?.endsWith("-quotes") ? "quotes" : "orders",
   );
   const [statusViews, setStatusViews] = useState<Record<string, StatusView>>(
-    {},
+    () => new URLSearchParams(window.location.search).get('view') === 'history'
+      ? { 'my-orders-orders': 'history', 'my-business-orders': 'history' } : {},
   );
   const [historyFilters, setHistoryFilters] = useState<
     Record<string, HistoryFilter>
@@ -678,7 +679,8 @@ export default function RequestsScreen({
                     ? "Tu respuesta fue enviada; falta la decisión del cliente."
                     : item.view === "active"
                       ? item.kind === "orders"
-                        ? "Continúa con la preparación del pedido."
+                        ? requests.some((order) => order.requestProcess?.state === 'IN_PROGRESS')
+                          ? 'Revisa el avance de los pedidos en curso.' : "Continúa con la preparación del pedido."
                         : "Ya puedes comenzar el servicio."
                       : "El cliente fue avisado; falta su confirmación.";
               return (

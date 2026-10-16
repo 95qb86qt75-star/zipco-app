@@ -35,14 +35,15 @@ export function AgreementContent({ state, retry }: { state: AgreementState; retr
   </div>;
 }
 
-export default function AcceptedConditions({ process }: { process: RequestProcessSummary | null | undefined }) {
+export default function AcceptedConditions({ process, business = false, history = false }: { process: RequestProcessSummary | null | undefined; business?: boolean; history?: boolean }) {
   const { state, retry } = useAgreement(process);
-  return <AcceptedConditionsPanel state={state} retry={retry} />;
+  return <AcceptedConditionsPanel state={state} retry={retry} business={business} history={history} />;
 }
 
-export function AcceptedConditionsPanel({ state, retry }: { state: AgreementState; retry: () => void }) {
+export function AcceptedConditionsPanel({ state, retry, business = false, history = false }: { state: AgreementState; retry: () => void; business?: boolean; history?: boolean }) {
   return <section aria-label="Condiciones aceptadas" className="mt-3 space-y-3 rounded-[16px] border border-emerald-200 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100/70 p-3 text-sm text-slate-900 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40 dark:text-slate-100">
     <h4 className="font-black">Condiciones aceptadas</h4>
+    {state.status === 'loaded' && <a className="inline-flex min-h-11 items-center font-bold text-teal-700" href={`/solicitudes/procesos/${state.agreement.requestProcessId}/acuerdo?participant=${business ? 'business' : 'customer'}${history ? '&volver=historial' : ''}`}>Abrir acuerdo</a>}
     <AgreementContent state={state} retry={retry} />
   </section>;
 }

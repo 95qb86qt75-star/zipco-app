@@ -10,6 +10,7 @@ import { OrderCardDisclosure, OrderPricePanel } from './OrderCardPanels';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { formatDeliverySchedule } from './utils';
 import { safePhoto } from './agreement';
+import CoordinationActions from './CoordinationActions';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -20,7 +21,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   const [localExpanded, setLocalExpanded] = useState(expanded ?? false);
   const process = order.requestProcess;
   const awaiting = process?.state === 'AWAITING_BUSINESS_RESPONSE';
-  const coordination = process?.state === 'COORDINATION_PENDING';
+  const coordination = process && ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS'].includes(process.state);
   const agreement = useAgreement(process);
   const accepted = agreement.state.status === 'loaded' ? agreement.state.agreement : null;
   // After acceptance, header and details use only the immutable agreement.
@@ -95,7 +96,8 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
                 <Check className="zipco-accept-icon h-4 w-4" />{isUpdating ? 'Guardando…' : `Aceptar pedido${price === null ? '' : ` por $${price.toLocaleString('es-CL')}`}`}
               </button>}
           </>}
-          {(coordination || process?.agreementPublicId) && <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} />}
+          {(coordination || process?.agreementPublicId) && <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} />}
+          {coordination && accepted && <CoordinationActions order={order} business={business} service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />}
           <button type="button" aria-expanded={true} onClick={(event) => { event.stopPropagation(); toggle(); }}
             className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>
         </motion.div>}

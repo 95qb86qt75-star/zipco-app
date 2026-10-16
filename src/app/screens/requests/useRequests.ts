@@ -24,6 +24,7 @@ import {
   proposeOrderAlternative,
 } from "./ordersApi";
 import { isRecord } from "./orderValueParsers";
+import { normalizeRequestProcess } from './requestProcess';
 import type {
   BusinessRequest,
   ClosureReason,
@@ -157,6 +158,36 @@ export default function useRequests(onSessionExpired: () => void) {
   }, [loadOrders]);
 
   useEffect(() => {
+    const expire = () => onSessionExpired();
+    const resume = () => { if (document.visibilityState === 'visible') void loadOrders(true); };
+    window.addEventListener('zipco-coordination-session-expired', expire);
+    document.addEventListener('visibilitychange', resume);
+    window.addEventListener('pageshow', resume);
+    return () => {
+      window.removeEventListener('zipco-coordination-session-expired', expire);
+      document.removeEventListener('visibilitychange', resume);
+      window.removeEventListener('pageshow', resume);
+    };
+  }, [loadOrders, onSessionExpired]);
+
+  useEffect(() => {
+    const receive = (event: Event) => {
+      const receipt: unknown = (event as CustomEvent).detail;
+      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || (receipt.orderStatus !== 'accepted' && receipt.orderStatus !== 'cancelled')) return;
+      const process = normalizeRequestProcess(receipt.requestProcess);
+      if (!process) return;
+      const apply = <T extends BusinessRequest | MyOrder>(items: T[]): T[] => items.map((item) => {
+        if (item.id !== receipt.orderId || item.requestProcess?.id !== process.id || item.requestProcess.version > process.version) return item;
+        return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled', requestProcess: process };
+      });
+      setRequests(apply); setMyOrders(apply);
+      void loadOrders(true);
+    };
+    window.addEventListener('zipco-process-receipt', receive);
+    return () => window.removeEventListener('zipco-process-receipt', receive);
+  }, [loadOrders]);
+
+  useEffect(() => {
     for (const order of [...requests, ...myOrders]) {
       if (order.requestProcess) acceptanceRef.current.acknowledge(order.requestProcess);
     }
@@ -211,6 +242,7 @@ export default function useRequests(onSessionExpired: () => void) {
           setRequests(update);
           setMyOrders(update);
           showAppToast('Pedido aceptado. Coordinación pendiente.');
+          await loadOrders(true);
           return true;
         }
         await patchOrderStatus(actionable.id, payload, token);

@@ -45,6 +45,7 @@ import { motion } from "motion/react";
 import BottomNav from "./screens/BottomNav";
 import RegistrationFlow from "./screens/RegistrationFlow";
 import RequestsScreen from "./screens/RequestsScreen";
+import { notifyCoordinationSessionChange } from './screens/requests/coordinationSession';
 import CheckoutScreen from "./screens/CheckoutScreen";
 import BusinessProfileScreen from "./screens/BusinessProfileScreen";
 import ServiceProfileScreen from "./screens/ServiceProfileScreen";
@@ -279,6 +280,7 @@ export default function App() {
     localStorage.removeItem("zipco-provider-type");
     localStorage.removeItem("zipco-favorites");
     localStorage.removeItem("zipco-request-status-snapshot-v1");
+    notifyCoordinationSessionChange();
     setFavoriteItems([]);
     setCurrentScreen("home");
     setActiveTab("home");
@@ -665,7 +667,7 @@ export default function App() {
 
   if (!isRegistrationComplete) {
     return renderWithToast(
-      <RegistrationFlow onComplete={() => setIsRegistrationComplete(true)} />,
+      <RegistrationFlow onComplete={() => { notifyCoordinationSessionChange(); setIsRegistrationComplete(true); }} />,
     );
   }
 
