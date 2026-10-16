@@ -67,14 +67,14 @@ describe('Requests screen with mixed server generations', () => {
     expect(positions.every((position) => position >= 0)).toBe(true);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
-  it.each(['?open=requests-customer', '?open=requests-business'])('uses horizontal tabs that keep their labels and count on one row (%s)', (search) => {
+  it.each(['?open=requests-customer', '?open=requests-business'])('uses the shared compact categories without a scrolling row (%s)', (search) => {
     state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
     window.location.search = search;
     const html = render();
     const tabs = html.slice(html.indexOf('zipco-status-tabs')).split('</button>')[0];
-    expect(tabs).toContain('overflow-x-auto');
-    expect(tabs).toContain('shrink-0'); expect(tabs).toContain('whitespace-nowrap');
-    expect(tabs).toContain('min-h-11'); expect(tabs).not.toContain('flex-col');
-    expect(tabs).not.toContain('min-w-[66px]');
+    expect(tabs).toContain('zipco-status-tab-surface');
+    expect(tabs).toContain('zipco-status-tab-count');
+    expect(tabs).not.toContain('overflow-x-auto');
+    expect(tabs).not.toContain('flex-col');
   });
 });
