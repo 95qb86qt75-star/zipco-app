@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Image as ImageIcon, X } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
@@ -7,6 +8,26 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 // Profile images never enter this component.
 export default function OrderReferencePhoto({ src, business = true }: { src: string | null; business?: boolean }) {
   const [showPhoto, setShowPhoto] = useState(false);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!showPhoto || !src) return;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButton.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' && event.key !== 'Tab') return;
+      event.preventDefault(); event.stopPropagation();
+      if (event.key === 'Escape') setShowPhoto(false);
+      else closeButton.current?.focus();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, [showPhoto, src]);
   if (!src) return null;
   return <>
     <button
@@ -42,21 +63,21 @@ export default function OrderReferencePhoto({ src, business = true }: { src: str
         Abrir
       </span>
     </button>
-    <AnimatePresence>
+    {typeof document !== 'undefined' && createPortal(<AnimatePresence>
       {showPhoto && src && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[1000] flex h-[100dvh] flex-col bg-slate-950/95 px-4 backdrop-blur-md"
+          style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           onClick={(event) => { event.stopPropagation(); setShowPhoto(false); }}
           role="dialog"
           aria-modal="true"
           aria-label={business ? 'Imagen adjunta por el cliente' : 'Imagen adjunta por ti'}
         >
           <div
-            className="flex items-center justify-between gap-3 pb-3 text-white"
-            style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
+            className="relative z-10 flex shrink-0 items-center justify-between gap-3 pb-3 text-white"
           >
             <div>
               <strong className="block text-base font-black">
@@ -68,9 +89,10 @@ export default function OrderReferencePhoto({ src, business = true }: { src: str
             </div>
             <button
               type="button"
-              onClick={() => setShowPhoto(false)}
+              ref={closeButton}
+              onClick={(event) => { event.stopPropagation(); setShowPhoto(false); }}
               aria-label="Cerrar imagen"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white active:scale-95"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-slate-950 shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95"
             >
               <X className="h-6 w-6" />
             </button>
@@ -88,11 +110,11 @@ export default function OrderReferencePhoto({ src, business = true }: { src: str
               className="max-h-full max-w-full object-contain"
             />
           </motion.div>
-          <p className="pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-3 text-center text-xs text-slate-400">
+          <p className="shrink-0 pt-3 text-center text-xs text-slate-400">
             Toca fuera de la imagen para cerrar.
           </p>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>, document.body)}
   </>;
 }

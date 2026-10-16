@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, agreement: null as unknown, retry: vi.fn() }));
 vi.mock('react', async (original) => ({
   ...await original<typeof import('react')>(),
+  useEffect: () => undefined,
+  useRef: (current: unknown) => ({ current }),
   useState: (initial: unknown) => {
     const index = hooks.cursor++;
     if (!(index in hooks.slots)) hooks.slots[index] = typeof initial === 'function' ? initial() : initial;
@@ -12,6 +14,7 @@ vi.mock('react', async (original) => ({
     }];
   },
 }));
+vi.mock('react-dom', async (original) => ({ ...await original<typeof import('react-dom')>(), createPortal: (children: React.ReactNode) => children }));
 vi.mock('./useAgreement', () => ({ default: () => ({ state: hooks.agreement, retry: hooks.retry }) }));
 import ProcessOrderCard from './ProcessOrderCard';
 import CoordinationActions from './CoordinationActions';
@@ -252,6 +255,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it('opens and closes the extracted reference viewer without propagating to the parent card', () => {
+    vi.stubGlobal('document', { body: {} });
     const src = agreementFixture.subjectSnapshot.referencePhoto;
     const viewer = () => { hooks.cursor = 0; return OrderReferencePhoto({ src }); };
     let view = viewer();
