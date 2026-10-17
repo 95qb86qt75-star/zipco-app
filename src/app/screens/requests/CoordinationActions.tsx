@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { LockKeyhole, Trash2 } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from './types';
 import { ANNUL_REASONS, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
 import useCoordination from './useCoordination';
+import WhatsAppMark from './WhatsAppMark';
 
 const buttonClass = 'min-h-12 w-full rounded-xl border border-teal-300 bg-white px-3 py-2 text-sm font-bold text-teal-800 disabled:opacity-50';
 
@@ -23,9 +25,9 @@ export default function CoordinationActions({ order, business, service, refresh 
     if (await operation.run(action, reason, detail)) { setConfirm(null); setDetail(''); }
   };
   const needsBusinessConsent = business && process?.coordination?.businessContactAuthorized !== true;
-  return <section aria-label="Acciones de coordinación" className="mt-3 space-y-3 rounded-2xl border border-teal-200 bg-teal-50/70 p-3"
+  return <section aria-label="Acciones de coordinación" className={`mt-3 rounded-2xl border border-teal-200 p-3 ${business ? 'space-y-3 bg-teal-50/70' : 'space-y-2 zipco-customer-coordination'}`}
     onClick={(event) => event.stopPropagation()}>
-    <h4 className="text-sm font-black text-teal-900">Coordinación</h4>
+    <h4 className={business ? 'text-sm font-black text-teal-900' : 'text-[10px] font-black uppercase tracking-[0.16em] text-teal-800'}>Coordinación</h4>
     {business && ['COORDINATION_PENDING', 'COORDINATING'].includes(process?.state ?? '') &&
       process?.coordination?.customerContactAuthorized === false &&
       <p role="status" className="text-sm text-slate-700">Esperando autorización de contacto del cliente.</p>}
@@ -39,10 +41,16 @@ export default function CoordinationActions({ order, business, service, refresh 
       <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void operation.retry()}>Reintentar operación pendiente</button>
     </> : <>
       {allowed('AUTHORIZE_CONTACT') && !process?.coordination?.customerContactAuthorized && !deferred && <div className="space-y-2">
-        <p className="font-bold">Autorizar contacto para este pedido</p>
-        <p className="text-sm">¿Autorizas compartir con {businessName} el teléfono de tu perfil para coordinar este pedido? La autorización corresponde únicamente a este pedido.</p>
-        <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('AUTHORIZE_CONTACT')}>Autorizar contacto</button>
-        <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100/80 text-teal-600"><WhatsAppMark className="h-7 w-7" /></span>
+          <p className="text-sm font-black leading-tight text-slate-950">Autorizar contacto para este pedido</p>
+        </div>
+        <p className="text-xs leading-[18px] text-slate-600">¿Autorizas compartir con {businessName} el teléfono de tu perfil para coordinar este pedido? La autorización corresponde únicamente a este pedido.</p>
+        <p className="flex items-center gap-2 rounded-xl bg-teal-100/40 px-2.5 py-2 text-[11px] font-semibold leading-4 text-teal-800"><LockKeyhole aria-hidden="true" className="h-4 w-4 shrink-0" />Solo para este pedido y este negocio.</p>
+        <button type="button" className="zipco-contact-consent" disabled={operation.busy} onClick={() => void submit('AUTHORIZE_CONTACT')}>
+          <WhatsAppMark className="zipco-contact-consent-icon h-6 w-6 shrink-0" /><span>Autorizo iniciar coordinación</span>
+        </button>
+        <button type="button" className="min-h-11 w-full rounded-xl border border-teal-300 bg-white/80 px-3 py-2 text-sm font-bold text-teal-800 disabled:opacity-50" disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>
       </div>}
       {deferred && allowed('AUTHORIZE_CONTACT') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setDeferred(false)}>Revisar autorización de contacto</button>}
       {allowed('OPEN_WHATSAPP') && <>
@@ -52,7 +60,8 @@ export default function CoordinationActions({ order, business, service, refresh 
         }}>Coordinar por WhatsApp</button>
       </>}
       {allowed('START_WORK') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('START_WORK')}>Coordinación lista — comenzar pedido</button>}
-      {allowed('ANNUL_COORDINATION') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setConfirm('ANNUL_COORDINATION')}>Anular solicitud</button>}
+      {allowed('ANNUL_COORDINATION') && <button type="button" className={business ? buttonClass : 'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50/60 px-3 py-2 text-sm font-bold text-rose-600 disabled:opacity-50'} disabled={operation.busy} onClick={() => setConfirm('ANNUL_COORDINATION')}>
+        {!business && <Trash2 aria-hidden="true" className="h-4 w-4" />}Anular solicitud</button>}
       {confirm === 'OPEN_WHATSAPP' && allowed('OPEN_WHATSAPP') && <div className="space-y-2" role="group" aria-label="Confirmar contacto por WhatsApp">
         <p className="text-sm">Compartirás con {client} el teléfono de tu perfil para coordinar este pedido por WhatsApp. ZIPCO no procesa ni verifica pagos.</p>
         <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('OPEN_WHATSAPP')}>Continuar a WhatsApp</button>

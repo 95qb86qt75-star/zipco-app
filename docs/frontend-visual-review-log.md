@@ -7,7 +7,7 @@ no una aprobación final. El cierre requiere la confirmación expresa de Bastiá
 Base de esta ronda: d5204934b1f6b7b5ac360733af4e641292acbe4c.
 El commit que incorpora cada entrada identifica su versión exacta en Git.
 
-## Modificaciones acumuladas: 5
+## Modificaciones acumuladas: 6
 
 1. **Cliente — orden de pestañas:** Pendientes antes de Coordinación.
    Se conservan los filtros, contadores y las restantes pestañas.
@@ -35,14 +35,49 @@ El commit que incorpora cada entrada identifica su versión exacta en Git.
    quedan disponibles para las futuras. No cambian nombres, orden, contadores,
    filtros ni permisos. Sustituye la distribución del ajuste 2.
    Referencia: imagen y aprobación de Bastián en esta conversación.
-   Revisión real de esta versión en iPhone y Android: pendiente.
+   El 2026-10-17 Bastián confirmó que las categorías quedaron bien y aportó
+   captura de la vista del cliente en iPhone. Conformidad visual parcial del
+   ajuste 5 sobre la versión 4ef8bec3835c510b9176c2ca12437decd65ae317.
+   La comprobación independiente de Android negocio sigue pendiente.
+6. **Cliente — presentación de coordinación y consentimiento:** referencia
+   visual enviada por Bastián el 2026-10-17. Encabezado compacto con icono de
+   WhatsApp; consentimiento aprobado sobre el teléfono del perfil conservado.
+   Botón “Autorizo iniciar coordinación” verde con efecto glass, iluminación
+   del icono y animación de dos ciclos (4,4 s), desactivada con movimiento
+   reducido o mientras está ocupado. Continúa ejecutando únicamente
+   `AUTHORIZE_CONTACT`; no abre WhatsApp ni comienza el trabajo por ese clic.
+   Se conservan “Ahora no” y “Anular solicitud”, esta última con tratamiento
+   visual secundario rojo y sus permisos de coordinación existentes.
+   Resumen del cliente: icono de condiciones aceptadas y rótulo “Precio total”
+   junto al total único del acuerdo; conserva expansión y condiciones del acuerdo.
+   No se añade la promesa absoluta “Tu número estará protegido” ni se cambia
+   “teléfono del perfil” por otro dato. Revisión real en celulares: pendiente.
 
 Referencia: capturas de Bastián en la conversación del 2026-10-16
 (Mis Pedidos, pestaña Coordinación cortada y precio duplicado).
 
-Comprobación visual de esta versión en iPhone cliente: pendiente.
+Comprobación visual de categorías en iPhone cliente: conforme según Bastián
+y captura del 2026-10-17, sobre 4ef8bec3835c510b9176c2ca12437decd65ae317.
 Comprobación visual de esta versión en Android negocio: pendiente.
 Aprobación final del diseño: pendiente.
+
+## Pendientes funcionales para coordinar con Backend QA
+
+F1. **Cliente — anular una solicitud inicial en Pendientes.** El 2026-10-17
+Bastián señaló que falta “Anular solicitud” inmediatamente después de crear
+el pedido, mientras espera la respuesta inicial del negocio. Solicita
+recuperar esa posibilidad en su bloque funcional posterior; en este paso
+únicamente se registra el pendiente, sin implementar ni habilitar acciones.
+
+Este pendiente no incrementa el contador de modificaciones visuales implementadas.
+Clasificación de la futura implementación: requiere diagnóstico y coordinación
+frontend/backend sobre contrato, acción permitida, transición y compatibilidad.
+El contrato frontend actual de `ANNUL_COORDINATION` se limita a
+`COORDINATION_PENDING` y `COORDINATING`; no cubre la espera inicial
+`AWAITING_BUSINESS_RESPONSE`. Evidencia: `coordinationApi.ts`, función
+`coordinationAllowed`. No debe ampliarse ese permiso ni reutilizarse el flujo
+histórico por fuera de RequestProcess sin un contrato acordado con Backend QA.
+No se ha inspeccionado ni modificado el repositorio backend en este registro.
 
 Validación local de los ajustes 1–3 (commit c205260): 58 pruebas afectadas aprobadas; suite completa con 720
 pruebas aprobadas en 70 archivos. Build Vite/PWA correcto, con la advertencia
@@ -65,6 +100,15 @@ históricas se distribuyen en dos filas. En los doce casos comprobados no hubo
 recorte ni desbordamiento horizontal, y el área táctil mínima fue 44 px.
 Los nombres largos pueden ocupar dos líneas dentro de su pastilla, sin partir
 palabras. Estas mediciones no equivalen a validación móvil de la app integrada.
+
+Validación local del ajuste 6: 74 pruebas afectadas aprobadas; suite completa
+con 738 pruebas aprobadas en 72 archivos; build Vite/PWA correcto con la
+advertencia de bundle existente. Muestra local con el componente real y
+operaciones simuladas, sin llamadas a la API: sin desbordamiento horizontal
+ni botones recortados a 320, 375, 393 y 430 px; controles de al menos 44 px.
+Chrome confirmó animación desactivada al emular movimiento reducido.
+La vista estática muestra el resumen tras su animación de entrada. Esta
+evidencia no valida consentimiento, WhatsApp ni el recorrido real en celulares.
 
 Alcance: solo presentación frontend; contratos, permisos, estados, agrupación
 funcional y backend sin cambios. No se guardan capturas ni datos personales

@@ -74,7 +74,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     </p>}
     {hasConditions ? <>
       <OrderCardDisclosure title="Condiciones aceptadas" hint={isExpanded ? 'Ocultar condiciones' : 'Revisar condiciones'}
-        price={price} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} />
+        price={price} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} acceptedSummary={!business} />
       {coordination && accepted && <CoordinationActions key="coordination-actions" order={order} business={business}
         service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />}
       <AnimatePresence initial={false}>

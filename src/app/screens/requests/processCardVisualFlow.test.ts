@@ -48,6 +48,18 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each([true, false])('adds the accepted total caption only in the new customer summary (business=%s)', (business) => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    const order = business ? normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0]
+      : normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
+    const view = render({ ...props, order, business });
+    const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
+    expect(disclosure.props.acceptedSummary).toBe(!business);
+    const html = renderToStaticMarkup(disclosure);
+    expect(html.includes('Precio total')).toBe(!business);
+    expect(html.match(/\$2\.000/g)).toHaveLength(1);
+    expect(disclosure.props.price).toBe(agreementFixture.totalPriceClp);
+  });
   it.each([false, true])('shows the customer total once, in the disclosure, and status in the header (accepted=%s)', (accepted) => {
     hooks.agreement = accepted ? { status: 'loaded', agreement: agreementFixture } : { status: 'absent' };
     const order = normalizeMyOrdersPayload([{ ...raw, status: accepted ? 'accepted' : 'pending', requestProcess: accepted ? coordinationProcess : pendingProcess }])[0];

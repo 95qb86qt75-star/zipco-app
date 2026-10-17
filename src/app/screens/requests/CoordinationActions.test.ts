@@ -28,7 +28,7 @@ const render = (business: boolean, service = false, input = raw) => {
   return CoordinationActions({ order, business, service, refresh: vi.fn() });
 };
 const click = (view: React.ReactNode, text: string) => {
-  const button = nodes(view).find((node) => node.type === 'button' && node.props.children === text)!;
+  const button = nodes(view).find((node) => node.type === 'button' && renderToStaticMarkup(node).includes(text))!;
   return (button.props.onClick as () => unknown)();
 };
 beforeEach(() => { hooks.slots = []; hooks.cursor = 0; hooks.busy = false; hooks.needsUpdate = false; hooks.warning = '';
@@ -52,8 +52,30 @@ describe('coordination presentation and deliberate consent', () => {
     expect(renderToStaticMarkup(view)).not.toContain('Autorizar contacto para este pedido');
     expect(hooks.run).not.toHaveBeenCalled();
     click(view, 'Revisar autorización de contacto');
-    click(render(false), 'Autorizar contacto');
+    click(render(false), 'Autorizo iniciar coordinación');
     expect(hooks.run).toHaveBeenCalledWith('AUTHORIZE_CONTACT', 'COORDINATION_NOT_REACHED', '');
+  });
+  it('keeps the glass authorization button exclusive to allowed customer consent', () => {
+    const html = renderToStaticMarkup(render(false));
+    expect(html).toContain('zipco-contact-consent'); expect(html).toContain('Autorizo iniciar coordinación');
+    expect(html).toContain('Solo para este pedido y este negocio.');
+    expect(html).not.toContain('Tu número estará protegido');
+    expect(renderToStaticMarkup(render(true))).not.toContain('Autorizo iniciar coordinación');
+    expect(renderToStaticMarkup(render(false, false, { ...raw, requestProcess: { ...raw.requestProcess, allowedActions: [] } })))
+      .not.toContain('Autorizo iniciar coordinación');
+    expect(hooks.run).not.toHaveBeenCalled();
+  });
+  it('authorizes only on deliberate click, never opens WhatsApp or starts work from the new label', () => {
+    const view = render(false); expect(hooks.run).not.toHaveBeenCalled();
+    click(view, 'Autorizo iniciar coordinación');
+    expect(hooks.run).toHaveBeenCalledOnce();
+    expect(hooks.run).toHaveBeenCalledWith('AUTHORIZE_CONTACT', 'COORDINATION_NOT_REACHED', '');
+  });
+  it('keeps the new authorization button disabled while an operation is in progress', () => {
+    hooks.busy = true;
+    const view = render(false);
+    const button = nodes(view).find((node) => node.type === 'button' && node.props.className === 'zipco-contact-consent')!;
+    expect(button.props.disabled).toBe(true);
   });
   it.each([true, false])('requires the business confirmation before sharing (service=%s)', (service) => {
     let view = render(true, service); click(view, 'Coordinar por WhatsApp');
