@@ -46,6 +46,7 @@ import {
 import { getCustomerAttentionItems } from "./requests/requestAttentionSummary";
 import { businessOrderTabs } from "./requests/orderTabs";
 import RequestStatusTab from "./requests/RequestStatusTab";
+import { initialRequestViews } from "./requests/agreementNavigation";
 
 export default function RequestsScreen({
   onBack,
@@ -67,8 +68,7 @@ export default function RequestsScreen({
     openTarget?.endsWith("-quotes") ? "quotes" : "orders",
   );
   const [statusViews, setStatusViews] = useState<Record<string, StatusView>>(
-    () => new URLSearchParams(window.location.search).get('view') === 'history'
-      ? { 'my-orders-orders': 'history', 'my-business-orders': 'history' } : {},
+    () => initialRequestViews(window.location.search),
   );
   const [historyFilters, setHistoryFilters] = useState<
     Record<string, HistoryFilter>

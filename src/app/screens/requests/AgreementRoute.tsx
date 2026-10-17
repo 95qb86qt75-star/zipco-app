@@ -3,6 +3,7 @@ import { AgreementContent } from './AcceptedConditions';
 import type { AgreementState } from './useAgreement';
 import { readAgreement } from './requestProcessApi';
 import { RequestProcessError } from './requestProcessErrors';
+import { agreementReturnLink } from './agreementNavigation';
 import { readCoordinationSession, subscribeCoordinationSession, notifyCoordinationSessionChange, type CoordinationSession } from './coordinationSession';
 
 export function agreementRouteId(path: string): number | null {
@@ -37,10 +38,9 @@ function AgreementPage({ id, session }: { id: number; session: CoordinationSessi
     return () => controller.abort();
   }, [id, attempt, session]);
   const params = new URLSearchParams(window.location.search);
-  const destination = params.get('volver') === 'historial' ? '&view=history' : '';
   const participant = params.get('participant') === 'business' ? 'business' : 'customer';
   return <main className="mx-auto min-h-screen max-w-lg space-y-4 bg-white p-4 text-slate-900">
-    <a className="inline-flex min-h-12 items-center font-bold text-teal-700" href={`/?open=requests-${participant}${destination}`}>Volver a Solicitudes</a>
+    <a className="inline-flex min-h-12 items-center font-bold text-teal-700" href={agreementReturnLink(window.location.search)}>Volver a Solicitudes</a>
     <h1 className="text-xl font-black">Condiciones aceptadas</h1>
     <AgreementContent state={readCoordinationSession() === session ? state : { status: 'loading' }} retry={() => setAttempt((value) => value + 1)} business={participant === 'business'} />
   </main>;

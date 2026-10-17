@@ -7,7 +7,7 @@ no una aprobación final. El cierre requiere la confirmación expresa de Bastiá
 Base de esta ronda: d5204934b1f6b7b5ac360733af4e641292acbe4c.
 El commit que incorpora cada entrada identifica su versión exacta en Git.
 
-## Modificaciones acumuladas: 8
+## Modificaciones acumuladas: 9
 
 1. **Cliente — orden de pestañas:** Pendientes antes de Coordinación.
    Se conservan los filtros, contadores y las restantes pestañas.
@@ -70,9 +70,22 @@ El commit que incorpora cada entrada identifica su versión exacta en Git.
    sigue íntegro. Las acciones mantienen sus manejadores, bloqueo y permisos;
    no se desmontan al desplegar o contraer el detalle.
    Referencia: dos capturas nocturnas del cliente enviadas por Bastián el
-   2026-10-17. Manifestó que le gusta la versión oscura; este ajuste concreto
-   sigue pendiente de revisión móvil. Negocio e Historial conservan su detalle
+   2026-10-17. Manifestó que le gusta la versión oscura. Posteriormente
+   Bastián confirmó “quedó bueno” con capturas del iPhone cliente sobre la
+   versión 6bfc308a1d41e8a2da2eec91e3d338841d27afe6. La comprobación independiente
+   en Android negocio sigue pendiente. Negocio e Historial conservan su detalle
    anterior. No constituye aprobación final del diseño.
+9. **Navegación local — volver del acuerdo a su pestaña de origen:** los
+   enlaces “Abrir acuerdo” conservan participante y categoría de la lista
+   mediante parámetros de navegación validados. “Volver a Solicitudes” vuelve
+   a Coordinación cuando el acuerdo se abrió desde esa categoría; también se
+   conserva En curso o Historial según el origen, sin enviar al cliente a la
+   vista del negocio. Los enlaces antiguos de Historial siguen funcionando.
+   Solo se admiten las categorías locales reconocidas; no se acepta una URL
+   arbitraria de retorno ni se copian parámetros ajenos. No se almacena nueva
+   información de la cuenta, ni se modifican API, permisos o estados.
+   Reportado por Bastián el 2026-10-17 tras aprobar visualmente el ajuste 8.
+   Comprobación de la navegación publicada en celulares: pendiente.
 
 Referencia: capturas de Bastián en la conversación del 2026-10-16
 (Mis Pedidos, pestaña Coordinación cortada y precio duplicado).
@@ -148,6 +161,14 @@ acciones simulados, tras la animación de entrada: modo claro y oscuro a 320,
 consentimiento dentro de su resumen; la referencia conserva su componente.
 No se hicieron llamadas a la API ni comprobaciones reales de coordinación o
 WhatsApp. Revisión de la publicación en los celulares: pendiente.
+
+Validación local del ajuste 9: 69 pruebas afectadas aprobadas; suite completa
+con 753 pruebas aprobadas en 73 archivos; build Vite/PWA correcto, con la
+advertencia de tamaño existente. Las pruebas reproducen el fallo anterior y
+comprueban enlaces reales renderizados, retorno por participante y selección
+de categoría al cargar Solicitudes, con listas y sesión simuladas. Cubren
+Coordinación, En curso, Historial, enlaces antiguos y parámetros desconocidos.
+No se ha comprobado todavía el recorrido publicado en ambos celulares.
 
 Alcance: solo presentación frontend; contratos, permisos, estados, agrupación
 funcional y backend sin cambios. No se guardan capturas ni datos personales

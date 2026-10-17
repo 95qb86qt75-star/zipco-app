@@ -48,6 +48,17 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each([true, false])('carries the displayed process category into the agreement link (business=%s)', (business) => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    for (const [state, viewName] of [['COORDINATION_PENDING', 'coordination'], ['COORDINATING', 'coordination'], ['IN_PROGRESS', 'active']]) {
+      const input = { ...raw, status: 'accepted', requestProcess: { ...coordinationProcess, state } };
+      const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+      const view = render({ ...props, order, business, expanded: true, onToggle: vi.fn() });
+      const panel = elements(view).find((node) => node.type === AcceptedConditionsPanel)!;
+      expect(panel.props.returnView).toBe(viewName);
+      expect(renderToStaticMarkup(panel)).toContain(`participant=${business ? 'business' : 'customer'}&amp;view=${viewName}`);
+    }
+  });
   it('opens customer conditions inside their summary before consent, retaining mounted actions when closed', () => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const order = normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];

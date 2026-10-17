@@ -11,6 +11,7 @@ import OrderReferencePhoto from './OrderReferencePhoto';
 import { formatDeliverySchedule } from './utils';
 import { safePhoto } from './agreement';
 import CoordinationActions from './CoordinationActions';
+import { statusViewFor } from './requestStatusGrouping';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -57,7 +58,8 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   const conditionsDetails = <AnimatePresence initial={false}>
     {isExpanded && <motion.div key="conditions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
       onClick={(event) => event.stopPropagation()}>
-      <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} embedded={!business} />
+      <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} embedded={!business}
+        returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </motion.div>}
   </AnimatePresence>;
 

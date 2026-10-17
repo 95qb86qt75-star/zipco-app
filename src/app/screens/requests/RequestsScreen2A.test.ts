@@ -29,6 +29,16 @@ describe('Requests screen with mixed server generations', () => {
   const render = () => renderToStaticMarkup(React.createElement(RequestsScreen, {
     activeTab: 'requests', setActiveTab: () => undefined, onBack: () => undefined, onSessionExpired: () => undefined,
   }));
+  it.each(['customer', 'business'])('restores the agreement origin category for %s', (participant) => {
+    for (const [view, label] of [['coordination', participant === 'business' ? 'Por coordinar' : 'Coordinación'], ['active', 'En curso'], ['history', 'Historial']]) {
+      state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
+      window.location.search = `?open=requests-${participant}&view=${view}`;
+      const html = render();
+      const selected = html.match(/<button[^>]*aria-pressed="true"[^>]*>[\s\S]*?<\/button>/g) ?? [];
+      expect(selected).toHaveLength(1);
+      expect(selected[0]).toContain(`<span>${label}</span>`);
+    }
+  });
   it('keeps legacy QA responses and preparation activity with the new business tab labels', () => {
     state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted' }]);
     const html = render();

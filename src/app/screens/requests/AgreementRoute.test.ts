@@ -8,6 +8,15 @@ import AgreementRoute, { fetchSessionAgreement } from './AgreementRoute';
 import { notifyCoordinationSessionChange, readCoordinationSession } from './coordinationSession';
 afterEach(() => vi.unstubAllGlobals());
 describe('private agreement route', () => {
+  it.each(['customer', 'business'])('returns from agreement to coordination for %s', (participant) => {
+    vi.stubGlobal('React', React);
+    vi.stubGlobal('window', { location: { pathname: '/solicitudes/procesos/7/acuerdo', search: `?participant=${participant}&view=coordination` } });
+    vi.stubGlobal('localStorage', { getItem: () => 'synthetic' });
+    const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+    const html = renderToStaticMarkup(React.createElement(AgreementRoute, { children: 'Login existente' }));
+    expect(html).toContain(`/?open=requests-${participant}&amp;view=coordination`);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
   it('accepts only the exact relative process route and a safe positive id', () => {
     expect(agreementRouteId(agreementPath(7))).toBe(7);
     for (const path of ['/solicitudes/procesos/0/acuerdo', '/solicitudes/procesos/abc/acuerdo', '/solicitudes/procesos/9007199254740992/acuerdo', 'https://evil.test/solicitudes/procesos/7/acuerdo'])
