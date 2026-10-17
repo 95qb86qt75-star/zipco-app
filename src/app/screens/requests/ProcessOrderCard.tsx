@@ -22,7 +22,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   const [localExpanded, setLocalExpanded] = useState(expanded ?? false);
   const process = order.requestProcess;
   const awaiting = process?.state === 'AWAITING_BUSINESS_RESPONSE';
-  const coordination = process && ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS'].includes(process.state);
+  const coordination = process && ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'].includes(process.state);
   const agreement = useAgreement(process);
   const accepted = agreement.state.status === 'loaded' ? agreement.state.agreement : null;
   // After acceptance, header and details use only the immutable agreement.

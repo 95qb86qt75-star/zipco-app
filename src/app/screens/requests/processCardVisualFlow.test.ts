@@ -48,9 +48,21 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each([true, false])('retains immutable agreement and ready status in each participant view (business=%s)', (business) => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', version: 3 } };
+    const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+    const view = render({ ...props, order, business, expanded: true });
+    const html = renderToStaticMarkup(view);
+    expect(html).toContain('Pedido listo'); expect(html).toContain('Nota acordada');
+    expect(html).not.toContain('Nota de prueba'); expect(html).not.toContain('Confirmar entrega');
+    const header = elements(view).find((node) => node.type === (business ? BusinessOrderHeader : CustomerOrderHeader))!;
+    expect(header.props.products).toMatchObject({ items: [{ name: 'Producto acordado' }] });
+    expect(elements(view).find((node) => node.type === AcceptedConditionsPanel)?.props.returnView).toBe('ready');
+  });
   it.each([true, false])('carries the displayed process category into the agreement link (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
-    for (const [state, viewName] of [['COORDINATION_PENDING', 'coordination'], ['COORDINATING', 'coordination'], ['IN_PROGRESS', 'active']]) {
+    for (const [state, viewName] of [['COORDINATION_PENDING', 'coordination'], ['COORDINATING', 'coordination'], ['IN_PROGRESS', 'active'], ['READY', 'ready']]) {
       const input = { ...raw, status: 'accepted', requestProcess: { ...coordinationProcess, state } };
       const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
       const view = render({ ...props, order, business, expanded: true, onToggle: vi.fn() });

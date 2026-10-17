@@ -6,7 +6,7 @@ import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orde
 
 export const COORDINATION_PATHS = {
   AUTHORIZE_CONTACT: 'authorize-contact', OPEN_WHATSAPP: 'open-whatsapp',
-  START_WORK: 'start-work', ANNUL_COORDINATION: 'annul-coordination',
+  START_WORK: 'start-work', MARK_READY: 'mark-ready', ANNUL_COORDINATION: 'annul-coordination',
 } as const;
 export type CoordinationAction = keyof typeof COORDINATION_PATHS;
 export const ANNUL_REASONS = {
@@ -15,7 +15,7 @@ export const ANNUL_REASONS = {
 } as const;
 export type AnnulReason = keyof typeof ANNUL_REASONS;
 export type CoordinationBody = { expectedVersion: number; consentAccepted?: true; reasonCode?: AnnulReason; reasonDetail?: string };
-export type CoordinationReceipt = { orderId: number; orderStatus: 'accepted' | 'cancelled'; requestProcess: RequestProcessSummary };
+export type CoordinationReceipt = { orderId: number; orderStatus: 'accepted' | 'cancelled' | 'ready'; requestProcess: RequestProcessSummary };
 
 export function coordinationError(status: number, payload: unknown) {
   if (status >= 500) return new RequestProcessError('No se pudo confirmar la operación. Reintenta la misma solicitud.', status);
@@ -44,12 +44,15 @@ export function coordinationBody(action: CoordinationAction, version: number, re
 }
 
 export function coordinationAllowed(process: RequestProcessSummary | null | undefined, business: boolean, action: CoordinationAction) {
-  if (!process?.coordination || !process.agreementPublicId || !process.allowedActions.includes(action)) return false;
+  if (!process?.agreementPublicId || !process.allowedActions.includes(action)) return false;
+  // Readiness does not depend on phone numbers or contact consent.
+  if (action === 'MARK_READY') return business && process.state === 'IN_PROGRESS';
+  if (!process.coordination) return false;
   const coordinating = ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state);
   if (action === 'AUTHORIZE_CONTACT') return !business && coordinating;
   if (action === 'START_WORK') return business && coordinating;
   if (action === 'OPEN_WHATSAPP' && !business && !process.coordination.customerContactAuthorized) return false;
-  return action === 'ANNUL_COORDINATION' ? coordinating : coordinating || process.state === 'IN_PROGRESS';
+  return action === 'ANNUL_COORDINATION' ? coordinating : coordinating || process.state === 'IN_PROGRESS' || process.state === 'READY';
 }
 
 export async function sendCoordination(processId: number, orderId: number, action: CoordinationAction, body: CoordinationBody, token: string, key: string, signal?: AbortSignal) {
@@ -61,11 +64,12 @@ export async function sendCoordination(processId: number, orderId: number, actio
   if (!response.ok) throw coordinationError(response.status, payload);
   const raw = action === 'OPEN_WHATSAPP' && isRecord(payload) ? payload.result : payload;
   const process = isRecord(raw) ? normalizeRequestProcess(raw.requestProcess) : null;
-  const expectedStatus = action === 'ANNUL_COORDINATION' ? 'cancelled' : 'accepted';
+  const expectedStatus = action === 'ANNUL_COORDINATION' ? 'cancelled' : action === 'MARK_READY' ? 'ready' : action === 'OPEN_WHATSAPP' && process?.state === 'READY' ? 'ready' : 'accepted';
   const states = action === 'ANNUL_COORDINATION' ? ['COORDINATION_CANCELLED']
-    : action === 'START_WORK' ? ['IN_PROGRESS'] : ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS'];
+    : action === 'MARK_READY' ? ['READY'] : action === 'START_WORK' ? ['IN_PROGRESS']
+      : action === 'OPEN_WHATSAPP' ? ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'] : ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS'];
   if (!isRecord(raw) || raw.orderId !== orderId || raw.orderStatus !== expectedStatus || !process || process.id !== processId ||
-    process.version < body.expectedVersion || !states.includes(process.state) || !process.agreementPublicId)
+    process.version < body.expectedVersion || (action === 'MARK_READY' && process.version === body.expectedVersion) || !states.includes(process.state) || !process.agreementPublicId)
     throw new RequestProcessError('No se pudo confirmar la operación. Reintenta la misma solicitud.', 502);
   const result: CoordinationReceipt = { orderId, orderStatus: expectedStatus, requestProcess: process };
   if (action !== 'OPEN_WHATSAPP') return { result, navigation: null };

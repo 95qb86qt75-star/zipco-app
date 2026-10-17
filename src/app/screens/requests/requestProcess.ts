@@ -1,6 +1,6 @@
 import { isRecord } from './orderValueParsers';
 
-export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'ANNUL_COORDINATION'] as const;
+export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ANNUL_COORDINATION'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number];
 
 export type RequestProcessSummary = {
@@ -58,6 +58,7 @@ export function processStatusLabel(order: ProcessOrder): string {
   if (order.requestProcess?.state === 'COORDINATION_PENDING') return 'Coordinación pendiente';
   if (order.requestProcess?.state === 'COORDINATING') return 'Coordinando';
   if (order.requestProcess?.state === 'IN_PROGRESS') return 'En curso';
+  if (order.requestProcess?.state === 'READY') return 'Pedido listo';
   if (order.requestProcess?.state === 'COORDINATION_CANCELLED') return 'Anulada';
   return 'Estado del proceso no disponible. Actualiza el pedido.';
 }

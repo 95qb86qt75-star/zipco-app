@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { getCustomerAttentionItems } from "./requestAttentionSummary";
+import { coordinationProcess } from './requestProcessFixtures';
 
 describe("getCustomerAttentionItems", () => {
+  it('includes READY processes in customer attention without requiring a push or treating them as completed', () => {
+    const requestProcess = { ...coordinationProcess, state: 'READY' };
+    const result = getCustomerAttentionItems([{ id: 20, status: 'ready', requestProcess }], 'orders', new Set());
+    expect(result.ready).toEqual([{ kind: 'orders', id: 20, status: 'ready', requestProcess }]);
+    expect(result.responses).toEqual([]); expect(result.count).toBe(1);
+  });
   it("counts only order cards that require customer attention", () => {
     const result = getCustomerAttentionItems(
       [

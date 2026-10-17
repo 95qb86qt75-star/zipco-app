@@ -35,6 +35,58 @@ beforeEach(() => {
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
 describe('coordination hook with mocked server and external navigation', () => {
+  it('keeps MARK_READY confirmed when the next GET fails and never repeats it during recovery', async () => {
+    const input = { ...raw, requestProcess: { ...process, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } };
+    const result = { orderId: 20, orderStatus: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };
+    let finish!: (response: Response) => void;
+    const fetcher = vi.fn().mockImplementationOnce(() => new Promise<Response>((resolve) => { finish = resolve; }))
+      .mockRejectedValueOnce(new TypeError('read offline'))
+      .mockResolvedValueOnce(response([{ ...input, status: 'ready', requestProcess: result.requestProcess }]));
+    vi.stubGlobal('fetch', fetcher);
+    const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([input])[0], true, vi.fn());
+    const first = hook.run('MARK_READY');
+    expect(await hook.run('MARK_READY')).toBe(false);
+    finish(response(result)); expect(await first).toBe(true);
+    expect(hook.pending()).toBeNull(); expect(hooks.slots[2]).toBe(true);
+    expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt' && (event as CustomEvent).detail.orderStatus === 'ready')).toBe(true);
+    expect(await hook.retry()).toBe(false); expect(await hook.run('MARK_READY')).toBe(false);
+    await hook.update();
+    expect(fetcher.mock.calls.filter((call) => call[1]?.method === 'POST')).toHaveLength(1);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ expectedVersion: 2 });
+  });
+  it('retries a lost MARK_READY response with the same key and body, preserving newer reads', async () => {
+    const input = { ...raw, requestProcess: { ...process, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } };
+    const result = { orderId: 20, orderStatus: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('offline'))
+      .mockResolvedValueOnce(response(result)).mockResolvedValueOnce(response([{ ...input, status: 'ready', requestProcess: { ...result.requestProcess, version: 4 } }]));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([input])[0], true, vi.fn());
+    expect(await hook.run('MARK_READY')).toBe(false);
+    expect(await hook.retry()).toBe(true);
+    expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body);
+    expect(fetcher.mock.calls[0][1].headers['Idempotency-Key']).toBe(fetcher.mock.calls[1][1].headers['Idempotency-Key']);
+    expect(await hook.run('MARK_READY')).toBe(false);
+    expect(fetcher).toHaveBeenCalledTimes(3);
+  });
+  it('settles a restored MARK_READY by reading READY without replaying its POST', async () => {
+    const key = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    sessionStorage.setItem('zipco-coordination:synthetic:business:7', JSON.stringify({ action: 'MARK_READY', body: { expectedVersion: 2 }, key }));
+    const input = { ...raw, status: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(response([input])));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([input])[0], true, vi.fn());
+    expect(hook.pending()?.key).toBe(key); expect(hook.restored()).toBe(true);
+    expect(await hook.retry()).toBe(false); expect(fetcher).not.toHaveBeenCalled();
+    await hook.update();
+    expect(hook.pending()).toBeNull(); expect(fetcher).toHaveBeenCalledOnce();
+    expect(fetcher.mock.calls[0][1].method).toBeUndefined();
+    expect(await hook.run('MARK_READY')).toBe(false); expect(navigate).not.toHaveBeenCalled();
+  });
   it('refreshes before navigating and does not persist the URL', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response({ result: receipt, navigation: { url } }))
       .mockResolvedValueOnce(response([{ ...raw, requestProcess: { ...process, state: 'COORDINATING', version: 3 } }]));

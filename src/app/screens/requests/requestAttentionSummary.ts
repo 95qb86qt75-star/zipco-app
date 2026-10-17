@@ -38,8 +38,9 @@ export function getCustomerAttentionItems(
     .map((record) => ({ kind, id: record.id, status: record.status,
       ...(hasRequestProcess(record) ? { requestProcess: record.requestProcess } : {}) }));
   const ready: AttentionItem[] = available
-    .filter((record) => record.status === "ready" && !hasRequestProcess(record))
-    .map((record) => ({ kind, id: record.id, status: record.status }));
+    .filter((record) => hasRequestProcess(record) ? record.requestProcess?.state === 'READY' : record.status === "ready")
+    .map((record) => ({ kind, id: record.id, status: record.status,
+      ...(hasRequestProcess(record) ? { requestProcess: record.requestProcess } : {}) }));
 
   return { responses, ready, count: responses.length + ready.length };
 }

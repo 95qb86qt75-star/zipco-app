@@ -35,6 +35,27 @@ beforeEach(() => { hooks.slots = []; hooks.cursor = 0; hooks.busy = false; hooks
   hooks.update.mockReset(); hooks.run.mockReset().mockResolvedValue(true); vi.stubGlobal('React', React); });
 afterEach(() => vi.unstubAllGlobals());
 describe('coordination presentation and deliberate consent', () => {
+  it('presents only Notificar pedido listo to the business in progress and respects permission and busy state', () => {
+    const input = { ...raw, requestProcess: { ...raw.requestProcess, state: 'IN_PROGRESS', coordination: undefined,
+      allowedActions: ['MARK_READY', 'OPEN_WHATSAPP'] } };
+    const view = render(true, false, input);
+    expect(nodes(view).filter((node) => node.type === 'button')).toHaveLength(1);
+    expect(renderToStaticMarkup(view)).toContain('Notificar pedido listo');
+    expect(renderToStaticMarkup(view)).not.toContain('Coordinar por WhatsApp');
+    click(view, 'Notificar pedido listo');
+    expect(hooks.run).toHaveBeenCalledWith('MARK_READY', 'COORDINATION_NOT_REACHED', '');
+    expect(renderToStaticMarkup(render(false, false, input))).not.toContain('Notificar pedido listo');
+    expect(renderToStaticMarkup(render(true, false, { ...input, requestProcess: { ...input.requestProcess, allowedActions: ['OPEN_WHATSAPP'] } }))).not.toContain('Notificar pedido listo');
+    hooks.busy = true;
+    expect(nodes(render(true, false, input)).find((node) => node.type === 'button')?.props.disabled).toBe(true);
+  });
+  it('keeps client WhatsApp in READY without suggesting completion or confirmed notification', () => {
+    const view = render(false, false, { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY',
+      coordination: { customerContactAuthorized: true, businessContactAuthorized: false }, allowedActions: ['OPEN_WHATSAPP'] } });
+    const html = renderToStaticMarkup(view);
+    expect(html).toContain('Coordinar por WhatsApp');
+    expect(html).not.toMatch(/Notificar pedido listo|comenzar pedido|Anular solicitud|Confirmar recepción/);
+  });
   it('explains missing customer consent only to the business when explicitly false', () => {
     const message = 'Esperando autorización de contacto del cliente.';
     expect(renderToStaticMarkup(render(true))).toContain(message);

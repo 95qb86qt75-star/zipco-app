@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { rawOrder } from './requestProcessFixtures';
+import { rawOrder, coordinationProcess } from './requestProcessFixtures';
 
 // Run the real hook callbacks with a small state harness; network responses remain mocked.
-const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, toast: vi.fn() }));
+const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, toast: vi.fn(), effects: [] as Array<() => unknown> }));
 vi.mock('react', () => ({
   useState: (initial: unknown) => {
     const index = hooks.cursor++;
@@ -17,7 +17,7 @@ vi.mock('react', () => ({
     return hooks.slots[index];
   },
   useCallback: (callback: unknown) => callback,
-  useEffect: () => undefined,
+  useEffect: (effect: () => unknown) => { hooks.effects.push(effect); },
 }));
 vi.mock('../Toast', () => ({ showAppToast: hooks.toast }));
 import useRequests from './useRequests';
@@ -27,7 +27,7 @@ const render = () => { hooks.cursor = 0; return useRequests(vi.fn()); };
 const reply = (body: unknown) => new Response(JSON.stringify(body));
 
 beforeEach(() => {
-  hooks.slots = []; hooks.cursor = 0; hooks.toast.mockReset();
+  hooks.slots = []; hooks.cursor = 0; hooks.toast.mockReset(); hooks.effects = [];
   vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   vi.stubGlobal('localStorage', { getItem: (key: string) =>
     key === 'zipco-token' ? 'test' : key === 'zipco-business-id' ? '1' : null });
@@ -35,6 +35,33 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); clearDiagnostics(); vi.restoreAllMocks(); });
 
 describe('loadOrders temporary diagnostics preserve the existing reads', () => {
+  it('applies ready receipts to both lists, preserving the agreement and rejecting older receipts and reads', async () => {
+    const input = { ...rawOrder, businessName: 'Business', status: 'accepted',
+      requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS', version: 7, allowedActions: ['MARK_READY'] } };
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 503 }));
+    vi.stubGlobal('fetch', fetcher);
+    const listeners = new Map<string, (event: Event) => void>();
+    vi.stubGlobal('window', { addEventListener: (name: string, listener: (event: Event) => void) => listeners.set(name, listener), removeEventListener: vi.fn() });
+    // The first two slots are the real business/customer list states of this hook harness.
+    hooks.slots = [[input], [input]];
+    render();
+    const effect = hooks.effects.find((effect) => effect.toString().includes('zipco-process-receipt'))!;
+    expect(effect).toBeDefined(); effect();
+    const deliver = (state: string, version: number, orderStatus: string) => listeners.get('zipco-process-receipt')!(new CustomEvent('zipco-process-receipt', {
+      detail: { orderId: 20, orderStatus, requestProcess: { ...coordinationProcess, state, version, allowedActions: [] } },
+    }));
+    deliver('READY', 8, 'ready');
+    for (const list of [render().requests, render().myOrders]) {
+      expect(list[0]).toMatchObject({ status: 'ready', requestProcess: { state: 'READY', version: 8, agreementPublicId: coordinationProcess.agreementPublicId } });
+    }
+    deliver('IN_PROGRESS', 7, 'accepted');
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    // A late list read from before MARK_READY also cannot undo its confirmed receipt.
+    fetcher.mockImplementation(() => Promise.resolve(reply([input])));
+    await render().loadOrders(true);
+    for (const list of [render().requests, render().myOrders]) expect(list[0].requestProcess?.version).toBe(8);
+    expect(fetcher.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);
+  });
   it.each(['customer', 'business', 'businessName'] as const)('identifies the failing %s GET without any POST', async (operation) => {
     vi.stubEnv('QA_LOAD_DIAGNOSTICS', true);
     vi.stubEnv('QA_LOAD_DIAGNOSTICS_VERSION', 'local-test');

@@ -10,6 +10,31 @@ const process = { ...coordinationProcess, coordination: { customerContactAuthori
   allowedActions: ['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'ANNUL_COORDINATION'] as const };
 afterEach(() => vi.unstubAllGlobals());
 describe('coordination public contract', () => {
+  it('offers MARK_READY only to the permitted business in progress without requiring contact', () => {
+    const ready = { ...coordinationProcess, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] as const };
+    const valid = normalizeRequestProcess(ready)!;
+    expect(valid).not.toBeNull();
+    expect(coordinationAllowed(valid, true, 'MARK_READY')).toBe(true);
+    expect(coordinationAllowed(valid, false, 'MARK_READY')).toBe(false);
+    for (const state of ['COORDINATION_PENDING', 'READY', 'COORDINATION_CANCELLED'])
+      expect(coordinationAllowed({ ...valid, state }, true, 'MARK_READY')).toBe(false);
+    expect(coordinationAllowed({ ...valid, allowedActions: [] }, true, 'MARK_READY')).toBe(false);
+    expect(coordinationBody('MARK_READY', 7)).toEqual({ expectedVersion: 7 });
+  });
+  it.each(['accepted', 'ready'])('rejects an incompatible MARK_READY receipt (%s)', async (orderStatus) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ orderId: 20, orderStatus,
+      requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS', version: 3 } }))));
+    await expect(sendCoordination(7, 20, 'MARK_READY', { expectedVersion: 2 }, 'test', 'key')).rejects.toThrow('No se pudo confirmar');
+  });
+  it('preserves client WhatsApp access and ready status according to server permissions', async () => {
+    const ready = { ...coordinationProcess, state: 'READY', version: 3, allowedActions: ['OPEN_WHATSAPP'] as const,
+      coordination: { customerContactAuthorized: true, businessContactAuthorized: true } };
+    expect(coordinationAllowed(normalizeRequestProcess(ready), false, 'OPEN_WHATSAPP')).toBe(true);
+    expect(coordinationAllowed({ ...normalizeRequestProcess(ready)!, allowedActions: [] }, false, 'OPEN_WHATSAPP')).toBe(false);
+    const result = { orderId: 20, orderStatus: 'ready', requestProcess: ready };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ result, navigation: null, navigationUnavailableReason: 'CONTACT_NOT_AVAILABLE' }))));
+    expect((await sendCoordination(7, 20, 'OPEN_WHATSAPP', { expectedVersion: 3, consentAccepted: true }, 'test', 'key')).result).toEqual(result);
+  });
   it('normalizes all recognized actions and contact flags without phones', () => {
     const normalized = normalizeRequestProcess({ ...process, phone: 'not retained' });
     expect(normalized?.coordination).toEqual(process.coordination);
@@ -21,7 +46,7 @@ describe('coordination public contract', () => {
   });
   it.each([
     ['COORDINATION_PENDING', 'coordination'], ['COORDINATING', 'coordination'],
-    ['IN_PROGRESS', 'active'], ['COORDINATION_CANCELLED', 'history'],
+    ['READY', 'ready'], ['IN_PROGRESS', 'active'], ['COORDINATION_CANCELLED', 'history'],
   ] as const)('groups %s by the process instead of accepted Order status', (state, view) => {
     expect(statusViewFor('orders', 'accepted', { ...coordinationProcess, state })).toBe(view);
   });
@@ -54,9 +79,9 @@ describe('coordination public contract', () => {
     'javascript:alert(1)', 'https://wa.me:444/12345678?text=x', 'https://wa.me/redirect?text=x', 'https://wa.me/12345678?redirect=x', null])('rejects unsafe navigation %s', (url) => {
     expect(whatsappUrl(url)).toBeNull();
   });
-  it.each(['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'ANNUL_COORDINATION'] as const)('uses only the new route for %s and validates the receipt', async (action) => {
-    const requestProcess = { ...coordinationProcess, version: 3, state: action === 'START_WORK' ? 'IN_PROGRESS' : action === 'ANNUL_COORDINATION' ? 'COORDINATION_CANCELLED' : 'COORDINATING' };
-    const receipt = { orderId: 20, orderStatus: action === 'ANNUL_COORDINATION' ? 'cancelled' : 'accepted', requestProcess };
+  it.each(['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ANNUL_COORDINATION'] as const)('uses only the new route for %s and validates the receipt', async (action) => {
+    const requestProcess = { ...coordinationProcess, version: 3, state: action === 'MARK_READY' ? 'READY' : action === 'START_WORK' ? 'IN_PROGRESS' : action === 'ANNUL_COORDINATION' ? 'COORDINATION_CANCELLED' : 'COORDINATING' };
+    const receipt = { orderId: 20, orderStatus: action === 'ANNUL_COORDINATION' ? 'cancelled' : action === 'MARK_READY' ? 'ready' : 'accepted', requestProcess };
     const url = 'https://wa.me/12345678?text=Mensaje%20de%20prueba';
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(action === 'OPEN_WHATSAPP' ? { result: receipt, navigation: { url } } : receipt)));
     vi.stubGlobal('fetch', fetcher);

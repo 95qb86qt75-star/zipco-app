@@ -50,6 +50,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       if (intent && restored()) {
         const current = latest.requestProcess;
         const applied = intent.action === 'AUTHORIZE_CONTACT' ? current.coordination?.customerContactAuthorized === true
+          : intent.action === 'MARK_READY' ? current.state === 'READY'
           : intent.action === 'START_WORK' ? current.state === 'IN_PROGRESS'
             : intent.action === 'ANNUL_COORDINATION' ? current.state === 'COORDINATION_CANCELLED'
               : current.coordination?.[business ? 'businessContactAuthorized' : 'customerContactAuthorized'] === true;
@@ -70,7 +71,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     const process = order.requestProcess;
     if (!retry && !coordinationAllowed(process, business, action)) return false;
     if (retry && (!pending() || pending()?.action !== action ||
-      (action === 'START_WORK' && !business) || (action === 'AUTHORIZE_CONTACT' && business))) return false;
+      (['START_WORK', 'MARK_READY'].includes(action) && !business) || (action === 'AUTHORIZE_CONTACT' && business))) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setMessage('');
     try {

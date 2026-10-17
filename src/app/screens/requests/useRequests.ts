@@ -182,12 +182,12 @@ export default function useRequests(onSessionExpired: () => void) {
   useEffect(() => {
     const receive = (event: Event) => {
       const receipt: unknown = (event as CustomEvent).detail;
-      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || (receipt.orderStatus !== 'accepted' && receipt.orderStatus !== 'cancelled')) return;
+      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || (receipt.orderStatus !== 'accepted' && receipt.orderStatus !== 'cancelled' && receipt.orderStatus !== 'ready')) return;
       const process = normalizeRequestProcess(receipt.requestProcess);
       if (!process) return;
       const apply = <T extends BusinessRequest | MyOrder>(items: T[]): T[] => items.map((item) => {
         if (item.id !== receipt.orderId || item.requestProcess?.id !== process.id || item.requestProcess.version > process.version) return item;
-        return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled', requestProcess: process };
+        return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled' | 'ready', requestProcess: process };
       });
       setRequests(apply); setMyOrders(apply);
       void loadOrders(true);

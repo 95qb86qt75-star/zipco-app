@@ -293,9 +293,9 @@ export default function RequestsScreen({
         "Las solicitudes aceptadas que todavía están en proceso aparecerán aquí.",
     },
     ready: {
-      title: "No tienes solicitudes listas y notificadas",
+      title: requestType === 'orders' ? 'No tienes pedidos listos' : "No tienes solicitudes listas y notificadas",
       description:
-        "Las solicitudes terminadas que esperan confirmación del cliente aparecerán aquí.",
+        requestType === 'orders' ? 'Los pedidos que el negocio marque como listos aparecerán aquí.' : "Las solicitudes terminadas que esperan confirmación del cliente aparecerán aquí.",
     },
     waiting: {
       title: "No tienes cotizaciones esperando respuesta",
@@ -875,7 +875,7 @@ export default function RequestsScreen({
                   count: unreadHistoryCount,
                 },
               ] as const)
-            : subTab === "my-business" ? businessOrderTabs(statusCounts, unreadHistoryCount) : ([
+            : subTab === "my-business" ? businessOrderTabs(statusCounts, unreadHistoryCount, requests.some((order) => order.requestProcess?.state === 'READY')) : ([
                 {
                   key: "pending",
                   label: "Pendientes",

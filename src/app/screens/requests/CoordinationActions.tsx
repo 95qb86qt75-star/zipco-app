@@ -16,7 +16,9 @@ export default function CoordinationActions({ order, business, service, refresh 
   const [detail, setDetail] = useState('');
   const operation = useCoordination(order, business, refresh);
   const process = order.requestProcess;
-  const allowed = (action: CoordinationAction) => order.recordState === 'available' && coordinationAllowed(process, business, action);
+  const readyOnly = business && process?.state === 'IN_PROGRESS';
+  const allowed = (action: CoordinationAction) => order.recordState === 'available' &&
+    (!readyOnly || action === 'MARK_READY') && coordinationAllowed(process, business, action);
   const pending = operation.pending();
   const recoveryOnly = operation.needsUpdate || operation.storageWarning() || operation.restored();
   const client = 'customerName' in order ? order.customerName || 'el cliente' : '';
@@ -27,7 +29,7 @@ export default function CoordinationActions({ order, business, service, refresh 
   const needsBusinessConsent = business && process?.coordination?.businessContactAuthorized !== true;
   return <section aria-label="Acciones de coordinación" className={`mt-3 rounded-2xl border border-teal-200 p-3 ${business ? 'space-y-3 bg-teal-50/70' : 'space-y-2 zipco-customer-coordination'}`}
     onClick={(event) => event.stopPropagation()}>
-    <h4 className={business ? 'text-sm font-black text-teal-900' : 'text-[10px] font-black uppercase tracking-[0.16em] text-teal-800'}>Coordinación</h4>
+    <h4 className={business ? 'text-sm font-black text-teal-900' : 'text-[10px] font-black uppercase tracking-[0.16em] text-teal-800'}>{readyOnly || process?.state === 'READY' ? 'Estado del pedido' : 'Coordinación'}</h4>
     {business && ['COORDINATION_PENDING', 'COORDINATING'].includes(process?.state ?? '') &&
       process?.coordination?.customerContactAuthorized === false &&
       <p role="status" className="text-sm text-slate-700">Esperando autorización de contacto del cliente.</p>}
@@ -58,6 +60,7 @@ export default function CoordinationActions({ order, business, service, refresh 
           if (needsBusinessConsent) setConfirm('OPEN_WHATSAPP'); else void submit('OPEN_WHATSAPP');
         }}>Coordinar por WhatsApp</button>
       </>}
+      {allowed('MARK_READY') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('MARK_READY')}>Notificar pedido listo</button>}
       {allowed('START_WORK') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('START_WORK')}>Coordinación lista — comenzar pedido</button>}
       {allowed('ANNUL_COORDINATION') && <button type="button" className={business ? buttonClass : 'zipco-coordination-glass zipco-coordination-glass-danger'} disabled={operation.busy} onClick={() => setConfirm('ANNUL_COORDINATION')}>
         {!business && <Trash2 aria-hidden="true" className="h-4 w-4" />}Anular solicitud</button>}
