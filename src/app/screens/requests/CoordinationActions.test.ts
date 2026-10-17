@@ -77,6 +77,16 @@ describe('coordination presentation and deliberate consent', () => {
     const button = nodes(view).find((node) => node.type === 'button' && node.props.className === 'zipco-contact-consent')!;
     expect(button.props.disabled).toBe(true);
   });
+  it.each([false, true])('keeps both transparent customer controls and their busy lock (busy=%s)', (busy) => {
+    hooks.busy = busy;
+    const view = render(false);
+    const buttons = nodes(view).filter((node) => node.type === 'button' && node.props.className?.toString().includes('zipco-coordination-glass'));
+    expect(buttons).toHaveLength(2);
+    expect(buttons.every((node) => node.props.disabled === busy)).toBe(true);
+    expect(renderToStaticMarkup(view)).toContain('zipco-coordination-glass-danger');
+    expect(renderToStaticMarkup(render(true))).not.toContain('zipco-coordination-glass');
+    expect(hooks.run).not.toHaveBeenCalled();
+  });
   it.each([true, false])('requires the business confirmation before sharing (service=%s)', (service) => {
     let view = render(true, service); click(view, 'Coordinar por WhatsApp');
     expect(hooks.run).not.toHaveBeenCalled(); view = render(true, service);

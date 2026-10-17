@@ -50,7 +50,7 @@ export default function CoordinationActions({ order, business, service, refresh 
         <button type="button" className="zipco-contact-consent" disabled={operation.busy} onClick={() => void submit('AUTHORIZE_CONTACT')}>
           <WhatsAppMark className="zipco-contact-consent-icon h-6 w-6 shrink-0" /><span>Autorizo iniciar coordinación</span>
         </button>
-        <button type="button" className="min-h-11 w-full rounded-xl border border-teal-300 bg-white/80 px-3 py-2 text-sm font-bold text-teal-800 disabled:opacity-50" disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>
+        <button type="button" className="zipco-coordination-glass" disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>
       </div>}
       {deferred && allowed('AUTHORIZE_CONTACT') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setDeferred(false)}>Revisar autorización de contacto</button>}
       {allowed('OPEN_WHATSAPP') && <>
@@ -60,7 +60,7 @@ export default function CoordinationActions({ order, business, service, refresh 
         }}>Coordinar por WhatsApp</button>
       </>}
       {allowed('START_WORK') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('START_WORK')}>Coordinación lista — comenzar pedido</button>}
-      {allowed('ANNUL_COORDINATION') && <button type="button" className={business ? buttonClass : 'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50/60 px-3 py-2 text-sm font-bold text-rose-600 disabled:opacity-50'} disabled={operation.busy} onClick={() => setConfirm('ANNUL_COORDINATION')}>
+      {allowed('ANNUL_COORDINATION') && <button type="button" className={business ? buttonClass : 'zipco-coordination-glass zipco-coordination-glass-danger'} disabled={operation.busy} onClick={() => setConfirm('ANNUL_COORDINATION')}>
         {!business && <Trash2 aria-hidden="true" className="h-4 w-4" />}Anular solicitud</button>}
       {confirm === 'OPEN_WHATSAPP' && allowed('OPEN_WHATSAPP') && <div className="space-y-2" role="group" aria-label="Confirmar contacto por WhatsApp">
         <p className="text-sm">Compartirás con {client} el teléfono de tu perfil para coordinar este pedido por WhatsApp. ZIPCO no procesa ni verifica pagos.</p>

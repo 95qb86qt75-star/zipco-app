@@ -7,7 +7,7 @@ no una aprobación final. El cierre requiere la confirmación expresa de Bastiá
 Base de esta ronda: d5204934b1f6b7b5ac360733af4e641292acbe4c.
 El commit que incorpora cada entrada identifica su versión exacta en Git.
 
-## Modificaciones acumuladas: 6
+## Modificaciones acumuladas: 7
 
 1. **Cliente — orden de pestañas:** Pendientes antes de Coordinación.
    Se conservan los filtros, contadores y las restantes pestañas.
@@ -52,6 +52,13 @@ El commit que incorpora cada entrada identifica su versión exacta en Git.
    junto al total único del acuerdo; conserva expansión y condiciones del acuerdo.
    No se añade la promesa absoluta “Tu número estará protegido” ni se cambia
    “teléfono del perfil” por otro dato. Revisión real en celulares: pendiente.
+7. **Cliente — botones secundarios glass transparente:** “Ahora no” y
+   “Anular solicitud” adoptan fondo translúcido, desenfoque, borde luminoso y
+   relieve suave según la referencia de Bastián. Se conservan texto verde y
+   rojo respectivamente, icono de anulación, foco visible, bloqueo durante
+   peticiones y las acciones existentes. El botón principal verde no cambia.
+   Sin cambios en negocio, permisos ni contratos. No habilita anulación en
+   Pendientes (F1). Revisión en ambos celulares: pendiente.
 
 Referencia: capturas de Bastián en la conversación del 2026-10-16
 (Mis Pedidos, pestaña Coordinación cortada y precio duplicado).
@@ -109,6 +116,14 @@ ni botones recortados a 320, 375, 393 y 430 px; controles de al menos 44 px.
 Chrome confirmó animación desactivada al emular movimiento reducido.
 La vista estática muestra el resumen tras su animación de entrada. Esta
 evidencia no valida consentimiento, WhatsApp ni el recorrido real en celulares.
+
+Validación local del ajuste 7: 29 pruebas afectadas aprobadas (presentación y
+hook de coordinación), build Vite/PWA correcto, con la advertencia de bundle
+existente. Muestra local en Chrome con datos sintéticos a 320, 375, 393 y
+430 px: sin desbordamientos ni botones recortados; área táctil mínima de 44 px.
+No se repitió la suite completa para este cambio de clases y estilos.
+La transparencia y el relieve en los celulares reales siguen pendientes de
+revisión de Bastián; no constituye aprobación final del diseño.
 
 Alcance: solo presentación frontend; contratos, permisos, estados, agrupación
 funcional y backend sin cambios. No se guardan capturas ni datos personales
