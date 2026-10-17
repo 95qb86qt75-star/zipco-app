@@ -7,7 +7,7 @@ no una aprobación final. El cierre requiere la confirmación expresa de Bastiá
 Base de esta ronda: d5204934b1f6b7b5ac360733af4e641292acbe4c.
 El commit que incorpora cada entrada identifica su versión exacta en Git.
 
-## Modificaciones acumuladas: 7
+## Modificaciones acumuladas: 8
 
 1. **Cliente — orden de pestañas:** Pendientes antes de Coordinación.
    Se conservan los filtros, contadores y las restantes pestañas.
@@ -59,6 +59,20 @@ El commit que incorpora cada entrada identifica su versión exacta en Git.
    peticiones y las acciones existentes. El botón principal verde no cambia.
    Sin cambios en negocio, permisos ni contratos. No habilita anulación en
    Pendientes (F1). Revisión en ambos celulares: pendiente.
+8. **Cliente — condiciones integradas y consentimiento más compacto:** al
+   pulsar “Revisar condiciones”, el detalle se despliega inmediatamente bajo
+   la barra del resumen, dentro del mismo bloque, antes de la coordinación.
+   Se elimina la segunda tarjeta con título y total repetidos; productos o
+   servicio, cantidades, precios unitarios, subtotales, fecha/hora, nota,
+   referencia y acceso al acuerdo completo se conservan desde el acuerdo.
+   El visor de imagen, su animación y glow no cambian. Se retira la franja
+   repetida del candado y su icono pasa al título; el consentimiento aprobado
+   sigue íntegro. Las acciones mantienen sus manejadores, bloqueo y permisos;
+   no se desmontan al desplegar o contraer el detalle.
+   Referencia: dos capturas nocturnas del cliente enviadas por Bastián el
+   2026-10-17. Manifestó que le gusta la versión oscura; este ajuste concreto
+   sigue pendiente de revisión móvil. Negocio e Historial conservan su detalle
+   anterior. No constituye aprobación final del diseño.
 
 Referencia: capturas de Bastián en la conversación del 2026-10-16
 (Mis Pedidos, pestaña Coordinación cortada y precio duplicado).
@@ -124,6 +138,16 @@ existente. Muestra local en Chrome con datos sintéticos a 320, 375, 393 y
 No se repitió la suite completa para este cambio de clases y estilos.
 La transparencia y el relieve en los celulares reales siguen pendientes de
 revisión de Bastián; no constituye aprobación final del diseño.
+
+Validación local del ajuste 8: 95 pruebas afectadas aprobadas; suite completa
+con 742 pruebas aprobadas en 72 archivos; build Vite/PWA correcto con la
+advertencia de bundle existente. Muestra del componente real con acuerdo y
+acciones simulados, tras la animación de entrada: modo claro y oscuro a 320,
+375, 393 y 430 px, sin desbordamiento horizontal ni controles recortados y con
+áreas táctiles de al menos 44 px. Las condiciones se muestran antes del
+consentimiento dentro de su resumen; la referencia conserva su componente.
+No se hicieron llamadas a la API ni comprobaciones reales de coordinación o
+WhatsApp. Revisión de la publicación en los celulares: pendiente.
 
 Alcance: solo presentación frontend; contratos, permisos, estados, agrupación
 funcional y backend sin cambios. No se guardan capturas ni datos personales

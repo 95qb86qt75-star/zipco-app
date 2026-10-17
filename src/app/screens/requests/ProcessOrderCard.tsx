@@ -50,6 +50,16 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   const toggle = () => { onOpen?.(); if (onToggle) onToggle(); else setLocalExpanded((value) => !value); };
   const badge = <span role="status" className={`inline-flex max-w-full items-center justify-center rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${tone.badge}`}>{stateLabel}</span>;
   const styleState = awaiting ? 'pending' : coordination ? 'coordination' : 'unavailable';
+  const conditionsHeader = <OrderCardDisclosure title="Condiciones aceptadas" hint={isExpanded ? 'Ocultar condiciones' : 'Revisar condiciones'}
+    price={price} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} acceptedSummary={!business} integrated={!business} />;
+  const coordinationActions = coordination && accepted && <CoordinationActions key="coordination-actions" order={order} business={business}
+    service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />;
+  const conditionsDetails = <AnimatePresence initial={false}>
+    {isExpanded && <motion.div key="conditions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+      onClick={(event) => event.stopPropagation()}>
+      <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} embedded={!business} />
+    </motion.div>}
+  </AnimatePresence>;
 
   return <article id={`order-${order.id}`} tabIndex={0}
     aria-label={`${name || 'Pedido'}: ${isExpanded ? 'ocultar' : 'mostrar'} detalle`}
@@ -72,17 +82,11 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}
-    {hasConditions ? <>
-      <OrderCardDisclosure title="Condiciones aceptadas" hint={isExpanded ? 'Ocultar condiciones' : 'Revisar condiciones'}
-        price={price} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} acceptedSummary={!business} />
-      {coordination && accepted && <CoordinationActions key="coordination-actions" order={order} business={business}
-        service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />}
-      <AnimatePresence initial={false}>
-        {isExpanded && <motion.div key="conditions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-          onClick={(event) => event.stopPropagation()}>
-          <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} />
-        </motion.div>}
-      </AnimatePresence>
+    {hasConditions ? business ? <>{conditionsHeader}{coordinationActions}{conditionsDetails}</> : <>
+      <section aria-label="Condiciones aceptadas" className={`mt-2.5 overflow-hidden rounded-[15px] border bg-gradient-to-br ${tone.panel} dark:border-teal-500/50 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40`}>
+        {conditionsHeader}{conditionsDetails}
+      </section>
+      {coordinationActions}
     </> : <AnimatePresence initial={false} mode="wait">
       {!isExpanded ? <OrderCardDisclosure key="collapsed" title={awaiting ? (business ? 'Pedido del cliente' : 'Tu pedido') : 'Estado del proceso'}
         hint={awaiting ? (business ? 'Revisar y responder' : 'Revisar pedido') : 'Actualizar pedido'} price={price}

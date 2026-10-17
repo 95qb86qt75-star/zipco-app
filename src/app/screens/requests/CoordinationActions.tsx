@@ -43,10 +43,9 @@ export default function CoordinationActions({ order, business, service, refresh 
       {allowed('AUTHORIZE_CONTACT') && !process?.coordination?.customerContactAuthorized && !deferred && <div className="space-y-2">
         <div className="flex items-center gap-2.5">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100/80 text-teal-600"><WhatsAppMark className="h-7 w-7" /></span>
-          <p className="text-sm font-black leading-tight text-slate-950">Autorizar contacto para este pedido</p>
+          <p className="flex items-start gap-1.5 text-sm font-black leading-tight text-slate-950"><LockKeyhole aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600" />Autorizar contacto para este pedido</p>
         </div>
         <p className="text-xs leading-[18px] text-slate-600">¿Autorizas compartir con {businessName} el teléfono de tu perfil para coordinar este pedido? La autorización corresponde únicamente a este pedido.</p>
-        <p className="flex items-center gap-2 rounded-xl bg-teal-100/40 px-2.5 py-2 text-[11px] font-semibold leading-4 text-teal-800"><LockKeyhole aria-hidden="true" className="h-4 w-4 shrink-0" />Solo para este pedido y este negocio.</p>
         <button type="button" className="zipco-contact-consent" disabled={operation.busy} onClick={() => void submit('AUTHORIZE_CONTACT')}>
           <WhatsAppMark className="zipco-contact-consent-icon h-6 w-6 shrink-0" /><span>Autorizo iniciar coordinación</span>
         </button>

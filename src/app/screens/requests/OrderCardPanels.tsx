@@ -2,9 +2,9 @@ import { motion } from 'motion/react';
 import { BadgeCheck, ChevronDown, MousePointerClick } from 'lucide-react';
 
 // Extracted from the existing compact business card, without status transitions.
-export function OrderCardDisclosure({ title, hint, price, panelClass, accentClass, onOpen, expanded = false, acceptedSummary = false }: {
+export function OrderCardDisclosure({ title, hint, price, panelClass, accentClass, onOpen, expanded = false, acceptedSummary = false, integrated = false }: {
   title: string; hint: string; price: number | null;
-  panelClass: string; accentClass: string; onOpen: () => void; expanded?: boolean; acceptedSummary?: boolean;
+  panelClass: string; accentClass: string; onOpen: () => void; expanded?: boolean; acceptedSummary?: boolean; integrated?: boolean;
 }) {
   return <motion.button type="button" aria-expanded={expanded}
     initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
@@ -13,7 +13,7 @@ export function OrderCardDisclosure({ title, hint, price, panelClass, accentClas
       event.currentTarget.closest('article')?.classList.remove('zipco-notification-target');
       onOpen();
     }}
-    className={`zipco-open-panel mt-2.5 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[15px] border bg-gradient-to-r px-3 py-2 text-left ${panelClass}`}>
+    className={`zipco-open-panel grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 bg-gradient-to-r px-3 py-2 text-left ${integrated ? 'rounded-none border-0' : 'mt-2.5 rounded-[15px] border'} ${panelClass}`}>
     <span className="min-w-0">
       <span className={`${acceptedSummary ? 'flex items-center gap-1' : 'block'} text-[9px] font-black uppercase tracking-[0.15em] ${accentClass}`}>
         {acceptedSummary && <BadgeCheck aria-hidden="true" className="h-4 w-4 shrink-0" />}{title}</span>

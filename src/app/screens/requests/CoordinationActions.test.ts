@@ -58,7 +58,8 @@ describe('coordination presentation and deliberate consent', () => {
   it('keeps the glass authorization button exclusive to allowed customer consent', () => {
     const html = renderToStaticMarkup(render(false));
     expect(html).toContain('zipco-contact-consent'); expect(html).toContain('Autorizo iniciar coordinación');
-    expect(html).toContain('Solo para este pedido y este negocio.');
+    expect(html).not.toContain('Solo para este pedido y este negocio.');
+    expect(html).toContain('La autorización corresponde únicamente a este pedido.');
     expect(html).not.toContain('Tu número estará protegido');
     expect(renderToStaticMarkup(render(true))).not.toContain('Autorizo iniciar coordinación');
     expect(renderToStaticMarkup(render(false, false, { ...raw, requestProcess: { ...raw.requestProcess, allowedActions: [] } })))
