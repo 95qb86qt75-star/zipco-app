@@ -25,6 +25,7 @@ import {
 } from "./ordersApi";
 import { isRecord } from "./orderValueParsers";
 import { normalizeRequestProcess } from './requestProcess';
+import { diagnoseLoadOrdersRead } from './loadOrdersDiagnostics';
 import type {
   BusinessRequest,
   ClosureReason,
@@ -35,6 +36,12 @@ import type {
 
 const FALLBACK_BUSINESS_IMAGE =
   "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80";
+
+async function readOrdersResponse<T>(operation: Parameters<typeof diagnoseLoadOrdersRead>[0] | null,
+  request: () => Promise<Response>, consume: (response: Response) => Promise<T>): Promise<T> {
+  if (import.meta.env.QA_LOAD_DIAGNOSTICS && operation) return diagnoseLoadOrdersRead(operation, request, consume);
+  return consume(await request());
+}
 
 export default function useRequests(onSessionExpired: () => void) {
   const [requests, setRequests] = useState<BusinessRequest[]>([]);
@@ -56,13 +63,13 @@ export default function useRequests(onSessionExpired: () => void) {
   const getBusinessName = useCallback(async (id: number) => {
     if (businessNameCache.current.has(id))
       return businessNameCache.current.get(id) ?? "";
-    const response = await fetch(`${API_BASE_URL}/businesses/${id}`);
-    if (!response.ok) return "";
-    const payload: unknown = await response.json();
-    const name =
-      isRecord(payload) && typeof payload.name === "string" ? payload.name : "";
-    businessNameCache.current.set(id, name);
-    return name;
+    return readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.businessName' : null, () => fetch(`${API_BASE_URL}/businesses/${id}`), async (response) => {
+      if (!response.ok) return "";
+      const payload: unknown = await response.json();
+      const name = isRecord(payload) && typeof payload.name === "string" ? payload.name : "";
+      businessNameCache.current.set(id, name);
+      return name;
+    });
   }, []);
 
   const loadOrders = useCallback(
@@ -76,15 +83,16 @@ export default function useRequests(onSessionExpired: () => void) {
       if (!silent) setIsLoading(true);
       setLoadError("");
       try {
-        const myResponse = await fetch(`${API_BASE_URL}/orders/my-orders`, {
+        const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders`, {
           headers: { Authorization: `Bearer ${token}` },
+        }), async (myResponse) => {
+          if (!myResponse.ok)
+            throw new OrdersApiError(
+              "No se pudieron cargar tus pedidos.",
+              myResponse.status,
+            );
+          return myResponse.json();
         });
-        if (!myResponse.ok)
-          throw new OrdersApiError(
-            "No se pudieron cargar tus pedidos.",
-            myResponse.status,
-          );
-        const myPayload: unknown = await myResponse.json();
         const normalized = normalizeMyOrdersPayload(myPayload);
         const customerOrders = await Promise.all(
             normalized.map(async (order) => {
@@ -111,19 +119,20 @@ export default function useRequests(onSessionExpired: () => void) {
         setMyOrders((current) => mergeProcessOrderUpdates(customerOrders, current));
 
         if (businessId) {
-          const businessResponse = await fetch(
+          const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
             `${API_BASE_URL}/orders/business/${businessId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
-          );
-          if (!businessResponse.ok) {
-            throw new OrdersApiError(
-              "No se pudieron cargar los pedidos del negocio.",
-              businessResponse.status,
-            );
-          }
-          const businessPayload: unknown = await businessResponse.json();
+          ), async (businessResponse) => {
+            if (!businessResponse.ok) {
+              throw new OrdersApiError(
+                "No se pudieron cargar los pedidos del negocio.",
+                businessResponse.status,
+              );
+            }
+            return businessResponse.json();
+          });
           setRequests((current) => mergeProcessOrderUpdates(normalizeBusinessOrdersPayload(businessPayload), current));
         } else {
           setRequests([]);

@@ -47,6 +47,7 @@ import { getCustomerAttentionItems } from "./requests/requestAttentionSummary";
 import { businessOrderTabs } from "./requests/orderTabs";
 import RequestStatusTab from "./requests/RequestStatusTab";
 import { initialRequestViews } from "./requests/agreementNavigation";
+import LoadOrdersDiagnostics from './requests/LoadOrdersDiagnosticsPanel';
 
 export default function RequestsScreen({
   onBack,
@@ -603,6 +604,7 @@ export default function RequestsScreen({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
+        {import.meta.env.QA_LOAD_DIAGNOSTICS && <LoadOrdersDiagnostics refresh={() => loadOrders(true)} />}
         <NotificationPermissionCard />
         <div className="zipco-request-kind mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
           <motion.button
