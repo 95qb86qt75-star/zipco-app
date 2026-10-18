@@ -49,6 +49,26 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each(['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'])('compacts business %s agreement without repeating its title or total and keeps actions accessible', (state) => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    const order = normalizeBusinessOrdersPayload([{ ...raw, status: state === 'READY' ? 'ready' : 'accepted', requestProcess: { ...coordinationProcess, state } }])[0];
+    const view = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });
+    const nodes = elements(view);
+    const summary = nodes.find((node) => node.type === 'section' && node.props['aria-label'] === 'Condiciones aceptadas')!;
+    const panel = elements(summary).find((node) => node.type === AcceptedConditionsPanel)!;
+    expect(panel.props).toMatchObject({ business: true, embedded: true, state: hooks.agreement });
+    const html = renderToStaticMarkup(view);
+    expect(html.match(/Condiciones aceptadas/g)).toHaveLength(2); // Region label and the single disclosure title.
+    expect(html).not.toContain('>Total:<');
+    expect(html.match(/Precio total/g)).toHaveLength(1);
+    for (const text of ['Producto acordado', 'Descripción acordada', 'Subtotal', 'Fecha y hora:', 'Nota acordada', 'Imagen adjunta', 'El cliente agregó una foto de referencia.', 'Abrir acuerdo']) expect(html).toContain(text);
+    expect(html).not.toContain('Agregaste una foto de referencia.');
+    expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
+    expect(nodes.indexOf(panel)).toBeLessThan(nodes.findIndex((node) => node.type === CoordinationActions));
+    const compact = elements(render({ ...props, order, business: true, expanded: false, onToggle: vi.fn() }));
+    expect(compact.some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
+    expect(compact.find((node) => node.type === CoordinationActions)?.props.order).toBe(order);
+  });
   it.each([true, false])('keeps the immutable agreement accessible in completed history (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const input = { ...raw, status: 'completed', requestProcess: { ...coordinationProcess, state: 'COMPLETED', version: 4,
@@ -91,23 +111,24 @@ describe('reused 2A card design without legacy actions', () => {
       expect(renderToStaticMarkup(panel)).toContain(`participant=${business ? 'business' : 'customer'}&amp;view=${viewName}`);
     }
   });
-  it('opens customer conditions inside their summary before consent, retaining mounted actions when closed', () => {
+  it.each([false, true])('integrates conditions before actions and retains mounted actions when closed (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
-    const order = normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
-    const compact = render({ ...props, order });
+    const input = { ...raw, status: 'accepted', requestProcess: coordinationProcess };
+    const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+    const compact = render({ ...props, order, business });
     const summary = elements(compact).find((node) => node.type === 'section' && node.props['aria-label'] === 'Condiciones aceptadas')!;
     const disclosure = elements(summary).find((node) => node.type === OrderCardDisclosure)!;
     expect(disclosure.props.integrated).toBe(true);
     expect(elements(compact).some((node) => node.type === CoordinationActions)).toBe(true);
     (disclosure.props.onOpen as () => void)();
-    const expanded = render({ ...props, order });
+    const expanded = render({ ...props, order, business });
     const nodes = elements(expanded);
     const panel = nodes.find((node) => node.type === AcceptedConditionsPanel)!;
     expect(panel.props.embedded).toBe(true); expect(panel.props.state).toBe(hooks.agreement);
     expect(nodes.indexOf(panel)).toBeLessThan(nodes.findIndex((node) => node.type === CoordinationActions));
     expect(elements(nodes.find((node) => node.type === 'section')!).some((node) => node.type === AcceptedConditionsPanel && node.props.embedded === true)).toBe(true);
     (nodes.find((node) => node.type === OrderCardDisclosure)!.props.onOpen as () => void)();
-    const closed = elements(render({ ...props, order }));
+    const closed = elements(render({ ...props, order, business }));
     expect(closed.some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
     expect(closed.find((node) => node.type === CoordinationActions)?.key).toBe(nodes.find((node) => node.type === CoordinationActions)?.key);
   });
@@ -123,15 +144,15 @@ describe('reused 2A card design without legacy actions', () => {
     expect(html).not.toContain('>Total:<'); expect(html).not.toContain('<h4');
     expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
   });
-  it.each([true, false])('adds the accepted total caption only in the new customer summary (business=%s)', (business) => {
+  it.each([true, false])('uses the compact accepted total caption for both participants (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0]
       : normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const view = render({ ...props, order, business });
     const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
-    expect(disclosure.props.acceptedSummary).toBe(!business);
+    expect(disclosure.props.acceptedSummary).toBe(true);
     const html = renderToStaticMarkup(disclosure);
-    expect(html.includes('Precio total')).toBe(!business);
+    expect(html.includes('Precio total')).toBe(true);
     expect(html.match(/\$2\.000/g)).toHaveLength(1);
     expect(disclosure.props.price).toBe(agreementFixture.totalPriceClp);
   });
@@ -164,7 +185,7 @@ describe('reused 2A card design without legacy actions', () => {
     expect(elements(expanded).find((node) => node.type === OrderReferencePhoto)?.props.business).toBe(business);
   });
 
-  it('keeps actions before expanded conditions and mounted independently of the disclosure', () => {
+  it('keeps business actions after integrated conditions and mounted independently of the disclosure', () => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const order = normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     let view = render({ ...props, order, business: true });
@@ -176,7 +197,7 @@ describe('reused 2A card design without legacy actions', () => {
     (disclosure.props.onOpen as () => void)();
     view = render({ ...props, order, business: true });
     const nodes = elements(view);
-    expect(nodes.findIndex((node) => node.type === CoordinationActions)).toBeLessThan(nodes.findIndex((node) => node.type === AcceptedConditionsPanel));
+    expect(nodes.findIndex((node) => node.type === AcceptedConditionsPanel)).toBeLessThan(nodes.findIndex((node) => node.type === CoordinationActions));
     expect(nodes.find((node) => node.type === OrderCardDisclosure)?.props.expanded).toBe(true);
   });
 
