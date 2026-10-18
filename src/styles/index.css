@@ -139,7 +139,7 @@
   min-height: 44px;
   padding: 3px 0;
   text-align: center;
-  font-size: clamp(8px, 2.1vw, 11px);
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -163,7 +163,7 @@
   justify-content: center;
   padding: 1px 3px;
   border-radius: 999px;
-  font-size: 0.95em;
+  font-size: 14px;
 }
 .zipco-status-tab-surface > span:first-child {
   min-width: min-content;
