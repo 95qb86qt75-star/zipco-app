@@ -1,4 +1,5 @@
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
+import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -44,7 +45,7 @@ import {
   type HistoryFilter,
   type StatusView,
 } from "./requests/requestStatusGrouping";
-import { getCustomerAttentionItems } from "./requests/requestAttentionSummary";
+import { getCustomerAttentionItems, getCustomerCoordinationItems } from "./requests/requestAttentionSummary";
 import { businessOrderTabs } from "./requests/orderTabs";
 import RequestStatusTab from "./requests/RequestStatusTab";
 import { initialRequestViews } from "./requests/agreementNavigation";
@@ -161,6 +162,7 @@ export default function RequestsScreen({
   ).filter((item) => item.count > 0);
   const customerRoleBadge =
     customerOrderAttention.count + customerQuoteAttention.count;
+  const customerCoordinationItems = getCustomerCoordinationItems(myOrders);
   const customerAttentionCards = (
     [
       {
@@ -829,6 +831,14 @@ export default function RequestsScreen({
             })}
           </div>
         )}
+        {subTab === 'my-orders' && !isLoading && !loadError && customerCoordinationItems.length > 0 &&
+          <CoordinationOrdersSummary count={customerCoordinationItems.length} reducedMotion={prefersReducedMotion}
+            selected={requestType === 'orders' && statusView === 'coordination' && attentionFilter === 'browse'}
+            onSelect={() => {
+              setRequestType('orders');
+              setAttentionFilter('browse');
+              setStatusViews((current) => ({ ...current, 'my-orders-orders': 'coordination' }));
+            }} />}
         <div className="zipco-status-tabs mb-3">
           {(requestType === "quotes"
             ? ([

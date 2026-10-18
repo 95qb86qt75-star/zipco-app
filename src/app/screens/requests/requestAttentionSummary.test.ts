@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { getCustomerAttentionItems } from "./requestAttentionSummary";
+import { getCustomerAttentionItems, getCustomerCoordinationItems } from "./requestAttentionSummary";
 import { coordinationProcess } from './requestProcessFixtures';
+
+describe('persistent customer coordination summary', () => {
+  it('counts pending and ongoing coordination regardless of consent or unread alerts', () => {
+    const records = [false, true].map((customerContactAuthorized, index) => ({ id: index + 1, status: 'accepted',
+      requestProcess: { ...coordinationProcess, state: index ? 'COORDINATING' : 'COORDINATION_PENDING',
+        coordination: { customerContactAuthorized, businessContactAuthorized: false } } }));
+    expect(getCustomerCoordinationItems(records)).toEqual(records);
+    expect(getCustomerAttentionItems(records, 'orders', new Set()).responses).toEqual([]);
+    expect(getCustomerCoordinationItems(records)).toHaveLength(2);
+  });
+  it('excludes legacy, unavailable, malformed and processes outside coordination', () => {
+    const states = ['AWAITING_BUSINESS_RESPONSE', 'IN_PROGRESS', 'READY', 'COMPLETED', 'COORDINATION_CANCELLED', 'UNKNOWN'];
+    const records = states.map((state, index) => ({ id: index + 1, status: 'accepted', requestProcess: { ...coordinationProcess, state } }));
+    expect(getCustomerCoordinationItems([...records, { id: 100, status: 'accepted', requestProcess: null },
+      { id: 101, status: 'accepted', requestProcessInvalid: true },
+      { id: 102, status: 'accepted', recordState: 'unavailable', requestProcess: coordinationProcess },
+      { id: 103, status: 'completed', requestProcess: coordinationProcess }])).toEqual([]);
+  });
+});
 
 describe("getCustomerAttentionItems", () => {
   it('includes READY processes in customer attention without requiring a push or treating them as completed', () => {

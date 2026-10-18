@@ -1,4 +1,5 @@
 import { hasRequestProcess, type RequestProcessSummary } from './requestProcess';
+import { statusViewFor } from './requestStatusGrouping';
 export type AttentionKind = "orders" | "quotes";
 
 type AttentionRecord = {
@@ -14,6 +15,15 @@ export type AttentionItem = {
   status: string;
   requestProcess?: RequestProcessSummary | null; requestProcessInvalid?: boolean;
 };
+
+// Persistent category summary: reading a card does not complete coordination.
+// Keep this separate from unread response alerts and their notification badges.
+export function getCustomerCoordinationItems(records: AttentionRecord[]) {
+  return records.filter((record) =>
+    (record.recordState === undefined || record.recordState === 'available') &&
+    ['COORDINATION_PENDING', 'COORDINATING'].includes(record.requestProcess?.state ?? '') &&
+    statusViewFor('orders', record.status, record.requestProcess, record.requestProcessInvalid) === 'coordination');
+}
 
 export function getCustomerAttentionItems(
   records: AttentionRecord[],
