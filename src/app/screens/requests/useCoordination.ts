@@ -50,6 +50,8 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       if (intent && restored()) {
         const current = latest.requestProcess;
         const applied = intent.action === 'AUTHORIZE_CONTACT' ? current.coordination?.customerContactAuthorized === true
+          : intent.action === 'ACK_READY_NOTICE' ? current.readyNoticeAcknowledged === true
+          : intent.action === 'CONFIRM_RECEIPT' ? current.state === 'COMPLETED'
           : intent.action === 'MARK_READY' ? current.state === 'READY'
           : intent.action === 'START_WORK' ? current.state === 'IN_PROGRESS'
             : intent.action === 'ANNUL_COORDINATION' ? current.state === 'COORDINATION_CANCELLED'
@@ -71,7 +73,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     const process = order.requestProcess;
     if (!retry && !coordinationAllowed(process, business, action)) return false;
     if (retry && (!pending() || pending()?.action !== action ||
-      (['START_WORK', 'MARK_READY'].includes(action) && !business) || (action === 'AUTHORIZE_CONTACT' && business))) return false;
+      (['START_WORK', 'MARK_READY'].includes(action) && !business) || (['AUTHORIZE_CONTACT', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT'].includes(action) && business))) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setMessage('');
     try {
@@ -79,8 +81,16 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail),
         (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal), retry, active);
       if (!response || !active()) return false;
-      const emitReceipt = () => window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: response.result }));
-      let latest;
+      let latest: Awaited<ReturnType<typeof refreshCoordinationOrder>> = null;
+      const emitReceipt = () => {
+        const current = latest?.requestProcess;
+        // Customer confirmation replays may predate a later receipt or omit the
+        // optional acknowledgment. Prefer the authoritative read when available.
+        const detail = (action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT') && latest && current &&
+          current.id === response.result.requestProcess.id && current.version >= response.result.requestProcess.version
+          ? { orderId: order.id, orderStatus: latest.status, requestProcess: current } : response.result;
+        window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail }));
+      };
       try { latest = await reconcile(controller.signal); }
       catch {
         if (!active()) return false;

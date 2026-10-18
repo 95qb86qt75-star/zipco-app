@@ -8,6 +8,27 @@ import { pendingProcess, coordinationProcess, rawOrder } from './requestProcessF
 
 afterEach(() => vi.restoreAllMocks());
 describe('2A normalization and compatibility', () => {
+  it('normalizes the optional acknowledgment without inventing it for historical receipts', () => {
+    expect(normalizeRequestProcess(coordinationProcess)).not.toHaveProperty('readyNoticeAcknowledged');
+    for (const readyNoticeAcknowledged of [true, false])
+      expect(normalizeRequestProcess({ ...coordinationProcess, readyNoticeAcknowledged })?.readyNoticeAcknowledged).toBe(readyNoticeAcknowledged);
+    for (const readyNoticeAcknowledged of [null, 1, 'true'])
+      expect(normalizeRequestProcess({ ...coordinationProcess, readyNoticeAcknowledged })).toBeNull();
+  });
+  it('keeps acknowledged READY in Listos until explicit receipt completes it and retains legacy filters', () => {
+    const base = { ...coordinationProcess, state: 'READY', readyNoticeAcknowledged: false };
+    const acknowledged = { ...base, readyNoticeAcknowledged: true };
+    expect(processStatusLabel({ requestProcess: base })).toBe('Pedido listo');
+    expect(processStatusLabel({ requestProcess: acknowledged })).toBe('Pendiente de retiro');
+    expect(statusViewFor('orders', 'ready', acknowledged)).toBe('ready');
+    const completed = { ...acknowledged, state: 'COMPLETED' };
+    expect(processStatusLabel({ requestProcess: completed })).toBe('Completado');
+    expect(statusViewFor('orders', 'completed', completed)).toBe('history');
+    expect(countStatusViews([{ status: 'ready', requestProcess: acknowledged }, { status: 'completed', requestProcess: completed }], 'orders'))
+      .toMatchObject({ ready: 1, history: 1, active: 0 });
+    expect(statusViewFor('orders', 'ready', null)).toBe('ready');
+    expect(statusViewFor('orders', 'completed', null)).toBe('history');
+  });
   it('keeps legacy orders and their allowed actions before backend publication', () => {
     const [order] = normalizeBusinessOrdersPayload([rawOrder]);
     expect(order.requestProcess).toBeUndefined();

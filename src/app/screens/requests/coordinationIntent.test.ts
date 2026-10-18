@@ -61,7 +61,7 @@ describe('coordination intention lifecycle', () => {
     await expect(createCoordinationIntents(uuid, saved).run('user', 7, 'START_WORK', { expectedVersion: 2 }, send)).rejects.toThrow('No se pudo recuperar');
     expect(uuid).not.toHaveBeenCalled(); expect(send).not.toHaveBeenCalled();
   });
-  it.each(['START_WORK', 'MARK_READY', 'OPEN_WHATSAPP'] as const)('quarantines confirmed %s if removeItem fails, also after manager recreation', async (action) => {
+  it.each(['START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'OPEN_WHATSAPP'] as const)('quarantines confirmed %s if removeItem fails, also after manager recreation', async (action) => {
     const saved = storage(); vi.spyOn(saved, 'removeItem').mockImplementation(() => { throw new Error('denied'); });
     const uuid = vi.fn(() => key); const send = vi.fn().mockResolvedValue('confirmed');
     const intentBody = coordinationBody(action, 2);
@@ -117,7 +117,7 @@ describe('coordination intention lifecycle', () => {
     expect(send).not.toHaveBeenCalled(); expect(uuid).not.toHaveBeenCalled();
     expect(recreated.needsReconciliation('user', 7)).toBe(true);
   });
-  it.each(['AUTHORIZE_CONTACT', 'START_WORK', 'MARK_READY', 'ANNUL_COORDINATION'] as const)('keeps the confirmed signature for %s after reconstruction and successful cleanup', async (action) => {
+  it.each(['AUTHORIZE_CONTACT', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION'] as const)('keeps the confirmed signature for %s after reconstruction and successful cleanup', async (action) => {
     const saved = storage();
     const remove = vi.spyOn(saved, 'removeItem').mockImplementation(() => { throw new Error('denied'); });
     const uuid = vi.fn(() => key); const send = vi.fn().mockResolvedValue('confirmed');

@@ -17,6 +17,7 @@ vi.mock('react', async (original) => ({
 vi.mock('react-dom', async (original) => ({ ...await original<typeof import('react-dom')>(), createPortal: (children: React.ReactNode) => children }));
 vi.mock('./useAgreement', () => ({ default: () => ({ state: hooks.agreement, retry: hooks.retry }) }));
 import ProcessOrderCard from './ProcessOrderCard';
+import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { OrderCardDisclosure } from './OrderCardPanels';
@@ -48,6 +49,25 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it.each([true, false])('keeps the immutable agreement accessible in completed history (business=%s)', (business) => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    const input = { ...raw, status: 'completed', requestProcess: { ...coordinationProcess, state: 'COMPLETED', version: 4,
+      readyNoticeAcknowledged: true, allowedActions: [] } };
+    const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+    hooks.slots = [true]; hooks.cursor = 0;
+    const html = renderToStaticMarkup(ProcessHistoryCard({ order }));
+    for (const text of ['Completado', 'Condiciones aceptadas', 'Producto acordado', 'Nota acordada', 'Abrir acuerdo']) expect(html).toContain(text);
+    expect(html).not.toMatch(/Nota de prueba|Confirmar recepción|Coordinar por WhatsApp|reseña|pago realizado/);
+  });
+  it.each([true, false])('presents acknowledged READY as pending pickup without hiding its agreement (business=%s)', (business) => {
+    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
+    const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', version: 3,
+      readyNoticeAcknowledged: true, allowedActions: ['CONFIRM_RECEIPT'] } };
+    const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+    const html = renderToStaticMarkup(render({ ...props, order, business, expanded: true }));
+    expect(html).toContain('Pendiente de retiro'); expect(html).toContain('Nota acordada');
+    expect(html).not.toContain('Completado');
+  });
   it.each([true, false])('retains immutable agreement and ready status in each participant view (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', version: 3 } };

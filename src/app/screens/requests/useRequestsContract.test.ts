@@ -22,6 +22,8 @@ vi.mock('react', () => ({
 vi.mock('../Toast', () => ({ showAppToast: hooks.toast }));
 import useRequests from './useRequests';
 import { clearDiagnostics, diagnosticSnapshot } from './loadOrdersDiagnostics';
+import { countStatusViews } from './requestStatusGrouping';
+import { getCustomerAttentionItems } from './requestAttentionSummary';
 
 const render = () => { hooks.cursor = 0; return useRequests(vi.fn()); };
 const reply = (body: unknown) => new Response(JSON.stringify(body));
@@ -35,6 +37,39 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); clearDiagnostics(); vi.restoreAllMocks(); });
 
 describe('loadOrders temporary diagnostics preserve the existing reads', () => {
+  it('keeps acknowledged orders ready and completes only on receipt in both lists despite stale reads or replays', async () => {
+    const input = { ...rawOrder, businessName: 'Business', status: 'ready', requestProcess: {
+      ...coordinationProcess, state: 'READY', version: 2, readyNoticeAcknowledged: false, allowedActions: ['ACK_READY_NOTICE'],
+    } };
+    const listeners = new Map<string, (event: Event) => void>();
+    vi.stubGlobal('window', { addEventListener: (name: string, listener: (event: Event) => void) => listeners.set(name, listener), removeEventListener: vi.fn() });
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(new Response(null, { status: 503 }))); vi.stubGlobal('fetch', fetcher);
+    hooks.slots = [[input], [input]]; render();
+    hooks.effects.find((effect) => effect.toString().includes('zipco-process-receipt'))!();
+    const deliver = (state: string, version: number, orderStatus: string, acknowledged?: boolean) => listeners.get('zipco-process-receipt')!(new CustomEvent('zipco-process-receipt', {
+      detail: { orderId: 20, orderStatus, requestProcess: { ...coordinationProcess, state, version, allowedActions: [],
+        ...(acknowledged === undefined ? {} : { readyNoticeAcknowledged: acknowledged }) } },
+    }));
+    deliver('READY', 3, 'ready', true);
+    for (const list of [render().requests, render().myOrders]) {
+      expect(list[0]).toMatchObject({ status: 'ready', requestProcess: { readyNoticeAcknowledged: true } });
+      expect(countStatusViews(list, 'orders')).toMatchObject({ ready: 1, history: 0 });
+    }
+    // Same-version historical receipt does not erase the acknowledgment learned by GET.
+    deliver('READY', 3, 'ready');
+    expect(render().myOrders[0].requestProcess?.readyNoticeAcknowledged).toBe(true);
+    deliver('COMPLETED', 4, 'completed', true);
+    deliver('READY', 3, 'ready', true);
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(4));
+    fetcher.mockImplementation(() => Promise.resolve(reply([input]))); await render().loadOrders(true);
+    for (const list of [render().requests, render().myOrders]) {
+      expect(list[0]).toMatchObject({ status: 'completed', requestProcess: { state: 'COMPLETED', version: 4,
+        readyNoticeAcknowledged: true, agreementPublicId: coordinationProcess.agreementPublicId } });
+      expect(countStatusViews(list, 'orders')).toMatchObject({ ready: 0, history: 1 });
+      expect(getCustomerAttentionItems(list, 'orders', new Set()).ready).toEqual([]);
+    }
+    expect(fetcher.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);
+  });
   it('applies ready receipts to both lists, preserving the agreement and rejecting older receipts and reads', async () => {
     const input = { ...rawOrder, businessName: 'Business', status: 'accepted',
       requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS', version: 7, allowedActions: ['MARK_READY'] } };

@@ -13,7 +13,7 @@ export function statusViewFor(
   requestProcessInvalid = false,
 ): StatusView | null {
   if (kind === "orders") {
-    if (requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
+    if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
     if (requestProcess?.state === 'IN_PROGRESS') return 'active';
     if (requestProcess?.state === 'READY') return 'ready';
     if (hasRequestProcess({ requestProcess, requestProcessInvalid }) && !['completed', 'rejected', 'cancelled'].includes(status)) {

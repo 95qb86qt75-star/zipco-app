@@ -5,7 +5,7 @@ import { markInteractionRead } from '../../notifications/unreadInteractions';
 
 export default function ProcessHistoryCard({ order }: { order: MyOrder | BusinessRequest }) {
   const [expanded, setExpanded] = useState(false);
-  const label = order.requestProcess?.state === 'COORDINATION_CANCELLED' ? 'Anulada' : order.status === 'completed' ? 'Completado'
+  const label = order.requestProcess?.state === 'COORDINATION_CANCELLED' ? 'Anulada' : order.requestProcess?.state === 'COMPLETED' || order.status === 'completed' ? 'Completado'
     : order.status === 'cancelled' ? 'Cancelado' : order.status === 'rejected' ? 'Rechazado' : 'Estado no disponible';
   return <article id={`order-${order.id}`} className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
     <p className="text-xs text-slate-500">{order.date}</p>

@@ -35,6 +35,81 @@ beforeEach(() => {
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
 describe('coordination hook with mocked server and external navigation', () => {
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('does not repeat confirmed %s after GET failure or double touch', async (action) => {
+    const receiptAction = action === 'CONFIRM_RECEIPT';
+    const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY',
+      readyNoticeAcknowledged: receiptAction, allowedActions: [action] } };
+    const result = { orderId: 20, orderStatus: receiptAction ? 'completed' : 'ready', requestProcess: {
+      ...coordinationProcess, state: receiptAction ? 'COMPLETED' : 'READY', version: 3, readyNoticeAcknowledged: true, allowedActions: [],
+    } };
+    let finish!: (reply: Response) => void;
+    const fetcher = vi.fn().mockImplementationOnce(() => new Promise<Response>((resolve) => { finish = resolve; }))
+      .mockRejectedValueOnce(new TypeError('read offline')).mockResolvedValueOnce(response([{ ...input, status: result.orderStatus, requestProcess: result.requestProcess }]));
+    vi.stubGlobal('fetch', fetcher); const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([input])[0], false, vi.fn());
+    const first = hook.run(action); expect(await hook.run(action)).toBe(false);
+    finish(response(result)); expect(await first).toBe(true);
+    expect(hook.pending()).toBeNull(); expect(hooks.slots[2]).toBe(true);
+    expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt' && (event as CustomEvent).detail.orderStatus === result.orderStatus)).toBe(true);
+    expect(await hook.retry()).toBe(false); expect(await hook.run(action)).toBe(false); await hook.update();
+    expect(fetcher.mock.calls.filter((call) => call[1]?.method === 'POST')).toHaveLength(1);
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ expectedVersion: 2, confirmationAccepted: true });
+    expect(navigate).not.toHaveBeenCalled();
+  });
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('preserves exact %s key/body on a lost response, even if a replay omits acknowledgment', async (action) => {
+    const receiptAction = action === 'CONFIRM_RECEIPT';
+    const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY',
+      readyNoticeAcknowledged: receiptAction, allowedActions: [action] } };
+    const result = { orderId: 20, orderStatus: receiptAction ? 'completed' : 'ready', requestProcess: {
+      ...coordinationProcess, state: receiptAction ? 'COMPLETED' : 'READY', version: 3, allowedActions: [],
+    } };
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce(response(result))
+      .mockResolvedValueOnce(response([{ ...input, status: result.orderStatus, requestProcess: { ...result.requestProcess, readyNoticeAcknowledged: true } }]));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([input])[0], false, vi.fn());
+    expect(await hook.run(action)).toBe(false); expect(await hook.retry()).toBe(true);
+    expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body);
+    expect(fetcher.mock.calls[0][1].headers['Idempotency-Key']).toBe(fetcher.mock.calls[1][1].headers['Idempotency-Key']);
+    expect(await hook.run(action)).toBe(false); expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('settles restored %s by GET without a new confirmation', async (action) => {
+    sessionStorage.setItem('zipco-coordination:synthetic:customer:7', JSON.stringify({ action,
+      body: { expectedVersion: 2, confirmationAccepted: true }, key: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' }));
+    const input = { ...raw, status: action === 'CONFIRM_RECEIPT' ? 'completed' : 'ready', requestProcess: {
+      ...coordinationProcess, state: action === 'CONFIRM_RECEIPT' ? 'COMPLETED' : 'READY', version: 3, readyNoticeAcknowledged: true, allowedActions: [],
+    } };
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(response([input]))); vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([input])[0], false, vi.fn());
+    expect(hook.pending()?.action).toBe(action); expect(await hook.retry()).toBe(false);
+    expect(fetcher).not.toHaveBeenCalled(); await hook.update();
+    expect(hook.pending()).toBeNull(); expect(fetcher).toHaveBeenCalledOnce();
+    expect(fetcher.mock.calls[0][1].method).toBeUndefined(); expect(navigate).not.toHaveBeenCalled();
+  });
+  it('never navigates using recovered WhatsApp after the read shows COMPLETED', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ result: receipt, navigation: { url } }))
+      .mockResolvedValueOnce(response([{ ...raw, status: 'completed', requestProcess: { ...process, state: 'COMPLETED', version: 4, readyNoticeAcknowledged: true, allowedActions: [] } }]));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    expect(await useCoordination(normalizeMyOrdersPayload([raw])[0], false, vi.fn()).run('OPEN_WHATSAPP')).toBe(true);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+  it('prefers newer completed GET over a recovered acknowledgment receipt without regressing its state', async () => {
+    const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY',
+      readyNoticeAcknowledged: false, allowedActions: ['ACK_READY_NOTICE'] } };
+    const original = { orderId: 20, orderStatus: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', version: 3, allowedActions: [] } };
+    const latest = { ...input, status: 'completed', requestProcess: { ...coordinationProcess, state: 'COMPLETED', version: 4, readyNoticeAcknowledged: true, allowedActions: [] } };
+    const fetcher = vi.fn().mockResolvedValueOnce(response(original)).mockResolvedValueOnce(response([latest]));
+    vi.stubGlobal('fetch', fetcher); const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    expect(await useCoordination(normalizeMyOrdersPayload([input])[0], false, vi.fn()).run('ACK_READY_NOTICE')).toBe(true);
+    const emitted = dispatch.mock.calls.find(([event]) => event.type === 'zipco-process-receipt')![0] as CustomEvent;
+    expect(emitted.detail).toEqual({ orderId: 20, orderStatus: 'completed', requestProcess: latest.requestProcess });
+    expect(fetcher.mock.calls.filter((call) => call[1]?.method === 'POST')).toHaveLength(1);
+  });
   it('keeps MARK_READY confirmed when the next GET fails and never repeats it during recovery', async () => {
     const input = { ...raw, requestProcess: { ...process, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } };
     const result = { orderId: 20, orderStatus: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };

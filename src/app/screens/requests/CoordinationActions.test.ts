@@ -2,16 +2,17 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, run: vi.fn(), retry: vi.fn(), busy: false,
-  needsUpdate: false, warning: '', update: vi.fn() }));
+  needsUpdate: false, warning: '', update: vi.fn(), pending: false }));
 vi.mock('react', async (original) => ({ ...await original<typeof import('react')>(),
   useState: (initial: unknown) => {
     const index = hooks.cursor++; if (!(index in hooks.slots)) hooks.slots[index] = initial;
     return [hooks.slots[index], (value: unknown) => { hooks.slots[index] = value; }];
   },
 }));
-vi.mock('./useCoordination', () => ({ default: () => ({ run: hooks.run, retry: hooks.retry, busy: hooks.busy, message: '', pending: () => null,
+vi.mock('./useCoordination', () => ({ default: () => ({ run: hooks.run, retry: hooks.retry, busy: hooks.busy, message: '', pending: () => hooks.pending ? { action: 'ACK_READY_NOTICE' } : null,
   needsUpdate: hooks.needsUpdate, restored: () => false, storageWarning: () => hooks.warning, update: hooks.update }) }));
 import CoordinationActions from './CoordinationActions';
+import CustomerReceiptDialog from './CustomerReceiptDialog';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { rawOrder, coordinationProcess } from './requestProcessFixtures';
 type Node = React.ReactElement<Record<string, unknown> & { children?: React.ReactNode }>;
@@ -31,10 +32,60 @@ const click = (view: React.ReactNode, text: string) => {
   const button = nodes(view).find((node) => node.type === 'button' && renderToStaticMarkup(node).includes(text))!;
   return (button.props.onClick as () => unknown)();
 };
-beforeEach(() => { hooks.slots = []; hooks.cursor = 0; hooks.busy = false; hooks.needsUpdate = false; hooks.warning = '';
+beforeEach(() => { hooks.slots = []; hooks.cursor = 0; hooks.busy = false; hooks.needsUpdate = false; hooks.warning = ''; hooks.pending = false;
   hooks.update.mockReset(); hooks.run.mockReset().mockResolvedValue(true); vi.stubGlobal('React', React); });
 afterEach(() => vi.unstubAllGlobals());
 describe('coordination presentation and deliberate consent', () => {
+  it('retains the locked popup while the confirmation POST is pending and switches to recovery after failure', () => {
+    const input = { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY', readyNoticeAcknowledged: false, allowedActions: ['ACK_READY_NOTICE'] } };
+    click(render(false, false, input), 'Confirmar aviso');
+    hooks.busy = true; hooks.pending = true;
+    const popup = nodes(render(false, false, input)).find((node) => node.type === CustomerReceiptDialog)!;
+    expect(popup).toBeDefined(); expect(popup.props.busy).toBe(true);
+    hooks.busy = false;
+    const failed = render(false, false, input);
+    expect(nodes(failed).some((node) => node.type === CustomerReceiptDialog)).toBe(false);
+    expect(renderToStaticMarkup(failed)).toContain('Reintentar operación pendiente');
+  });
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('opens a deliberate %s popup before sending anything', async (action) => {
+    const input = { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY',
+      readyNoticeAcknowledged: action === 'CONFIRM_RECEIPT', allowedActions: [action, 'OPEN_WHATSAPP'] } };
+    let view = render(false, false, input);
+    const label = action === 'ACK_READY_NOTICE' ? 'Confirmar aviso' : 'Confirmar recepción';
+    expect(renderToStaticMarkup(view)).not.toContain('Coordinar por WhatsApp');
+    click(view, label); view = render(false, false, input);
+    expect(hooks.run).not.toHaveBeenCalled();
+    let popup = nodes(view).find((node) => node.type === CustomerReceiptDialog)!;
+    expect(popup.props.action).toBe(action);
+    (popup.props.onClose as () => void)();
+    expect(nodes(render(false, false, input)).some((node) => node.type === CustomerReceiptDialog)).toBe(false);
+    expect(hooks.run).not.toHaveBeenCalled();
+    click(render(false, false, input), label);
+    popup = nodes(render(false, false, input)).find((node) => node.type === CustomerReceiptDialog)!;
+    (popup.props.onConfirm as () => void)();
+    expect(hooks.run).toHaveBeenCalledWith(action, 'COORDINATION_NOT_REACHED', '');
+  });
+  it.each([false, true, undefined])('shows server-derived acknowledgment to business and removes WhatsApp (ack=%s)', (readyNoticeAcknowledged) => {
+    const input = { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY', readyNoticeAcknowledged,
+      allowedActions: ['OPEN_WHATSAPP', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] } };
+    const html = renderToStaticMarkup(render(true, false, input));
+    expect(html).not.toMatch(/Coordinar por WhatsApp|Confirmar aviso<|Confirmar recepción/);
+    expect(html).toContain(readyNoticeAcknowledged === true ? 'El cliente confirmó el aviso.'
+      : readyNoticeAcknowledged === false ? 'Esperando que el cliente confirme el aviso.' : 'El estado del aviso no está disponible.');
+    expect(hooks.run).not.toHaveBeenCalled();
+  });
+  it('offers read-only reconciliation for absent acknowledgment and no receipt without server acknowledgment', () => {
+    const input = { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY', allowedActions: ['CONFIRM_RECEIPT'] } };
+    const view = render(false, false, input);
+    expect(renderToStaticMarkup(view)).not.toContain('Confirmar recepción');
+    click(view, 'Actualizar estado del aviso'); expect(hooks.update).toHaveBeenCalledOnce();
+    expect(hooks.run).not.toHaveBeenCalled();
+  });
+  it('never renders product confirmations for services or without allowedActions', () => {
+    const input = { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY', readyNoticeAcknowledged: false, allowedActions: ['ACK_READY_NOTICE'] } };
+    expect(renderToStaticMarkup(render(false, true, input))).not.toContain('Confirmar aviso');
+    expect(renderToStaticMarkup(render(false, false, { ...input, requestProcess: { ...input.requestProcess, allowedActions: [] } }))).not.toContain('Confirmar aviso');
+  });
   it('presents only Notificar pedido listo to the business in progress and respects permission and busy state', () => {
     const input = { ...raw, requestProcess: { ...raw.requestProcess, state: 'IN_PROGRESS', coordination: undefined,
       allowedActions: ['MARK_READY', 'OPEN_WHATSAPP'] } };
@@ -49,8 +100,8 @@ describe('coordination presentation and deliberate consent', () => {
     hooks.busy = true;
     expect(nodes(render(true, false, input)).find((node) => node.type === 'button')?.props.disabled).toBe(true);
   });
-  it('keeps client WhatsApp in READY without suggesting completion or confirmed notification', () => {
-    const view = render(false, false, { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY',
+  it('keeps service WhatsApp in READY without introducing product confirmations', () => {
+    const view = render(false, true, { ...raw, status: 'ready', requestProcess: { ...raw.requestProcess, state: 'READY',
       coordination: { customerContactAuthorized: true, businessContactAuthorized: false }, allowedActions: ['OPEN_WHATSAPP'] } });
     const html = renderToStaticMarkup(view);
     expect(html).toContain('Coordinar por WhatsApp');

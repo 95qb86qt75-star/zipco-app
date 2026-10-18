@@ -10,6 +10,45 @@ const process = { ...coordinationProcess, coordination: { customerContactAuthori
   allowedActions: ['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'ANNUL_COORDINATION'] as const };
 afterEach(() => vi.unstubAllGlobals());
 describe('coordination public contract', () => {
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('consumes the exact %s contract with no contact dependency', async (action) => {
+    const acknowledged = action === 'CONFIRM_RECEIPT';
+    const source = { ...coordinationProcess, state: 'READY', readyNoticeAcknowledged: acknowledged, allowedActions: [action] };
+    expect(coordinationAllowed(source, false, action)).toBe(true);
+    expect(coordinationAllowed(source, true, action)).toBe(false);
+    expect(coordinationAllowed({ ...source, allowedActions: [] }, false, action)).toBe(false);
+    for (const state of ['IN_PROGRESS', 'COMPLETED', 'COORDINATION_PENDING'])
+      expect(coordinationAllowed({ ...source, state }, false, action)).toBe(false);
+    expect(coordinationAllowed({ ...source, readyNoticeAcknowledged: !acknowledged }, false, action)).toBe(false);
+    const result = { orderId: 20, orderStatus: acknowledged ? 'completed' : 'ready', requestProcess: {
+      ...coordinationProcess, state: acknowledged ? 'COMPLETED' : 'READY', version: 3, readyNoticeAcknowledged: true,
+      allowedActions: acknowledged ? [] : ['CONFIRM_RECEIPT'],
+    } };
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(result))); vi.stubGlobal('fetch', fetcher);
+    const body = coordinationBody(action, 2, 'OTHER', 'must not be sent');
+    expect(body).toEqual({ expectedVersion: 2, confirmationAccepted: true });
+    expect(await sendCoordination(7, 20, action, body, 'test', 'test-key')).toEqual({ result, navigation: null });
+    const [path, init] = fetcher.mock.calls[0];
+    expect(path).toContain(`/request-processes/7/actions/${action === 'ACK_READY_NOTICE' ? 'ack-ready-notice' : 'confirm-receipt'}`);
+    expect(init.method).toBe('POST'); expect(init.headers['Idempotency-Key']).toBe('test-key');
+    expect(JSON.parse(init.body)).toEqual(body); expect(fetcher).toHaveBeenCalledOnce();
+  });
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('tolerates historical %s receipts missing the optional boolean', async (action) => {
+    const receipt = { orderId: 20, orderStatus: action === 'ACK_READY_NOTICE' ? 'ready' : 'completed', requestProcess: {
+      ...coordinationProcess, state: action === 'ACK_READY_NOTICE' ? 'READY' : 'COMPLETED', version: 3,
+    } };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(receipt))));
+    const response = await sendCoordination(7, 20, action, coordinationBody(action, 2), 'test', 'key');
+    expect(response.result.requestProcess).not.toHaveProperty('readyNoticeAcknowledged');
+  });
+  it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('rejects contradictory or unadvanced %s receipts', async (action) => {
+    const result = { orderId: 20, orderStatus: action === 'ACK_READY_NOTICE' ? 'ready' : 'completed', requestProcess: {
+      ...coordinationProcess, state: action === 'ACK_READY_NOTICE' ? 'READY' : 'COMPLETED', version: 3, readyNoticeAcknowledged: true,
+    } };
+    for (const patch of [{ readyNoticeAcknowledged: false }, { version: 2 }, { state: 'IN_PROGRESS' }]) {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ ...result, requestProcess: { ...result.requestProcess, ...patch } }))));
+      await expect(sendCoordination(7, 20, action, coordinationBody(action, 2), 'test', 'key')).rejects.toThrow('No se pudo confirmar');
+    }
+  });
   it('offers MARK_READY only to the permitted business in progress without requiring contact', () => {
     const ready = { ...coordinationProcess, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] as const };
     const valid = normalizeRequestProcess(ready)!;

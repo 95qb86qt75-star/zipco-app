@@ -4,6 +4,7 @@ import type { BusinessRequest, MyOrder } from './types';
 import { ANNUL_REASONS, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
 import useCoordination from './useCoordination';
 import WhatsAppMark from './WhatsAppMark';
+import CustomerReceiptDialog from './CustomerReceiptDialog';
 
 const buttonClass = 'min-h-12 w-full rounded-xl border border-teal-300 bg-white px-3 py-2 text-sm font-bold text-teal-800 disabled:opacity-50';
 
@@ -17,8 +18,12 @@ export default function CoordinationActions({ order, business, service, refresh 
   const operation = useCoordination(order, business, refresh);
   const process = order.requestProcess;
   const readyOnly = business && process?.state === 'IN_PROGRESS';
+  const productReady = !service && process?.state === 'READY';
   const allowed = (action: CoordinationAction) => order.recordState === 'available' &&
-    (!readyOnly || action === 'MARK_READY') && coordinationAllowed(process, business, action);
+    (!readyOnly || action === 'MARK_READY') &&
+    (!(productReady && action === 'OPEN_WHATSAPP')) &&
+    (!(service && (action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT'))) &&
+    coordinationAllowed(process, business, action);
   const pending = operation.pending();
   const recoveryOnly = operation.needsUpdate || operation.storageWarning() || operation.restored();
   const client = 'customerName' in order ? order.customerName || 'el cliente' : '';
@@ -34,6 +39,13 @@ export default function CoordinationActions({ order, business, service, refresh 
       process?.coordination?.customerContactAuthorized === false &&
       <p role="status" className="text-sm text-slate-700">Esperando autorización de contacto del cliente.</p>}
     {operation.message && <p role="alert" className="text-sm text-slate-700">{operation.message}</p>}
+    {productReady && <p role="status" className="text-sm text-slate-700">
+      {process.readyNoticeAcknowledged === true
+        ? business ? 'El cliente confirmó el aviso. Pendiente de retiro.' : 'Aviso confirmado. Retira tu pedido según lo coordinado. Confirma la recepción solo cuando ya tengas el producto.'
+        : process.readyNoticeAcknowledged === false
+          ? business ? 'Esperando que el cliente confirme el aviso.' : 'Tu pedido está listo. Confirma que viste el aviso para continuar con el retiro.'
+          : 'El estado del aviso no está disponible. Actualiza el estado del pedido.'}
+    </p>}
     {recoveryOnly ? <>
       <p role="alert" className="text-sm">{operation.storageWarning() || (operation.restored()
         ? 'Se recuperó una operación anterior. Actualiza su estado antes de reintentar.' : 'La operación ya fue confirmada. Actualiza el estado sin repetirla.')}</p>
@@ -42,6 +54,9 @@ export default function CoordinationActions({ order, business, service, refresh 
       <p className="text-sm">Hay una operación pendiente de confirmación. Reintenta con las mismas condiciones antes de realizar otra acción.</p>
       <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void operation.retry()}>Reintentar operación pendiente</button>
     </> : <>
+      {productReady && process.readyNoticeAcknowledged === undefined && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado del aviso</button>}
+      {allowed('ACK_READY_NOTICE') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setConfirm('ACK_READY_NOTICE')}>Confirmar aviso</button>}
+      {allowed('CONFIRM_RECEIPT') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setConfirm('CONFIRM_RECEIPT')}>Confirmar recepción</button>}
       {allowed('AUTHORIZE_CONTACT') && !process?.coordination?.customerContactAuthorized && !deferred && <div className="space-y-2">
         <div className="flex items-center gap-2.5">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100/80 text-teal-600"><WhatsAppMark className="h-7 w-7" /></span>
@@ -84,6 +99,9 @@ export default function CoordinationActions({ order, business, service, refresh 
         <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setConfirm(null)}>Volver</button>
       </form>}
     </>}
+    {(confirm === 'ACK_READY_NOTICE' || confirm === 'CONFIRM_RECEIPT') && allowed(confirm) && !recoveryOnly && (!pending || operation.busy) &&
+      <CustomerReceiptDialog action={confirm} busy={operation.busy} message={operation.message}
+        onClose={() => setConfirm(null)} onConfirm={() => void submit(confirm)} />}
     {operation.busy && <p role="status" className="text-sm">Actualizando pedido…</p>}
   </section>;
 }

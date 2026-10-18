@@ -1,6 +1,6 @@
 import { isRecord } from './orderValueParsers';
 
-export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ANNUL_COORDINATION'] as const;
+export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number];
 
 export type RequestProcessSummary = {
@@ -10,6 +10,7 @@ export type RequestProcessSummary = {
   currentProposalId: number;
   agreementPublicId: string | null;
   allowedActions: ProcessAction[];
+  readyNoticeAcknowledged?: boolean;
   coordination?: { customerContactAuthorized: boolean; businessContactAuthorized: boolean };
 };
 
@@ -33,6 +34,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
         (typeof value.agreementPublicId === 'string' && value.agreementPublicId.trim())) ||
       !Array.isArray(value.allowedActions) ||
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as ProcessAction))) return null;
+  if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
   if (value.coordination !== undefined && (!isRecord(value.coordination) ||
     typeof value.coordination.customerContactAuthorized !== 'boolean' ||
     typeof value.coordination.businessContactAuthorized !== 'boolean')) return null;
@@ -41,6 +43,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     currentProposalId: value.currentProposalId,
     agreementPublicId: value.agreementPublicId as string | null,
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
+    ...(typeof value.readyNoticeAcknowledged === 'boolean' ? { readyNoticeAcknowledged: value.readyNoticeAcknowledged } : {}),
     ...(isRecord(value.coordination) ? { coordination: {
       customerContactAuthorized: value.coordination.customerContactAuthorized as boolean,
       businessContactAuthorized: value.coordination.businessContactAuthorized as boolean,
@@ -58,7 +61,8 @@ export function processStatusLabel(order: ProcessOrder): string {
   if (order.requestProcess?.state === 'COORDINATION_PENDING') return 'Coordinación pendiente';
   if (order.requestProcess?.state === 'COORDINATING') return 'Coordinando';
   if (order.requestProcess?.state === 'IN_PROGRESS') return 'En curso';
-  if (order.requestProcess?.state === 'READY') return 'Pedido listo';
+  if (order.requestProcess?.state === 'READY') return order.requestProcess.readyNoticeAcknowledged === true ? 'Pendiente de retiro' : 'Pedido listo';
+  if (order.requestProcess?.state === 'COMPLETED') return 'Completado';
   if (order.requestProcess?.state === 'COORDINATION_CANCELLED') return 'Anulada';
   return 'Estado del proceso no disponible. Actualiza el pedido.';
 }
