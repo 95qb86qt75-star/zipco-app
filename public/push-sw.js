@@ -1,3 +1,4 @@
+// Dedupe revision: contact-authorized-open-v2 (inspectable worker source marker).
 // Same semantic-key mapping/schema as notificationDelivery.ts. Existing backend
 // tags distinguish acceptance from ready and later events on the same order.
 const presentationCacheName = 'zipco-notification-presentations-v1';
@@ -7,7 +8,10 @@ const systemEventKey = (data) => {
   try {
     const url = new URL(data.url || '/', self.location.origin);
     const view = url.searchParams.get('open');
-    const key = String(data.tag || '').replace('-coordination-ready', '-ready');
+    const fallbackKey = data.type === 'order-contact-authorized' && /^[1-9]\d*$/.test(String(data.orderId || ''))
+      ? `order-${data.orderId}-contact-authorized` : '';
+    const key = String(data.tag || fallbackKey).replace('-coordination-ready', '-ready')
+      .replace('-coordination-contact-authorized', '-contact-authorized');
     if (url.origin !== self.location.origin || !/^requests-(customer|business)(-quotes)?$/.test(view || '') ||
         !/^(order|quote)-[1-9]\d*-[a-z-]+$/.test(key)) return null;
     return `${view}:${key}`;
@@ -51,6 +55,7 @@ self.addEventListener("push", (event) => {
       orderId: data.orderId,
       quoteId: data.quoteId,
       eventKey: systemEventKey(data),
+      type: data.type === 'order-contact-authorized' ? data.type : undefined,
     },
   };
   event.waitUntil(
@@ -160,9 +165,11 @@ self.addEventListener("message", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = normalizeNotificationTarget(event.notification.data);
-  const eventKey = event.notification.data?.eventKey || systemEventKey({
+  // Recompute from the notification tag too: an older worker may have stored
+  // the coordination-prefixed identity before this event was recognized.
+  const eventKey = systemEventKey({ ...event.notification.data,
     tag: event.notification.tag, url: targetUrl.href,
-  });
+  }) || event.notification.data?.eventKey;
   if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;

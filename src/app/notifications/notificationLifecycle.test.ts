@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createNotificationNavigation, parseNotificationTarget, waitForNotificationCard } from './notificationNavigation';
-import { presentationKey, readSystemPresentations, PRESENTATION_CACHE, PRESENTATION_PATH } from './notificationDelivery';
+import { presentationKey, readSystemPresentations, PRESENTATION_CACHE, PRESENTATION_PATH,
+  deliverUnpresentedNotice, rememberOpenedPresentation, noticeMatchesPresentation } from './notificationDelivery';
 import { customerOrderNotice } from './orderNotice';
 import { coordinationProcess } from '../screens/requests/requestProcessFixtures';
 import { statusViewFor } from '../screens/requests/requestStatusGrouping';
@@ -61,6 +62,80 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it('opens Android contact authorization without replaying its toast and keeps later READY independent', async () => {
+    const sw = worker('Android');
+    const data = { type: 'order-contact-authorized', orderId: 61,
+      tag: 'order-61-coordination-contact-authorized', url: '/?open=requests-business&orderId=61' };
+    await sw.fire('push', { data: { json: () => data } });
+    const notification = { ...sw.registration.showNotification.mock.calls[0][1], close: vi.fn() };
+    expect(notification.data.eventKey).toBe('requests-business:order-61-contact-authorized');
+    await sw.fire('notificationclick', { notification });
+    const opened = parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0], origin)!;
+    expect(opened.url).toContain('open=requests-business');
+    expect(opened.url).toContain('orderId=61');
+    vi.stubGlobal('window', { location: { origin, search: new URL(opened.url, origin).search } });
+    vi.stubGlobal('caches', sw.cache);
+    const toast = { dedupeKey: 'order-contact-authorized', actionUrl: data.url };
+    const displayed = vi.fn();
+    await deliverUnpresentedNotice(toast, displayed);
+    expect(displayed).not.toHaveBeenCalled();
+    // An already visible toast is cleared only if its event matches the opened one.
+    expect(noticeMatchesPresentation(toast, opened.eventKey)).toBe(true);
+    const later = { dedupeKey: 'order-61-ready', actionUrl: data.url };
+    expect(noticeMatchesPresentation(later, opened.eventKey)).toBe(false);
+    await deliverUnpresentedNotice(later, displayed);
+    expect(displayed).toHaveBeenCalledExactlyOnceWith(later);
+  });
+
+  it('recognizes a contact authorization pushed without a tag and a tag from the previous worker', async () => {
+    const sw = worker('Android');
+    await sw.fire('push', { data: { json: () => ({ type: 'order-contact-authorized', orderId: 62,
+      url: '/?open=requests-business&orderId=62' }) } });
+    expect(sw.registration.showNotification.mock.calls[0][1].data.eventKey).toBe('requests-business:order-62-contact-authorized');
+    await sw.fire('notificationclick', { notification: { tag: 'order-62-coordination-contact-authorized',
+      data: { url: '/?open=requests-business&orderId=62', eventKey: 'requests-business:order-62-coordination-contact-authorized' }, close() {} } });
+    const opened = parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0], origin)!;
+    expect(opened.eventKey).toBe('requests-business:order-62-contact-authorized');
+  });
+
+  it('reads a presentation recorded by the old worker and suppresses only that event', async () => {
+    const cache = memoryCaches();
+    await (await cache.open(PRESENTATION_CACHE)).put(`${origin}${PRESENTATION_PATH}`, new Response(JSON.stringify([
+      { key: 'requests-business:order-63-coordination-contact-authorized', createdAt: Date.now() },
+    ])));
+    vi.stubGlobal('window', { location: { origin, search: '' } }); vi.stubGlobal('caches', cache);
+    const displayed = vi.fn();
+    await deliverUnpresentedNotice({ dedupeKey: 'order-63-contact-authorized', actionUrl: '/?open=requests-business&orderId=63' }, displayed);
+    expect(displayed).not.toHaveBeenCalled();
+    await deliverUnpresentedNotice({ dedupeKey: 'order-64-contact-authorized', actionUrl: '/?open=requests-business&orderId=64' }, displayed);
+    expect(displayed).toHaveBeenCalledOnce();
+  });
+
+  it('does not deliver a queued toast when its notification opens during the cache read', async () => {
+    let resolveRead!: (value: undefined) => void;
+    vi.stubGlobal('window', { location: { origin, search: '' } });
+    vi.stubGlobal('caches', { open: async () => ({ match: () => new Promise((resolve) => { resolveRead = resolve; }) }) });
+    const displayed = vi.fn();
+    const toast = { dedupeKey: 'order-65-contact-authorized', actionUrl: '/?open=requests-business&orderId=65' };
+    const pending = deliverUnpresentedNotice(toast, displayed);
+    await Promise.resolve();
+    rememberOpenedPresentation('requests-business:order-65-coordination-contact-authorized');
+    resolveRead(undefined); await pending;
+    expect(displayed).not.toHaveBeenCalled();
+    // This also covers a replay after the launch query was consumed.
+    expect(noticeMatchesPresentation(toast, 'requests-business:order-65-contact-authorized')).toBe(true);
+    expect(noticeMatchesPresentation({ dedupeKey: 'error', actionUrl: toast.actionUrl }, 'requests-business:order-65-contact-authorized')).toBe(false);
+  });
+
+  it('does not mute unrelated messages or introduce push copy as an internal notice', async () => {
+    vi.stubGlobal('window', { location: { origin, search: '' } });
+    const displayed = vi.fn();
+    await deliverUnpresentedNotice({ dedupeKey: 'saved' }, displayed);
+    expect(displayed).toHaveBeenCalledOnce();
+    await deliverUnpresentedNotice({ dedupeKey: 'saved' }, displayed, () => false);
+    expect(displayed).toHaveBeenCalledOnce();
+  });
+
   it.each(['accepted', 'ready'])('cold-start %s waits for session, lists and mounted card before acknowledgement', async (state) => {
     const sw = worker('iPhone');
     const data = { type: `order-${state}`, tag: `order-20-${state === 'ready' ? 'coordination-ready' : state}`,

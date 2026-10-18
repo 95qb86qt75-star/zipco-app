@@ -124,4 +124,21 @@ describe('monitor acceptance flow across service worker and polling', () => {
     document.dispatchEvent(new Event('visibilitychange')); await tick();
     expect(navigate).not.toHaveBeenCalled();
   });
+  it('refreshes the business lists and count after contact authorization without replaying push copy', async () => {
+    localStorage.setItem('zipco-business-id', '42');
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (url) => new Response(JSON.stringify(
+      String(url).endsWith('/orders/business/42') ? [{ id: 66, status: 'accepted', requestProcess: coordinationProcess }] : [],
+    )));
+    await mount();
+    const refresh = vi.fn(); window.addEventListener('zipco-requests-refresh', refresh);
+    const before = fetchMock.mock.calls.length;
+    push({ type: 'order-contact-authorized', orderId: 66,
+      tag: 'order-66-coordination-contact-authorized', title: 'push-copy-must-not-replay' });
+    await tick();
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(before);
+    expect(refresh).toHaveBeenCalled();
+    expect(publishActiveRequestCount).toHaveBeenCalledWith(1);
+    expect(showAppToast).not.toHaveBeenCalled();
+  });
 });

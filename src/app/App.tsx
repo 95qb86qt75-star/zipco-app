@@ -64,7 +64,7 @@ import SplashScreen from "./screens/SplashScreen";
 import type { CatalogItem } from "./screens/profile/business-config/types";
 import BusinessNotificationMonitor from "./notifications/BusinessNotificationMonitor";
 import { createNotificationNavigation, parseNotificationTarget } from './notifications/notificationNavigation';
-import { rememberOpenedPresentation } from './notifications/notificationDelivery';
+import { rememberOpenedPresentation, noticeMatchesPresentation, noticeWasPresented, deliverUnpresentedNotice } from './notifications/notificationDelivery';
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -191,6 +191,11 @@ export default function App() {
   const closeToast = useCallback(() => setToast(null), []);
 
   const openNotificationTarget = useCallback((targetValue: string) => {
+    const opened = parseNotificationTarget(targetValue, window.location.origin);
+    if (opened?.eventKey) {
+      rememberOpenedPresentation(opened.eventKey);
+      setToast((current) => noticeMatchesPresentation(current, opened.eventKey) ? null : current);
+    }
     const target = notificationNavigation.current!.receive(targetValue);
     if (!target) {
       const completed = notificationNavigation.current!.completedTarget(targetValue);
@@ -318,7 +323,12 @@ export default function App() {
 
   useEffect(() => {
     const handleNotificationNavigation = (event: MessageEvent) => {
-      const data = event.data as { type?: string; url?: string } | null;
+      const data = event.data as { type?: string; url?: string; eventKey?: string } | null;
+      if (data?.type === 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED' && typeof data.eventKey === 'string') {
+        rememberOpenedPresentation(data.eventKey);
+        setToast((current) => noticeMatchesPresentation(current, data.eventKey!) ? null : current);
+        return;
+      }
       if (
         data?.type !== "ZIPCO_NOTIFICATION_NAVIGATE" ||
         typeof data.url !== "string"
@@ -492,18 +502,22 @@ export default function App() {
   };
 
   useEffect(() => {
+    let active = true;
     const handleToast = (event: Event) => {
       const notification = (event as CustomEvent<ToastNotification>).detail;
-      setToast((current) => mergeToastNotification(current, notification));
+      const deliver = () => {
+        if (active) setToast((current) => noticeWasPresented(notification) ? current : mergeToastNotification(current, notification));
+      };
+      void deliverUnpresentedNotice(notification, deliver, () => active);
     };
 
     window.addEventListener("zipco-toast", handleToast);
-    return () => window.removeEventListener("zipco-toast", handleToast);
+    return () => { active = false; window.removeEventListener("zipco-toast", handleToast); };
   }, []);
 
   const renderWithToast = (content: any) => (
     <div className="zipco-theme-surface contents">
-      {toast && (
+      {toast && !noticeWasPresented(toast) && (
         <Toast
           key={toast.dedupeKey}
           notification={toast}

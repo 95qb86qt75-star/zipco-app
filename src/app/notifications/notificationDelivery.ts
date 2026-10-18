@@ -5,8 +5,16 @@ export const PRESENTATION_PATH = '/__zipco_notification_presentations__';
 export const PRESENTATION_TTL = 24 * 60 * 60 * 1000;
 export const PRESENTATION_LIMIT = 100;
 const openedPresentations = new Map<string, number>();
+// Match existing backend tags, local semantic keys and notifications delivered
+// by the previous worker. Do not collapse distinct events of the same order.
+export function canonicalPresentationKey(key: string): string | null {
+  const canonical = key.replace('-coordination-contact-authorized', '-contact-authorized')
+    .replace('-coordination-ready', '-ready');
+  return /^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-[a-z-]+$/.test(canonical) ? canonical : null;
+}
 export function rememberOpenedPresentation(key: string | null) {
-  if (!key || !/^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-[a-z-]+$/.test(key)) return;
+  key = key ? canonicalPresentationKey(key) : null;
+  if (!key) return;
   openedPresentations.delete(key);
   openedPresentations.set(key, Date.now());
   if (openedPresentations.size > PRESENTATION_LIMIT) openedPresentations.delete(openedPresentations.keys().next().value!);
@@ -17,12 +25,42 @@ export function presentationKey(key: string, actionUrl: string, origin = window.
     const url = new URL(actionUrl, origin);
     const view = url.searchParams.get('open');
     if (url.origin !== origin || !/^requests-(customer|business)(-quotes)?$/.test(view ?? '')) return null;
+    // The explicit push type can identify this event even when the old toast
+    // key did not include its order id. Never infer an event from its copy.
+    if (key === 'order-contact-authorized' && /^[1-9]\d*$/.test(url.searchParams.get('orderId') ?? '')) {
+      key = `order-${url.searchParams.get('orderId')}-contact-authorized`;
+    }
     const canonical = key.replace('-process:COORDINATION_PENDING', '-accepted')
       .replace('-process:READY', '-ready').replace('-coordination-ready', '-ready')
       .replace(/-alternative_proposed$/, '-alternative');
     if (!/^(order|quote)-[1-9]\d*-[a-z-]+$/.test(canonical)) return null;
-    return `${view}:${canonical}`;
+    return canonicalPresentationKey(`${view}:${canonical}`);
   } catch { return null; }
+}
+
+type PresentationNotice = { dedupeKey: string; actionUrl?: string };
+export function noticePresentationKey(notice: PresentationNotice): string | null {
+  return notice.actionUrl ? presentationKey(notice.dedupeKey, notice.actionUrl) : null;
+}
+export function noticeMatchesPresentation(notice: PresentationNotice | null, eventKey: string | null): boolean {
+  const canonical = eventKey ? canonicalPresentationKey(eventKey) : null;
+  return !!notice && !!canonical && noticePresentationKey(notice) === canonical;
+}
+export function noticeWasPresented(notice: PresentationNotice): boolean {
+  const key = noticePresentationKey(notice);
+  const at = key ? openedPresentations.get(key) : undefined;
+  return at !== undefined && Date.now() - at < PRESENTATION_TTL;
+}
+
+export async function deliverUnpresentedNotice<T extends PresentationNotice>(
+  notice: T, deliver: (notice: T) => void, isActive: () => boolean = () => true,
+) {
+  const key = noticePresentationKey(notice);
+  if (key) {
+    const presented = await readSystemPresentations();
+    if (presented.has(key) || noticeWasPresented(notice)) return;
+  }
+  if (isActive()) deliver(notice);
 }
 
 export async function readSystemPresentations(): Promise<Set<string>> {
@@ -40,7 +78,10 @@ export async function readSystemPresentations(): Promise<Set<string>> {
     const rows: unknown = response ? await response.json() : [];
     if (Array.isArray(rows)) for (const row of rows.slice(-PRESENTATION_LIMIT)) {
       if (typeof row?.key === 'string' && Number.isFinite(row.createdAt) &&
-          row.createdAt <= Date.now() && Date.now() - row.createdAt < PRESENTATION_TTL) result.add(row.key);
+          row.createdAt <= Date.now() && Date.now() - row.createdAt < PRESENTATION_TTL) {
+        const key = canonicalPresentationKey(row.key);
+        if (key) result.add(key);
+      }
     }
   } catch { /* A Cache API failure must not prevent refreshing requests. */ }
   return result;
