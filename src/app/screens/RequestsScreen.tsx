@@ -675,7 +675,9 @@ export default function RequestsScreen({
                     : "cotizaciones";
               const title =
                 item.view === "pending"
-                  ? `${item.count} ${noun} ${item.kind === "orders" ? (singular ? "pendiente" : "pendientes") : singular ? "nueva" : "nuevas"}`
+                  ? item.kind === "orders"
+                    ? `${item.count} ${singular ? "Nuevo Pedido" : "Nuevos Pedidos"}`
+                    : `${item.count} ${noun} ${singular ? "nueva" : "nuevas"}`
                   : item.view === "waiting"
                     ? `${item.count} ${noun} esperando al cliente`
                     : item.view === "active"
