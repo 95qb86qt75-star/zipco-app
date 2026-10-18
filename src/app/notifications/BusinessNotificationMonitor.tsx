@@ -28,7 +28,13 @@ type Interaction = {
 type StatusSnapshot = {
   customerOrders: Array<[number, string]>;
   customerQuotes: Array<[number, string]>;
+  business?: { id: string; orders: Array<[number, string]>; quotes: Array<[number, string]> };
 };
+
+function isStatusEntries(value: unknown): value is Array<[number, string]> {
+  return Array.isArray(value) && value.every((entry) => Array.isArray(entry) && entry.length === 2 &&
+    Number.isSafeInteger(entry[0]) && entry[0] > 0 && typeof entry[1] === 'string');
+}
 
 function readStatusSnapshot(): StatusSnapshot | null {
   try {
@@ -44,6 +50,9 @@ function readStatusSnapshot(): StatusSnapshot | null {
     return {
       customerOrders: parsed.customerOrders,
       customerQuotes: parsed.customerQuotes,
+      ...(parsed.business && typeof parsed.business.id === 'string' &&
+        isStatusEntries(parsed.business.orders) && isStatusEntries(parsed.business.quotes)
+        ? { business: parsed.business } : {}),
     };
   } catch {
     return null;
@@ -108,6 +117,7 @@ export default function BusinessNotificationMonitor({
   const customerQuoteStatuses = useRef(new Map<number, string>());
   const announcedKeys = useRef(new Set<string>());
   const hasBaseline = useRef(false);
+  const hasBusinessBaseline = useRef(false);
 
   useEffect(() => {
     const token = localStorage.getItem("zipco-token");
@@ -117,14 +127,23 @@ export default function BusinessNotificationMonitor({
       return;
     }
 
+    hasBusinessBaseline.current = false;
+    orderStatuses.current = new Map();
+    businessQuoteStatuses.current = new Map();
     const storedSnapshot = readStatusSnapshot();
     if (storedSnapshot) {
       customerOrderStatuses.current = new Map(storedSnapshot.customerOrders);
       customerQuoteStatuses.current = new Map(storedSnapshot.customerQuotes);
       hasBaseline.current = true;
+      if (businessId && storedSnapshot.business?.id === businessId) {
+        orderStatuses.current = new Map(storedSnapshot.business.orders);
+        businessQuoteStatuses.current = new Map(storedSnapshot.business.quotes);
+        hasBusinessBaseline.current = true;
+      }
     }
 
     let stopped = false;
+    const newOrderPushHints = new Set<number>();
     let systemPresentations = new Set<string>();
     const reportPresence = (isForeground: boolean) => {
       void updatePushPresence(token, isForeground).catch(() => {
@@ -184,6 +203,7 @@ export default function BusinessNotificationMonitor({
           loadJson("/quotes/my-quotes", token, onSessionExpired),
         ]);
         if (stopped) return false;
+        if (businessId && (!Array.isArray(ordersValue) || !Array.isArray(businessQuotesValue))) return false;
         systemPresentations = await readSystemPresentations();
         if (stopped) return false;
         const orders = parseOrders(ordersValue);
@@ -217,12 +237,15 @@ export default function BusinessNotificationMonitor({
             ).length,
         );
 
-        if (hasBaseline.current) {
-          orders
+        // A customer snapshot does not establish a business baseline. On the
+        // first successful read of an old/missing snapshot, seed existing
+        // business records silently rather than announcing every pending one.
+        orders
             .filter(
               (order) =>
                 order.status === "pending" &&
-                !orderStatuses.current.has(order.id),
+                !orderStatuses.current.has(order.id) &&
+                (hasBusinessBaseline.current || newOrderPushHints.has(order.id)),
             )
             .forEach((order) =>
               announce(
@@ -233,6 +256,7 @@ export default function BusinessNotificationMonitor({
                 `/?open=requests-business&orderId=${order.id}`,
               ),
             );
+        if (hasBusinessBaseline.current) {
           orders.forEach((order) => {
             const previous = orderStatuses.current.get(order.id);
             if (
@@ -289,6 +313,8 @@ export default function BusinessNotificationMonitor({
               );
             }
           });
+        }
+        if (hasBaseline.current) {
           customerQuotes.forEach((quote) => {
             const previous = customerQuoteStatuses.current.get(quote.id);
             if (
@@ -331,6 +357,7 @@ export default function BusinessNotificationMonitor({
         businessQuoteStatuses.current = new Map(
           businessQuotes.map((quote) => [quote.id, quote.status]),
         );
+        orders.forEach((order) => newOrderPushHints.delete(order.id));
         customerQuoteStatuses.current = new Map(
           customerQuotes.map((quote) => [quote.id, quote.status]),
         );
@@ -339,9 +366,12 @@ export default function BusinessNotificationMonitor({
           JSON.stringify({
             customerOrders: [...customerOrderStatuses.current],
             customerQuotes: [...customerQuoteStatuses.current],
+            ...(businessId ? { business: { id: businessId,
+              orders: [...orderStatuses.current], quotes: [...businessQuoteStatuses.current] } } : {}),
           } satisfies StatusSnapshot),
         );
         hasBaseline.current = true;
+        hasBusinessBaseline.current = Boolean(businessId);
         return true;
       } catch {
         // El siguiente ciclo vuelve a intentar sin interrumpir la experiencia.
@@ -350,6 +380,10 @@ export default function BusinessNotificationMonitor({
     });
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'new-order' && Number.isSafeInteger(event.data.orderId) && event.data.orderId > 0) {
+        newOrderPushHints.add(event.data.orderId);
+        if (newOrderPushHints.size > 100) newOrderPushHints.delete(newOrderPushHints.values().next().value!);
+      }
       if (event.data?.type === 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED' && typeof event.data.eventKey === 'string') {
         rememberOpenedPresentation(event.data.eventKey);
       }

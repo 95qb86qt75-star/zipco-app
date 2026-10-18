@@ -77,7 +77,100 @@ function expectCoordinationOnce() {
   expect(JSON.stringify(vi.mocked(showAppToast).mock.calls)).not.toContain('Preparando pedido');
 }
 
+function businessServer(initial: Array<{ id: number; status: string }>) {
+  let orders = initial;
+  localStorage.setItem('zipco-business-id', '42');
+  localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));
+  vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
+    String(url).endsWith('/orders/business/42') ? orders : [],
+  )));
+  return { setOrders: (next: typeof orders) => { orders = next; } };
+}
+
 describe('monitor acceptance flow across service worker and polling', () => {
+  it('does not announce old pending business orders when opening a different order from a system notification', async () => {
+    localStorage.setItem('zipco-business-id', '42');
+    localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));
+    window.location.search = '?open=requests-business&orderId=92&notificationEvent=requests-business%3Aorder-92-created';
+    vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
+      String(url).endsWith('/orders/business/42') ? [{ id: 91, status: 'pending' }, { id: 92, status: 'pending' }] : [],
+    )));
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(publishActiveRequestCount).toHaveBeenCalledWith(2);
+    expect(showAppToast).not.toHaveBeenCalled();
+  });
+  it('announces a genuinely new business order after the silent initial baseline and keeps counts current', async () => {
+    const server = businessServer([{ id: 101, status: 'pending' }]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+    server.setOrders([{ id: 101, status: 'pending' }, { id: 102, status: 'pending' }]);
+    push({ type: 'new-order', orderId: 102 }); await tick();
+    expect(showAppToast).toHaveBeenCalledExactlyOnceWith('', 'info', expect.objectContaining({
+      title: 'Nuevo pedido recibido', dedupeKey: 'order-102-created', actionUrl: '/?open=requests-business&orderId=102',
+    }));
+    expect(publishActiveRequestCount).toHaveBeenCalledWith(2);
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(showAppToast).toHaveBeenCalledOnce();
+  });
+  it('preserves an explicit new-order push during the first read without announcing the other pending orders', async () => {
+    businessServer([{ id: 111, status: 'pending' }, { id: 112, status: 'pending' }]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() });
+    push({ type: 'new-order', orderId: 112 }); await tick();
+    expect(showAppToast).toHaveBeenCalledExactlyOnceWith('', 'info', expect.objectContaining({ dedupeKey: 'order-112-created' }));
+    await vi.advanceTimersByTimeAsync(15_000); expect(showAppToast).toHaveBeenCalledOnce();
+  });
+  it('does not treat a consent push as evidence that pending orders are new', async () => {
+    businessServer([{ id: 113, status: 'pending' }, { id: 114, status: 'pending' }]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() });
+    push({ type: 'order-contact-authorized', orderId: 114 }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+  });
+  it('restores the business baseline after remount instead of replaying all pending orders', async () => {
+    const server = businessServer([{ id: 103, status: 'pending' }]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    const saved = JSON.parse(localStorage.getItem('zipco-request-status-snapshot-v1')!);
+    expect(saved.business).toEqual({ id: '42', orders: [[103, 'pending']], quotes: [] });
+    runtime.cleanup?.();
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+    runtime.cleanup?.(); server.setOrders([{ id: 103, status: 'pending' }, { id: 104, status: 'pending' }]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(showAppToast).toHaveBeenCalledExactlyOnceWith('', 'info', expect.objectContaining({ dedupeKey: 'order-104-created' }));
+  });
+  it('opens a new system-presented order after remount without replaying that order or older pending ones', async () => {
+    const server = businessServer([{ id: 105, status: 'pending' }]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick(); runtime.cleanup?.();
+    server.setOrders([{ id: 105, status: 'pending' }, { id: 106, status: 'pending' }]);
+    window.location.search = '?open=requests-business&orderId=106&notificationEvent=requests-business%3Aorder-106-created';
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+    expect(publishActiveRequestCount).toHaveBeenCalledWith(2);
+    window.location.search = '';
+    server.setOrders([{ id: 105, status: 'pending' }, { id: 106, status: 'pending' }, { id: 107, status: 'pending' }]);
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(showAppToast).toHaveBeenCalledExactlyOnceWith('', 'info', expect.objectContaining({ dedupeKey: 'order-107-created' }));
+  });
+  it.each([
+    { id: 'another-business', orders: [], quotes: [] },
+    { id: '42', orders: [[null, 'pending']], quotes: [] },
+  ])('does not trust another business or malformed business snapshot as an empty baseline', async (business) => {
+    businessServer([{ id: 108, status: 'pending' }]);
+    localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [], business }));
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+  });
+  it('does not establish an empty business baseline from an invalid list response', async () => {
+    businessServer([{ id: 109, status: 'pending' }]);
+    vi.mocked(fetch).mockResolvedValue(new Response('{"invalid":true}'));
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(JSON.parse(localStorage.getItem('zipco-request-status-snapshot-v1')!).business).toBeUndefined();
+    vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
+      String(url).endsWith('/orders/business/42') ? [{ id: 109, status: 'pending' }] : [],
+    )));
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(showAppToast).not.toHaveBeenCalled();
+    expect(publishActiveRequestCount).toHaveBeenCalledWith(1);
+  });
   it('refreshes after a push before selecting the approved 2A copy', async () => {
     await mount(); serverOrder = accepted; push(); await tick(); expectCoordinationOnce();
   });
