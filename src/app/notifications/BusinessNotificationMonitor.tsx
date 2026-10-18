@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
 import { createCustomerOrderNotices } from './orderNotice';
 import { createNotificationRefreshQueue } from './notificationRefreshQueue';
+import { presentationKey, readSystemPresentations, rememberOpenedPresentation } from './notificationDelivery';
 import { API_BASE_URL } from "../api/apiConfig";
 import { showAppToast } from "../screens/Toast";
 import { updatePushPresence } from "./pushNotifications";
@@ -124,6 +125,7 @@ export default function BusinessNotificationMonitor({
     }
 
     let stopped = false;
+    let systemPresentations = new Set<string>();
     const reportPresence = (isForeground: boolean) => {
       void updatePushPresence(token, isForeground).catch(() => {
         // El siguiente heartbeat vuelve a intentar.
@@ -139,6 +141,8 @@ export default function BusinessNotificationMonitor({
       if (announcedKeys.current.has(key)) return;
       announcedKeys.current.add(key);
       if (interaction) markInteractionUnread(interaction.kind, interaction.id);
+      const presentedKey = actionUrl ? presentationKey(key, actionUrl) : null;
+      if (presentedKey && systemPresentations.has(presentedKey)) return;
       showAppToast("", "info", {
         title,
         description,
@@ -153,7 +157,7 @@ export default function BusinessNotificationMonitor({
       announce(key, title, description, { kind: 'order', id: orderId },
         `/?open=requests-customer&orderId=${orderId}`);
     });
-    const load = createNotificationRefreshQueue(async ({ navigate: navigateToCustomerChange, pushedOrderIds }) => {
+    const load = createNotificationRefreshQueue(async ({ pushedOrderIds }) => {
       if (stopped || document.visibilityState !== "visible") return false;
       try {
         const [
@@ -179,6 +183,8 @@ export default function BusinessNotificationMonitor({
             : Promise.resolve([]),
           loadJson("/quotes/my-quotes", token, onSessionExpired),
         ]);
+        if (stopped) return false;
+        systemPresentations = await readSystemPresentations();
         if (stopped) return false;
         const orders = parseOrders(ordersValue);
         const customerOrders = parseOrders(customerOrdersValue);
@@ -211,7 +217,6 @@ export default function BusinessNotificationMonitor({
             ).length,
         );
 
-        let customerNavigationTarget: string | null = null;
         if (hasBaseline.current) {
           orders
             .filter(
@@ -302,9 +307,6 @@ export default function BusinessNotificationMonitor({
                 { kind: "quote", id: quote.id },
                 `/?open=requests-customer-quotes&quoteId=${quote.id}`,
               );
-              if (navigateToCustomerChange && !customerNavigationTarget) {
-                customerNavigationTarget = `/?open=requests-customer-quotes&quoteId=${quote.id}`;
-              }
             } else if (previous === "accepted" && quote.status === "ready") {
               announce(
                 `quote-${quote.id}-ready`,
@@ -313,17 +315,11 @@ export default function BusinessNotificationMonitor({
                 { kind: "quote", id: quote.id },
                 `/?open=requests-customer-quotes&quoteId=${quote.id}`,
               );
-              if (navigateToCustomerChange && !customerNavigationTarget) {
-                customerNavigationTarget = `/?open=requests-customer-quotes&quoteId=${quote.id}`;
-              }
             }
           });
         }
 
-        const notifiedOrderId = customerNotices(customerOrders, customerOrderStatuses.current, hasBaseline.current, pushedOrderIds);
-        if (navigateToCustomerChange && notifiedOrderId !== null) {
-          customerNavigationTarget = `/?open=requests-customer&orderId=${notifiedOrderId}`;
-        }
+        customerNotices(customerOrders, customerOrderStatuses.current, hasBaseline.current, pushedOrderIds);
         publishUnreadCount();
         window.dispatchEvent(new CustomEvent("zipco-requests-refresh"));
         orderStatuses.current = new Map(
@@ -346,13 +342,6 @@ export default function BusinessNotificationMonitor({
           } satisfies StatusSnapshot),
         );
         hasBaseline.current = true;
-        if (customerNavigationTarget) {
-          window.dispatchEvent(
-            new CustomEvent("zipco-notification-open", {
-              detail: customerNavigationTarget,
-            }),
-          );
-        }
         return true;
       } catch {
         // El siguiente ciclo vuelve a intentar sin interrumpir la experiencia.
@@ -361,12 +350,15 @@ export default function BusinessNotificationMonitor({
     });
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED' && typeof event.data.eventKey === 'string') {
+        rememberOpenedPresentation(event.data.eventKey);
+      }
       void load(false, event.data);
     };
     const handleVisibility = () => {
       const isVisible = document.visibilityState === "visible";
       reportPresence(isVisible);
-      if (isVisible) void load(true);
+      if (isVisible) void load();
     };
     const handlePageHide = () => reportPresence(false);
 
@@ -377,10 +369,9 @@ export default function BusinessNotificationMonitor({
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pagehide", handlePageHide);
     reportPresence(true);
-    // A notification tap can cold-start the iOS PWA without preserving its
-    // deep link. When a persisted baseline exists, the server-side status
-    // difference is authoritative enough to recover the related request.
-    void load(Boolean(storedSnapshot));
+    // Destinations are recovered by App, never inferred from a changed status
+    // which might belong to an order other than the one explicitly opened.
+    void load();
     const interval = window.setInterval(() => void load(), POLL_INTERVAL_MS);
     const presenceInterval = window.setInterval(
       () => reportPresence(document.visibilityState === "visible"),

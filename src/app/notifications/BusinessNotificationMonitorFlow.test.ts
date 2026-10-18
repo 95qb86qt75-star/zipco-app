@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import BusinessNotificationMonitor from './BusinessNotificationMonitor';
 import { showAppToast } from '../screens/Toast';
 import { orderNotificationState } from '../screens/requests/requestProcess';
+import { publishActiveRequestCount, markInteractionUnread } from './unreadInteractions';
 import { pendingProcess, coordinationProcess } from '../screens/requests/requestProcessFixtures';
 
 const runtime = vi.hoisted(() => ({ cleanup: undefined as undefined | (() => void) }));
@@ -28,6 +29,7 @@ beforeEach(() => {
   serverOrder = pending;
   serviceWorker = new EventTarget();
   const windowEvents = Object.assign(new EventTarget(), {
+    location: { origin: 'https://zipco.test', search: '' },
     setInterval: (...args: Parameters<typeof setInterval>) => setInterval(...args),
     clearInterval: (id: ReturnType<typeof setInterval>) => clearInterval(id),
   });
@@ -101,5 +103,25 @@ describe('monitor acceptance flow across service worker and polling', () => {
     await mount();
     push({ type: 'UNKNOWN', title: 'internal', body: 'internal', url: 'https://unknown.test' });
     await tick(); expect(showAppToast).not.toHaveBeenCalled();
+  });
+  it('suppresses a system-presented acceptance but refreshes counts and announces later READY', async () => {
+    await mount(); serverOrder = accepted;
+    const refresh = vi.fn(); window.addEventListener('zipco-requests-refresh', refresh);
+    push({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: 'requests-customer:order-20-accepted' });
+    await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
+    expect(markInteractionUnread).toHaveBeenCalledWith('order', 20);
+    expect(publishActiveRequestCount).toHaveBeenCalledWith(1);
+    serverOrder = { ...accepted, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', version: 4 } };
+    push({ type: 'order-ready', orderId: 20 }); await tick();
+    expect(showAppToast).toHaveBeenCalledOnce();
+    expect(showAppToast).toHaveBeenCalledWith('', 'info', expect.objectContaining({ title: 'Tu pedido está listo' }));
+  });
+  it('does not invent a navigation destination on an ordinary return to foreground', async () => {
+    await mount(); serverOrder = { id: 99, status: 'ready' };
+    const navigate = vi.fn(); window.addEventListener('zipco-notification-open', navigate);
+    document.dispatchEvent(new Event('visibilitychange')); await tick();
+    expect(navigate).not.toHaveBeenCalled();
   });
 });

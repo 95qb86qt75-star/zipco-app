@@ -50,15 +50,18 @@ import { businessOrderTabs } from "./requests/orderTabs";
 import RequestStatusTab from "./requests/RequestStatusTab";
 import { initialRequestViews } from "./requests/agreementNavigation";
 import LoadOrdersDiagnostics from './requests/LoadOrdersDiagnosticsPanel';
+import { waitForNotificationCard } from '../notifications/notificationNavigation';
 
 export default function RequestsScreen({
   onBack,
   onSessionExpired,
+  onNotificationFocused,
 }: {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onBack: () => void;
   onSessionExpired: () => void;
+  onNotificationFocused?: (url: string) => void;
 }) {
   const openTarget = new URLSearchParams(window.location.search).get("open");
   const [subTab, setSubTab] = useState<"my-orders" | "my-business">(() =>
@@ -520,19 +523,18 @@ export default function RequestsScreen({
       ...current,
       [`${subTab}-${targetKind}`]: targetView,
     }));
-    window.setTimeout(() => {
-      const element = document.getElementById(
-        `${targetKind === "quotes" ? "quote" : "order"}-${targetKind === "quotes" ? quoteId : orderId}`,
-      );
-      element?.scrollIntoView({ behavior: "smooth", block: "center" });
-      element?.classList.add("zipco-notification-target");
-      window.setTimeout(
-        () => element?.classList.remove("zipco-notification-target"),
-        4200,
-      );
-      window.history.replaceState({}, "", window.location.pathname);
-    }, 150);
-  }, [orderRecords, quoteRecords, subTab]);
+    if ((targetKind === 'orders' && (isLoading || loadError)) ||
+        (targetKind === 'quotes' && (quotes.loading || quotes.error))) return;
+    // Category changes above may render on the next commit. The observer
+    // remains pending until the actual card exists and accepts focus.
+    const destination = window.location.href;
+    return waitForNotificationCard(
+      `${targetKind === 'quotes' ? 'quote' : 'order'}-${targetKind === 'quotes' ? quoteId : orderId}`,
+      () => onNotificationFocused?.(destination),
+      undefined,
+      () => Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id')),
+    );
+  }, [orderRecords, quoteRecords, subTab, isLoading, loadError, quotes.loading, quotes.error, onNotificationFocused]);
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">

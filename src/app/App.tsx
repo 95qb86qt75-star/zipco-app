@@ -63,6 +63,8 @@ import Toast, {
 import SplashScreen from "./screens/SplashScreen";
 import type { CatalogItem } from "./screens/profile/business-config/types";
 import BusinessNotificationMonitor from "./notifications/BusinessNotificationMonitor";
+import { createNotificationNavigation, parseNotificationTarget } from './notifications/notificationNavigation';
+import { rememberOpenedPresentation } from './notifications/notificationDelivery';
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -78,6 +80,12 @@ const hasStoredSession = () =>
     localStorage.getItem("zipco-token") &&
     localStorage.getItem("zipco-user-id"),
   );
+
+const acknowledgeNotificationTarget = (url: string) => {
+  const message = { type: 'ZIPCO_NOTIFICATION_NAVIGATED', url };
+  navigator.serviceWorker?.controller?.postMessage(message);
+  void navigator.serviceWorker?.ready.then((registration) => registration.active?.postMessage(message));
+};
 
 type FavoriteEntry = { key: string; kind: "business" | "service"; item: any };
 
@@ -172,27 +180,48 @@ export default function App() {
     useState<FavoriteEntry[]>(getStoredFavorites);
   const [toast, setToast] = useState<ToastNotification | null>(null);
   const [requestsNavigationKey, setRequestsNavigationKey] = useState(0);
+  const notificationNavigation = useRef<ReturnType<typeof createNotificationNavigation> | null>(null);
+  if (!notificationNavigation.current) {
+    notificationNavigation.current = createNotificationNavigation(window.location.origin);
+    notificationNavigation.current.receive(window.location.href);
+    rememberOpenedPresentation(notificationNavigation.current.pending?.eventKey ?? null);
+  }
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
   const [isChangingPush, setIsChangingPush] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
 
   const openNotificationTarget = useCallback((targetValue: string) => {
-    const target = new URL(targetValue, window.location.origin);
-    if (target.origin !== window.location.origin) return;
-    const destination = target.searchParams.get("open");
-    if (!destination?.startsWith("requests-")) return;
+    const target = notificationNavigation.current!.receive(targetValue);
+    if (!target) {
+      const completed = notificationNavigation.current!.completedTarget(targetValue);
+      if (completed) acknowledgeNotificationTarget(completed.url);
+      return;
+    }
+    rememberOpenedPresentation(target.eventKey);
     // Notification launches can use a dedicated pathname on iOS to force
     // WebKit to leave the suspended home route. Once React receives it, keep a
     // canonical root URL while preserving the request destination parameters.
-    target.searchParams.delete("notificationLaunch");
-    window.history.replaceState({}, "", `/${target.search}`);
+    window.history.replaceState({}, "", target.url);
     setCurrentScreen("home");
     setActiveTab("requests");
     setRequestsNavigationKey((current) => current + 1);
-    navigator.serviceWorker?.controller?.postMessage({
-      type: "ZIPCO_NOTIFICATION_NAVIGATED",
-    });
   }, []);
+
+  const completeNotificationTarget = useCallback((value: string) => {
+    if (!hasStoredSession()) return;
+    const target = notificationNavigation.current!.complete(value);
+    if (!target) return;
+    acknowledgeNotificationTarget(target.url);
+    const current = parseNotificationTarget(window.location.href, window.location.origin);
+    if (current?.identity === target.identity) window.history.replaceState({}, '', '/');
+  }, []);
+
+  useEffect(() => {
+    if (isRegistrationComplete && hasStoredSession() && notificationNavigation.current?.pending) {
+      setCurrentScreen('home');
+      setActiveTab('requests');
+    }
+  }, [isRegistrationComplete]);
 
   const refreshFavorites = useCallback(async () => {
     const token = localStorage.getItem("zipco-token");
@@ -348,7 +377,7 @@ export default function App() {
         if (
           typeof payload.url === "string" &&
           Number.isFinite(createdAt) &&
-          Date.now() - createdAt < 5 * 60 * 1000
+          createdAt <= Date.now()
         ) {
           openNotificationTarget(payload.url);
         }
@@ -706,6 +735,8 @@ export default function App() {
             key={requestsNavigationKey}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            onSessionExpired={handleLogout}
+            onNotificationFocused={completeNotificationTarget}
             onBack={() => {
               setActiveTab("home");
               setCurrentScreen("home");

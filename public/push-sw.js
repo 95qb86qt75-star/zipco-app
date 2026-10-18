@@ -1,3 +1,37 @@
+// Same semantic-key mapping/schema as notificationDelivery.ts. Existing backend
+// tags distinguish acceptance from ready and later events on the same order.
+const presentationCacheName = 'zipco-notification-presentations-v1';
+const presentationPath = '/__zipco_notification_presentations__';
+let presentationWrites = Promise.resolve();
+const systemEventKey = (data) => {
+  try {
+    const url = new URL(data.url || '/', self.location.origin);
+    const view = url.searchParams.get('open');
+    const key = String(data.tag || '').replace('-coordination-ready', '-ready');
+    if (url.origin !== self.location.origin || !/^requests-(customer|business)(-quotes)?$/.test(view || '') ||
+        !/^(order|quote)-[1-9]\d*-[a-z-]+$/.test(key)) return null;
+    return `${view}:${key}`;
+  } catch { return null; }
+};
+const rememberSystemPresentation = (key) => {
+  if (!key) return Promise.resolve();
+  presentationWrites = presentationWrites.catch(() => {}).then(async () => {
+    const cache = await caches.open(presentationCacheName);
+    const request = new Request(new URL(presentationPath, self.location.origin).href);
+    const response = await cache.match(request);
+    const previous = response ? await response.json() : [];
+    const now = Date.now();
+    const rows = (Array.isArray(previous) ? previous : []).filter((row) =>
+      typeof row?.key === 'string' && row.key !== key && Number.isFinite(row.createdAt) &&
+      row.createdAt <= now && now - row.createdAt < 24 * 60 * 60 * 1000);
+    rows.push({ key, createdAt: now });
+    await cache.put(request, new Response(JSON.stringify(rows.slice(-100)), {
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    }));
+  });
+  return presentationWrites.catch(() => {});
+};
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -16,6 +50,7 @@ self.addEventListener("push", (event) => {
       url: data.url || "/",
       orderId: data.orderId,
       quoteId: data.quoteId,
+      eventKey: systemEventKey(data),
     },
   };
   event.waitUntil(
@@ -30,16 +65,26 @@ self.addEventListener("push", (event) => {
       const visibleClients = clients.filter(
         (client) => client.visibilityState === "visible" && client.focused,
       );
-      if (visibleClients.length > 0) {
+      // WebKit's userVisibleOnly subscription requires visible presentation of
+      // received pushes. Foreground-only delivery on Apple needs a backend contract.
+      const requiresVisibleApplePush = /iPhone|iPad|iPod|Macintosh/i.test(self.navigator?.userAgent || '');
+      if (visibleClients.length > 0 && !requiresVisibleApplePush) {
         visibleClients.forEach((client) => client.postMessage(data));
         return;
       }
       await self.registration.showNotification(title, options);
+      await rememberSystemPresentation(options.data.eventKey);
+      clients.forEach((client) => client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: options.data.eventKey }));
     })(),
   );
 });
 
 let pendingNavigationTarget = null;
+let navigationWrites = Promise.resolve();
+const updateNavigation = (operation) => {
+  navigationWrites = navigationWrites.catch(() => {}).then(operation);
+  return navigationWrites;
+};
 
 const sendPendingNavigation = async (client) => {
   let url = pendingNavigationTarget;
@@ -55,7 +100,7 @@ const sendPendingNavigation = async (client) => {
       const payload = response ? await response.json() : null;
       if (
         typeof payload?.url === "string" &&
-        Date.now() - Number(payload.createdAt) < 5 * 60 * 1000
+        Number.isFinite(Number(payload.createdAt))
       ) {
         url = payload.url;
       }
@@ -79,23 +124,28 @@ const normalizeNotificationTarget = (notificationData = {}) => {
 
 self.addEventListener("message", (event) => {
   if (event.data?.type === "ZIPCO_NOTIFICATION_NAVIGATED") {
-    pendingNavigationTarget = null;
+    const acknowledgedUrl = event.data.url;
+    if (typeof acknowledgedUrl !== 'string') return;
     event.waitUntil(
-      (async () => {
+      updateNavigation(async () => {
         try {
           const navigationCache = await caches.open(
             "zipco-notification-navigation-v1",
           );
-          await navigationCache.delete(
-            new Request(
+          const request = new Request(
               new URL("/__zipco_notification_target__", self.location.origin)
                 .href,
-            ),
-          );
+            );
+          const response = await navigationCache.match(request);
+          const stored = response ? await response.json() : null;
+          if (stored?.url !== acknowledgedUrl ||
+              (pendingNavigationTarget && pendingNavigationTarget !== acknowledgedUrl)) return;
+          if (pendingNavigationTarget === acknowledgedUrl) pendingNavigationTarget = null;
+          await navigationCache.delete(request);
         } catch {
-          // The cached destination expires after five minutes as a fallback.
+          // Keep the destination pending if acknowledgement cannot be persisted.
         }
-      })(),
+      }),
     );
     return;
   }
@@ -110,13 +160,19 @@ self.addEventListener("message", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = normalizeNotificationTarget(event.notification.data);
+  const eventKey = event.notification.data?.eventKey || systemEventKey({
+    tag: event.notification.tag, url: targetUrl.href,
+  });
+  if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
   event.waitUntil(
     (async () => {
+      await rememberSystemPresentation(eventKey);
       // Persist the destination before waking the app. iOS may discard both
       // postMessage and WindowClient.navigate while resuming a suspended PWA.
       try {
+        await updateNavigation(async () => {
         const navigationCache = await caches.open(
           "zipco-notification-navigation-v1",
         );
@@ -127,7 +183,7 @@ self.addEventListener("notificationclick", (event) => {
           ),
           new Response(
             JSON.stringify({
-              url: pendingNavigationTarget,
+              url: targetUrl.pathname + targetUrl.search,
               createdAt: Date.now(),
             }),
             {
@@ -138,6 +194,7 @@ self.addEventListener("notificationclick", (event) => {
             },
           ),
         );
+        });
       } catch {
         // Do not let a WebKit Cache API failure cancel focus/navigation.
       }

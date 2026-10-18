@@ -2,6 +2,7 @@ import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, orderNotificationStat
 
 export function customerOrderNotice(order: { status: string } & ProcessOrder): readonly [string, string] | null {
   if (hasRequestProcess(order)) {
+    if (order.requestProcess?.state === 'READY') return ['Tu pedido está listo', 'El negocio marcó tu pedido como listo.'];
     return order.requestProcess?.state === 'COORDINATION_PENDING'
       ? ['Pedido aceptado', COORDINATION_ACCEPTED_MESSAGE] : null;
   }
