@@ -49,7 +49,7 @@ describe('visible customer ready summary in RequestsScreen', () => {
     expect(card.props.selected).toBe(true);
     const button = ReadyOrdersSummary(card.props as React.ComponentProps<typeof ReadyOrdersSummary>);
     expect(button.props['aria-pressed']).toBe(true);
-    expect(button.props.className).toContain('from-teal-700 to-emerald-800 text-white');
+    expect(button.props.className).toContain('from-orange-500 to-amber-500 text-white');
     const readyTab = nodes(view).find((node) => node.type === RequestStatusTab && (node.props.item as { key: string }).key === 'ready')!;
     expect(readyTab.props.selected).toBe(true);
     expect(hooks.action).not.toHaveBeenCalled(); expect(hooks.load).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();

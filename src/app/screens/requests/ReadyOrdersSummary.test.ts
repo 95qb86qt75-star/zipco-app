@@ -13,7 +13,7 @@ describe('ready attention summary selection', () => {
     const html = renderToStaticMarkup(view);
     expect(html).toContain('2 pedidos listos para recibir');
     expect(html).not.toMatch(/notificad|recibidos|completados/);
-    expect(view.props.className).toContain(selected ? 'from-teal-700 to-emerald-800 text-white' : 'bg-amber-50 text-slate-900');
+    expect(view.props.className).toContain(selected ? 'from-orange-500 to-amber-500 text-white' : 'from-amber-50 to-orange-50 text-slate-900');
     expect(onToggle).not.toHaveBeenCalled(); view.props.onClick(); expect(onToggle).toHaveBeenCalledOnce();
   });
   it('preserves service-specific wording without introducing product receipt actions', () => {
