@@ -6,6 +6,14 @@ beforeEach(() => vi.stubGlobal('React', React));
 afterEach(() => vi.unstubAllGlobals());
 
 describe('customer coordination bell summary', () => {
+  it.each([1, 2])('uses the business Por coordinar wording (%s) without implying customer consent', (count) => {
+    const view = CoordinationOrdersSummary({ count, selected: false, reducedMotion: false, onSelect: vi.fn(), business: true })!;
+    const html = renderToStaticMarkup(view);
+    expect(html).toContain(count === 1 ? '1 pedido por coordinar' : '2 pedidos por coordinar');
+    expect(html).not.toContain('Revisa la autorización de contacto');
+    expect(view.props.className).not.toContain('mb-3');
+    expect(CoordinationOrdersSummary({ count: 0, selected: false, reducedMotion: false, onSelect: vi.fn(), business: true })).toBeNull();
+  });
   it('disappears at zero without dispatching navigation or an order action', () => {
     const onSelect = vi.fn();
     expect(CoordinationOrdersSummary({ count: 0, selected: false, reducedMotion: false, onSelect })).toBeNull();

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, orders: [] as unknown[], action: vi.fn(), load: vi.fn(),
-  unread: new Set<string>(), loading: false, error: '' }));
+  unread: new Set<string>(), loading: false, error: '', businessOrders: [] as unknown[], hasBusiness: false }));
 vi.mock('react', async (original) => ({ ...await original<typeof import('react')>(),
   useEffect: () => undefined,
   useState: (initial: unknown) => {
@@ -11,7 +11,7 @@ vi.mock('react', async (original) => ({ ...await original<typeof import('react')
   },
 }));
 vi.mock('motion/react', async (original) => ({ ...await original<typeof import('motion/react')>(), useReducedMotion: () => false }));
-vi.mock('./requests/useRequests', () => ({ default: () => ({ myOrders: hooks.orders, requests: [], hasBusiness: false,
+vi.mock('./requests/useRequests', () => ({ default: () => ({ myOrders: hooks.orders, requests: hooks.businessOrders, hasBusiness: hooks.hasBusiness,
   isLoading: hooks.loading, loadError: hooks.error, updatingOrderIds: new Set(), loadOrders: hooks.load, performAction: hooks.action }) }));
 vi.mock('./quotes/useQuotes', () => ({ default: () => ({ myQuotes: [], businessQuotes: [], isLoading: false,
   loadError: '', updatingIds: new Set(), load: hooks.load }) }));
@@ -22,8 +22,9 @@ import RequestsScreen from './RequestsScreen';
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import MyOrdersTab from './requests/MyOrdersTab';
+import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import RequestStatusTab from './requests/RequestStatusTab';
-import { normalizeMyOrdersPayload } from './requests/orderNormalization';
+import { normalizeMyOrdersPayload, normalizeBusinessOrdersPayload } from './requests/orderNormalization';
 import { coordinationProcess, rawOrder } from './requests/requestProcessFixtures';
 
 type Node = React.ReactElement<Record<string, unknown> & { children?: React.ReactNode }>;
@@ -35,6 +36,7 @@ const summary = (root: React.ReactNode) => nodes(root).find((node) => node.type 
 beforeEach(() => {
   hooks.slots = []; hooks.cursor = 0; hooks.action.mockReset(); hooks.load.mockReset();
   hooks.unread = new Set(); hooks.loading = false; hooks.error = '';
+  hooks.businessOrders = []; hooks.hasBusiness = false;
   hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, businessName: 'Negocio de prueba', status: 'ready',
     requestProcess: { ...coordinationProcess, state: 'READY', allowedActions: ['ACK_READY_NOTICE'], readyNoticeAcknowledged: false } }]);
   vi.stubGlobal('React', React); vi.stubGlobal('window', { location: { search: '' } });
@@ -43,6 +45,43 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('visible customer ready summary in RequestsScreen', () => {
+  it('shows the business Por coordinar bell, selects that category and filters its orders without executing actions', () => {
+    hooks.hasBusiness = true;
+    hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess },
+      { ...rawOrder, id: 21, status: 'accepted', requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } }]);
+    vi.stubGlobal('window', { location: { search: '?open=requests-business' } });
+    const card = nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!;
+    expect(card.props).toMatchObject({ business: true, count: 1, selected: false });
+    (card.props.onSelect as () => void)();
+    const selected = render();
+    expect(nodes(selected).find((node) => node.type === CoordinationOrdersSummary)?.props.selected).toBe(true);
+    expect(nodes(selected).find((node) => node.type === RequestStatusTab && (node.props.item as { key: string }).key === 'coordination')?.props.selected).toBe(true);
+    const list = nodes(selected).find((node) => node.type === BusinessOrdersTab)!;
+    expect((list.props.requests as Array<{ id: number }>).map((order) => order.id)).toEqual([20]);
+    expect(hooks.action).not.toHaveBeenCalled(); expect(hooks.load).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+  });
+  it('keeps the business bell after reading/consent and hides it only when its category becomes empty', () => {
+    hooks.hasBusiness = true; hooks.orders = [];
+    vi.stubGlobal('window', { location: { search: '?open=requests-business' } });
+    const input = { ...rawOrder, status: 'accepted', requestProcess: coordinationProcess };
+    hooks.businessOrders = normalizeBusinessOrdersPayload([input, { ...input, id: 21, requestProcess: { ...coordinationProcess, state: 'COORDINATING' } }]);
+    const card = () => nodes(render()).find((node) => node.type === CoordinationOrdersSummary);
+    expect(card()?.props.count).toBe(2); hooks.unread.add('order:20'); hooks.unread.clear(); expect(card()?.props.count).toBe(2);
+    hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...input, requestProcess: { ...coordinationProcess,
+      coordination: { customerContactAuthorized: true, businessContactAuthorized: false } } },
+      { ...input, id: 21, requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } }]);
+    expect(card()?.props.count).toBe(1);
+    hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...input, requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } }]);
+    expect(card()).toBeUndefined(); expect(hooks.action).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+  });
+  it('does not use stale business data for its coordination bell during load or error', () => {
+    hooks.hasBusiness = true;
+    hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
+    vi.stubGlobal('window', { location: { search: '?open=requests-business' } });
+    const visible = () => nodes(render()).some((node) => node.type === CoordinationOrdersSummary);
+    expect(visible()).toBe(true); hooks.loading = true; expect(visible()).toBe(false);
+    hooks.loading = false; hooks.error = 'Error de lectura'; expect(visible()).toBe(false);
+  });
   it('adds a persistent coordination bell alongside Listos and selects only the coordination category', () => {
     hooks.orders.push(...normalizeMyOrdersPayload([{ ...rawOrder, id: 21, status: 'accepted', requestProcess: coordinationProcess }]));
     const view = render();

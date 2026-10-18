@@ -148,7 +148,7 @@ export default function RequestsScreen({
   );
   const businessActivityCards = (
     [
-      ...(["pending", "waiting", "active", "ready"] as const).map((view) => ({
+      ...(["pending", "coordination", "waiting", "active", "ready"] as const).map((view) => ({
         kind: "orders" as const,
         view,
         count: businessOrderStatusCounts[view],
@@ -654,6 +654,14 @@ export default function RequestsScreen({
             {businessActivityCards.map((item) => {
               const activityKey = `${item.kind}-${item.view}`;
               const isSelected = selectedBusinessActivity === activityKey;
+              if (item.view === 'coordination') return !isLoading && !loadError ?
+                <CoordinationOrdersSummary key={activityKey} business count={item.count} selected={isSelected}
+                  reducedMotion={prefersReducedMotion} onSelect={() => {
+                    setRequestType('orders');
+                    setAttentionFilter('browse');
+                    setSelectedBusinessActivity(activityKey);
+                    setStatusViews((current) => ({ ...current, 'my-business-orders': 'coordination' }));
+                  }} /> : null;
               const singular = item.count === 1;
               const noun =
                 item.kind === "orders"
