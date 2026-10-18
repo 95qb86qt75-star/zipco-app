@@ -789,11 +789,16 @@ export default function RequestsScreen({
               const count = card.items.length;
               const isQuote = card.kind === "quotes";
               const isReady = card.filter === "ready";
-              const title = isReady
-                ? isQuote
-                  ? `${count} ${count === 1 ? "servicio listo" : "servicios listos"} para confirmar`
-                  : `${count} ${count === 1 ? "pedido listo" : "pedidos listos"} para recibir`
-                : isQuote
+              const selectCard = () => {
+                setRequestType(card.kind);
+                setAttentionFilter(card.filter);
+                const nextView = isReady ? "ready"
+                  : (statusViewFor(card.kind, card.items[0].status, card.items[0].requestProcess, card.items[0].requestProcessInvalid) ?? "waiting");
+                setStatusViews((current) => ({ ...current, [`my-orders-${card.kind}`]: nextView }));
+              };
+              if (isReady) return <ReadyOrdersSummary key={`${card.kind}-${card.filter}`} count={count} kind={card.kind}
+                selected={requestType === card.kind && attentionFilter === card.filter && statusView === 'ready'} onToggle={selectCard} />;
+              const title = isQuote
                   ? `${count} ${count === 1 ? "cotización lista" : "cotizaciones listas"} para revisar`
                   : `${count} ${count === 1 ? "nueva respuesta" : "nuevas respuestas"} del negocio`;
 
@@ -802,33 +807,20 @@ export default function RequestsScreen({
                   key={`${card.kind}-${card.filter}`}
                   type="button"
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  onClick={() => {
-                    setRequestType(card.kind);
-                    setAttentionFilter(card.filter);
-                    const nextView = isReady
-                      ? "ready"
-                      : (statusViewFor(card.kind, card.items[0].status, card.items[0].requestProcess, card.items[0].requestProcessInvalid) ??
-                        "waiting");
-                    setStatusViews((current) => ({
-                      ...current,
-                      [`my-orders-${card.kind}`]: nextView,
-                    }));
-                  }}
-                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-lg ${isReady ? "border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 text-slate-900 dark:from-amber-950/70 dark:to-orange-950/50 dark:text-white" : isQuote ? "border-violet-400 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 text-white" : "border-orange-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white"}`}
+                  onClick={selectCard}
+                  className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left shadow-lg ${isQuote ? "border-violet-400 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600 text-white" : "border-orange-400 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white"}`}
                 >
                   <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isReady ? "bg-white text-orange-500 dark:bg-white/10" : "bg-white/20"}`}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20"
                   >
                     <Bell className="zipco-attention-bell h-6 w-6" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-black">{title}</span>
                     <span
-                      className={`block text-xs ${isReady ? "text-slate-500 dark:text-slate-300" : "text-white/85"}`}
+                      className="block text-xs text-white/85"
                     >
-                      {isReady
-                        ? "El negocio ya finalizó y te notificó."
-                        : `Toca para revisar ${count === 1 ? "la solicitud" : "las solicitudes"}.`}
+                      {`Toca para revisar ${count === 1 ? "la solicitud" : "las solicitudes"}.`}
                     </span>
                   </span>
                   <ChevronRight className="h-5 w-5" />
