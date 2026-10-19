@@ -35,9 +35,10 @@ vi.mock('../notifications/unreadInteractions', () => ({ useUnreadInteractions: (
 import RequestsScreen from './RequestsScreen';
 import RequestStatusTab from './requests/RequestStatusTab';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
+import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
-import { rawOrder, coordinationProcess } from './requests/requestProcessFixtures';
+import { rawOrder, coordinationProcess, pendingProcess } from './requests/requestProcessFixtures';
 import { normalizeMyOrdersPayload } from './requests/orderNormalization';
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
@@ -60,10 +61,11 @@ function render() {
 let mutate: () => void, session: boolean, doc: any, card: any;
 beforeEach(() => {
   hooks.slots = []; hooks.effects = []; hooks.cleanups = []; hooks.orders = [];
+  hooks.quotes = [];
   hooks.loading = true; hooks.focused.mockReset(); hooks.action.mockReset(); hooks.load.mockReset();
   session = false; mutate = noop;
   doc = Object.assign(new EventTarget(), { documentElement: {}, visibilityState: 'visible', activeElement: null,
-    getElementById: vi.fn(() => null) });
+    getElementById: vi.fn(() => null), querySelector: vi.fn(() => null) });
   card = { getClientRects: () => [{}], hasAttribute: () => true,
     focus: vi.fn(() => { doc.activeElement = card; }), scrollIntoView: vi.fn(), closest: () => null,
     classList: { add: vi.fn(), remove: vi.fn() } };
@@ -109,10 +111,12 @@ describe('coordination bell scroll for both roles, independent of notification n
       { ...rawOrder, status: 'accepted', requestProcess: coordinationProcess },
       { ...rawOrder, id: 21, status: 'accepted', requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } },
     ]);
-    const scroller = { scrollTop: 90, clientTop: 0, getBoundingClientRect: () => ({ top: 200 }) };
+    const scroller = { scrollTop: 90, clientTop: 0, scrollHeight: 2000, clientHeight: 600,
+      contains: () => true, getBoundingClientRect: () => ({ top: 200 }) };
     const start = { closest: () => scroller, getBoundingClientRect: () => ({ top: 710 - scroller.scrollTop }) };
-    doc.querySelector = vi.fn(() => nodes(hooks.committed).some((node) =>
-      node.props['data-coordination-results'] !== undefined) ? start : null);
+    const spacer = { style: { height: '0px' } };
+    doc.querySelector = vi.fn((selector) => selector === '[data-summary-scroll-space]' ? spacer :
+      nodes(hooks.committed).some((node) => node.props['data-request-results'] !== undefined) ? start : null);
     return scroller;
   }
 
@@ -171,5 +175,64 @@ describe('coordination bell scroll for both roles, independent of notification n
       child.type === 'span' && child.props.children === 'Mis Pedidos'))!.props.onClick();
     render(); hooks.loading = false; render();
     expect(scroller.scrollTop).toBe(90);
+  });
+
+  it.each([
+    ['1 Nuevo Pedido', 'pending'], ['1 pedido en curso', 'active'],
+    ['1 pedido listo y notificado', 'ready'], ['1 pedido esperando al cliente', 'waiting'],
+  ])('selects and scrolls the business %s bell without performing an action', (label, view) => {
+    const scroller = prepare();
+    hooks.orders = normalizeMyOrdersPayload([
+      { ...rawOrder, status: 'pending', requestProcess: pendingProcess },
+      { ...rawOrder, id: 21, status: 'accepted', requestProcess: coordinationProcess },
+      { ...rawOrder, id: 22, status: 'accepted', requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } },
+      { ...rawOrder, id: 23, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY' } },
+      { ...rawOrder, id: 24, status: 'alternative_proposed' },
+    ]);
+    nodes(render()).find((node) => node.props.onClick && nodes(node).some((child) => child.props.children === label))!.props.onClick();
+    const result = render();
+    expect(nodes(result).find((node) => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe(view);
+    expect(scroller.scrollTop).toBe(498);
+    expect(hooks.load).not.toHaveBeenCalled(); expect(hooks.action).not.toHaveBeenCalled();
+  });
+
+  it('scrolls the customer ready bell, including a repeated click, without acknowledging receipt', () => {
+    const scroller = prepare('?open=requests-customer');
+    hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY' } }]);
+    const click = () => nodes(render()).find((node) => node.type === ReadyOrdersSummary)!.props.onToggle();
+    click(); render(); expect(scroller.scrollTop).toBe(498);
+    scroller.scrollTop = 0; click(); render(); expect(scroller.scrollTop).toBe(498);
+    expect(hooks.action).not.toHaveBeenCalled(); expect(hooks.focused).not.toHaveBeenCalled();
+  });
+
+  it('scrolls a customer response bell without consuming the response', () => {
+    const scroller = prepare('?open=requests-customer');
+    hooks.unread.add('order:20');
+    nodes(render()).find((node) => node.props.onClick && nodes(node).some((child) =>
+      child.props.children === '1 nueva respuesta del negocio'))!.props.onClick();
+    render(); expect(scroller.scrollTop).toBe(498);
+    expect(hooks.action).not.toHaveBeenCalled(); expect(hooks.focused).not.toHaveBeenCalled();
+    expect(hooks.unread.has('order:20')).toBe(true);
+  });
+
+  it('scrolls the customer quote ready summary without performing a confirmation', () => {
+    const scroller = prepare('?open=requests-customer-quotes');
+    hooks.quotes = [{ id: 50, status: 'ready' }];
+    nodes(render()).find((node) => node.type === ReadyOrdersSummary)!.props.onToggle();
+    render(); expect(scroller.scrollTop).toBe(498);
+    expect(hooks.load).not.toHaveBeenCalled(); expect(hooks.action).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['1 cotización nueva', 'pending'], ['1 cotización esperando al cliente', 'waiting'],
+    ['1 cotización en curso', 'active'], ['1 cotización lista y notificada', 'ready'],
+  ])('scrolls business quote summary %s without loading orders', (label, view) => {
+    const scroller = prepare('?open=requests-business-quotes');
+    hooks.quotes = ['requested', 'quoted', 'accepted', 'ready'].map((status, index) => ({ id: 50 + index, status }));
+    nodes(render()).find((node) => node.props.onClick && nodes(node).some((child) => child.props.children === label))!.props.onClick();
+    const result = render();
+    expect(nodes(result).find((node) => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe(view);
+    expect(scroller.scrollTop).toBe(498);
+    expect(hooks.load).not.toHaveBeenCalled(); expect(hooks.action).not.toHaveBeenCalled();
   });
 });

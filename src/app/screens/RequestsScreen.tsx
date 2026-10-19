@@ -52,6 +52,7 @@ import { initialRequestViews } from "./requests/agreementNavigation";
 import LoadOrdersDiagnostics from './requests/LoadOrdersDiagnosticsPanel';
 import { waitForNotificationCard } from '../notifications/notificationNavigation';
 import { traceNotificationClick } from '../notifications/notificationClickTrace';
+import { scrollToRequestResults } from './requests/requestSummaryScroll';
 
 export default function RequestsScreen({
   onBack,
@@ -90,7 +91,10 @@ export default function RequestsScreen({
   const [selectedBusinessActivity, setSelectedBusinessActivity] = useState<
     string | null
   >(null);
-  const [coordinationScrollPending, setCoordinationScrollPending] = useState<'my-orders' | 'my-business' | null>(null);
+  const [summaryScrollPending, setSummaryScrollPending] = useState<{
+    role: 'my-orders' | 'my-business'; kind: 'orders' | 'quotes'; view: StatusView;
+    attention: 'browse' | 'responses' | 'ready';
+  } | null>(null);
   const [historyTransfer, setHistoryTransfer] = useState<{
     kind: "order" | "quote";
     id: number;
@@ -475,20 +479,24 @@ export default function RequestsScreen({
   }, [hasBusiness, subTab]);
 
   useEffect(() => {
-    if (!coordinationScrollPending) return;
-    if (subTab !== coordinationScrollPending || requestType !== 'orders' || statusView !== 'coordination' || loadError) {
-      setCoordinationScrollPending(null);
+    const spacer = document.querySelector<HTMLElement>('[data-summary-scroll-space]');
+    if (spacer) spacer.style.height = '0px';
+  }, [subTab, requestType, statusView, attentionFilter]);
+
+  useEffect(() => {
+    if (!summaryScrollPending) return;
+    if (subTab !== summaryScrollPending.role || requestType !== summaryScrollPending.kind ||
+        statusView !== summaryScrollPending.view || attentionFilter !== summaryScrollPending.attention ||
+        (requestType === 'orders' ? loadError : quotes.error)) {
+      setSummaryScrollPending(null);
       return;
     }
-    if (isLoading) return;
-    const start = document.querySelector<HTMLElement>('[data-coordination-results]');
-    const scroller = start?.closest<HTMLElement>('[data-requests-scroll]');
-    if (start && scroller) {
-      scroller.scrollTop = Math.max(0, scroller.scrollTop + start.getBoundingClientRect().top -
-        scroller.getBoundingClientRect().top - scroller.clientTop - 12);
-    }
-    setCoordinationScrollPending(null);
-  }, [coordinationScrollPending, subTab, requestType, statusView, isLoading, loadError]);
+    if (requestType === 'orders' ? isLoading : quotes.loading) return;
+    const start = document.querySelector<HTMLElement>('[data-request-results]');
+    const spacer = document.querySelector<HTMLElement>('[data-summary-scroll-space]');
+    if (start && spacer && !suppressAttentionResults) scrollToRequestResults(start, spacer);
+    setSummaryScrollPending(null);
+  }, [summaryScrollPending, subTab, requestType, statusView, attentionFilter, isLoading, loadError, quotes.loading, quotes.error, suppressAttentionResults]);
 
   useEffect(() => {
     const refresh = () => {
@@ -692,7 +700,7 @@ export default function RequestsScreen({
                     setAttentionFilter('browse');
                     setSelectedBusinessActivity(activityKey);
                     setStatusViews((current) => ({ ...current, 'my-business-orders': 'coordination' }));
-                    setCoordinationScrollPending('my-business');
+                    setSummaryScrollPending({ role: 'my-business', kind: 'orders', view: 'coordination', attention: 'browse' });
                   }} /> : null;
               const singular = item.count === 1;
               const noun =
@@ -747,6 +755,7 @@ export default function RequestsScreen({
                       ...current,
                       [`my-business-${item.kind}`]: item.view,
                     }));
+                    setSummaryScrollPending({ role: 'my-business', kind: item.kind, view: item.view, attention: 'browse' });
                   }}
                   className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-[background-color,border-color,box-shadow,color] duration-300 ${
                     isSelected
@@ -839,6 +848,7 @@ export default function RequestsScreen({
                 const nextView = isReady ? "ready"
                   : (statusViewFor(card.kind, card.items[0].status, card.items[0].requestProcess, card.items[0].requestProcessInvalid) ?? "waiting");
                 setStatusViews((current) => ({ ...current, [`my-orders-${card.kind}`]: nextView }));
+                setSummaryScrollPending({ role: 'my-orders', kind: card.kind, view: nextView, attention: card.filter });
               };
               if (isReady) return <ReadyOrdersSummary key={`${card.kind}-${card.filter}`} count={count} kind={card.kind}
                 selected={requestType === card.kind && attentionFilter === card.filter && statusView === 'ready'} onToggle={selectCard} />;
@@ -880,7 +890,7 @@ export default function RequestsScreen({
               setRequestType('orders');
               setAttentionFilter('browse');
               setStatusViews((current) => ({ ...current, 'my-orders-orders': 'coordination' }));
-              setCoordinationScrollPending('my-orders');
+              setSummaryScrollPending({ role: 'my-orders', kind: 'orders', view: 'coordination', attention: 'browse' });
             }} />}
         <div className="zipco-status-tabs mb-3">
           {(requestType === "quotes"
@@ -1120,6 +1130,7 @@ export default function RequestsScreen({
             </div>
           </div>
         )}
+        <div data-request-results>
         {requestType === "quotes" && quotes.loading && (
           <div className="py-16 text-center text-sm font-semibold text-slate-500">
             Cargando cotizaciones…
@@ -1215,9 +1226,6 @@ export default function RequestsScreen({
           )}
         {requestType === "orders" && !suppressAttentionResults && (
           <>
-            {statusView === 'coordination' && !isLoading && !loadError &&
-              (subTab === 'my-business' ? filteredBusinessOrders : filteredMyOrders).length > 0 &&
-              <div data-coordination-results aria-hidden="true" />}
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-16">
                 <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3" />
@@ -1416,6 +1424,8 @@ export default function RequestsScreen({
               )}
           </>
         )}
+        </div>
+        <div data-summary-scroll-space aria-hidden="true" />
       </div>
       <AnimatePresence>
         {activeTransfer && (
