@@ -1,5 +1,5 @@
 // Shared by the QA page and a QA-only classic worker import. No payload logging.
-export const CLICK_TRACE_CACHE = 'zipco-qa-click-trace-v1';
+export const CLICK_TRACE_CACHE = 'zipco-qa-click-trace-v2';
 export const CLICK_TRACE_LIMIT = 50;
 export const CLICK_TRACE_TTL = 60 * 60 * 1000;
 export const CLICK_TRACE_STAGES = new Set([
@@ -14,7 +14,7 @@ export const CLICK_TRACE_STAGES = new Set([
   'notice-suppressed', 'notice-delivered',
 ]);
 const flagKeys = ['hasTarget', 'hasEvent', 'hasSession', 'visible', 'hasClient',
-  'hasCard', 'loading', 'hasError', 'hasController', 'revisionMatches', 'buildMatches', 'requestsVisible', 'sessionReady'];
+  'hasCard', 'loading', 'hasError', 'hasController', 'revisionMatches', 'buildMatches', 'requestsVisible', 'sessionReady', 'currentContext'];
 const repeatedReadStages = new Set(['app-cache-start', 'app-cache-read', 'worker-target-request',
   'worker-target-sent', 'worker-probe', 'app-target-ignored', 'app-worker-target']);
 
@@ -30,8 +30,25 @@ export function sanitizeClickTrace(row) {
 export function createClickTraceStore(source, build, origin, cacheStorage) {
   let memory = [];
   let writes = Promise.resolve();
-  const key = `${origin}/__zipco_qa_click_trace__/${source}`;
+  const prefix = `${origin}/__zipco_qa_click_trace__/${source}/`;
+  // Diagnostic-only storage nonce, never a user/order identifier or report field.
+  const instance = globalThis.crypto?.randomUUID?.() || `${Math.random().toString(36).slice(2)}-${Date.now()}`;
+  let sequence = 0;
   const rows = (value) => (Array.isArray(value) ? value : []).map(sanitizeClickTrace).filter(Boolean).slice(-CLICK_TRACE_LIMIT);
+  const records = async (cache) => {
+    const keys = (await cache.keys()).map((request) => request.url).filter((key) => key.startsWith(prefix));
+    return Promise.all(keys.map(async (key) => {
+      try {
+        const response = await cache.match(key);
+        const entry = sanitizeClickTrace(response ? await response.json() : null);
+        return { key, entry: entry?.source === source ? entry : null };
+      } catch { return { key, entry: null }; }
+    }));
+  };
+  const latest = (items) => [...new Map(items.map((item) => [item.key, item])).values()]
+    .map((item) => ({ ...item, entry: sanitizeClickTrace(item.entry) }))
+    .filter((item) => item.entry).sort((a, b) => a.entry.at - b.entry.at).slice(-CLICK_TRACE_LIMIT);
+  const memoryRows = () => rows(memory.map((item) => item.entry));
   const bounded = async (work, fallback) => {
     let timer;
     try {
@@ -41,13 +58,14 @@ export function createClickTraceStore(source, build, origin, cacheStorage) {
     } finally { clearTimeout(timer); }
   };
   const read = async () => {
-    const fallback = () => ({ entries: rows(memory), storageAvailable: false });
+    const fallback = () => ({ entries: memoryRows().map((entry) => ({ ...entry, currentContext: true })), storageAvailable: false });
     return bounded((async () => {
       await writes;
       try {
         const cache = await cacheStorage.open(CLICK_TRACE_CACHE);
-        const response = await cache.match(key);
-        return { entries: rows(response ? await response.json() : memory), storageAvailable: true };
+        const stored = await records(cache);
+        return { entries: latest([...stored, ...memory]).map((item) => ({ ...item.entry,
+          currentContext: item.key.startsWith(`${prefix}${instance}-`) })), storageAvailable: true };
       } catch { return fallback(); }
     })(), fallback);
   };
@@ -56,16 +74,20 @@ export function createClickTraceStore(source, build, origin, cacheStorage) {
     record(stage, flags = {}) {
       const entry = sanitizeClickTrace({ ...flags, at: Date.now(), source, stage, build });
       if (!entry) return Promise.resolve();
-      const last = memory.slice().reverse().find((row) => row.stage === stage);
+      const last = memoryRows().slice().reverse().find((row) => row.stage === stage);
       if (repeatedReadStages.has(stage) && last && entry.at - last.at < 10000 &&
           flagKeys.every((flag) => last[flag] === entry[flag])) return Promise.resolve();
-      memory = rows([...memory, entry]);
+      const item = { key: `${prefix}${instance}-${++sequence}`, entry };
+      memory = latest([...memory, item]);
       writes = writes.catch(() => {}).then(async () => {
         try {
           const cache = await cacheStorage.open(CLICK_TRACE_CACHE);
-          const response = await cache.match(key);
-          const entries = rows([...rows(response ? await response.json() : []), entry]);
-          await cache.put(key, new Response(JSON.stringify(entries), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }));
+          // Each row has its own key: independent worker lifetimes cannot
+          // overwrite one another's read-modify-write snapshot.
+          await cache.put(item.key, new Response(JSON.stringify(entry), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }));
+          const stored = await records(cache);
+          const keep = new Set(latest(stored).map((record) => record.key));
+          await Promise.all(stored.filter((record) => !keep.has(record.key)).map((record) => cache.delete(record.key)));
         } catch { /* Memory fallback; diagnostics never fail navigation. */ }
       });
       return writes;
@@ -76,7 +98,12 @@ export function createClickTraceStore(source, build, origin, cacheStorage) {
       memory = [];
       return bounded((async () => {
         await writes;
-        try { const cache = await cacheStorage.open(CLICK_TRACE_CACHE); await cache.delete(key); return true; }
+        try {
+          const cache = await cacheStorage.open(CLICK_TRACE_CACHE);
+          const stored = await records(cache);
+          await Promise.all(stored.map((record) => cache.delete(record.key)));
+          return true;
+        }
         catch { return false; }
       })(), () => false);
     },

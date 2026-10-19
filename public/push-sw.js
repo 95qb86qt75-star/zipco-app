@@ -1,5 +1,5 @@
-// Click revision: ios-click-trace-v4. Navigation behavior from direct-v3 retained.
-const notificationWorkerRevision = 'ios-click-trace-v4';
+// Click revision: ios-click-trace-v5. Navigation behavior from direct-v3 retained.
+const notificationWorkerRevision = 'ios-click-trace-v5';
 const traceClick = (stage, flags) => {
   try { void self.zipcoQaClickTrace?.record(stage, flags); } catch { /* QA only, best effort. */ }
 };

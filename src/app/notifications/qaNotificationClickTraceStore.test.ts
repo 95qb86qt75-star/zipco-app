@@ -6,7 +6,8 @@ function cache() {
   const rows = new Map<string, Response>();
   return { open: async () => ({ match: async (key: string) => rows.get(key)?.clone(),
     put: async (key: string, value: Response) => { rows.set(key, value.clone()); },
-    delete: async (key: string) => rows.delete(key) }) };
+    delete: async (key: string) => rows.delete(key),
+    keys: async () => [...rows.keys()].map((key) => new Request(key)) }) };
 }
 
 it('retains only whitelisted stages, versions and booleans, dropping all payload fields', () => {
@@ -59,4 +60,29 @@ it('coalesces repetitive recovery reads without dropping repeated notification c
   for (let i = 0; i < 80; i++) await trace.record('worker-target-request', { hasTarget: false });
   await trace.record('click-received'); await trace.record('click-received');
   expect((await trace.read()).entries.map((row) => row.stage)).toEqual(['worker-target-request', 'click-received', 'click-received']);
+});
+
+it('preserves concurrent records from separate worker instances in shared storage', async () => {
+  const storage = cache();
+  const background = createClickTraceStore('worker', build, origin, storage);
+  const resumed = createClickTraceStore('worker', build, origin, storage);
+  await Promise.all([
+    background.record('push-received'), resumed.record('worker-target-request', { hasTarget: false }),
+  ]);
+  const restarted = createClickTraceStore('worker', build, origin, storage);
+  expect((await restarted.read()).entries.map((row) => row.stage).sort()).toEqual(['push-received', 'worker-target-request']);
+  const firstContext = (await background.read()).entries;
+  expect(firstContext.find((row) => row.stage === 'push-received').currentContext).toBe(true);
+  expect(firstContext.find((row) => row.stage === 'worker-target-request').currentContext).toBe(false);
+  expect(JSON.stringify(firstContext)).not.toMatch(/__zipco|instance|https:/);
+});
+
+it('does not restore expired in-memory records when merging persisted evidence', async () => {
+  vi.useFakeTimers();
+  try {
+    const trace = createClickTraceStore('worker', build, origin, cache());
+    await trace.record('click-received');
+    vi.setSystemTime(Date.now() + CLICK_TRACE_TTL + 1);
+    expect((await trace.read()).entries).toHaveLength(0);
+  } finally { vi.useRealTimers(); }
 });
