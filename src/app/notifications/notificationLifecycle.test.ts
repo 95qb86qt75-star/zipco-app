@@ -62,6 +62,63 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it('identifies the executing worker through the reply port without notification data', async () => {
+    const sw = worker('iPhone');
+    const reply = vi.fn();
+    await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'ios-click-direct-v3' });
+  });
+
+  it('launches and messages the suspended iPhone window while Cache API is still blocked', async () => {
+    const cache = memoryCaches();
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    const slowCache = { open: async (name: string) => { await blocked; return cache.open(name); } };
+    const resumed = { url: `${origin}/`, postMessage: vi.fn() };
+    const sw = worker('iPhone', [resumed], slowCache);
+    const click = sw.fire('notificationclick', { notification: { tag: 'order-73-accepted',
+      data: { url: '/?open=requests-customer&orderId=73' }, close() {} } });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    try {
+      expect(sw.clients.openWindow).toHaveBeenCalledOnce();
+      expect(resumed.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'ZIPCO_NOTIFICATION_NAVIGATE' }));
+    } finally { release(); await click; }
+  });
+
+  it.each(['accepted', 'ready'])('deduplicates the opened iPhone %s event if Cache API fails, preserving later events', async (state) => {
+    const sw = worker('iPhone', [], { open: async () => { throw new Error('cache unavailable'); } });
+    await sw.fire('notificationclick', { notification: { tag: `order-74-${state}`,
+      data: { url: '/?open=requests-customer&orderId=74' }, close() {} } });
+    const opened = new URL(sw.clients.openWindow.mock.calls[0][0]);
+    vi.stubGlobal('window', { location: opened });
+    vi.stubGlobal('caches', sw.cache);
+    const deliver = vi.fn();
+    const actionUrl = '/?open=requests-customer&orderId=74';
+    await deliverUnpresentedNotice({ dedupeKey: `order-74-${state}`, actionUrl }, deliver);
+    expect(deliver).not.toHaveBeenCalled();
+    await deliverUnpresentedNotice({ dedupeKey: 'order-74-completed', actionUrl }, deliver);
+    expect(deliver).toHaveBeenCalledOnce();
+  });
+
+  it('starts the iPhone deep link directly in the click, before asynchronous cache work', async () => {
+    const sw = worker('iPhone');
+    const click = sw.fire('notificationclick', { notification: { tag: 'order-71-accepted',
+      data: { url: '/?open=requests-customer&orderId=71' }, close() {} } });
+    const launchedDuringClick = sw.clients.openWindow.mock.calls.length;
+    await click;
+    expect(launchedDuringClick).toBe(1);
+    expect(sw.clients.openWindow.mock.calls[0][0]).toContain('/__zipco_notification_open__?');
+  });
+
+  it('delivers the iPhone target and presentation to suspended existing windows even when openWindow returns a client', async () => {
+    const resumed = { url: `${origin}/`, visibilityState: 'hidden', focused: false, postMessage: vi.fn() };
+    const sw = worker('iPhone', [resumed]);
+    await sw.fire('notificationclick', { notification: { tag: 'order-72-accepted',
+      data: { url: '/?open=requests-customer&orderId=72' }, close() {} } });
+    expect(resumed.postMessage).toHaveBeenCalledWith({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: 'requests-customer:order-72-accepted' });
+    expect(resumed.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'ZIPCO_NOTIFICATION_NAVIGATE', url: expect.stringContaining('orderId=72') }));
+  });
+
   it('opens Android contact authorization without replaying its toast and keeps later READY independent', async () => {
     const sw = worker('Android');
     const data = { type: 'order-contact-authorized', orderId: 61,

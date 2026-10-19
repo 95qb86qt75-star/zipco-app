@@ -1,4 +1,5 @@
-// Dedupe revision: contact-authorized-open-v2 (inspectable worker source marker).
+// Click revision: ios-click-direct-v3 (also reported by the executing worker).
+const notificationWorkerRevision = 'ios-click-direct-v3';
 // Same semantic-key mapping/schema as notificationDelivery.ts. Existing backend
 // tags distinguish acceptance from ready and later events on the same order.
 const presentationCacheName = 'zipco-notification-presentations-v1';
@@ -128,6 +129,10 @@ const normalizeNotificationTarget = (notificationData = {}) => {
 };
 
 self.addEventListener("message", (event) => {
+  if (event.data?.type === 'ZIPCO_NOTIFICATION_WORKER_VERSION') {
+    event.ports?.[0]?.postMessage({ revision: notificationWorkerRevision });
+    return;
+  }
   if (event.data?.type === "ZIPCO_NOTIFICATION_NAVIGATED") {
     const acknowledgedUrl = event.data.url;
     if (typeof acknowledgedUrl !== 'string') return;
@@ -173,38 +178,34 @@ self.addEventListener("notificationclick", (event) => {
   if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
-  event.waitUntil(
+  const isAppleMobile = /iPhone|iPad|iPod/i.test(self.navigator?.userAgent || '');
+  let appleLaunchTarget = null;
+  let appleLaunch = null;
+  if (isAppleMobile) {
+    const launchUrl = new URL('/__zipco_notification_open__', self.location.origin);
+    targetUrl.searchParams.forEach((value, key) => launchUrl.searchParams.set(key, value));
+    launchUrl.searchParams.set('notificationLaunch', String(Date.now()));
+    appleLaunchTarget = launchUrl.href;
+    // Invoke during notificationclick itself. Cache I/O must not consume the
+    // click's activation before WebKit receives the explicit launch URL.
+    try { appleLaunch = Promise.resolve(self.clients.openWindow(appleLaunchTarget)).catch(() => null); }
+    catch { appleLaunch = Promise.resolve(null); }
+  }
+  const persistTarget = updateNavigation(async () => {
+    try {
+      const navigationCache = await caches.open('zipco-notification-navigation-v1');
+      await navigationCache.put(
+        new Request(new URL('/__zipco_notification_target__', self.location.origin).href),
+        new Response(JSON.stringify({ url: targetUrl.pathname + targetUrl.search, createdAt: Date.now() }), {
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        }),
+      );
+    } catch { /* Direct launch/messages remain available without Cache API. */ }
+  });
+  event.waitUntil(Promise.all([
+    rememberSystemPresentation(eventKey),
+    persistTarget,
     (async () => {
-      await rememberSystemPresentation(eventKey);
-      // Persist the destination before waking the app. iOS may discard both
-      // postMessage and WindowClient.navigate while resuming a suspended PWA.
-      try {
-        await updateNavigation(async () => {
-        const navigationCache = await caches.open(
-          "zipco-notification-navigation-v1",
-        );
-        await navigationCache.put(
-          new Request(
-            new URL("/__zipco_notification_target__", self.location.origin)
-              .href,
-          ),
-          new Response(
-            JSON.stringify({
-              url: targetUrl.pathname + targetUrl.search,
-              createdAt: Date.now(),
-            }),
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "Cache-Control": "no-store",
-              },
-            },
-          ),
-        );
-        });
-      } catch {
-        // Do not let a WebKit Cache API failure cancel focus/navigation.
-      }
       const clients = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
@@ -213,30 +214,25 @@ self.addEventListener("notificationclick", (event) => {
         type: "ZIPCO_NOTIFICATION_NAVIGATE",
         url: targetUrl.pathname + targetUrl.search,
       };
+      // The window returned by openWindow is not necessarily the suspended
+      // window iOS surfaces. Reach every same-origin client on this path too,
+      // before awaiting launch/focus, and mark only the opened event presented.
+      clients.filter((client) => new URL(client.url).origin === self.location.origin)
+        .forEach((client) => {
+          if (eventKey) client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey });
+          client.postMessage(navigationMessage);
+        });
       // WebKit can report a successful navigate() while merely resuming the
       // suspended standalone window at its previous route. Asking iOS to open
       // the deep link first makes the launch URL authoritative; it normally
       // reuses the installed PWA instead of creating a second window.
-      const isAppleMobile = /iPhone|iPad|iPod/i.test(
-        self.navigator?.userAgent || "",
-      );
-      let appleLaunchTarget = null;
       if (isAppleMobile) {
         try {
           // A distinct pathname is intentional. iOS may treat `/?open=...` as
           // the already-open home URL and resume it without applying the query.
           // Changing the pathname forces a real navigation while the SPA still
           // reads the same `open`, `orderId` and `quoteId` parameters.
-          const launchUrl = new URL(
-            "/__zipco_notification_open__",
-            self.location.origin,
-          );
-          targetUrl.searchParams.forEach((value, key) =>
-            launchUrl.searchParams.set(key, value),
-          );
-          launchUrl.searchParams.set("notificationLaunch", String(Date.now()));
-          appleLaunchTarget = launchUrl.href;
-          const launchedClient = await self.clients.openWindow(launchUrl.href);
+          const launchedClient = await appleLaunch;
           if (launchedClient) {
             launchedClient.postMessage(navigationMessage);
             await launchedClient.focus();
@@ -263,12 +259,6 @@ self.addEventListener("notificationclick", (event) => {
           // Continue with the cross-browser existing-window fallback below.
         }
       }
-      // iOS can keep more than one window for the same installed web app. Tell
-      // every matching client about the destination before focusing one of them,
-      // so the window surfaced by the OS cannot remain on Inicio.
-      clients
-        .filter((candidate) => candidate.url.startsWith(self.location.origin))
-        .forEach((candidate) => candidate.postMessage(navigationMessage));
       const client =
         clients.find(
           (candidate) =>
@@ -318,5 +308,5 @@ self.addEventListener("notificationclick", (event) => {
       }
       return self.clients.openWindow(appleLaunchTarget || target);
     })(),
-  );
+  ]));
 });
