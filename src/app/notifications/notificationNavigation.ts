@@ -1,4 +1,3 @@
-import { keepNotificationCardInView } from './notificationCardPosition';
 export type NotificationTarget = { url: string; identity: string; eventKey: string | null };
 
 export function parseNotificationTarget(value: string, origin: string): NotificationTarget | null {
@@ -52,10 +51,8 @@ export function waitForNotificationCard(
   onFocused: () => void,
   environment = { document, MutationObserver },
   canFocus: () => boolean = () => true,
-  retainPositioning?: (dispose: () => void) => void,
 ) {
   let stopped = false;
-  let disposePositioning = () => {};
   const observer = new environment.MutationObserver(() => { tryFocus(); });
   const tryFocus = () => {
     if (stopped || !canFocus() || environment.document.visibilityState !== 'visible') return;
@@ -64,10 +61,8 @@ export function waitForNotificationCard(
     if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
     element.focus({ preventScroll: true });
     if (environment.document.activeElement !== element) return;
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     element.classList.add('zipco-notification-target');
-    const dispose = keepNotificationCardInView(element);
-    if (retainPositioning) retainPositioning(dispose);
-    else disposePositioning = dispose;
     // Visual highlight lifetime only; navigation never depends on a timer.
     setTimeout(() => element.classList.remove('zipco-notification-target'), 4200);
     stopped = true;
@@ -79,7 +74,6 @@ export function waitForNotificationCard(
   environment.document.addEventListener('visibilitychange', tryFocus);
   tryFocus();
   return () => {
-    disposePositioning();
     stopped = true;
     observer.disconnect();
     environment.document.removeEventListener('visibilitychange', tryFocus);

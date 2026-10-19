@@ -3,6 +3,8 @@
 Fecha: 2026-10-19. Clasificación: **solo frontend**. Rama `qa`.
 Código: `d14e48f1a0f0cfcd8b3eb989ec2ee9cbf871efe5` (`d14e48f`).
 
+**Estado vigente: RETIRADO preventivamente tras regresión en iPhone.** Las secciones siguientes conservan el diseño y la implementación ensayada como historial, no como comportamiento vigente. El reporte de regresión y la retirada se registran al final.
+
 ## Solicitud y contexto
 
 Bastián confirmó que una nueva prueba del clic externo llegó correctamente al pedido en iPhone. Observó que el borde azul identificaba la tarjeta, pero su parte inferior quedaba fuera de la vista y tenía que desplazar manualmente la lista. Solicitó presentar la tarjeta completa, conservando su detalle plegado, al abrir una notificación.
@@ -54,3 +56,15 @@ ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=1 npm run build -- --mod
 Alias habitual: `https://zipco-app-git-qa-zipco-s-projects.vercel.app`. Sin cambios globales, `main` ni producción. Todos los documentos locales pendientes anteriores permanecen fuera de este commit.
 
 En el mismo acceso QA instalado, actualizar normalmente, dejar la app en segundo plano y abrir una notificación nueva del flujo normal. Comprobar tarjeta alineada bajo el header, borde azul y detalle conservado, incluyendo carga posterior de las condiciones. Si cabe en el espacio útil, comprobar que se ve hasta su final por encima de la navegación. Después, desplazar manualmente: la app debe dejar de corregir la posición. No forzar START_WORK para probar esta UI.
+
+## Regresión y retirada preventiva — 2026-10-19
+
+Bastián informó pantalla blanca y luego Solicitudes bloqueada en «Cargando pedidos», sin responder a toques, después de esta publicación (`33f824d`). Las pruebas automatizadas anteriores no acreditaron el comportamiento real en WebKit del iPhone. No se considera aprobado este ajuste visual.
+
+Acción de contención: revertir únicamente el código de `d14e48f` mediante un commit nuevo, manteniendo su historial y este documento. Los cuatro archivos de aquel bloque vuelven exactamente al estado de `606ee95`: se retiran `notificationCardPosition.ts` y su prueba, y se restauran `notificationNavigation.ts` y `RequestsScreen.tsx`. Se conservan los avances de navegación, el diagnóstico v5, los diseños previos y todos los documentos locales pendientes.
+
+La causa física del bloqueo **no está confirmada**. La retirada evita continuar exponiendo el último mecanismo de observación y desplazamiento mientras se investiga. No se atribuye el aviso «Cargando pedidos» a un fallo de backend sin evidencia de peticiones. El encuadre completo de la tarjeta vuelve a quedar pendiente.
+
+La recuperación requiere una nueva publicación exclusivamente en Preview QA, desde Git real y SHA exacto de la retirada, conservando las dos banderas diagnósticas previas por despliegue. Sin cambios globales, API, backend/Railway, permisos, datos, acciones, `main` o producción. La recuperación física en el iPhone debe confirmarla Bastián; no se declara recuperado solo por publicar.
+
+Validación de la retirada: **907 pruebas aprobadas en 84 archivos**, build QA aprobado y diff de los cuatro archivos contra `606ee95` vacío. Se retiran las seis pruebas específicas del mecanismo cancelado y se mantienen las regresiones anteriores de navegación y diagnóstico.
