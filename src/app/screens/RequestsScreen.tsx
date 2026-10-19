@@ -558,6 +558,9 @@ export default function RequestsScreen({
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900">Solicitudes</h2>
           </div>
+          {import.meta.env.QA_LOAD_DIAGNOSTICS && <span aria-label="Versión QA" className="text-[10px] font-mono text-slate-500">
+            QA {import.meta.env.QA_LOAD_DIAGNOSTICS_VERSION.slice(0, 7)}
+          </span>}
         </div>
 
         <div
