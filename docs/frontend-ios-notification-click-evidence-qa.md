@@ -97,3 +97,11 @@ El contrato backend sigue usando los campos existentes de push (`type`, `tag`, `
 Después de identificar la causa y validar una corrección estable en iPhone, proponer un nuevo commit que retire este trazado y sus mensajes QA, elimine el asset/import y quite `ZIPCO_QA_NOTIFICATION_TRACE=1` del override exclusivo del nuevo Preview QA. La caché diagnóstica puede limpiarse mediante su botón antes de retirar la herramienta. No borrar suscripciones, cachés funcionales ni avances; no hacer rollback de diseños. Mantener el registro documental y decidir por separado la retirada del diagnóstico anterior de loadOrders.
 
 Hasta entonces, puntos 1 y 4 pendientes; arquitectura nueva de notificaciones pausada.
+
+## Evidencia recibida: apertura cerrada exitosa y apertura suspendida fallida
+
+Bastián compartió ambos recorridos de `228bcf3`, con controlador y activo `ios-click-trace-v4`, trazado habilitado y almacenamiento disponible. El caso con app cerrada registra clic, destino, apertura, espera de listas, foco, supresión del aviso y consumo confirmado en aproximadamente 1,8 segundos. El caso suspendido vuelve sin destino y no contiene las etapas de push/clic en el reporte consultado. No se declara estable ni resuelto.
+
+La comparación también descubrió una limitación del instrumento: las historias del worker no coinciden en etapas anteriores dentro de la misma vigencia. Se reprodujo localmente pérdida de una de dos escrituras concurrentes del registro v1. Eso no prueba que dos instancias concurrentes causaran el fallo físico del iPhone, pero impide interpretar una etapa ausente como prueba de que el evento no se entregó.
+
+Se continúa en `QA-PUSH-IOS-06`, `frontend-ios-click-trace-consistency-qa.md`, con corrección del registro exclusivamente, sin modificar la navegación. Puntos 1 y 4 abiertos.
