@@ -1,3 +1,4 @@
+import { traceNotificationClick } from './notificationClickTrace';
 // Shared Cache API schema with push-sw.js. Only semantic event keys and times;
 // no notification copy, credentials or contact data are stored here.
 export const PRESENTATION_CACHE = 'zipco-notification-presentations-v1';
@@ -58,9 +59,15 @@ export async function deliverUnpresentedNotice<T extends PresentationNotice>(
   const key = noticePresentationKey(notice);
   if (key) {
     const presented = await readSystemPresentations();
-    if (presented.has(key) || noticeWasPresented(notice)) return;
+    if (presented.has(key) || noticeWasPresented(notice)) {
+      if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: !!key });
+      return;
+    }
   }
-  if (isActive()) deliver(notice);
+  if (isActive()) {
+    if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-delivered', { hasEvent: !!key });
+    deliver(notice);
+  }
 }
 
 export async function readSystemPresentations(): Promise<Set<string>> {

@@ -1,7 +1,15 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { checkNotificationWorkerVersion } from './notificationWorkerVersion';
+import { checkNotificationWorkerVersion, readNotificationWorkerIdentity } from './notificationWorkerVersion';
 
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+
+it('reports the executing worker build and opt-in without inferring them from the page', async () => {
+  const identity = await readNotificationWorkerIdentity({ postMessage: (_message, ports) => {
+    (ports as MessagePort[])[0].postMessage({ revision: 'ios-click-trace-v4', build: 'b'.repeat(40), traceEnabled: true, payload: 'private' });
+  } });
+  expect(identity).toEqual({ revision: 'ios-click-trace-v4', build: 'b'.repeat(40), traceEnabled: true });
+  expect(JSON.stringify(identity)).not.toContain('private');
+});
 
 it('queries the controlling worker without subscriptions, requests or updates', async () => {
   const worker = { postMessage: vi.fn((message, ports) => {

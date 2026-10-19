@@ -1,0 +1,31 @@
+import { useState } from 'react';
+
+export default function QaNotificationClickTracePanel() {
+  const [report, setReport] = useState('');
+  const [status, setStatus] = useState('');
+  const read = async (copy = false) => {
+    try {
+      const trace = await import('./qaNotificationClickTrace');
+      const text = JSON.stringify(await trace.readClickTrace(), null, 2);
+      setReport(text);
+      if (copy) { await navigator.clipboard.writeText(text); setStatus('Recorrido copiado.'); }
+      else setStatus('Recorrido leído. No se ejecutaron acciones del pedido.');
+    } catch { setStatus('No se pudo copiar o leer. Si hay texto, selecciónalo para copiarlo.'); }
+  };
+  return <details className="my-3 rounded border border-amber-300 p-2">
+    <summary className="min-h-11 font-bold">Recorrido del clic externo QA</summary>
+    <p>Temporal: hasta 50 etapas por origen de registro durante una hora, solo en este dispositivo. Sin datos de pedidos. Los puntos 1 y 4 siguen pendientes.</p>
+    <div className="flex flex-wrap gap-2">
+      <button type="button" className="min-h-11 rounded border px-3" onClick={() => void read()}>Leer recorrido</button>
+      <button type="button" className="min-h-11 rounded border px-3" onClick={() => void read(true)}>Copiar recorrido</button>
+      <button type="button" className="min-h-11 rounded border px-3" onClick={() => {
+        void import('./qaNotificationClickTrace').then(async (trace) => {
+          const cleared = await trace.clearClickTrace(); setReport('');
+          setStatus(cleared ? 'Recorrido limpiado.' : 'Limpieza no confirmada en caché o worker. Comprueba las versiones antes de probar.');
+        }).catch(() => setStatus('No se pudo limpiar el recorrido.'));
+      }}>Limpiar recorrido</button>
+    </div>
+    <p role="status">{status}</p>
+    <textarea aria-label="Recorrido saneado del clic externo" readOnly className="w-full rounded border bg-white p-2 font-mono" rows={9} value={report} />
+  </details>;
+}

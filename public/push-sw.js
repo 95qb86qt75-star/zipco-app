@@ -1,5 +1,8 @@
-// Click revision: ios-click-direct-v3 (also reported by the executing worker).
-const notificationWorkerRevision = 'ios-click-direct-v3';
+// Click revision: ios-click-trace-v4. Navigation behavior from direct-v3 retained.
+const notificationWorkerRevision = 'ios-click-trace-v4';
+const traceClick = (stage, flags) => {
+  try { void self.zipcoQaClickTrace?.record(stage, flags); } catch { /* QA only, best effort. */ }
+};
 // Same semantic-key mapping/schema as notificationDelivery.ts. Existing backend
 // tags distinguish acceptance from ready and later events on the same order.
 const presentationCacheName = 'zipco-notification-presentations-v1';
@@ -38,6 +41,7 @@ const rememberSystemPresentation = (key) => {
 };
 
 self.addEventListener("push", (event) => {
+  traceClick('push-received');
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
@@ -79,6 +83,7 @@ self.addEventListener("push", (event) => {
         return;
       }
       await self.registration.showNotification(title, options);
+      traceClick('system-shown', { hasEvent: !!options.data.eventKey });
       await rememberSystemPresentation(options.data.eventKey);
       clients.forEach((client) => client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: options.data.eventKey }));
     })(),
@@ -114,6 +119,7 @@ const sendPendingNavigation = async (client) => {
       // The in-memory destination and direct URL navigation remain available.
     }
   }
+  traceClick('worker-target-sent', { hasTarget: !!url });
   if (url) client.postMessage({ type: "ZIPCO_NOTIFICATION_NAVIGATE", url });
 };
 
@@ -130,12 +136,22 @@ const normalizeNotificationTarget = (notificationData = {}) => {
 
 self.addEventListener("message", (event) => {
   if (event.data?.type === 'ZIPCO_NOTIFICATION_WORKER_VERSION') {
-    event.ports?.[0]?.postMessage({ revision: notificationWorkerRevision });
+    event.ports?.[0]?.postMessage({ revision: notificationWorkerRevision,
+      build: self.zipcoQaClickTrace?.build ?? null, traceEnabled: !!self.zipcoQaClickTrace });
+    return;
+  }
+  if (event.data?.type === 'ZIPCO_QA_CLICK_TRACE_READ' && self.zipcoQaClickTrace) {
+    event.waitUntil(self.zipcoQaClickTrace.read().then((result) => event.ports?.[0]?.postMessage(result)));
+    return;
+  }
+  if (event.data?.type === 'ZIPCO_QA_CLICK_TRACE_CLEAR' && self.zipcoQaClickTrace) {
+    event.waitUntil(self.zipcoQaClickTrace.clear().then((cleared) => event.ports?.[0]?.postMessage({ cleared })));
     return;
   }
   if (event.data?.type === "ZIPCO_NOTIFICATION_NAVIGATED") {
     const acknowledgedUrl = event.data.url;
     if (typeof acknowledgedUrl !== 'string') return;
+    traceClick('ack-received', { hasTarget: !!pendingNavigationTarget });
     event.waitUntil(
       updateNavigation(async () => {
         try {
@@ -149,9 +165,12 @@ self.addEventListener("message", (event) => {
           const response = await navigationCache.match(request);
           const stored = response ? await response.json() : null;
           if (stored?.url !== acknowledgedUrl ||
-              (pendingNavigationTarget && pendingNavigationTarget !== acknowledgedUrl)) return;
+              (pendingNavigationTarget && pendingNavigationTarget !== acknowledgedUrl)) {
+            traceClick('ack-mismatch'); return;
+          }
           if (pendingNavigationTarget === acknowledgedUrl) pendingNavigationTarget = null;
           await navigationCache.delete(request);
+          traceClick('ack-consumed');
         } catch {
           // Keep the destination pending if acknowledgement cannot be persisted.
         }
@@ -163,11 +182,13 @@ self.addEventListener("message", (event) => {
     event.data?.type === "ZIPCO_REQUEST_NOTIFICATION_TARGET" &&
     event.source
   ) {
+    traceClick('worker-target-request', { hasTarget: !!pendingNavigationTarget });
     event.waitUntil(sendPendingNavigation(event.source));
   }
 });
 
 self.addEventListener("notificationclick", (event) => {
+  traceClick('click-received', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey });
   event.notification.close();
   const targetUrl = normalizeNotificationTarget(event.notification.data);
   // Recompute from the notification tag too: an older worker may have stored
@@ -178,6 +199,7 @@ self.addEventListener("notificationclick", (event) => {
   if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
+  traceClick('target-normalized', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey });
   const isAppleMobile = /iPhone|iPad|iPod/i.test(self.navigator?.userAgent || '');
   let appleLaunchTarget = null;
   let appleLaunch = null;
@@ -188,8 +210,11 @@ self.addEventListener("notificationclick", (event) => {
     appleLaunchTarget = launchUrl.href;
     // Invoke during notificationclick itself. Cache I/O must not consume the
     // click's activation before WebKit receives the explicit launch URL.
-    try { appleLaunch = Promise.resolve(self.clients.openWindow(appleLaunchTarget)).catch(() => null); }
-    catch { appleLaunch = Promise.resolve(null); }
+    traceClick('launch-requested');
+    try { appleLaunch = Promise.resolve(self.clients.openWindow(appleLaunchTarget)).then((client) => {
+      traceClick('launch-returned', { hasClient: !!client }); return client;
+    }).catch(() => { traceClick('launch-failed'); return null; }); }
+    catch { traceClick('launch-failed'); appleLaunch = Promise.resolve(null); }
   }
   const persistTarget = updateNavigation(async () => {
     try {
@@ -200,7 +225,8 @@ self.addEventListener("notificationclick", (event) => {
           headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
         }),
       );
-    } catch { /* Direct launch/messages remain available without Cache API. */ }
+      traceClick('target-saved');
+    } catch { traceClick('target-save-failed'); /* Direct launch/messages remain available without Cache API. */ }
   });
   event.waitUntil(Promise.all([
     rememberSystemPresentation(eventKey),
@@ -210,6 +236,7 @@ self.addEventListener("notificationclick", (event) => {
         type: "window",
         includeUncontrolled: true,
       });
+      traceClick('windows-found', { hasClient: clients.length > 0 });
       const navigationMessage = {
         type: "ZIPCO_NOTIFICATION_NAVIGATE",
         url: targetUrl.pathname + targetUrl.search,
@@ -221,6 +248,7 @@ self.addEventListener("notificationclick", (event) => {
         .forEach((client) => {
           if (eventKey) client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey });
           client.postMessage(navigationMessage);
+          traceClick('navigation-posted');
         });
       // WebKit can report a successful navigate() while merely resuming the
       // suspended standalone window at its previous route. Asking iOS to open

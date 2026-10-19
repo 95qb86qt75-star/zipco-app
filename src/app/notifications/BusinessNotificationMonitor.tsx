@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { traceNotificationClick } from './notificationClickTrace';
 import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
 import { createCustomerOrderNotices } from './orderNotice';
 import { createNotificationRefreshQueue } from './notificationRefreshQueue';
@@ -161,7 +162,10 @@ export default function BusinessNotificationMonitor({
       announcedKeys.current.add(key);
       if (interaction) markInteractionUnread(interaction.kind, interaction.id);
       const presentedKey = actionUrl ? presentationKey(key, actionUrl) : null;
-      if (presentedKey && systemPresentations.has(presentedKey)) return;
+      if (presentedKey && systemPresentations.has(presentedKey)) {
+        if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: true });
+        return;
+      }
       showAppToast("", "info", {
         title,
         description,

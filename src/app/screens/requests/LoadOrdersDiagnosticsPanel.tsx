@@ -1,6 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { clearDiagnostics, diagnosticSnapshot, diagnosticText, subscribeDiagnostics } from './loadOrdersDiagnostics';
 import { checkNotificationWorkerVersion } from '../../notifications/notificationWorkerVersion';
+import QaNotificationClickTracePanel from '../../notifications/QaNotificationClickTracePanel';
 
 export default function LoadOrdersDiagnostics({ refresh }: { refresh: () => unknown }) {
   const entries = useSyncExternalStore(subscribeDiagnostics, diagnosticSnapshot, diagnosticSnapshot);
@@ -19,6 +20,7 @@ export default function LoadOrdersDiagnostics({ refresh }: { refresh: () => unkn
     <button type="button" className="min-h-11 rounded border px-3" onClick={() => {
       void checkNotificationWorkerVersion().then(setWorkerVersion);
     }}>Comprobar versión del worker</button>
+    {import.meta.env.QA_NOTIFICATION_TRACE && <QaNotificationClickTracePanel />}
     <p>Solo fallos de lectura; últimos 20 registros en memoria. Actualizar no repite acciones del pedido.</p>
     <div className="my-2 flex flex-wrap gap-2">
       <button type="button" className="min-h-11 rounded border px-3" onClick={() => { void refresh(); }}>Actualizar Solicitudes</button>

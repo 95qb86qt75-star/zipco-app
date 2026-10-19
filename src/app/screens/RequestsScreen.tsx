@@ -51,6 +51,7 @@ import RequestStatusTab from "./requests/RequestStatusTab";
 import { initialRequestViews } from "./requests/agreementNavigation";
 import LoadOrdersDiagnostics from './requests/LoadOrdersDiagnosticsPanel';
 import { waitForNotificationCard } from '../notifications/notificationNavigation';
+import { traceNotificationClick } from '../notifications/notificationClickTrace';
 
 export default function RequestsScreen({
   onBack,
@@ -485,6 +486,7 @@ export default function RequestsScreen({
     const params = new URLSearchParams(window.location.search);
     const quoteId = Number(params.get("quoteId"));
     const orderId = Number(params.get("orderId"));
+    if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('screen-mounted', { hasTarget: params.has('quoteId') || params.has('orderId') });
     if (Number.isInteger(quoteId) && quoteId > 0)
       markInteractionUnread("quote", quoteId);
     if (Number.isInteger(orderId) && orderId > 0)
@@ -504,6 +506,10 @@ export default function RequestsScreen({
                 order.recordState === "available" && order.id === orderId,
             )
           : undefined;
+    if (import.meta.env.QA_NOTIFICATION_TRACE && (params.has('orderId') || params.has('quoteId'))) {
+      traceNotificationClick('screen-target', { hasTarget: !!target,
+        loading: isLoading || quotes.loading, hasError: !!loadError || !!quotes.error });
+    }
     if (!target) return;
     const targetKind =
       Number.isInteger(quoteId) && quoteId > 0 ? "quotes" : "orders";
@@ -530,7 +536,10 @@ export default function RequestsScreen({
     const destination = window.location.href;
     return waitForNotificationCard(
       `${targetKind === 'quotes' ? 'quote' : 'order'}-${targetKind === 'quotes' ? quoteId : orderId}`,
-      () => onNotificationFocused?.(destination),
+      () => {
+        if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('card-focused');
+        onNotificationFocused?.(destination);
+      },
       undefined,
       () => Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id')),
     );

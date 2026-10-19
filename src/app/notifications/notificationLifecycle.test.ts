@@ -23,13 +23,13 @@ function memoryCaches() {
     };
   } };
 }
-function worker(userAgent = 'Android', existingClients: any[] = [], cache = memoryCaches()) {
+function worker(userAgent = 'Android', existingClients: any[] = [], cache = memoryCaches(), trace?: any) {
   const listeners = new Map<string, (event: any) => void>();
   const client = { postMessage: vi.fn(), focus: vi.fn(async () => client) };
   const registration = { showNotification: vi.fn(async () => {}) };
   const clients = { matchAll: vi.fn(async () => existingClients), openWindow: vi.fn(async () => client) };
   runInNewContext(workerSource, {
-    self: { location: { origin }, navigator: { userAgent }, registration, clients,
+    self: { location: { origin }, navigator: { userAgent }, registration, clients, zipcoQaClickTrace: trace,
       addEventListener: (type: string, callback: (event: any) => void) => listeners.set(type, callback) },
     caches: cache, URL, Request, Response, Date, setTimeout: (fn: () => void) => { queueMicrotask(fn); },
   });
@@ -66,7 +66,29 @@ describe('system presentation and explicit notification navigation', () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'ios-click-direct-v3' });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'ios-click-trace-v4', build: null, traceEnabled: false });
+  });
+
+  it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {
+    const trace = { record: vi.fn(), build: 'a'.repeat(40), read: vi.fn(async () => ({ entries: [], storageAvailable: true })) };
+    const sw = worker('iPhone', [], memoryCaches(), trace);
+    await sw.fire('notificationclick', { notification: { tag: 'order-91-accepted',
+      data: { url: '/?open=requests-customer&orderId=91', body: 'private-message' }, close() {} } });
+    const stages = trace.record.mock.calls.map(([stage]) => stage);
+    expect(stages).toEqual(expect.arrayContaining(['click-received', 'target-normalized', 'launch-requested', 'launch-returned', 'target-saved']));
+    const report = JSON.stringify(trace.record.mock.calls);
+    expect(report).not.toMatch(/orderId|private-message|order-91|requests-customer/);
+    const reply = vi.fn();
+    await sw.fire('message', { data: { type: 'ZIPCO_QA_CLICK_TRACE_READ' }, ports: [{ postMessage: reply }] });
+    expect(reply).toHaveBeenCalledWith({ entries: [], storageAvailable: true });
+  });
+
+  it('keeps navigation working when the QA trace throws', async () => {
+    const sw = worker('iPhone', [], memoryCaches(), { record: () => { throw new Error('trace-unavailable'); } });
+    await sw.fire('notificationclick', { notification: { tag: 'order-92-accepted',
+      data: { url: '/?open=requests-customer&orderId=92' }, close() {} } });
+    expect(sw.clients.openWindow).toHaveBeenCalledOnce();
+    expect(sw.client.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'ZIPCO_NOTIFICATION_NAVIGATE' }));
   });
 
   it('launches and messages the suspended iPhone window while Cache API is still blocked', async () => {
