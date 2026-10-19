@@ -34,8 +34,15 @@ export default function OrderMomentSelector({ moment, onChange, time, onTimeChan
     </div>
     {moment === 'today' && <label className="mb-2 block text-sm font-bold text-gray-900">
       Hora para hoy
-      <input type="time" required value={time} onChange={(event) => onTimeChange(event.target.value)}
-        className="mt-2 w-full rounded-xl border border-gray-200 bg-white p-3 text-sm" />
+      <span className="relative mt-2 block min-w-0">
+        <input type="time" aria-label="Hora para hoy" required value={time} onChange={(event) => onTimeChange(event.target.value)}
+          className="peer block min-h-12 w-full min-w-0 max-w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-slate-900" />
+        {!time && <span aria-hidden="true"
+          className="pointer-events-none absolute inset-px flex items-center justify-between rounded-[11px] bg-white px-3 text-sm font-normal text-slate-500 peer-focus:hidden">
+          <span>Seleccionar hora</span>
+          <Clock className="h-5 w-5" />
+        </span>}
+      </span>
     </label>}
   </>;
 }
