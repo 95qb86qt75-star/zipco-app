@@ -59,3 +59,9 @@ Publicación prevista exclusivamente desde Git real de `qa`, SHA exacto del comm
 5. Si falla, informar solamente SHA frontend, revisión del worker, tipo de evento y si quedó la pestaña anterior o apareció el aviso; sin datos de contacto, claves, cuerpos ni información personal.
 
 La comprobación física y la aprobación de Bastián quedan pendientes.
+
+## Reabierto tras nueva prueba de Bastián — 2026-10-19
+
+La corrección no se considera estable ni resuelta: el iPhone volvió a Inicio al pulsar la notificación externa de aceptación y mostró el aviso interno «Pedido aceptado». Haber funcionado una vez no demuestra estabilidad. Los **puntos 1 y 4 siguen abiertos**, conforme a la indicación de Bastián.
+
+La captura confirma el resultado visible, pero no acredita el SHA ni el worker que se ejecutó. Se conserva este informe como historial y se continúa con `QA-PUSH-IOS-05`, documentado en `frontend-ios-notification-click-evidence-qa.md`: evidencia temporal y saneada para localizar la pérdida del destino antes de introducir otro cambio funcional.
