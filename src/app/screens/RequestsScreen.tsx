@@ -90,6 +90,8 @@ export default function RequestsScreen({
   const [selectedBusinessActivity, setSelectedBusinessActivity] = useState<
     string | null
   >(null);
+  const [notificationPositioning] = useState(() => ({ dispose: () => {} }));
+  useEffect(() => () => notificationPositioning.dispose(), [notificationPositioning]);
   const [historyTransfer, setHistoryTransfer] = useState<{
     kind: "order" | "quote";
     id: number;
@@ -542,6 +544,10 @@ export default function RequestsScreen({
       },
       undefined,
       () => Boolean(localStorage.getItem('zipco-token') && localStorage.getItem('zipco-user-id')),
+      (dispose) => {
+        notificationPositioning.dispose();
+        notificationPositioning.dispose = dispose;
+      },
     );
   }, [orderRecords, quoteRecords, subTab, isLoading, loadError, quotes.loading, quotes.error, onNotificationFocused]);
 
@@ -617,7 +623,7 @@ export default function RequestsScreen({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
+      <div data-notification-scroll="" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
         {import.meta.env.QA_LOAD_DIAGNOSTICS && <LoadOrdersDiagnostics refresh={() => loadOrders(true)} />}
         <NotificationPermissionCard />
         <div className="zipco-request-kind mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
