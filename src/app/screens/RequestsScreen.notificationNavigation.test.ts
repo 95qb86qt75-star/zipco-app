@@ -61,7 +61,7 @@ beforeEach(() => {
   doc = Object.assign(new EventTarget(), { documentElement: {}, visibilityState: 'visible', activeElement: null,
     getElementById: vi.fn(() => null) });
   card = { getClientRects: () => [{}], hasAttribute: () => true,
-    focus: vi.fn(() => { doc.activeElement = card; }), scrollIntoView: vi.fn(),
+    focus: vi.fn(() => { doc.activeElement = card; }), scrollIntoView: vi.fn(), closest: () => null,
     classList: { add: vi.fn(), remove: vi.fn() } };
   class Observer { constructor(callback: () => void) { mutate = callback; } observe() {} disconnect() {} }
   vi.stubGlobal('React', React); vi.stubGlobal('document', doc); vi.stubGlobal('MutationObserver', Observer);

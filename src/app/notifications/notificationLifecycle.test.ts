@@ -49,7 +49,7 @@ function domHarness() {
   });
   const element = {
     getClientRects: () => [{}], hasAttribute: () => true, setAttribute: vi.fn(),
-    focus: vi.fn(() => { doc.activeElement = element; }), scrollIntoView: vi.fn(),
+    focus: vi.fn(() => { doc.activeElement = element; }), scrollIntoView: vi.fn(), closest: vi.fn((): any => null),
     classList: { add: vi.fn(), remove: vi.fn() },
   };
   class Observer {
@@ -293,6 +293,46 @@ describe('system presentation and explicit notification navigation', () => {
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_NAVIGATED', url: first.url } });
     const cache = await sw.cache.open('zipco-notification-navigation-v1');
     expect((await (await cache.match(`${origin}/__zipco_notification_target__`))!.json()).url).toContain('orderId=39');
+  });
+
+  it.each([240, 440, 800])('aligns a %ipx card below the fixed header once, before acknowledgement', (height) => {
+    const dom = domHarness();
+    // Scrollport starts below the fixed header; bottom navigation starts at 760.
+    // Existing bottom padding provides room to align even the last card.
+    const scroller = { scrollTop: 100, clientTop: 1,
+      getBoundingClientRect: () => ({ top: 210 }) };
+    dom.element.closest.mockReturnValue(scroller);
+    const rect = vi.fn(() => {
+      expect(dom.element.classList.add).toHaveBeenCalledWith('zipco-notification-target');
+      return { top: 630 - scroller.scrollTop, height };
+    });
+    Object.assign(dom.element, { getBoundingClientRect: rect });
+    const completed = vi.fn(() => {
+      expect(rect().top).toBe(223); // Header + container border + 12px gap.
+      if (height <= 440) expect(rect().top + height).toBeLessThan(760);
+    });
+    const stop = waitForNotificationCard('order-20', completed, dom.environment);
+    dom.render();
+    expect(completed).toHaveBeenCalledOnce();
+    expect(dom.element.scrollIntoView).not.toHaveBeenCalled(); // Never scroll the page/header.
+    // Late DOM changes and user scroll do not trigger a second positioning.
+    scroller.scrollTop = 75;
+    dom.mutation(); dom.doc.dispatchEvent(new Event('visibilitychange'));
+    expect(scroller.scrollTop).toBe(75);
+    expect(completed).toHaveBeenCalledOnce();
+    stop();
+  });
+
+  it('keeps the top boundary reachable and positions before acknowledging a first card', () => {
+    const dom = domHarness();
+    const scroller = { scrollTop: 0, clientTop: 0, getBoundingClientRect: () => ({ top: 210 }) };
+    dom.element.closest.mockReturnValue(scroller);
+    Object.assign(dom.element, { getBoundingClientRect: () => ({ top: 215 }) });
+    const completed = vi.fn();
+    waitForNotificationCard('order-20', completed, dom.environment);
+    dom.render();
+    expect(scroller.scrollTop).toBe(0);
+    expect(completed).toHaveBeenCalledOnce();
   });
 
   it('does not consume a hidden card or one which cannot receive focus', () => {

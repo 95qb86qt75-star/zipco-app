@@ -61,13 +61,23 @@ export function waitForNotificationCard(
     if (!element.hasAttribute('tabindex')) element.setAttribute('tabindex', '-1');
     element.focus({ preventScroll: true });
     if (environment.document.activeElement !== element) return;
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.classList.add('zipco-notification-target');
-    // Visual highlight lifetime only; navigation never depends on a timer.
-    setTimeout(() => element.classList.remove('zipco-notification-target'), 4200);
+    // Stop observing before changing layout. Position once, without a resize
+    // observer, animation-frame loop or continuing to follow the user's scroll.
     stopped = true;
     observer.disconnect();
     environment.document.removeEventListener('visibilitychange', tryFocus);
+    element.classList.add('zipco-notification-target');
+    const scroller = element.closest<HTMLElement>('[data-requests-scroll]');
+    if (scroller) {
+      // The header is outside this scroller. Measure after the highlight adds
+      // its label/padding, then align the card below the header with a small gap.
+      scroller.scrollTop = Math.max(0, scroller.scrollTop +
+        element.getBoundingClientRect().top - scroller.getBoundingClientRect().top - scroller.clientTop - 12);
+    } else {
+      element.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+    // Visual highlight lifetime only; navigation never depends on a timer.
+    setTimeout(() => element.classList.remove('zipco-notification-target'), 4200);
     onFocused();
   };
   observer.observe(environment.document.documentElement, { subtree: true, childList: true, attributes: true });
