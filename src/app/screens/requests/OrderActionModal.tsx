@@ -70,7 +70,7 @@ export default function OrderActionModal({
           {copy.title}
         </h3>
         <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">
-          {processAcceptance ? 'Al aceptar, el pedido pasará a Coordinación pendiente con estas condiciones.' : copy.description}
+          {processAcceptance ? 'Al aceptar, el pedido pasará a «Por coordinar». El cliente deberá autorizar compartir su contacto contigo antes de que puedan coordinar los detalles, el pago y la entrega.' : copy.description}
         </p>
         {needsReason && (
           <fieldset className="mt-4 space-y-2">

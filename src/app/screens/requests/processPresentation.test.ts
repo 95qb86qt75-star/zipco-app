@@ -71,7 +71,8 @@ describe('2A presentation and legacy compatibility', () => {
   it('confirms acceptance without promising preparation', () => {
     const html = render(React.createElement(OrderActionModal, { action: 'accept', processAcceptance: true,
       isSubmitting: false, onClose: () => undefined, onConfirm: () => undefined }));
-    expect(html).toContain('Coordinación pendiente'); expect(html).not.toContain('preparación');
+    expect(html).toContain('Al aceptar, el pedido pasará a «Por coordinar». El cliente deberá autorizar compartir su contacto contigo antes de que puedan coordinar los detalles, el pago y la entrega.');
+    expect(html).not.toContain('preparación');
   });
   it('keeps agreements accessible in future history without later actions', () => {
     const orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'completed', requestProcess: coordinationProcess }]);
