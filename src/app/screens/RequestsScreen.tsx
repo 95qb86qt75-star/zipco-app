@@ -90,7 +90,7 @@ export default function RequestsScreen({
   const [selectedBusinessActivity, setSelectedBusinessActivity] = useState<
     string | null
   >(null);
-  const [coordinationScrollPending, setCoordinationScrollPending] = useState(false);
+  const [coordinationScrollPending, setCoordinationScrollPending] = useState<'my-orders' | 'my-business' | null>(null);
   const [historyTransfer, setHistoryTransfer] = useState<{
     kind: "order" | "quote";
     id: number;
@@ -476,18 +476,18 @@ export default function RequestsScreen({
 
   useEffect(() => {
     if (!coordinationScrollPending) return;
-    if (subTab !== 'my-business' || requestType !== 'orders' || statusView !== 'coordination' || loadError) {
-      setCoordinationScrollPending(false);
+    if (subTab !== coordinationScrollPending || requestType !== 'orders' || statusView !== 'coordination' || loadError) {
+      setCoordinationScrollPending(null);
       return;
     }
     if (isLoading) return;
-    const start = document.querySelector<HTMLElement>('[data-business-coordination-results]');
+    const start = document.querySelector<HTMLElement>('[data-coordination-results]');
     const scroller = start?.closest<HTMLElement>('[data-requests-scroll]');
     if (start && scroller) {
       scroller.scrollTop = Math.max(0, scroller.scrollTop + start.getBoundingClientRect().top -
         scroller.getBoundingClientRect().top - scroller.clientTop - 12);
     }
-    setCoordinationScrollPending(false);
+    setCoordinationScrollPending(null);
   }, [coordinationScrollPending, subTab, requestType, statusView, isLoading, loadError]);
 
   useEffect(() => {
@@ -692,7 +692,7 @@ export default function RequestsScreen({
                     setAttentionFilter('browse');
                     setSelectedBusinessActivity(activityKey);
                     setStatusViews((current) => ({ ...current, 'my-business-orders': 'coordination' }));
-                    setCoordinationScrollPending(true);
+                    setCoordinationScrollPending('my-business');
                   }} /> : null;
               const singular = item.count === 1;
               const noun =
@@ -880,6 +880,7 @@ export default function RequestsScreen({
               setRequestType('orders');
               setAttentionFilter('browse');
               setStatusViews((current) => ({ ...current, 'my-orders-orders': 'coordination' }));
+              setCoordinationScrollPending('my-orders');
             }} />}
         <div className="zipco-status-tabs mb-3">
           {(requestType === "quotes"
@@ -1214,8 +1215,9 @@ export default function RequestsScreen({
           )}
         {requestType === "orders" && !suppressAttentionResults && (
           <>
-            {subTab === 'my-business' && statusView === 'coordination' && !isLoading && !loadError &&
-              filteredBusinessOrders.length > 0 && <div data-business-coordination-results aria-hidden="true" />}
+            {statusView === 'coordination' && !isLoading && !loadError &&
+              (subTab === 'my-business' ? filteredBusinessOrders : filteredMyOrders).length > 0 &&
+              <div data-coordination-results aria-hidden="true" />}
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-16">
                 <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3" />

@@ -36,6 +36,7 @@ import RequestsScreen from './RequestsScreen';
 import RequestStatusTab from './requests/RequestStatusTab';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import BusinessOrdersTab from './requests/BusinessOrdersTab';
+import MyOrdersTab from './requests/MyOrdersTab';
 import { rawOrder, coordinationProcess } from './requests/requestProcessFixtures';
 import { normalizeMyOrdersPayload } from './requests/orderNormalization';
 type Node = React.ReactElement<Record<string, any>>;
@@ -100,7 +101,7 @@ describe('RequestsScreen notification destination with late session and lists', 
   });
 });
 
-describe('business Por coordinar bell scroll, independent of notification navigation', () => {
+describe('coordination bell scroll for both roles, independent of notification navigation', () => {
   function prepare(search = '?open=requests-business') {
     window.location.search = search;
     hooks.loading = false;
@@ -111,11 +112,11 @@ describe('business Por coordinar bell scroll, independent of notification naviga
     const scroller = { scrollTop: 90, clientTop: 0, getBoundingClientRect: () => ({ top: 200 }) };
     const start = { closest: () => scroller, getBoundingClientRect: () => ({ top: 710 - scroller.scrollTop }) };
     doc.querySelector = vi.fn(() => nodes(hooks.committed).some((node) =>
-      node.props['data-business-coordination-results'] !== undefined) ? start : null);
+      node.props['data-coordination-results'] !== undefined) ? start : null);
     return scroller;
   }
 
-  it.each(['?open=requests-business', '?open=requests-business-quotes'])(
+  it.each(['?open=requests-business', '?open=requests-business-quotes', '?open=requests-customer', '?open=requests-customer-quotes'])(
     'commits the coordination filter before scrolling from %s and repeats only on another bell click', (search) => {
       const scroller = prepare(search);
       const clickBell = () => (nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!.props.onSelect)();
@@ -123,8 +124,9 @@ describe('business Por coordinar bell scroll, independent of notification naviga
       expect(scroller.scrollTop).toBe(90); // No scroll against the old filtered list.
       const selected = render();
       expect(scroller.scrollTop).toBe(498); // Start at 212, below the fixed header.
-      const orders = nodes(selected).find((node) => node.type === BusinessOrdersTab)!;
-      expect(orders.props.requests.map((order: { id: number }) => order.id)).toEqual([20]);
+      const business = search.includes('business');
+      const orders = nodes(selected).find((node) => node.type === (business ? BusinessOrdersTab : MyOrdersTab))!;
+      expect((business ? orders.props.requests : orders.props.myOrders).map((order: { id: number }) => order.id)).toEqual([20]);
       expect(nodes(selected).find((node) => node.type === CoordinationOrdersSummary)?.props.selected).toBe(true);
       scroller.scrollTop = 60; render();
       expect(scroller.scrollTop).toBe(60); // No continuing repositioning.
@@ -138,8 +140,8 @@ describe('business Por coordinar bell scroll, independent of notification naviga
     },
   );
 
-  it('waits for an intervening list load and does not scroll again when lists refresh', () => {
-    const scroller = prepare();
+  it.each(['?open=requests-business', '?open=requests-customer'])('waits for an intervening list load without repeating on refresh in %s', (search) => {
+    const scroller = prepare(search);
     nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!.props.onSelect();
     hooks.loading = true; render();
     expect(scroller.scrollTop).toBe(90);
@@ -156,6 +158,17 @@ describe('business Por coordinar bell scroll, independent of notification naviga
     hooks.loading = true;
     const view = render();
     nodes(view).find((node) => node.type === RequestStatusTab && node.props.item.key === 'active')!.props.onSelect();
+    render(); hooks.loading = false; render();
+    expect(scroller.scrollTop).toBe(90);
+  });
+
+  it('does not transfer a pending business scroll to the customer role', () => {
+    const scroller = prepare();
+    nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!.props.onSelect();
+    hooks.loading = true;
+    const view = render();
+    nodes(view).find((node) => node.type === 'button' && nodes(node).some((child) =>
+      child.type === 'span' && child.props.children === 'Mis Pedidos'))!.props.onClick();
     render(); hooks.loading = false; render();
     expect(scroller.scrollTop).toBe(90);
   });
