@@ -110,3 +110,12 @@ acciones de pedidos ni se cambió backend, Railway QA, main o producción.
 Esta anotación del resultado se añade localmente después del despliegue; la
 ficha del diseño, su hash visual y la regla de registro ya están en el commit
 documental indicado. Staging vacío y sin cambios de código pendientes.
+
+## UI-TODAY-TIME-PROMPT-01 — Hora para hoy con indicación visible
+
+Nombre: **Resumen del pedido — Seleccionar hora para Hoy**. Componente compartido
+`src/app/screens/OrderMomentSelector.tsx` (producto y servicio). Código:
+`dce11f38634240c0fb0f4f87a1718b8c1c951e6f`. Muestra texto y reloj mientras
+la hora está vacía; conserva selector nativo y valores reales. Publicado en QA,
+42 pruebas y build aprobados; comprobación física y aprobación pendientes.
+Detalle y resultado versionado en [frontend-today-time-prompt-qa.md](frontend-today-time-prompt-qa.md).

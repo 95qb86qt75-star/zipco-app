@@ -30,3 +30,12 @@ Registrar después SHA de código, resultado del despliegue y URL en un commit d
 2. Verificar «Seleccionar hora» y reloj dentro del campo, sin desbordamiento lateral. Tocar el campo y verificar que se abre el selector nativo.
 3. Elegir una hora: debe verse la selección real, y el resumen de entrega existente debe usarla. Cambiar de modo y volver a Hoy: debe reaparecer la indicación de selección pendiente.
 4. Comprobar también servicio y modo oscuro. No crear pedidos para verificar la presentación. La conformidad de Bastián se registra cuando la comunique; publicar no equivale a aprobación física.
+
+## Publicación y cierre documental — 2026-10-19
+
+- Código y ficha inicial: `dce11f38634240c0fb0f4f87a1718b8c1c951e6f`, rama `qa`; dos rutas verificadas, diff de staging aprobado, sin divergencia antes del envío.
+- Preview funcional **READY**: `dpl_JAHLJ7kkYsYV8g38ViS31qoqeonD`, URL propia https://zipco-hqhtyxdcn-zipco-s-projects.vercel.app. Origen GitHub real, SHA exacto, rama `qa` y entorno Preview verificados.
+- El acceso habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app se comprobó apuntando a ese Preview. Build remoto QA completado con diagnóstico loadOrders activo y recorrido temporal pausado; no se emitió el auxiliar de trazas.
+- Backend QA y comando por despliegue comprobados; sin cambios globales, backend/Railway, `main` o producción. No se ejecutaron acciones de pedidos.
+- Validación física de la presentación en iPhone/Android y conformidad del diseño: pendientes. No declarar una prueba nativa real a partir de las 42 pruebas automatizadas.
+- Este resultado se guarda y envía en un commit documental de cierre junto con su entrada en el catálogo; no queda únicamente local. El build documental posterior conserva exactamente el código de aplicación de `dce11f3`, con las mismas banderas QA por despliegue. Su etiqueta mostrará el SHA del cierre documental; esa diferencia de SHA no representa otro cambio funcional.
