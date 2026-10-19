@@ -2,6 +2,8 @@
 
 Fecha: 2026-10-19. Rama: `qa`.
 
+**Estado vigente: CANCELADO por ahora por decisión de Bastián (2026-10-19).** El servidor local está detenido y la herramienta se retira mediante un nuevo commit. Las instrucciones de arranque que siguen se conservan únicamente como historial; ya no aplican. Backend no habilitará la excepción CORS. La revisión de diseños continúa en Vercel QA.
+
 Código asociado: **`fad7383`**; SHA completo: `fad73835c6f86b5a400b7ebb8d0660a3e75b0cd1`. Commit local, sin push ni despliegue. Esta documentación se registra por separado para poder referenciar el SHA exacto del código.
 
 ## Alcance y estado
@@ -72,3 +74,14 @@ Referencia: [MDN — Uso de Service Workers y contexto seguro](https://developer
 Validación realizada: **899 pruebas aprobadas en 82 archivos**, incluidas las 12 nuevas y las pruebas existentes de acceso QA. Build QA local aprobado; advertencia existente por tamaño de bundle. HTML y asset JavaScript HTTP 200, panel QA incluido, Dev Access y panel de diagnóstico temporal excluidos. Socket comprobado exclusivamente en `192.168.50.168:5173`. La reconstrucción se comprueba disparando un cambio de fecha de un archivo existente, sin modificar sus bytes.
 
 Vercel QA: sin nuevo despliegue ni cambios de alias o configuración. Railway QA: sin modificaciones; coordinación de CORS pendiente. `main` y producción no se modificaron. No se ejecutaron acciones de pedidos. Los documentos pendientes anteriores se conservan fuera del commit de esta preparación.
+
+## Retirada autorizada — 2026-10-19
+
+- Clasificación: solo frontend. No se cambian campos, endpoints, autenticación, permisos ni datos. No corresponde habilitar CORS ni publicar backend.
+- Decisión: cancelar por ahora `DEV-LOCAL-QA-01` y continuar las revisiones mediante publicaciones en **Vercel QA**. Cada cambio terminado debe validarse, guardarse con commit y publicarse en Preview QA para comprobarlo en celulares.
+- Servidor local detenido y puerto 5173 comprobado sin escucha. Se retiran exclusivamente el script `vista:local` de `package.json`, `Abrir ZIPCO local.cmd`, ambos módulos `scripts/local-qa-preview*.mjs` y `src/test/localQaPreview.test.ts`.
+- Se conserva este documento para registrar la decisión y los commits originales `fad7383` y `2faa481`. No se utiliza reset, rebase ni eliminación de commits; la retirada queda en un commit nuevo.
+- Los avances anteriores y sus documentos pendientes permanecen intactos y fuera del commit de retirada.
+- Validación de retirada: **887 pruebas aprobadas en 81 archivos** y build en modo `qa` aprobado. Se retiran las 12 pruebas que pertenecían exclusivamente a la herramienta cancelada. El diff de `package.json`, `src` y `scripts` contra `b01b731` queda vacío: se conservan los avances anteriores.
+- Publicación solicitada: Preview del equipo `zipco-s-projects`, proyecto `zipco-app`, rama `qa`, alias habitual `https://zipco-app-git-qa-zipco-s-projects.vercel.app`. Fuente Git del nuevo commit de retirada; sin subir documentos locales pendientes. Se conserva por despliegue el comando `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`, sin cambiar la configuración global. El SHA efectivo y el resultado READY deben comprobarse en Vercel antes de informar la publicación como terminada.
+- Sin cambios en `main`, producción, Railway QA, configuración global, permisos ni acciones de pedidos.
