@@ -33,3 +33,26 @@ oscuro y que todas las categorías sean accesibles sin recorte horizontal.
 
 `main`, producción, backend y datos de pedidos: sin modificaciones.
 El resultado del despliegue se añadirá después de comprobarlo.
+
+## Publicación comprobada — 2026-10-18
+
+- Commit fuente publicado: `46e55d64aed656329faa8269bf0d280b0f18e829`
+  (incluye código `9581d3fe520f10ce6249c837d2169a7c6115b416` e informe).
+- Preview QA: `dpl_6Fe7DWsAmkhCmpLuzW8yj9MvDEsD`, estado **READY**.
+- URL propia: <https://zipco-8to10ih6q-zipco-s-projects.vercel.app>.
+- Alias habitual comprobado apuntando a ese despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- Rama `qa`, origen GitHub, SHA exacto y entorno Preview comprobados.
+- Logs: modo QA, build y despliegue completados.
+- Se conservó el diagnóstico temporal previo con
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`, únicamente como
+  override del despliegue. Build global y rama de producción sin cambios.
+- Backend QA confirmado mediante su configuración pública Preview; sin
+  modificación de backend, permisos, conexiones, configuración global o datos.
+- Los doce documentos que ya estaban pendientes conservaron sus hashes y
+  permanecen fuera de estos dos commits. Staging vacío; HEAD igual a origin/qa.
+- Comprobación visual de Bastián en Android/iPhone pendiente. Actualizar el
+  acceso QA habitual para cargar la nueva versión. La protección Vercel se conserva.
+- Esta anotación posterior al despliegue queda local, pendiente de commit
+  documental futuro; no se hizo otro push que reemplazara el Preview.
+- `main`, producción y Railway QA: sin modificaciones.

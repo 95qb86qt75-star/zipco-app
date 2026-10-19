@@ -47,3 +47,13 @@ Para probar desde el acceso QA habitual en Android/iPhone:
 5. Si no hay pedidos en esa categoría, la campanita sigue oculta según la regla anterior. No crear ni modificar pedidos desde este trabajo para forzar la prueba.
 
 Registrar el SHA desplegado, URL, estado READY y destino del alias después de comprobarlos. READY y pruebas automatizadas no equivalen a comprobación física de los celulares.
+
+## Resultado de publicación — 2026-10-19
+
+- Código: `d9fe36efe18aee79ee10aa85625ae897c8d453b2`; ficha oficial guardada en `d8f6ea1108c0d7eec51358a2e96a57ee1f6cd038`.
+- SHA desplegado: `d8f6ea1108c0d7eec51358a2e96a57ee1f6cd038`, origen GitHub real, rama `qa`, entorno Preview.
+- Preview **READY**: `dpl_5iWs4mhknrhPWFBa2wU66ohrT2er`; URL propia https://zipco-8t6hzxrry-zipco-s-projects.vercel.app.
+- Alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobado apuntando a ese Preview. Etiqueta esperada: `QA d8f6ea1`.
+- Backend QA verificado, comando temporal por despliegue verificado, logs QA completados, auxiliar del recorrido ausente. Configuración global de build nula y rama de producción `main` sin cambios.
+- Sin divergencia antes del envío; `git diff --cached --check` aprobado; staging vacío después de ambos commits. Todos los pendientes anteriores conservados fuera de estos commits.
+- Revisión física Android/iPhone pendiente. Este añadido de resultados queda local después del despliegue; no provoca otra publicación solo para registrar el resultado. El nombre y el commit de código ya están respaldados en Git por la ficha oficial.

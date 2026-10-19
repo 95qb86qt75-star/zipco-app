@@ -40,3 +40,11 @@ El registro temporal del clic sigue pausado. Se mantiene la etiqueta QA con SHA 
 3. Comprobar que abre Solicitudes en la categoría correspondiente y la tarjeta aparece desde su inicio bajo el encabezado, marcada en azul y sin expandir condiciones automáticamente. Si cabe, comprobar también su borde inferior sobre la navegación.
 4. Desplazarse manualmente: la pantalla no debe regresar ni seguir reajustándose. Comprobar Android e iPhone y ambos roles cuando corresponda.
 5. No declarar resueltos globalmente los puntos 1 y 4 de notificaciones solo por este ajuste visual. Si reaparece bloqueo, registrar SHA visible y circunstancias; no borrar app, sesiones ni datos como parte de esta prueba.
+
+## Resultado publicado — 2026-10-19
+
+Nombre oficial: **UI-NOTIFICATION-CARD-POSITION-02 — Encuadre puntual**. Código y SHA desplegado: `846e7d3e172c88393c655ceb91658a0745241f7c`, rama `qa`. Commit con los cuatro archivos de código/pruebas y este documento; documentos pendientes anteriores excluidos y conservados. `git diff --cached --check` aprobado, sin divergencia antes del envío.
+
+Preview `dpl_Gr6exD5kDR8n6tpDdMEZc28PhXF3`, **READY**, URL propia https://zipco-nbnjfvhqh-zipco-s-projects.vercel.app. Alias QA habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app verificado apuntando a ese despliegue. Origen Git, SHA, rama `qa`, entorno Preview, Backend QA y comando temporal comprobados. Logs de build QA y despliegue completados, sin auxiliar del recorrido del clic; build global nulo y rama de producción `main` sin cambios.
+
+Etiqueta esperada: `QA 846e7d3`. Comprobación física en iPhone/Android pendiente; no se declara resuelto el bloqueo ni estabilidad global de notificaciones. Este añadido de resultado queda local, como registro posterior al despliegue, sin generar otra publicación automática solo por documentación.

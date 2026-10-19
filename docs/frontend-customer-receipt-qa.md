@@ -134,3 +134,38 @@ Se conserva el diagnóstico temporal mediante override exclusivo del despliegue:
 `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`. No se cambian ajustes
 globales, backend ni producción. Este registro de autorización no acredita aún
 despliegue terminado ni pruebas móviles; el resultado se añadirá después.
+
+### Resultado de publicación QA
+
+- Commit local y `origin/qa` coinciden en
+  `566250d2752e4393411b88125ce0c8974cf0cbd6`,
+  `feat: add customer ready notice and receipt confirmations`.
+  Contenido verificado: 21 rutas del bloque, sin los cuatro documentos anteriores
+  pendientes ni archivos generados. `git diff --cached --check` correcto antes
+  del commit. Pruebas previas: 836/836 y build QA correcto, sin cambios posteriores
+  de código durante la publicación.
+- Preview verificado READY: `dpl_9FCLBMMVKP9VJSWauTgdtBskZh5Q`.
+  Origen GitHub real, rama `qa`, SHA exacto del commit indicado, entorno Preview.
+- URL propia: `https://zipco-nj0suxvge-zipco-s-projects.vercel.app`.
+  Para revisar en celulares usar el origen QA habitual permitido por Backend QA:
+  `https://zipco-app-git-qa-zipco-s-projects.vercel.app`.
+  Destino final del alias comprobado: este Preview. Es su único alias asignado.
+- El despliegue automático normal del commit fue
+  `dpl_CNqGdtbydQFDBYQLC1EtsiKgXuQf`. Se creó desde ese origen Git exacto el
+  Preview con override exclusivo para conservar el diagnóstico temporal.
+- Build remoto correcto: `vite build --mode qa`, bundle `index-CYjr4LX7.js`,
+  compilación y despliegue completados. Comando efectivo verificado:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+  Configuración pública Preview apuntando a Backend QA comprobada antes del envío;
+  build global siguió en `null`, rama de producción en `main` y sin cambios de
+  configuración en proveedores.
+- Los cuatro documentos anteriores se verificaron mediante hashes antes/después
+  y se conservaron fuera del commit. No se ejecutó ACK_READY_NOTICE,
+  CONFIRM_RECEIPT, MARK_READY ni START_WORK sobre pedidos reales.
+- La revisión de los popups, la selección, las dos confirmaciones y el panel del
+  diagnóstico en Android/iPhone de esta nueva versión queda pendiente con
+  Bastián. READY del despliegue no acredita aprobación visual ni entrega push.
+
+Este resultado se añade localmente después de publicar y no está en el commit
+desplegado. Solo quedan notas documentales locales; staging vacío. Backend,
+Railway QA, `main` y producción no se modificaron.

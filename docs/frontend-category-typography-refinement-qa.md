@@ -30,3 +30,23 @@ La conformidad de Bastián en los celulares sigue pendiente; esta solicitud
 no se interpreta como aprobación final de todos los diseños.
 
 El resultado del despliegue se añadirá tras comprobarlo.
+
+## Publicación comprobada
+
+- SHA fuente publicado: `4153f1a0ceb5bca378b2c0d50c19c220a8e18b3d`
+  (código `7f1620da92a14ac5ea256e5ba2e3cbedd82356b4` más informe).
+- Preview `dpl_4o3kZzKSf2VPVBpvG67aCrdDKLem`, **READY**.
+- URL propia: <https://zipco-7ao21y422-zipco-s-projects.vercel.app>.
+- Alias habitual confirmado en ese despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- API autenticada: origen GitHub, rama qa, SHA exacto y entorno Preview comprobados.
+- Logs confirman modo QA, build y despliegue completados.
+- Se mantuvo el diagnóstico temporal con override exclusivo de este despliegue:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+- Configuración pública Backend QA verificada, sin cambios. Build global y rama
+  de producción intactos; sin cambios de protección, otros alias o Railway QA.
+- Los trece documentos pendientes previos conservaron sus hashes; no se
+  incluyeron en estos dos commits. Staging vacío y HEAD sincronizado con origin/qa.
+- Revisión visual de Bastián en ambos celulares pendiente; actualizar el acceso QA.
+- Este registro posterior al despliegue queda local hasta un futuro commit documental.
+- `main`, producción, backend y datos de pedidos: sin modificaciones.

@@ -25,3 +25,23 @@ Esta es la propuesta actual; TYPE-01 y TYPE-02 conservan las referencias previas
 Comprobar tras actualizar el acceso QA habitual: nombres de categorías en
 10,5 px y números en 11 px, en cliente y negocio, con/sin Listos y en ambos temas.
 Se añadirá el resultado del despliegue cuando esté verificado.
+
+## Publicación comprobada
+
+- SHA fuente: `6933d0fc73835b2824bde9635a59f01565b5d18b`, que incluye
+  código `77e5a8dc7a7905e5008d01c3c0e68f53524a96e3` e informe.
+- Preview `dpl_3gwUjhBPxu5oWsEfeCQsxBR9Rk2G`: **READY**.
+- URL propia: <https://zipco-ifpd2gw9r-zipco-s-projects.vercel.app>.
+- Alias QA comprobado apuntando al despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- Origen GitHub, rama qa, SHA exacto y entorno Preview verificados.
+- Logs: modo QA, build y despliegue completados.
+- Diagnóstico temporal conservado con override exclusivo del despliegue:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+- Configuración pública de Backend QA verificada sin modificarla; build global,
+  protección y rama de producción intactos. Railway QA no requirió cambios.
+- Los catorce documentos pendientes previos conservaron exactamente sus hashes
+  y quedaron fuera de estos dos commits. Staging vacío y HEAD igual a origin/qa.
+- Revisión visual en celulares pendiente. Actualizar el acceso QA habitual.
+- Esta anotación posterior al despliegue queda local hasta un futuro commit documental.
+- `main`, producción, backend y datos de pedidos: sin modificaciones.

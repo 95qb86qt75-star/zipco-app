@@ -50,3 +50,25 @@ La comprobación visual de Bastián queda pendiente; no implica aprobación fina
 Publicar únicamente Preview QA desde Git real y SHA exacto, manteniendo el
 diagnóstico temporal previo por override del despliegue. `main`, producción,
 backend y configuración global permanecen sin modificaciones.
+
+## Publicación comprobada — 2026-10-19
+
+- SHA fuente: `b01b731123a75b26ddcd8c1a1ed6d73f9ef221e0`, que incluye código
+  `8f301fc70a4d6281b9cccaba724462c59ff7ebd9` e informe.
+- Preview `dpl_HyYdGPM7yCD1xYp84a1kQxdUqVhi`: **READY**.
+- URL propia: <https://zipco-9bfdta5do-zipco-s-projects.vercel.app>.
+- Alias habitual comprobado apuntando al despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- Origen GitHub, rama qa, SHA exacto y entorno Preview verificados.
+- Logs: modo QA, build y despliegue completados.
+- Diagnóstico temporal anterior conservado por override exclusivo:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+- Backend QA confirmado por configuración pública sin cambios. Build global,
+  protección y rama de producción intactos; Railway QA no requirió cambios.
+- Los dieciocho documentos locales pendientes anteriores conservaron sus hashes
+  y quedaron fuera de estos dos commits. Staging vacío y HEAD igual a origin/qa.
+- Revisión de Bastián en celular pendiente. Actualizar QA y abrir la confirmación;
+  puede cerrarse con Volver sin ejecutar la aceptación.
+- Esta anotación posterior al despliegue queda local hasta un futuro commit
+  documental; no se hizo otro push que reemplazara el Preview verificado.
+- `main`, producción, backend y acciones de pedidos sin cambios.

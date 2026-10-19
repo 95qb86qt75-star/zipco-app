@@ -101,3 +101,34 @@ Se conserva el diagnóstico temporal mediante el override exclusivo del desplieg
 global ni producción. La configuración pública Preview fue comprobada contra
 Backend QA. Este registro de autorización no declara el despliegue terminado ni
 la validación móvil realizada; el resultado se añadirá después de verificarlo.
+
+### Resultado de publicación QA
+
+- Commit frontend: `dbf5bd96f3f4ccfa99cbf59d873c43b87e5556e0`,
+  `feat: add request process ready action`; 20 rutas del bloque, sin documentos
+  anteriores ni archivos generados. Push realizado exclusivamente a `origin/qa`.
+- Preview verificado READY: `dpl_Ga4wX17FWBKWmFzx8gSSoD7nLFvL`.
+  Fuente GitHub real, rama `qa`, SHA exacto del commit indicado, entorno Preview.
+- URL propia: `https://zipco-3at7qt2gv-zipco-s-projects.vercel.app`.
+  Abrir en celulares el acceso habitual (origen ya permitido por Backend QA):
+  `https://zipco-app-git-qa-zipco-s-projects.vercel.app`.
+  Este es el único alias del despliegue; se verificó su destino final.
+- El despliegue automático normal del mismo commit fue
+  `dpl_43sLh6iau85ca6eBMb6BdSo7cQNb`. Se creó un Preview desde ese origen Git
+  exacto con override por despliegue para conservar el diagnóstico temporal.
+- Build remoto correcto: modo `qa`, bundle `index-Cw8c17Xq.js`, compilación y
+  despliegue completados. Override confirmado:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+  Build global siguió en `null` y la rama de producción siguió en `main`.
+  Configuración pública Preview comprobada contra Backend QA, sin modificarla.
+- La consulta pública del bundle devolvió HTTP 302 por protección de Vercel;
+  no se eludió. La activación se verifica por la configuración y el build QA;
+  la visibilidad del panel y de Pedido listo en celulares queda pendiente.
+- Sin cambios en backend, Railway QA, `main`, producción ni datos de pedidos.
+  No se ejecutó MARK_READY ni START_WORK para comprobar la publicación.
+
+Este resultado se añadió localmente después del despliegue y no forma parte del
+commit ya publicado. No implica aprobación final del diseño, resolución del
+fallo original de loadOrders ni confirmación de entrega del push. Retirar el
+diagnóstico mediante una actualización posterior cuando se resuelva ese fallo,
+conservando los avances de Pedido listo y las demás mejoras QA.

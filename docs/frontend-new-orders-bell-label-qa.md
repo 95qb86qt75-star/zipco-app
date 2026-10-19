@@ -23,3 +23,24 @@ Para revisar, actualizar el acceso QA habitual y abrir Mi Negocio/Pedidos:
 la tarjeta debe mostrar «Nuevos Pedidos» con el contador correspondiente y
 conservar su selección de pendientes. Con cero elementos continúa oculta.
 La confirmación visual en celulares queda pendiente.
+
+## Publicación comprobada — 2026-10-18
+
+- SHA fuente: `ece3d08de738b94ff24fc88dbb62ee9197e0e3cf` (código
+  `09c049a4878ef4a428f22b9fcac8d017cf426482` más informe).
+- Preview `dpl_HGRit8JL4XjzXtXD5EWQYc7y5jiq`: **READY**.
+- URL propia: <https://zipco-5dz0heuri-zipco-s-projects.vercel.app>.
+- Alias habitual verificado apuntando a ese despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- Origen GitHub, rama qa, SHA exacto y entorno Preview comprobados.
+- Logs confirman modo QA, build y despliegue completados.
+- Diagnóstico temporal anterior conservado mediante override exclusivo:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+- Backend QA confirmado por configuración pública sin modificarla. Build global,
+  protección y rama de producción intactos. Sin cambios de backend o Railway QA.
+- Diecisiete documentos pendientes anteriores preservados por hash, fuera de
+  estos commits. Staging vacío y HEAD igual a origin/qa tras el push.
+- Revisión móvil de Bastián pendiente; actualizar el acceso QA habitual.
+- Este registro posterior al despliegue queda local hasta un futuro commit
+  documental; no se realizó otro push que reemplazara el Preview comprobado.
+- `main`, producción y acciones de pedidos sin cambios. Arquitectura nueva pausada.

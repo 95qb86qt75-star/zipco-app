@@ -125,3 +125,55 @@ existentes (`/orders/my-orders`, `/orders/business/:businessId`, cotizaciones y
 Los documentos locales pendientes se conservan fuera de estos commits.
 `main`, producción, configuración global y protección Vercel permanecen intactos.
 El objetivo general de entrega entre canales y su arquitectura nueva siguen pendientes.
+
+## Publicación comprobada
+
+- Commit fuente publicado: `644b70758a1758f850a3bf7d82a75dca820996a5`
+  (código `9539b30db35a06a3d76784479a8352e0a078596c` e informe).
+- Preview `dpl_CJ9VRc4dDg7XDWbzfPrqfeNV9F7V`: **READY**.
+- URL propia: <https://zipco-apnoqpvvo-zipco-s-projects.vercel.app>.
+- Alias habitual verificado apuntando a ese despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- Origen GitHub, rama qa, entorno Preview y SHA exacto comprobados por API autenticada.
+- Logs confirman modo QA, build y despliegue completados.
+- El diagnóstico temporal anterior se conservó mediante override exclusivo:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+- Backend QA comprobado por configuración pública Preview; sin cambios de su
+  valor. Build global y rama de producción permanecen intactos.
+- Los quince documentos locales pendientes anteriores conservaron sus hashes
+  y no entraron en estos dos commits. Staging vacío; HEAD igual a origin/qa.
+- La protección Vercel se mantiene. La lectura anónima del Preview protegido
+  no permite inspeccionar el navegador Android; no se creó acceso alternativo.
+- Fuente del worker incluida en el build QA y registro automático comprobados;
+  controlador realmente activo en el Android y prueba física tras actualizar:
+  **pendientes de comprobación**, no confirmados por la publicación.
+- Arquitectura nueva de notificaciones: sigue pausada. Railway QA, backend,
+  acciones de pedidos, `main`, producción y configuración global: sin modificaciones.
+- Este registro posterior al despliegue queda local, pendiente de commit documental
+  futuro. No se hizo otro push que reemplazara el Preview comprobado.
+
+## Reapertura por prueba de Android — resultado todavía no resuelto
+
+Bastián informó que la notificación sigue apareciendo dentro de ZIPCO después
+de pulsar la notificación del sistema con la app en segundo plano. Esta prueba
+reabre el incidente: la publicación anterior y sus pruebas automatizadas no
+acreditan que el problema esté resuelto en el dispositivo.
+
+Se volvió a verificar por API autenticada que el acceso QA habitual apunta a
+`dpl_CJ9VRc4dDg7XDWbzfPrqfeNV9F7V`, READY, rama qa y SHA
+`644b70758a1758f850a3bf7d82a75dca820996a5`. La versión del controlador
+instalado en Android continúa sin poder inspeccionarse remotamente desde aquí.
+
+La búsqueda completa de los emisores muestra que el monitor de negocio actual
+no emite un toast con el texto del consentimiento: ante ese tipo de push
+actualiza las listas. Sí puede emitir otros avisos al recargar, incluidos
+pedidos pendientes que no están en su referencia en memoria. No se debe
+equiparar esos avisos al consentimiento ni silenciarlos por pertenecer al
+mismo pedido sin identificar el evento.
+
+Se solicitó el título exacto del aviso que reaparece, sin nombres, contactos
+ni datos del pedido, para identificar el emisor antes de otra corrección.
+También falta distinguir un toast de ZIPCO de un segundo aviso del sistema.
+No hay una causa nueva confirmada del incidente físico ni un nuevo arreglo
+publicado en esta revisión. No se atribuye el fallo a caché o versión antigua
+sin evidencia. Arquitectura nueva: sigue pausada.

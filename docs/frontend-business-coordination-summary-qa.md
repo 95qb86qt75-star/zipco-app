@@ -72,3 +72,23 @@ Nueve documentos locales anteriores se preservan fuera de los commits. Ficha
 con nombre y commit visual guardada por separado. Sin cambios en backend,
 Railway QA, main o producción. Pendiente revisión por Bastián en Android/iPhone,
 contador, navegación, selección y colores claro/oscuro; no es cierre de diseño.
+
+## Resultado de publicación QA
+
+Commit visual `2dac8908b266de868f16a5cae5e9004aa882a563` y ficha con nombre y
+hash respaldados en el commit documental
+`8835e7b5786abfe8f3780aea2d66d76014f8a0dd`. Publicados únicamente en origin/qa;
+cinco rutas verificadas, nueve documentos locales anteriores preservados por
+hash fuera del bloque. Staging vacío; sin cambios de código pendientes.
+
+Preview READY `dpl_2cacBELQ4eQEJXwrnsWAXXSS3kf7`, fuente GitHub real, rama qa,
+SHA efectivo `8835e7b5786abfe8f3780aea2d66d76014f8a0dd`, entorno Preview.
+URL propia: `https://zipco-f7ihv8k4i-zipco-s-projects.vercel.app`.
+El alias QA habitual apunta a este despliegue y es su único alias asignado.
+Build remoto QA correcto, diagnóstico temporal conservado mediante override
+por despliegue. Build global y rama de producción sin cambios.
+
+Sin acciones reales de pedidos ni cambios en backend, Railway QA, main o
+producción. Revisión móvil pendiente de Bastián. Este resultado se añade
+localmente después de publicar; la ficha de nombre + commit visual sí quedó
+respaldada en Git mediante el commit documental indicado.

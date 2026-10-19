@@ -72,3 +72,26 @@ commits. Esta ficha registra nombre + commit del cambio visual sin incluirlos
 automáticamente. Pendiente revisión por Bastián en Android/iPhone, modos claro
 y oscuro, expansión/cierre, foto y vuelta del acuerdo. Despliegue exitoso no
 equivale a aprobación del diseño.
+
+## Resultado de publicación QA
+
+Commit visual `308de1a1fae3ca00a172b05b24b2e968e4ab2a51` y ficha con ese nombre
+y hash guardados en Git mediante commit documental
+`314d4a21976b1ce853ba2fd1117aa87c5ca43739`. Ambos publicados únicamente en
+origin/qa. Inventario total verificado: tres rutas. Siete documentos anteriores
+preservados por hash fuera de los commits. Staging vacío; sin cambios de código
+pendientes ni archivos generados en el bloque.
+
+Preview READY `dpl_BCKNg32gKXMco2Tyaz7EkCm1HRmq`, fuente GitHub real, rama qa,
+SHA efectivo `314d4a21976b1ce853ba2fd1117aa87c5ca43739`, entorno Preview.
+URL propia: `https://zipco-fi0kv9vri-zipco-s-projects.vercel.app`.
+El alias QA habitual apunta a este despliegue y es su único alias asignado.
+Build remoto correcto en modo qa, bundle `index-DzAmJg2u.js`.
+Override de diagnóstico temporal conservado; build global y rama de producción
+sin cambios. Backend QA confirmado antes del envío; no se modificó Railway.
+
+Revisión del nuevo bloque en Android/iPhone pendiente de Bastián. No se
+ejecutaron acciones de pedidos ni se modificaron backend, main o producción.
+Esta anotación del resultado se añade localmente después del despliegue y no
+forma parte del commit desplegado; la ficha de nombre + commit visual sí está
+respaldada en Git con el commit documental indicado.

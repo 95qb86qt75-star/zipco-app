@@ -122,3 +122,26 @@ Después de actualizar el acceso QA habitual:
 
 Los documentos locales pendientes anteriores se conservan fuera de estos commits.
 Los resultados del despliegue se añadirán después de verificarlos.
+
+## Publicación comprobada — 2026-10-18
+
+- Commit fuente: `cf2fbd24546aaa05c9539e9f1813a06c888c534f`, que incluye código
+  `e5417db7b8fe7dbf072ca7348bc2051e16a3f962` e informe.
+- Preview `dpl_4TnJem9NJjyVqqHexzUHEyd6okKd`: **READY**.
+- URL propia: <https://zipco-cor0o1mfe-zipco-s-projects.vercel.app>.
+- Alias habitual comprobado apuntando a ese despliegue:
+  <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+- Origen GitHub, rama qa, SHA exacto y entorno Preview verificados.
+- Logs: modo QA, build y despliegue completados.
+- Diagnóstico temporal conservado por override exclusivo del despliegue:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+- Configuración pública Backend QA comprobada sin modificarla. Build global,
+  protección y rama de producción intactos; sin cambios de backend ni Railway QA.
+- Los dieciséis documentos pendientes anteriores conservaron sus hashes y no
+  entraron en estos dos commits. Staging vacío y HEAD igual a origin/qa.
+- Worker de push sin cambios en este bloque; el build incorpora el monitor
+  corregido. No se afirma haber inspeccionado el controlador activo del Android.
+- Confirmación física de Bastián después de actualizar: **pendiente**.
+- Arquitectura nueva pausada; acciones de pedidos, `main` y producción sin cambios.
+- Este añadido posterior al despliegue queda local hasta un futuro commit
+  documental. No se realizó otro push que reemplazara el Preview verificado.

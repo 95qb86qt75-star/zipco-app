@@ -25,6 +25,14 @@ Abrir el acceso QA habitual. Leer la etiqueta `QA <SHA corto>` junto a Solicitud
 
 El worker sin colector conserva su revisión funcional; el campo build del sondeo puede ser nulo al no cargar el auxiliar temporal. La etiqueta visible identifica el bundle frontend. No confundir esa ausencia con una prueba de worker obsoleto.
 
+## Resultado de publicación — 2026-10-19
+
+Commit publicado: `c72ca1819d9e4b41b2c743b51f87a721c44b1c2e`, rama `qa`, origen GitHub real, sin divergencia antes del envío. Preview `dpl_BS6h7jqXQkYetn676U9rP4fETpSS`, estado READY, URL propia https://zipco-b1mlm4sip-zipco-s-projects.vercel.app. El alias https://zipco-app-git-qa-zipco-s-projects.vercel.app apunta a ese despliegue.
+
+Verificados SHA y rama efectivos, comando por despliegue con trace=0, Backend QA, logs de build QA completado y ausencia del auxiliar de trazas en el inventario del build. El build global permanece nulo y la rama de producción sigue siendo `main`. Los documentos anteriores continúan pendientes, fuera del commit; este añadido posterior al despliegue también queda local para no generar otro despliegue automático solo por registrar el resultado.
+
+Etiqueta esperada: `QA c72ca18`. Recuperación del iPhone y causa: pendientes de comprobación física; READY no acredita que el bloqueo esté corregido. Sin acciones de pedidos, cambios de backend/Railway, configuración global o producción.
+
 ## Retirada futura
 
 Cuando se confirme recuperación y causa, acordar si hace falta reactivar el registro en un nuevo Preview QA. Retirar la etiqueta y el diagnóstico temporal mediante una actualización nueva validada, conservando los avances. No volver automáticamente a un despliegue anterior ni borrar historial.

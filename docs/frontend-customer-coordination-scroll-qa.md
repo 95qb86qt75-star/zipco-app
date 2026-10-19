@@ -39,3 +39,13 @@ Los documentos pendientes anteriores se conservan fuera de estos commits. Esta f
 3. Verificar selección de Pedidos / Coordinación y desplazamiento hasta la fecha/primera tarjeta, bajo el encabezado, sin abrir condiciones automáticamente.
 4. Deslizar manualmente: no debe regresar sola. Pulsar de nuevo la campanita: debe volver al inicio.
 5. Repetir en Android y comprobar que Mi Negocio / Por coordinar conserva el funcionamiento anterior. No crear o modificar pedidos como parte de este trabajo para forzar la prueba.
+
+## Resultado de publicación — 2026-10-19
+
+Código `bd275c0ad95a4567d80f980e6fb51d1b7e00c301`; ficha oficial respaldada en `f0395ae6f2ca84b9f2c88bf466ffbfb1c7c8d679`, que es el SHA efectivamente desplegado. Rama `qa`, origen GitHub real, entorno Preview.
+
+Preview **READY** `dpl_B7vVVti71SrMkGKqTQTjK8pqbG1n`; URL propia https://zipco-1ok7oi7j5-zipco-s-projects.vercel.app. El alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app apunta a ese despliegue. Etiqueta esperada: `QA f0395ae`.
+
+Comprobados SHA, rama, Backend QA, comando temporal por despliegue, logs QA completados y ausencia del auxiliar del recorrido. Build global nulo y rama de producción `main` sin cambios. Sin divergencia antes del envío; diff de staging aprobado y staging vacío al terminar; documentos pendientes anteriores conservados fuera de los commits.
+
+Revisión física en celulares pendiente. Este añadido de resultados queda local después de la publicación para no generar otro despliegue únicamente por su registro; el nombre y commit de código ya quedaron guardados en Git con la ficha oficial.

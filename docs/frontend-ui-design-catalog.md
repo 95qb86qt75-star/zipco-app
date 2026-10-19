@@ -5,6 +5,12 @@ revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 Las notas de revisión locales anteriores se conservan por separado.
 
+Actualización 2026-10-19: el cierre y respaldo de aquellas notas, las fichas más
+recientes y la regla vigente de guardar cada avance y su resultado se consultan
+en [QA-DOC-CLOSURE-01](frontend-qa-documentation-closure.md). Los estados de las
+entradas anteriores son históricos; no deben interpretarse como el estado actual
+de todas las pantallas.
+
 ## Regla de registro acordada con Bastián
 
 Cada cambio de UI debe registrar nombre estable de pantalla/componente, ruta,
@@ -83,3 +89,24 @@ Override de ese despliegue:
 `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
 No se cambia backend, Railway QA, main ni producción. No se ejecutan acciones
 de pedidos para verificar el color.
+
+### Resultado de publicación QA — 2026-10-17
+
+Nombre UI-READY-PALETTE-01 y commit visual
+`66a85a1198e6e1cd4ef45b87e1beda0ffe83bdd3` quedaron respaldados en Git mediante
+el commit documental `73f5bfd181dcd6b22d4034ec3554509f6a6abc1e`. Ambos se
+publicaron exclusivamente en origin/qa. Cuatro rutas verificadas entre ambos
+commits; seis documentos locales anteriores preservados fuera de ellos.
+
+Preview READY: `dpl_EH5YLARDgp6NCYN5EYtoF4HVgyfQ`.
+SHA efectivo `73f5bfd181dcd6b22d4034ec3554509f6a6abc1e`, GitHub real, rama qa,
+entorno Preview. URL propia: `https://zipco-c4ngpsz0h-zipco-s-projects.vercel.app`.
+El alias QA habitual apunta a este despliegue y es su único alias asignado.
+Build QA correcto, diagnóstico temporal conservado mediante el override del
+despliegue. Build global y rama de producción sin cambios.
+
+Revisión de colores en Android/iPhone pendiente de Bastián. No se ejecutaron
+acciones de pedidos ni se cambió backend, Railway QA, main o producción.
+Esta anotación del resultado se añade localmente después del despliegue; la
+ficha del diseño, su hash visual y la regla de registro ya están en el commit
+documental indicado. Staging vacío y sin cambios de código pendientes.

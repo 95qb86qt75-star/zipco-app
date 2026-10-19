@@ -182,3 +182,49 @@ acciones de pedidos para forzar la prueba.
   la app visible; no resuelto en este bloque.
 - Los documentos locales pendientes de otros bloques siguen fuera de estos commits.
 - `main` y producción no se modifican.
+
+## Publicación y verificación — 2026-10-18
+
+Este bloque añade el resultado posterior al registro inicial; no cambia la
+evidencia histórica anterior.
+
+- Commit de código: `d49fcab8647b87571a10dc17617ae121df0e9100`.
+- Commit de informe y SHA fuente publicado:
+  `3d7084744b8d089a0e52666280771b6a77655199`.
+- `git fetch origin`: sin divergencia antes de publicar; push limitado a `qa`.
+- Equipo `zipco-s-projects`, proyecto `zipco-app`, entorno Preview, rama `qa`,
+  origen GitHub y SHA exacto: comprobados por API autenticada.
+- Despliegue automático del SHA: `dpl_2hYuY2tMfDcnzy8fhvGoS84WyJp5`, READY.
+- Preview con override exclusivo del diagnóstico temporal:
+  `dpl_7KoS3FEZmK2nMopZQ1zPdektdCny`, **READY**.
+- URL propia: <https://zipco-1g9z0em7c-zipco-s-projects.vercel.app>.
+- Acceso QA habitual: <https://zipco-app-git-qa-zipco-s-projects.vercel.app>.
+  Se comprobó que ese alias apunta al Preview indicado. No hubo reasignación
+  manual de alias ni cambios a otros dominios.
+- Build command del despliegue:
+  `ZIPCO_QA_LOAD_DIAGNOSTICS=1 npm run build -- --mode qa`.
+  Logs confirman `vite build --mode qa`, build completado y despliegue completado.
+- Backend QA: configuración pública efectiva de Preview `VITE_API_URL`
+  comprobada como QA; sin override de rama y sin modificar su valor.
+- Build command global del proyecto: continúa `null`; rama de producción:
+  continúa `main`. Sin cambios de permisos, protección o configuración global.
+- El despliegue anterior `dpl_2cacBELQ4eQEJXwrnsWAXXSS3kf7` se conserva como
+  referencia de recuperación. No se ejecutó reversión automática.
+
+La lectura anónima del alias y del worker redirige al login de Vercel. Por eso
+no se presenta esa lectura como una inspección válida del bundle de ZIPCO.
+No existe acceso de automatización ya configurado para leer los recursos
+protegidos: no se creó ni se cambió la protección. Queda pendiente confirmar
+visualmente desde la sesión habitual del celular el panel temporal y el flujo
+real de notificación. Modo QA, override, build y destino del alias sí están
+comprobados; esto no equivale a una prueba de notificaciones en dispositivos.
+
+Los once documentos locales que estaban pendientes antes de esta publicación
+conservan exactamente sus hashes. No entraron en ninguno de estos dos commits.
+El código quedó limpio, con staging vacío y HEAD igual a `origin/qa` después
+del push. Este añadido posterior al despliegue queda local, pendiente de un
+futuro commit documental; no se hizo un nuevo push que reemplazara el Preview.
+
+Railway QA, acciones de pedidos, `main` y producción: sin modificaciones.
+Sigue pendiente el contrato adicional con backend para el objetivo completo
+de «solo aviso interno con app visible».
