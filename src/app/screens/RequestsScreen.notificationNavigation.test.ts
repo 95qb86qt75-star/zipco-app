@@ -2,7 +2,7 @@ import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as any[], cursor: 0, effects: [] as (() => void)[], dirty: false,
   orders: [] as any[], loading: true, load: vi.fn(), action: vi.fn(), unread: new Set<string>(),
-  quotes: [] as any[], focused: vi.fn(), cleanups: [] as (() => void)[] }));
+  quotes: [] as any[], focused: vi.fn(), cleanups: [] as (() => void)[], committed: null as React.ReactNode }));
 vi.mock('react', async (original) => ({ ...await original<typeof import('react')>(),
   useState: (initial: any) => {
     const index = hooks.cursor++;
@@ -34,6 +34,8 @@ vi.mock('../notifications/unreadInteractions', () => ({ useUnreadInteractions: (
   markInteractionUnread: vi.fn(), publishActiveRequestCount: vi.fn() }));
 import RequestsScreen from './RequestsScreen';
 import RequestStatusTab from './requests/RequestStatusTab';
+import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
+import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import { rawOrder, coordinationProcess } from './requests/requestProcessFixtures';
 import { normalizeMyOrdersPayload } from './requests/orderNormalization';
 type Node = React.ReactElement<Record<string, any>>;
@@ -49,6 +51,7 @@ function render() {
     hooks.cursor = 0; hooks.dirty = false; hooks.effects = [];
     result = RequestsScreen({ activeTab: 'requests', setActiveTab: noop, onBack: noop,
       onSessionExpired: noop, onNotificationFocused: hooks.focused });
+    hooks.committed = result;
     hooks.effects.forEach((effect) => effect());
   } while (hooks.dirty);
   return result;
@@ -94,5 +97,66 @@ describe('RequestsScreen notification destination with late session and lists', 
     mutate(); expect(hooks.focused).toHaveBeenCalledOnce();
     expect(hooks.action).not.toHaveBeenCalled();
     expect(window.location.search).toContain('orderId=20'); // Only App may consume after acknowledgement.
+  });
+});
+
+describe('business Por coordinar bell scroll, independent of notification navigation', () => {
+  function prepare(search = '?open=requests-business') {
+    window.location.search = search;
+    hooks.loading = false;
+    hooks.orders = normalizeMyOrdersPayload([
+      { ...rawOrder, status: 'accepted', requestProcess: coordinationProcess },
+      { ...rawOrder, id: 21, status: 'accepted', requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } },
+    ]);
+    const scroller = { scrollTop: 90, clientTop: 0, getBoundingClientRect: () => ({ top: 200 }) };
+    const start = { closest: () => scroller, getBoundingClientRect: () => ({ top: 710 - scroller.scrollTop }) };
+    doc.querySelector = vi.fn(() => nodes(hooks.committed).some((node) =>
+      node.props['data-business-coordination-results'] !== undefined) ? start : null);
+    return scroller;
+  }
+
+  it.each(['?open=requests-business', '?open=requests-business-quotes'])(
+    'commits the coordination filter before scrolling from %s and repeats only on another bell click', (search) => {
+      const scroller = prepare(search);
+      const clickBell = () => (nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!.props.onSelect)();
+      clickBell();
+      expect(scroller.scrollTop).toBe(90); // No scroll against the old filtered list.
+      const selected = render();
+      expect(scroller.scrollTop).toBe(498); // Start at 212, below the fixed header.
+      const orders = nodes(selected).find((node) => node.type === BusinessOrdersTab)!;
+      expect(orders.props.requests.map((order: { id: number }) => order.id)).toEqual([20]);
+      expect(nodes(selected).find((node) => node.type === CoordinationOrdersSummary)?.props.selected).toBe(true);
+      scroller.scrollTop = 60; render();
+      expect(scroller.scrollTop).toBe(60); // No continuing repositioning.
+      clickBell(); render();
+      expect(scroller.scrollTop).toBe(498);
+      expect(hooks.focused).not.toHaveBeenCalled();
+      expect(card.focus).not.toHaveBeenCalled();
+      expect(hooks.action).not.toHaveBeenCalled();
+      expect(hooks.load).not.toHaveBeenCalled();
+      expect(window.location.search).toBe(search); // No external destination, URL or ACK.
+    },
+  );
+
+  it('waits for an intervening list load and does not scroll again when lists refresh', () => {
+    const scroller = prepare();
+    nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!.props.onSelect();
+    hooks.loading = true; render();
+    expect(scroller.scrollTop).toBe(90);
+    hooks.loading = false; render();
+    expect(scroller.scrollTop).toBe(498);
+    scroller.scrollTop = 45;
+    hooks.loading = true; render(); hooks.loading = false; render();
+    expect(scroller.scrollTop).toBe(45);
+  });
+
+  it('cancels pending scroll when another category is chosen during loading', () => {
+    const scroller = prepare();
+    nodes(render()).find((node) => node.type === CoordinationOrdersSummary)!.props.onSelect();
+    hooks.loading = true;
+    const view = render();
+    nodes(view).find((node) => node.type === RequestStatusTab && node.props.item.key === 'active')!.props.onSelect();
+    render(); hooks.loading = false; render();
+    expect(scroller.scrollTop).toBe(90);
   });
 });

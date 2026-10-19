@@ -90,6 +90,7 @@ export default function RequestsScreen({
   const [selectedBusinessActivity, setSelectedBusinessActivity] = useState<
     string | null
   >(null);
+  const [coordinationScrollPending, setCoordinationScrollPending] = useState(false);
   const [historyTransfer, setHistoryTransfer] = useState<{
     kind: "order" | "quote";
     id: number;
@@ -474,6 +475,22 @@ export default function RequestsScreen({
   }, [hasBusiness, subTab]);
 
   useEffect(() => {
+    if (!coordinationScrollPending) return;
+    if (subTab !== 'my-business' || requestType !== 'orders' || statusView !== 'coordination' || loadError) {
+      setCoordinationScrollPending(false);
+      return;
+    }
+    if (isLoading) return;
+    const start = document.querySelector<HTMLElement>('[data-business-coordination-results]');
+    const scroller = start?.closest<HTMLElement>('[data-requests-scroll]');
+    if (start && scroller) {
+      scroller.scrollTop = Math.max(0, scroller.scrollTop + start.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top - scroller.clientTop - 12);
+    }
+    setCoordinationScrollPending(false);
+  }, [coordinationScrollPending, subTab, requestType, statusView, isLoading, loadError]);
+
+  useEffect(() => {
     const refresh = () => {
       void loadOrders(true);
       void quotes.load(true);
@@ -675,6 +692,7 @@ export default function RequestsScreen({
                     setAttentionFilter('browse');
                     setSelectedBusinessActivity(activityKey);
                     setStatusViews((current) => ({ ...current, 'my-business-orders': 'coordination' }));
+                    setCoordinationScrollPending(true);
                   }} /> : null;
               const singular = item.count === 1;
               const noun =
@@ -1196,6 +1214,8 @@ export default function RequestsScreen({
           )}
         {requestType === "orders" && !suppressAttentionResults && (
           <>
+            {subTab === 'my-business' && statusView === 'coordination' && !isLoading && !loadError &&
+              filteredBusinessOrders.length > 0 && <div data-business-coordination-results aria-hidden="true" />}
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-16">
                 <div className="w-10 h-10 border-4 border-teal-100 border-t-teal-500 rounded-full animate-spin mb-3" />
