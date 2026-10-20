@@ -12,6 +12,7 @@ import { formatDeliverySchedule } from './utils';
 import { safePhoto } from './agreement';
 import CoordinationActions from './CoordinationActions';
 import { statusViewFor } from './requestStatusGrouping';
+import PendingCancellationActions from './PendingCancellationActions';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -117,6 +118,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
             className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>
         </motion.div>}
     </AnimatePresence>}
+    {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>
     </div>}

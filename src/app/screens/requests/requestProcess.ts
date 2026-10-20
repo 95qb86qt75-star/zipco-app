@@ -1,6 +1,6 @@
 import { isRecord } from './orderValueParsers';
 
-export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION'] as const;
+export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number];
 
 export type RequestProcessSummary = {
@@ -11,6 +11,7 @@ export type RequestProcessSummary = {
   agreementPublicId: string | null;
   allowedActions: ProcessAction[];
   readyNoticeAcknowledged?: boolean;
+  closure?: { reasonCode: 'CUSTOMER_CANCELLED_BEFORE_RESPONSE'; reasonDetail: null; actor: 'CUSTOMER'; actorUserId: number; closedAt: string };
   coordination?: { customerContactAuthorized: boolean; businessContactAuthorized: boolean };
 };
 
@@ -38,11 +39,19 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
   if (value.coordination !== undefined && (!isRecord(value.coordination) ||
     typeof value.coordination.customerContactAuthorized !== 'boolean' ||
     typeof value.coordination.businessContactAuthorized !== 'boolean')) return null;
+  const closure = isRecord(value.closure) && value.closure.reasonCode === 'CUSTOMER_CANCELLED_BEFORE_RESPONSE'
+    && value.closure.reasonDetail === null && value.closure.actor === 'CUSTOMER'
+    && positiveInteger(value.closure.actorUserId) && value.closure.actorUserId <= 2147483647
+    && typeof value.closure.closedAt === 'string' && Number.isFinite(Date.parse(value.closure.closedAt))
+    ? { reasonCode: 'CUSTOMER_CANCELLED_BEFORE_RESPONSE' as const, reasonDetail: null,
+      actor: 'CUSTOMER' as const, actorUserId: value.closure.actorUserId, closedAt: value.closure.closedAt } : undefined;
+  if (isRecord(value.closure) && value.closure.reasonCode === 'CUSTOMER_CANCELLED_BEFORE_RESPONSE' && !closure) return null;
   return {
     id: value.id, state: value.state, version: value.version,
     currentProposalId: value.currentProposalId,
     agreementPublicId: value.agreementPublicId as string | null,
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
+    ...(closure ? { closure } : {}),
     ...(typeof value.readyNoticeAcknowledged === 'boolean' ? { readyNoticeAcknowledged: value.readyNoticeAcknowledged } : {}),
     ...(isRecord(value.coordination) ? { coordination: {
       customerContactAuthorized: value.coordination.customerContactAuthorized as boolean,
@@ -51,12 +60,18 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
   };
 }
 
+export function isPendingRequestCancelled(process: RequestProcessSummary | null | undefined) {
+  return process?.state === 'CLOSED' && process.agreementPublicId === null && process.allowedActions.length === 0 &&
+    process.closure?.reasonCode === 'CUSTOMER_CANCELLED_BEFORE_RESPONSE' && process.closure.actor === 'CUSTOMER';
+}
+
 export function canAcceptFixedOrder(order: ProcessOrder): boolean {
   return order.requestProcess?.state === 'AWAITING_BUSINESS_RESPONSE' &&
     order.requestProcess.allowedActions.includes('ACCEPT_FIXED_ORDER');
 }
 
 export function processStatusLabel(order: ProcessOrder): string {
+  if (isPendingRequestCancelled(order.requestProcess)) return 'Anulada por el cliente';
   if (order.requestProcess?.state === 'AWAITING_BUSINESS_RESPONSE') return 'Pendiente de respuesta';
   if (order.requestProcess?.state === 'COORDINATION_PENDING') return 'Coordinación pendiente';
   if (order.requestProcess?.state === 'COORDINATING') return 'Coordinando';

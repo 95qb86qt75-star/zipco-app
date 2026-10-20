@@ -4,6 +4,7 @@ import { showAppToast } from '../screens/Toast';
 import { orderNotificationState } from '../screens/requests/requestProcess';
 import { publishActiveRequestCount, markInteractionUnread } from './unreadInteractions';
 import { pendingProcess, coordinationProcess } from '../screens/requests/requestProcessFixtures';
+import { cancelledPendingOrder } from '../screens/requests/pendingCancellationFixtures';
 
 const runtime = vi.hoisted(() => ({ cleanup: undefined as undefined | (() => void) }));
 // Exercise the monitor's real effect, event listeners and timers without adding a DOM dependency.
@@ -88,6 +89,15 @@ function businessServer(initial: Array<{ id: number; status: string }>) {
 }
 
 describe('monitor acceptance flow across service worker and polling', () => {
+  it('updates business counts after customer pending cancellation without a new internal notice', async () => {
+    const server = businessServer([pending]);
+    BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    vi.mocked(showAppToast).mockClear(); vi.mocked(markInteractionUnread).mockClear();
+    server.setOrders([cancelledPendingOrder]);
+    document.dispatchEvent(new Event('visibilitychange')); await tick();
+    expect(publishActiveRequestCount).toHaveBeenLastCalledWith(0);
+    expect(showAppToast).not.toHaveBeenCalled(); expect(markInteractionUnread).not.toHaveBeenCalled();
+  });
   it('does not announce old pending business orders when opening a different order from a system notification', async () => {
     localStorage.setItem('zipco-business-id', '42');
     localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));

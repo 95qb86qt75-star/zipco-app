@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as any[], cursor: 0, effects: [] as (() => void)[], dirty: false,
-  orders: [] as any[], loading: true, load: vi.fn(), action: vi.fn(), unread: new Set<string>(),
+  orders: [] as any[], loading: true, error: '', load: vi.fn(), action: vi.fn(), unread: new Set<string>(),
   quotes: [] as any[], focused: vi.fn(), cleanups: [] as (() => void)[], committed: null as React.ReactNode }));
 vi.mock('react', async (original) => ({ ...await original<typeof import('react')>(),
   useState: (initial: any) => {
@@ -26,7 +26,7 @@ vi.mock('react', async (original) => ({ ...await original<typeof import('react')
 }));
 vi.mock('motion/react', async (original) => ({ ...await original<typeof import('motion/react')>(), useReducedMotion: () => false }));
 vi.mock('./requests/useRequests', () => ({ default: () => ({ myOrders: hooks.orders, requests: hooks.orders, hasBusiness: true,
-  isLoading: hooks.loading, loadError: '', updatingOrderIds: new Set(), loadOrders: hooks.load, performAction: hooks.action }) }));
+  isLoading: hooks.loading, loadError: hooks.error, updatingOrderIds: new Set(), loadOrders: hooks.load, performAction: hooks.action }) }));
 vi.mock('./quotes/useQuotes', () => ({ default: () => ({ myQuotes: hooks.quotes, businessQuotes: hooks.quotes,
   loading: false, error: '', updating: new Set(), load: hooks.load }) }));
 vi.mock('../notifications/unreadInteractions', () => ({ useUnreadInteractions: () => ({ unread: hooks.unread }),
@@ -40,6 +40,8 @@ import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import MyOrdersTab from './requests/MyOrdersTab';
 import { rawOrder, coordinationProcess, pendingProcess } from './requests/requestProcessFixtures';
 import { normalizeMyOrdersPayload } from './requests/orderNormalization';
+import { OrderHistoryList } from './requests/CompactHistoryList';
+import { cancelPendingOrder, cancelledPendingOrder, cancelledPendingReceipt } from './requests/pendingCancellationFixtures';
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
   return React.Children.toArray(root).flatMap((child) => React.isValidElement(child)
@@ -63,6 +65,7 @@ beforeEach(() => {
   hooks.slots = []; hooks.effects = []; hooks.cleanups = []; hooks.orders = [];
   hooks.quotes = [];
   hooks.loading = true; hooks.focused.mockReset(); hooks.action.mockReset(); hooks.load.mockReset();
+  hooks.error = '';
   session = false; mutate = noop;
   doc = Object.assign(new EventTarget(), { documentElement: {}, visibilityState: 'visible', activeElement: null,
     getElementById: vi.fn(() => null), querySelector: vi.fn(() => null) });
@@ -75,6 +78,30 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', { getItem: () => session ? 'synthetic-session-value' : null });
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
+
+describe('confirmed pending cancellation destination', () => {
+  it('selects Historial after the confirmed receipt and keeps it visible if the following read fails', () => {
+    hooks.loading = false; hooks.orders = normalizeMyOrdersPayload([cancelPendingOrder]);
+    render();
+    window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: cancelledPendingReceipt }));
+    // useRequests applies this same confirmed receipt even when the subsequent GET fails.
+    hooks.orders = normalizeMyOrdersPayload([cancelledPendingOrder]); hooks.error = 'Read failed';
+    const result = render();
+    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('history');
+    expect(nodes(result).find(node => node.type === OrderHistoryList)?.props.orders[0].status).toBe('cancelled');
+    expect(nodes(result).some(node => typeof node.props.children === 'string' && node.props.children.includes('La anulación está confirmada.'))).toBe(true);
+    expect(hooks.action).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate for a mismatched receipt or in the business view', () => {
+    hooks.loading = false; hooks.orders = normalizeMyOrdersPayload([cancelPendingOrder]);
+    render(); window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: { ...cancelledPendingReceipt, orderId: 999 } }));
+    expect(nodes(render()).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('pending');
+    hooks.slots = []; window.location.search = '?open=requests-business'; render();
+    window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: cancelledPendingReceipt }));
+    expect(nodes(render()).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('pending');
+  });
+});
 
 describe('RequestsScreen notification destination with late session and lists', () => {
   it.each([

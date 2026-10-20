@@ -16,9 +16,14 @@ vi.mock('react', async (original) => ({
 }));
 vi.mock('react-dom', async (original) => ({ ...await original<typeof import('react-dom')>(), createPortal: (children: React.ReactNode) => children }));
 vi.mock('./useAgreement', () => ({ default: () => ({ state: hooks.agreement, retry: hooks.retry }) }));
+vi.mock('../../notifications/unreadInteractions', async original => ({
+  ...await original<typeof import('../../notifications/unreadInteractions')>(), markInteractionRead: vi.fn(),
+}));
 import ProcessOrderCard from './ProcessOrderCard';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
+import PendingCancellationActions from './PendingCancellationActions';
+import { cancelPendingOrder, cancelledPendingOrder } from './pendingCancellationFixtures';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { OrderCardDisclosure } from './OrderCardPanels';
 import { BusinessOrderHeader, CustomerOrderHeader } from './OrderCardHeaders';
@@ -49,6 +54,30 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it('mounts pending cancellation only on the customer card, independently of its disclosure', () => {
+    const order = normalizeMyOrdersPayload([cancelPendingOrder])[0];
+    for (const expanded of [false, true]) {
+      expect(elements(render({ ...props, order, business: false, expanded, onToggle: vi.fn() }))
+        .some(node => node.type === PendingCancellationActions)).toBe(true);
+      expect(elements(render({ ...props, order, business: true, expanded, onToggle: vi.fn() }))
+        .some(node => node.type === PendingCancellationActions)).toBe(false);
+    }
+  });
+
+  it.each([false, true])('keeps original cancelled request details in history without an agreement (business=%s)', business => {
+    const order = business ? normalizeBusinessOrdersPayload([cancelledPendingOrder])[0] : normalizeMyOrdersPayload([cancelledPendingOrder])[0];
+    const history = () => { hooks.cursor = 0; return ProcessHistoryCard({ order }); };
+    const view = history();
+    expect(renderToStaticMarkup(view)).toContain('Anulada por el cliente');
+    const open = elements(view).find(node => node.type === 'button')!;
+    expect(open.props.children).toBe('Ver solicitud');
+    (open.props.onClick as () => void)();
+    const expanded = history();
+    expect(elements(expanded).some(node => node.type === AcceptedConditionsPanel)).toBe(false);
+    const html = renderToStaticMarkup(expanded);
+    expect(html).toContain('Solicitud original'); expect(html).toContain('Producto de prueba'); expect(html).toContain('Nota de prueba');
+    expect(html).not.toContain('Condiciones aceptadas'); expect(html).not.toContain('Abrir acuerdo');
+  });
   it.each(['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'])('compacts business %s agreement without repeating its title or total and keeps actions accessible', (state) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const order = normalizeBusinessOrdersPayload([{ ...raw, status: state === 'READY' ? 'ready' : 'accepted', requestProcess: { ...coordinationProcess, state } }])[0];

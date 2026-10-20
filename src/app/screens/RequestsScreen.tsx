@@ -53,6 +53,7 @@ import LoadOrdersDiagnostics from './requests/LoadOrdersDiagnosticsPanel';
 import { waitForNotificationCard } from '../notifications/notificationNavigation';
 import { traceNotificationClick } from '../notifications/notificationClickTrace';
 import { scrollToRequestResults } from './requests/requestSummaryScroll';
+import { isPendingRequestCancelled, normalizeRequestProcess } from './requests/requestProcess';
 
 export default function RequestsScreen({
   onBack,
@@ -293,6 +294,8 @@ export default function RequestsScreen({
         quotes.myQuotes.filter((quote) => selectedIds.has(quote.id)),
       );
   }
+  const confirmedCancellationInHistory = subTab === 'my-orders' && requestType === 'orders' && statusView === 'history' &&
+    filteredMyOrders.some(order => order.status === 'cancelled' && isPendingRequestCancelled(order.requestProcess));
   const emptyCopy = {
     coordination: { title: 'No tienes pedidos en Coordinación', description: 'Los pedidos aceptados de esta etapa aparecerán aquí.' },
     pending: {
@@ -477,6 +480,21 @@ export default function RequestsScreen({
   useEffect(() => {
     if (!hasBusiness && subTab === "my-business") setSubTab("my-orders");
   }, [hasBusiness, subTab]);
+
+  useEffect(() => {
+    const cancelled = (event: Event) => {
+      const receipt = (event as CustomEvent).detail;
+      if (subTab !== 'my-orders' || requestType !== 'orders' || receipt?.orderStatus !== 'cancelled') return;
+      const process = normalizeRequestProcess(receipt.requestProcess);
+      if (!process || !isPendingRequestCancelled(process) || !myOrders.some(order =>
+        order.id === receipt.orderId && order.requestProcess?.id === process.id && order.requestProcess.version <= process.version)) return;
+      setAttentionFilter('browse');
+      setStatusViews(current => ({ ...current, 'my-orders-orders': 'history' }));
+      setHistoryFilters(current => ({ ...current, 'my-orders-orders': 'all' }));
+    };
+    window.addEventListener('zipco-process-receipt', cancelled);
+    return () => window.removeEventListener('zipco-process-receipt', cancelled);
+  }, [subTab, requestType, myOrders]);
 
   useEffect(() => {
     const spacer = document.querySelector<HTMLElement>('[data-summary-scroll-space]');
@@ -1238,7 +1256,7 @@ export default function RequestsScreen({
             {!isLoading && loadError && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
                 <p className="text-sm font-semibold text-red-700">
-                  {loadError}
+                  {confirmedCancellationInHistory ? 'La anulación está confirmada. No se pudieron actualizar los pedidos; puedes reintentar la lectura.' : loadError}
                 </p>
                 <button
                   type="button"
@@ -1253,7 +1271,7 @@ export default function RequestsScreen({
             )}
 
             {!isLoading &&
-              !loadError &&
+              (!loadError || confirmedCancellationInHistory) &&
               statusView === "history" &&
               subTab === "my-orders" &&
               filteredMyOrders.length > 0 && (

@@ -14,6 +14,7 @@ vi.mock('react', () => ({
 vi.mock('../Toast', () => ({ showAppToast: hooks.toast }));
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { rawOrder, coordinationProcess } from './requestProcessFixtures';
+import { cancelPendingOrder, cancelledPendingOrder, cancelledPendingReceipt } from './pendingCancellationFixtures';
 const process = { ...coordinationProcess, allowedActions: ['OPEN_WHATSAPP', 'START_WORK'],
   coordination: { customerContactAuthorized: true, businessContactAuthorized: true } };
 const raw = { ...rawOrder, status: 'accepted', requestProcess: process };
@@ -34,6 +35,74 @@ beforeEach(() => {
     removeEventListener: target.removeEventListener.bind(target), location: { assign: navigate } });
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
+describe('pending cancellation recovery with mocked backend', () => {
+  it('keeps cancellation confirmed after a failed GET and never sends it twice', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(response(cancelledPendingReceipt)).mockRejectedValue(new TypeError('offline'));
+    vi.stubGlobal('fetch', fetcher); const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([cancelPendingOrder])[0], false, vi.fn());
+    expect(await hook.run('CANCEL_PENDING_REQUEST')).toBe(true);
+    expect(await hook.run('CANCEL_PENDING_REQUEST')).toBe(false);
+    expect(await hook.retry()).toBe(false);
+    const receipt = dispatch.mock.calls.find(([event]) => event.type === 'zipco-process-receipt')![0] as CustomEvent;
+    expect(receipt.detail).toEqual(cancelledPendingReceipt);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('retries a lost response with the original key and exact body', async () => {
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('offline'))
+      .mockResolvedValueOnce(response(cancelledPendingReceipt)).mockResolvedValueOnce(response([cancelledPendingOrder]));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([cancelPendingOrder])[0], false, vi.fn());
+    expect(await hook.run('CANCEL_PENDING_REQUEST')).toBe(false);
+    expect(await hook.retry()).toBe(true);
+    const posts = fetcher.mock.calls.filter(([, init]) => init?.method === 'POST');
+    expect(posts).toHaveLength(2);
+    expect(posts[0][1].headers['Idempotency-Key']).toBe(posts[1][1].headers['Idempotency-Key']);
+    expect(posts[0][1].body).toBe(posts[1][1].body);
+    expect(JSON.parse(posts[0][1].body)).toEqual({ expectedVersion: 1, confirmationAccepted: true });
+  });
+
+  it('reconciles a restored intent by reading CLOSED without another POST', async () => {
+    sessionStorage.setItem('zipco-coordination:synthetic:customer:7', JSON.stringify({ action: 'CANCEL_PENDING_REQUEST',
+      body: { expectedVersion: 1, confirmationAccepted: true }, key: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' }));
+    const fetcher = vi.fn().mockResolvedValue(response([cancelledPendingOrder])); vi.stubGlobal('fetch', fetcher);
+    const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([cancelPendingOrder])[0], false, vi.fn());
+    expect(await hook.retry()).toBe(false); expect(fetcher).not.toHaveBeenCalled();
+    await hook.update(); expect(hook.pending()).toBeNull(); expect(fetcher).toHaveBeenCalledOnce();
+    expect(fetcher.mock.calls[0][1].method).toBeUndefined();
+    expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt')).toBe(true);
+  });
+
+  it('settles an uncertain cancellation through Actualizar estado without resubmitting it', async () => {
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('response lost')).mockResolvedValue(response([cancelledPendingOrder]));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([cancelPendingOrder])[0], false, vi.fn());
+    expect(await hook.run('CANCEL_PENDING_REQUEST')).toBe(false);
+    await hook.update(); expect(hook.pending()).toBeNull();
+    expect(await hook.retry()).toBe(false);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+  });
+
+  it.each(['STALE_VERSION', 'INCOMPATIBLE_STATE'])('refreshes %s after business acceptance without switching to another cancellation action', async code => {
+    const latest = { ...cancelPendingOrder, status: 'accepted', requestProcess: { ...coordinationProcess, allowedActions: [] } };
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ code }, 409)).mockResolvedValueOnce(response([latest]));
+    vi.stubGlobal('fetch', fetcher); const refresh = vi.fn(), dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeMyOrdersPayload([cancelPendingOrder])[0], false, refresh);
+    expect(await hook.run('CANCEL_PENDING_REQUEST')).toBe(false);
+    expect(hook.pending()).toBeNull(); expect(refresh).toHaveBeenCalledOnce();
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+    expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt')).toBe(false);
+    expect(hooks.toast).toHaveBeenCalledWith(expect.stringContaining('negocio ya respondió'), 'error');
+  });
+});
+
 describe('coordination hook with mocked server and external navigation', () => {
   it.each(['ACK_READY_NOTICE', 'CONFIRM_RECEIPT'] as const)('does not repeat confirmed %s after GET failure or double touch', async (action) => {
     const receiptAction = action === 'CONFIRM_RECEIPT';

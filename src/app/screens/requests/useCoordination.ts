@@ -5,6 +5,7 @@ import { coordinationAllowed, coordinationBody, refreshCoordinationOrder, sendCo
 import { RequestProcessError } from './requestProcessErrors';
 import { operationScope, readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import { showAppToast } from '../Toast';
+import { isPendingRequestCancelled } from './requestProcess';
 
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
 const intents = () => shared ??= createCoordinationIntents(undefined, typeof sessionStorage === 'undefined' ? undefined : sessionStorage);
@@ -47,11 +48,12 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       if (!active()) return;
       if (!latest?.requestProcess || latest.requestProcess.id !== original.processId) throw new Error();
       const intent = pending();
-      if (intent && restored()) {
+      if (intent && (restored() || intent.action === 'CANCEL_PENDING_REQUEST')) {
         const current = latest.requestProcess;
         const applied = intent.action === 'AUTHORIZE_CONTACT' ? current.coordination?.customerContactAuthorized === true
           : intent.action === 'ACK_READY_NOTICE' ? current.readyNoticeAcknowledged === true
           : intent.action === 'CONFIRM_RECEIPT' ? current.state === 'COMPLETED'
+          : intent.action === 'CANCEL_PENDING_REQUEST' ? isPendingRequestCancelled(current)
           : intent.action === 'MARK_READY' ? current.state === 'READY'
           : intent.action === 'START_WORK' ? current.state === 'IN_PROGRESS'
             : intent.action === 'ANNUL_COORDINATION' ? current.state === 'COORDINATION_CANCELLED'
@@ -64,6 +66,10 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       }
       intents().retryCleanup(scope, original.processId);
       recovery.current = false; setNeedsUpdate(false); setMessage(storageWarning());
+      if (intent?.action === 'CANCEL_PENDING_REQUEST' && isPendingRequestCancelled(latest.requestProcess))
+        window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: {
+          orderId: latest.id, orderStatus: latest.status, requestProcess: latest.requestProcess,
+        } }));
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh')); refresh();
     } catch { announce('No se pudo actualizar el estado del pedido. Intenta nuevamente; no se repetirá la operación confirmada.'); }
     finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
@@ -73,13 +79,13 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     const process = order.requestProcess;
     if (!retry && !coordinationAllowed(process, business, action)) return false;
     if (retry && (!pending() || pending()?.action !== action ||
-      (['START_WORK', 'MARK_READY'].includes(action) && !business) || (['AUTHORIZE_CONTACT', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT'].includes(action) && business))) return false;
+      (['START_WORK', 'MARK_READY'].includes(action) && !business) || (['AUTHORIZE_CONTACT', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'CANCEL_PENDING_REQUEST'].includes(action) && business))) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setMessage('');
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.
       const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail),
-        (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal), retry, active);
+        (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal, process.currentProposalId), retry, active);
       if (!response || !active()) return false;
       let latest: Awaited<ReturnType<typeof refreshCoordinationOrder>> = null;
       const emitReceipt = () => {
@@ -123,7 +129,10 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         } catch { /* Keep the exact intention for reconciliation; cancellation does not undo the server. */ }
         if (active()) refresh();
       }
-      if (active()) setMessage(storageWarning() || (error instanceof RequestProcessError ? error.message : uncertainCoordinationMessage));
+      if (active()) {
+        const text = storageWarning() || (error instanceof RequestProcessError ? error.message : uncertainCoordinationMessage);
+        if (action === 'CANCEL_PENDING_REQUEST') announce(text); else setMessage(text);
+      }
       return false;
     } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
