@@ -79,8 +79,8 @@ try {
     await wait('document.querySelector("button")?.textContent === "Proponer alternativa"');
     await touch('Proponer alternativa'); await wait('!!document.querySelector("[role=dialog]")');
     const initial = await evaluate(`(() => { const d=document.querySelector('[role=dialog]'); return { fits:d.scrollWidth<=d.clientWidth+1,
-      local:d.textContent.includes('Solo preparación'), quantityDisabled:[...d.querySelectorAll('button')].find(b=>b.textContent.includes('Cantidad')).disabled }; })()`);
-    assert(initial.fits && initial.local, 'Modal must fit and disclose preparation only');
+      removedNotice:!d.textContent.includes('Solo preparación. Aún no se puede enviar al cliente.'), quantityDisabled:[...d.querySelectorAll('button')].find(b=>b.textContent.includes('Cantidad')).disabled }; })()`);
+    assert(initial.fits && initial.removedNotice, 'Modal must fit without the removed visual notice');
     assert.equal(initial.quantityDisabled, type === 'service');
     // Match the recovered tile's label, leaving its hint untouched.
     await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Precio por unidad'));b.click();})()`);

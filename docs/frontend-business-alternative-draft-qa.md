@@ -160,3 +160,23 @@ su publicación mantiene el mismo código funcional y override exclusivo QA.
 El SHA visible final cambia al del cierre. No hay conformidad física del nuevo
 formulario ni flujo integrado de alternativas; no se ejecutaron acciones reales,
 uploads o cambios de pedidos en la implementación, validación o publicación.
+
+## UI-BUSINESS-ALTERNATIVE-NOTICE-01 — Retirar aviso visual — 2026-10-20
+
+Bastián solicitó retirar del formulario el bloque «Solo preparación. Aún no se
+puede enviar al cliente. Al cerrar se descartan estos cambios.», visible en QA
+c6adc3d. Clasificación: **solo frontend, visual**. Se elimina exclusivamente ese
+párrafo; esta entrada actualiza su presentación respecto del registro anterior.
+
+El envío permanece literalmente bloqueado, sin handler ni activación del contrato.
+Se conservan validaciones, permisos, revisión, descarte al cerrar, foto local y
+solicitud original. No cambian campos/endpoints, recargas, backend, Railway,
+configuración global, main o producción. No se ejecutan acciones reales.
+
+Archivos: PendingAlternativeActions.tsx (párrafo),
+PendingAlternativeActions.test.ts (ausencia y bloqueo conservado),
+scripts/check-business-alternative-draft.mjs (comprobación DOM actualizada) y esta
+ficha; referencia de catálogo añadida al cierre. **28 pruebas, build QA y 6
+escenarios táctiles Chrome aprobados**. Sin acceso backend, uploads o persistencia.
+Advertencia habitual del tamaño del bundle. Revisión física móvil del ajuste
+pendiente; sin declarar verificado el recorrido integrado de alternativas.

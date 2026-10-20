@@ -67,7 +67,6 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
         <Dialog.Title className="pr-7 text-lg font-black">{reviewing ? 'Revisar alternativa' : 'Proponer una alternativa'}</Dialog.Title>
         <Dialog.Description className="mt-1 text-sm text-slate-600 dark:text-slate-300">Selecciona qué aspectos quieres modificar. La solicitud original se conserva.</Dialog.Description>
         <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full"><X className="h-5 w-5" /></button></Dialog.Close>
-        <p role="status" className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900">Solo preparación. Aún no se puede enviar al cliente. Al cerrar se descartan estos cambios.</p>
         {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
         <fieldset disabled={!current} className={reviewing ? 'hidden' : ''}>
           {source.items.length > 1 && <label className="mt-3 block text-sm font-bold">Artículo a modificar

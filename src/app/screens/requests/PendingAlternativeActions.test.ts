@@ -39,6 +39,7 @@ describe('recovered alternative design, preparation only', () => {
   it('reuses the original fields and produces a review while every submission path remains blocked', () => {
     const o = order(); const before = JSON.stringify(o);
     const view = render(o); expect(nodes(view).find(n => n.type === Dialog.Title)?.props.children).toBe('Proponer una alternativa');
+    expect(nodes(view).some(n => typeof n.props.children === 'string' && n.props.children.includes('Solo preparación. Aún no se puede enviar al cliente.'))).toBe(false);
     expect(fields().original).toContain('2x Producto de prueba');
     expect(fields().photoFields.type).toBe(LocalAlternativePhoto);
     fields().onSelectedChange(new Set(['price'])); fields().setPrice('1500'); fields().setMessage('Cambio de precio por la preparación.');
