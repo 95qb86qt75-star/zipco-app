@@ -195,3 +195,11 @@ regresión campanitas 24 casos aprobados en repetición aislada, primer resultad
 de medición de animación conservado en la ficha. Preview funcional READY.
 Conformidad del diseño en celulares y recorrido integrado pendientes.
 [Diseño recuperado, archivos y evidencia](frontend-business-alternative-draft-qa.md).
+
+### UI-BUSINESS-ALTERNATIVE-NOTICE-01 — Formulario sin aviso de preparación
+
+2026-10-20. Código `2e745f0b918f0f46adc61f86a4ae76b816d74bfd`, rama qa.
+Solo se retira el párrafo amarillo «Solo preparación…» del modal de alternativa.
+Se conservan diseño restante, validaciones, descarte y envío bloqueado.
+28 pruebas, build QA y 6 escenarios táctiles Chrome aprobados; Preview funcional
+READY. Revisión física pendiente. [Archivos y resultado](frontend-business-alternative-draft-qa.md).

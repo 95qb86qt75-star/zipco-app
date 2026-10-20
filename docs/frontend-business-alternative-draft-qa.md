@@ -180,3 +180,12 @@ ficha; referencia de catálogo añadida al cierre. **28 pruebas, build QA y 6
 escenarios táctiles Chrome aprobados**. Sin acceso backend, uploads o persistencia.
 Advertencia habitual del tamaño del bundle. Revisión física móvil del ajuste
 pendiente; sin declarar verificado el recorrido integrado de alternativas.
+
+Resultado publicado: código `2e745f0b918f0f46adc61f86a4ae76b816d74bfd` en
+origin/qa, Preview READY `dpl_F2VogWkUeRH4ELzazQ8N8TjDXeWJ`, URL propia
+https://zipco-qjrp7pvwk-zipco-s-projects.vercel.app. GitHub real, SHA exacto,
+rama qa y Preview verificados. Alias habitual QA apunta a ese despliegue al
+comprobarlo. Build qa completo, flags temporales por despliegue conservados,
+Backend QA y build global/producción sin cambios. Este resultado y la referencia
+del catálogo se guardan en un cierre documental posterior, con el mismo código
+funcional; su SHA pasa a ser la versión visible final. Envío sigue bloqueado.
