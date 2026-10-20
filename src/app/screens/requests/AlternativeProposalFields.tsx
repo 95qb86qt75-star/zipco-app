@@ -8,10 +8,11 @@ import {
   Trash2,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { getCloudinarySecureImageUrl } from "../profile/business-config/catalogValidation";
 
-type ChangeKey = "item" | "price" | "quantity" | "schedule";
+export type ChangeKey = "item" | "price" | "quantity" | "schedule";
 
 type Props = {
   original: string;
@@ -31,6 +32,17 @@ type Props = {
   setPhoto: (value: string) => void;
   priceRequired?: boolean;
   customerName?: string | null;
+  selectedChanges?: ReadonlySet<ChangeKey>;
+  onSelectedChange?: (value: Set<ChangeKey>) => void;
+  itemFields?: ReactNode;
+  scheduleFields?: ReactNode;
+  photoFields?: ReactNode;
+  priceLabel?: string;
+  strictPrice?: boolean;
+  quantityLocked?: boolean;
+  quantityMax?: number;
+  messageMaxLength?: number;
+  explanationHint?: string;
 };
 
 const choices: Array<{
@@ -66,18 +78,26 @@ const choices: Array<{
 ];
 
 export default function AlternativeProposalFields(props: Props) {
-  const [selected, setSelected] = useState<Set<ChangeKey>>(
+  const [localSelected, setSelected] = useState<Set<ChangeKey>>(
     () => new Set(props.priceRequired ? ["price"] : []),
   );
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const toggle = (key: ChangeKey) =>
+  const selected = props.selectedChanges ?? localSelected;
+  const toggle = (key: ChangeKey) => {
+    if (key === 'quantity' && props.quantityLocked) return;
+    if (props.onSelectedChange) {
+      if (key === 'price' && props.priceRequired) return;
+      const next = new Set(selected); next.has(key) ? next.delete(key) : next.add(key);
+      props.onSelectedChange(next); return;
+    }
     setSelected((current) => {
       if (key === "price" && props.priceRequired) return current;
       const next = new Set(current);
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  };
   const upload = async (file?: File) => {
     if (!file) return;
     setUploading(true);
@@ -119,6 +139,8 @@ export default function AlternativeProposalFields(props: Props) {
               <button
                 key={key}
                 type="button"
+                aria-pressed={active}
+                disabled={key === 'quantity' && props.quantityLocked}
                 onClick={() => toggle(key)}
                 className={`min-h-[82px] rounded-2xl border p-3 text-left transition-all ${active ? "border-violet-400 bg-violet-500/15 text-violet-700 ring-1 ring-violet-300 dark:text-violet-200" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"}`}
               >
@@ -127,7 +149,7 @@ export default function AlternativeProposalFields(props: Props) {
                   {active && <Check className="h-4 w-4" />}
                 </span>
                 <span className="mt-2 block text-xs font-black">
-                  {key === "price" && props.priceRequired
+                  {key === 'price' && props.priceLabel ? props.priceLabel : key === "price" && props.priceRequired
                     ? "Precio final"
                     : label}
                 </span>
@@ -145,20 +167,21 @@ export default function AlternativeProposalFields(props: Props) {
           })}
         </div>
       </div>
-      {selected.has("item") && (
+      {selected.has("item") && (props.itemFields ?? (
         <input
           value={props.item}
           onChange={(e) => props.setItem(e.target.value)}
           placeholder="Nueva opción propuesta"
           className="zipco-readable-field w-full rounded-xl border p-3 text-sm"
         />
-      )}
+      ))}
       {selected.has("price") && (
         <input
           inputMode="numeric"
           value={props.price}
-          onChange={(e) => props.setPrice(e.target.value.replace(/\D/g, ""))}
-          placeholder="Nuevo precio"
+          onChange={(e) => props.setPrice(props.strictPrice ? e.target.value : e.target.value.replace(/\D/g, ""))}
+          aria-label={props.priceLabel ?? 'Nuevo precio'}
+          placeholder={props.priceLabel ?? 'Nuevo precio'}
           className="zipco-readable-field w-full rounded-xl border p-3 text-sm"
         />
       )}
@@ -168,6 +191,8 @@ export default function AlternativeProposalFields(props: Props) {
           <div className="flex items-center gap-3">
             <button
               type="button"
+              aria-label="Disminuir cantidad"
+              disabled={props.quantityLocked || (props.quantityMax !== undefined && Number(props.quantity) <= 1)}
               onClick={() =>
                 props.setQuantity(
                   String(Math.max(1, Number(props.quantity || 1) - 1)),
@@ -182,6 +207,8 @@ export default function AlternativeProposalFields(props: Props) {
             </span>
             <button
               type="button"
+              aria-label="Aumentar cantidad"
+              disabled={props.quantityLocked || (props.quantityMax !== undefined && Number(props.quantity) >= props.quantityMax)}
               onClick={() =>
                 props.setQuantity(String(Number(props.quantity || 1) + 1))
               }
@@ -192,7 +219,7 @@ export default function AlternativeProposalFields(props: Props) {
           </div>
         </div>
       )}
-      {selected.has("schedule") && (
+      {selected.has("schedule") && (props.scheduleFields ?? (
         <div className="grid grid-cols-2 gap-2">
           <input
             type="date"
@@ -207,22 +234,22 @@ export default function AlternativeProposalFields(props: Props) {
             className="zipco-readable-field w-full rounded-xl border p-3 text-sm"
           />
         </div>
-      )}
+      ))}
       <label className="block text-sm font-black text-slate-900 dark:text-white">
         Explícale tu respuesta al cliente
         <span className="mt-1 block text-xs font-normal text-slate-500">
-          Deja un comentario breve para que comprenda el precio o cualquier
-          cambio.
+          {props.explanationHint ?? 'Deja un comentario breve para que comprenda el precio o cualquier cambio.'}
         </span>
         <textarea
           value={props.message}
           onChange={(e) => props.setMessage(e.target.value)}
           rows={3}
+          maxLength={props.messageMaxLength}
           placeholder="Ej: Puedo ofrecerte esta alternativa porque…"
           className="zipco-readable-field mt-2 w-full rounded-xl border p-3 text-sm font-normal"
         />
       </label>
-      {props.photo ? (
+      {props.photoFields !== undefined ? props.photoFields : props.photo ? (
         <div className="relative overflow-hidden rounded-2xl border border-violet-300">
           <ImageWithFallback
             src={props.photo}
@@ -257,13 +284,13 @@ export default function AlternativeProposalFields(props: Props) {
           </span>
         </button>
       )}
-      <input
+      {props.photoFields === undefined && <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         hidden
         onChange={(e) => void upload(e.target.files?.[0])}
-      />
+      />}
     </div>
   );
 }

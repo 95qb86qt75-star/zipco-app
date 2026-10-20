@@ -24,7 +24,8 @@ describe('2A presentation and legacy compatibility', () => {
     const html = render(React.createElement(BusinessOrderCard, { request, ...callbacks, expanded: true }));
     expect(html.match(/Aceptar pedido/g)).toHaveLength(1);
     expect(html).toContain('Nota de prueba'); expect(html).toContain('Imagen adjunta');
-    for (const text of ['Proponer alternativa', 'Rechazar pedido', 'Marcar como listo', 'Cancelar pedido', 'Confirmar entrega']) expect(html).not.toContain(text);
+    expect(html).toContain('Proponer alternativa'); // Local preparation only; no proposal submission in this block.
+    for (const text of ['Rechazar pedido', 'Marcar como listo', 'Cancelar pedido', 'Confirmar entrega']) expect(html).not.toContain(text);
   });
   it('hides all customer actions for 2A', () => {
     const order = normalizeMyOrdersPayload([{ ...rawOrder, requestProcess: pendingProcess }])[0];

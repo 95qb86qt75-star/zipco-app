@@ -365,7 +365,7 @@ describe('reused 2A card design without legacy actions', () => {
     expect(props.onOpen).toHaveBeenCalledTimes(2); expect(props.onAccept).not.toHaveBeenCalled();
   });
 
-  it('uses the existing controlled business expansion and keeps acceptance as its only action', () => {
+  it('uses the existing controlled business expansion and retains acceptance with local alternative preparation', () => {
     const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
     const onToggle = vi.fn();
     const compact = render({ ...props, order, business: true, expanded: false, onToggle });
@@ -374,7 +374,8 @@ describe('reused 2A card design without legacy actions', () => {
     const view = render({ ...props, order, business: true, expanded: true, onToggle });
     const accept = elements(view).find((node) => node.type === 'button' && node.props.disabled === false)!;
     (accept.props.onClick as (event: unknown) => void)(event()); expect(props.onAccept).toHaveBeenCalledOnce();
-    expect(renderToStaticMarkup(view)).not.toMatch(/Rechazar pedido|Proponer alternativa|Marcar como listo|WhatsApp/);
+    expect(renderToStaticMarkup(view)).toContain('Proponer alternativa');
+    expect(renderToStaticMarkup(view)).not.toMatch(/Rechazar pedido|Marcar como listo|WhatsApp/);
     expect(elements(render({ ...props, order, business: true, expanded: true, isUpdating: true, onToggle })).some((node) => node.props.disabled === true)).toBe(true);
   });
 

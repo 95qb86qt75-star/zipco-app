@@ -255,6 +255,7 @@ function normalizeCandidate(
 
   const common = {
     ...identity,
+    orderType: record.orderType === 'product' || record.orderType === 'service' ? record.orderType : null,
     ...(Object.prototype.hasOwnProperty.call(record, 'requestProcess')
       ? normalizeOrderProcess(record.requestProcess) : {}),
     clientKey,

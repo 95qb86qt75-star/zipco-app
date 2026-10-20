@@ -80,6 +80,7 @@ type UnavailableOrderIdentity = {
 export type OrderIdentity = AvailableOrderIdentity | UnavailableOrderIdentity;
 
 type CommonOrderData = {
+  orderType?: 'product' | 'service' | null;
   requestProcess?: RequestProcessSummary | null; requestProcessInvalid?: boolean;
   clientKey: string;
   businessId: number | null;

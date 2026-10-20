@@ -31,7 +31,8 @@ describe('card characterization before visual extraction', () => {
     const accepted = normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const html = renderToStaticMarkup(React.createElement(BusinessOrderCard, { request: pending, ...props, expanded: true }));
     expect(html.match(/Aceptar pedido/g)).toHaveLength(1);
-    for (const action of ['Proponer alternativa', 'Rechazar pedido', 'Marcar como listo']) expect(html).not.toContain(action);
+    expect(html).toContain('Proponer alternativa');
+    for (const action of ['Rechazar pedido', 'Marcar como listo']) expect(html).not.toContain(action);
     expect(renderToStaticMarkup(React.createElement(MyOrderCard, { order: accepted, ...props }))).not.toContain('Preparación');
   });
 });

@@ -194,6 +194,15 @@ describe('legacy action and recovery through useRequests', () => {
     expect(fetch.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1);
   });
 
+  it('never sends a process alternative through the historical transport, including negotiated permission', async () => {
+    const input = { ...rawOrder, orderType: 'product', requestProcess: { ...coordinationProcess,
+      state: 'AWAITING_BUSINESS_RESPONSE', agreementPublicId: null, allowedActions: ['ACCEPT_FIXED_ORDER', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE'] } };
+    const fetcher = vi.fn(async () => reply([input])); vi.stubGlobal('fetch', fetcher);
+    await render().loadOrders(); const current = render(); fetcher.mockClear();
+    await current.proposeAlternative(rawOrder.id, { message: 'Una alternativa local sin enviar' });
+    expect(fetcher).not.toHaveBeenCalled(); expect(hooks.toast).not.toHaveBeenCalledWith('Alternativa enviada al cliente.');
+  });
+
   it('never dispatches historical actions for malformed process objects', async () => {
     const fetch = vi.fn(async (_url: string, _init?: RequestInit) => reply([{ ...rawOrder, businessName: 'Negocio', requestProcess: {} }]));
     vi.stubGlobal('fetch', fetch);
