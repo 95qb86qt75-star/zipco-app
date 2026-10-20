@@ -42,6 +42,7 @@ import { rawOrder, coordinationProcess, pendingProcess } from './requests/reques
 import { normalizeMyOrdersPayload } from './requests/orderNormalization';
 import { OrderHistoryList } from './requests/CompactHistoryList';
 import { cancelPendingOrder, cancelledPendingOrder, cancelledPendingReceipt } from './requests/pendingCancellationFixtures';
+import { rejectPendingOrder, rejectedPendingOrder, rejectedPendingReceipt } from './requests/pendingRejectionFixtures';
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
   return React.Children.toArray(root).flatMap((child) => React.isValidElement(child)
@@ -80,6 +81,17 @@ beforeEach(() => {
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
 
 describe('confirmed pending cancellation destination', () => {
+  it.each(['customer', 'business'])('keeps confirmed rejection in %s history after failed read', view => {
+    hooks.loading = false; window.location.search = `?open=requests-${view}`;
+    hooks.orders = normalizeMyOrdersPayload([rejectPendingOrder]); render();
+    window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: rejectedPendingReceipt }));
+    hooks.orders = normalizeMyOrdersPayload([rejectedPendingOrder]); hooks.error = 'Read failed';
+    const result = render();
+    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('history');
+    expect(nodes(result).find(node => node.type === OrderHistoryList)?.props.orders[0].status).toBe('rejected');
+    expect(nodes(result).some(node => typeof node.props.children === 'string' && node.props.children.includes('El rechazo está confirmado.'))).toBe(true);
+    expect(hooks.action).not.toHaveBeenCalled();
+  });
   it('selects Historial after the confirmed receipt and keeps it visible if the following read fails', () => {
     hooks.loading = false; hooks.orders = normalizeMyOrdersPayload([cancelPendingOrder]);
     render();
@@ -107,13 +119,14 @@ describe('RequestsScreen notification destination with late session and lists', 
   it.each([
     ['customer', 'COORDINATION_PENDING', 'accepted', 'coordination'],
     ['customer', 'READY', 'ready', 'ready'],
+    ['customer', 'CLOSED', 'rejected', 'history'],
     ['business', 'COORDINATION_PENDING', 'accepted', 'coordination'],
     ['business', 'READY', 'ready', 'ready'],
   ])('selects and focuses %s/%s only once the requested card is ready', (view, state, status, selectedView) => {
     window.location.search = `?open=requests-${view}&orderId=20`;
     render(); expect(hooks.focused).not.toHaveBeenCalled();
     // Even available records do not consume the destination while loading.
-    hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status, requestProcess: { ...coordinationProcess, state } }]);
+    hooks.orders = normalizeMyOrdersPayload([state === 'CLOSED' ? rejectedPendingOrder : { ...rawOrder, status, requestProcess: { ...coordinationProcess, state } }]);
     render(); expect(hooks.focused).not.toHaveBeenCalled();
     hooks.loading = false;
     const result = render();

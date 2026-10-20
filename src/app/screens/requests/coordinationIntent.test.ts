@@ -117,11 +117,11 @@ describe('coordination intention lifecycle', () => {
     expect(send).not.toHaveBeenCalled(); expect(uuid).not.toHaveBeenCalled();
     expect(recreated.needsReconciliation('user', 7)).toBe(true);
   });
-  it.each(['AUTHORIZE_CONTACT', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST'] as const)('keeps the confirmed signature for %s after reconstruction and successful cleanup', async (action) => {
+  it.each(['AUTHORIZE_CONTACT', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'] as const)('keeps the confirmed signature for %s after reconstruction and successful cleanup', async (action) => {
     const saved = storage();
     const remove = vi.spyOn(saved, 'removeItem').mockImplementation(() => { throw new Error('denied'); });
     const uuid = vi.fn(() => key); const send = vi.fn().mockResolvedValue('confirmed');
-    const originalBody = coordinationBody(action, 2, 'COORDINATION_NOT_REACHED');
+    const originalBody = coordinationBody(action, 2, action === 'REJECT_PENDING_REQUEST' ? 'unavailable' : 'COORDINATION_NOT_REACHED');
     await createCoordinationIntents(uuid, saved).run('user', 7, action, originalBody, send);
     const recreated = createCoordinationIntents(uuid, saved);
     expect(recreated.read('user', 7)).toBeNull();

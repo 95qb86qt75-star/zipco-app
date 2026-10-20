@@ -107,7 +107,7 @@ describe('system presentation and explicit notification navigation', () => {
     } finally { release(); await click; }
   });
 
-  it.each(['accepted', 'ready'])('deduplicates the opened iPhone %s event if Cache API fails, preserving later events', async (state) => {
+  it.each(['accepted', 'ready', 'rejected'])('deduplicates the opened iPhone %s event if Cache API fails, preserving later events', async (state) => {
     const sw = worker('iPhone', [], { open: async () => { throw new Error('cache unavailable'); } });
     await sw.fire('notificationclick', { notification: { tag: `order-74-${state}`,
       data: { url: '/?open=requests-customer&orderId=74' }, close() {} } });

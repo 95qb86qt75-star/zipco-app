@@ -13,6 +13,7 @@ import { safePhoto } from './agreement';
 import CoordinationActions from './CoordinationActions';
 import { statusViewFor } from './requestStatusGrouping';
 import PendingCancellationActions from './PendingCancellationActions';
+import PendingRejectionActions from './PendingRejectionActions';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -119,6 +120,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         </motion.div>}
     </AnimatePresence>}
     {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
+    {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>
     </div>}

@@ -26,6 +26,7 @@ import { countStatusViews } from './requestStatusGrouping';
 import { getCustomerAttentionItems } from './requestAttentionSummary';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { cancelPendingOrder, cancelledPendingReceipt } from './pendingCancellationFixtures';
+import { rejectPendingOrder, rejectedPendingReceipt } from './pendingRejectionFixtures';
 
 const render = () => { hooks.cursor = 0; return useRequests(vi.fn()); };
 const reply = (body: unknown) => new Response(JSON.stringify(body));
@@ -39,6 +40,22 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); clearDiagnostics(); vi.restoreAllMocks(); });
 
 describe('loadOrders temporary diagnostics preserve the existing reads', () => {
+  it('retains confirmed rejection and original data in both lists after failed and stale reads', async () => {
+    const listeners = new Map<string, (event: Event) => void>();
+    vi.stubGlobal('window', { addEventListener: (name: string, listener: (event: Event) => void) => listeners.set(name, listener), removeEventListener: vi.fn() });
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 503 })); vi.stubGlobal('fetch', fetcher);
+    hooks.slots = [normalizeBusinessOrdersPayload([rejectPendingOrder]), normalizeMyOrdersPayload([rejectPendingOrder])];
+    render(); hooks.effects.find(effect => effect.toString().includes('zipco-process-receipt'))!();
+    listeners.get('zipco-process-receipt')!(new CustomEvent('zipco-process-receipt', { detail: rejectedPendingReceipt }));
+    await vi.waitFor(() => expect(render().loadError).not.toBe(''));
+    fetcher.mockImplementation(() => Promise.resolve(reply([rejectPendingOrder]))); await render().loadOrders(true);
+    for (const list of [render().requests, render().myOrders]) {
+      expect(list[0].status).toBe('rejected'); expect(list[0].requestProcess).toEqual(rejectedPendingReceipt.requestProcess);
+      expect(list[0].note).toBe(rejectPendingOrder.note);
+      expect(countStatusViews(list, 'orders')).toMatchObject({ pending: 0, coordination: 0, history: 1 });
+    }
+    expect(fetcher.mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);
+  });
   it('retains the confirmed pending cancellation in both lists despite a failed GET and a late older list', async () => {
     const listeners = new Map<string, (event: Event) => void>();
     vi.stubGlobal('window', { addEventListener: (name: string, listener: (event: Event) => void) => listeners.set(name, listener), removeEventListener: vi.fn() });

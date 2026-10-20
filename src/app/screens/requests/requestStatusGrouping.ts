@@ -1,4 +1,4 @@
-import { hasRequestProcess, isPendingRequestCancelled, type RequestProcessSummary } from './requestProcess';
+import { hasRequestProcess, isPendingRequestCancelled, isPendingRequestRejected, type RequestProcessSummary } from './requestProcess';
 export type RequestKind = "orders" | "quotes";
 export type StatusView = "pending" | "waiting" | "active" | "ready" | "history" | "coordination";
 export type HistoryFilter =
@@ -13,7 +13,8 @@ export function statusViewFor(
   requestProcessInvalid = false,
 ): StatusView | null {
   if (kind === "orders") {
-    if (requestProcess?.state === 'CLOSED') return status === 'cancelled' && isPendingRequestCancelled(requestProcess) ? 'history' : null;
+    if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && isPendingRequestCancelled(requestProcess)) ||
+      (status === 'rejected' && isPendingRequestRejected(requestProcess)) ? 'history' : null;
     if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
     if (requestProcess?.state === 'IN_PROGRESS') return 'active';
     if (requestProcess?.state === 'READY') return 'ready';

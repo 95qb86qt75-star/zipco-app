@@ -1,7 +1,8 @@
-import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, orderNotificationState, type ProcessOrder } from '../screens/requests/requestProcess';
+import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, isPendingRequestRejected, orderNotificationState, type ProcessOrder } from '../screens/requests/requestProcess';
 
 export function customerOrderNotice(order: { status: string } & ProcessOrder): readonly [string, string] | null {
   if (hasRequestProcess(order)) {
+    if (order.status === 'rejected' && isPendingRequestRejected(order.requestProcess)) return ['El negocio no pudo aceptar tu solicitud', 'Revisa el motivo en ZIPCO.'];
     if (order.requestProcess?.state === 'READY') return ['Tu pedido está listo', 'El negocio marcó tu pedido como listo.'];
     return order.requestProcess?.state === 'COORDINATION_PENDING'
       ? ['Pedido aceptado', COORDINATION_ACCEPTED_MESSAGE] : null;
@@ -28,7 +29,7 @@ export function createCustomerOrderNotices(
       const changed = hasBaseline && previous.has(order.id) && previous.get(order.id) !== state;
       if (!changed && !pushedOrderIds.has(order.id)) continue;
       const notice = customerOrderNotice(order);
-      const key = `order-${order.id}-${state}`;
+      const key = `order-${order.id}-${isPendingRequestRejected(order.requestProcess) && order.status === 'rejected' ? 'rejected' : state}`;
       if (!notice || announced.has(key)) continue;
       announced.add(key);
       emit(key, notice, order.id);

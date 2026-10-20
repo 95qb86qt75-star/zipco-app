@@ -15,6 +15,7 @@ vi.mock('../Toast', () => ({ showAppToast: hooks.toast }));
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { rawOrder, coordinationProcess } from './requestProcessFixtures';
 import { cancelPendingOrder, cancelledPendingOrder, cancelledPendingReceipt } from './pendingCancellationFixtures';
+import { rejectPendingOrder, rejectedPendingOrder, rejectedPendingReceipt } from './pendingRejectionFixtures';
 const process = { ...coordinationProcess, allowedActions: ['OPEN_WHATSAPP', 'START_WORK'],
   coordination: { customerContactAuthorized: true, businessContactAuthorized: true } };
 const raw = { ...rawOrder, status: 'accepted', requestProcess: process };
@@ -35,6 +36,63 @@ beforeEach(() => {
     removeEventListener: target.removeEventListener.bind(target), location: { assign: navigate } });
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
+describe('pending rejection recovery with mocked backend', () => {
+  it('confirms only once despite double touch and failed GET, retaining the receipt', async () => {
+    let finish!: (value: Response) => void;
+    const fetcher = vi.fn().mockImplementationOnce(() => new Promise<Response>(resolve => { finish = resolve; })).mockRejectedValue(new TypeError('offline'));
+    vi.stubGlobal('fetch', fetcher); const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([rejectPendingOrder])[0], true, vi.fn());
+    const first = hook.run('REJECT_PENDING_REQUEST', 'unavailable');
+    expect(await hook.run('REJECT_PENDING_REQUEST', 'unavailable')).toBe(false);
+    finish(response(rejectedPendingReceipt)); expect(await first).toBe(true);
+    expect(await hook.run('REJECT_PENDING_REQUEST', 'unavailable')).toBe(false); expect(await hook.retry()).toBe(false);
+    expect(dispatch.mock.calls.find(([event]) => event.type === 'zipco-process-receipt')?.[0]).toMatchObject({ detail: rejectedPendingReceipt });
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('keeps exact reason, body and key on uncertain retry', async () => {
+    const receipt = { ...rejectedPendingReceipt, requestProcess: { ...rejectedPendingReceipt.requestProcess,
+      closure: { ...rejectedPendingReceipt.requestProcess.closure, reasonCode: 'other', reasonDetail: 'Motivo sintético' } } };
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('lost')).mockResolvedValueOnce(response(receipt))
+      .mockResolvedValue(response([{ ...rejectedPendingOrder, requestProcess: receipt.requestProcess }])); vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([rejectPendingOrder])[0], true, vi.fn());
+    expect(await hook.run('REJECT_PENDING_REQUEST', 'other', ' Motivo sintético ')).toBe(false);
+    expect(await hook.retry()).toBe(true);
+    const posts = fetcher.mock.calls.filter(([, init]) => init?.method === 'POST'); expect(posts).toHaveLength(2);
+    expect(posts[1][1].body).toBe(posts[0][1].body);
+    expect(posts[1][1].headers['Idempotency-Key']).toBe(posts[0][1].headers['Idempotency-Key']);
+    expect(JSON.parse(posts[0][1].body)).toEqual({ expectedVersion: 1, confirmationAccepted: true, reasonCode: 'other', reasonDetail: 'Motivo sintético' });
+  });
+
+  it.each([false, true])('settles rejection by reading CLOSED, with no repeated POST (restored=%s)', async restored => {
+    const fetcher = vi.fn().mockResolvedValue(response([rejectedPendingOrder]));
+    if (restored) sessionStorage.setItem('zipco-coordination:synthetic:business:7', JSON.stringify({ action: 'REJECT_PENDING_REQUEST',
+      body: { expectedVersion: 1, confirmationAccepted: true, reasonCode: 'unavailable' }, key: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' }));
+    else fetcher.mockRejectedValueOnce(new TypeError('lost'));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([rejectPendingOrder])[0], true, vi.fn());
+    if (restored) { expect(await hook.retry()).toBe(false); expect(fetcher).not.toHaveBeenCalled(); }
+    else expect(await hook.run('REJECT_PENDING_REQUEST', 'unavailable')).toBe(false);
+    await hook.update(); expect(hook.pending()).toBeNull(); expect(await hook.retry()).toBe(false);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(restored ? 0 : 1);
+  });
+
+  it.each(['STALE_VERSION', 'INCOMPATIBLE_STATE'])('refreshes %s without automatically rejecting an accepted request', async code => {
+    const latest = { ...rejectPendingOrder, status: 'accepted', requestProcess: { ...coordinationProcess, allowedActions: [] } };
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ code }, 409)).mockResolvedValue(response([latest])); vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([rejectPendingOrder])[0], true, vi.fn());
+    expect(await hook.run('REJECT_PENDING_REQUEST', 'unavailable')).toBe(false);
+    expect(hook.pending()).toBeNull(); expect(await hook.retry()).toBe(false);
+    expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+    expect(hooks.toast).toHaveBeenCalledWith(expect.stringContaining('no se rechazará automáticamente'), 'error');
+  });
+});
+
 describe('pending cancellation recovery with mocked backend', () => {
   it('keeps cancellation confirmed after a failed GET and never sends it twice', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(cancelledPendingReceipt)).mockRejectedValue(new TypeError('offline'));

@@ -23,6 +23,8 @@ import ProcessOrderCard from './ProcessOrderCard';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import PendingCancellationActions from './PendingCancellationActions';
+import PendingRejectionActions from './PendingRejectionActions';
+import { rejectPendingOrder, rejectedPendingOrder } from './pendingRejectionFixtures';
 import { cancelPendingOrder, cancelledPendingOrder } from './pendingCancellationFixtures';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { OrderCardDisclosure } from './OrderCardPanels';
@@ -54,6 +56,30 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it('renders valid Backend 772b78a pending business actions without the guard card', () => {
+    const order = normalizeBusinessOrdersPayload([rejectPendingOrder])[0];
+    const view = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });
+    expect(elements(view).find(node => node.type === PendingRejectionActions)?.props.order).toBe(order);
+    const accept = elements(view).find(node => node.type === 'button' && String(node.props.className).includes('zipco-proposal-accept'))!;
+    expect(accept).toBeDefined(); (accept.props.onClick as (e: unknown) => void)(event()); expect(props.onAccept).toHaveBeenCalledOnce();
+    expect(elements(view).some(node => node.props.children === 'Actualizar pedido')).toBe(false);
+    expect(elements(render({ ...props, order, business: false })).some(node => node.type === PendingRejectionActions)).toBe(false);
+  });
+
+  it.each([false, true])('shows rejected original request and escaped reason without agreement (business=%s)', business => {
+    const input = { ...rejectedPendingOrder, requestProcess: { ...rejectedPendingOrder.requestProcess, closure: {
+      ...rejectedPendingOrder.requestProcess.closure, reasonCode: 'other', reasonDetail: '<script>synthetic</script>',
+    } } };
+    const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+    const history = () => { hooks.cursor = 0; return ProcessHistoryCard({ order }); };
+    const view = history(); expect(renderToStaticMarkup(view)).toContain('Rechazada');
+    expect(renderToStaticMarkup(view)).toContain('Otro motivo');
+    (elements(view).find(node => node.type === 'button')!.props.onClick as () => void)();
+    const html = renderToStaticMarkup(history());
+    expect(html).toContain('Solicitud original'); expect(html).toContain('Nota de prueba');
+    expect(html).toContain('&lt;script&gt;synthetic&lt;/script&gt;');
+    expect(html).not.toContain('Condiciones aceptadas'); expect(html).not.toContain('Abrir acuerdo');
+  });
   it('mounts pending cancellation only on the customer card, independently of its disclosure', () => {
     const order = normalizeMyOrdersPayload([cancelPendingOrder])[0];
     for (const expanded of [false, true]) {
