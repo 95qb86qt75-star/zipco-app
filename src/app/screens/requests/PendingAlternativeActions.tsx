@@ -55,7 +55,6 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
   const changeSelection = (next: Set<ChangeKey>) => {
     const itemChanged = next.has('item') !== custom;
     const scheduleChanged = next.has('schedule'); next.delete('schedule');
-    if (next.has('item')) next.add('price');
     setDraft(previous => ({ ...previous, scheduleChanged, lines: previous.lines.map((value, i) => i !== index ? value : {
       ...value, selected: next, ...(itemChanged ? { price: next.has('item') ? '' : String(source.items[index].price) } : {}),
     }) }));
@@ -80,14 +79,16 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
             quantity={line.quantity} setQuantity={quantity => updateLine({ quantity })} date={draft.date} setDate={date => update({ date })}
             time={draft.time} setTime={time => update({ time })} message={draft.message} setMessage={message => update({ message })}
             photo="" setPhoto={() => {}} selectedChanges={selected} onSelectedChange={changeSelection}
-            priceRequired={custom} priceLabel={custom ? 'Precio total de esta línea' : 'Precio por unidad'} strictPrice
+            priceLabel={custom ? 'Precio total de esta línea' : 'Precio por unidad'} strictPrice
+            priceFields={custom ? <p className="text-xs text-slate-500">El precio total de la opción escrita se indica en sus campos y es obligatorio.</p> : undefined}
             quantityMax={99} quantityLocked={source.orderType !== 'product'} messageMaxLength={1000}
             explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
             itemFields={<div className="space-y-2">
               <p className="text-xs text-violet-700">Escribe una opción fuera del catálogo. No se creará un artículo nuevo.</p>
               <label className="block text-sm font-bold">Nombre de la alternativa<input value={line.name} maxLength={120} onChange={event => updateLine({ name: event.target.value })} className={`mt-1 ${field}`} /></label>
               <label className="block text-sm font-bold">Descripción opcional<textarea value={line.description} maxLength={500} onChange={event => updateLine({ description: event.target.value })} className={`mt-1 ${field}`} /></label>
-              <p className="text-xs text-slate-500">Indica el precio total de esta línea, no un precio unitario calculado.</p>
+              <label className="block text-sm font-bold">Precio total de esta opción (obligatorio)<input aria-label="Precio total de la opción escrita" required inputMode="numeric" value={line.price} onChange={event => updateLine({ price: event.target.value })} className={`mt-1 ${field}`} /></label>
+              <p className="text-xs text-slate-500">Total de esta línea en pesos enteros, no un precio unitario calculado.</p>
             </div>}
             scheduleFields={<div className="space-y-2">
               <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={draft.immediate} onChange={event => update({ immediate: event.target.checked })} />Lo antes posible</label>

@@ -58,13 +58,32 @@ describe('recovered alternative design, preparation only', () => {
     render(o); button(render(o), 'Revisar alternativa').props.onClick();
     expect(nodes(render(o)).some(n => n.props.role === 'alert')).toBe(true);
     const f = () => nodes(render(o)).find(n => n.type === AlternativeProposalFields)!.props;
-    f().onSelectedChange(new Set(['item'])); expect(f().selectedChanges.has('price')).toBe(true);
+    f().onSelectedChange(new Set(['item'])); expect(f().selectedChanges.has('price')).toBe(false);
     f().setPrice('10000'); f().setItem('Conjunto alternativo'); f().setMessage('Cambio por producto no disponible.');
     nodes(render(o)).find(n => n.type === 'select')!.props.onChange({ target: { value: '1' } });
     expect(f().selectedChanges.has('item')).toBe(false); expect(f().price).toBe('1000');
     nodes(render(o)).find(n => n.type === 'select')!.props.onChange({ target: { value: '0' } });
     expect(f().price).toBe('10000'); expect(f().item).toBe('Conjunto alternativo');
     button(render(o), 'Revisar alternativa').props.onClick(); expect(button(render(o), 'Confirmar y enviar').props.disabled).toBe(true);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('keeps item and price selections independent while requiring CUSTOM total inside its own fields', () => {
+    render(); fields().onSelectedChange(new Set(['item']));
+    expect(fields().selectedChanges.has('item')).toBe(true); expect(fields().selectedChanges.has('price')).toBe(false);
+    expect(fields().priceRequired).not.toBe(true);
+    const customPrice = () => nodes(fields().itemFields).find(n => n.props['aria-label'] === 'Precio total de la opción escrita')!;
+    expect(customPrice().props.required).toBe(true); expect(customPrice().props.value).toBe('');
+    fields().setItem('Opción escrita'); fields().setMessage('Otra preparación con precio explicado.');
+    button(render(), 'Revisar alternativa').props.onClick();
+    expect(button(render(), 'Confirmar y enviar')).toBeUndefined();
+    customPrice().props.onChange({ target: { value: '10000' } });
+    fields().onSelectedChange(new Set(['item', 'price']));
+    expect(fields().selectedChanges.has('price')).toBe(true);
+    fields().onSelectedChange(new Set(['item']));
+    expect(fields().selectedChanges.has('price')).toBe(false); expect(customPrice().props.value).toBe('10000');
+    button(render(), 'Revisar alternativa').props.onClick();
+    expect(button(render(), 'Confirmar y enviar').props.disabled).toBe(true);
     expect(fetch).not.toHaveBeenCalled();
   });
 

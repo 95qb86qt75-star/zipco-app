@@ -37,6 +37,7 @@ type Props = {
   itemFields?: ReactNode;
   scheduleFields?: ReactNode;
   photoFields?: ReactNode;
+  priceFields?: ReactNode;
   priceLabel?: string;
   strictPrice?: boolean;
   quantityLocked?: boolean;
@@ -175,7 +176,7 @@ export default function AlternativeProposalFields(props: Props) {
           className="zipco-readable-field w-full rounded-xl border p-3 text-sm"
         />
       ))}
-      {selected.has("price") && (
+      {selected.has("price") && (props.priceFields !== undefined ? props.priceFields : (
         <input
           inputMode="numeric"
           value={props.price}
@@ -184,7 +185,7 @@ export default function AlternativeProposalFields(props: Props) {
           placeholder={props.priceLabel ?? 'Nuevo precio'}
           className="zipco-readable-field w-full rounded-xl border p-3 text-sm"
         />
-      )}
+      ))}
       {selected.has("quantity") && (
         <div className="flex items-center justify-between rounded-xl border border-slate-200 p-2 dark:border-slate-700">
           <span className="text-sm font-bold">Nueva cantidad</span>

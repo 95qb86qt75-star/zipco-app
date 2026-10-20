@@ -189,3 +189,30 @@ comprobarlo. Build qa completo, flags temporales por despliegue conservados,
 Backend QA y build global/producción sin cambios. Este resultado y la referencia
 del catálogo se guardan en un cierre documental posterior, con el mismo código
 funcional; su SHA pasa a ser la versión visible final. Envío sigue bloqueado.
+
+## UI-BUSINESS-ALTERNATIVE-SELECTION-01 — Opciones independientes — 2026-10-20
+
+Clasificación solo frontend. Bastián solicitó que Producto o servicio no seleccione
+Precio automáticamente. Antes, seleccionar opción escrita añadía price al conjunto
+y priceRequired impedía desmarcar esa tarjeta. Ahora cada tarjeta se marca y
+desmarca por separado; seleccionar o quitar una no marca otra.
+
+CUSTOM muestra **Precio total de esta opción (obligatorio)** dentro de sus campos,
+independientemente de la tarjeta Precio. Esa tarjeta, si se selecciona para CUSTOM,
+remite al mismo campo obligatorio, sin duplicar ni dividir el importe. No se
+traslada el precio unitario original como total de una opción escrita nueva.
+Se conserva el precio total entero1–50.000.000, suma exacta, explicación obligatoria,
+límites y revisión. Desmarcar Precio no exime el precio obligatorio de CUSTOM.
+Los lectores legacy del componente compartido conservan su comportamiento.
+
+Archivos: PendingAlternativeActions.tsx y AlternativeProposalFields.tsx en
+src/app/screens/requests; PendingAlternativeActions.test.ts;
+scripts/check-business-alternative-draft.mjs y esta ficha, más referencia de catálogo
+al cierre. **1051 pruebas en 91 archivos, build QA y 6 escenarios táctiles Chrome
+aprobados**, incluidos producto/servicio, selección independiente y bloqueo de
+revisión sin total CUSTOM. No backend, uploads o acciones reales en las pruebas.
+
+Envío sigue bloqueado. Sin cambios en contrato, endpoints, recargas, persistencia,
+estado de pedidos, backend/Railway, main o producción. Activación y recorrido
+integrado de alternativas continúan pendientes; comprobación física móvil de este
+ajuste pendiente. Se conserva el aviso retirado en UI-BUSINESS-ALTERNATIVE-NOTICE-01.

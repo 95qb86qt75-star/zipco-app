@@ -97,6 +97,17 @@ try {
     await wait('!document.querySelector("[role=dialog]")');
     await touch('Proponer alternativa'); await wait('!!document.querySelector("textarea")');
     assert.equal(await evaluate('document.querySelector("textarea").value'), '', 'Reopening must discard the draft');
+    await evaluate(`(()=>{[...document.querySelectorAll('button[aria-pressed]')].find(b=>b.textContent.includes('Producto o servicio')).click();})()`);
+    assert.equal(await evaluate(`document.querySelectorAll('button[aria-pressed]')[1].getAttribute('aria-pressed')`), 'false', 'Item must not select the price tile');
+    assert.equal(await evaluate(`document.querySelector('input[aria-label="Precio total de la opción escrita"]').required`), true);
+    await fill('input[maxlength="120"]', 'Opción escrita sintética');
+    await fill('textarea[placeholder]', 'Otra preparación con precio explicado.', 'HTMLTextAreaElement');
+    await touch('Revisar alternativa');
+    assert(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('Indica el precio total de la opción escrita')`), 'CUSTOM must still require total');
+    await fill('input[aria-label="Precio total de la opción escrita"]', '10000');
+    await touch('Revisar alternativa');
+    assert(await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Confirmar y enviar')?.disabled`));
+    assert.equal(await evaluate('window.blockedRequests'), 0);
     evidence.push({ width, height, type, horizontalOverflow: false, submissionBlocked: true, draftDiscarded: true });
   }
   console.log(JSON.stringify({ passed: evidence.length, touchEvents: true, backendAccess: false, orderActions: false, evidence }));
