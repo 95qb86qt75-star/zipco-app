@@ -113,8 +113,9 @@ try {
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
   const evidence = [];
-  for (const [width, height] of [[400, 870], [393, 852], [320, 700]]) {
+  for (const [width, height, reducedMotion] of [[400, 870, false], [393, 852, false], [320, 700, false], [393, 852, true]]) {
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: true });
+    await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: reducedMotion ? 'reduce' : 'no-preference' }] });
     for (const role of ['business', 'customer']) {
       await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?open=requests-${role}` });
       for (let i = 0; i < 100; i++) {
@@ -132,14 +133,16 @@ try {
           if (!button) throw Error('Summary not rendered');
           button.scrollIntoView({ block: 'nearest', behavior: 'instant' });
           const rect = button.getBoundingClientRect();
-          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2,
+            initialScroll: document.querySelector('[data-requests-scroll]').scrollTop };
         })()`;
         const point = await evaluate(locate);
-        await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+        await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: point.x, y: point.y }] });
         await delay(50);
         await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-        await delay(400);
-        const position = await evaluate(`(() => {
+        await delay(70);
+        const intermediateScroll = await evaluate(`document.querySelector('[data-requests-scroll]').scrollTop`);
+        const snapshot = () => evaluate(`(() => {
           const scroller = document.querySelector('[data-requests-scroll]');
           const results = document.querySelector('[data-request-results]');
           const card = results.querySelector('[id^="order-"]');
@@ -147,14 +150,22 @@ try {
             resultsTop: results.getBoundingClientRect().top, cardTop: card?.getBoundingClientRect().top,
             cardBottom: card?.getBoundingClientRect().bottom };
         })()`);
+        let position = await snapshot();
+        for (let i = 0; Math.abs(position.resultsTop - position.viewportTop - 12) > 1 && i < 100; i++) {
+          await delay(20);
+          position = await snapshot();
+        }
         assert(position.scroll > 0, 'Click must move to the results');
         assert(Math.abs(position.resultsTop - position.viewportTop - 12) <= 2, 'Results must align below header');
         assert(position.cardTop >= position.resultsTop && position.cardTop < position.resultsTop + 80, 'First card must be visible');
         assert(position.cardBottom < height - 80, 'Synthetic folded card must fit above the footer area');
-        evidence.push({ width, height, role, label, ...position });
+        if (reducedMotion) assert.equal(intermediateScroll, position.scroll, 'Reduced motion must reach the destination without animation');
+        else assert(intermediateScroll > point.initialScroll && intermediateScroll < position.scroll, 'Smooth scroll must have an intermediate position');
+        evidence.push({ width, height, reducedMotion, role, label, intermediateScroll, ...position });
         await evaluate(`document.querySelector('[data-requests-scroll]').scrollTop = 0`);
         await delay(200);
-        assert.equal(await evaluate(`document.querySelector('[data-requests-scroll]').scrollTop`), 0, 'Manual scroll must not be pulled back');
+        assert(Math.abs(await evaluate(`document.querySelector('[data-requests-scroll]').scrollTop`)) <= 1,
+          'Manual scroll must not be pulled back (allow native pixel rounding)');
       }
     }
   }

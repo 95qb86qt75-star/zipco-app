@@ -494,9 +494,9 @@ export default function RequestsScreen({
     if (requestType === 'orders' ? isLoading : quotes.loading) return;
     const start = document.querySelector<HTMLElement>('[data-request-results]');
     const spacer = document.querySelector<HTMLElement>('[data-summary-scroll-space]');
-    if (start && spacer && !suppressAttentionResults) scrollToRequestResults(start, spacer);
+    if (start && spacer && !suppressAttentionResults) scrollToRequestResults(start, spacer, prefersReducedMotion === true);
     setSummaryScrollPending(null);
-  }, [summaryScrollPending, subTab, requestType, statusView, attentionFilter, isLoading, loadError, quotes.loading, quotes.error, suppressAttentionResults]);
+  }, [summaryScrollPending, subTab, requestType, statusView, attentionFilter, isLoading, loadError, quotes.loading, quotes.error, suppressAttentionResults, prefersReducedMotion]);
 
   useEffect(() => {
     const refresh = () => {

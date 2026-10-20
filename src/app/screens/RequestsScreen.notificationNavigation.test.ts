@@ -112,6 +112,7 @@ describe('coordination bell scroll for both roles, independent of notification n
       { ...rawOrder, id: 21, status: 'accepted', requestProcess: { ...coordinationProcess, state: 'IN_PROGRESS' } },
     ]);
     const scroller = { scrollTop: 90, clientTop: 0, scrollHeight: 2000, clientHeight: 600,
+      scrollTo(options: ScrollToOptions) { this.scrollTop = options.top!; },
       contains: () => true, getBoundingClientRect: () => ({ top: 200 }) };
     const start = { closest: () => scroller, getBoundingClientRect: () => ({ top: 710 - scroller.scrollTop }) };
     const spacer = { style: { height: '0px' } };

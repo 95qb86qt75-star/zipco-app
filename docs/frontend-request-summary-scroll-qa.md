@@ -70,3 +70,9 @@ Preview funcional **READY** `dpl_61NAZ6nrf6Cf2xiZJEwt85vC2vog`, URL propia https
 Backend QA comprobado; build global sigue nulo y rama de producción `main` intacta. Sin cambios de backend/Railway, configuración global, permisos o datos. La comprobación remota inicial de Git no se ejecutó por vencimiento del plazo de revisión automática de permisos; no se interpretó como rechazo de seguridad ni se repitieron POST de despliegue. Se continuó comprobando el origen Git/SHA desde Vercel.
 
 Este resultado y el nombre+commit se guardan en un commit documental de cierre junto con el catálogo y referencias desde las dos fichas anteriores. El build documental posterior conserva exactamente el código de `723674f`, con las mismas opciones QA por despliegue; su SHA identifica el cierre documental, no otro ajuste funcional. No quedan estas comprobaciones solo locales. La validación física de Bastián en celulares continúa pendiente.
+
+## Confirmación de funcionamiento y nueva solicitud — 2026-10-20
+
+Bastián confirmó «está funcionando super bien» el recorrido entregado y pidió añadir una transición suave hasta el mismo destino. Se registra conformidad funcional del recorrido anterior, sin atribuir una prueba independiente a ambos dispositivos ni una aprobación global de UI. La entrega de referencia es `ee070a99dcc733d2f4321fb2cdfa0cb826d14e93`; no se recibió una nueva lectura de SHA del teléfono en ese mensaje.
+
+La transición solicitada se registra por separado como [UI-REQUEST-SUMMARY-SMOOTH-01](frontend-request-summary-smooth-qa.md), conservando destino, filtros y cálculo del recorrido. Su aprobación visual sigue pendiente hasta la nueva prueba de Bastián.

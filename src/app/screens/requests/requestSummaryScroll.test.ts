@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { scrollToRequestResults } from './requestSummaryScroll';
 
 describe('scroll range for a short filtered request list', () => {
@@ -12,6 +12,7 @@ describe('scroll range for a short filtered request list', () => {
       // Real browsers clamp scrollTop to the available range. The old tests did not.
       set scrollTop(value: number) { scrollTop = Math.max(0, Math.min(value, this.scrollHeight - this.clientHeight)); },
       getBoundingClientRect: () => ({ top: 150 }), contains: (node: unknown) => node === spacer,
+      scrollTo: vi.fn(function (this: { scrollTop: number }, options: ScrollToOptions) { this.scrollTop = options.top!; }),
     };
     const results = { closest: () => scroller, getBoundingClientRect: () => ({ top: 850 - scroller.scrollTop }) };
     return { results, scroller, spacer };
@@ -41,5 +42,13 @@ describe('scroll range for a short filtered request list', () => {
     scrollToRequestResults(dom.results as any, dom.spacer as any);
     expect(dom.spacer.style.height).toBe('388px');
     expect(dom.scroller.scrollTop).toBe(688);
+  });
+
+  it('respects reduced motion without changing the destination or the missing scroll range', () => {
+    const dom = layout(300);
+    scrollToRequestResults(dom.results as any, dom.spacer as any, true);
+    expect(dom.scroller.scrollTo).toHaveBeenCalledWith({ top: 688, behavior: 'instant' });
+    expect(dom.results.getBoundingClientRect().top).toBe(162);
+    expect(dom.spacer.style.height).toBe('388px');
   });
 });
