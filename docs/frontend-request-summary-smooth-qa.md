@@ -38,3 +38,13 @@ Guardar código, pruebas y ficha; después de comprobar READY, SHA y alias, guar
 ## Prueba en celular
 
 Comprobar el nuevo SHA en QA habitual. Pulsar una campanita desde el inicio: debe seleccionar la categoría y deslizar suavemente hasta la fecha/primera tarjeta, sin abrirla. Deslizar manualmente después y repetir el clic. Si «Reducir movimiento» está activado en el sistema, debe conservar el desplazamiento directo sin animación. No crear ni modificar pedidos como parte de esta comprobación.
+
+## Resultado publicado y cierre — 2026-10-20
+
+Código, pruebas, comprobación táctil y ficha inicial: `a45884eab738214dfb42a2b2e73cf095d0572d75`, rama `qa`. Siete rutas comprobadas, sin divergencia antes del envío y diff de staging aprobado.
+
+Preview funcional **READY** `dpl_5AcHfxXKn9GbuHLpvrokGUKEtK9c`, URL propia https://zipco-k6ioscir3-zipco-s-projects.vercel.app. Origen GitHub real, SHA exacto, rama `qa`, entorno Preview y comando temporal comprobados. Alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app verificado apuntando a ese despliegue. Logs confirman modo QA, build y despliegue completados, sin auxiliar del recorrido temporal.
+
+Backend QA verificado, configuración global de build nula y rama de producción `main` intacta. Sin cambios de backend/Railway, permisos o datos ni acciones de pedidos. Revisión de la nueva transición en los celulares: pendiente; la conformidad comunicada antes correspondía al recorrido sin transición.
+
+Este resultado y la entrada del catálogo se guardan y envían en un commit documental de cierre, sin dejarlos locales. El Preview posterior de ese cierre conserva exactamente el código de `a45884e`, con las mismas opciones QA por despliegue; su SHA identifica el registro documental, no otra modificación funcional.

@@ -131,3 +131,13 @@ UI-CUSTOMER-COORDINATION-SCROLL-01, conservados como historial.
 933 pruebas, build QA y 18 casos táctiles en Chrome aprobados; Preview READY,
 comprobación física de Android/iPhone pendiente. Fuente y cierre versionado:
 [frontend-request-summary-scroll-qa.md](frontend-request-summary-scroll-qa.md).
+
+## UI-REQUEST-SUMMARY-SMOOTH-01 — Transición suave de campanitas
+
+Código: `a45884eab738214dfb42a2b2e73cf095d0572d75`. Conserva el destino
+y recorrido inferior de UI-REQUEST-SUMMARY-SCROLL-01, que Bastián confirmó
+funcionando, y añade scroll suave nativo para cliente/negocio. Respeta movimiento
+reducido con desplazamiento instantáneo. 934 pruebas, build QA y 24 casos táctiles
+en Chrome aprobados; Preview READY. Aprobación visual de esta transición pendiente.
+Archivos y resultado versionado en
+[frontend-request-summary-smooth-qa.md](frontend-request-summary-smooth-qa.md).
