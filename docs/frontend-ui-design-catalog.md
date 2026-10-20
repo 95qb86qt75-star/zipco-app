@@ -141,3 +141,9 @@ reducido con desplazamiento instantáneo. 934 pruebas, build QA y 24 casos táct
 en Chrome aprobados; Preview READY. Aprobación visual de esta transición pendiente.
 Archivos y resultado versionado en
 [frontend-request-summary-smooth-qa.md](frontend-request-summary-smooth-qa.md).
+
+Conformidad posterior, 2026-10-20: Bastián confirmó «Funciona excelente» para
+la transición suave entregada como `a0a65db1574cea16893e81626d6fd93c3b0a83cd`
+(código `a45884eab738214dfb42a2b2e73cf095d0572d75`). Estado del ajuste:
+**conforme según Bastián**. No especificó dispositivo/rol ni prueba de movimiento
+reducido; no se extiende la conformidad a toda la app o a producción.

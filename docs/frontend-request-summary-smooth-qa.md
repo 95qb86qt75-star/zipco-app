@@ -48,3 +48,11 @@ Preview funcional **READY** `dpl_5AcHfxXKn9GbuHLpvrokGUKEtK9c`, URL propia https
 Backend QA verificado, configuración global de build nula y rama de producción `main` intacta. Sin cambios de backend/Railway, permisos o datos ni acciones de pedidos. Revisión de la nueva transición en los celulares: pendiente; la conformidad comunicada antes correspondía al recorrido sin transición.
 
 Este resultado y la entrada del catálogo se guardan y envían en un commit documental de cierre, sin dejarlos locales. El Preview posterior de ese cierre conserva exactamente el código de `a45884e`, con las mismas opciones QA por despliegue; su SHA identifica el registro documental, no otra modificación funcional.
+
+## Conformidad de Bastián — 2026-10-20
+
+Bastián confirmó **«Funciona excelente»** después de entregar la transición suave. Se registra conformidad de funcionamiento y presentación del recorrido de las campanitas, con referencia a la versión entregada `a0a65db1574cea16893e81626d6fd93c3b0a83cd`, código `a45884eab738214dfb42a2b2e73cf095d0572d75`.
+
+Preview de esa entrega: `dpl_ZkkbEjo6pNNVuf9X2idZmgtYYkPm`, READY, URL propia https://zipco-2kh8458p1-zipco-s-projects.vercel.app; alias QA habitual verificado en la entrega anterior. La confirmación no identifica dispositivo o rol ni aporta una lectura nueva del SHA del teléfono; no se inventa validación independiente de ambos celulares, movimiento reducido o todos los flujos. No constituye aprobación global de UI ni autorización de producción.
+
+Este cierre es exclusivamente documental y se guarda/envía en Git. Se conserva todo el código de la entrega aprobada, sin cambios de contratos, endpoints, backend/Railway, acciones de pedidos, `main` o producción. Las notas anteriores de revisión pendiente permanecen como historial y esta entrada actualiza el estado del ajuste a **conforme según Bastián**.
