@@ -1,5 +1,13 @@
 # UI-BUSINESS-COORDINATION-SCROLL-01 — Inicio de pedidos Por coordinar
 
+Actualización 2026-10-19: la prueba de Bastián con `7953f21` reabrió el
+desplazamiento. La implementación siguiente queda como historial: tenía
+alcance exclusivo de Coordinación y no ampliaba el recorrido insuficiente
+de una lista corta. La corrección general, reproducción DOM y cierre están en
+[UI-REQUEST-SUMMARY-SCROLL-01](frontend-request-summary-scroll-qa.md), código
+`723674f51e0189d8e9bc6432591a7c22177f982f`. No considerar la publicación anterior
+como prueba física de que el comportamiento funcionaba.
+
 Fecha: 2026-10-19. Clasificación: solo frontend; navegación local. Punto 6.
 
 ## Nombre y código oficial

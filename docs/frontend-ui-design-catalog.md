@@ -119,3 +119,15 @@ Nombre: **Resumen del pedido — Seleccionar hora para Hoy**. Componente compart
 la hora está vacía; conserva selector nativo y valores reales. Publicado en QA,
 42 pruebas y build aprobados; comprobación física y aprobación pendientes.
 Detalle y resultado versionado en [frontend-today-time-prompt-qa.md](frontend-today-time-prompt-qa.md).
+
+## UI-REQUEST-SUMMARY-SCROLL-01 — Campanitas hacia sus tarjetas
+
+Código: `723674f51e0189d8e9bc6432591a7c22177f982f`. En
+`src/app/screens/RequestsScreen.tsx` y `requests/requestSummaryScroll.ts`,
+unifica la selección/scroll de las campanitas de negocio y cliente y añade
+únicamente el recorrido inferior que falta en listas cortas. Sustituye el
+alcance y medida iniciales de UI-BUSINESS-COORDINATION-SCROLL-01 y
+UI-CUSTOMER-COORDINATION-SCROLL-01, conservados como historial.
+933 pruebas, build QA y 18 casos táctiles en Chrome aprobados; Preview READY,
+comprobación física de Android/iPhone pendiente. Fuente y cierre versionado:
+[frontend-request-summary-scroll-qa.md](frontend-request-summary-scroll-qa.md).

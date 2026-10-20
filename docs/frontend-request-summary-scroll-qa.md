@@ -60,3 +60,13 @@ Después de comprobar READY, SHA y alias, guardar también el resultado y nombre
 ## Comprobación en los celulares
 
 Actualizar QA habitual y comprobar SHA. En Mi Negocio, con los pedidos existentes, pulsar cada campanita: Nuevos Pedidos, Por coordinar, En curso y Listos. Debe seleccionar el filtro y llevar a la fecha/primera tarjeta debajo del encabezado, también cuando haya un único pedido. Repetir en Mis Pedidos con Coordinación y Listos. Comprobar que el desplazamiento manual sigue libre y que otro clic regresa al inicio. Sin acciones de pedidos para esta prueba. Confirmación física de Bastián: pendiente hasta que la comunique.
+
+## Resultado publicado y cierre documental
+
+Código, pruebas, script de navegador y ficha inicial: `723674f51e0189d8e9bc6432591a7c22177f982f`, rama `qa`, seis rutas comprobadas, sin divergencia antes del envío y diff de staging aprobado.
+
+Preview funcional **READY** `dpl_61NAZ6nrf6Cf2xiZJEwt85vC2vog`, URL propia https://zipco-7ojxjlt04-zipco-s-projects.vercel.app. Origen GitHub real, SHA exacto, rama `qa`, entorno Preview y comando temporal verificados. Logs confirman modo QA y build completado, sin auxiliar del recorrido. Alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobado apuntando a ese Preview.
+
+Backend QA comprobado; build global sigue nulo y rama de producción `main` intacta. Sin cambios de backend/Railway, configuración global, permisos o datos. La comprobación remota inicial de Git no se ejecutó por vencimiento del plazo de revisión automática de permisos; no se interpretó como rechazo de seguridad ni se repitieron POST de despliegue. Se continuó comprobando el origen Git/SHA desde Vercel.
+
+Este resultado y el nombre+commit se guardan en un commit documental de cierre junto con el catálogo y referencias desde las dos fichas anteriores. El build documental posterior conserva exactamente el código de `723674f`, con las mismas opciones QA por despliegue; su SHA identifica el cierre documental, no otro ajuste funcional. No quedan estas comprobaciones solo locales. La validación física de Bastián en celulares continúa pendiente.

@@ -1,5 +1,12 @@
 # UI-CUSTOMER-COORDINATION-SCROLL-01 — Inicio de pedidos en Coordinación
 
+Actualización 2026-10-19: este registro conserva la primera implementación,
+limitada a la campanita de Coordinación y sin espacio adicional cuando faltaba
+recorrido para una lista corta. La corrección compartida con negocio, las
+otras campanitas y la evidencia DOM están en
+[UI-REQUEST-SUMMARY-SCROLL-01](frontend-request-summary-scroll-qa.md), código
+`723674f51e0189d8e9bc6432591a7c22177f982f`. Comprobación física posterior pendiente.
+
 Fecha: 2026-10-19. Clasificación: solo frontend, navegación local. Rama `qa`.
 
 ## Nombre y código
