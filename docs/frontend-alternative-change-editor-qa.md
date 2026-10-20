@@ -107,3 +107,20 @@ y resúmenes. Producto debe pedir precio total y dejar Precio disponible. Compro
 servicio cantidad1, horario, contador y foto local; desplazar y comprobar pie fijo.
 Revisar conserva Confirmar y enviar deshabilitado. Cerrar no modifica la solicitud.
 No se declara aprobado físicamente el diseño ni comprobado un envío integrado.
+
+## Resultado de publicación — 2026-10-20
+
+Código, pruebas, script y ficha (6 rutas) enviados a origin/qa en
+`fde40c6124b3a0e1ddd4eff35b60cb50fa7f1a3d`.
+Preview funcional **READY**: `dpl_7CeDZHJXnpgAPFTxPwTVMnqRJop6`, URL propia
+https://zipco-6xn0j47qm-zipco-s-projects.vercel.app. Fuente GitHub real, SHA
+exacto, rama qa y Preview verificados; alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app apunta a ese despliegue al
+comprobarlo. Build qa completo con override temporal conservado; Backend QA
+verificado como https://zipco-backend-qa.up.railway.app. Build global null y rama
+de producción main preservados. Sin cambios en Railway ni acciones de pedidos.
+
+Este resultado y las referencias se conservan en un cierre documental posterior
+en qa, cuyo despliegue mantiene el mismo código funcional y override. Su SHA
+será la versión visible final. Envío sigue bloqueado. La prueba física y conformidad
+del diseño continúan pendientes de Bastián; READY no las acredita.

@@ -213,3 +213,14 @@ sin eximirlo al desmarcar Precio. Mantiene diseño restante, validaciones y env�
 bloqueado. 1051 pruebas, build QA y 6 escenarios táctiles Chrome aprobados; Preview
 funcional READY. Revisión física pendiente.
 [Archivos, contrato conservado y resultado](frontend-business-alternative-draft-qa.md).
+
+### UI-BUSINESS-ALTERNATIVE-EDITOR-01 — Cuadritos y cambios guardados
+
+Código `fde40c6124b3a0e1ddd4eff35b60cb50fa7f1a3d`, rama qa. Adaptación de
+AlternativeChangeEditor.tsx y PendingAlternativeActions.tsx aportados por Bastián:
+cuatro opciones en fila, editor con Guardar/Quitar, checks, resumen, motivo con
+contador y pie fijo. Disponibilidad se abrevia Horario hasta360px. Conserva reglas
+de CUSTOM, selección independiente, foto local/global y envío bloqueado. Se mantiene
+el componente anterior para cotizaciones y pedidos legacy. 1067 pruebas y build
+QA aprobados, 8 escenarios táctiles Chrome; Preview funcional READY. Revisión y
+conformidad física pendientes. [Archivos, origen y publicación](frontend-alternative-change-editor-qa.md).

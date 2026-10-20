@@ -225,3 +225,16 @@ al comprobarlo; build qa completo, Backend QA y flags temporales conservados,
 build global y producción sin cambios. Este resultado y el catálogo quedan en un
 cierre documental posterior con el mismo código funcional, cuyo SHA será la versión
 visible final. Envío bloqueado y prueba física pendiente.
+
+## Diseño posterior — UI-BUSINESS-ALTERNATIVE-EDITOR-01 — 2026-10-20
+
+Bastián aportó dos componentes para un editor visual nuevo, adaptados en
+`fde40c6124b3a0e1ddd4eff35b60cb50fa7f1a3d`, rama qa y Preview funcional READY.
+Cuatro opciones en una fila, Guardar/Quitar cambio, resumen, contador y pie fijo.
+Se preservan selección independiente de Precio/Producto, validaciones originales,
+foto local y bloqueo de envío. AlternativeProposalFields se conserva para legacy
+y cotizaciones. La descripción de diseño anterior permanece como historial;
+la presentación vigente y diferencias respecto de los archivos aportados se
+registran en [frontend-alternative-change-editor-qa.md](frontend-alternative-change-editor-qa.md).
+1067 pruebas, build QA y 8 escenarios Chrome aprobados; conformidad física móvil
+y recorrido integrado de negociación pendientes. Sin cambios de backend/producción.
