@@ -119,3 +119,21 @@ Este resultado, catálogo y registro se conservan en un cierre documental poster
 en qa; su publicación usa exactamente el mismo código funcional y override QA.
 El SHA visible final será el de ese cierre documental. No hay aprobación física
 Android/iPhone todavía; READY y pruebas automatizadas no la sustituyen.
+
+## Conformidad posterior de Bastián — 2026-10-20
+
+Bastián confirmó **«LISTO FUNCIONÓ»** después de entregar la integración
+UI-BUSINESS-PENDING-REJECT-01 en la versión QA
+`cee5746228614d388fc7c6bfc0567f0edbca27e0`, código funcional
+`6778c2ad4ff8b72647f44ea12db75a105bfb4be0`, rama qa.
+Ese despliegue final quedó READY como `dpl_GGS4Q3JHSms8ezQyo1NBrgdYhexu`,
+URL propia https://zipco-793i4xkt2-zipco-s-projects.vercel.app y alias QA habitual
+verificado apuntando a él.
+
+Estado del bloque: **conforme según Bastián para el flujo probado**. No indicó
+dispositivo, motivos concretos o escenarios adicionales; no se acredita la
+matriz completa de seis motivos, carreras, recuperación o notificación externa
+en ambos sistemas. Se conserva el historial anterior y sus límites de evidencia.
+No se extiende esta confirmación a producción, a toda la app ni a la deuda de
+entrega fiable de avisos. Este registro es exclusivamente documental: no cambia
+código, contrato, configuración global ni estados de pedidos.

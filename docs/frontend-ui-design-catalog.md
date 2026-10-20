@@ -170,3 +170,11 @@ motivo y solicitud original sin acuerdo inexistente. Diseño y scroll conservado
 1021 pruebas, build QA y 24 regresiones táctiles aprobados; Preview funcional READY.
 Integración y conformidad física Android/iPhone pendientes.
 [Archivos, evidencia y publicación](frontend-business-pending-rejection-qa.md).
+
+Conformidad posterior, 2026-10-20: Bastián confirmó «LISTO FUNCIONÓ» para
+UI-BUSINESS-PENDING-REJECT-01 entregado como
+`cee5746228614d388fc7c6bfc0567f0edbca27e0` (código
+`6778c2ad4ff8b72647f44ea12db75a105bfb4be0`). **Conforme según Bastián para
+el flujo probado**. No especificó dispositivo ni matriz de escenarios; no se
+declaran comprobados todos los motivos o notificaciones Android/iPhone ni
+aprobada producción. La ficha conserva el alcance y evidencia.
