@@ -11,7 +11,7 @@ vi.mock('react', async original => ({ ...await original<typeof import('react')>(
   useEffect: (effect: () => void | (() => void)) => { hooks.effects.push(effect); },
 }));
 import PendingAlternativeActions, { AlternativeDraftDialog, LocalAlternativePhoto } from './PendingAlternativeActions';
-import AlternativeProposalFields from './AlternativeProposalFields';
+import AlternativeChangeEditor from './AlternativeChangeEditor';
 import { normalizeBusinessOrdersPayload } from './orderNormalization';
 import { rawOrder, pendingProcess } from './requestProcessFixtures';
 type Node = React.ReactElement<Record<string, any>>;
@@ -21,7 +21,7 @@ const button = (root: React.ReactNode, label: string) => nodes(root).find(n => n
 const order = () => normalizeBusinessOrdersPayload([{ ...rawOrder, orderType: 'product', needNow: true, requestProcess: pendingProcess }])[0];
 const close = vi.fn();
 const render = (o = order()) => { hooks.cursor = 0; return AlternativeDraftDialog({ order: o, close }); };
-const fields = () => nodes(render()).find(node => node.type === AlternativeProposalFields)!.props;
+const fields = () => nodes(render()).find(node => node.type === AlternativeChangeEditor)!.props;
 beforeEach(() => { hooks.slots = []; hooks.cursor = 0; hooks.effects = []; close.mockReset(); vi.stubGlobal('React', React);
   vi.stubGlobal('fetch', vi.fn()); vi.stubGlobal('localStorage', { setItem: vi.fn(), getItem: vi.fn() });
   vi.stubGlobal('sessionStorage', { setItem: vi.fn(), getItem: vi.fn() }); });
@@ -41,8 +41,8 @@ describe('recovered alternative design, preparation only', () => {
     const view = render(o); expect(nodes(view).find(n => n.type === Dialog.Title)?.props.children).toBe('Proponer una alternativa');
     expect(nodes(view).some(n => typeof n.props.children === 'string' && n.props.children.includes('Solo preparación. Aún no se puede enviar al cliente.'))).toBe(false);
     expect(fields().original).toContain('2x Producto de prueba');
-    expect(fields().photoFields.type).toBe(LocalAlternativePhoto);
-    fields().onSelectedChange(new Set(['price'])); fields().setPrice('1500'); fields().setMessage('Cambio de precio por la preparación.');
+    expect(nodes(view).some(node => node.type === LocalAlternativePhoto)).toBe(true);
+    fields().onApply('price', { price: '1500' }); fields().setMessage('Cambio de precio por la preparación.');
     button(render(), 'Revisar alternativa').props.onClick();
     const review = render(); expect(nodes(review).find(n => n.type === Dialog.Title)?.props.children).toBe('Revisar alternativa');
     expect(button(review, 'Confirmar y enviar').props.disabled).toBe(true);
@@ -57,31 +57,29 @@ describe('recovered alternative design, preparation only', () => {
     const o = order(); o.products = { state: 'available', items: [{ name: 'A', price: 1000, quantity: 1 }, { name: 'B', price: 1000, quantity: 1 }] };
     render(o); button(render(o), 'Revisar alternativa').props.onClick();
     expect(nodes(render(o)).some(n => n.props.role === 'alert')).toBe(true);
-    const f = () => nodes(render(o)).find(n => n.type === AlternativeProposalFields)!.props;
-    f().onSelectedChange(new Set(['item'])); expect(f().selectedChanges.has('price')).toBe(false);
-    f().setPrice('10000'); f().setItem('Conjunto alternativo'); f().setMessage('Cambio por producto no disponible.');
+    const f = () => nodes(render(o)).find(n => n.type === AlternativeChangeEditor)!.props;
+    f().onApply('item', { price: '10000', name: 'Conjunto alternativo' }); expect(f().selected.has('price')).toBe(false);
+    f().setMessage('Cambio por producto no disponible.');
     nodes(render(o)).find(n => n.type === 'select')!.props.onChange({ target: { value: '1' } });
-    expect(f().selectedChanges.has('item')).toBe(false); expect(f().price).toBe('1000');
+    expect(f().selected.has('item')).toBe(false); expect(f().line.price).toBe('1000');
     nodes(render(o)).find(n => n.type === 'select')!.props.onChange({ target: { value: '0' } });
-    expect(f().price).toBe('10000'); expect(f().item).toBe('Conjunto alternativo');
+    expect(f().line.price).toBe('10000'); expect(f().line.name).toBe('Conjunto alternativo');
     button(render(o), 'Revisar alternativa').props.onClick(); expect(button(render(o), 'Confirmar y enviar').props.disabled).toBe(true);
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it('keeps item and price selections independent while requiring CUSTOM total inside its own fields', () => {
-    render(); fields().onSelectedChange(new Set(['item']));
-    expect(fields().selectedChanges.has('item')).toBe(true); expect(fields().selectedChanges.has('price')).toBe(false);
-    expect(fields().priceRequired).not.toBe(true);
-    const customPrice = () => nodes(fields().itemFields).find(n => n.props['aria-label'] === 'Precio total de la opción escrita')!;
-    expect(customPrice().props.required).toBe(true); expect(customPrice().props.value).toBe('');
-    fields().setItem('Opción escrita'); fields().setMessage('Otra preparación con precio explicado.');
-    button(render(), 'Revisar alternativa').props.onClick();
-    expect(button(render(), 'Confirmar y enviar')).toBeUndefined();
-    customPrice().props.onChange({ target: { value: '10000' } });
-    fields().onSelectedChange(new Set(['item', 'price']));
-    expect(fields().selectedChanges.has('price')).toBe(true);
-    fields().onSelectedChange(new Set(['item']));
-    expect(fields().selectedChanges.has('price')).toBe(false); expect(customPrice().props.value).toBe('10000');
+    render(); fields().onApply('price', { price: '1500' });
+    fields().onApply('item', { name: 'Opción escrita', price: '10000' });
+    expect(fields().selected.has('item')).toBe(true); expect(fields().selected.has('price')).toBe(true);
+    fields().onApply('price', { price: '12000' });
+    fields().onRemove('price');
+    expect(fields().selected.has('price')).toBe(false); expect(fields().line.price).toBe('10000');
+    fields().onApply('price', { price: '13000' }); fields().onRemove('item');
+    expect(fields().selected.has('price')).toBe(true); expect(fields().line.price).toBe('1500');
+    fields().onRemove('price'); expect(fields().line.price).toBe('1000');
+    fields().onApply('item', { name: 'Opción escrita', price: '10000' });
+    fields().setMessage('Otra preparación con precio explicado.');
     button(render(), 'Revisar alternativa').props.onClick();
     expect(button(render(), 'Confirmar y enviar').props.disabled).toBe(true);
     expect(fetch).not.toHaveBeenCalled();
@@ -94,20 +92,20 @@ describe('recovered alternative design, preparation only', () => {
     expect(nodes(stale).some(n => n.props.children === 'La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.')).toBe(true);
     hooks.slots = []; hooks.cursor = 0;
     const service = { ...o, orderType: 'service' as const }; render(service);
-    expect(nodes(render(service)).find(n => n.type === AlternativeProposalFields)?.props.quantityLocked).toBe(true);
+    expect(nodes(render(service)).find(n => n.type === AlternativeChangeEditor)?.props.quantityLocked).toBe(true);
   });
 
-  it('uses shared violet selectors, bounded values and a local photo slot, without the legacy uploader', () => {
-    render(); const props = fields(); hooks.cursor = 0;
-    const view = AlternativeProposalFields({ ...props, selectedChanges: new Set(['quantity', 'price']), quantity: '99' } as any);
-    expect(nodes(view).find(n => n.props.className === 'mt-2 grid grid-cols-2 gap-2')).toBeDefined();
-    expect(nodes(view).filter(n => n.props['aria-pressed'] !== undefined)).toHaveLength(4);
-    expect(nodes(view).find(n => n.props['aria-label'] === 'Aumentar cantidad')?.props.disabled).toBe(true);
-    expect(nodes(view).some(n => n.type === 'input' && n.props.type === 'file')).toBe(false);
-    expect(nodes(view).find(n => n.type === 'textarea')?.props.maxLength).toBe(1000);
-    const onPrice = nodes(view).find(n => n.props['aria-label'] === 'Precio por unidad')!;
-    onPrice.props.onChange({ target: { value: '1.5' } });
-    expect(hooks.slots[1].lines[0].price).toBe('1.5');
+  it('keeps the footer separate and requires saving or closing the editor before review', () => {
+    render(); fields().onApply('price', { price: '1500' }); fields().setMessage('Precio explicado.');
+    fields().onEditorOpenChange(true);
+    expect(button(render(), 'Revisar alternativa').props.disabled).toBe(true);
+    button(render(), 'Revisar alternativa').props.onClick();
+    expect(button(render(), 'Confirmar y enviar')).toBeUndefined();
+    fields().onEditorOpenChange(false); button(render(), 'Revisar alternativa').props.onClick();
+    const view = render();
+    expect(button(view, 'Confirmar y enviar').props.disabled).toBe(true);
+    expect(nodes(view).some(n => n.props['data-alternative-body'] === true)).toBe(true);
+    expect(nodes(view).some(n => n.props['data-alternative-footer'] === true)).toBe(true);
     expect(fetch).not.toHaveBeenCalled();
   });
 

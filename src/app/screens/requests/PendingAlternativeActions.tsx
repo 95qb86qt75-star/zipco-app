@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { ImagePlus, Trash2, X } from 'lucide-react';
-import AlternativeProposalFields, { type ChangeKey } from './AlternativeProposalFields';
+import type { ChangeKey } from './AlternativeProposalFields';
+import AlternativeChangeEditor, { type ChangeValues } from './AlternativeChangeEditor';
 import { alternativeSource, alternativeSourceCurrent, canPrepareAlternative, canSubmitAlternative, newAlternativeDraft, reviewAlternative, type AlternativeDraft } from './alternativeDraft';
 import type { BusinessRequest, MyOrder } from './types';
 
@@ -18,8 +19,8 @@ export function LocalAlternativePhoto() {
     {photo ? <div className="relative overflow-hidden rounded-2xl border border-violet-300">
       <img src={photo} alt="Foto preparada para la alternativa" className="h-36 w-full object-cover" />
       <button type="button" aria-label="Quitar foto preparada" onClick={() => setPhoto('')} className="absolute right-2 top-2 rounded-full bg-slate-950/75 p-2 text-white"><Trash2 className="h-4 w-4" /></button>
-    </div> : <button type="button" onClick={() => input.current?.click()} className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-violet-400 bg-violet-500/5 p-4 text-left text-violet-700 dark:text-violet-200">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/15"><ImagePlus className="h-5 w-5" /></span>
+    </div> : <button type="button" onClick={() => input.current?.click()} className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-violet-400 bg-violet-500/5 p-3 text-left text-violet-700 dark:text-violet-200">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/15"><ImagePlus className="h-5 w-5" /></span>
       <span><span className="block text-sm font-black">Agregar foto de referencia</span><span className="block text-xs opacity-70">Opcional, úsala si ayuda a explicar la propuesta.</span></span>
     </button>}
     <p className="mt-1 text-xs text-slate-500">Foto solo en este formulario, sin subir ni guardar. JPG, PNG o WebP, hasta 8 MB.</p>
@@ -42,87 +43,114 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
   const [index, setIndex] = useState(0);
   const [reviewing, setReviewing] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [priceModes, setPriceModes] = useState(() => source.items.map(item => ({ unit: String(item.price), custom: '' })));
   const current = alternativeSourceCurrent(source, order, true);
   const validation = reviewAlternative(source, draft);
   const line = draft.lines[index];
-  const custom = line?.selected.has('item') ?? false;
-  const update = (patch: Partial<AlternativeDraft>) => { setDraft(previous => ({ ...previous, ...patch })); setReviewing(false); };
-  const updateLine = (patch: Partial<AlternativeDraft['lines'][number]>) => setDraft(previous => ({ ...previous,
-    lines: previous.lines.map((value, i) => i === index ? { ...value, ...patch } : value),
-  }));
+  const originalLine = source.items[index];
+  const updateMessage = (message: string) => { setDraft(previous => ({ ...previous, message })); setReviewing(false); };
   const selected = new Set<ChangeKey>(line?.selected ?? []);
   if (draft.scheduleChanged) selected.add('schedule');
-  const changeSelection = (next: Set<ChangeKey>) => {
-    const itemChanged = next.has('item') !== custom;
-    const scheduleChanged = next.has('schedule'); next.delete('schedule');
-    setDraft(previous => ({ ...previous, scheduleChanged, lines: previous.lines.map((value, i) => i !== index ? value : {
-      ...value, selected: next, ...(itemChanged ? { price: next.has('item') ? '' : String(source.items[index].price) } : {}),
+
+  // Guardar un cambio desde su campo pequeño: lo marca como seleccionado y copia sus valores.
+  const applyChange = (key: ChangeKey, values: ChangeValues) => {
+    if (!current) return;
+    setReviewing(false);
+    if (key === 'schedule') {
+      setDraft(previous => ({ ...previous, scheduleChanged: true,
+        immediate: values.immediate ?? previous.immediate, date: values.date ?? previous.date, time: values.time ?? previous.time }));
+      return;
+    }
+    if (key === 'item') setPriceModes(previous => previous.map((value, i) => i !== index ? value : {
+      unit: line.selected.has('item') ? value.unit : line.price, custom: values.price!,
+    }));
+    if (key === 'price' && !line.selected.has('item')) setPriceModes(previous => previous.map((value, i) => i !== index ? value : { ...value, unit: values.price! }));
+    setDraft(previous => ({ ...previous, lines: previous.lines.map((value, i) => {
+      if (i !== index) return value;
+      const next = new Set(value.selected); next.add(key);
+      const patch = key === 'item' ? { name: values.name!, description: values.description ?? '', price: values.price! }
+        : key === 'price' ? { price: values.price! } : { quantity: values.quantity! };
+      return { ...value, ...patch, selected: next };
     }) }));
   };
+
+  // Quitar un cambio guardado: lo desmarca y devuelve el valor original.
+  const removeChange = (key: ChangeKey) => {
+    if (!current) return;
+    setReviewing(false);
+    if (key === 'schedule') {
+      setDraft(previous => ({ ...previous, scheduleChanged: false, immediate: source.needNow, date: source.date, time: source.time }));
+      return;
+    }
+    setDraft(previous => ({ ...previous, lines: previous.lines.map((value, i) => {
+      if (i !== index) return value;
+      const next = new Set(value.selected); next.delete(key);
+      const original = source.items[index];
+      const reset = key === 'item' ? { name: '', description: '', price: next.has('price') ? priceModes[index].unit : String(original.price) }
+        : key === 'price' ? { price: value.selected.has('item') ? priceModes[index].custom : String(original.price) } : { quantity: String(original.quantity) };
+      return { ...value, ...reset, selected: next };
+    }) }));
+  };
+
+  const originalSchedule = source.needNow ? 'Lo antes posible' : `${source.date || 'Sin fecha disponible'} · ${source.time || 'Sin hora disponible'}`;
   return <Dialog.Root open onOpenChange={value => { if (!value) close(); }}>
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-      <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900">
-        <Dialog.Title className="pr-7 text-lg font-black">{reviewing ? 'Revisar alternativa' : 'Proponer una alternativa'}</Dialog.Title>
-        <Dialog.Description className="mt-1 text-sm text-slate-600 dark:text-slate-300">Selecciona qué aspectos quieres modificar. La solicitud original se conserva.</Dialog.Description>
-        <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full"><X className="h-5 w-5" /></button></Dialog.Close>
-        {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
-        <fieldset disabled={!current} className={reviewing ? 'hidden' : ''}>
-          {source.items.length > 1 && <label className="mt-3 block text-sm font-bold">Artículo a modificar
-            <select className={`mt-1 ${field}`} value={index} onChange={event => setIndex(Number(event.target.value))}>
-              {source.items.map((item, i) => <option key={i} value={i}>{i + 1}. {item.name}</option>)}
-            </select><span className="text-xs font-normal">Puedes ajustar cada línea; las demás se conservan.</span>
-          </label>}
-          {line && <AlternativeProposalFields
-            original={`${source.items.map(item => `${item.quantity}x ${item.name}`).join(' · ')} · ${source.total === null ? 'Total no disponible' : pesos(source.total)}`}
-            item={line.name} setItem={name => updateLine({ name })} price={line.price} setPrice={price => updateLine({ price })}
-            quantity={line.quantity} setQuantity={quantity => updateLine({ quantity })} date={draft.date} setDate={date => update({ date })}
-            time={draft.time} setTime={time => update({ time })} message={draft.message} setMessage={message => update({ message })}
-            photo="" setPhoto={() => {}} selectedChanges={selected} onSelectedChange={changeSelection}
-            priceLabel={custom ? 'Precio total de esta línea' : 'Precio por unidad'} strictPrice
-            priceFields={custom ? <p className="text-xs text-slate-500">El precio total de la opción escrita se indica en sus campos y es obligatorio.</p> : undefined}
-            quantityMax={99} quantityLocked={source.orderType !== 'product'} messageMaxLength={1000}
-            explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
-            itemFields={<div className="space-y-2">
-              <p className="text-xs text-violet-700">Escribe una opción fuera del catálogo. No se creará un artículo nuevo.</p>
-              <label className="block text-sm font-bold">Nombre de la alternativa<input value={line.name} maxLength={120} onChange={event => updateLine({ name: event.target.value })} className={`mt-1 ${field}`} /></label>
-              <label className="block text-sm font-bold">Descripción opcional<textarea value={line.description} maxLength={500} onChange={event => updateLine({ description: event.target.value })} className={`mt-1 ${field}`} /></label>
-              <label className="block text-sm font-bold">Precio total de esta opción (obligatorio)<input aria-label="Precio total de la opción escrita" required inputMode="numeric" value={line.price} onChange={event => updateLine({ price: event.target.value })} className={`mt-1 ${field}`} /></label>
-              <p className="text-xs text-slate-500">Total de esta línea en pesos enteros, no un precio unitario calculado.</p>
-            </div>}
-            scheduleFields={<div className="space-y-2">
-              <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={draft.immediate} onChange={event => update({ immediate: event.target.checked })} />Lo antes posible</label>
-              {!draft.immediate && <div className="grid grid-cols-2 gap-2">
-                <label className="min-w-0 text-xs font-bold">Fecha<input type="date" value={draft.date} onChange={event => update({ date: event.target.value })} className={`mt-1 min-w-0 ${field}`} />{!draft.date && <span>Selecciona fecha</span>}</label>
-                <label className="min-w-0 text-xs font-bold">Hora de Chile<input type="time" value={draft.time} onChange={event => update({ time: event.target.value })} className={`mt-1 min-w-0 ${field}`} />{!draft.time && <span>Selecciona hora</span>}</label>
-              </div>}
-            </div>}
-            photoFields={<LocalAlternativePhoto />} />}
-          <p className="mt-2 text-xs text-slate-500">Horario original: {source.needNow ? 'Lo antes posible' : `${source.date || 'Sin fecha disponible'} · ${source.time || 'Sin hora disponible'}`}. {source.orderType === 'service' ? 'Servicio: cantidad 1.' : ''}</p>
-        </fieldset>
-        {showErrors && validation.error && <p role="alert" className="mt-3 text-sm text-red-700">{validation.error}</p>}
-        {reviewing && validation.review && <div className="mt-4 space-y-3 rounded-2xl border border-violet-200 bg-violet-50/60 p-3 text-sm dark:bg-violet-950/30">
-          <p className="font-black">Comparación · Borrador sin enviar</p>
-          {source.items.map((item, i) => {
-            const proposed = draft.lines[i], changedItem = proposed.selected.has('item');
-            const quantity = proposed.selected.has('quantity') ? Number(proposed.quantity) : item.quantity;
-            const subtotal = changedItem ? Number(proposed.price) : (proposed.selected.has('price') ? Number(proposed.price) : item.price) * quantity;
-            return <div key={i} className="border-t border-violet-200 pt-2">
-              <p>Original: {item.quantity}x {item.name} · {pesos(item.price * item.quantity)}</p>
-              <p className="font-bold">Alternativa: {quantity}x {changedItem ? proposed.name.trim() : item.name} · {pesos(subtotal)}</p>
-              {changedItem && proposed.description.trim() && <p>{proposed.description.trim()}</p>}
-            </div>;
-          })}
-          <p>Total original: {source.total === null ? 'No disponible' : pesos(source.total)}</p>
-          <p className="font-black">Total propuesto: {pesos(validation.review.totalPriceClp)}</p>
-          <p>Fecha y hora propuestas: {(draft.scheduleChanged ? draft.immediate : source.needNow) ? 'Lo antes posible' : `${draft.scheduleChanged ? draft.date : source.date} · ${draft.scheduleChanged ? draft.time : source.time} (Chile)`}</p>
-          <p className="whitespace-pre-wrap break-words">Explicación: {validation.review.message}</p>
-        </div>}
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          {reviewing ? <button type="button" onClick={() => setReviewing(false)} className="min-h-12 rounded-xl border py-3 font-bold">Volver al formulario</button>
-            : <Dialog.Close asChild><button type="button" className="min-h-12 rounded-xl border py-3 font-bold">Volver</button></Dialog.Close>}
-          {reviewing ? <button type="button" disabled={!canSubmitAlternative()} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">Confirmar y enviar</button>
-            : <button type="button" disabled={!current} onClick={() => { setShowErrors(true); if (validation.review) setReviewing(true); }} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">Revisar alternativa</button>}
+      <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900">
+        <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className="absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full"><X className="h-5 w-5" /></button></Dialog.Close>
+        <div data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
+          <Dialog.Title className="pr-7 text-lg font-black">{reviewing ? 'Revisar alternativa' : 'Proponer una alternativa'}</Dialog.Title>
+          <Dialog.Description className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">Elige qué cambia. La solicitud original se conserva.</Dialog.Description>
+          {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
+          <fieldset disabled={!current} className={reviewing ? 'hidden' : ''}>
+            {source.items.length > 1 && <label className="mt-3 block text-sm font-bold">Artículo a modificar
+              <select className={`mt-1 ${field}`} value={index} onChange={event => { setEditing(false); setIndex(Number(event.target.value)); }}>
+                {source.items.map((item, i) => <option key={i} value={i}>{i + 1}. {item.name}</option>)}
+              </select><span className="text-xs font-normal">Puedes ajustar cada línea; las demás se conservan.</span>
+            </label>}
+            {line && originalLine && <AlternativeChangeEditor key={index}
+              original={`${source.items.map(item => `${item.quantity}x ${item.name}`).join(' · ')} · ${source.total === null ? 'Total no disponible' : pesos(source.total)}`}
+              originalNote={`Horario original: ${originalSchedule}.${source.orderType === 'service' ? ' Servicio: cantidad 1.' : ''}`}
+              originalLine={originalLine} originalSchedule={originalSchedule} line={line}
+              schedule={{ immediate: draft.scheduleChanged ? draft.immediate : source.needNow, date: draft.scheduleChanged ? draft.date : source.date, time: draft.scheduleChanged ? draft.time : source.time }}
+              originalScheduleValue={{ immediate: source.needNow, date: source.date, time: source.time }}
+              customBasePrice={priceModes[index].custom}
+              onEditorOpenChange={setEditing}
+              selected={selected} quantityLocked={source.orderType !== 'product'} quantityMax={99}
+              onApply={applyChange} onRemove={removeChange}
+              message={draft.message} setMessage={updateMessage} messageMaxLength={1000}
+              explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
+              photoFields={null} />}
+            {line && <div className="mt-4"><LocalAlternativePhoto /></div>}
+          </fieldset>
+          {reviewing && validation.review && <div className="mt-4 space-y-3 rounded-2xl border border-violet-200 bg-violet-50/60 p-3 text-sm dark:bg-violet-950/30">
+            <p className="font-black">Comparación · Borrador sin enviar</p>
+            {source.items.map((item, i) => {
+              const proposed = draft.lines[i], changedItem = proposed.selected.has('item');
+              const quantity = proposed.selected.has('quantity') ? Number(proposed.quantity) : item.quantity;
+              const subtotal = changedItem ? Number(proposed.price) : (proposed.selected.has('price') ? Number(proposed.price) : item.price) * quantity;
+              return <div key={i} className="border-t border-violet-200 pt-2">
+                <p>Original: {item.quantity}x {item.name} · {pesos(item.price * item.quantity)}</p>
+                <p className="font-bold">Alternativa: {quantity}x {changedItem ? proposed.name.trim() : item.name} · {pesos(subtotal)}</p>
+                {changedItem && proposed.description.trim() && <p>{proposed.description.trim()}</p>}
+              </div>;
+            })}
+            <p>Total original: {source.total === null ? 'No disponible' : pesos(source.total)}</p>
+            <p className="font-black">Total propuesto: {pesos(validation.review.totalPriceClp)}</p>
+            <p>Fecha y hora propuestas: {(draft.scheduleChanged ? draft.immediate : source.needNow) ? 'Lo antes posible' : `${draft.scheduleChanged ? draft.date : source.date} · ${draft.scheduleChanged ? draft.time : source.time} (Chile)`}</p>
+            <p className="whitespace-pre-wrap break-words">Explicación: {validation.review.message}</p>
+          </div>}
+        </div>
+        <div data-alternative-footer className="shrink-0 border-t border-slate-200 px-5 py-3 dark:border-slate-700">
+          {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}
+          {showErrors && validation.error && <p role="alert" className="mb-2 text-sm text-red-700">{validation.error}</p>}
+          <div className="grid grid-cols-2 gap-2">
+            {reviewing ? <button type="button" onClick={() => setReviewing(false)} className="min-h-12 rounded-xl border py-3 font-bold">Volver al formulario</button>
+              : <Dialog.Close asChild><button type="button" className="min-h-12 rounded-xl border py-3 font-bold">Volver</button></Dialog.Close>}
+            {reviewing ? <button type="button" disabled={!canSubmitAlternative()} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">Confirmar y enviar</button>
+              : <button type="button" disabled={!current || editing} onClick={() => { setShowErrors(true); if (current && !editing && validation.review) setReviewing(true); }} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">Revisar alternativa</button>}
+          </div>
         </div>
       </Dialog.Content>
     </Dialog.Portal>
