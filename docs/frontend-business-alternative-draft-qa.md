@@ -215,4 +215,13 @@ revisión sin total CUSTOM. No backend, uploads o acciones reales en las pruebas
 Envío sigue bloqueado. Sin cambios en contrato, endpoints, recargas, persistencia,
 estado de pedidos, backend/Railway, main o producción. Activación y recorrido
 integrado de alternativas continúan pendientes; comprobación física móvil de este
-ajuste pendiente. Se conserva el aviso retirado en UI-BUSINESS-ALTERNATIVE-NOTICE-01.
+ajuste pendiente. Se conserva la retirada del aviso de UI-BUSINESS-ALTERNATIVE-NOTICE-01.
+
+Resultado publicado: código `243ef4e332b27ceac6ce51673c6e6f78902833c3` en
+origin/qa; Preview READY `dpl_7F6zjMeLHjauS3a93LwAzFYYLaDE`, URL propia
+https://zipco-lwpu82tuh-zipco-s-projects.vercel.app. GitHub real, SHA exacto,
+rama qa y entorno Preview verificados. El alias habitual QA apunta a ese despliegue
+al comprobarlo; build qa completo, Backend QA y flags temporales conservados,
+build global y producción sin cambios. Este resultado y el catálogo quedan en un
+cierre documental posterior con el mismo código funcional, cuyo SHA será la versión
+visible final. Envío bloqueado y prueba física pendiente.

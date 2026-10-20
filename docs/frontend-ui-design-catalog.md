@@ -203,3 +203,13 @@ Solo se retira el párrafo amarillo «Solo preparación…» del modal de altern
 Se conservan diseño restante, validaciones, descarte y envío bloqueado.
 28 pruebas, build QA y 6 escenarios táctiles Chrome aprobados; Preview funcional
 READY. Revisión física pendiente. [Archivos y resultado](frontend-business-alternative-draft-qa.md).
+
+### UI-BUSINESS-ALTERNATIVE-SELECTION-01 — Opciones independientes
+
+2026-10-20. Código `243ef4e332b27ceac6ce51673c6e6f78902833c3`, rama qa.
+Producto o servicio no marca Precio automáticamente; cada tarjeta se alterna por
+separado. La opción escrita pide su precio total obligatorio en sus propios campos,
+sin eximirlo al desmarcar Precio. Mantiene diseño restante, validaciones y envío
+bloqueado. 1051 pruebas, build QA y 6 escenarios táctiles Chrome aprobados; Preview
+funcional READY. Revisión física pendiente.
+[Archivos, contrato conservado y resultado](frontend-business-alternative-draft-qa.md).
