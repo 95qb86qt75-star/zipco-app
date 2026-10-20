@@ -60,4 +60,26 @@ Guardar código, pruebas y documentación; publicar solo `qa` en Vercel Preview 
 
 Comprobar READY, SHA, rama y alias; guardar también resultado y nombre+commit en un cierre documental enviado a Git. Sin cambios en `main`, producción o Railway. Arquitectura nueva de notificaciones y recorrido temporal siguen pausados.
 
+### Resultado publicado — 2026-10-20
+
+Código, pruebas y ficha enviados a origin/qa en
+`be2614aa3c1fd174966a142b4f8229e8ae12c88d` (19 rutas). Preview funcional
+**READY**: `dpl_CruCHwxoQcrayPqKA89YbvWtdPKh`, URL propia
+https://zipco-e0cm64k5r-zipco-s-projects.vercel.app.
+Fuente GitHub real verificada, SHA exacto, rama qa, entorno Preview.
+El alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app
+apunta a ese despliegue al realizar esta comprobación.
+
+Build en modo qa completado, diagnóstico de lecturas habilitado y traza de clic
+deshabilitada: ausencia del asset de traza verificada en el build.
+Backend Preview verificado como https://zipco-backend-qa.up.railway.app.
+Build global null y rama de producción main conservados. Sin cambios en Railway,
+API backend, permisos o producción; no se ejecutaron acciones reales de pedidos.
+
+Este cierre y sus referencias se guardan en un commit documental posterior.
+Su publicación conserva el mismo código funcional y el override exclusivo de QA;
+el SHA visible cambia al de ese cierre documental. Las 975 pruebas, build y
+24 regresiones táctiles corresponden al código funcional indicado arriba.
+La aprobación e integración en Android/iPhone continúan **pendientes**.
+
 Prueba física coordinada por Bastián, **pendiente**: en una solicitud nueva con permiso, abrir el popup y pulsar No; comprobar que continúa pendiente. Volver a abrir y pulsar Sí; comprobar salida de Pendientes y presencia en Historial del cliente y, tras actualizar, del negocio, con datos originales y sin motivo/borrado/nuevo aviso. Una prueba controlada simultánea de aceptación/anulación debe mostrar un único resultado ganador y actualizar el otro celular, sin repetir acciones confirmadas. Este documento no acredita que esa prueba móvil ya se haya realizado.

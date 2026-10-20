@@ -317,3 +317,14 @@ aplicado por igual a cliente y negocio.
 - Estado: local, sin commit nuevo ni publicación de este cambio; rama `qa`.
 - Sin campos o endpoints nuevos. Vercel QA y Railway QA no se modificaron;
   `main` y producción intactos. Documentos pendientes conservados.
+
+## Actualización F1 — UI-CUSTOMER-PENDING-CANCEL-01 — 2026-10-20
+
+Se conserva el pendiente histórico F1 como antecedente. Backend QA publicó
+REQ-CUSTOMER-CANCEL-PENDING-01 en 577c0c7 y frontend integró el contrato en
+`be2614aa3c1fd174966a142b4f8229e8ae12c88d`, rama qa, Preview funcional READY.
+Cliente puede anular antes de la primera respuesta únicamente con permiso;
+confirmación Sí / No y conservación en Historial, sin motivo ni nuevo aviso.
+975 pruebas y build aprobados. **Prueba y conformidad en celulares pendientes**;
+no se declara F1 aprobado por Bastián todavía. No afecta otros pendientes.
+[Contrato, archivos y publicación](frontend-customer-pending-cancellation-qa.md).

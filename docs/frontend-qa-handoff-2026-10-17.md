@@ -207,3 +207,13 @@ Incluye SHA revisado, contrato observado, archivos, hallazgos confirmados,
 límites de evidencia, pruebas y propuesta pendiente. Bastián confirmó haber
 compartido la información con Backend QA. No se implementó ni publicó una
 corrección. Este registro documental es local y todavía no tiene commit propio.
+
+## Referencia posterior para F1 — 2026-10-20
+
+Este documento conserva el diagnóstico histórico del 2026-10-17. El contrato
+posterior REQ-CUSTOMER-CANCEL-PENDING-01 ya fue publicado por Backend QA en
+577c0c7; integración frontend UI-CUSTOMER-PENDING-CANCEL-01 guardada en
+`be2614aa3c1fd174966a142b4f8229e8ae12c88d` y publicada en Preview QA READY.
+975 pruebas y build aprobados. La prueba integrada en celulares sigue pendiente;
+no se declara aprobación de F1 ni se cambia P1 u otros pendientes históricos.
+[Estado y evidencia del bloque](frontend-customer-pending-cancellation-qa.md).

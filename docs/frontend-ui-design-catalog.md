@@ -147,3 +147,14 @@ la transición suave entregada como `a0a65db1574cea16893e81626d6fd93c3b0a83cd`
 (código `a45884eab738214dfb42a2b2e73cf095d0572d75`). Estado del ajuste:
 **conforme según Bastián**. No especificó dispositivo/rol ni prueba de movimiento
 reducido; no se extiende la conformidad a toda la app o a producción.
+
+## UI-CUSTOMER-PENDING-CANCEL-01 — Cliente: Anular solicitud inicial
+
+Código: `be2614aa3c1fd174966a142b4f8229e8ae12c88d`, rama qa.
+Botón Anular solicitud antes de la primera respuesta, sujeto a allowedActions;
+popup «¿Confirmas anulación de tu pedido?» con Sí / No. No cierra sin acción;
+Sí utiliza CANCEL_PENDING_REQUEST y muestra el cierre confirmado en Historial.
+Sin motivo, borrado o nueva notificación. Contrato backend publicado en 577c0c7.
+975 pruebas y build QA aprobados; 24 regresiones táctiles del scroll anterior.
+Preview funcional READY; integración y aprobación móvil pendientes.
+Archivos, contrato y resultado: [frontend-customer-pending-cancellation-qa.md](frontend-customer-pending-cancellation-qa.md).
