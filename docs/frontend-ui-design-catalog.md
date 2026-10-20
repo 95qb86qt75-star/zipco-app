@@ -178,3 +178,20 @@ UI-BUSINESS-PENDING-REJECT-01 entregado como
 el flujo probado**. No especificó dispositivo ni matriz de escenarios; no se
 declaran comprobados todos los motivos o notificaciones Android/iPhone ni
 aprobada producción. La ficha conserva el alcance y evidencia.
+
+## UI-BUSINESS-ALTERNATIVE-DRAFT-01 — Negocio: preparar alternativa
+
+Código `f2a4ccf453d6afbcf0f27fcb581ea548d5b1cc81`, rama qa.
+Diseño recuperado del commit `e386b2c450bdbfa883331f382ce61c39b81f0e70`:
+AlternativeProposalFields reutilizado, modal de BusinessOrdersTab y botón violeta.
+Conserva solicitud original, cuatro opciones en dos columnas, campos desplegables,
+cantidad +/−, explicación y foto. Agrega edición por línea, opción escrita con total
+explícito, límites/horario Chile y revisión. Foto local, sin subir ni persistir.
+**Envío bloqueado** hasta integrar cliente, confirmar Backend QA y negociar
+alternatives-v1; no es una alternativa guardada. Contrato backend c1f3b57 con
+activación QA aún pendiente de confirmar.
+1050 pruebas y build QA aprobados, 6 escenarios táctiles Chrome del formulario;
+regresión campanitas 24 casos aprobados en repetición aislada, primer resultado
+de medición de animación conservado en la ficha. Preview funcional READY.
+Conformidad del diseño en celulares y recorrido integrado pendientes.
+[Diseño recuperado, archivos y evidencia](frontend-business-alternative-draft-qa.md).

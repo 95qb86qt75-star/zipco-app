@@ -139,3 +139,24 @@ No se acredita envío, almacenamiento backend, recepción/respuesta del cliente,
 acuerdo nuevo, notificación ni prueba física Android/iPhone. Tampoco se declara
 activado c1f3b57 en Railway. Proponer/aceptar/rechazar reales quedan fuera de estas
 comprobaciones. La deuda de notificaciones fiables y privacidad sigue pendiente.
+
+## Resultado de publicación — 2026-10-20
+
+Código, pruebas, script y ficha (15 rutas) enviados a origin/qa en
+`f2a4ccf453d6afbcf0f27fcb581ea548d5b1cc81`.
+Preview funcional **READY**: `dpl_mXn3poScvkfygVN524HT6DYRhRn8`;
+URL propia https://zipco-4sncdy79z-zipco-s-projects.vercel.app.
+Fuente GitHub real, SHA exacto, rama qa, entorno Preview y build qa completado
+verificados. Alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app
+apunta a ese despliegue al comprobarlo.
+
+Backend Preview verificado como https://zipco-backend-qa.up.railway.app, sin
+atribuirle activación del SHA c1f3b57. Diagnóstico de lecturas conservado y traza
+de clic deshabilitada (asset ausente). Build global null y producción main
+conservados. **Envío de alternativas bloqueado en el código publicado**.
+
+Este cierre y sus referencias se guardan en un commit documental posterior;
+su publicación mantiene el mismo código funcional y override exclusivo QA.
+El SHA visible final cambia al del cierre. No hay conformidad física del nuevo
+formulario ni flujo integrado de alternativas; no se ejecutaron acciones reales,
+uploads o cambios de pedidos en la implementación, validación o publicación.

@@ -343,3 +343,18 @@ Se conservan diseño y navegación anteriores; sin cambios de backend o producci
 1021 pruebas y build QA aprobados, 24 regresiones táctiles sin backend; Preview
 funcional READY. **Prueba y conformidad móvil pendientes**, sin declararlas hechas.
 [Contrato, archivos y publicación](frontend-business-pending-rejection-qa.md).
+
+## UI-BUSINESS-ALTERNATIVE-DRAFT-01 — Formulario recuperado — 2026-10-20
+
+Diseño de alternativas recuperado del historial e386b2c y componente existente
+AlternativeProposalFields, adaptado al contrato REQ-BUSINESS-ALTERNATIVE-01.
+Código `f2a4ccf453d6afbcf0f27fcb581ea548d5b1cc81` publicado en Preview QA READY.
+Botón y formulario solo de preparación, comparación local y foto sin subir.
+Envío bloqueado; no negociación alternatives-v1 en las lecturas actuales.
+Backend c1f3b57 enviado pero activación Railway pendiente de confirmar; cliente
+todavía no puede visualizar/responder el contrato nuevo. No se simula propuesta
+guardada ni se ejecutan acciones reales. Diseño y cambios detallados en
+[frontend-business-alternative-draft-qa.md](frontend-business-alternative-draft-qa.md).
+1050 pruebas/build aprobados y comprobaciones Chrome documentadas; aprobación
+física Android/iPhone y recorrido completo pendientes. No modifica conformidades
+anteriores ni declara listo para producción el flujo de negociación.
