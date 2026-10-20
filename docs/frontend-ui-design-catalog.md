@@ -158,3 +158,15 @@ Sin motivo, borrado o nueva notificación. Contrato backend publicado en 577c0c7
 975 pruebas y build QA aprobados; 24 regresiones táctiles del scroll anterior.
 Preview funcional READY; integración y aprobación móvil pendientes.
 Archivos, contrato y resultado: [frontend-customer-pending-cancellation-qa.md](frontend-customer-pending-cancellation-qa.md).
+
+## UI-BUSINESS-PENDING-REJECT-01 — Negocio: Rechazar solicitud inicial
+
+Código `6778c2ad4ff8b72647f44ea12db75a105bfb4be0`, rama qa; contrato backend
+REQ-BUSINESS-REJECT-PENDING-01 publicado en 772b78a. Se reconoce la acción nueva
+sin descartar el proceso válido: permanece en Pendientes con aceptación y rechazo.
+Botón Rechazar solicitud solo con permiso, seis motivos, Otro motivo con explicación
+obligatoria, selección y confirmación separadas. Historial muestra Rechazada,
+motivo y solicitud original sin acuerdo inexistente. Diseño y scroll conservados.
+1021 pruebas, build QA y 24 regresiones táctiles aprobados; Preview funcional READY.
+Integración y conformidad física Android/iPhone pendientes.
+[Archivos, evidencia y publicación](frontend-business-pending-rejection-qa.md).

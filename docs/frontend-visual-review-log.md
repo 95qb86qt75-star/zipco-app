@@ -328,3 +328,18 @@ confirmación Sí / No y conservación en Historial, sin motivo ni nuevo aviso.
 975 pruebas y build aprobados. **Prueba y conformidad en celulares pendientes**;
 no se declara F1 aprobado por Bastián todavía. No afecta otros pendientes.
 [Contrato, archivos y publicación](frontend-customer-pending-cancellation-qa.md).
+
+## UI-BUSINESS-PENDING-REJECT-01 — Compatibilidad y rechazo inicial — 2026-10-20
+
+Bastián reportó en QA c505bae una solicitud en Por coordinar con resguardo de
+proceso no disponible. Incompatibilidad reproducida con datos sintéticos:
+Backend 772b78a añade REJECT_PENDING_REQUEST, desconocida por ese frontend.
+No se capturó la respuesta real de esa solicitud ni se modificó su estado.
+
+Integración completa en `6778c2ad4ff8b72647f44ea12db75a105bfb4be0`, rama qa:
+respuesta válida en Pendientes, permiso de aceptación conservado, selección de
+motivo/confirmación de rechazo y cierre en Historial de ambos participantes.
+Se conservan diseño y navegación anteriores; sin cambios de backend o producción.
+1021 pruebas y build QA aprobados, 24 regresiones táctiles sin backend; Preview
+funcional READY. **Prueba y conformidad móvil pendientes**, sin declararlas hechas.
+[Contrato, archivos y publicación](frontend-business-pending-rejection-qa.md).

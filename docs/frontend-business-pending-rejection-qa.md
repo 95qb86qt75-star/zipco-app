@@ -101,3 +101,21 @@ producción. Registrar después resultado y nombre+commit en cierre documental.
 No se ejecutaron acciones reales QA al implementar, validar o publicar. La deuda
 de entrega fiable/reintentos de avisos del backend sigue pendiente; no se inicia
 outbox ni se declara completado el objetivo global de notificaciones en iPhone.
+
+## Resultado de publicación — 2026-10-20
+
+Código, pruebas y ficha (21 rutas) guardados y enviados a origin/qa en
+`6778c2ad4ff8b72647f44ea12db75a105bfb4be0`.
+Preview funcional READY `dpl_Cr4NRMPUen5hpuifzpeYmsS2yp41`, URL propia
+https://zipco-oksc6ynay-zipco-s-projects.vercel.app.
+Fuente GitHub real, SHA exacto, rama qa y entorno Preview verificados.
+Alias habitual https://zipco-app-git-qa-zipco-s-projects.vercel.app apunta a ese
+despliegue al comprobarlo. Build en modo qa completado, diagnóstico de lecturas
+habilitado, traza de clic deshabilitada y su asset ausente. Backend Preview
+verificado como https://zipco-backend-qa.up.railway.app. Build global null y rama
+de producción main conservados. Sin modificaciones en Railway o pedidos reales.
+
+Este resultado, catálogo y registro se conservan en un cierre documental posterior
+en qa; su publicación usa exactamente el mismo código funcional y override QA.
+El SHA visible final será el de ese cierre documental. No hay aprobación física
+Android/iPhone todavía; READY y pruebas automatizadas no la sustituyen.
