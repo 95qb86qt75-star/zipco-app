@@ -60,4 +60,10 @@ WebKit. Reintentos fiables de notificaciones continúan pendientes. Avances cons
 
 ## Publicación
 
-Registrar SHA y comprobación READY/alias después de publicar Vercel QA.
+Código funcional `24942f72f9b927bcebb840cdd0410044147a5fb4`, enviado a origin/qa.
+Preview `dpl_CgYb526tsHgS5PJMRKcvG1NJCqJN` READY; SHA/ref qa exactos y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Backend QA confirmado en preflight; build global null y productionBranch main.
+Build override: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
+Este resultado y catálogo se respaldan en cierre documental posterior, publicado
+con el mismo código funcional y opciones QA. Pendiente conformidad física del usuario.

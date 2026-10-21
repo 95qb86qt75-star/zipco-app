@@ -348,7 +348,8 @@ Prueba física del diseño pendiente.
 
 ### UI-ALTERNATIVE-PREPARE-ACCENTS-01 — Clara con acentos
 
-2026-10-21. Solo frontend, qa. Primer formulario con original Aurora, fichas
+2026-10-21. Solo frontend, qa. Código 24942f7. Primer formulario con original Aurora, fichas
 guardadas con gradiente, motivo y foto compacta; pie fijo y envío conservados.
 1140 pruebas/build QA y 26 escenarios Chrome sintéticos aprobados.
-Revisión física pendiente. [Diseño y publicación](frontend-alternative-prepare-accents-qa.md).
+Preview funcional READY y alias QA comprobados. Revisión física pendiente.
+[Diseño y publicación](frontend-alternative-prepare-accents-qa.md).
