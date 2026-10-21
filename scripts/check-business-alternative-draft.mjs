@@ -96,7 +96,7 @@ try {
     await fill('textarea', 'Cambio de precio por nueva preparación.', 'HTMLTextAreaElement');
     await touch('Revisar alternativa');
     await wait('!!document.querySelector("[data-alternative-review]")');
-    await wait('document.querySelector(".zipco-review-total [aria-hidden]")?.textContent === document.querySelector(".zipco-review-total .sr-only")?.textContent');
+    await wait('document.querySelector(".zipco-review-total span[aria-hidden]")?.textContent === document.querySelector(".zipco-review-total .sr-only")?.textContent');
     assert.equal(await evaluate(`document.querySelector('[data-alternative-body]').scrollTop`), 0, 'Review must start at its heading');
     if (reduced) assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-review-rise')).animationName`), 'none');
     assert.equal(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('El envío aún no está habilitado')`), false);
@@ -133,6 +133,15 @@ try {
     await evaluate(`(()=>{const dt=new DataTransfer();dt.items.add(new File([new Uint8Array([1])],'synthetic.png',{type:'image/png'}));const input=document.querySelector('input[type=file]');input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
     await wait('!!document.querySelector("img[src^=blob]")');
     const photo = await evaluate('document.querySelector("img[src^=blob]").src');
+    await touch('Revisar alternativa');
+    await wait('!!document.querySelector("[data-alternative-photo]")');
+    assert.equal(await evaluate('!!document.querySelector("[data-alternative-photo] img")'),false,'Review photo starts collapsed');
+    assert(await evaluate('document.querySelector("[data-alternative-photo]").textContent.includes("Preparada en este dispositivo")'));
+    await touch('Ver imagen');
+    assert.equal(await evaluate('document.querySelector("[data-alternative-photo] img").src'),photo);
+    await touch('Ocultar');
+    assert.equal(await evaluate('!!document.querySelector("[data-alternative-photo] img")'),false);
+    await touch('Volver al formulario');
     if(multi){await evaluate(`(()=>{const s=document.querySelector('select');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(s,'1');s.dispatchEvent(new Event('change',{bubbles:true}));})()`);assert.equal(await evaluate('document.querySelector("img[src^=blob]").src'),photo,'Photo belongs to the proposal, not a single editor line');}
     const fixed = await evaluate(`(()=>{const body=document.querySelector('[data-alternative-body]');body.scrollTop=body.scrollHeight;return document.querySelector('[data-alternative-footer]').getBoundingClientRect().bottom;})()`);
     assert(Math.abs(fixed-geometry.footerBottom)<=2,'Body scroll must not move the footer');

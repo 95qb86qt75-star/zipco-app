@@ -27,7 +27,7 @@ it('renders CUSTOM as a whole-line amount, preserves unchanged lines and escapes
   const html = renderToStaticMarkup(React.createElement(AlternativeReviewPanel, props));
   expect(html).toContain('$5.001'); expect(html).toContain('$6.001');
   expect(html).toContain('Cantidad'); expect(html).not.toContain('Precio unidad');
-  expect(html).toContain('Conservado'); expect(html).toContain('Sin cambios · $1.000');
+  expect(html).toContain('Conservado'); expect(html).toContain('Se mantuvo'); expect(html).toContain('$1.000');
   expect(html).toContain('Motivo &lt;script&gt; &amp; precio explicado');
   expect(html).toContain('class="sr-only">$6.001'); expect(html).toContain('$6.999 menos');
   expect(html).not.toContain('Así lo verá tu cliente'); expect(html).not.toContain('El envío aún no está habilitado');
@@ -40,7 +40,8 @@ it.each([[3000, 'menos'], [4000, 'Mismo total'], [5000, 'más']])('shows accurat
   const review = { totalPriceClp: price * 3 + 1000, message: draft.message, expectedVersion: 1, proposalId: 1 };
   const html = renderToStaticMarkup(React.createElement(AlternativeReviewPanel, { source, draft, review }));
   expect(html).toContain(label);
-  expect(html.includes('Precio unidad')).toBe(price !== 4000);
+  expect(html).toContain('Precio por unidad');
+  expect(html.includes('>Cambió</span>')).toBe(price !== 4000);
   expect(html).toContain(`class="sr-only">$${review.totalPriceClp.toLocaleString('es-CL')}`);
 });
 
@@ -50,6 +51,24 @@ it('shows proposed Chile date, year and time while retaining original availabili
   props.review.schedule = { mode: 'SCHEDULED', date: props.draft.date, time: props.draft.time };
   const html = renderToStaticMarkup(React.createElement(AlternativeReviewPanel, props));
   expect(html).toContain('Lo antes posible'); expect(html).toContain('2030'); expect(html).toContain('15:07 (Chile)');
+});
+
+it('uses the current proposal baseline and keeps a photo explicitly local until confirmation', () => {
+  const html = renderToStaticMarkup(React.createElement(AlternativeReviewPanel, {
+    ...fixture(), baselineLabel: 'Propuesta vigente', photo: 'blob:local-preview', photoWillSend: true,
+  }));
+  expect(html).toContain('Total vigente'); expect(html).toContain('Vigente vs. propuesta');
+  expect(html).toContain('menos que la propuesta vigente');
+  expect(html).toContain('Preparada en este dispositivo');
+  expect(html).toContain('Se cargará al confirmar el envío');
+  expect(html).toContain('aria-expanded="false"'); expect(html).not.toContain('<img');
+});
+
+it('omits quantity for services and the photo ticket when no photo was selected', () => {
+  const props = fixture(); props.source = { ...props.source, orderType: 'service' };
+  const html = renderToStaticMarkup(React.createElement(AlternativeReviewPanel, props));
+  expect(html).toContain('Servicio'); expect(html).not.toContain('>Cantidad');
+  expect(html).not.toContain('data-alternative-photo');
 });
 
 it('skips count-up when reduced motion is requested', () => {

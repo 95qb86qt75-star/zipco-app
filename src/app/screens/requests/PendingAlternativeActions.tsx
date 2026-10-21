@@ -11,7 +11,7 @@ type Order = BusinessRequest | MyOrder;
 const field = 'zipco-readable-field w-full rounded-xl border p-3 text-sm';
 const pesos = (value: number) => `$${value.toLocaleString('es-CL')}`;
 
-export function LocalAlternativePhoto({ onFile }: { onFile?: (file: File | null, preview: string) => void } = {}) {
+export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: File | null, preview: string) => void; onPreview?: (preview: string) => void } = {}) {
   const [photo, setPhoto] = useState('');
   const [error, setError] = useState('');
   const input = useRef<HTMLInputElement>(null);
@@ -19,7 +19,7 @@ export function LocalAlternativePhoto({ onFile }: { onFile?: (file: File | null,
   return <div>
     {photo ? <div className="relative overflow-hidden rounded-2xl border border-violet-300">
       <img src={photo} alt="Foto preparada para la alternativa" className="h-36 w-full object-cover" />
-      <button type="button" aria-label="Quitar foto preparada" onClick={() => { setPhoto(''); onFile?.(null, ''); }} className="absolute right-2 top-2 rounded-full bg-slate-950/75 p-2 text-white"><Trash2 className="h-4 w-4" /></button>
+      <button type="button" aria-label="Quitar foto preparada" onClick={() => { setPhoto(''); onFile?.(null, ''); onPreview?.(''); }} className="absolute right-2 top-2 rounded-full bg-slate-950/75 p-2 text-white"><Trash2 className="h-4 w-4" /></button>
     </div> : <button type="button" onClick={() => input.current?.click()} className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-violet-400 bg-violet-500/5 p-3 text-left text-violet-700 dark:text-violet-200">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/15"><ImagePlus className="h-5 w-5" /></span>
       <span><span className="block text-sm font-black">Agregar foto de referencia</span><span className="block text-xs opacity-70">Opcional, úsala si ayuda a explicar la propuesta.</span></span>
@@ -32,7 +32,7 @@ export function LocalAlternativePhoto({ onFile }: { onFile?: (file: File | null,
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size < 1 || file.size > 8 * 1024 * 1024) {
         setError('Selecciona una imagen JPG, PNG o WebP de hasta 8 MB.'); return;
       }
-      try { const url = URL.createObjectURL(file); setPhoto(url); onFile?.(file, url); setError(''); }
+      try { const url = URL.createObjectURL(file); setPhoto(url); onFile?.(file, url); onPreview?.(url); setError(''); }
       catch { setError('No se pudo preparar la foto. Intenta con otra imagen.'); }
     }} />
   </div>;
@@ -135,10 +135,10 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               message={draft.message} setMessage={updateMessage} messageMaxLength={1000}
               explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
               photoFields={null} />}
-            {line && <div className="mt-4"><LocalAlternativePhoto onFile={onConfirm ? (file, preview) => { setFile(file); setPreview(preview); } : undefined} /></div>}
+            {line && <div className="mt-4"><LocalAlternativePhoto onFile={onConfirm ? file => setFile(file) : undefined} onPreview={setPreview} /></div>}
           </fieldset>
-          {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review} />}
-          {reviewing && preview && <img src={preview} alt="Foto que acompañará esta propuesta al enviarla" className="mt-3 max-h-48 w-full rounded-xl object-contain" />}
+          {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
+            photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel} />}
         </div>
         <div data-alternative-footer className="shrink-0 border-t border-slate-200 px-5 py-3 dark:border-slate-700">
           {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}

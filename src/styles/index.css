@@ -1541,3 +1541,22 @@ body {
 }
 .zipco-hide-order-detail:hover { background-color: rgb(255 255 255 / .1); }
 .zipco-hide-order-detail:focus-visible { outline: 2px solid #a5f3fc; outline-offset: 2px; }
+/* ===== Revisar alternativa: ticket verde de "imagen adjunta" (pegar al final de src/styles/index.css) =====
+   Requiere que ya existan .zipco-review-rise / .zipco-review-fill (paso anterior) y .zipco-aurora-card / .zipco-aurora-price (tarjeta Aurora). */
+@keyframes zipco-review-barfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes zipco-review-hide { from { opacity: 1; } to { opacity: 0; } }
+@keyframes zipco-review-show { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zipco-review-checkpop { 0% { transform: scale(0); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.zipco-review-bar { transform-origin: left; animation: zipco-review-barfill .9s cubic-bezier(.4, 0, .2, 1) .35s both; }
+.zipco-review-up { animation: zipco-review-hide .25s ease 1.3s both; }
+.zipco-review-done { animation: zipco-review-show .3s ease 1.3s both; }
+.zipco-review-check { animation: zipco-review-checkpop .45s cubic-bezier(.3, 1.4, .5, 1) 1.3s both; }
+@media (prefers-reduced-motion: reduce) {
+  .zipco-review-bar, .zipco-review-check, .zipco-review-done { animation: none; }
+  .zipco-review-up { animation: none; opacity: 0; }
+}
+.zipco-review-photo-head { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+@media (max-width: 380px) {
+  .zipco-review-photo-head { grid-template-columns: 40px minmax(0, 1fr); }
+  .zipco-review-photo-head > button { grid-column: 2; justify-self: start; }
+}
