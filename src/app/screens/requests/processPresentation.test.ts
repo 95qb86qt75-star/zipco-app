@@ -31,7 +31,7 @@ describe('2A presentation and legacy compatibility', () => {
   it('shows one accept button to the business and hides later actions', () => {
     const request = normalizeBusinessOrdersPayload([{ ...rawOrder, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const html = render(React.createElement(BusinessOrderCard, { request, ...callbacks, expanded: true }));
-    expect(html.match(/Aceptar pedido/g)).toHaveLength(1);
+    expect(html.match(/aria-label="Aceptar pedido por/g)).toHaveLength(1);
     expect(html).toContain('Nota de prueba'); expect(html).toContain('Imagen adjunta');
     expect(html).toContain('Proponer alternativa'); // Local preparation only; no proposal submission in this block.
     for (const text of ['Rechazar pedido', 'Marcar como listo', 'Cancelar pedido', 'Confirmar entrega']) expect(html).not.toContain(text);

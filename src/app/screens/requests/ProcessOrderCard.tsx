@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Calendar, Check, Sparkles, Zap } from 'lucide-react';
+import { Calendar, Sparkles, Zap } from 'lucide-react';
+import AcceptGlassButton from './AcceptGlassButton';
 import type { BusinessRequest, MyOrder, NormalizedProducts } from './types';
 import { canAcceptFixedOrder, processStatusLabel } from './requestProcess';
 import { AcceptedConditionsPanel } from './AcceptedConditions';
@@ -113,10 +114,8 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
             </div>
             {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={business} />}
             {business && order.recordState === 'available' && canAcceptFixedOrder(order) && products.state === 'available' &&
-              <button type="button" disabled={isUpdating} onClick={(event) => { event.stopPropagation(); onAccept?.(); }}
-                className="zipco-proposal-accept mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-[16px] border-2 border-emerald-300 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-3 text-sm font-black text-white shadow-[0_8px_20px_rgba(16,185,129,0.22)] disabled:opacity-50">
-                <Check className="zipco-accept-icon h-4 w-4" />{isUpdating ? 'Guardando…' : `Aceptar pedido${price === null ? '' : ` por $${price.toLocaleString('es-CL')}`}`}
-              </button>}
+              <AcceptGlassButton label={isUpdating ? 'Guardando…' : 'Aceptar pedido'} price={isUpdating ? null : price} disabled={isUpdating}
+                onClick={(event) => { event.stopPropagation(); onAccept?.(); }} />}
           </>}
           <button type="button" aria-expanded={true} onClick={(event) => { event.stopPropagation(); toggle(); }}
             className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>

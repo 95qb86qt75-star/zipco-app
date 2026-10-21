@@ -78,7 +78,7 @@ try {
   const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Synthetic flow did not settle: '+expression);};
-  const touch=async label=>{const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
+  const touch=async label=>{const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
   const fill=async(selector,value,kind='HTMLInputElement')=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(${kind}.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   const reset=async(sequence=0,business=true)=>{await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.reset');await evaluate(`window.reset(${sequence},${business})`);await delay(100);};
   const form=async (price='1500')=>{await touch('Precio');await fill('input[aria-label="Nuevo precio por unidad"]',price);await touch('Guardar');await fill('textarea','Cambio de precio para la prueba sintética.','HTMLTextAreaElement');await touch('Revisar alternativa');await wait('!!document.querySelector("[data-alternative-review]")');};
@@ -118,7 +118,9 @@ try {
   assert.equal(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('Hacer mi única contrapropuesta')`),false);
   await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');evidence.push('custom-counter-final-accept');
   for(const [sequence,business,label] of [[1,false,'Rechazar propuesta'],[2,true,'Rechazar contrapropuesta'],[2,true,'Aceptar contrapropuesta'],[3,false,'Rechazar propuesta']]){
-    await reset(sequence,business);await decide(label);await touch('Sí, confirmar');await wait('window.posts.length===1&&!document.querySelector("[role=dialog]")');
+    await reset(sequence,business);await decide(label);
+    assert.equal(await evaluate(`!!document.querySelector('[role=dialog] .zipco-accept-btn')`),label.startsWith('Aceptar'),'Only acceptance confirmations use the green glass button');
+    await touch('Sí, confirmar');await wait('window.posts.length===1&&!document.querySelector("[role=dialog]")');
     assert.equal(await evaluate('window.current.view'),label.startsWith('Rechazar')?'history':'coordination');evidence.push(label+'-'+sequence);
   }
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.fail=true');await touch('Confirmar y enviar');await wait('!!document.querySelector("[role=alert]")');
@@ -133,6 +135,6 @@ try {
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.stale=true');await touch('Confirmar y enviar');await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');
   assert.equal(await evaluate('window.posts.length'),0);evidence.push('stale-version-read-before-post');
   await reset(1,false);await evaluate('window.getFails=true');await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[role=alert]")');
-  assert.equal(await evaluate('window.posts.length'),0);assert.equal(await evaluate(`[...document.querySelectorAll('button')].some(b=>b.textContent==='Aceptar propuesta')`),false);evidence.push('failed-authorized-read-no-actions');
+  assert.equal(await evaluate('window.posts.length'),0);assert.equal(await evaluate(`[...document.querySelectorAll('button')].some(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.textContent)==='Aceptar propuesta')`),false);evidence.push('failed-authorized-read-no-actions');
   console.log(JSON.stringify({passed:evidence.length,evidence,touchEvents:true,backendAccess:false,realOrderActions:false,realUploads:false}));await send('Browser.close');
 } finally {socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

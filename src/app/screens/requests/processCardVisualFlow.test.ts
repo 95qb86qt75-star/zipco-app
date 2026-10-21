@@ -20,6 +20,7 @@ vi.mock('../../notifications/unreadInteractions', async original => ({
   ...await original<typeof import('../../notifications/unreadInteractions')>(), markInteractionRead: vi.fn(),
 }));
 import ProcessOrderCard from './ProcessOrderCard';
+import AcceptGlassButton from './AcceptGlassButton';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import PendingCancellationActions from './PendingCancellationActions';
@@ -61,7 +62,7 @@ describe('reused 2A card design without legacy actions', () => {
     const order = normalizeBusinessOrdersPayload([rejectPendingOrder])[0];
     const view = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });
     expect(elements(view).find(node => node.type === PendingRejectionActions)?.props.order).toBe(order);
-    const accept = elements(view).find(node => node.type === 'button' && String(node.props.className).includes('zipco-proposal-accept'))!;
+    const accept = elements(view).find(node => node.type === AcceptGlassButton)!;
     expect(accept).toBeDefined(); (accept.props.onClick as (e: unknown) => void)(event()); expect(props.onAccept).toHaveBeenCalledOnce();
     expect(elements(view).some(node => node.props.children === 'Actualizar pedido')).toBe(false);
     expect(elements(render({ ...props, order, business: false })).some(node => node.type === PendingRejectionActions)).toBe(false);
@@ -309,9 +310,9 @@ describe('reused 2A card design without legacy actions', () => {
   it('shows the actual formatted total on the accept button and keeps the busy lock', () => {
     const order = normalizeBusinessOrdersPayload([{ ...raw, total: 123456, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const html = renderToStaticMarkup(render({ ...props, order, business: true, expanded: true }));
-    expect(html).toContain(`Aceptar pedido por $${order.total.toLocaleString('es-CL')}`);
+    expect(html).toContain(`aria-label="Aceptar pedido por $${order.total.toLocaleString('es-CL')}"`);
     const busy = render({ ...props, order, business: true, expanded: true, isUpdating: true });
-    expect(elements(busy).some((node) => node.type === 'button' && node.props.disabled === true)).toBe(true);
+    expect(elements(busy).find((node) => node.type === AcceptGlassButton)?.props).toMatchObject({ disabled: true, label: 'Guardando…', price: null });
   });
 
   it('toggles the card body in both directions and preserves read tracking', () => {
@@ -384,7 +385,7 @@ describe('reused 2A card design without legacy actions', () => {
     const disclosure = elements(compact).find((node) => node.type === OrderCardDisclosure)!;
     (disclosure.props.onOpen as () => void)(); expect(onToggle).toHaveBeenCalledOnce();
     const view = render({ ...props, order, business: true, expanded: true, onToggle });
-    const accept = elements(view).find((node) => node.type === 'button' && node.props.disabled === false)!;
+    const accept = elements(view).find((node) => node.type === AcceptGlassButton && node.props.disabled === false)!;
     (accept.props.onClick as (event: unknown) => void)(event()); expect(props.onAccept).toHaveBeenCalledOnce();
     expect(renderToStaticMarkup(view)).toContain('Proponer alternativa');
     expect(renderToStaticMarkup(view)).not.toMatch(/Rechazar pedido|Marcar como listo|WhatsApp/);

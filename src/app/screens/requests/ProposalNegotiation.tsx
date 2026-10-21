@@ -11,6 +11,7 @@ import { operationScope, readCoordinationSession, subscribeCoordinationSession }
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { isProposalRejected } from './requestProcess';
 import { announceProposalSent } from './proposalSentFeedback';
+import AcceptGlassButton from './AcceptGlassButton';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -18,6 +19,7 @@ const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer 
   ACCEPT_COUNTER_PROPOSAL: 'Aceptar contrapropuesta', REJECT_COUNTER_PROPOSAL: 'Rechazar contrapropuesta' };
 const labels = ['Solicitud original', 'Propuesta del negocio', 'Contrapropuesta del cliente', 'Propuesta final del negocio'];
 const button = 'min-h-12 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-800 disabled:opacity-50 dark:bg-violet-950/30 dark:text-violet-200';
+const isAcceptAction = (action: ProposalAction) => action === 'ACCEPT_PROPOSAL' || action === 'ACCEPT_COUNTER_PROPOSAL';
 
 export function ProposalSnapshotCard({ proposal }: { proposal: Proposal }) {
   const s = proposal.subjectSnapshot;
@@ -162,12 +164,24 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               <p className="text-sm font-bold">{expired ? 'La fecha y hora propuestas ya pasaron. ¿Quieres aceptar igualmente?' : `${titles[decision]}: ¿confirmas esta propuesta exacta?`}</p>
               <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
               <div className="grid grid-cols-2 gap-2"><button className={button} disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
-                <button className={button} disabled={busy || !choices.includes(decision)} onClick={async () => { try { await execute(decision, undefined, null, expired); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } }}>Sí, confirmar</button></div>
+                {(() => {
+                  const confirm = async () => { try { await execute(decision, undefined, null, expired); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
+                  const blocked = busy || !choices.includes(decision);
+                  return isAcceptAction(decision)
+                    ? <AcceptGlassButton size="compact" flush label="Sí, confirmar" disabled={blocked} onClick={confirm} />
+                    : <button className={button} disabled={blocked} onClick={confirm}>Sí, confirmar</button>;
+                })()}</div>
             </> : <>
-              {choices.map(action => <button key={action} type="button" className={`${button} w-full`} disabled={busy} onClick={() => {
-                if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) setDraftAction(action);
-                else { setDecision(action); setExpired(false); }
-              }}>{titles[action]}</button>)}
+              {choices.map(action => {
+                const go = () => {
+                  if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) setDraftAction(action);
+                  else { setDecision(action); setExpired(false); }
+                };
+                return isAcceptAction(action)
+                  ? <AcceptGlassButton key={action} flush label={titles[action]} disabled={busy} onClick={go}
+                    price={read?.proposals.length ? read.proposals[read.proposals.length - 1].totalPriceClp : null} />
+                  : <button key={action} type="button" className={`${button} w-full`} disabled={busy} onClick={go}>{titles[action]}</button>;
+              })}
               {!choices.length && read && <p className="text-sm">{isProposalRejected(read.process) ? 'La negociación finalizó.' : 'Esperando la respuesta de la otra parte.'}</p>}
               <button type="button" className="min-h-11 text-sm font-bold text-violet-700" disabled={busy} onClick={() => void load()}>Actualizar propuestas</button>
             </>}

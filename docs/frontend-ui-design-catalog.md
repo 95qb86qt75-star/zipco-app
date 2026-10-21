@@ -280,3 +280,12 @@ mantiene cotizaciones, acuerdo exacto, permisos, holograma y borde por notificac
 táctiles sintéticos. Preview funcional READY y alias QA comprobados por API.
 Prueba física Android/iPhone pendiente. Commit y resultado
 de publicación en la [ficha del diseño](frontend-order-card-aurora-qa.md).
+
+### UI-ACCEPT-GLASS-01 — Botones verdes de aceptación
+
+2026-10-21. Solo frontend, rama qa. Componente/CSS entregados por Bastián:
+Aceptar pedido, Aceptar propuesta/contrapropuesta y confirmación de aceptación.
+Check, cristal, reflejo y precio en cápsula; adaptación responsive y accesible.
+Mismos permisos, bloqueo y acciones; autorización de contacto y rechazos iguales.
+1137 pruebas/build QA, 8 combinaciones visuales y 12 recorridos táctiles
+sintéticos. Prueba física pendiente. [Archivos y publicación](frontend-accept-glass-buttons-qa.md).

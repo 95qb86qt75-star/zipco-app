@@ -30,7 +30,7 @@ describe('card behavior preserved under the shared Aurora presentation', () => {
     const pending = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const accepted = normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const html = renderToStaticMarkup(React.createElement(BusinessOrderCard, { request: pending, ...props, expanded: true }));
-    expect(html.match(/Aceptar pedido/g)).toHaveLength(1);
+    expect(html.match(/aria-label="Aceptar pedido por/g)).toHaveLength(1);
     expect(html).toContain('Proponer alternativa');
     for (const action of ['Rechazar pedido', 'Marcar como listo']) expect(html).not.toContain(action);
     expect(renderToStaticMarkup(React.createElement(MyOrderCard, { order: accepted, ...props }))).not.toContain('Preparación');

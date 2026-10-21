@@ -1388,3 +1388,76 @@ body {
   .zipco-glass-blob, .zipco-glass-btn::after { animation: none; }
   .zipco-aurora-card.zipco-notification-target { animation: none; }
 }
+/* Pegar al final de src/styles/index.css (reemplaza el CSS .zipco-accept-* anterior si ya lo pegaste) */
+.zipco-accept-wrap {
+  position: relative; display: block; overflow: hidden; margin-top: 14px; border-radius: 999px;
+  background: linear-gradient(115deg, #059669 0%, #0d9488 45%, #06b6d4 100%);
+  box-shadow: 0 10px 28px rgba(16, 185, 129, .5), 0 0 0 1px rgba(167, 243, 208, .35);
+  animation: zipco-accept-halo 2.6s ease-in-out infinite;
+}
+.zipco-accept-blob { position: absolute; pointer-events: none; border-radius: 50%; filter: blur(6px); }
+.zipco-accept-b1 { left: -8px; top: -12px; width: 90px; height: 90px; background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .85), rgba(255, 255, 255, .12) 70%); animation: zipco-accept-d1 6s ease-in-out infinite; }
+.zipco-accept-b2 { right: -10px; bottom: -16px; width: 110px; height: 80px; background: radial-gradient(circle at 40% 40%, #a7f3d0, rgba(167, 243, 208, .1) 72%); animation: zipco-accept-d2 7s ease-in-out infinite; }
+.zipco-accept-b3 { left: 48%; top: -20px; width: 70px; height: 70px; background: radial-gradient(circle at 40% 40%, #67e8f9, rgba(103, 232, 249, .1) 72%); animation: zipco-accept-d3 5s ease-in-out infinite; }
+
+.zipco-accept-btn {
+  position: relative; isolation: isolate; overflow: hidden; display: flex; width: 100%; min-height: 60px;
+  align-items: center; gap: 12px; border: 0; border-radius: 999px; padding: 0 12px;
+  color: #fff; font-weight: 900; text-align: left;
+  text-shadow: 0 1px 3px rgba(4, 47, 46, .7), 0 0 10px rgba(4, 47, 46, .45);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .32) 0%, rgba(255, 255, 255, .07) 45%, rgba(255, 255, 255, .2) 100%);
+  -webkit-backdrop-filter: blur(5px) saturate(1.9) brightness(1.08); backdrop-filter: blur(5px) saturate(1.9) brightness(1.08);
+  box-shadow: inset 1.5px 1.5px 1px rgba(255, 255, 255, .95), inset -1.5px -1.5px 1px rgba(255, 255, 255, .45), inset 0 0 24px rgba(255, 255, 255, .3), 0 0 0 .5px rgba(255, 255, 255, .45);
+  transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), filter .2s;
+}
+.zipco-accept-btn::before { content: ""; position: absolute; left: 14%; right: 14%; top: 3px; height: 40%; z-index: -1; pointer-events: none; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .65), rgba(255, 255, 255, 0)); }
+.zipco-accept-btn::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 24%; z-index: -1; pointer-events: none; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .6), transparent); transform: translateX(-140%) skewX(-18deg); animation: zipco-accept-sheen 3.2s ease-in-out .6s infinite; }
+.zipco-accept-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.zipco-accept-btn:active:not(:disabled) { transform: scale(.97); }
+.zipco-accept-btn:disabled { opacity: .65; }
+.zipco-accept-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.zipco-accept-check {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .15));
+  box-shadow: inset 1.5px 1.5px 1px rgba(255, 255, 255, .95), 0 3px 8px rgba(4, 47, 46, .3);
+  animation: zipco-accept-pop 2.6s ease-in-out infinite;
+}
+.zipco-accept-label { flex: 1; min-width: 0; font-size: 17px; line-height: 1.1; letter-spacing: -.01em; }
+.zipco-accept-price {
+  flex: none; border-radius: 999px; padding: 7px 13px; font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: rgba(4, 47, 46, .28); box-shadow: inset 1px 1px 1px rgba(255, 255, 255, .45), 0 0 0 1px rgba(255, 255, 255, .22);
+}
+
+@keyframes zipco-accept-halo { 0%, 100% { box-shadow: 0 10px 28px rgba(16, 185, 129, .45), 0 0 0 1px rgba(167, 243, 208, .35); } 50% { box-shadow: 0 12px 38px rgba(20, 220, 170, .75), 0 0 0 1px rgba(167, 243, 208, .6); } }
+@keyframes zipco-accept-pop { 0%, 60%, 100% { transform: scale(1); } 72% { transform: scale(1.14); } 84% { transform: scale(.97); } }
+@keyframes zipco-accept-sheen { 0%, 45% { transform: translateX(-140%) skewX(-18deg); } 100% { transform: translateX(480%) skewX(-18deg); } }
+@keyframes zipco-accept-d1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(200px, 8px) scale(1.15); } }
+@keyframes zipco-accept-d2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-180px, -4px) scale(.9); } }
+@keyframes zipco-accept-d3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-100px, 10px); } }
+/* Variantes: compact (grillas de 2 columnas) y flush (sin margen superior) */
+.zipco-accept-wrap--flush { margin-top: 0; }
+.zipco-accept-wrap--compact .zipco-accept-btn { min-height: 48px; gap: 8px; padding: 0 10px; }
+.zipco-accept-wrap--compact .zipco-accept-check { width: 28px; height: 28px; }
+.zipco-accept-wrap--compact .zipco-accept-check svg { width: 15px; height: 15px; }
+.zipco-accept-wrap--compact .zipco-accept-label { font-size: 14px; white-space: nowrap; }
+.zipco-accept-wrap--compact .zipco-accept-price { padding: 5px 10px; font-size: 13px; }
+
+/* Keep the supplied glass design readable inside narrow cards and confirmation grids. */
+.zipco-accept-wrap { min-width: 0; }
+.zipco-accept-btn { padding-block: 8px; }
+.zipco-accept-label { overflow-wrap: anywhere; }
+.zipco-accept-btn:focus-visible { outline-offset: -3px; }
+.zipco-accept-wrap--compact .zipco-accept-btn { gap: 6px; padding: 6px 8px; }
+.zipco-accept-wrap--compact .zipco-accept-check { width: 24px; height: 24px; }
+.zipco-accept-wrap--compact .zipco-accept-label { white-space: normal; }
+@media (max-width: 380px) {
+  .zipco-accept-wrap:not(.zipco-accept-wrap--compact) .zipco-accept-btn { gap: 8px; }
+  .zipco-accept-wrap:not(.zipco-accept-wrap--compact) .zipco-accept-check { width: 32px; height: 32px; }
+  .zipco-accept-wrap:not(.zipco-accept-wrap--compact) .zipco-accept-label { font-size: 15px; }
+  .zipco-accept-wrap:not(.zipco-accept-wrap--compact) .zipco-accept-price { padding: 7px 9px; font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zipco-accept-wrap, .zipco-accept-blob, .zipco-accept-btn::after, .zipco-accept-check { animation: none; }
+}
