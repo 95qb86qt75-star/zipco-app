@@ -41,4 +41,11 @@ Pendiente revisión física de diseño Android/iPhone; Chrome no acredita WebKit
 Reintentos fiables de notificaciones siguen pendientes. Avances conservados.
 main, producción, backend y Railway no modificados.
 
-Publicación: registrar commit y READY/alias tras publicar en Vercel QA.
+Publicación comprobada por API: commit funcional
+`a6f2aa93e4c051739345826dff34e7e6e75bf685`, origin/qa.
+Preview `dpl_ABaGzMHbhMY7MghfHfEgBaJj2qkx` READY, SHA/ref qa exactos y alias
+habitual confirmado: https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+Build: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
+Backend QA confirmado en preflight; build global null y productionBranch main.
+Este registro y catálogo se guardan en cierre documental y se publican con
+idéntico código funcional/opciones. La revisión física sigue pendiente.

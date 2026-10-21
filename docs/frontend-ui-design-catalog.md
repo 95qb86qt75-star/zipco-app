@@ -337,3 +337,11 @@ Preview funcional READY y alias QA comprobados por API. Bastián confirmó que
 funciona sobre QA `2ae69e8`, sin especificar dispositivo o escenarios de error.
 Acceso directo aprobado; no se extiende a todos los flujos o a ambos sistemas.
 [Causa, archivos y publicación](frontend-alternative-direct-open-qa.md).
+
+### UI-ALTERNATIVE-REVIEW-TICKET-01 — Comparación agrupada
+
+2026-10-21. Solo frontend, rama qa. Código a6f2aa9. Total arriba,
+grupos Cambió/Se mantuvo y ficha opcional de foto local. Conserva envío autorizado.
+1140 pruebas, build QA y 24 escenarios Chrome sintéticos aprobados.
+Prueba física del diseño pendiente.
+[Archivos y publicación](frontend-alternative-review-ticket-qa.md).
