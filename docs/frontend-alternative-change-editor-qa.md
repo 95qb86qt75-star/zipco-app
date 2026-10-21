@@ -124,3 +124,10 @@ Este resultado y las referencias se conservan en un cierre documental posterior
 en qa, cuyo despliegue mantiene el mismo código funcional y override. Su SHA
 será la versión visible final. Envío sigue bloqueado. La prueba física y conformidad
 del diseño continúan pendientes de Bastián; READY no las acredita.
+
+## Continuidad del resumen
+
+El resumen posterior a Revisar alternativa se actualizó en
+UI-BUSINESS-ALTERNATIVE-REVIEW-01, código d79de228fc3be9046e33d90c29ffba9a54bec770.
+[Origen, archivos, validación y publicación](frontend-alternative-review-qa.md).
+Editor, selecciones independientes y envío bloqueado conservados.

@@ -224,3 +224,13 @@ de CUSTOM, selección independiente, foto local/global y envío bloqueado. Se ma
 el componente anterior para cotizaciones y pedidos legacy. 1067 pruebas y build
 QA aprobados, 8 escenarios táctiles Chrome; Preview funcional READY. Revisión y
 conformidad física pendientes. [Archivos, origen y publicación](frontend-alternative-change-editor-qa.md).
+
+### UI-BUSINESS-ALTERNATIVE-REVIEW-01 — Resumen visual de alternativa
+
+2026-10-20. Código d79de228fc3be9046e33d90c29ffba9a54bec770, rama qa.
+Adaptación del panel y CSS aportados por Bastián: comparación por línea,
+disponibilidad, motivo y total con diferencia. Pie fijo, resumen desde arriba,
+animaciones finitas y movimiento reducido. Sin el aviso amarillo solicitado;
+envío bloqueado y renombrado del botón pausado. 1074 pruebas, build QA y nueve
+escenarios táctiles Chrome aprobados; Preview funcional READY. Prueba física
+pendiente. [Archivos y publicación](frontend-alternative-review-qa.md).

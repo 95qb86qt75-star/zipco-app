@@ -77,3 +77,20 @@ Solo Vercel Preview QA desde Git, conservando Backend QA y override temporal
 ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
 Registrar SHA y despliegue comprobados en cierre documental posterior.
 Sin modificar backend, Railway, main ni producción. Avances previos conservados.
+
+## Resultado de publicación — 2026-10-20
+
+Código funcional `d79de228fc3be9046e33d90c29ffba9a54bec770`, enviado a origin/qa.
+1074 pruebas, build QA y **9 escenarios táctiles Chrome** aprobados. Capturas
+sintéticas 393 y 320 inspeccionadas; sin desborde, contenido desplazable y pie fijo.
+
+Preview funcional **READY**, `dpl_CB9e4nLETdMMVQGE2KZRx4LjrFCT`, URL propia
+https://zipco-1svbi7zxy-zipco-s-projects.vercel.app. SHA exacto de GitHub, rama qa,
+target Preview y logs de build qa completo verificados. Alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobado contra ese deployment.
+Backend QA verificado; build global null y productionBranch main conservados.
+
+Este cierre y las referencias se guardan en un commit documental posterior de qa,
+con el mismo código funcional y override temporal al publicarlo. Su SHA será la
+versión visible final; el código de diseño es el commit funcional indicado arriba.
+La prueba física del diseño continúa pendiente; no se afirma envío real integrado.
