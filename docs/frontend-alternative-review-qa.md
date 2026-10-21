@@ -102,3 +102,29 @@ La integración posterior REQ-FRONTEND-ALTERNATIVES-V1-01 conserva el diseño y 
 las acciones con Backend QA c1f3b57. Código 10170537180383b7c3544978006f63e9269e99ea.
 [Compatibilidad, validación y publicación](frontend-alternative-negotiation-qa.md).
 No confundir pruebas sintéticas con aprobación del recorrido real en celulares.
+
+## UI-ALTERNATIVE-REVIEW-SHEEN-01 — Brillo visible del total propuesto
+
+2026-10-20. Solo frontend. Bastián indicó que el brillo apenas se notaba y aportó
+CSS para ampliarlo y repetirlo. Antes: franja28%, blanco32%, 2 pasadas de2,6s.
+Después: franja35%, blanco50%, ciclo3,6s, inicio0,8s, repetición continua mientras
+el resumen está montado, con pausa inicial55% y recorrido -140% a420%.
+Reemplaza únicamente el comportamiento del brillo descrito como finito arriba.
+Se conserva pointer-events:none, recorte al borde y desactivación con
+prefers-reduced-motion:reduce. Sin cambios en colores base, importes ni acciones.
+
+Archivo funcional: src/styles/index.css, keyframes zipco-review-sheen y
+.zipco-review-total::after. Sin campos/endpoints, backend ni Railway necesarios.
+Se conserva la integración de envío y respuestas REQ-FRONTEND-ALTERNATIVES-V1-01.
+
+Build QA/PWA aprobado (advertencia existente de bundle >500kB) y nueve escenarios
+táctiles Chrome de regresión del formulario/resumen, incluido movimiento reducido.
+Captura sintética inspeccionada con el brillo pausado durante su recorrido:
+node_modules/.cache/business-alternative-browser/review-panel-393.png.
+La pausa solo pertenece al instrumento temporal de captura, fuera de Git;
+el CSS publicado conserva el ciclo continuo. Sin acciones ni cargas reales.
+No se agregaron pruebas unitarias para este cambio CSS reversible.
+
+Pendiente comprobación visual física Android/iPhone. Publicar solo Vercel QA,
+guardar código e identificación del despliegue al comprobar READY. main,
+producción y avances previos conservados.

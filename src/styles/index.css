@@ -1240,11 +1240,11 @@ body {
 }
 @keyframes zipco-review-sheen {
   0%,
-  30% {
-    transform: translateX(-130%) skewX(-18deg);
+  55% {
+    transform: translateX(-140%) skewX(-18deg);
   }
   100% {
-    transform: translateX(380%) skewX(-18deg);
+    transform: translateX(420%) skewX(-18deg);
   }
 }
 
@@ -1266,11 +1266,11 @@ body {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 28%;
+  width: 35%;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.32), transparent);
-  transform: translateX(-130%) skewX(-18deg);
-  animation: zipco-review-sheen 2.6s ease-in-out 0.9s 2;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent);
+  transform: translateX(-140%) skewX(-18deg);
+  animation: zipco-review-sheen 3.6s ease-in-out 0.8s infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
