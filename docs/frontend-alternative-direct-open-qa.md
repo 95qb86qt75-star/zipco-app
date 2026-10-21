@@ -72,3 +72,15 @@ tarjeta sin el cuadro pequeño. No confirmar un envío únicamente para revisar 
 Commit/push a origin/qa y Vercel Preview QA con Backend QA y override vigente:
 `ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa`.
 Registrar READY y publicar el cierre documental con el mismo código funcional.
+
+## Publicación comprobada — 2026-10-21
+
+Código `6f0605901c658ce87a2f42cff9915a648012bdf7`, enviado a origin/qa.
+Preview funcional **READY**, `dpl_C1ZwDkYcK2abzGfNJfFj4LMshQzj`, URL propia
+https://zipco-7w2v33n11-zipco-s-projects.vercel.app. GitSource/SHA exacto, rama qa,
+target Preview y alias habitual comprobados por API. Backend QA, override de
+build, build global null y rama de producción main conservados.
+
+Este resultado y catálogo se guardan en cierre documental posterior, publicado
+con idéntico código funcional/opciones. Su SHA identifica la versión final.
+Prueba física del acceso directo en Android/iPhone pendiente.

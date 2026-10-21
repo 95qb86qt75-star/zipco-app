@@ -328,8 +328,10 @@ Prueba física pendiente.
 
 ### UI-ALTERNATIVE-DIRECT-OPEN-01 — Formulario inicial sin cuadro intermedio
 
-2026-10-21. Solo frontend, rama qa. Proponer alternativa verifica la lectura y
+2026-10-21. Código `6f0605901c658ce87a2f42cff9915a648012bdf7`, rama qa.
+Solo frontend. Proponer alternativa verifica la lectura y
 abre el formulario aprobado directamente; carga en el botón y error/reintento
 en la tarjeta. Conserva permisos, comparación posterior, envío e idempotencia.
 1138 pruebas/build QA y 15 recorridos táctiles sintéticos aprobados.
-Prueba física pendiente. [Causa, archivos y publicación](frontend-alternative-direct-open-qa.md).
+Preview funcional READY y alias QA comprobados por API. Prueba física pendiente.
+[Causa, archivos y publicación](frontend-alternative-direct-open-qa.md).
