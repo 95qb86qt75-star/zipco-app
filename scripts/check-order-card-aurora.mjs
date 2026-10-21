@@ -21,14 +21,16 @@ import {rawOrder,coordinationProcess,agreementFixture} from './src/app/screens/r
 import {cancelledPendingOrder} from './src/app/screens/requests/pendingCancellationFixtures';
 import {rejectedPendingOrder} from './src/app/screens/requests/pendingRejectionFixtures';
 window.React=React;window.posts=0;window.reads=0;let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
+const pendingBusinessRead=()=>{const read=proposalsFixture(0,true);read.process.allowedActions.push('REJECT_PENDING_REQUEST');return read;};
 window.fetch=async(input,options={})=>{if(options.method&&options.method!=='GET'){window.posts++;throw Error('Actions are forbidden in this visual fixture');}
+ if(String(input).endsWith('/proposals'))return new Response(JSON.stringify(pendingBusinessRead()));
  if(String(input).endsWith('/agreement')){window.reads++;return new Response(JSON.stringify(agreementFixture));}throw Error('Unexpected fixture read');};
 window.show=(next,role,old=false)=>{state=next;business=role;legacy=old;redraw();};
 function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n=>n+1);
  localStorage.setItem('zipco-token','synthetic-session');localStorage.setItem('zipco-user-id',business?'12':'11');
  if(business)localStorage.setItem('zipco-business-id','8');else localStorage.removeItem('zipco-business-id');
  const sequences=['AWAITING_BUSINESS_RESPONSE','AWAITING_CUSTOMER_DECISION','AWAITING_BUSINESS_COUNTER_RESPONSE','AWAITING_CUSTOMER_FINAL_DECISION'];
- const sequence=sequences.indexOf(state);const read=proposalsFixture(Math.max(0,sequence),business);
+ const sequence=sequences.indexOf(state);const read=sequence===0&&business?pendingBusinessRead():proposalsFixture(Math.max(0,sequence),business);
  const coordinated={...coordinationProcess,state:state==='READY_ACK'?'READY':state,readyNoticeAcknowledged:state==='READY_ACK',
   coordination:{customerContactAuthorized:false,businessContactAuthorized:false},
   allowedActions:state==='IN_PROGRESS'?business?['MARK_READY']:[]:state.startsWith('READY')?business?[]:state==='READY_ACK'?['CONFIRM_RECEIPT']:['ACK_READY_NOTICE']:state==='COMPLETED'?[]:business?[]:['AUTHORIZE_CONTACT']};
@@ -54,12 +56,15 @@ const browser=spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',['--
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));let socket;
 try {
  const portFile=path.join(profile,'DevToolsActivePort');for(let i=0;!fs.existsSync(portFile)&&i<200;i++)await delay(50);
- const port=fs.readFileSync(portFile,'utf8').split('\n')[0];const tabs=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+ let port;for(let i=0;i<40&&!port;i++){try{port=fs.readFileSync(portFile,'utf8').split('\n')[0];}catch{await delay(50);}}
+ if(!port)throw Error('Chrome debugging port did not become readable');
+ const tabs=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
  socket=new WebSocket(tabs.find(tab=>tab.type==='page').webSocketDebuggerUrl);await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
  const pending=new Map();let sequence=0;socket.addEventListener('message',event=>{const m=JSON.parse(event.data);if(!pending.has(m.id))return;const {resolve,reject}=pending.get(m.id);pending.delete(m.id);m.error?reject(Error(m.error.message)):resolve(m.result);});
  const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
  const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
- const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Fixture did not settle: '+expression);};
+ const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'failed-fixture.png'),Buffer.from(shot.data,'base64')));throw Error('Fixture did not settle: '+expression+'; synthetic text: '+await evaluate('document.body.textContent.slice(-1500)'));};
+ const touch=async selector=>{const p=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||!e.getClientRects().length)throw Error('Missing visible control');e.scrollIntoView({block:'center',behavior:'instant'});const r=e.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
  await send('Network.enable');await send('Network.setBlockedURLs',{urls:['https://*']});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.show');
  const evidence=[];
@@ -87,6 +92,30 @@ try {
    assert(await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),r=card.getBoundingClientRect();return [...card.querySelectorAll('.zipco-aurora-header *')].every(e=>e.getBoundingClientRect().right<=r.right+1);})()`),'Large totals stay inside legacy headers');
    evidence.push(`${width}/${dark?'dark':'light'}/legacy/${business}/${state}`);
   }
+  await evaluate(`window.show('AWAITING_BUSINESS_RESPONSE',true)`);await wait('!!document.querySelector(".zipco-pending-business-responses[hidden]")');
+  assert(await evaluate(`!document.querySelector('.zipco-pending-business-responses').getClientRects().length`),'Pending response buttons are hidden initially');
+  await touch('.zipco-open-panel');await wait('!!document.querySelector(".zipco-accept-btn")');await delay(650);
+  assert.deepEqual(await evaluate(`[...document.querySelector('article').querySelectorAll('button')].filter(b=>b.getClientRects().length).map(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.textContent).trim())`),['Aceptar pedido','Proponer alternativa','Rechazar solicitud','Ocultar detalle']);
+  assert.notEqual(await evaluate(`getComputedStyle(document.querySelector('.zipco-hide-order-detail')).boxShadow`),'none');
+  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`pending-expanded-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64')));
+  await evaluate(`window.savedReject=document.querySelector('.zipco-reject-btn');window.savedProposal=document.querySelector('.zipco-glass-btn');true`);
+  await touch('.zipco-reject-btn');await wait('!!document.querySelector("[role=alertdialog] select")');
+  await evaluate(`(()=>{const e=document.querySelector('select');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(e,'other');e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await wait('!!document.querySelector("textarea")');
+  await evaluate(`(()=>{const e=document.querySelector('textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Motivo sintético conservado');e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  // Programmatic fold models a parent collapse while a portal is open; it must retain local state.
+  await evaluate(`document.querySelector('.zipco-hide-order-detail').click()`);await delay(100);
+  assert.equal(await evaluate(`document.querySelector('textarea').value`),'Motivo sintético conservado');
+  await touch('[role=alertdialog] button');await wait('!document.querySelector("[role=alertdialog]")');
+  await wait('!!document.querySelector(".zipco-open-panel")');await touch('.zipco-open-panel');await delay(650);
+  assert(await evaluate(`window.savedReject===document.querySelector('.zipco-reject-btn')&&window.savedProposal===document.querySelector('.zipco-glass-btn')`),'Folding retains response components');
+  await touch('.zipco-glass-btn');await wait('!!document.querySelector("[role=dialog] textarea")');
+  await evaluate(`(()=>{const e=document.querySelector('textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Borrador sintético conservado');e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await evaluate(`document.querySelector('.zipco-hide-order-detail').click()`);await delay(100);
+  assert.equal(await evaluate(`document.querySelector('textarea').value`),'Borrador sintético conservado');
+  await touch('button[aria-label="Cerrar alternativa"]');await wait('!document.querySelector("textarea")');
+  await evaluate(`document.querySelector('[aria-label="Cerrar propuestas"]')?.click()`);await wait('!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts'),0,'Review, cancellation and folding never submit order actions');
+  evidence.push(`${width}/${dark?'dark':'light'}/pending-fold-and-retained-forms`);
  }
  await evaluate(`window.show('completed',true,true)`);await delay(650);
  const drag=await evaluate(`(()=>{const r=document.querySelector('[data-aurora-history]').getBoundingClientRect();return {x:r.left+r.width*.8,y:r.top+r.height/2};})()`);
@@ -108,6 +137,6 @@ try {
  await delay(650);
  assert.equal(await evaluate('window.posts'),0,'Disclosure does not submit an action');
  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'coordination-expanded-400.png'),Buffer.from(shot.data,'base64')));
- console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,realBackendAccess:false,orderActions:0}));
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,realBackendAccess:false,orderActions:0}));
  await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

@@ -25,6 +25,7 @@ import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import PendingCancellationActions from './PendingCancellationActions';
 import PendingRejectionActions from './PendingRejectionActions';
+import ProposalNegotiation from './ProposalNegotiation';
 import { rejectPendingOrder, rejectedPendingOrder } from './pendingRejectionFixtures';
 import { cancelPendingOrder, cancelledPendingOrder } from './pendingCancellationFixtures';
 import OrderReferencePhoto from './OrderReferencePhoto';
@@ -58,6 +59,29 @@ const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
 };
 
 describe('reused 2A card design without legacy actions', () => {
+  it('folds pending business responses without unmounting them, keeps their order and never submits on disclosure', () => {
+    const order = normalizeBusinessOrdersPayload([{ ...rejectPendingOrder, requestProcess: {
+      ...rejectPendingOrder.requestProcess, allowedActions: [...rejectPendingOrder.requestProcess.allowedActions, 'PROPOSE_ALTERNATIVE'],
+    } }])[0];
+    const responses = (view: React.ReactNode) => elements(view).find(node => node.props.className === 'zipco-pending-business-responses')!;
+    const folded = render({ ...props, order, business: true });
+    expect(responses(folded).props.hidden).toBe(true);
+    const retained = elements(responses(folded)).filter(node => node.type === ProposalNegotiation || node.type === PendingRejectionActions);
+    expect(retained).toHaveLength(2);
+    (elements(folded).find(node => node.type === OrderCardDisclosure)!.props.onOpen as () => void)();
+    const expanded = render({ ...props, order, business: true });
+    expect(responses(expanded).props.hidden).toBe(false);
+    const nodes = elements(expanded);
+    const hide = nodes.find(node => node.props.className === 'zipco-hide-order-detail')!;
+    const orderOf = [AcceptGlassButton, ProposalNegotiation, PendingRejectionActions].map(type => nodes.findIndex(node => node.type === type));
+    expect(orderOf[0]).toBeLessThan(orderOf[1]); expect(orderOf[1]).toBeLessThan(orderOf[2]); expect(orderOf[2]).toBeLessThan(nodes.indexOf(hide));
+    (hide.props.onClick as (e: unknown) => void)(event());
+    const closed = render({ ...props, order, business: true });
+    expect(responses(closed).props.hidden).toBe(true);
+    expect(elements(responses(closed)).filter(node => node.type === ProposalNegotiation || node.type === PendingRejectionActions).map(node => node.key))
+      .toEqual(retained.map(node => node.key));
+    expect(props.onAccept).not.toHaveBeenCalled(); expect(props.onRetry).not.toHaveBeenCalled();
+  });
   it('renders valid Backend 772b78a pending business actions without the guard card', () => {
     const order = normalizeBusinessOrdersPayload([rejectPendingOrder])[0];
     const view = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });

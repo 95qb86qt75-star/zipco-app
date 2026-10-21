@@ -302,4 +302,13 @@ al botón de entrada del rechazo inicial. Mantiene formulario, confirmación,
 permisos y acción; icono legacy protegido y botones verdes aprobados conservados.
 1137 pruebas/build QA, 8 combinaciones visuales rojas y 8 regresiones verdes
 aprobadas. Preview funcional READY y alias QA comprobados por API.
-Prueba física pendiente. [Archivos y publicación](frontend-reject-glass-button-qa.md).
+Bastián confirmó «excelente funcionando» sobre QA b5369ef, sin especificar
+dispositivo o cada recorrido. Diseño rojo aprobado. [Archivos y publicación](frontend-reject-glass-button-qa.md).
+
+### UI-BUSINESS-PENDING-RESPONSES-01 — Respuestas plegadas y ordenadas
+
+2026-10-21. Solo frontend, rama qa. Solicitud inicial del negocio plegada sin
+mostrar propuesta/rechazo. Al abrir: Aceptar, Proponer, Rechazar y Ocultar detalle
+al final, con brillo. Controles conservados sin desmontar borradores u operaciones.
+1138 pruebas/build QA y 234 comprobaciones locales aprobadas. Prueba física de
+esta disposición pendiente. [Archivos y publicación](frontend-business-pending-responses-qa.md).

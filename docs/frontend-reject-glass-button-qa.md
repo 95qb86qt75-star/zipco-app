@@ -85,3 +85,12 @@ Este resultado y el catálogo se guardan en un cierre documental posterior,
 publicado con el mismo código funcional/opciones. Su SHA identifica la versión
 final. Las pruebas visuales/DOM fueron locales; conformidad física del botón
 rojo en Android/iPhone pendiente. No se modifica ni repite ningún pedido real.
+
+## Conformidad de Bastián — 2026-10-21
+
+Sobre QA `b5369ef`, Bastián confirmó «excelente funcionando» y solicitó después
+plegar/ordenar las acciones de la tarjeta. Queda aprobado el diseño del botón
+UI-REJECT-GLASS-01; no indicó dispositivo o cada escenario, por lo que no se
+acreditan ambos sistemas móviles ni el flujo completo de rechazo por separado.
+La nueva disposición corresponde a UI-BUSINESS-PENDING-RESPONSES-01 y requiere
+su propia revisión; no altera el diseño rojo aprobado.

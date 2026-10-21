@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Calendar, Sparkles, Zap } from 'lucide-react';
+import { Calendar, ChevronUp, Sparkles, Zap } from 'lucide-react';
 import AcceptGlassButton from './AcceptGlassButton';
 import type { BusinessRequest, MyOrder, NormalizedProducts } from './types';
 import { canAcceptFixedOrder, processStatusLabel } from './requestProcess';
@@ -117,13 +117,19 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
               <AcceptGlassButton label={isUpdating ? 'Guardando…' : 'Aceptar pedido'} price={isUpdating ? null : price} disabled={isUpdating}
                 onClick={(event) => { event.stopPropagation(); onAccept?.(); }} />}
           </>}
-          <button type="button" aria-expanded={true} onClick={(event) => { event.stopPropagation(); toggle(); }}
-            className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>
+          {!(business && awaiting) && <button type="button" aria-expanded={true} onClick={(event) => { event.stopPropagation(); toggle(); }}
+            className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>}
         </motion.div>}
     </AnimatePresence>}
     {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
-    {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} variant="aurora" />}
-    {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
+    <div className={business && awaiting ? 'zipco-pending-business-responses' : undefined} hidden={business && awaiting && !isExpanded}>
+      {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} variant="aurora" />}
+      {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
+      {business && awaiting && <button type="button" aria-expanded={isExpanded}
+        onClick={(event) => { event.stopPropagation(); toggle(); }} className="zipco-hide-order-detail">
+        <ChevronUp aria-hidden="true" className="h-4 w-4 shrink-0" />Ocultar detalle
+      </button>}
+    </div>
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>
     </div>}
