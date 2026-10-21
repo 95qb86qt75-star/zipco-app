@@ -85,7 +85,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     if (!process || !active() || lock.current) return;
     const controller = new AbortController(); controllers.current.add(controller); lock.current = true; setBusy(true); setError('');
     try { const value = await readProposals(process.id, session!.token, controller.signal); if (active()) { setRead(value); setDecision(null); setExpired(false);
-      if (startDraft && proposalAllowed(value.process, business, 'PROPOSE_ALTERNATIVE')) setDraftAction('PROPOSE_ALTERNATIVE');
+      if (startDraft) {
+        if (proposalAllowed(value.process, business, 'PROPOSE_ALTERNATIVE')) setDraftAction('PROPOSE_ALTERNATIVE');
+        else { setError('El pedido cambió. Actualiza su estado antes de proponer una alternativa.'); refresh(); }
+      }
     } }
     catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudieron cargar las propuestas.'); }
     finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
@@ -138,15 +141,16 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   };
   return <div className="mt-3" onClick={event => event.stopPropagation()}>
     {(() => {
-      const label = initial ? 'Proponer alternativa' : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder';
-      const openProposals = async () => { setOpen(true); await load(initial); };
+      const label = initial ? busy ? 'Cargando formulario…' : 'Proponer alternativa' : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder';
+      const openProposals = async () => { if (!initial) setOpen(true); await load(initial); };
       return variant === 'aurora'
         ? <span className="zipco-glass-wrap">
           <i className="zipco-glass-blob zipco-glass-b1" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b2" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b3" aria-hidden="true" />
-          <button type="button" className="zipco-glass-btn" disabled={busy} onClick={openProposals}>{label}<ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.3} aria-hidden="true" /></button>
+          <button type="button" className="zipco-glass-btn" disabled={busy} aria-busy={busy} onClick={openProposals}>{label}<ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.3} aria-hidden="true" /></button>
         </span>
-        : <button type="button" className={`${button} w-full`} disabled={busy} onClick={openProposals}>{label}</button>;
+        : <button type="button" className={`${button} w-full`} disabled={busy} aria-busy={busy} onClick={openProposals}>{label}</button>;
     })()}
+    {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
         <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white p-5 dark:bg-slate-900">

@@ -325,3 +325,11 @@ Rechazar y Ocultar detalle. Conserva borradores, foco y movimiento reducido.
 secuencias de fotogramas. Preview funcional READY y alias QA comprobados por API.
 Prueba física pendiente.
 [Causa, archivos y publicación](frontend-business-pending-responses-qa.md).
+
+### UI-ALTERNATIVE-DIRECT-OPEN-01 — Formulario inicial sin cuadro intermedio
+
+2026-10-21. Solo frontend, rama qa. Proponer alternativa verifica la lectura y
+abre el formulario aprobado directamente; carga en el botón y error/reintento
+en la tarjeta. Conserva permisos, comparación posterior, envío e idempotencia.
+1138 pruebas/build QA y 15 recorridos táctiles sintéticos aprobados.
+Prueba física pendiente. [Causa, archivos y publicación](frontend-alternative-direct-open-qa.md).

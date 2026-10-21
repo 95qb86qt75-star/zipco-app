@@ -18,14 +18,15 @@ import {rawOrder} from './src/app/screens/requests/requestProcessFixtures';
 import {statusViewFor} from './src/app/screens/requests/requestStatusGrouping';
 window.React=React;let role=true,read=proposalsFixture(0),redraw=()=>{};let saved=new Map();
 window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.stale=false;
+window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;
 window.feedback=[];window.addEventListener('zipco-proposal-sent',event=>window.feedback.push(event.detail));
 function processForRole(){const actor=proposalsFixture(Math.min(read.proposals.length-1,3),role).process;
  return {...read.process,allowedActions:read.process.agreementPublicId||read.process.state==='CLOSED'?[]:actor.allowedActions};}
-window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;sessionStorage.clear();redraw();};
+window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;sessionStorage.clear();redraw();};
 window.role=(business)=>{role=business;redraw();};
 window.fetch=async (input,options={})=>{
  const url=String(input);if(url.includes('api.cloudinary.com')){window.uploads++;return new Response(JSON.stringify({secure_url:'https://res.cloudinary.com/test/image/upload/synthetic.jpg'}));}
- if(url.endsWith('/proposals')){if(window.getFails)throw Error('Synthetic read failure');if(window.stale){read=proposalsFixture(1,role);window.stale=false;}return new Response(JSON.stringify({...read,process:processForRole()}));}
+ if(url.endsWith('/proposals')){window.proposalReads++;if(window.pauseReads)await new Promise(resolve=>window.releaseRead=()=>{window.pauseReads=false;resolve();});if(window.getFails)throw Error('Synthetic read failure');if(window.stale){read=proposalsFixture(1,role);window.stale=false;}return new Response(JSON.stringify({...read,process:window.denyDraft?{...processForRole(),allowedActions:[]}:processForRole()}));}
  if(!url.includes('/actions/'))throw Error('Unexpected synthetic endpoint');
  const action=url.split('/').pop(),body=JSON.parse(options.body),key=options.headers['Idempotency-Key'];
  window.posts.push({action,key,body});if(window.fail){window.fail=false;throw Error('Synthetic response failure');}
@@ -53,7 +54,7 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
  const process=normalizeRequestProcess(processForRole());
  const order=normalizeBusinessOrdersPayload([{...rawOrder,needNow:true,orderType:'product',status:process.state==='CLOSED'?'rejected':process.agreementPublicId?'accepted':read.proposals.length===1?'pending':'alternative_proposed',requestProcess:process}])[0];
  window.current={state:process.state,version:process.version,view:statusViewFor('orders',order.status,process)};
- return <Negotiation key={String(role)+'-'+(revision>10000?revision:0)} order={order} business={role} refresh={redraw}/>;
+ return <Negotiation key={String(role)+'-'+(revision>10000?revision:0)} order={order} business={role} variant="aurora" refresh={()=>{window.refreshes++;redraw();}}/>;
 }createRoot(document.getElementById('root')).render(<App/>);
 ` }, bundle: true, format: 'esm', jsx: 'automatic', outfile: path.join(directory, 'fixture.js'),
   define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}' } });
@@ -136,5 +137,18 @@ try {
   assert.equal(await evaluate('window.posts.length'),0);evidence.push('stale-version-read-before-post');
   await reset(1,false);await evaluate('window.getFails=true');await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[role=alert]")');
   assert.equal(await evaluate('window.posts.length'),0);assert.equal(await evaluate(`[...document.querySelectorAll('button')].some(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.textContent)==='Aceptar propuesta')`),false);evidence.push('failed-authorized-read-no-actions');
+  await reset();await evaluate(`window.pauseReads=true;window.intermediateSeen=false;window.watcher=new MutationObserver(()=>{if(document.querySelector('button[aria-label="Cerrar propuestas"]'))window.intermediateSeen=true;});window.watcher.observe(document.body,{childList:true,subtree:true});document.querySelector('.zipco-glass-btn').click();document.querySelector('.zipco-glass-btn').click();`);
+  await wait('window.proposalReads===1');await delay(250);
+  assert.equal(await evaluate('!!document.querySelector("[role=dialog]")'),false,'Slow initial read does not open the intermediate modal');
+  assert.equal(await evaluate('document.querySelector(".zipco-glass-btn").disabled'),true);
+  assert.equal(await evaluate('!!document.querySelector("textarea")'),false,'No form before authorized read');
+  await evaluate('window.releaseRead()');await wait('!!document.querySelector("textarea")');
+  assert.equal(await evaluate('window.intermediateSeen'),false);assert.equal(await evaluate('window.proposalReads'),1);assert.equal(await evaluate('window.posts.length'),0);
+  await touch('Volver');await wait('!document.querySelector("[role=dialog]")');await evaluate('window.watcher.disconnect()');evidence.push('slow-initial-read-direct-form-double-click-close-to-card');
+  await reset();await evaluate('window.getFails=true');await touch('Proponer alternativa');await wait('!!document.querySelector("[role=alert]")');
+  assert.equal(await evaluate('!!document.querySelector("[role=dialog]")'),false);assert.equal(await evaluate('!!document.querySelector("textarea")'),false);
+  await evaluate('window.getFails=false');await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');assert.equal(await evaluate('window.posts.length'),0);evidence.push('initial-read-error-inline-retry-direct-form');
+  await reset();await evaluate('window.denyDraft=true');await touch('Proponer alternativa');await wait('!!document.querySelector("[role=alert]")');
+  assert.equal(await evaluate('!!document.querySelector("textarea")'),false);assert.equal(await evaluate('window.posts.length'),0);assert.equal(await evaluate('window.refreshes'),1);evidence.push('revoked-initial-permission-no-form-refresh');
   console.log(JSON.stringify({passed:evidence.length,evidence,touchEvents:true,backendAccess:false,realOrderActions:false,realUploads:false}));await send('Browser.close');
 } finally {socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}
