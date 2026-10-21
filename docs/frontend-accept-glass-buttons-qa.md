@@ -86,3 +86,18 @@ habitual y override por despliegue:
 `ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa`.
 Registrar READY y código en el cierre documental; sin configuración global o
 producción. Conservar avances anteriores y toda la documentación en Git.
+
+## Resultado de publicación — 2026-10-21
+
+Código `4aa115f5663d20768c6633ee0869f93ed3f43e30` enviado a origin/qa.
+Vercel Preview **READY**, `dpl_BWPJimdw7MbjQbrvwN4ANLvQP8qK`, URL propia
+https://zipco-53lgmmuyz-zipco-s-projects.vercel.app. Por API se comprobaron
+GitSource GitHub/qa/SHA exacto, target Preview y alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app apuntando a este despliegue.
+Backend QA conservado en la configuración de Preview, override de build QA
+comprobado, build global null y rama de producción main sin cambios.
+
+El cierre documental guarda este resultado y actualiza el catálogo en un nuevo
+commit de qa, publicado con el mismo código y opciones. El SHA de ese cierre
+será la versión visible final. Las comprobaciones DOM/visuales fueron locales;
+la revisión física de estos botones en Android/iPhone queda pendiente.

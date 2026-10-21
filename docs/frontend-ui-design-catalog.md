@@ -283,9 +283,11 @@ de publicación en la [ficha del diseño](frontend-order-card-aurora-qa.md).
 
 ### UI-ACCEPT-GLASS-01 — Botones verdes de aceptación
 
-2026-10-21. Solo frontend, rama qa. Componente/CSS entregados por Bastián:
+2026-10-21. Código `4aa115f5663d20768c6633ee0869f93ed3f43e30`, rama qa.
+Solo frontend. Componente/CSS entregados por Bastián:
 Aceptar pedido, Aceptar propuesta/contrapropuesta y confirmación de aceptación.
 Check, cristal, reflejo y precio en cápsula; adaptación responsive y accesible.
 Mismos permisos, bloqueo y acciones; autorización de contacto y rechazos iguales.
 1137 pruebas/build QA, 8 combinaciones visuales y 12 recorridos táctiles
-sintéticos. Prueba física pendiente. [Archivos y publicación](frontend-accept-glass-buttons-qa.md).
+sintéticos aprobados. Preview funcional READY y alias QA comprobados por API.
+Prueba física pendiente. [Archivos y publicación](frontend-accept-glass-buttons-qa.md).
