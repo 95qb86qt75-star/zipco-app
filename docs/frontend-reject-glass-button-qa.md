@@ -70,3 +70,18 @@ se cierran con esta modificación visual.
 Commit/push a origin/qa y Vercel Preview QA, con alias habitual y override vigente:
 `ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa`.
 Registrar READY en cierre documental, guardarlo y publicarlo con el mismo código.
+
+## Publicación comprobada — 2026-10-21
+
+Código `92f94d742fea80310187208ad9b06ddf3a6c1d29`, enviado a origin/qa.
+Preview funcional **READY**, `dpl_yjEQFdoWQSsYjMHFaLufhYraPtWs`, URL propia
+https://zipco-knol64765-zipco-s-projects.vercel.app. Por API se comprobaron
+GitSource/SHA exacto, rama qa, target Preview y alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app apuntando a este despliegue.
+Backend QA y override de build conservados; build global null y rama de
+producción main sin cambios. Git limpio y sincronizado después del push.
+
+Este resultado y el catálogo se guardan en un cierre documental posterior,
+publicado con el mismo código funcional/opciones. Su SHA identifica la versión
+final. Las pruebas visuales/DOM fueron locales; conformidad física del botón
+rojo en Android/iPhone pendiente. No se modifica ni repite ningún pedido real.
