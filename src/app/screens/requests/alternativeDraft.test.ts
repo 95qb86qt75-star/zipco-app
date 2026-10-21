@@ -20,7 +20,8 @@ describe('alternative first-block release interlock and compatibility', () => {
     const process = normalizeRequestProcess({ ...pendingProcess, allowedActions: ['PROPOSE_ALTERNATIVE'] }); expect(process).not.toBeNull();
     expect(canPrepareAlternative({ ...o, requestProcess: process }, true)).toBe(true);
     expect(canSubmitAlternative()).toBe(false);
-    expect(ALTERNATIVE_RELEASE).toEqual({ processContract: 'alternatives-v1', backendQaConfirmed: false, customerDecisionsReady: false, sendingEnabled: false });
+    expect(ALTERNATIVE_RELEASE).toEqual({ processContract: 'alternatives-v1', backendQaConfirmed: true, customerDecisionsReady: true, sendingEnabled: true });
+    expect(canSubmitAlternative(true)).toBe(true);
     expect(Object.isFrozen(ALTERNATIVE_RELEASE)).toBe(true);
     expect(normalizeRequestProcess({ ...pendingProcess, allowedActions: ['UNKNOWN'] })).toBeNull();
   });

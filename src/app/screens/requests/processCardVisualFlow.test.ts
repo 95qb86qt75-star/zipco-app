@@ -230,8 +230,8 @@ describe('reused 2A card design without legacy actions', () => {
     expect(html).toContain('$2.000'); expect(html).toContain('Estado histórico');
   });
   it.each([true, false])('uses participant-specific pending labels and photo context (business=%s)', (business) => {
-    const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0]
-      : normalizeMyOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0]
+      : normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const compact = render({ ...props, order, business });
     const disclosure = elements(compact).find((node) => node.type === OrderCardDisclosure)!;
     expect(disclosure.props.title).toBe(business ? 'Pedido del cliente' : 'Tu pedido');
@@ -285,7 +285,7 @@ describe('reused 2A card design without legacy actions', () => {
     expect(html).toContain(`participant=${business ? 'business' : 'customer'}&amp;volver=historial`);
   });
   it.each([true, false])('labels the initial business card Nuevo pedido independently of unread state (%s)', (isUnread) => {
-    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const view = render({ ...props, order, business: true, isUnread });
     const header = elements(view).find((node) => node.type === BusinessOrderHeader)!;
     expect(header.props.statusLabel).toBe('Nuevo pedido');
@@ -295,7 +295,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it('shows the actual formatted total on the accept button and keeps the busy lock', () => {
-    const order = normalizeBusinessOrdersPayload([{ ...raw, total: 123456, requestProcess: pendingProcess }])[0];
+    const order = normalizeBusinessOrdersPayload([{ ...raw, total: 123456, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const html = renderToStaticMarkup(render({ ...props, order, business: true, expanded: true }));
     expect(html).toContain(`Aceptar pedido por $${order.total.toLocaleString('es-CL')}`);
     const busy = render({ ...props, order, business: true, expanded: true, isUpdating: true });
@@ -303,7 +303,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it('toggles the card body in both directions and preserves read tracking', () => {
-    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const bodyEvent = () => ({ target: { closest: () => null }, currentTarget: { classList: { remove: vi.fn() } } });
     let view = render({ ...props, order, business: true });
     (view.props.onClick as (event: unknown) => void)(bodyEvent());
@@ -316,7 +316,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it.each(['button', 'a', '[role="dialog"]'])('does not toggle from a nested interactive target (%s)', (selector) => {
-    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const onToggle = vi.fn();
     const view = render({ ...props, order, business: true, onToggle });
     const closest = vi.fn((selectors: string) => selectors.includes(selector) ? {} : null);
@@ -325,7 +325,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it.each(['Enter', ' '])('supports keyboard body activation without hijacking child controls (%s)', (key) => {
-    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const onToggle = vi.fn();
     const view = render({ ...props, order, business: true, onToggle });
     expect(view.props.tabIndex).toBe(0);
@@ -342,8 +342,8 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it.each([true, false])('restores the correct profile and unread label in the compact card (business=%s)', (business) => {
-    const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0]
-      : normalizeMyOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0]
+      : normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const view = render({ ...props, order, business, isUnread: true });
     const header = elements(view).find((node) => node.type === (business ? BusinessOrderHeader : CustomerOrderHeader))!;
     expect(header.props.image).toBe(business ? raw.customerImage : raw.businessImage);
@@ -353,7 +353,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it('expands and collapses locally, marking the interaction read without dispatching an action', () => {
-    const order = normalizeMyOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     let view = render({ ...props, order });
     const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
     (disclosure.props.onOpen as () => void)();
@@ -366,7 +366,7 @@ describe('reused 2A card design without legacy actions', () => {
   });
 
   it('uses the existing controlled business expansion and retains acceptance with local alternative preparation', () => {
-    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const onToggle = vi.fn();
     const compact = render({ ...props, order, business: true, expanded: false, onToggle });
     const disclosure = elements(compact).find((node) => node.type === OrderCardDisclosure)!;

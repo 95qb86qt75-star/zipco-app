@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { traceNotificationClick } from './notificationClickTrace';
 import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
 import { createCustomerOrderNotices } from './orderNotice';
+import { proposalNotice } from './proposalNotice';
 import { createNotificationRefreshQueue } from './notificationRefreshQueue';
 import { presentationKey, readSystemPresentations, rememberOpenedPresentation } from './notificationDelivery';
 import { API_BASE_URL } from "../api/apiConfig";
@@ -191,12 +192,12 @@ export default function BusinessNotificationMonitor({
         ] = await Promise.all([
           businessId
             ? loadJson(
-                `/orders/business/${businessId}`,
+                `/orders/business/${businessId}?processContract=alternatives-v1`,
                 token,
                 onSessionExpired,
               )
             : Promise.resolve([]),
-          loadJson("/orders/my-orders", token, onSessionExpired),
+          loadJson("/orders/my-orders?processContract=alternatives-v1", token, onSessionExpired),
           businessId
             ? loadJson(
                 `/quotes/business/${businessId}`,
@@ -262,6 +263,12 @@ export default function BusinessNotificationMonitor({
             );
         if (hasBusinessBaseline.current) {
           orders.forEach((order) => {
+            if (order.requestProcess?.proposalSummary) {
+              const event = proposalNotice(order, true);
+              if (event && orderStatuses.current.get(order.id) !== orderNotificationState(order))
+                announce(event.key, event.notice[0], event.notice[1], { kind: 'order', id: order.id }, `/?open=requests-business&orderId=${order.id}`);
+              return;
+            }
             const previous = orderStatuses.current.get(order.id);
             if (
               previous !== "alternative_proposed" ||
@@ -353,7 +360,7 @@ export default function BusinessNotificationMonitor({
         publishUnreadCount();
         window.dispatchEvent(new CustomEvent("zipco-requests-refresh"));
         orderStatuses.current = new Map(
-          orders.map((order) => [order.id, order.status]),
+          orders.map((order) => [order.id, orderNotificationState(order)]),
         );
         customerOrderStatuses.current = new Map(
           customerOrders.map((order) => [order.id, orderNotificationState(order)]),

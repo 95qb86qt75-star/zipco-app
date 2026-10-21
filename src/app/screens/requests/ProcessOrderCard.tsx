@@ -14,7 +14,8 @@ import CoordinationActions from './CoordinationActions';
 import { statusViewFor } from './requestStatusGrouping';
 import PendingCancellationActions from './PendingCancellationActions';
 import PendingRejectionActions from './PendingRejectionActions';
-import PendingAlternativeActions from './PendingAlternativeActions';
+import ProposalNegotiation from './ProposalNegotiation';
+import { NEGOTIATION_STATES } from './proposalContract';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -25,16 +26,14 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   const [localExpanded, setLocalExpanded] = useState(expanded ?? false);
   const process = order.requestProcess;
   const awaiting = process?.state === 'AWAITING_BUSINESS_RESPONSE';
+  const negotiating = NEGOTIATION_STATES.includes(process?.state ?? '');
   const coordination = process && ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'].includes(process.state);
   const agreement = useAgreement(process);
   const accepted = agreement.state.status === 'loaded' ? agreement.state.agreement : null;
   // After acceptance, header and details use only the immutable agreement.
-  const products: NormalizedProducts = awaiting ? order.products : accepted ? {
-    state: 'available', items: accepted.subjectSnapshot.items.map((item) => ({
-      name: item.nameSnapshot, quantity: item.quantity, price: item.unitPriceClpSnapshot,
-    })),
-  } : { state: 'unavailable', items: [] };
-  const price = awaiting ? order.total : accepted?.totalPriceClp ?? null;
+  const products: NormalizedProducts = awaiting ? order.products : { state: 'unavailable', items: [] };
+  const headerProducts = accepted ? { state: 'available' as const, items: accepted.subjectSnapshot.items.map(item => ({ name: item.nameSnapshot, quantity: item.quantity })) } : products;
+  const price = awaiting ? order.total : negotiating ? process?.proposalSummary?.totalPriceClp ?? null : accepted?.totalPriceClp ?? null;
   const name = 'customerName' in order ? order.customerName : order.businessName;
   const image = 'customerImage' in order ? order.customerImage : order.businessImage;
   const schedule = awaiting ? formatDeliverySchedule(order, business ? 'business' : 'customer') : null;
@@ -80,14 +79,14 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   }} className={business
     ? `zipco-provider-card zipco-order-progress-card zipco-state-${styleState} ${isUnread ? 'zipco-new-card border-sky-300 ring-2 ring-sky-100' : 'border-slate-200'} scroll-mb-36 rounded-[22px] border p-3 transition-colors`
     : `zipco-customer-order-card zipco-order-${styleState} scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? 'border-sky-400 bg-sky-100 ring-2 ring-sky-200' : 'border-slate-200 bg-gradient-to-br from-white to-slate-50'}`}>
-    {business ? <BusinessOrderHeader name={name} image={image} products={products} isUnread={isUnread}
+    {business ? <BusinessOrderHeader name={name} image={image} products={headerProducts} isUnread={isUnread} summaryText={negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : undefined}
       statusLabel={stateLabel} badgeClass={tone.badge} attention={awaiting} unavailableText={unavailableText} />
-      : <CustomerOrderHeader name={name} image={image} products={products} total={price} isUnread={isUnread}
+      : <CustomerOrderHeader name={name} image={image} products={headerProducts} total={price} isUnread={isUnread} summaryText={negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : undefined}
         status={badge} statusInCorner unavailableText={unavailableText} />}
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}
-    {hasConditions ? <>
+    {negotiating ? <p className="mt-3 text-sm font-bold text-violet-800">Propuesta vigente: {price === null ? 'Revisa sus condiciones' : `$${price.toLocaleString('es-CL')}`} · {processStatusLabel(order)}</p> : hasConditions ? <>
       <section aria-label="Condiciones aceptadas" className={`mt-2.5 overflow-hidden rounded-[15px] border bg-gradient-to-br ${tone.panel} dark:border-teal-500/50 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40`}>
         {conditionsHeader}{conditionsDetails}
       </section>
@@ -121,12 +120,12 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         </motion.div>}
     </AnimatePresence>}
     {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
-    {business && awaiting && <PendingAlternativeActions key="pending-alternative" order={order} business disabled={isUpdating} />}
+    {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} />}
     {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>
     </div>}
-    {(!process || (!awaiting && !coordination) || (coordination && !process.agreementPublicId)) && <button type="button"
+    {(!process || (!awaiting && !coordination && !negotiating) || (coordination && !process.agreementPublicId)) && <button type="button"
       onClick={(event) => { event.stopPropagation(); onRetry(); }} className="mt-3 min-h-11 rounded-xl border px-3 py-2">Actualizar pedido</button>}
   </article>;
 }

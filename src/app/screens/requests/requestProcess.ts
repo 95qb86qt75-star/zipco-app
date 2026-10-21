@@ -1,6 +1,6 @@
 import { isRecord } from './orderValueParsers';
 
-export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE'] as const;
+export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number];
 
 export const PENDING_REJECTION_REASONS = {
@@ -23,9 +23,11 @@ export type RequestProcessSummary = {
   currentProposalId: number;
   agreementPublicId: string | null;
   allowedActions: ProcessAction[];
+  proposalSummary?: { type: string; subjectSchemaVersion: 2; totalPriceClp: number; scheduledFor: string | null };
   readyNoticeAcknowledged?: boolean;
   closure?: { reasonCode: 'CUSTOMER_CANCELLED_BEFORE_RESPONSE'; reasonDetail: null; actor: 'CUSTOMER'; actorUserId: number; closedAt: string }
-    | { reasonCode: PendingRejectionReason; reasonDetail: string | null; actor: 'BUSINESS'; actorUserId: number; closedAt: string };
+    | { reasonCode: PendingRejectionReason; reasonDetail: string | null; actor: 'BUSINESS'; actorUserId: number; closedAt: string }
+    | { reasonCode: 'CUSTOMER_REJECTED_PROPOSAL' | 'BUSINESS_REJECTED_COUNTER_PROPOSAL'; reasonDetail: null; actor: 'CUSTOMER' | 'BUSINESS'; actorUserId: number; closedAt: string };
   coordination?: { customerContactAuthorized: boolean; businessContactAuthorized: boolean };
 };
 
@@ -50,6 +52,14 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
       !Array.isArray(value.allowedActions) ||
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as ProcessAction))) return null;
   if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
+  let proposalSummary: RequestProcessSummary['proposalSummary'];
+  if (value.proposalSummary !== undefined) {
+    const s = value.proposalSummary;
+    if (!isRecord(s) || !['BUSINESS_PROPOSAL', 'CUSTOMER_COUNTER', 'BUSINESS_FINAL'].includes(String(s.type)) ||
+      s.subjectSchemaVersion !== 2 || !positiveInteger(s.totalPriceClp) || s.totalPriceClp > 50000000 ||
+      !(s.scheduledFor === null || typeof s.scheduledFor === 'string' && Number.isFinite(Date.parse(s.scheduledFor)))) return null;
+    proposalSummary = { type: s.type as string, subjectSchemaVersion: 2, totalPriceClp: s.totalPriceClp, scheduledFor: s.scheduledFor as string | null };
+  }
   if (value.coordination !== undefined && (!isRecord(value.coordination) ||
     typeof value.coordination.customerContactAuthorized !== 'boolean' ||
     typeof value.coordination.businessContactAuthorized !== 'boolean')) return null;
@@ -69,12 +79,21 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     closure = { reasonCode: raw.reasonCode as PendingRejectionReason, reasonDetail: raw.reasonDetail as string | null,
       actor: 'BUSINESS', actorUserId: raw.actorUserId, closedAt: raw.closedAt };
   }
+  if (isRecord(value.closure) && ['CUSTOMER_REJECTED_PROPOSAL', 'BUSINESS_REJECTED_COUNTER_PROPOSAL'].includes(String(value.closure.reasonCode))) {
+    const c = value.closure;
+    if (value.state !== 'CLOSED' || value.agreementPublicId !== null || value.allowedActions.length || c.reasonDetail !== null ||
+      c.actor !== (c.reasonCode === 'CUSTOMER_REJECTED_PROPOSAL' ? 'CUSTOMER' : 'BUSINESS') || !positiveInteger(c.actorUserId) ||
+      typeof c.closedAt !== 'string' || !Number.isFinite(Date.parse(c.closedAt))) return null;
+    closure = { reasonCode: c.reasonCode as 'CUSTOMER_REJECTED_PROPOSAL' | 'BUSINESS_REJECTED_COUNTER_PROPOSAL', reasonDetail: null,
+      actor: c.actor as 'CUSTOMER' | 'BUSINESS', actorUserId: c.actorUserId, closedAt: c.closedAt };
+  }
   return {
     id: value.id, state: value.state, version: value.version,
     currentProposalId: value.currentProposalId,
     agreementPublicId: value.agreementPublicId as string | null,
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
     ...(closure ? { closure } : {}),
+    ...(proposalSummary ? { proposalSummary } : {}),
     ...(typeof value.readyNoticeAcknowledged === 'boolean' ? { readyNoticeAcknowledged: value.readyNoticeAcknowledged } : {}),
     ...(isRecord(value.coordination) ? { coordination: {
       customerContactAuthorized: value.coordination.customerContactAuthorized as boolean,
@@ -99,6 +118,10 @@ export function canAcceptFixedOrder(order: ProcessOrder): boolean {
 }
 
 export function processStatusLabel(order: ProcessOrder): string {
+  if (order.requestProcess?.state === 'AWAITING_CUSTOMER_DECISION') return 'Alternativa por responder';
+  if (order.requestProcess?.state === 'AWAITING_CUSTOMER_FINAL_DECISION') return 'Propuesta final por responder';
+  if (order.requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return 'Contrapropuesta por responder';
+  if (isProposalRejected(order.requestProcess)) return 'Propuesta rechazada';
   if (isPendingRequestCancelled(order.requestProcess)) return 'Anulada por el cliente';
   if (isPendingRequestRejected(order.requestProcess)) return 'Rechazada';
   if (order.requestProcess?.state === 'AWAITING_BUSINESS_RESPONSE') return 'Pendiente de respuesta';
@@ -115,5 +138,10 @@ export const COORDINATION_ACCEPTED_MESSAGE =
   'El negocio aceptó tu pedido. Falta coordinar los siguientes pasos.';
 
 export function orderNotificationState(order: { status: string } & ProcessOrder): string {
+  if (order.requestProcess?.proposalSummary) return `proposal:${order.requestProcess.currentProposalId}:${order.requestProcess.state}`;
   return hasRequestProcess(order) ? `process:${order.requestProcess?.state ?? 'invalid'}` : order.status;
+}
+
+export function isProposalRejected(process: RequestProcessSummary | null | undefined) {
+  return process?.state === 'CLOSED' && ['CUSTOMER_REJECTED_PROPOSAL', 'BUSINESS_REJECTED_COUNTER_PROPOSAL'].includes(process.closure?.reasonCode ?? '');
 }

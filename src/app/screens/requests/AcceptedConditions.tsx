@@ -24,7 +24,7 @@ export function AgreementContent({ state, retry, business = false, compact = fal
       {a.subjectSnapshot.items.map((item, index) => <li key={`${item.catalogItemId}-${index}`}>
         <p><strong>{item.quantity} × {item.nameSnapshot}</strong></p>
         {item.descriptionSnapshot && <p>{item.descriptionSnapshot}</p>}
-        <p>{money(item.unitPriceClpSnapshot)} por unidad · Subtotal {money(item.subtotalClp)}</p>
+        <p>{item.unitPriceClpSnapshot === null ? 'Precio total de esta línea' : `${money(item.unitPriceClpSnapshot)} por unidad`} · Subtotal {money(item.subtotalClp)}</p>
       </li>)}
     </ul>
     {!compact && <OrderPricePanel price={a.totalPriceClp} label="Total:" />}
@@ -34,6 +34,8 @@ export function AgreementContent({ state, retry, business = false, compact = fal
     {a.subjectSnapshot.needNow && <p>Solicitado para ahora</p>}
     {a.subjectSnapshot.note && <p className="whitespace-pre-wrap">Nota: {a.subjectSnapshot.note}</p>}
     <OrderReferencePhoto src={a.subjectSnapshot.referencePhoto} business={business} />
+    {a.subjectSnapshot.proposalMessage && <p className="whitespace-pre-wrap break-words">Explicación de la propuesta aceptada: {a.subjectSnapshot.proposalMessage}</p>}
+    {a.subjectSnapshot.proposalPhoto && <OrderReferencePhoto src={a.subjectSnapshot.proposalPhoto} business={business} />}
   </div>;
 }
 

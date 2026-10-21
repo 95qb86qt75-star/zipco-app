@@ -62,11 +62,31 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it.each(['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL'])('deduplicates proposal event %s while retaining its exact navigation and subsequent events', async action => {
+    const sw = worker('iPhone');
+    const normalized = action.toLowerCase().replaceAll('_', '-');
+    const tag = `order-91-proposal-124-${action}`;
+    const eventKey = `requests-customer:order-91-proposal-124-${normalized}`;
+    const url = '/?open=requests-customer&orderId=91';
+    await sw.fire('push', { data: { json: () => ({ type: 'order-proposal-event', tag, url, orderId: 91 }) } });
+    expect(sw.registration.showNotification).toHaveBeenCalledOnce();
+    const data = sw.registration.showNotification.mock.calls[0][1].data;
+    expect(data.eventKey).toBe(eventKey);
+    vi.stubGlobal('window', { location: { origin, search: '' } }); vi.stubGlobal('caches', sw.cache);
+    const deliver = vi.fn();
+    const notice = { dedupeKey: `order-91-proposal-124-${normalized}`, actionUrl: url };
+    await deliverUnpresentedNotice(notice, deliver); expect(deliver).not.toHaveBeenCalled();
+    await deliverUnpresentedNotice({ ...notice, dedupeKey: `order-91-proposal-125-${normalized}` }, deliver); expect(deliver).toHaveBeenCalledOnce();
+    await sw.fire('notificationclick', { notification: { tag, data, close() {} } });
+    const destination = parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0], origin)!;
+    expect(destination.eventKey).toBe(eventKey); expect(destination.url).toContain('orderId=91');
+    const nav = createNotificationNavigation(origin); expect(nav.receive(destination.url)).toMatchObject({ eventKey }); expect(nav.receive(destination.url)).toBeNull();
+  });
   it('identifies the executing worker through the reply port without notification data', async () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'ios-click-trace-v5', build: null, traceEnabled: false });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'alternatives-v1-click-v6', build: null, traceEnabled: false });
   });
 
   it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {

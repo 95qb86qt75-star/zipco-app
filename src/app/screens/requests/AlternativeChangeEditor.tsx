@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { CalendarClock, Check, DollarSign, Hash, Package } from "lucide-react";
 import type { ChangeKey } from "./AlternativeProposalFields";
-import type { DraftLine } from "./alternativeDraft";
+import type { DraftLine, AlternativeSource } from "./alternativeDraft";
 import type { Product } from "./types";
 import { santiagoDraftTime } from './alternativeDraft';
 
@@ -23,7 +23,7 @@ type ScheduleValue = { immediate: boolean; date: string; time: string };
 type Props = {
   original: string;
   originalNote: string;
-  originalLine: Product;
+  originalLine: AlternativeSource['items'][number];
   originalSchedule: string;
   line: DraftLine;
   schedule: ScheduleValue;
@@ -78,7 +78,7 @@ function SaveButton({ valid, onClick, className = "" }: { valid: boolean; onClic
 type EditorProps = {
   kind: ChangeKey;
   line: DraftLine;
-  originalLine: Product;
+  originalLine: AlternativeSource['items'][number];
   schedule: ScheduleValue;
   originalScheduleValue: ScheduleValue;
   customBasePrice: string;
@@ -103,7 +103,7 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
 
   const priceOk = integer.test(price) && Number.isSafeInteger(Number(price)) && Number(price) <= MAX_PRICE;
   const quantityNumber = Number(quantity);
-  const custom = selected.has('item');
+  const custom = selected.has('item') || originalLine.customTotal !== undefined;
   const priceBaseline = custom ? customBasePrice : String(originalLine.price);
   const scheduledInstant = kind === 'schedule' && !immediate ? santiagoDraftTime(date, time) : null;
   const scheduleChanged = immediate !== originalScheduleValue.immediate || (!immediate && (date !== originalScheduleValue.date || time !== originalScheduleValue.time));
@@ -253,7 +253,7 @@ export default function AlternativeChangeEditor(props: Props) {
 
   const rows: Array<[string, string]> = [];
   if (customItem) rows.push(["Producto", `${originalLine.name} → ${line.name.trim()} · ${money(line.price)} total`]);
-  if (selected.has("price")) rows.push(["Precio", customItem ? `${money(props.customBasePrice)} → ${money(line.price)} total de la opción` : `${pesos(originalLine.price)} → ${money(line.price)} por unidad`]);
+  if (selected.has("price")) rows.push(["Precio", customItem || originalLine.customTotal !== undefined ? `${money(props.customBasePrice)} → ${money(line.price)} total de la opción` : `${pesos(originalLine.price)} → ${money(line.price)} por unidad`]);
   if (selected.has("quantity")) rows.push(["Cantidad", `${originalLine.quantity} → ${line.quantity}`]);
   if (selected.has("schedule")) {
     rows.push(["Disponibilidad", `${props.originalSchedule} → ${schedule.immediate ? "Lo antes posible" : `${schedule.date || "—"} · ${schedule.time || "—"}`}`]);

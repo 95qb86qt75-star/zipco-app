@@ -39,7 +39,7 @@ export async function readAgreement(processId: number, agreementPublicId: string
 }
 
 export async function readBusinessOrderForRecovery(orderId: number, businessId: number, token: string) {
-  const response = await fetch(`${API_BASE_URL}/orders/business/${businessId}`, {
+  const response = await fetch(`${API_BASE_URL}/orders/business/${businessId}?processContract=alternatives-v1`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const body = await bodyOf(response);

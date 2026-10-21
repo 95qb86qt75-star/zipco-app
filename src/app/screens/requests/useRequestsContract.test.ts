@@ -137,8 +137,8 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
     vi.stubEnv('QA_LOAD_DIAGNOSTICS', true);
     vi.stubEnv('QA_LOAD_DIAGNOSTICS_VERSION', 'local-test');
     const fetcher = vi.fn(async (url: string) => {
-      if ((operation === 'customer' && url.endsWith('/orders/my-orders')) ||
-        (operation === 'business' && url.endsWith('/orders/business/1')) ||
+      if ((operation === 'customer' && url.endsWith('/orders/my-orders?processContract=alternatives-v1')) ||
+        (operation === 'business' && url.endsWith('/orders/business/1?processContract=alternatives-v1')) ||
         (operation === 'businessName' && url.includes('/businesses/'))) return new Response('{}', { status: 500 });
       return reply([{ ...rawOrder, businessId: 9, businessName: operation === 'businessName' ? '' : 'Business' }]);
     });
@@ -147,9 +147,9 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
     expect(result).toBe(operation === 'businessName');
     await vi.waitFor(() => expect(diagnosticSnapshot()).toHaveLength(1));
     expect(diagnosticSnapshot()[0]).toMatchObject({ operation: `loadOrders.${operation}`, httpStatus: 500 });
-    expect(fetcher.mock.calls.map(([url]) => new URL(url).pathname)).toEqual(operation === 'customer'
-      ? ['/orders/my-orders'] : operation === 'business'
-        ? ['/orders/my-orders', '/orders/business/1'] : ['/orders/my-orders', '/businesses/9', '/orders/business/1']);
+    expect(fetcher.mock.calls.map(([url]) => new URL(url).pathname + new URL(url).search)).toEqual(operation === 'customer'
+      ? ['/orders/my-orders?processContract=alternatives-v1'] : operation === 'business'
+        ? ['/orders/my-orders?processContract=alternatives-v1', '/orders/business/1?processContract=alternatives-v1'] : ['/orders/my-orders?processContract=alternatives-v1', '/businesses/9', '/orders/business/1?processContract=alternatives-v1']);
   });
   it('does not collect failures when disabled', async () => {
     vi.stubEnv('QA_LOAD_DIAGNOSTICS', false);

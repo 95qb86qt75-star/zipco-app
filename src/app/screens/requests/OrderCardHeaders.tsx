@@ -3,10 +3,10 @@ import { Image as ImageIcon, PackageCheck } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import type { NormalizedProducts } from './types';
 
-type IdentityProps = { name: string; image: string; products: NormalizedProducts; isUnread?: boolean; unavailableText?: string };
+type IdentityProps = { name: string; image: string; products: { state: 'available' | 'unavailable'; items: Array<{ name: string; quantity: number }> }; isUnread?: boolean; unavailableText?: string; summaryText?: string };
 
 // Extracted from the pre-2A business header; state/actions stay in each card.
-export function BusinessOrderHeader({ name, image, products, isUnread = false, statusLabel, badgeClass, attention = false, unavailableText = "Producto no disponible" }:
+export function BusinessOrderHeader({ name, image, products, isUnread = false, statusLabel, badgeClass, attention = false, unavailableText = "Producto no disponible", summaryText }:
   IdentityProps & { statusLabel: string; badgeClass: string; attention?: boolean }) {
   return (
     <div className="grid grid-cols-[62px_minmax(0,1fr)_auto] items-start gap-2.5">
@@ -39,7 +39,7 @@ export function BusinessOrderHeader({ name, image, products, isUnread = false, s
             </span>
           )}
         </div>
-        {products.state === "available" ? (
+        {summaryText ? <p className="text-xs text-violet-700">{summaryText}</p> : products.state === "available" ? (
           products.items.slice(0, 2).map((product, index) => (
             <p
               key={`${product.name}-${index}`}
@@ -65,7 +65,7 @@ export function BusinessOrderHeader({ name, image, products, isUnread = false, s
 }
 
 // Extracted from the pre-2A customer header, with slots for schedule and state.
-export function CustomerOrderHeader({ name, image, products, isUnread = false, total, status, children, statusInCorner = false, unavailableText = "Producto no disponible" }:
+export function CustomerOrderHeader({ name, image, products, isUnread = false, total, status, children, statusInCorner = false, unavailableText = "Producto no disponible", summaryText }:
   IdentityProps & { total: number | null; status: ReactNode; children?: ReactNode; statusInCorner?: boolean }) {
   return (
     <div className="grid grid-cols-[72px_minmax(0,1fr)] items-start gap-3">
@@ -85,7 +85,7 @@ export function CustomerOrderHeader({ name, image, products, isUnread = false, t
               : `$${total.toLocaleString("es-CL")}`}
           </span>}
         </div>
-        {products.state === "available" ? (
+        {summaryText ? <p className="text-xs text-violet-700">{summaryText}</p> : products.state === "available" ? (
           products.items.map((product, index) => (
             <p
               key={`${product.name}-${index}`}

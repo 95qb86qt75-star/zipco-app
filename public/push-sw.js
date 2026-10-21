@@ -1,5 +1,5 @@
-// Click revision: ios-click-trace-v5. Navigation behavior from direct-v3 retained.
-const notificationWorkerRevision = 'ios-click-trace-v5';
+// Click revision: alternatives-v1-click-v6. Navigation behavior from direct-v3 retained.
+const notificationWorkerRevision = 'alternatives-v1-click-v6';
 const traceClick = (stage, flags) => {
   try { void self.zipcoQaClickTrace?.record(stage, flags); } catch { /* QA only, best effort. */ }
 };
@@ -15,9 +15,10 @@ const systemEventKey = (data) => {
     const fallbackKey = data.type === 'order-contact-authorized' && /^[1-9]\d*$/.test(String(data.orderId || ''))
       ? `order-${data.orderId}-contact-authorized` : '';
     const key = String(data.tag || fallbackKey).replace('-coordination-ready', '-ready')
-      .replace('-coordination-contact-authorized', '-contact-authorized');
+      .replace('-coordination-contact-authorized', '-contact-authorized')
+      .replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
     if (url.origin !== self.location.origin || !/^requests-(customer|business)(-quotes)?$/.test(view || '') ||
-        !/^(order|quote)-[1-9]\d*-[a-z-]+$/.test(key)) return null;
+        !/^(order|quote)-[1-9]\d*-(?:[a-z-]+|proposal-[1-9]\d*-(?:propose-alternative|counter-proposal|propose-final|accept-proposal|reject-proposal|accept-counter-proposal|reject-counter-proposal))$/.test(key)) return null;
     return `${view}:${key}`;
   } catch { return null; }
 };

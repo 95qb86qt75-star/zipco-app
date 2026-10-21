@@ -24,7 +24,7 @@ import {
   proposeOrderAlternative,
 } from "./ordersApi";
 import { isRecord } from "./orderValueParsers";
-import { normalizeRequestProcess, isPendingRequestRejected } from './requestProcess';
+import { normalizeRequestProcess, isPendingRequestRejected, isProposalRejected } from './requestProcess';
 import { diagnoseLoadOrdersRead } from './loadOrdersDiagnostics';
 import type {
   BusinessRequest,
@@ -83,7 +83,7 @@ export default function useRequests(onSessionExpired: () => void) {
       if (!silent) setIsLoading(true);
       setLoadError("");
       try {
-        const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders`, {
+        const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders?processContract=alternatives-v1`, {
           headers: { Authorization: `Bearer ${token}` },
         }), async (myResponse) => {
           if (!myResponse.ok)
@@ -120,7 +120,7 @@ export default function useRequests(onSessionExpired: () => void) {
 
         if (businessId) {
           const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
-            `${API_BASE_URL}/orders/business/${businessId}`,
+            `${API_BASE_URL}/orders/business/${businessId}?processContract=alternatives-v1`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -182,15 +182,15 @@ export default function useRequests(onSessionExpired: () => void) {
   useEffect(() => {
     const receive = (event: Event) => {
       const receipt: unknown = (event as CustomEvent).detail;
-      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || (receipt.orderStatus !== 'accepted' && receipt.orderStatus !== 'cancelled' && receipt.orderStatus !== 'ready' && receipt.orderStatus !== 'completed' && receipt.orderStatus !== 'rejected')) return;
+      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || !['accepted', 'cancelled', 'ready', 'completed', 'rejected', 'alternative_proposed'].includes(String(receipt.orderStatus))) return;
       const process = normalizeRequestProcess(receipt.requestProcess);
-      if (!process || (receipt.orderStatus === 'rejected' && !isPendingRequestRejected(process))) return;
+      if (!process || (receipt.orderStatus === 'rejected' && !isPendingRequestRejected(process) && !isProposalRejected(process))) return;
       const apply = <T extends BusinessRequest | MyOrder>(items: T[]): T[] => items.map((item) => {
         if (item.id !== receipt.orderId || item.requestProcess?.id !== process.id || item.requestProcess.version > process.version) return item;
         // A historical replay can omit optional fields already learned by GET at
         // this version. Keep those fields, never carry them across versions.
         const requestProcess = item.requestProcess.version === process.version ? { ...item.requestProcess, ...process } : process;
-        return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled' | 'ready' | 'completed' | 'rejected', requestProcess };
+        return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled' | 'ready' | 'completed' | 'rejected' | 'alternative_proposed', requestProcess };
       });
       setRequests(apply); setMyOrders(apply);
       void loadOrders(true);

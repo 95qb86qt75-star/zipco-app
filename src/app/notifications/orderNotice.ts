@@ -1,4 +1,5 @@
 import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, isPendingRequestRejected, orderNotificationState, type ProcessOrder } from '../screens/requests/requestProcess';
+import { proposalNotice } from './proposalNotice';
 
 export function customerOrderNotice(order: { status: string } & ProcessOrder): readonly [string, string] | null {
   if (hasRequestProcess(order)) {
@@ -28,8 +29,10 @@ export function createCustomerOrderNotices(
       const state = orderNotificationState(order);
       const changed = hasBaseline && previous.has(order.id) && previous.get(order.id) !== state;
       if (!changed && !pushedOrderIds.has(order.id)) continue;
-      const notice = customerOrderNotice(order);
-      const key = `order-${order.id}-${isPendingRequestRejected(order.requestProcess) && order.status === 'rejected' ? 'rejected' : state}`;
+      const proposal = proposalNotice(order, false);
+      const ready = order.requestProcess?.state === 'READY';
+      const notice = order.requestProcess?.proposalSummary && !ready ? proposal?.notice ?? null : customerOrderNotice(order);
+      const key = proposal?.key ?? `order-${order.id}-${ready ? 'process:READY' : isPendingRequestRejected(order.requestProcess) && order.status === 'rejected' ? 'rejected' : state}`;
       if (!notice || announced.has(key)) continue;
       announced.add(key);
       emit(key, notice, order.id);

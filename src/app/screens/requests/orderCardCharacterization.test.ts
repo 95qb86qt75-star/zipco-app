@@ -27,7 +27,7 @@ describe('card characterization before visual extraction', () => {
     for (const text of ['business.jpg', 'Negocio de prueba', 'Nueva', 'Nota de prueba', 'Preparación', 'Listo', 'zipco-customer-order-card']) expect(html).toContain(text);
   });
   it('keeps process pending acceptance exclusive and coordination separate from legacy progress', () => {
-    const pending = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: pendingProcess }])[0];
+    const pending = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const accepted = normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const html = renderToStaticMarkup(React.createElement(BusinessOrderCard, { request: pending, ...props, expanded: true }));
     expect(html.match(/Aceptar pedido/g)).toHaveLength(1);

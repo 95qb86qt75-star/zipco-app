@@ -5,6 +5,9 @@ import { orderNotificationState } from '../screens/requests/requestProcess';
 import { publishActiveRequestCount, markInteractionUnread } from './unreadInteractions';
 import { pendingProcess, coordinationProcess } from '../screens/requests/requestProcessFixtures';
 import { cancelledPendingOrder } from '../screens/requests/pendingCancellationFixtures';
+import { proposalsFixture } from '../screens/requests/proposalFixtures';
+import { normalizeRequestProcess } from '../screens/requests/requestProcess';
+import { rememberOpenedPresentation } from './notificationDelivery';
 
 const runtime = vi.hoisted(() => ({ cleanup: undefined as undefined | (() => void) }));
 // Exercise the monitor's real effect, event listeners and timers without adding a DOM dependency.
@@ -47,7 +50,7 @@ beforeEach(() => {
     setItem: (key: string, value: string) => { values.set(key, value); },
   });
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
-    if (url.endsWith('/orders/my-orders')) return new Response(JSON.stringify([serverOrder]));
+    if (url.endsWith('/orders/my-orders?processContract=alternatives-v1')) return new Response(JSON.stringify([serverOrder]));
     if (url.endsWith('/quotes/my-quotes')) return new Response('[]');
     throw new Error('Unexpected test request');
   }));
@@ -83,12 +86,33 @@ function businessServer(initial: Array<{ id: number; status: string }>) {
   localStorage.setItem('zipco-business-id', '42');
   localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));
   vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
-    String(url).endsWith('/orders/business/42') ? orders : [],
+    String(url).endsWith('/orders/business/42?processContract=alternatives-v1') ? orders : [],
   )));
   return { setOrders: (next: typeof orders) => { orders = next; } };
 }
 
 describe('monitor acceptance flow across service worker and polling', () => {
+  it('suppresses an opened proposal while updating counts, then announces a distinct final proposal and READY', async () => {
+    await mount({ id: 20, status: 'pending', requestProcess: pendingProcess });
+    serverOrder = { id: 20, status: 'alternative_proposed', requestProcess: normalizeRequestProcess(proposalsFixture(1, false).process)! };
+    rememberOpenedPresentation('requests-customer:order-20-proposal-124-propose-alternative');
+    push({ type: 'order-proposal-event', orderId: 20 }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled(); expect(publishActiveRequestCount).toHaveBeenLastCalledWith(1);
+    serverOrder = { ...serverOrder, requestProcess: normalizeRequestProcess(proposalsFixture(3, false).process)! };
+    push({ type: 'order-proposal-event', orderId: 20 }); await tick();
+    expect(showAppToast).toHaveBeenCalledWith('', 'info', expect.objectContaining({ dedupeKey: 'order-20-proposal-126-propose-final' }));
+    vi.mocked(showAppToast).mockClear();
+    serverOrder = { ...serverOrder, status: 'ready', requestProcess: { ...serverOrder.requestProcess!, state: 'READY', agreementPublicId: 'agreement' } };
+    push(); await tick(); expect(showAppToast).toHaveBeenCalledWith('', 'info', expect.objectContaining({ title: 'Tu pedido está listo' }));
+  });
+  it('announces the customer counter to business without replaying its own proposal', async () => {
+    const first = { id: 20, status: 'alternative_proposed', requestProcess: normalizeRequestProcess(proposalsFixture(1).process)! };
+    const server = businessServer([first]); BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
+    expect(showAppToast).not.toHaveBeenCalled();
+    server.setOrders([{ ...first, requestProcess: normalizeRequestProcess(proposalsFixture(2).process)! }]);
+    push({ type: 'order-proposal-event', orderId: 20 }); await tick();
+    expect(showAppToast).toHaveBeenCalledExactlyOnceWith('', 'info', expect.objectContaining({ dedupeKey: 'order-20-proposal-125-counter-proposal' }));
+  });
   it('updates business counts after customer pending cancellation without a new internal notice', async () => {
     const server = businessServer([pending]);
     BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
@@ -103,7 +127,7 @@ describe('monitor acceptance flow across service worker and polling', () => {
     localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));
     window.location.search = '?open=requests-business&orderId=92&notificationEvent=requests-business%3Aorder-92-created';
     vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
-      String(url).endsWith('/orders/business/42') ? [{ id: 91, status: 'pending' }, { id: 92, status: 'pending' }] : [],
+      String(url).endsWith('/orders/business/42?processContract=alternatives-v1') ? [{ id: 91, status: 'pending' }, { id: 92, status: 'pending' }] : [],
     )));
     BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
     expect(publishActiveRequestCount).toHaveBeenCalledWith(2);
@@ -175,7 +199,7 @@ describe('monitor acceptance flow across service worker and polling', () => {
     BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
     expect(JSON.parse(localStorage.getItem('zipco-request-status-snapshot-v1')!).business).toBeUndefined();
     vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
-      String(url).endsWith('/orders/business/42') ? [{ id: 109, status: 'pending' }] : [],
+      String(url).endsWith('/orders/business/42?processContract=alternatives-v1') ? [{ id: 109, status: 'pending' }] : [],
     )));
     await vi.advanceTimersByTimeAsync(15_000);
     expect(showAppToast).not.toHaveBeenCalled();
@@ -231,7 +255,7 @@ describe('monitor acceptance flow across service worker and polling', () => {
     localStorage.setItem('zipco-business-id', '42');
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockImplementation(async (url) => new Response(JSON.stringify(
-      String(url).endsWith('/orders/business/42') ? [{ id: 66, status: 'accepted', requestProcess: coordinationProcess }] : [],
+      String(url).endsWith('/orders/business/42?processContract=alternatives-v1') ? [{ id: 66, status: 'accepted', requestProcess: coordinationProcess }] : [],
     )));
     await mount();
     const refresh = vi.fn(); window.addEventListener('zipco-requests-refresh', refresh);

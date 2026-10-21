@@ -66,10 +66,11 @@ export default function AlternativeReviewPanel({ source, draft, review }: {
     {source.items.map((item, i) => {
       const proposed = draft.lines[i], changedItem = proposed.selected.has('item');
       const quantity = proposed.selected.has('quantity') ? Number(proposed.quantity) : item.quantity;
-      const unit = proposed.selected.has('price') ? Number(proposed.price) : item.price;
-      const before = item.price * item.quantity;
-      const after = changedItem ? Number(proposed.price) : unit * quantity;
-      const changed = changedItem || quantity !== item.quantity || unit !== item.price;
+      const custom = changedItem || item.customTotal !== undefined;
+      const unit = proposed.selected.has('price') ? Number(proposed.price) : item.customTotal ?? item.price;
+      const before = item.customTotal ?? item.price * item.quantity;
+      const after = changedItem ? Number(proposed.price) : custom ? unit : unit * quantity;
+      const changed = changedItem || quantity !== item.quantity || after !== before;
       if (!changed) return <div key={i} className={`${card} flex items-center justify-between gap-3 text-xs text-slate-500`} style={step(i + 1)}>
         <span className="min-w-0 truncate">{item.quantity}x {item.name}</span><span className="shrink-0">Sin cambios · {pesos(before)}</span>
       </div>;
@@ -86,7 +87,8 @@ export default function AlternativeReviewPanel({ source, draft, review }: {
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {quantity !== item.quantity && <span className={chip}>Cantidad {item.quantity} <ArrowRight className="h-3 w-3" /> {quantity}</span>}
-          {!changedItem && unit !== item.price && <span className={chip}>Precio unidad {pesos(item.price)} <ArrowRight className="h-3 w-3" /> {pesos(unit)}</span>}
+          {!custom && unit !== item.price && <span className={chip}>Precio unidad {pesos(item.price)} <ArrowRight className="h-3 w-3" /> {pesos(unit)}</span>}
+          {custom && <span className={chip}>Precio total de esta línea</span>}
         </div>
         <p className="mt-2 flex items-baseline justify-end gap-2 border-t border-slate-100 pt-2 text-sm dark:border-slate-700">
           <span className="text-xs text-slate-500 line-through">{pesos(before)}</span>

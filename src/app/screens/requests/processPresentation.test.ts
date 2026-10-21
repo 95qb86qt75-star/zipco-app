@@ -9,6 +9,7 @@ import { OrderHistoryList } from './CompactHistoryList';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { pendingProcess, coordinationProcess, rawOrder, agreementFixture } from './requestProcessFixtures';
 import { normalizeAgreement } from './agreement';
+import { proposalsFixture } from './proposalFixtures';
 
 beforeEach(() => {
   vi.stubGlobal('React', React);
@@ -19,8 +20,16 @@ const render = (element: React.ReactElement) => renderToStaticMarkup(element);
 const callbacks = { isUpdating: false, onRetry: () => undefined, onAction: () => undefined };
 
 describe('2A presentation and legacy compatibility', () => {
+  it.each([true, false])('represents a valid negotiated list card without the fallback or original total (business=%s)', business => {
+    const raw = { ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(1, business).process };
+    const html = business ? render(React.createElement(BusinessOrderCard, { request: normalizeBusinessOrdersPayload([raw])[0], ...callbacks }))
+      : render(React.createElement(MyOrderCard, { order: normalizeMyOrdersPayload([raw])[0], ...callbacks }));
+    expect(html).toContain('$3.000'); expect(html).not.toContain('$2.000');
+    expect(html).toContain('Revisar propuesta y responder'); expect(html).not.toContain('Estado del proceso no disponible');
+    expect(html).not.toContain('Actualiza el pedido para consultar su estado');
+  });
   it('shows one accept button to the business and hides later actions', () => {
-    const request = normalizeBusinessOrdersPayload([{ ...rawOrder, requestProcess: pendingProcess }])[0];
+    const request = normalizeBusinessOrdersPayload([{ ...rawOrder, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const html = render(React.createElement(BusinessOrderCard, { request, ...callbacks, expanded: true }));
     expect(html.match(/Aceptar pedido/g)).toHaveLength(1);
     expect(html).toContain('Nota de prueba'); expect(html).toContain('Imagen adjunta');
@@ -28,7 +37,7 @@ describe('2A presentation and legacy compatibility', () => {
     for (const text of ['Rechazar pedido', 'Marcar como listo', 'Cancelar pedido', 'Confirmar entrega']) expect(html).not.toContain(text);
   });
   it('hides all customer actions for 2A', () => {
-    const order = normalizeMyOrdersPayload([{ ...rawOrder, requestProcess: pendingProcess }])[0];
+    const order = normalizeMyOrdersPayload([{ ...rawOrder, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const html = render(React.createElement(MyOrderCard, { order, ...callbacks }));
     expect(html).not.toContain('Cancelar pedido'); expect(html).not.toContain('Aceptar propuesta');
   });

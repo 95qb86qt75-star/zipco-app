@@ -10,8 +10,8 @@ const openedPresentations = new Map<string, number>();
 // by the previous worker. Do not collapse distinct events of the same order.
 export function canonicalPresentationKey(key: string): string | null {
   const canonical = key.replace('-coordination-contact-authorized', '-contact-authorized')
-    .replace('-coordination-ready', '-ready');
-  return /^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-[a-z-]+$/.test(canonical) ? canonical : null;
+    .replace('-coordination-ready', '-ready').replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
+  return /^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-(?:[a-z-]+|proposal-[1-9]\d*-(?:propose-alternative|counter-proposal|propose-final|accept-proposal|reject-proposal|accept-counter-proposal|reject-counter-proposal))$/.test(canonical) ? canonical : null;
 }
 export function rememberOpenedPresentation(key: string | null) {
   key = key ? canonicalPresentationKey(key) : null;
@@ -34,7 +34,6 @@ export function presentationKey(key: string, actionUrl: string, origin = window.
     const canonical = key.replace('-process:COORDINATION_PENDING', '-accepted')
       .replace('-process:READY', '-ready').replace('-coordination-ready', '-ready')
       .replace(/-alternative_proposed$/, '-alternative');
-    if (!/^(order|quote)-[1-9]\d*-[a-z-]+$/.test(canonical)) return null;
     return canonicalPresentationKey(`${view}:${canonical}`);
   } catch { return null; }
 }

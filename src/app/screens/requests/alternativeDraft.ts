@@ -1,11 +1,12 @@
 import type { BusinessRequest, MyOrder, Product } from './types';
 import type { ChangeKey } from './AlternativeProposalFields';
+import type { ProposalRead } from './proposalContract';
 
 // Release interlock, intentionally not an environment/URL/storage switch.
 // No proposals POST, upload or alternatives-v1 read is wired in this block.
 export const ALTERNATIVE_RELEASE = Object.freeze({
-  processContract: 'alternatives-v1', backendQaConfirmed: false,
-  customerDecisionsReady: false, sendingEnabled: false,
+  processContract: 'alternatives-v1', backendQaConfirmed: true,
+  customerDecisionsReady: true, sendingEnabled: true,
 });
 type Order = BusinessRequest | MyOrder;
 export function canPrepareAlternative(order: Order, business: boolean) {
@@ -14,10 +15,11 @@ export function canPrepareAlternative(order: Order, business: boolean) {
     p.agreementPublicId === null && p.allowedActions.some(action =>
       ['ACCEPT_FIXED_ORDER', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE'].includes(action));
 }
-export function canSubmitAlternative(): false { return false; }
+// Ready requires the authorized proposals read, actor permission and exact version.
+export function canSubmitAlternative(ready = false): boolean { return ALTERNATIVE_RELEASE.sendingEnabled && ready; }
 export type AlternativeSource = {
   processId: number; expectedVersion: number; proposalId: number;
-  orderType: 'product' | 'service' | null; items: Product[]; total: number | null;
+  orderType: 'product' | 'service' | null; items: Array<Product & { customTotal?: number; description?: string }>; total: number | null;
   needNow: boolean; date: string; time: string;
 };
 export type DraftLine = { selected: Set<ChangeKey>; name: string; description: string; quantity: string; price: string };
@@ -29,7 +31,7 @@ export function alternativeSource(order: Order): AlternativeSource {
     total: order.total, needNow: order.needNow, date: order.deliveryDate ?? '', time: order.deliveryTime ?? '' };
 }
 export function newAlternativeDraft(source: AlternativeSource): AlternativeDraft {
-  return { lines: source.items.map(item => ({ selected: new Set(), name: '', description: '', quantity: String(item.quantity), price: String(item.price) })),
+  return { lines: source.items.map(item => ({ selected: new Set(), name: '', description: '', quantity: String(item.quantity), price: String(item.customTotal ?? item.price) })),
     scheduleChanged: false, immediate: source.needNow, date: source.date, time: source.time, message: '' };
 }
 export function alternativeSourceCurrent(source: AlternativeSource, order: Order, business: boolean) {
@@ -51,7 +53,7 @@ export function santiagoDraftTime(date: string, time: string): number | null {
   });
   return matches.length === 1 ? matches[0] : null;
 }
-type LineChange = { originalLineIndex: number; quantity?: number; unitPriceClp?: number;
+type LineChange = { originalLineIndex: number; quantity?: number; unitPriceClp?: number; lineTotalPriceClp?: number;
   replacement?: { source: 'CUSTOM'; name: string; description?: string; lineTotalPriceClp: number } };
 export type AlternativeReview = { expectedVersion: number; proposalId: number; lineChanges?: LineChange[]; totalPriceClp: number; message: string;
   schedule?: { mode: 'IMMEDIATE' } | { mode: 'SCHEDULED'; date: string; time: string } };
@@ -62,7 +64,7 @@ export function reviewAlternative(source: AlternativeSource, draft: AlternativeD
   if (![source.processId, source.expectedVersion, source.proposalId].every(n => Number.isInteger(n) && n > 0 && n <= 2147483647)) return fail('Actualiza la solicitud para preparar una alternativa.');
   if (!source.orderType || !source.items.length || source.items.length > 20 || source.items.length !== draft.lines.length) return fail('No se pudieron verificar los productos o servicios originales. Actualiza la solicitud.');
   if (source.orderType === 'service' && (source.items.length !== 1 || source.items[0].quantity !== 1)) return fail('El servicio debe conservar una sola línea y cantidad 1.');
-  if (source.total !== source.items.reduce((total, item) => total + item.quantity * item.price, 0)) return fail('No coincide el total original. Actualiza la solicitud.');
+  if (source.total !== source.items.reduce((total, item) => total + (item.customTotal ?? item.quantity * item.price), 0)) return fail('No coincide el total original. Actualiza la solicitud.');
   const message = draft.message.trim();
   if (message.length < 3 || message.length > 1000) return fail('Explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo.');
   const lineChanges: LineChange[] = []; let total = 0;
@@ -77,6 +79,12 @@ export function reviewAlternative(source: AlternativeSource, draft: AlternativeD
       lineChanges.push({ originalLineIndex: index, ...(quantity !== original.quantity ? { quantity } : {}), replacement: {
         source: 'CUSTOM', name, ...(description ? { description } : {}), lineTotalPriceClp: price,
       } }); total += price;
+    } else if (original.customTotal !== undefined) {
+      const price = line.selected.has('price') ? money(line.price) : original.customTotal;
+      if (!price) return fail('Indica un precio total válido para la opción escrita.');
+      if (quantity !== original.quantity || price !== original.customTotal)
+        lineChanges.push({ originalLineIndex: index, ...(quantity !== original.quantity ? { quantity } : {}), lineTotalPriceClp: price });
+      total += price;
     } else {
       const price = line.selected.has('price') ? money(line.price) : original.price;
       if (!price || !Number.isInteger(price) || price > 50_000_000) return fail('El precio por unidad debe ser un entero entre 1 y 50.000.000.');
@@ -100,4 +108,15 @@ export function reviewAlternative(source: AlternativeSource, draft: AlternativeD
     ...(lineChanges.length ? { lineChanges } : {}), totalPriceClp: total, message,
     ...(scheduleChanged ? { schedule: immediate ? { mode: 'IMMEDIATE' as const } : { mode: 'SCHEDULED' as const, date, time } } : {}),
   } };
+}
+
+export function proposalDraftSource(read: ProposalRead): AlternativeSource {
+  const p = read.proposals[read.proposals.length - 1];
+  const parts = p.scheduledFor ? Object.fromEntries(formatter.formatToParts(new Date(p.scheduledFor)).map(part => [part.type, part.value])) : null;
+  return { processId: read.process.id, expectedVersion: read.process.version, proposalId: p.id,
+    orderType: p.subjectSnapshot.orderType, items: p.subjectSnapshot.items.map(item => ({ name: item.nameSnapshot,
+      quantity: item.quantity, price: item.unitPriceClpSnapshot ?? 0,
+      ...(item.source === 'CUSTOM' ? { customTotal: item.subtotalClp } : {}), description: item.descriptionSnapshot })),
+    total: p.totalPriceClp, needNow: p.subjectSnapshot.needNow,
+    date: parts ? `${parts.year}-${parts.month}-${parts.day}` : '', time: parts ? `${parts.hour}:${parts.minute}` : '' };
 }

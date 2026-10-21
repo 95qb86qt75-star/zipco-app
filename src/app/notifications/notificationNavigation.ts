@@ -1,3 +1,4 @@
+import { canonicalPresentationKey } from './notificationDelivery';
 export type NotificationTarget = { url: string; identity: string; eventKey: string | null };
 
 export function parseNotificationTarget(value: string, origin: string): NotificationTarget | null {
@@ -8,8 +9,10 @@ export function parseNotificationTarget(value: string, origin: string): Notifica
     const kind = view?.endsWith('-quotes') ? 'quoteId' : 'orderId';
     if (!/^[1-9]\d*$/.test(url.searchParams.get(kind) ?? '')) return null;
     url.searchParams.delete('notificationLaunch');
-    const eventKey = url.searchParams.get('notificationEvent');
-    if (eventKey && !/^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-[a-z-]+$/.test(eventKey)) return null;
+    const rawEvent = url.searchParams.get('notificationEvent');
+    const eventKey = rawEvent ? canonicalPresentationKey(rawEvent) : null;
+    if (rawEvent && !eventKey) return null;
+    if (eventKey) url.searchParams.set('notificationEvent', eventKey);
     if (eventKey && !eventKey.startsWith(`${view}:${kind === 'quoteId' ? 'quote' : 'order'}-${url.searchParams.get(kind)}-`)) return null;
     const target = `/${url.search}`;
     return { url: target, identity: eventKey || target, eventKey };
