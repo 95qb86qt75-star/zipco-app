@@ -263,5 +263,7 @@ Reutiliza el holograma de Solicitudes tras el envío confirmado de alternativa o
 final: indica Esperando respuesta en negocio y Por responder en cliente. Dura
 2800ms, sobrevive a la salida de la tarjeta de Pendientes, no se repite por evento
 ni se emite ante fallo. Sin cambiar API, categorías, envío ni notificaciones.
-1135 pruebas, build QA y12 recorridos táctiles sintéticos aprobados. Prueba física
-del holograma pendiente. [Archivos y publicación](frontend-alternative-sent-hologram-qa.md).
+1135 pruebas, build QA y12 recorridos táctiles sintéticos aprobados. El 2026-10-21
+Bastián confirmó que funcionó el holograma sobre QA a7a08bf, sin especificar
+dispositivo. Se aprueba ese paso; no se extiende a propuesta final ni a todas las
+pruebas de negociación. [Archivos, publicación y comprobación](frontend-alternative-sent-hologram-qa.md).

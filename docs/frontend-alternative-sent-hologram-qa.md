@@ -87,3 +87,26 @@ Este resultado, el catálogo y el paso reportado por Bastián se guardan en un c
 documental posterior de qa, cuya publicación mantiene el mismo código funcional
 y override QA. Su SHA será la versión visible final. No se acredita aún la prueba
 física del holograma nuevo; el resto de validaciones integradas sigue pendiente.
+
+## Comprobación confirmada por Bastián — 2026-10-21
+
+Bastián confirmó: «listo funcionó el holograma», después de la publicación QA
+`a7a08bfbee9ee24b571e601879f8b1dce7f34e84` y de explicar el recorrido de envío.
+Queda aprobada la aparición del holograma de alternativa enviada, código
+`0ef735603d90b8a9945ad5aa15e3fa52bc86a7f6`, UI-ALTERNATIVE-SENT-HOLOGRAM-01.
+Esta comprobación sustituye el pendiente general del holograma anterior.
+
+El mensaje no especifica dispositivo ni acredita por separado la propuesta final,
+fallos/reintentos o todas las respuestas de negociación. No extender esa aprobación
+a ambos sistemas móviles ni cerrar los reintentos fiables de notificaciones.
+No repetir acciones del pedido ya confirmadas para registrar la comprobación.
+
+Cierre solo documental: esta ficha y catálogo. Sin cambios en código, campos,
+endpoints o comportamiento. Validación: revisión del diff y referencias; sin
+repetir pruebas de código para documentación. Commit/push qa y publicación QA
+con el mismo código funcional y opciones de build; backend, Railway, main y
+producción conservados.
+
+Cada publicación debe explicarse brevemente al usuario con qué cambia en la app,
+dónde se ve y cómo se comprueba, además del commit y versión QA. En una subida
+documental se debe indicar claramente que el comportamiento permanece igual.
