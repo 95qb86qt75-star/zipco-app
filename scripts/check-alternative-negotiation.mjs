@@ -18,6 +18,7 @@ import {rawOrder} from './src/app/screens/requests/requestProcessFixtures';
 import {statusViewFor} from './src/app/screens/requests/requestStatusGrouping';
 window.React=React;let role=true,read=proposalsFixture(0),redraw=()=>{};let saved=new Map();
 window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.stale=false;
+window.feedback=[];window.addEventListener('zipco-proposal-sent',event=>window.feedback.push(event.detail));
 function processForRole(){const actor=proposalsFixture(Math.min(read.proposals.length-1,3),role).process;
  return {...read.process,allowedActions:read.process.agreementPublicId||read.process.state==='CLOSED'?[]:actor.allowedActions};}
 window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;sessionStorage.clear();redraw();};
@@ -94,6 +95,7 @@ try {
     assert.equal(await evaluate('window.uploads'),0,'Photo uploads only at explicit confirmation');
     await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Confirmar y enviar');b.click();b.click();})()`);
     await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('window.uploads'),1);
+    assert.equal(await evaluate('window.feedback.length'),1,'Only confirmed business submission emits success feedback');
     await evaluate('window.role(false)');await delay(100);await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');
     assert(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('$2.000 → Propuesta vigente $3.000')`));
     assert.equal(await evaluate('document.querySelector("[role=dialog]").scrollWidth<=document.querySelector("[role=dialog]").clientWidth+1'),true);
@@ -107,9 +109,11 @@ try {
   await touch('Producto');await fill('input[maxlength="120"]','Conjunto personalizado');await fill('input[aria-label="Precio total de la opción escrita"]','10001');await touch('Guardar');
   await fill('textarea','Cambio por un conjunto alternativo.','HTMLTextAreaElement');await touch('Revisar alternativa');await touch('Confirmar y enviar');await wait('window.current.state==="AWAITING_BUSINESS_COUNTER_RESPONSE"');
   assert.equal(await evaluate('window.posts[0].body.lineChanges[0].replacement.lineTotalPriceClp'),10001);
+  assert.equal(await evaluate('window.feedback.length'),0,'Customer counter does not emit the business send hologram');
   await evaluate('window.role(true)');await delay(100);await decide('Proponer alternativa final');await wait('!!document.querySelector("textarea")');
   await touch('Precio');await fill('input[aria-label="Nuevo precio total de la opción"]','11001');await touch('Guardar');await fill('textarea','Precio total final del conjunto.','HTMLTextAreaElement');await touch('Revisar alternativa');await touch('Confirmar y enviar');await wait('window.current.state==="AWAITING_CUSTOMER_FINAL_DECISION"');
   assert.equal(await evaluate('window.posts[1].body.lineChanges[0].lineTotalPriceClp'),11001);
+  assert.equal(await evaluate('window.feedback.length'),1,'Business final uses the same success feedback');
   await evaluate('window.role(false)');await delay(100);await decide('Aceptar propuesta');
   assert.equal(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('Hacer mi única contrapropuesta')`),false);
   await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');evidence.push('custom-counter-final-accept');
@@ -118,6 +122,7 @@ try {
     assert.equal(await evaluate('window.current.view'),label.startsWith('Rechazar')?'history':'coordination');evidence.push(label+'-'+sequence);
   }
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.fail=true');await touch('Confirmar y enviar');await wait('!!document.querySelector("[role=alert]")');
+  assert.equal(await evaluate('window.feedback.length'),0,'Failed send must not display a success hologram');
   assert(await evaluate('!!document.querySelector("[data-alternative-review]")'));await touch('Confirmar y enviar');await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');
   assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('failed-send-preserves-form-key');
   await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.expire=true');await touch('Sí, confirmar');await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');

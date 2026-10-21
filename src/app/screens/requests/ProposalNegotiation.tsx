@@ -10,6 +10,7 @@ import { proposalIntents } from './proposalIntent';
 import { operationScope, readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { isProposalRejected } from './requestProcess';
+import { announceProposalSent } from './proposalSentFeedback';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -123,6 +124,7 @@ export default function ProposalNegotiation({ order, business = false, refresh }
         key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal));
       if (!active()) return;
       window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: receipt }));
+      announceProposalSent(action, receipt);
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
       // POST is final. A failed subsequent read must never send it again.
       setDecision(null); setOpen(false); setDraftAction(null); refresh();

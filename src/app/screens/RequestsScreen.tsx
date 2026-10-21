@@ -1,5 +1,6 @@
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
+import { useProposalSentFeedback } from './requests/proposalSentFeedback';
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -105,6 +106,7 @@ export default function RequestsScreen({
     title: string;
     description: string;
   } | null>(null);
+  useProposalSentFeedback(setActiveTransfer);
   const prefersReducedMotion = useReducedMotion();
   const { unread } = useUnreadInteractions();
   const {

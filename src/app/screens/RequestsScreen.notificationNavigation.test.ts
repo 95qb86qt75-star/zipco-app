@@ -43,6 +43,8 @@ import { normalizeMyOrdersPayload } from './requests/orderNormalization';
 import { OrderHistoryList } from './requests/CompactHistoryList';
 import { cancelPendingOrder, cancelledPendingOrder, cancelledPendingReceipt } from './requests/pendingCancellationFixtures';
 import { rejectPendingOrder, rejectedPendingOrder, rejectedPendingReceipt } from './requests/pendingRejectionFixtures';
+import { announceProposalSent } from './requests/proposalSentFeedback';
+import { proposalsFixture } from './requests/proposalFixtures';
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
   return React.Children.toArray(root).flatMap((child) => React.isValidElement(child)
@@ -79,6 +81,26 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', { getItem: () => session ? 'synthetic-session-value' : null });
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
+
+it('keeps the existing success hologram visible when a sent alternative leaves the pending list', () => {
+  vi.useFakeTimers();
+  try {
+    hooks.loading = false; session = true; window.location.search = '?open=requests-business';
+    hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, requestProcess: proposalsFixture(0).process }]);
+    render();
+    const sent = { orderId: 20, orderStatus: 'alternative_proposed', requestProcess: proposalsFixture(1).process };
+    announceProposalSent('PROPOSE_ALTERNATIVE', sent);
+    hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: sent.requestProcess }]);
+    const result = render();
+    expect(nodes(result).some(node => node.props.className?.includes('zipco-hologram-card zipco-flow-hologram'))).toBe(true);
+    expect(nodes(result).some(node => node.props.children === 'Alternativa enviada al cliente')).toBe(true);
+    expect(nodes(result).some(node => typeof node.props.children === 'string' && node.props.children.includes('«Esperando respuesta»') && node.props.children.includes('«Por responder»'))).toBe(true);
+    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('pending');
+    vi.advanceTimersByTime(2800);
+    expect(nodes(render()).some(node => node.props.className?.includes('zipco-flow-hologram'))).toBe(false);
+    expect(hooks.action).not.toHaveBeenCalled();
+  } finally { vi.useRealTimers(); }
+});
 
 describe('confirmed pending cancellation destination', () => {
   it.each(['customer', 'business'])('keeps confirmed rejection in %s history after failed read', view => {
