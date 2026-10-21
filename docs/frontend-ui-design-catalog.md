@@ -290,4 +290,6 @@ Check, cristal, reflejo y precio en cápsula; adaptación responsive y accesible
 Mismos permisos, bloqueo y acciones; autorización de contacto y rechazos iguales.
 1137 pruebas/build QA, 8 combinaciones visuales y 12 recorridos táctiles
 sintéticos aprobados. Preview funcional READY y alias QA comprobados por API.
-Prueba física pendiente. [Archivos y publicación](frontend-accept-glass-buttons-qa.md).
+Bastián confirmó que funciona el 2026-10-21 sobre QA `58b6410`, sin especificar
+dispositivo ni cada acción. Diseño aprobado; no se extiende a todos los flujos
+o a ambos sistemas móviles. [Archivos, publicación y conformidad](frontend-accept-glass-buttons-qa.md).

@@ -101,3 +101,19 @@ El cierre documental guarda este resultado y actualiza el catálogo en un nuevo
 commit de qa, publicado con el mismo código y opciones. El SHA de ese cierre
 será la versión visible final. Las comprobaciones DOM/visuales fueron locales;
 la revisión física de estos botones en Android/iPhone queda pendiente.
+
+## Conformidad de Bastián — 2026-10-21
+
+Después de publicar QA `58b64107db19320edd3f907b525435c3702d6a10`, Bastián
+confirmó: «exclente funciona bien!». Queda registrada su conformidad con el
+diseño de botones UI-ACCEPT-GLASS-01, código funcional `4aa115f`.
+
+No indicó dispositivo ni detalló cada aceptación/contrapropuesta. Esta
+confirmación cierra la revisión general del diseño, sin acreditar por separado
+ambos sistemas móviles ni todos los recorridos de negociación o notificaciones.
+No se repiten acciones del pedido para registrar la conformidad.
+
+Cierre solo documental: esta ficha y el catálogo. Se revisa el diff y se guarda
+con commit/push en qa; se publica con el mismo código funcional y build QA.
+No requiere repetir pruebas funcionales ni modificar API, backend, Railway,
+main o producción. Los pendientes generales de notificaciones se conservan.
