@@ -48,7 +48,7 @@ legacy. No se cambia el posicionamiento o la navegación de notificaciones.
 ## Contrato y validación
 
 Sin campos, endpoints, payloads, estados o permisos nuevos/modificados.
-Se conservan state/allowedActions, alternativas-v1, lecturas de propuestas y
+Se conservan state/allowedActions, processContract=alternatives-v1, lecturas de propuestas y
 las acciones existentes accept-fixed-order, propose-alternative y
 reject-pending-request bajo `/request-processes/:id/actions/*`. Plegar/desplegar
 no ejecuta esos POST. No requiere backend ni Railway QA.
@@ -78,3 +78,18 @@ de notificaciones pausada y reintentos fiables mantienen sus pendientes previos.
 Commit/push a origin/qa y Vercel Preview QA con Backend QA y override vigente:
 `ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa`.
 Registrar READY en cierre documental posterior, también respaldado y publicado.
+
+## Publicación comprobada — 2026-10-21
+
+Código `350ccd99fdf2afb5181047bcd1ccbfe373537d70`, enviado a origin/qa.
+Preview funcional **READY**, `dpl_3dfTmU87R76jETGNUzEX4pysugZS`, URL propia
+https://zipco-cri439u7i-zipco-s-projects.vercel.app. Por API se comprobaron
+GitSource/SHA exacto, rama qa, target Preview y alias QA habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app apuntando a ese despliegue.
+Backend QA y override vigentes conservados; build global null y rama de
+producción main sin cambios. Git limpio y sincronizado al publicar el código.
+
+El resultado y catálogo se guardan en un commit documental posterior, que se
+publica con idéntico código funcional/opciones. Su SHA es la versión visible
+final. La validación visual fue local; conformidad física de esta disposición
+pendiente. No se modificó ni repitió ninguna acción de pedidos reales.

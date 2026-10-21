@@ -307,8 +307,10 @@ dispositivo o cada recorrido. Diseño rojo aprobado. [Archivos y publicación](f
 
 ### UI-BUSINESS-PENDING-RESPONSES-01 — Respuestas plegadas y ordenadas
 
-2026-10-21. Solo frontend, rama qa. Solicitud inicial del negocio plegada sin
+2026-10-21. Código `350ccd99fdf2afb5181047bcd1ccbfe373537d70`, rama qa.
+Solo frontend. Solicitud inicial del negocio plegada sin
 mostrar propuesta/rechazo. Al abrir: Aceptar, Proponer, Rechazar y Ocultar detalle
 al final, con brillo. Controles conservados sin desmontar borradores u operaciones.
-1138 pruebas/build QA y 234 comprobaciones locales aprobadas. Prueba física de
+1138 pruebas/build QA y 234 comprobaciones locales aprobadas; Preview funcional
+READY y alias QA comprobados por API. Prueba física de
 esta disposición pendiente. [Archivos y publicación](frontend-business-pending-responses-qa.md).
