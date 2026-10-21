@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Image as ImageIcon, X } from 'lucide-react';
@@ -6,7 +8,15 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 // Shared reference-photo CTA and viewer extracted from BusinessOrderCard.
 // Profile images never enter this component.
-export default function OrderReferencePhoto({ src, business = true }: { src: string | null; business?: boolean }) {
+function renderPhotoPortal({ nested, open, setOpen, children }: { nested: boolean; open: boolean; setOpen: (open: boolean) => void; children: ReactNode }) {
+  return nested ? <Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Portal>{children}</Dialog.Portal></Dialog.Root> : createPortal(children, document.body);
+}
+function PhotoContent({ nested, children }: { nested: boolean; children: ReactNode }) {
+  return nested ? <Dialog.Content asChild aria-describedby={undefined}>{children}</Dialog.Content> : <>{children}</>;
+}
+export default function OrderReferencePhoto({ src, business = true, title = 'Imagen adjunta', caption, nestedDialog = false }: {
+  src: string | null; business?: boolean; title?: string; caption?: string; nestedDialog?: boolean;
+}) {
   const [showPhoto, setShowPhoto] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -53,38 +63,39 @@ export default function OrderReferencePhoto({ src, business = true }: { src: str
       </motion.span>
       <span className="relative min-w-0 flex-1">
         <strong className="block text-sm font-black text-slate-900 dark:text-white">
-          Imagen adjunta
+          {title}
         </strong>
         <span className="block text-xs text-slate-500 dark:text-slate-300">
-          {business ? 'El cliente agregó una foto de referencia.' : 'Agregaste una foto de referencia.'}
+          {caption ?? (business ? 'El cliente agregó una foto de referencia.' : 'Agregaste una foto de referencia.')}
         </span>
       </span>
       <span className="relative shrink-0 rounded-full bg-teal-500 px-3 py-1.5 text-xs font-black text-white shadow-sm transition-transform group-hover:scale-105">
         Abrir
       </span>
     </button>
-    {typeof document !== 'undefined' && createPortal(<AnimatePresence>
+    {typeof document !== 'undefined' && renderPhotoPortal({ nested: nestedDialog, open: showPhoto, setOpen: setShowPhoto, children: <AnimatePresence>
       {showPhoto && src && (
+        <PhotoContent nested={nestedDialog}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[1000] flex h-[100dvh] flex-col bg-slate-950/95 px-4 backdrop-blur-md"
-          style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+          style={{ ...(nestedDialog ? { zIndex: 1100 } : {}), paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           onClick={(event) => { event.stopPropagation(); setShowPhoto(false); }}
           role="dialog"
           aria-modal="true"
-          aria-label={business ? 'Imagen adjunta por el cliente' : 'Imagen adjunta por ti'}
+          aria-label={caption ? title : business ? 'Imagen adjunta por el cliente' : 'Imagen adjunta por ti'}
         >
           <div
             className="relative z-10 flex shrink-0 items-center justify-between gap-3 pb-3 text-white"
           >
             <div>
               <strong className="block text-base font-black">
-                Imagen adjunta
+                {nestedDialog ? <Dialog.Title asChild><span>{title}</span></Dialog.Title> : title}
               </strong>
               <span className="text-xs text-slate-300">
-                {business ? 'Foto de referencia del cliente' : 'Tu foto de referencia'}
+                {caption ?? (business ? 'Foto de referencia del cliente' : 'Tu foto de referencia')}
               </span>
             </div>
             <button
@@ -106,7 +117,7 @@ export default function OrderReferencePhoto({ src, business = true }: { src: str
           >
             <ImageWithFallback
               src={src}
-              alt="Foto de referencia"
+              alt={caption ? title : 'Foto de referencia'}
               className="max-h-full max-w-full object-contain"
             />
           </motion.div>
@@ -114,7 +125,8 @@ export default function OrderReferencePhoto({ src, business = true }: { src: str
             Toca fuera de la imagen para cerrar.
           </p>
         </motion.div>
+        </PhotoContent>
       )}
-    </AnimatePresence>, document.body)}
+    </AnimatePresence> })}
   </>;
 }

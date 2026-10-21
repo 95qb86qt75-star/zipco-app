@@ -79,7 +79,7 @@ try {
   const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Synthetic flow did not settle: '+expression);};
-  const touch=async label=>{const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
+  const touch=async label=>{const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
   const fill=async(selector,value,kind='HTMLInputElement')=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(${kind}.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   const reset=async(sequence=0,business=true)=>{await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.reset');await evaluate(`window.reset(${sequence},${business})`);await delay(100);};
   const form=async (price='1500')=>{await touch('Precio');await fill('input[aria-label="Nuevo precio por unidad"]',price);await touch('Guardar');await fill('textarea','Cambio de precio para la prueba sintética.','HTMLTextAreaElement');await touch('Revisar alternativa');await wait('!!document.querySelector("[data-alternative-review]")');};
@@ -98,8 +98,14 @@ try {
     await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('window.uploads'),1);
     assert.equal(await evaluate('window.feedback.length'),1,'Only confirmed business submission emits success feedback');
     await evaluate('window.role(false)');await delay(100);await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');
-    assert(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('$2.000 → Propuesta vigente $3.000')`));
+    assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"]').textContent.includes('$2.000') && document.querySelector('[data-proposal-sequence="1"]').textContent.includes('$3.000')`));
     assert.equal(await evaluate('document.querySelector("[role=dialog]").scrollWidth<=document.querySelector("[role=dialog]").clientWidth+1'),true);
+    await evaluate(`document.querySelector('[data-proposal-sequence="1"] button').click()`);
+    await wait(`!!document.querySelector('button[aria-label="Cerrar imagen"]')`);
+    assert(await evaluate(`(()=>{const b=document.querySelector('button[aria-label="Cerrar imagen"]'),r=b.getBoundingClientRect();return document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===b||b.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));})()`),'Photo close must be above the proposal dialog');
+    await touch('Cerrar imagen');
+    await wait(`!document.querySelector('button[aria-label="Cerrar imagen"]')`);
+    assert(await evaluate('!!document.querySelector("[data-proposal-comparison]")'),'Closing photo preserves review');
     const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`customer-comparison-${width}.png`),Buffer.from(shot.data,'base64'));
     await touch('Aceptar propuesta');await touch('Volver');assert.equal(await evaluate('window.posts.length'),1);
     await touch('Aceptar propuesta');await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');
@@ -123,6 +129,25 @@ try {
     assert.equal(await evaluate(`!!document.querySelector('[role=dialog] .zipco-accept-btn')`),label.startsWith('Aceptar'),'Only acceptance confirmations use the green glass button');
     await touch('Sí, confirmar');await wait('window.posts.length===1&&!document.querySelector("[role=dialog]")');
     assert.equal(await evaluate('window.current.view'),label.startsWith('Rechazar')?'history':'coordination');evidence.push(label+'-'+sequence);
+    if(label.startsWith('Rechazar')){
+      await touch('Ver propuestas e historial');await wait('!!document.querySelector("[data-proposal-comparison]")');
+      assert(await evaluate('document.querySelector(".zipco-chat-turn").textContent.includes("Historial")'));
+      assert.equal(await evaluate('document.querySelectorAll(".zipco-chat-foot button[aria-label]").length'),0,'Closed history offers no new decisions');
+    }
+  }
+  for(const [sequence,business,width,dark,reduced] of [[1,false,320,false,false],[1,false,393,true,true],[2,true,320,false,false],[2,false,393,true,false],[3,false,320,true,true],[3,true,393,false,false]]){
+    await send('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:true});
+    await reset(sequence,business);await evaluate(`document.documentElement.classList.toggle('dark',${dark});true`);
+    await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]});
+    await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');await delay(850);
+    assert.equal(await evaluate(`(()=>{const d=document.querySelector('[role=dialog]');return d.scrollWidth<=d.clientWidth+1;})()`),true,'Chat must fit narrow screens');
+    const counter=sequence===1&&!business;
+    assert.equal(await evaluate('!!document.querySelector(".zipco-chat-ghost")'),counter);
+    assert.equal(await evaluate('document.querySelectorAll("[data-proposal-sequence]").length'),sequence+1);
+    if(reduced)assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-chat > *")).animationName'),'none');
+    assert.equal(await evaluate('window.posts.length'),0,'Reading chat never sends an action');
+    const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`chat-${sequence}-${business?'business':'customer'}-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64'));
+    evidence.push(`chat-${sequence}-${business}-${width}-${dark}-${reduced}`);
   }
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.fail=true');await touch('Confirmar y enviar');await wait('!!document.querySelector("[role=alert]")');
   assert.equal(await evaluate('window.feedback.length'),0,'Failed send must not display a success hologram');
