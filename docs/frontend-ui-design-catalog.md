@@ -267,3 +267,14 @@ ni se emite ante fallo. Sin cambiar API, categorías, envío ni notificaciones.
 Bastián confirmó que funcionó el holograma sobre QA a7a08bf, sin especificar
 dispositivo. Se aprueba ese paso; no se extiende a propuesta final ni a todas las
 pruebas de negociación. [Archivos, publicación y comprobación](frontend-alternative-sent-hologram-qa.md).
+
+### UI-ORDER-CARD-AURORA-01 — Tarjeta común por estado del pedido
+
+2026-10-21. Solo frontend, rama qa. Adaptación de los cuatro archivos de diseño
+aportados por Bastián: Aurora nocturna, avatar, etiqueta, total y botón con luces.
+Se aplica a cliente/negocio en Pendientes, negociación, coordinación, En curso,
+Listos e Historial, con los textos/acciones existentes. Incluye pedidos antiguos,
+mantiene cotizaciones, acuerdo exacto, permisos, holograma y borde por notificación.
+1137 pruebas y build QA aprobados; 228 combinaciones visuales y 12 recorridos
+táctiles sintéticos. Prueba física Android/iPhone pendiente. Commit y resultado
+de publicación en la [ficha del diseño](frontend-order-card-aurora-qa.md).

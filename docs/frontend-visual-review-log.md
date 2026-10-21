@@ -358,3 +358,14 @@ guardada ni se ejecutan acciones reales. Diseño y cambios detallados en
 1050 pruebas/build aprobados y comprobaciones Chrome documentadas; aprobación
 física Android/iPhone y recorrido completo pendientes. No modifica conformidades
 anteriores ni declara listo para producción el flujo de negociación.
+
+## UI-ORDER-CARD-AURORA-01 — Apariencia compartida del pedido — 2026-10-21
+
+Bastián entregó cuatro archivos de Claude y pidió conservar ese diseño en cada
+estado. Aurora se adapta a las tarjetas de cliente y negocio, incluidas las de
+Historial y pedidos antiguos; se mantienen textos, acciones y condiciones reales.
+No se acredita conformidad física por la entrega del diseño. Validación local:
+1137 pruebas, build QA, 228 combinaciones visuales y 12 recorridos táctiles
+sintéticos aprobados. Sin acciones contra pedidos reales, backend o producción.
+Pendiente revisar el resultado publicado desde Android/iPhone.
+[Origen, archivos, alcance y publicación](frontend-order-card-aurora-qa.md).

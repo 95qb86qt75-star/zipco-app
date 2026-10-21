@@ -32,7 +32,7 @@ export default function CoordinationActions({ order, business, service, refresh 
     if (await operation.run(action, reason, detail)) { setConfirm(null); setDetail(''); }
   };
   const needsBusinessConsent = business && process?.coordination?.businessContactAuthorized !== true;
-  return <section aria-label="Acciones de coordinación" className={`mt-3 rounded-2xl border border-teal-200 p-3 ${business ? 'space-y-3 bg-teal-50/70' : 'space-y-2 zipco-customer-coordination'}`}
+  return <section aria-label="Acciones de coordinación" className={`mt-3 rounded-2xl border border-teal-200 p-3 text-slate-900 ${business ? 'space-y-3 bg-teal-50/70' : 'space-y-2 zipco-customer-coordination'}`}
     onClick={(event) => event.stopPropagation()}>
     <h4 className={business ? 'text-sm font-black text-teal-900' : 'text-[10px] font-black uppercase tracking-[0.16em] text-teal-800'}>{readyOnly || process?.state === 'READY' ? 'Estado del pedido' : 'Coordinación'}</h4>
     {business && ['COORDINATION_PENDING', 'COORDINATING'].includes(process?.state ?? '') &&

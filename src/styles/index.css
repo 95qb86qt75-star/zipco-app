@@ -1281,3 +1281,110 @@ body {
     animation: none;
   }
 }
+
+/* ===== Tarjeta "Aurora nocturna" (pegar al final de src/styles/index.css) ===== */
+.zipco-aurora-card {
+  position: relative; isolation: isolate; overflow: hidden; color: #fff;
+  border: 0;
+  background: linear-gradient(160deg, #1c1650 0%, #101434 62%, #0c1a2e 100%);
+  box-shadow: 0 14px 30px rgba(30, 27, 75, .35), inset 0 1px 0 rgba(255, 255, 255, .18), 0 0 0 1px rgba(255, 255, 255, .1);
+  animation: zipco-aurora-rise .5s cubic-bezier(.2, .8, .2, 1) both;
+}
+.zipco-aurora-card:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 2px; }
+/* luces de fondo: detrás del contenido (z-index -1 dentro de isolation) */
+.zipco-aurora-card::before, .zipco-aurora-card::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(34px);
+}
+.zipco-aurora-card::before { right: -50px; top: -60px; width: 210px; height: 160px; background: rgba(139, 92, 246, .6); animation: zipco-aurora-a1 9s ease-in-out infinite; }
+.zipco-aurora-card::after { left: -60px; bottom: -50px; width: 190px; height: 140px; background: rgba(20, 184, 166, .42); animation: zipco-aurora-a2 11s ease-in-out infinite; }
+
+.zipco-aurora-avatar {
+  display: flex; flex: none; align-items: center; justify-content: center; overflow: hidden;
+  width: 48px; height: 48px; border-radius: 16px; color: #c4b5fd;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, .05));
+  box-shadow: inset 1.5px 1.5px 1px rgba(255, 255, 255, .4), inset -1px -1px 1px rgba(255, 255, 255, .1), 0 0 0 1px rgba(255, 255, 255, .14);
+}
+.zipco-aurora-chip {
+  display: inline-flex; max-width: 100%; align-items: center; gap: 6px; border-radius: 999px;
+  padding: 3px 10px 3px 8px; font-size: 11px; font-weight: 800; line-height: 1.15; color: #ddd6fe;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .06));
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: inset 1px 1px 1px rgba(255, 255, 255, .45), 0 0 0 1px rgba(255, 255, 255, .2);
+}
+.zipco-aurora-dot { flex: none; width: 7px; height: 7px; border-radius: 4px; background: #a78bfa; animation: zipco-aurora-ping 1.9s ease-out infinite; }
+.zipco-aurora-price { text-shadow: 0 0 22px rgba(167, 139, 250, .9); }
+
+/* Botón liquid glass sobre píldora de color */
+.zipco-glass-wrap {
+  position: relative; display: block; overflow: hidden; margin-top: 14px; border-radius: 999px;
+  background: linear-gradient(115deg, #7c3aed 0%, #5b4ff0 48%, #14b8a6 100%);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, .45);
+}
+.zipco-glass-blob { position: absolute; pointer-events: none; border-radius: 50%; filter: blur(5px); }
+.zipco-glass-b1 { left: -6px; top: -10px; width: 78px; height: 78px; background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .8), rgba(255, 255, 255, .12) 70%); animation: zipco-glass-d1 6.5s ease-in-out infinite; }
+.zipco-glass-b2 { right: -8px; bottom: -14px; width: 92px; height: 70px; background: radial-gradient(circle at 40% 40%, #f5b8ff, rgba(245, 184, 255, .1) 72%); animation: zipco-glass-d2 7.5s ease-in-out infinite; }
+.zipco-glass-b3 { left: 46%; top: -18px; width: 64px; height: 64px; background: radial-gradient(circle at 40% 40%, #8cf0ff, rgba(140, 240, 255, .1) 72%); animation: zipco-glass-d3 5.5s ease-in-out infinite; }
+.zipco-glass-btn {
+  position: relative; isolation: isolate; overflow: hidden; display: flex; width: 100%; min-height: 52px;
+  align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px;
+  font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(30, 27, 75, .75), 0 0 10px rgba(30, 27, 75, .5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .3) 0%, rgba(255, 255, 255, .07) 45%, rgba(255, 255, 255, .18) 100%);
+  -webkit-backdrop-filter: blur(5px) saturate(1.9) brightness(1.08); backdrop-filter: blur(5px) saturate(1.9) brightness(1.08);
+  box-shadow: inset 1.5px 1.5px 1px rgba(255, 255, 255, .9), inset -1.5px -1.5px 1px rgba(255, 255, 255, .45), inset 0 0 22px rgba(255, 255, 255, .28), 0 0 0 .5px rgba(255, 255, 255, .4);
+  transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), filter .2s;
+}
+.zipco-glass-btn::before { content: ""; position: absolute; left: 12%; right: 12%; top: 3px; height: 42%; z-index: -1; pointer-events: none; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0)); }
+.zipco-glass-btn::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 26%; z-index: -1; pointer-events: none; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent); transform: translateX(-140%) skewX(-18deg); animation: zipco-glass-sheen 3.8s ease-in-out .8s infinite; }
+.zipco-glass-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.zipco-glass-btn:active:not(:disabled) { transform: scale(.965); }
+.zipco-glass-btn:disabled { opacity: .6; }
+.zipco-glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+@keyframes zipco-aurora-rise { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes zipco-aurora-ping { 0% { box-shadow: 0 0 0 0 rgba(167, 139, 250, .7); } 70% { box-shadow: 0 0 0 7px rgba(167, 139, 250, 0); } 100% { box-shadow: 0 0 0 0 rgba(167, 139, 250, 0); } }
+@keyframes zipco-aurora-a1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-40px, 22px) scale(1.2); } }
+@keyframes zipco-aurora-a2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(50px, -18px) scale(1.15); } }
+@keyframes zipco-glass-d1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(190px, 6px) scale(1.15); } }
+@keyframes zipco-glass-d2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-170px, -4px) scale(.9); } }
+@keyframes zipco-glass-d3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-90px, 8px); } }
+@keyframes zipco-glass-sheen { 0%, 50% { transform: translateX(-140%) skewX(-18deg); } 100% { transform: translateX(420%) skewX(-18deg); } }
+
+/* Aurora compartida: encabezado adaptable, controles y enfoque conservado. */
+.zipco-aurora-header { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+.zipco-aurora-chip { white-space: normal; overflow-wrap: anywhere; }
+.zipco-aurora-price { font-size: clamp(20px, 5vw, 25px); white-space: nowrap; }
+@media (max-width: 379px) {
+  .zipco-aurora-header { grid-template-columns: 48px minmax(0, 1fr); gap: 8px 12px; }
+  .zipco-aurora-pricebox { grid-column: 2; text-align: left; }
+}
+.zipco-glass-btn { padding: 12px 16px; white-space: normal; overflow-wrap: anywhere; background-color: #6251c7; }
+.zipco-glass-wrap .zipco-glass-btn { background-color: transparent; }
+.zipco-glass-btn svg { flex: none; }
+.zipco-aurora-card > button.text-slate-500,
+.zipco-aurora-card > div > button.text-slate-500 { color: #cbd5e1; }
+.zipco-glass-wrap .zipco-glass-btn { background-color: transparent; }
+.zipco-glass-btn svg { flex: none; }
+.zipco-aurora-card > button.text-slate-500,
+.zipco-aurora-card > div > button.text-slate-500 { color: #cbd5e1; }
+.zipco-aurora-card[data-unread="true"] { box-shadow: 0 0 0 2px #7dd3fc, 0 14px 30px rgb(30 27 75 / .35); }
+/* Motion owns the horizontal transform of legacy history swipe controls. */
+.zipco-aurora-card[data-aurora-history="true"] { animation: none; }
+.zipco-aurora-card .zipco-open-panel { color: white; border-color: rgb(255 255 255 / .3); background: linear-gradient(115deg, #6d28d9, #4f46b6, #0f766e); box-shadow: inset 1px 1px 1px rgb(255 255 255 / .5); }
+.zipco-aurora-card .zipco-open-panel span, .zipco-aurora-card .zipco-open-panel svg { color: inherit; }
+.zipco-aurora-card .zipco-open-hint { background: rgb(255 255 255 / .15); border-color: rgb(255 255 255 / .25); }
+.dark .zipco-aurora-card .zipco-customer-coordination > h4 { color: #99f6e4; }
+.zipco-aurora-card > div > button[class~="text-red-700"],
+.zipco-aurora-card > div > button[class~="text-red-600"],
+.zipco-aurora-card > div > [role="alert"] { color: #fda4af; }
+.zipco-aurora-card.zipco-notification-target { animation: zipco-notification-focus 1.15s ease-in-out 3; }
+.zipco-aurora-card.zipco-notification-target::after {
+  content: "Abierta desde la notificación"; inset: 8px 12px auto auto; z-index: 3;
+  width: auto; height: auto; border-radius: 999px; filter: none; transform: none;
+  background: #0284c7; color: white; padding: 3px 9px; font-size: 10px; font-weight: 800; animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zipco-aurora-card, .zipco-aurora-card::before, .zipco-aurora-card::after, .zipco-aurora-dot,
+  .zipco-glass-blob, .zipco-glass-btn::after { animation: none; }
+  .zipco-aurora-card.zipco-notification-target { animation: none; }
+}

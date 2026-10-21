@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from './types';
 import { AlternativeDraftDialog } from './PendingAlternativeActions';
 import { proposalDraftSource, type AlternativeReview } from './alternativeDraft';
@@ -54,7 +54,7 @@ export function ProposalComparison({ read }: { read: ProposalRead }) {
   </div>;
 }
 
-export default function ProposalNegotiation({ order, business = false, refresh }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void }) {
+export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default' }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora' }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<ProposalRead | null>(null);
   const [busy, setBusy] = useState(false);
@@ -135,9 +135,16 @@ export default function ProposalNegotiation({ order, business = false, refresh }
     } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
   return <div className="mt-3" onClick={event => event.stopPropagation()}>
-    <button type="button" className={`${button} w-full`} disabled={busy} onClick={async () => { setOpen(true); await load(initial); }}>
-      {initial ? 'Proponer alternativa' : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder'}
-    </button>
+    {(() => {
+      const label = initial ? 'Proponer alternativa' : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder';
+      const openProposals = async () => { setOpen(true); await load(initial); };
+      return variant === 'aurora'
+        ? <span className="zipco-glass-wrap">
+          <i className="zipco-glass-blob zipco-glass-b1" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b2" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b3" aria-hidden="true" />
+          <button type="button" className="zipco-glass-btn" disabled={busy} onClick={openProposals}>{label}<ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.3} aria-hidden="true" /></button>
+        </span>
+        : <button type="button" className={`${button} w-full`} disabled={busy} onClick={openProposals}>{label}</button>;
+    })()}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
         <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white p-5 dark:bg-slate-900">

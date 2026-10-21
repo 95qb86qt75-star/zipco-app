@@ -28,7 +28,8 @@ import { rejectPendingOrder, rejectedPendingOrder } from './pendingRejectionFixt
 import { cancelPendingOrder, cancelledPendingOrder } from './pendingCancellationFixtures';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { OrderCardDisclosure } from './OrderCardPanels';
-import { BusinessOrderHeader, CustomerOrderHeader } from './OrderCardHeaders';
+import { CustomerOrderHeader } from './OrderCardHeaders';
+import { AuroraProposalHeader } from './OrderCardAurora';
 import { AcceptedConditionsPanel, AgreementContent } from './AcceptedConditions';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { agreementFixture, coordinationProcess, pendingProcess, rawOrder } from './requestProcessFixtures';
@@ -115,7 +116,7 @@ describe('reused 2A card design without legacy actions', () => {
     const html = renderToStaticMarkup(view);
     expect(html.match(/Condiciones aceptadas/g)).toHaveLength(2); // Region label and the single disclosure title.
     expect(html).not.toContain('>Total:<');
-    expect(html.match(/Precio total/g)).toHaveLength(1);
+    expect(html).toContain('Acordado');
     for (const text of ['Producto acordado', 'Descripción acordada', 'Subtotal', 'Fecha y hora:', 'Nota acordada', 'Imagen adjunta', 'El cliente agregó una foto de referencia.', 'Abrir acuerdo']) expect(html).toContain(text);
     expect(html).not.toContain('Agregaste una foto de referencia.');
     expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
@@ -134,6 +135,16 @@ describe('reused 2A card design without legacy actions', () => {
     for (const text of ['Completado', 'Condiciones aceptadas', 'Producto acordado', 'Nota acordada', 'Abrir acuerdo']) expect(html).toContain(text);
     expect(html).not.toMatch(/Nota de prueba|Confirmar recepción|Coordinar por WhatsApp|reseña|pago realizado/);
   });
+  it.each([true, false])('never labels the old request total as agreed while a history agreement is unavailable (business=%s)', business => {
+    const input = { ...raw, status: 'completed', requestProcess: { ...coordinationProcess, state: 'COMPLETED', allowedActions: [] } };
+    const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
+    hooks.agreement = { status: 'absent' }; hooks.cursor = 0;
+    let header = elements(ProcessHistoryCard({ order })).find(node => node.type === AuroraProposalHeader)!;
+    expect(header.props.price).toBeNull();
+    hooks.agreement = { status: 'loaded', agreement: { ...agreementFixture, totalPriceClp: 3500 } }; hooks.cursor = 0;
+    header = elements(ProcessHistoryCard({ order })).find(node => node.type === AuroraProposalHeader)!;
+    expect(header.props.price).toBe(3500); expect(header.props.items).toMatchObject([{ name: 'Producto acordado' }]);
+  });
   it.each([true, false])('presents acknowledged READY as pending pickup without hiding its agreement (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const input = { ...raw, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', version: 3,
@@ -151,8 +162,8 @@ describe('reused 2A card design without legacy actions', () => {
     const html = renderToStaticMarkup(view);
     expect(html).toContain('Pedido listo'); expect(html).toContain('Nota acordada');
     expect(html).not.toContain('Nota de prueba'); expect(html).not.toContain('Confirmar entrega');
-    const header = elements(view).find((node) => node.type === (business ? BusinessOrderHeader : CustomerOrderHeader))!;
-    expect(header.props.products).toMatchObject({ items: [{ name: 'Producto acordado' }] });
+    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
+    expect(header.props.items).toMatchObject([{ name: 'Producto acordado' }]);
     expect(elements(view).find((node) => node.type === AcceptedConditionsPanel)?.props.returnView).toBe('ready');
   });
   it.each([true, false])('carries the displayed process category into the agreement link (business=%s)', (business) => {
@@ -199,30 +210,30 @@ describe('reused 2A card design without legacy actions', () => {
     expect(html).not.toContain('>Total:<'); expect(html).not.toContain('<h4');
     expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
   });
-  it.each([true, false])('uses the compact accepted total caption for both participants (business=%s)', (business) => {
+  it.each([true, false])('shows the accepted total once above the conditions for both participants (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0]
       : normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const view = render({ ...props, order, business });
     const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
     expect(disclosure.props.acceptedSummary).toBe(true);
-    const html = renderToStaticMarkup(disclosure);
-    expect(html.includes('Precio total')).toBe(true);
+    const html = renderToStaticMarkup(view);
+    expect(html).toContain('Acordado');
     expect(html.match(/\$2\.000/g)).toHaveLength(1);
-    expect(disclosure.props.price).toBe(agreementFixture.totalPriceClp);
+    expect(disclosure.props.price).toBeNull();
   });
-  it.each([false, true])('shows the customer total once, in the disclosure, and status in the header (accepted=%s)', (accepted) => {
+  it.each([false, true])('shows the customer total once with its status in the Aurora header (accepted=%s)', (accepted) => {
     hooks.agreement = accepted ? { status: 'loaded', agreement: agreementFixture } : { status: 'absent' };
     const order = normalizeMyOrdersPayload([{ ...raw, status: accepted ? 'accepted' : 'pending', requestProcess: accepted ? coordinationProcess : pendingProcess }])[0];
     const view = render({ ...props, order });
-    const header = elements(view).find((node) => node.type === CustomerOrderHeader)!;
-    expect(header.props.statusInCorner).toBe(true);
+    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
+    expect(header.props.priceLabel).toBe(accepted ? 'Acordado' : 'Solicitado');
     const headerHtml = renderToStaticMarkup(header);
     expect(headerHtml).toContain(accepted ? 'Coordinación pendiente' : 'Pendiente de respuesta');
-    expect(headerHtml).not.toContain('$');
+    expect(headerHtml).toContain('$2.000');
     const html = renderToStaticMarkup(view);
     expect(html.match(/\$2\.000/g)).toHaveLength(1);
-    expect(elements(view).find((node) => node.type === OrderCardDisclosure)?.props.price).toBe(2000);
+    expect(elements(view).find((node) => node.type === OrderCardDisclosure)?.props.price).toBeNull();
   });
   it('preserves the historical customer header price when no corner status is requested', () => {
     const html = renderToStaticMarkup(React.createElement(CustomerOrderHeader, { name: raw.businessName, image: raw.businessImage,
@@ -246,7 +257,8 @@ describe('reused 2A card design without legacy actions', () => {
     let view = render({ ...props, order, business: true });
     const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
     expect(disclosure.props.title).toBe('Condiciones aceptadas');
-    expect(disclosure.props.price).toBe(agreementFixture.totalPriceClp);
+    expect(disclosure.props.price).toBeNull();
+    expect(elements(view).find(node => node.type === AuroraProposalHeader)?.props.price).toBe(agreementFixture.totalPriceClp);
     expect(elements(view).some((node) => node.type === CoordinationActions)).toBe(true);
     expect(elements(view).some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
     (disclosure.props.onOpen as () => void)();
@@ -287,7 +299,7 @@ describe('reused 2A card design without legacy actions', () => {
   it.each([true, false])('labels the initial business card Nuevo pedido independently of unread state (%s)', (isUnread) => {
     const order = normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const view = render({ ...props, order, business: true, isUnread });
-    const header = elements(view).find((node) => node.type === BusinessOrderHeader)!;
+    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
     expect(header.props.statusLabel).toBe('Nuevo pedido');
     expect(header.props.isUnread).toBe(isUnread);
     expect(props.onOpen).not.toHaveBeenCalled();
@@ -345,7 +357,7 @@ describe('reused 2A card design without legacy actions', () => {
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0]
       : normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const view = render({ ...props, order, business, isUnread: true });
-    const header = elements(view).find((node) => node.type === (business ? BusinessOrderHeader : CustomerOrderHeader))!;
+    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
     expect(header.props.image).toBe(business ? raw.customerImage : raw.businessImage);
     const html = renderToStaticMarkup(view);
     expect(html).toContain('Nueva'); expect(html).toContain('zipco-open-panel');
@@ -384,8 +396,8 @@ describe('reused 2A card design without legacy actions', () => {
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0]
       : normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const view = render({ ...props, order, business, expanded: true });
-    const header = elements(view).find((node) => node.type === (business ? BusinessOrderHeader : CustomerOrderHeader))!;
-    expect(header.props.products).toMatchObject({ items: [{ name: 'Producto acordado' }] });
+    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
+    expect(header.props.items).toMatchObject([{ name: 'Producto acordado' }]);
     const html = renderToStaticMarkup(view);
     for (const text of ['Coordinación pendiente', 'Condiciones aceptadas', 'Nota acordada', 'Imagen adjunta']) expect(html).toContain(text);
     for (const text of ['Nota de prueba', 'Producto de prueba', 'Preparación', 'Marcar como listo']) expect(html).not.toContain(text);

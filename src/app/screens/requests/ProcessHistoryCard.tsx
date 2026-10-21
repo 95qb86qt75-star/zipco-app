@@ -1,4 +1,6 @@
-import AcceptedConditions from './AcceptedConditions';
+import { AcceptedConditionsPanel } from './AcceptedConditions';
+import useAgreement from './useAgreement';
+import { AuroraProposalHeader } from './OrderCardAurora';
 import type { BusinessRequest, MyOrder } from './types';
 import { useState } from 'react';
 import { markInteractionRead } from '../../notifications/unreadInteractions';
@@ -15,17 +17,24 @@ export default function ProcessHistoryCard({ order }: { order: MyOrder | Busines
   const pendingRejected = isPendingRequestRejected(order.requestProcess);
   const originalRequest = pendingCancelled || pendingRejected;
   const proposalRejected = isProposalRejected(order.requestProcess);
+  const agreement = useAgreement(expanded ? order.requestProcess : null);
+  const accepted = agreement.state.status === 'loaded' ? agreement.state.agreement : null;
+  const price = accepted?.totalPriceClp ?? (order.requestProcess?.agreementPublicId
+    ? order.requestProcess.proposalSummary?.totalPriceClp ?? null
+    : proposalRejected ? order.requestProcess?.proposalSummary?.totalPriceClp ?? null : originalRequest ? order.total : null);
   const closure = pendingRejected ? order.requestProcess?.closure : null;
   const label = pendingRejected ? 'Rechazada' : pendingCancelled ? 'Anulada por el cliente' : order.requestProcess?.state === 'COORDINATION_CANCELLED' ? 'Anulada' : order.requestProcess?.state === 'COMPLETED' || order.status === 'completed' ? 'Completado'
     : order.status === 'cancelled' ? 'Cancelado' : order.status === 'rejected' ? 'Rechazado' : 'Estado no disponible';
-  return <article id={`order-${order.id}`} className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
-    <p className="text-xs text-slate-500">{order.date}</p>
-    <h4 className="font-black">{'businessName' in order ? order.businessName : order.customerName}</h4>
-    <p>{label}</p>
-    {proposalRejected && <ProposalNegotiation order={order} business={'customerName' in order} refresh={() => window.dispatchEvent(new CustomEvent('zipco-requests-refresh'))} />}
+  return <article id={`order-${order.id}`} data-aurora-state={order.requestProcess?.state ?? 'history'} className="zipco-aurora-card scroll-mb-36 rounded-[24px] p-4">
+    <AuroraProposalHeader name={'businessName' in order ? order.businessName : order.customerName}
+      image={'businessImage' in order ? order.businessImage : order.customerImage} price={price} statusLabel={label}
+      priceLabel={originalRequest ? 'Solicitado' : proposalRejected ? 'Última propuesta' : 'Acordado'}
+      summaryText={order.date} items={accepted ? accepted.subjectSnapshot.items.map(item => ({ name: item.nameSnapshot, quantity: item.quantity }))
+        : originalRequest && order.products.state === 'available' ? order.products.items : undefined} />
+    {proposalRejected && <ProposalNegotiation order={order} business={'customerName' in order} variant="aurora" refresh={() => window.dispatchEvent(new CustomEvent('zipco-requests-refresh'))} />}
     {closure && <div className="mt-2 text-sm"><p className="font-bold">Motivo: {PENDING_REJECTION_REASONS[closure.reasonCode as PendingRejectionReason]}</p>
       {closure.reasonDetail && <p className="whitespace-pre-wrap break-words">{closure.reasonDetail}</p>}</div>}
-    {!proposalRejected && <button type="button" aria-expanded={expanded} className="mt-3 rounded-xl border px-3 py-2 font-bold"
+    {!proposalRejected && <button type="button" aria-expanded={expanded} className="zipco-glass-btn mt-3 px-3 py-2 font-bold"
       onClick={() => {
         setExpanded((value) => !value);
         if (order.recordState === 'available') markInteractionRead('order', order.id);
@@ -37,6 +46,6 @@ export default function ProcessHistoryCard({ order }: { order: MyOrder | Busines
       <p>{formatDeliverySchedule(order, 'customerName' in order ? 'business' : 'customer')}</p>
       {order.note && <p className="whitespace-pre-wrap break-words">Nota: {order.note}</p>}
       {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={'customerName' in order} />}
-    </div> : <AcceptedConditions process={order.requestProcess} business={'customerName' in order} history />)}
+    </div> : <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={'customerName' in order} history />)}
   </article>;
 }

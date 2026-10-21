@@ -1,0 +1,113 @@
+// Real React and compiled QA CSS with synthetic snapshots only. No backend access.
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import { spawn } from 'node:child_process';
+import assert from 'node:assert/strict';
+import { build } from 'esbuild';
+const directory = path.resolve('node_modules/.cache/order-card-aurora-browser');
+const assets = path.resolve('node_modules/.cache/business-alternative-draft-qa/assets');
+fs.mkdirSync(directory, { recursive: true });
+await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
+import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
+import ProcessOrderCard from './src/app/screens/requests/ProcessOrderCard';
+import ProcessHistoryCard from './src/app/screens/requests/ProcessHistoryCard';
+import MyOrderCard from './src/app/screens/requests/MyOrderCard';
+import BusinessOrderCard from './src/app/screens/requests/BusinessOrderCard';
+import {OrderHistoryList} from './src/app/screens/requests/CompactHistoryList';
+import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
+import {normalizeBusinessOrdersPayload,normalizeMyOrdersPayload} from './src/app/screens/requests/orderNormalization';
+import {rawOrder,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
+import {cancelledPendingOrder} from './src/app/screens/requests/pendingCancellationFixtures';
+import {rejectedPendingOrder} from './src/app/screens/requests/pendingRejectionFixtures';
+window.React=React;window.posts=0;window.reads=0;let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
+window.fetch=async(input,options={})=>{if(options.method&&options.method!=='GET'){window.posts++;throw Error('Actions are forbidden in this visual fixture');}
+ if(String(input).endsWith('/agreement')){window.reads++;return new Response(JSON.stringify(agreementFixture));}throw Error('Unexpected fixture read');};
+window.show=(next,role,old=false)=>{state=next;business=role;legacy=old;redraw();};
+function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n=>n+1);
+ localStorage.setItem('zipco-token','synthetic-session');localStorage.setItem('zipco-user-id',business?'12':'11');
+ if(business)localStorage.setItem('zipco-business-id','8');else localStorage.removeItem('zipco-business-id');
+ const sequences=['AWAITING_BUSINESS_RESPONSE','AWAITING_CUSTOMER_DECISION','AWAITING_BUSINESS_COUNTER_RESPONSE','AWAITING_CUSTOMER_FINAL_DECISION'];
+ const sequence=sequences.indexOf(state);const read=proposalsFixture(Math.max(0,sequence),business);
+ const coordinated={...coordinationProcess,state:state==='READY_ACK'?'READY':state,readyNoticeAcknowledged:state==='READY_ACK',
+  coordination:{customerContactAuthorized:false,businessContactAuthorized:false},
+  allowedActions:state==='IN_PROGRESS'?business?['MARK_READY']:[]:state.startsWith('READY')?business?[]:state==='READY_ACK'?['CONFIRM_RECEIPT']:['ACK_READY_NOTICE']:state==='COMPLETED'?[]:business?[]:['AUTHORIZE_CONTACT']};
+ const source=state==='CANCELLED'?cancelledPendingOrder:state==='REJECTED'?rejectedPendingOrder:rawOrder;
+ const raw={...source,customerName:'Cliente sintético con nombre extenso de prueba',businessName:'Negocio sintético con nombre extenso de prueba',
+  referencePhoto:null,status:legacy?state:sequence===0?'pending':sequence>0?'alternative_proposed':state.startsWith('READY')?'ready':state==='COMPLETED'?'completed':state==='CANCELLED'?'cancelled':state==='REJECTED'?'rejected':'accepted',
+  requestProcess:legacy?null:state==='CANCELLED'||state==='REJECTED'?source.requestProcess:sequence>=0?read.process:coordinated};
+ const order=(business?normalizeBusinessOrdersPayload:normalizeMyOrdersPayload)([raw])[0];window.recordAvailable=order.recordState==='available'&&!order.requestProcessInvalid;
+ const props={isUpdating:false,onRetry:()=>{},onAction:()=>{},isUnread:true};
+ return <main style={{padding:12}} key={revision}><div data-card-fixture>
+  {legacy?['completed','cancelled','rejected'].includes(state)?<OrderHistoryList orders={[order]} owner={business?'business':'customer'} deleted={false} onArchive={()=>{}}/>
+   :business?<BusinessOrderCard {...props} request={order}/>:<MyOrderCard {...props} order={order}/>
+   :['COMPLETED','CANCELLED','REJECTED'].includes(state)?<ProcessHistoryCard order={order}/>:<ProcessOrderCard {...props} order={order} business={business}/>}</div></main>;
+}createRoot(document.getElementById('root')).render(<App/>);
+` }, bundle: true, format: 'esm', jsx: 'automatic', outfile: path.join(directory, 'fixture.js'),
+  define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}' } });
+const css = fs.readFileSync(path.join(assets, fs.readdirSync(assets).find(name => name.endsWith('.css'))));
+const html = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/fixture.css"></head><body><div id="root" style="overflow:auto;height:100dvh"></div><script type="module" src="/fixture.js"></script></body></html>';
+const server = http.createServer((req,res)=>{res.setHeader('Content-Type',req.url==='/fixture.js'?'text/javascript':req.url==='/fixture.css'?'text/css':'text/html');res.end(req.url==='/fixture.js'?fs.readFileSync(path.join(directory,'fixture.js')):req.url==='/fixture.css'?css:html);});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const profile=path.join(directory,`profile-${Date.now()}`);
+const browser=spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',['--headless=new','--disable-gpu','--no-first-run','--disable-background-networking','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{windowsHide:true,stdio:'ignore'});
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));let socket;
+try {
+ const portFile=path.join(profile,'DevToolsActivePort');for(let i=0;!fs.existsSync(portFile)&&i<200;i++)await delay(50);
+ const port=fs.readFileSync(portFile,'utf8').split('\n')[0];const tabs=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+ socket=new WebSocket(tabs.find(tab=>tab.type==='page').webSocketDebuggerUrl);await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
+ const pending=new Map();let sequence=0;socket.addEventListener('message',event=>{const m=JSON.parse(event.data);if(!pending.has(m.id))return;const {resolve,reject}=pending.get(m.id);pending.delete(m.id);m.error?reject(Error(m.error.message)):resolve(m.result);});
+ const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+ const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
+ const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Fixture did not settle: '+expression);};
+ await send('Network.enable');await send('Network.setBlockedURLs',{urls:['https://*']});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+ await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.show');
+ const evidence=[];
+ for(const width of [320,393,400])for(const dark of [false,true]){
+  await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
+  await evaluate(`document.documentElement.classList.toggle('dark',${dark})`);
+  for(const business of [false,true])for(const state of ['AWAITING_BUSINESS_RESPONSE','AWAITING_CUSTOMER_DECISION','AWAITING_BUSINESS_COUNTER_RESPONSE','AWAITING_CUSTOMER_FINAL_DECISION','COORDINATION_PENDING','COORDINATING','IN_PROGRESS','READY','READY_ACK','COMPLETED','CANCELLED','REJECTED']){
+   await evaluate(`window.show(${JSON.stringify(state)},${business})`);await wait('window.recordAvailable&&!!document.querySelector(".zipco-aurora-card")');await delay(65);
+   if(['COORDINATION_PENDING','COORDINATING','IN_PROGRESS','READY','READY_ACK'].includes(state))await wait('document.querySelector(".zipco-aurora-price").textContent.includes("2.000")');
+   // The clipped decorative pseudo-elements intentionally extend 50px outside the card.
+   const geometry=await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),rect=card.getBoundingClientRect(),wide=[...card.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>rect.right+1).map(e=>e.className);return {ok:rect.left>=0&&rect.right<=innerWidth+1&&wide.length===0&&document.documentElement.scrollWidth<=innerWidth,wide,price:document.querySelector('.zipco-aurora-price').textContent,body:card.textContent};})()`);
+   if(!geometry.ok)await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'overflow.png'),Buffer.from(shot.data,'base64')));
+   assert(geometry.ok,`Card overflow: ${width}/${dark}/${business}/${state} ${JSON.stringify(geometry)}`);
+   if(state==='IN_PROGRESS')assert(geometry.body.includes(business?'Notificar pedido listo':'preparando tu pedido'));
+   if(state==='READY')assert(geometry.body.includes(business?'Esperando que el cliente':'Confirmar aviso'));
+   if(state==='READY_ACK')assert(geometry.body.includes(business?'Pendiente de retiro':'Confirmar recepción'));
+   if(state==='AWAITING_BUSINESS_RESPONSE')assert(geometry.body.includes(business?'Nuevo pedido':'Pendiente de respuesta'));
+   evidence.push(`${width}/${dark?'dark':'light'}/${business?'business':'customer'}/${state}`);
+  }
+  for(const business of [false,true])for(const state of ['pending','alternative_proposed','accepted','ready','completed','cancelled','rejected']){
+   await evaluate(`window.show(${JSON.stringify(state)},${business},true)`);await delay(75);
+   assert(await evaluate('!!document.querySelector(".zipco-aurora-card")'),'Legacy card retains Aurora');
+   if(['completed','cancelled','rejected'].includes(state))assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-aurora-card')).animationName`),'none','History swipe transform belongs to Motion');
+   await evaluate(`document.querySelector('.zipco-aurora-price').textContent='$50.000.000'`);
+   assert(await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),r=card.getBoundingClientRect();return [...card.querySelectorAll('.zipco-aurora-header *')].every(e=>e.getBoundingClientRect().right<=r.right+1);})()`),'Large totals stay inside legacy headers');
+   evidence.push(`${width}/${dark?'dark':'light'}/legacy/${business}/${state}`);
+  }
+ }
+ await evaluate(`window.show('completed',true,true)`);await delay(650);
+ const drag=await evaluate(`(()=>{const r=document.querySelector('[data-aurora-history]').getBoundingClientRect();return {x:r.left+r.width*.8,y:r.top+r.height/2};})()`);
+ await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[drag]});
+ for(const offset of [10,40,80,140]){await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:drag.x-offset,y:drag.y}]});await delay(45);}
+ await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(650);
+ assert(await evaluate(`new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-aurora-history]')).transform).m41 < -45`),'Legacy history still moves horizontally after a touch swipe');
+ await evaluate(`window.show('AWAITING_CUSTOMER_DECISION',false)`);await delay(650);
+ await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'negotiation-400.png'),Buffer.from(shot.data,'base64')));
+ await evaluate(`document.querySelector('article').classList.add('zipco-notification-target')`);
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('article'),'::after').content`),'"Abierta desde la notificación"');
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('article')).animationName`),'zipco-notification-focus');
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('article')).animationName`),'none');
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-glass-blob')).animationName`),'none');
+ await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'notification-400.png'),Buffer.from(shot.data,'base64')));
+ await evaluate(`window.show('COORDINATION_PENDING',false)`);await wait('!!document.querySelector(".zipco-open-panel")');
+ await evaluate(`document.querySelector('.zipco-open-panel').click()`);await wait('document.querySelector("article").textContent.includes("Nota acordada")');
+ await delay(650);
+ assert.equal(await evaluate('window.posts'),0,'Disclosure does not submit an action');
+ await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'coordination-expanded-400.png'),Buffer.from(shot.data,'base64')));
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,realBackendAccess:false,orderActions:0}));
+ await send('Browser.close');
+}finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

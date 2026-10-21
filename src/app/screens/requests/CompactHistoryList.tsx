@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ProcessHistoryCard from './ProcessHistoryCard';
+import { AuroraProposalHeader } from './OrderCardAurora';
 import { hasRequestProcess } from './requestProcess';
 import {
   Calendar,
@@ -413,9 +414,12 @@ function CompactHistoryList({
                       markRead(item.kind, item.id);
                     }
                   }}
-                  className={`relative grid min-h-[76px] w-full grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border py-2.5 pl-8 pr-2.5 text-left shadow-sm transition-colors ${isUnread ? "border-cyan-400 bg-cyan-50 ring-1 ring-cyan-200 dark:border-cyan-400/80 dark:bg-cyan-950/35 dark:ring-cyan-500/30" : "border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-900"}`}
+                  data-unread={isUnread}
+                  data-aurora-history={item.kind === 'order' ? true : undefined}
+                  className={item.kind === 'order' ? 'zipco-aurora-card grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-[24px] py-4 pl-8 pr-3 text-left' : `relative grid min-h-[76px] w-full grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border py-2.5 pl-8 pr-2.5 text-left shadow-sm transition-colors ${isUnread ? "border-cyan-400 bg-cyan-50 ring-1 ring-cyan-200 dark:border-cyan-400/80 dark:bg-cyan-950/35 dark:ring-cyan-500/30" : "border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-900"}`}
                 >
-                  {item.image ? (
+                  {item.kind === 'order' ? <AuroraProposalHeader name={item.title} image={item.image} price={item.price}
+                    priceLabel="Registrado" statusLabel={item.statusLabel ?? presentation.label} isUnread={isUnread} /> : <>{item.image ? (
                     <ImageWithFallback
                       src={item.image}
                       alt={item.title}
@@ -444,13 +448,14 @@ function CompactHistoryList({
                         : `${item.priceIsStarting ? "Desde " : ""}${money(item.price)}`}
                     </span>
                   </span>
-                  <span className="flex min-w-[108px] items-center justify-end gap-1.5">
-                    <span
+                  </>}
+                  <span className={`flex items-center justify-end gap-1.5 ${item.kind === 'quote' ? 'min-w-[108px]' : ''}`}>
+                    {item.kind === 'quote' && <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${presentation.classes}`}
                     >
                       <StatusIcon className="h-3.5 w-3.5" />
                       {item.statusLabel ?? presentation.label}
-                    </span>
+                    </span>}
                     <span
                       role="button"
                       tabIndex={0}
@@ -475,7 +480,7 @@ function CompactHistoryList({
                         }
                       }}
                     >
-                      <ChevronRight className="h-5 w-5 text-slate-600" />
+                      <ChevronRight className={`h-5 w-5 ${item.kind === 'order' ? 'text-slate-200' : 'text-slate-600'}`} />
                     </span>
                   </span>
                 </motion.button>

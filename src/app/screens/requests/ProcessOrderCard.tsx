@@ -5,7 +5,7 @@ import type { BusinessRequest, MyOrder, NormalizedProducts } from './types';
 import { canAcceptFixedOrder, processStatusLabel } from './requestProcess';
 import { AcceptedConditionsPanel } from './AcceptedConditions';
 import useAgreement from './useAgreement';
-import { BusinessOrderHeader, CustomerOrderHeader } from './OrderCardHeaders';
+import { AuroraProposalHeader } from './OrderCardAurora';
 import { OrderCardDisclosure, OrderPricePanel } from './OrderCardPanels';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { formatDeliverySchedule } from './utils';
@@ -51,10 +51,15 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     badge: 'bg-slate-100 text-slate-700', panel: 'border-slate-200 from-white to-slate-50', accent: 'text-slate-700',
   };
   const toggle = () => { onOpen?.(); if (onToggle) onToggle(); else setLocalExpanded((value) => !value); };
-  const badge = <span role="status" className={`inline-flex max-w-full items-center justify-center rounded-full px-2 py-1.5 text-center text-[10px] font-black leading-tight ${tone.badge}`}>{stateLabel}</span>;
-  const styleState = awaiting ? 'pending' : coordination ? 'coordination' : 'unavailable';
+  const summary = negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : awaiting
+    ? business ? 'Revisa la solicitud y responde al cliente.' : 'Esperando la primera respuesta del negocio.'
+    : agreement.state.status === 'loading' ? 'Cargando condiciones aceptadas…'
+    : process?.state === 'IN_PROGRESS' ? business ? 'Continúa con la preparación del pedido.' : 'El negocio está preparando tu pedido.'
+    : process?.state === 'READY' ? process.readyNoticeAcknowledged ? 'Aviso confirmado. Pendiente de recepción.' : 'Pedido listo. Falta confirmar el aviso.'
+    : coordination ? business ? 'Revisa la autorización de contacto y coordina los siguientes pasos.' : 'Revisa la autorización de contacto y los siguientes pasos.'
+    : unavailableText;
   const conditionsHeader = <OrderCardDisclosure title="Condiciones aceptadas" hint={isExpanded ? 'Ocultar condiciones' : 'Revisar condiciones'}
-    price={price} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} acceptedSummary integrated />;
+    price={null} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} acceptedSummary integrated />;
   const coordinationActions = coordination && accepted && <CoordinationActions key="coordination-actions" order={order} business={business}
     service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />;
   const conditionsDetails = <AnimatePresence initial={false}>
@@ -76,24 +81,22 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     if ((event.target as Element).closest('button, a, input, select, textarea, [role="button"], [role="dialog"]')) return;
     event.currentTarget.classList.remove('zipco-notification-target');
     toggle();
-  }} className={business
-    ? `zipco-provider-card zipco-order-progress-card zipco-state-${styleState} ${isUnread ? 'zipco-new-card border-sky-300 ring-2 ring-sky-100' : 'border-slate-200'} scroll-mb-36 rounded-[22px] border p-3 transition-colors`
-    : `zipco-customer-order-card zipco-order-${styleState} scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? 'border-sky-400 bg-sky-100 ring-2 ring-sky-200' : 'border-slate-200 bg-gradient-to-br from-white to-slate-50'}`}>
-    {business ? <BusinessOrderHeader name={name} image={image} products={headerProducts} isUnread={isUnread} summaryText={negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : undefined}
-      statusLabel={stateLabel} badgeClass={tone.badge} attention={awaiting} unavailableText={unavailableText} />
-      : <CustomerOrderHeader name={name} image={image} products={headerProducts} total={price} isUnread={isUnread} summaryText={negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : undefined}
-        status={badge} statusInCorner unavailableText={unavailableText} />}
+  }} data-aurora-state={process?.state ?? 'unavailable'} data-unread={isUnread}
+    className="zipco-aurora-card scroll-mb-36 rounded-[24px] p-4">
+    <AuroraProposalHeader name={name} image={image} price={price} statusLabel={stateLabel} isUnread={isUnread}
+      priceLabel={awaiting ? 'Solicitado' : negotiating ? 'Propuesto' : 'Acordado'} summaryText={summary}
+      items={headerProducts.state === 'available' ? headerProducts.items : undefined} />
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}
-    {negotiating ? <p className="mt-3 text-sm font-bold text-violet-800">Propuesta vigente: {price === null ? 'Revisa sus condiciones' : `$${price.toLocaleString('es-CL')}`} · {processStatusLabel(order)}</p> : hasConditions ? <>
-      <section aria-label="Condiciones aceptadas" className={`mt-2.5 overflow-hidden rounded-[15px] border bg-gradient-to-br ${tone.panel} dark:border-teal-500/50 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40`}>
+    {negotiating ? null : hasConditions ? <>
+      <section aria-label="Condiciones aceptadas" className={`mt-2.5 overflow-hidden rounded-[15px] border bg-gradient-to-br text-slate-900 ${tone.panel} dark:border-teal-500/50 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40 dark:text-slate-100`}>
         {conditionsHeader}{conditionsDetails}
       </section>
       {coordinationActions}
     </> : <AnimatePresence initial={false} mode="wait">
       {!isExpanded ? <OrderCardDisclosure key="collapsed" title={awaiting ? (business ? 'Pedido del cliente' : 'Tu pedido') : 'Estado del proceso'}
-        hint={awaiting ? (business ? 'Revisar y responder' : 'Revisar pedido') : 'Actualizar pedido'} price={price}
+        hint={awaiting ? (business ? 'Revisar y responder' : 'Revisar pedido') : 'Actualizar pedido'} price={null}
         panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} />
         : <motion.div key="expanded" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
           {awaiting && <>
@@ -120,7 +123,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         </motion.div>}
     </AnimatePresence>}
     {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
-    {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} />}
+    {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} variant="aurora" />}
     {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>

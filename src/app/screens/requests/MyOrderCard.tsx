@@ -1,4 +1,5 @@
-import { CustomerOrderHeader } from './OrderCardHeaders';
+import { AuroraProposalHeader } from './OrderCardAurora';
+import { STATUS_LABELS } from './orderPresentation';
 import ProcessOrderCard from './ProcessOrderCard';
 import { hasRequestProcess } from './requestProcess';
 import {
@@ -71,10 +72,13 @@ export default function MyOrderCard({
         event.currentTarget.classList.remove("zipco-notification-target");
         onOpen?.();
       }}
-      className={`zipco-customer-order-card zipco-order-${order.status} scroll-mb-36 rounded-2xl border p-3 shadow-[0_8px_22px_rgba(15,23,42,0.08)] ${isUnread ? "border-sky-400 bg-sky-100 ring-2 ring-sky-200" : "border-slate-200 bg-gradient-to-br from-white to-slate-50"}`}
+      data-aurora-state={order.status} data-unread={isUnread}
+      className="zipco-aurora-card scroll-mb-36 rounded-[24px] p-4"
     >
-      <CustomerOrderHeader name={order.businessName} image={order.businessImage} products={order.products}
-        isUnread={isUnread} total={effectiveTotal} status={<OrderStatusBadge status={order.status} />}>
+      <AuroraProposalHeader name={order.businessName} image={order.businessImage}
+        items={order.products.state === 'available' ? order.products.items : undefined}
+        isUnread={isUnread} price={effectiveTotal} statusLabel={STATUS_LABELS[order.status]}
+        priceLabel={order.status === 'pending' ? 'Solicitado' : order.status === 'alternative_proposed' ? 'Propuesto' : 'Vigente'} />
           {schedule && (
             <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-1 text-[11px] font-semibold text-purple-800">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -84,11 +88,10 @@ export default function MyOrderCard({
             </p>
           )}
           {order.note && (
-            <p className="mt-1 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11px] italic leading-4 text-slate-500">
+            <p className="mt-1 flex items-start gap-1.5 whitespace-pre-wrap break-words text-[11px] italic leading-4 text-slate-300">
               <MessageCircle className="h-3.5 w-3.5 shrink-0" />“{order.note}”
             </p>
           )}
-      </CustomerOrderHeader>
       {order.status === "accepted" && (
         <div className="mt-3 rounded-2xl border border-cyan-300/55 bg-gradient-to-r from-cyan-50 via-sky-50 to-teal-50 p-3 dark:from-cyan-950/50 dark:via-slate-900 dark:to-teal-950/40">
           <p className="flex items-center justify-between text-xs font-black text-cyan-700 dark:text-cyan-200">

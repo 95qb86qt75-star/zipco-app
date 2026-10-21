@@ -1,6 +1,6 @@
 import { OrderCardDisclosure, OrderPricePanel } from './OrderCardPanels';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
-import { BusinessOrderHeader } from './OrderCardHeaders';
+import { AuroraProposalHeader } from './OrderCardAurora';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import ProcessOrderCard from './ProcessOrderCard';
 import { hasRequestProcess } from './requestProcess';
@@ -117,10 +117,13 @@ export default function BusinessOrderCard({
         handleOpen(event.currentTarget);
         onToggle?.();
       }}
-      className={`zipco-provider-card zipco-order-progress-card zipco-state-${request.status} ${isUnread ? "zipco-new-card border-sky-300 ring-2 ring-sky-100" : "border-slate-200"} scroll-mb-36 rounded-[22px] border p-3 transition-colors`}
+      data-aurora-state={request.status} data-unread={isUnread}
+      className="zipco-aurora-card scroll-mb-36 rounded-[24px] p-4"
     >
-      <BusinessOrderHeader name={request.customerName} image={request.customerImage} products={request.products}
-        isUnread={isUnread} statusLabel={statusLabel} badgeClass={tone.badge} attention={request.status === 'pending'} />
+      <AuroraProposalHeader name={request.customerName} image={request.customerImage}
+        items={request.products.state === 'available' ? request.products.items : undefined}
+        price={price} isUnread={isUnread} statusLabel={statusLabel}
+        priceLabel={request.status === 'pending' ? 'Solicitado' : request.status === 'alternative_proposed' ? 'Propuesto' : 'Vigente'} />
       {schedule && (
         <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
           {schedule.toLowerCase().includes("ahora") ? (
@@ -137,7 +140,7 @@ export default function BusinessOrderCard({
           <OrderCardDisclosure
             title={request.status === 'pending' ? 'Pedido del cliente' : request.status === 'ready' ? 'Pedido listo' : request.status === 'accepted' ? 'En preparación' : 'Seguimiento del pedido'}
             hint={request.status === 'pending' ? 'Revisar y responder' : request.status === 'accepted' ? 'Marcar como listo y notificar' : request.status === 'ready' ? 'Esperando confirmación del cliente' : 'Ver seguimiento'}
-            price={price} panelClass={tone.panel} accentClass={tone.accent}
+            price={null} panelClass={tone.panel} accentClass={tone.accent}
             onOpen={() => { onOpen?.(); onToggle?.(); }} />
         ) : (
           <motion.div
