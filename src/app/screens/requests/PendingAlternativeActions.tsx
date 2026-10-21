@@ -38,9 +38,9 @@ export function LocalAlternativePhoto({ onFile }: { onFile?: (file: File | null,
   </div>;
 }
 
-export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa' }: {
+export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original' }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
-  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void>; title?: string;
+  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void>; title?: string; baselineLabel?: string;
 }) {
   const [source] = useState(() => sourceOverride ?? alternativeSource(order));
   const [draft, setDraft] = useState<AlternativeDraft>(() => newAlternativeDraft(source));
@@ -122,6 +122,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               </select><span className="text-xs font-normal">Puedes ajustar cada línea; las demás se conservan.</span>
             </label>}
             {line && originalLine && <AlternativeChangeEditor key={index}
+              baselineLabel={baselineLabel}
               original={`${source.items.map(item => `${item.quantity}x ${item.name}`).join(' · ')} · ${source.total === null ? 'Total no disponible' : pesos(source.total)}`}
               originalNote={`Horario original: ${originalSchedule}.${source.orderType === 'service' ? ' Servicio: cantidad 1.' : ''}`}
               originalLine={originalLine} originalSchedule={originalSchedule} line={line}

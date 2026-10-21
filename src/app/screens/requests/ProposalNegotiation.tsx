@@ -167,6 +167,7 @@ export default function ProposalNegotiation({ order, business = false, refresh }
     </Dialog.Root>}
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
       sourceOverride={proposalDraftSource(read)} title={titles[draftAction]}
+      baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
       close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => execute(draftAction, review, file) : undefined} />}
   </div>;
 }

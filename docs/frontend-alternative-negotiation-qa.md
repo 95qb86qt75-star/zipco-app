@@ -124,7 +124,7 @@ recibido como solución a sus restricciones de Web Push.
 
 - **1125 pruebas / 96 archivos aprobados**. Contrato, acciones/actores, rondas,
   CUSTOM, acuerdos, idempotencia, almacenamiento corrupto, eventos diferenciados,
-  suppressión de duplicados y mantenimiento de avisos READY.
+  supresión de duplicados y mantenimiento de avisos READY.
 - Build QA/PWA aprobado. Se mantiene la advertencia de bundle >500kB. No se declara
   chequeo tsc independiente (el proyecto no tiene TypeScript instalado).
 - **12 recorridos táctiles Chrome sintéticos**: anchos393/320; envío+foto+aceptación,
@@ -162,3 +162,23 @@ ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
 Registrar commit/deployment verificados en cierre documental, sin repetir acciones.
 Railway no requiere intervención: backend ya activo. Sin cambios en backend,
 Railway, main ni producción. Avances anteriores conservados.
+
+## Publicación comprobada y cierre — 2026-10-20
+
+Código de integración enviado a GitHub/qa:
+`10170537180383b7c3544978006f63e9269e99ea`. Preview funcional **READY**:
+`dpl_HEvVcoeJkDxfuMSCSvfvA9f8qQ1t`, URL propia
+https://zipco-2sgot0c5d-zipco-s-projects.vercel.app. Verificados SHA GitHub exacto,
+target Preview, alias habitual, log de build qa completo y Backend QA configurado.
+Build global null y rama de producción main conservados.
+
+El cierre posterior conserva ese código e incorpora la precisión del rótulo de
+base del editor: primera oferta «Solicitud original»; contrapropuesta y final
+«Propuesta vigente». No confunde la base de edición con la solicitud original,
+que siempre sigue en la comparación. 30 pruebas relevantes aprobadas tras ese
+rótulo, build QA y repetición de los 12 recorridos sintéticos. Se versiona junto
+al catálogo y referencias; su SHA será la versión visible final en el alias QA,
+con el mismo override de build temporal. No se hicieron acciones reales.
+
+La prueba autenticada Android/iPhone, carga real y notificaciones físicas siguen
+pendientes. No cerrar todavía la validación integrada ni los reintentos fiables.

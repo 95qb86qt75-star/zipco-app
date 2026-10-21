@@ -22,6 +22,7 @@ type ScheduleValue = { immediate: boolean; date: string; time: string };
 
 type Props = {
   original: string;
+  baselineLabel?: string;
   originalNote: string;
   originalLine: AlternativeSource['items'][number];
   originalSchedule: string;
@@ -262,7 +263,7 @@ export default function AlternativeChangeEditor(props: Props) {
   return (
     <div className="mt-4 space-y-4">
       <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-900/70">
-        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Solicitud original</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">{props.baselineLabel ?? 'Solicitud original'}</p>
         <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{props.original}</p>
         <p className="mt-0.5 text-xs text-slate-500">{props.originalNote}</p>
       </div>

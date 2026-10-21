@@ -103,6 +103,7 @@ try {
     assert.equal(await evaluate('window.posts.length'),2);assert.equal(await evaluate('window.current.view'),'coordination');evidence.push('business-photo-customer-accept-'+width);
   }
   await reset(1,false);await decide('Hacer mi única contrapropuesta');await wait('!!document.querySelector("textarea")');
+  assert(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('Propuesta vigente')`),'Counter edits the current proposal while retaining the original in comparison');
   await touch('Producto');await fill('input[maxlength="120"]','Conjunto personalizado');await fill('input[aria-label="Precio total de la opción escrita"]','10001');await touch('Guardar');
   await fill('textarea','Cambio por un conjunto alternativo.','HTMLTextAreaElement');await touch('Revisar alternativa');await touch('Confirmar y enviar');await wait('window.current.state==="AWAITING_BUSINESS_COUNTER_RESPONSE"');
   assert.equal(await evaluate('window.posts[0].body.lineChanges[0].replacement.lineTotalPriceClp'),10001);

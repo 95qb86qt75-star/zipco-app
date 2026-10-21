@@ -234,3 +234,15 @@ animaciones finitas y movimiento reducido. Sin el aviso amarillo solicitado;
 envío bloqueado y renombrado del botón pausado. 1074 pruebas, build QA y nueve
 escenarios táctiles Chrome aprobados; Preview funcional READY. Prueba física
 pendiente. [Archivos y publicación](frontend-alternative-review-qa.md).
+
+### REQ-FRONTEND-ALTERNATIVES-V1-01 — Alternativas y respuestas con acuerdo exacto
+
+2026-10-20. Código `10170537180383b7c3544978006f63e9269e99ea`, rama qa.
+Conserva formulario/resumen aprobados; conecta envío, foto, comparación cliente,
+aceptación/rechazo, contrapropuesta única y propuesta final según permisos.
+Acuerdo schema2 y total negociado; avisos con identidad por propuesta/acción.
+1125 pruebas, build QA y 12 recorridos táctiles sintéticos +9 regresiones del
+diseño aprobados. Preview funcional READY; cierre añade precisión de rótulo
+«Propuesta vigente» al editar contrapropuesta/final. Prueba integrada física y
+reintentos fiables de notificaciones pendientes.
+[Contrato, archivos, pruebas y publicación](frontend-alternative-negotiation-qa.md).

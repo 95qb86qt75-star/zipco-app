@@ -94,3 +94,11 @@ Este cierre y las referencias se guardan en un commit documental posterior de qa
 con el mismo código funcional y override temporal al publicarlo. Su SHA será la
 versión visible final; el código de diseño es el commit funcional indicado arriba.
 La prueba física del diseño continúa pendiente; no se afirma envío real integrado.
+
+## Continuidad — integración de envío y respuestas
+
+El bloqueo de envío descrito en esta ficha pertenece al bloque visual histórico.
+La integración posterior REQ-FRONTEND-ALTERNATIVES-V1-01 conserva el diseño y conecta
+las acciones con Backend QA c1f3b57. Código 10170537180383b7c3544978006f63e9269e99ea.
+[Compatibilidad, validación y publicación](frontend-alternative-negotiation-qa.md).
+No confundir pruebas sintéticas con aprobación del recorrido real en celulares.
