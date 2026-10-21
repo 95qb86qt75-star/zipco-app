@@ -24,6 +24,7 @@ function processForRole(){const actor=proposalsFixture(Math.min(read.proposals.l
  return {...read.process,allowedActions:read.process.agreementPublicId||read.process.state==='CLOSED'?[]:actor.allowedActions};}
 window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;sessionStorage.clear();redraw();};
 window.role=(business)=>{role=business;redraw();};
+window.originalPhoto=()=>{read.proposals[0].subjectSnapshot.referencePhoto='https://res.cloudinary.com/test/image/upload/original.jpg';redraw();};
 window.fetch=async (input,options={})=>{
  const url=String(input);if(url.includes('api.cloudinary.com')){window.uploads++;return new Response(JSON.stringify({secure_url:'https://res.cloudinary.com/test/image/upload/synthetic.jpg'}));}
  if(url.endsWith('/proposals')){window.proposalReads++;if(window.pauseReads)await new Promise(resolve=>window.releaseRead=()=>{window.pauseReads=false;resolve();});if(window.getFails)throw Error('Synthetic read failure');if(window.stale){read=proposalsFixture(1,role);window.stale=false;}return new Response(JSON.stringify({...read,process:window.denyDraft?{...processForRole(),allowedActions:[]}:processForRole()}));}
@@ -97,7 +98,12 @@ try {
     await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Confirmar y enviar');b.click();b.click();})()`);
     await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('window.uploads'),1);
     assert.equal(await evaluate('window.feedback.length'),1,'Only confirmed business submission emits success feedback');
-    await evaluate('window.role(false)');await delay(100);await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');
+    await evaluate('window.role(false);window.originalPhoto()');await delay(100);await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');
+    assert.equal(await evaluate('document.querySelector("[data-original-details]").open'),false,'Original starts compact');
+    assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-chat-mine').getBoundingClientRect().height<150`),'Compact original with photo leaves space for proposal');
+    await evaluate('document.querySelector("[data-original-details] summary").click()');
+    assert(await evaluate(`document.querySelector('[data-original-details]').open && document.querySelector('[data-original-details]').textContent.includes('Nota original') && !!document.querySelector('[data-original-details] button')`),'Original note, snapshot and photo remain accessible');
+    await evaluate('document.querySelector("[data-original-details] summary").click()');
     assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"]').textContent.includes('$2.000') && document.querySelector('[data-proposal-sequence="1"]').textContent.includes('$3.000')`));
     assert.equal(await evaluate('document.querySelector("[role=dialog]").scrollWidth<=document.querySelector("[role=dialog]").clientWidth+1'),true);
     await evaluate(`document.querySelector('[data-proposal-sequence="1"] button').click()`);

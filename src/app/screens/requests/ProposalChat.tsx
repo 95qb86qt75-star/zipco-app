@@ -53,9 +53,23 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
   const message = proposal.sequence === 0 ? s.note : s.proposalMessage;
   const photo = proposal.sequence === 0 ? s.referencePhoto : s.proposalPhoto;
   const own = proposal.sequence % 2 === 0 ? 'cliente' : 'negocio';
+  const compactOriginal = mine && !business && proposal.sequence === 0;
+  const photoView = photo && <div className="mt-2.5"><OrderReferencePhoto src={photo} business={business} nestedDialog title={`Foto del ${own}`} caption={proposal.sequence === 0 ? 'Adjuntada con la solicitud original.' : 'Adjuntada con esta propuesta.'} /></div>;
   return <div data-proposal-sequence={proposal.sequence} className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
-    <div className={`${mine ? 'zipco-chat-mine' : 'zipco-chat-theirs'} max-w-[92%]`}>
-      <p className="zipco-chat-who">{label}</p>
+    <div className={`${mine ? 'zipco-chat-mine' : 'zipco-chat-theirs'} ${compactOriginal ? 'zipco-chat-original' : ''} max-w-[92%]`}>
+      {compactOriginal ? <>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><p className="zipco-chat-who">{label}</p><b className="text-sm tabular-nums">{money(proposal.totalPriceClp)}</b></div>
+        <p className="mt-0.5 line-clamp-2 break-words text-sm font-bold">{title}</p>
+        <details className="group mt-0.5" data-original-details>
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-[11px]">
+            <span className="min-w-0 truncate opacity-85">{when(proposal)}</span>
+            <span className="shrink-0 font-bold"><span className="group-open:hidden">Ver detalle{photo ? ' · Foto' : ''}</span><span className="hidden group-open:inline">Ocultar detalle</span></span>
+          </summary>
+          <Diff current={proposal} />
+          {message && <p className="mt-2 whitespace-pre-wrap break-words text-xs"><b>Nota:</b> {message}</p>}
+          {photoView}
+        </details>
+      </> : <><p className="zipco-chat-who">{label}</p>
       {mine ? <>
         <div className="mt-1 flex flex-wrap items-baseline justify-between gap-3"><b className="min-w-0 break-words text-[15px]">{title}</b><b className="text-[17px] tabular-nums">{money(proposal.totalPriceClp)}</b></div>
         <p className="mt-0.5 whitespace-pre-wrap break-words text-xs opacity-85">{when(proposal)}{message ? ` · “${message}”` : ''}</p>
@@ -67,7 +81,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
           <Diff current={proposal} previous={previous} />
         </div>
       </>}
-      {photo && <div className="mt-2.5"><OrderReferencePhoto src={photo} business={business} nestedDialog title={`Foto del ${own}`} caption={proposal.sequence === 0 ? 'Adjuntada con la solicitud original.' : 'Adjuntada con esta propuesta.'} /></div>}
+      {photoView}</>}
     </div>
     <p className="mt-0.5 text-[10.5px] text-slate-500 dark:text-slate-400">{day(proposal.createdAt)} · {time(proposal.createdAt)} (Chile)</p>
   </div>;

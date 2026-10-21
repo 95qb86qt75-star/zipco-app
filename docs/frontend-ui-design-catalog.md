@@ -361,3 +361,10 @@ turnos y fotos con autor correcto. Acciones y contrato existentes conservados.
 1145 pruebas/build QA y 21 recorridos Chrome sintéticos. Preview READY y alias QA
 comprobados por API. Revisión física pendiente.
 [Diseño, archivos y publicación](frontend-proposal-chat-qa.md).
+
+### UI-PROPOSAL-ORIGINAL-COMPACT-01 — Tú pediste resumido
+
+2026-10-21. Solo frontend, qa. Original del cliente compacto; nota, foto y snapshot
+en Ver detalle para dar espacio a la respuesta del negocio. 1145 pruebas/build QA
+y 21 recorridos Chrome sintéticos. Revisión física pendiente.
+[Archivos y publicación](frontend-proposal-original-compact-qa.md).

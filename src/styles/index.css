@@ -1612,6 +1612,7 @@ body {
 .zipco-chat-who { font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase }
 .zipco-chat-mine { min-width:0; overflow-wrap:anywhere; border-radius:20px 20px 4px 20px; padding:11px 13px; color:#fff; background:linear-gradient(145deg,#7c3aed,#4f46e5 75%); box-shadow:0 8px 18px rgba(91,79,240,.3) }
 .zipco-chat-mine .zipco-chat-who { color:#ddd6fe }
+.zipco-chat-mine.zipco-chat-original { padding:8px 12px; }
 .zipco-chat-theirs { min-width:0; overflow-wrap:anywhere; position:relative; isolation:isolate; overflow:hidden; border-radius:20px 20px 20px 4px; padding:12px 14px; color:#fff; background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%); box-shadow:0 12px 26px rgba(30,27,75,.3),inset 0 1px 0 rgba(255,255,255,.18) }
 .zipco-chat-theirs::before,.zipco-chat-theirs::after { content:""; position:absolute; z-index:-1; border-radius:50%; filter:blur(32px); pointer-events:none }
 .zipco-chat-theirs::before { right:-50px; top:-60px; width:200px; height:150px; background:rgba(139,92,246,.6); animation:zipco-chat-aur1 9s ease-in-out infinite }
