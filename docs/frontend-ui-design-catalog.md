@@ -246,3 +246,12 @@ diseño aprobados. Preview funcional READY; cierre añade precisión de rótulo
 «Propuesta vigente» al editar contrapropuesta/final. Prueba integrada física y
 reintentos fiables de notificaciones pendientes.
 [Contrato, archivos, pruebas y publicación](frontend-alternative-negotiation-qa.md).
+
+### UI-ALTERNATIVE-REVIEW-SHEEN-01 — Brillo visible del total propuesto
+
+2026-10-20. Código `7c296c5ee76caca77f196c1c65d3a4ade442a33c`, rama qa.
+Franja35%, intensidad50%, ciclo3,6s continuo en el resumen, según CSS aportado
+por Bastián. Conserva movimiento reducido y comportamiento del formulario/envío.
+Solo src/styles/index.css y documentación. Build QA y nueve escenarios táctiles
+de regresión aprobados; captura del brillo inspeccionada. Preview funcional READY;
+comprobación física pendiente. [Registro y publicación](frontend-alternative-review-qa.md).

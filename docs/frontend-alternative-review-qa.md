@@ -128,3 +128,10 @@ No se agregaron pruebas unitarias para este cambio CSS reversible.
 Pendiente comprobación visual física Android/iPhone. Publicar solo Vercel QA,
 guardar código e identificación del despliegue al comprobar READY. main,
 producción y avances previos conservados.
+
+Publicación comprobada del brillo: código `7c296c5ee76caca77f196c1c65d3a4ade442a33c`,
+origin/qa. Preview **READY**, `dpl_J5VkK33LU3yHdjDLx4estSrC5Yqm`, URL propia
+https://zipco-oc1bnkc9j-zipco-s-projects.vercel.app. SHA GitHub, alias habitual y
+logs de build QA completo comprobados; Backend QA conservado. Este resultado y
+la referencia de catálogo se versionan en un cierre documental posterior, cuyo
+despliegue conserva el mismo CSS y opciones QA. Prueba física pendiente.
