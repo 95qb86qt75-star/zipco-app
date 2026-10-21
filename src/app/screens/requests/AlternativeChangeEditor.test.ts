@@ -23,7 +23,7 @@ describe('provided alternative UI adapted to current rules', () => {
   it('opens four tiles in one row without checking them; CUSTOM leaves Precio available', () => {
     const props = base(); props.selected.add('item'); props.line.selected.add('item');
     const view = AlternativeChangeEditor(props);
-    expect(nodes(view).find(n => n.props.className === 'mt-2 grid grid-cols-4 gap-1.5')).toBeDefined();
+    expect(nodes(view).find(n => n.props.className?.includes('grid-cols-4'))).toBeDefined();
     const tiles = nodes(view).filter(n => n.props['aria-pressed'] !== undefined);
     expect(tiles.map(n => n.props['aria-label'])).toEqual(['Precio', 'Cantidad', 'Disponibilidad', 'Producto, cambio guardado']);
     expect(tiles[0].props.disabled).toBe(false); tiles[0].props.onClick();

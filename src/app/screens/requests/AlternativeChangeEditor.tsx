@@ -22,6 +22,7 @@ type ScheduleValue = { immediate: boolean; date: string; time: string };
 
 type Props = {
   original: string;
+  originalTotal?: number | null;
   baselineLabel?: string;
   originalNote: string;
   originalLine: AlternativeSource['items'][number];
@@ -262,15 +263,20 @@ export default function AlternativeChangeEditor(props: Props) {
 
   return (
     <div className="mt-4 space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-900/70">
-        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">{props.baselineLabel ?? 'Solicitud original'}</p>
-        <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{props.original}</p>
-        <p className="mt-0.5 text-xs text-slate-500">{props.originalNote}</p>
+      <div className="zipco-alt-orig">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="min-w-0 flex-1 basis-32">
+            <p className="zipco-alt-orig-label">{props.baselineLabel ?? 'Solicitud original'}</p>
+            <p className="mt-1 break-words text-sm font-extrabold">{props.original}</p>
+            <p className="mt-0.5 break-words text-xs text-white/70">{props.originalNote}</p>
+          </div>
+          {props.originalTotal != null && <p className="zipco-alt-orig-price">{pesos(props.originalTotal)}</p>}
+        </div>
       </div>
 
       <div>
-        <h4 className="text-sm font-black text-slate-900 dark:text-white">¿Qué cambia en tu propuesta?</h4>
-        <div className="mt-2 grid grid-cols-4 gap-1.5">
+        <h4 className="text-[15px] font-extrabold text-slate-900 dark:text-white">¿Qué cambia en tu propuesta?</h4>
+        <div className="mt-2.5 grid grid-cols-4 gap-2">
           {tiles.map(({ key, label, icon: Icon }) => {
             const active = selected.has(key);
             const isOpen = open === key;
@@ -282,16 +288,18 @@ export default function AlternativeChangeEditor(props: Props) {
                 aria-expanded={isOpen}
                 aria-label={active ? `${label}, cambio guardado` : label}
                 disabled={isOff(key)}
+                data-active={active}
+                data-open={isOpen}
                 onClick={() => changeOpen(isOpen ? null : key)}
-                className={`relative flex min-h-[72px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl border px-0.5 py-2 transition-all disabled:opacity-40 ${isOpen ? "border-violet-500 bg-white text-violet-700 ring-2 ring-violet-300 dark:bg-slate-900 dark:text-violet-200" : active ? "border-violet-400 bg-violet-500/15 text-violet-700 ring-1 ring-violet-300 dark:text-violet-200" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"}`}
+                className="zipco-alt-tile"
               >
                 <Icon className="h-5 w-5" />
                 <span className="max-w-full break-words text-center text-[10px] font-black leading-tight tracking-tight">{key === 'schedule'
                   ? <><span className="max-[360px]:hidden">Disponibilidad</span><span className="hidden max-[360px]:inline">Horario</span></>
                   : label}</span>
                 {active && (
-                  <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-white">
-                    <Check className="h-2.5 w-2.5" strokeWidth={3.5} />
+                  <span className="zipco-alt-tile-check">
+                    <Check className="h-2.5 w-2.5" strokeWidth={3.6} />
                   </span>
                 )}
               </button>
@@ -301,10 +309,10 @@ export default function AlternativeChangeEditor(props: Props) {
       </div>
 
       {rows.length > 0 && (
-        <ul className="space-y-1 rounded-xl bg-violet-50 p-3 text-xs dark:bg-violet-950/30">
+        <ul className="zipco-alt-rows space-y-1 text-xs">
           {rows.map(([label, text]) => (
             <li key={label} className="flex gap-2">
-              <span className="shrink-0 font-black">{label}</span>
+              <span className="shrink-0 font-black text-violet-800 dark:text-violet-200">{label}</span>
               <span className="min-w-0 break-words text-slate-700 dark:text-slate-200">{text}</span>
             </li>
           ))}
@@ -328,10 +336,10 @@ export default function AlternativeChangeEditor(props: Props) {
         />
       )}
 
-      <label className="block text-sm font-black text-slate-900 dark:text-white">
+      <label className="block text-[15px] font-extrabold text-slate-900 dark:text-white">
         <span className="flex items-baseline justify-between gap-2">
           Explica tu cambio o el motivo
-          <span className="text-xs font-normal text-slate-500">{props.message.length}/{props.messageMaxLength}</span>
+          <span className="text-[11.5px] font-normal tabular-nums text-slate-400">{props.message.length}/{props.messageMaxLength}</span>
         </span>
         <textarea
           value={props.message}
@@ -339,9 +347,9 @@ export default function AlternativeChangeEditor(props: Props) {
           rows={3}
           maxLength={props.messageMaxLength}
           placeholder="Ej: Puedo ofrecerte esta alternativa porque…"
-          className="zipco-readable-field mt-2 w-full rounded-xl border p-3 text-sm font-normal"
+          className="zipco-readable-field zipco-alt-ta mt-2 font-normal"
         />
-        <span className="mt-1 block text-xs font-normal text-slate-500">{props.explanationHint}</span>
+        <span className="mt-1.5 block text-[11.5px] font-normal leading-snug text-slate-500">{props.explanationHint}</span>
       </label>
 
       {props.photoFields}

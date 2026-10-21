@@ -74,13 +74,20 @@ try {
   await send('Network.enable'); await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
   const evidence = [];
-  const scenarios = [[400,870,'product'],[400,870,'service'],[393,852,'product'],[393,852,'service'],[320,700,'product'],[320,700,'service'],[393,852,'product',true],[393,500,'product'],[393,852,'product',false,true]];
-  for (const [width, height, type, multi, reduced] of scenarios) {
+  const scenarios = [[400,870,'product'],[400,870,'service'],[393,852,'product'],[393,852,'service'],[320,700,'product'],[320,700,'service'],[393,852,'product',true],[393,500,'product'],[393,852,'product',false,true],[320,700,'product',false,false,true],[393,852,'service',false,false,true]];
+  for (const [width, height, type, multi, reduced, dark] of scenarios) {
     await send('Emulation.setEmulatedMedia', { features: [{ name:'prefers-reduced-motion', value:reduced ? 'reduce' : 'no-preference' }] });
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: true });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?type=${type}${multi ? '&multi=1' : ''}` });
     await wait('document.querySelector("button")?.textContent === "Proponer alternativa"');
     await touch('Proponer alternativa'); await wait('!!document.querySelector("[role=dialog]")');
+    await evaluate(`document.documentElement.classList.toggle('dark',${Boolean(dark)});true`);
+    await delay(250);
+    if(dark) assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-alt-tile")).color'),'rgb(226, 232, 240)','Enabled dark tiles retain readable text after theme transition');
+    assert(await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Revisar alternativa').disabled`),'Invalid initial draft keeps review attenuated');
+    assert.equal(await evaluate('document.querySelector(".zipco-alt-orig-price").textContent'),type==='service'?'$1.000':multi?'$2.500':'$2.000','Original card displays full request total, not unit price');
+    if(reduced) assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-alt-orig"),"::before").animationName'),'none');
+    if(width===320||width===393){const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`prepare-accents-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64'));}
     const initial = await evaluate(`(() => { const d=document.querySelector('[role=dialog]'); return { fits:d.scrollWidth<=d.clientWidth+1,
       removedNotice:!d.textContent.includes('Solo preparación. Aún no se puede enviar al cliente.'), quantityDisabled:[...d.querySelectorAll('button')].find(b=>b.textContent.includes('Cantidad')).disabled }; })()`);
     assert(initial.fits && initial.removedNotice, 'Modal must fit without the removed visual notice');
@@ -93,6 +100,7 @@ try {
     await fill('input[aria-label="Nuevo precio por unidad"]', '1500');
     await touch('Guardar');
     assert.equal(await evaluate(`document.querySelector('button[aria-label="Precio, cambio guardado"]').getAttribute('aria-pressed')`), 'true');
+    assert.equal(await evaluate(`document.querySelector('button[aria-label="Precio, cambio guardado"]').dataset.active`),'true');
     await fill('textarea', 'Cambio de precio por nueva preparación.', 'HTMLTextAreaElement');
     await touch('Revisar alternativa');
     await wait('!!document.querySelector("[data-alternative-review]")');
@@ -146,7 +154,7 @@ try {
     const fixed = await evaluate(`(()=>{const body=document.querySelector('[data-alternative-body]');body.scrollTop=body.scrollHeight;return document.querySelector('[data-alternative-footer]').getBoundingClientRect().bottom;})()`);
     assert(Math.abs(fixed-geometry.footerBottom)<=2,'Body scroll must not move the footer');
     assert.equal(await evaluate('window.blockedRequests'),0);
-    evidence.push({ width, height, type, multi:!!multi, horizontalOverflow: false, submissionBlocked: true, draftDiscarded: true, fixedFooter:true, independentSelections:true });
+    evidence.push({ width, height, type, multi:!!multi, dark:!!dark, horizontalOverflow: false, submissionBlocked: true, draftDiscarded: true, fixedFooter:true, independentSelections:true });
   }
   console.log(JSON.stringify({ passed: evidence.length, touchEvents: true, backendAccess: false, orderActions: false, evidence }));
   await send('Browser.close');

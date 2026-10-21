@@ -345,3 +345,10 @@ grupos Cambió/Se mantuvo y ficha opcional de foto local. Conserva envío autori
 1140 pruebas, build QA y 24 escenarios Chrome sintéticos aprobados.
 Prueba física del diseño pendiente.
 [Archivos y publicación](frontend-alternative-review-ticket-qa.md).
+
+### UI-ALTERNATIVE-PREPARE-ACCENTS-01 — Clara con acentos
+
+2026-10-21. Solo frontend, qa. Primer formulario con original Aurora, fichas
+guardadas con gradiente, motivo y foto compacta; pie fijo y envío conservados.
+1140 pruebas/build QA y 26 escenarios Chrome sintéticos aprobados.
+Revisión física pendiente. [Diseño y publicación](frontend-alternative-prepare-accents-qa.md).

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ImagePlus, Trash2, X } from 'lucide-react';
+import { Check, ImagePlus, Trash2, X } from 'lucide-react';
 import type { ChangeKey } from './AlternativeProposalFields';
 import AlternativeChangeEditor, { type ChangeValues } from './AlternativeChangeEditor';
 import AlternativeReviewPanel from './AlternativeReviewPanel';
@@ -9,7 +9,6 @@ import type { BusinessRequest, MyOrder } from './types';
 
 type Order = BusinessRequest | MyOrder;
 const field = 'zipco-readable-field w-full rounded-xl border p-3 text-sm';
-const pesos = (value: number) => `$${value.toLocaleString('es-CL')}`;
 
 export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: File | null, preview: string) => void; onPreview?: (preview: string) => void } = {}) {
   const [photo, setPhoto] = useState('');
@@ -17,14 +16,18 @@ export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: F
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
   return <div>
-    {photo ? <div className="relative overflow-hidden rounded-2xl border border-violet-300">
-      <img src={photo} alt="Foto preparada para la alternativa" className="h-36 w-full object-cover" />
-      <button type="button" aria-label="Quitar foto preparada" onClick={() => { setPhoto(''); onFile?.(null, ''); onPreview?.(''); }} className="absolute right-2 top-2 rounded-full bg-slate-950/75 p-2 text-white"><Trash2 className="h-4 w-4" /></button>
-    </div> : <button type="button" onClick={() => input.current?.click()} className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-violet-400 bg-violet-500/5 p-3 text-left text-violet-700 dark:text-violet-200">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/15"><ImagePlus className="h-5 w-5" /></span>
-      <span><span className="block text-sm font-black">Agregar foto de referencia</span><span className="block text-xs opacity-70">Opcional, úsala si ayuda a explicar la propuesta.</span></span>
+    {photo ? <div className="flex items-center gap-3 rounded-[18px] bg-emerald-50 p-3 ring-[1.5px] ring-inset ring-emerald-300 dark:bg-emerald-950/30">
+      <span className="relative shrink-0">
+        <img src={photo} alt="Foto preparada para la alternativa" className="h-11 w-11 rounded-xl object-cover" />
+        <span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-500 text-white ring-2 ring-white"><Check className="h-3 w-3" strokeWidth={3.4} aria-hidden="true" /></span>
+      </span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-black text-emerald-900 dark:text-emerald-100">Imagen adjunta</span><span className="block text-xs text-emerald-700 dark:text-emerald-200">Preparada en este dispositivo</span></span>
+      <button type="button" aria-label="Quitar foto preparada" onClick={() => { setPhoto(''); onFile?.(null, ''); onPreview?.(''); }} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-emerald-700 ring-1 ring-inset ring-emerald-300"><Trash2 className="h-4 w-4" /></button>
+    </div> : <button type="button" onClick={() => input.current?.click()} className="flex w-full items-center gap-3 rounded-[18px] border-[1.5px] border-dashed border-violet-300 bg-violet-50 p-3.5 text-left dark:bg-violet-950/20">
+      <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-violet-100 to-teal-100 text-violet-700"><ImagePlus className="h-[22px] w-[22px]" /></span>
+      <span><span className="block text-sm font-black text-violet-800 dark:text-violet-200">Agregar foto de referencia</span><span className="block text-xs leading-snug text-slate-500">Opcional, úsala si ayuda a explicar la propuesta.</span></span>
     </button>}
-    <p className="mt-1 text-xs text-slate-500">{onFile ? 'La foto se cargará al confirmar el envío. JPG, PNG o WebP, hasta 8 MB.' : 'Foto solo en este formulario, sin subir ni guardar. JPG, PNG o WebP, hasta 8 MB.'}</p>
+    <p className="mt-1.5 text-[11px] leading-snug text-slate-400">{onFile ? 'La foto se cargará al confirmar el envío. JPG, PNG o WebP, hasta 8 MB.' : 'Foto solo en este formulario, sin subir ni guardar. JPG, PNG o WebP, hasta 8 MB.'}</p>
     {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
     <input ref={input} type="file" hidden accept="image/jpeg,image/png,image/webp" onChange={event => {
       const file = event.target.files?.[0]; event.target.value = '';
@@ -106,14 +109,18 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   };
 
   const originalSchedule = source.needNow ? 'Lo antes posible' : `${source.date || 'Sin fecha disponible'} · ${source.time || 'Sin hora disponible'}`;
+  const changeCount = draft.lines.reduce((count, value) => count + value.selected.size, 0) + Number(draft.scheduleChanged);
+  const preparationHint = !changeCount ? 'Elige al menos un cambio.' : draft.message.trim().length < 3
+    ? 'Explica el cambio (mínimo 3 caracteres).' : validation.review
+      ? `${changeCount} ${changeCount === 1 ? 'cambio listo' : 'cambios listos'} para revisar` : validation.error;
   return <Dialog.Root open onOpenChange={value => { if (!value && !sendLock.current) close(); }}>
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-      <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900">
-        <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className="absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full"><X className="h-5 w-5" /></button></Dialog.Close>
+      <Dialog.Content className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900`}>
+        <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className={`absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full ${reviewing ? '' : 'bg-slate-100 dark:bg-slate-800'}`}><X className="h-5 w-5" /></button></Dialog.Close>
         <div ref={body} data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
-          <Dialog.Title className="pr-7 text-lg font-black">{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
-          <Dialog.Description className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+          <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
+          <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
           {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
           <fieldset disabled={!current || sending} className={reviewing ? 'hidden' : ''}>
             {source.items.length > 1 && <label className="mt-3 block text-sm font-bold">Artículo a modificar
@@ -123,7 +130,8 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
             </label>}
             {line && originalLine && <AlternativeChangeEditor key={index}
               baselineLabel={baselineLabel}
-              original={`${source.items.map(item => `${item.quantity}x ${item.name}`).join(' · ')} · ${source.total === null ? 'Total no disponible' : pesos(source.total)}`}
+              original={`${source.items.map(item => `${item.quantity}x ${item.name}`).join(' · ')}${source.total === null ? ' · Total no disponible' : ''}`}
+              originalTotal={source.total}
               originalNote={`Horario original: ${originalSchedule}.${source.orderType === 'service' ? ' Servicio: cantidad 1.' : ''}`}
               originalLine={originalLine} originalSchedule={originalSchedule} line={line}
               schedule={{ immediate: draft.scheduleChanged ? draft.immediate : source.needNow, date: draft.scheduleChanged ? draft.date : source.date, time: draft.scheduleChanged ? draft.time : source.time }}
@@ -140,13 +148,14 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
           {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
             photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel} />}
         </div>
-        <div data-alternative-footer className="shrink-0 border-t border-slate-200 px-5 py-3 dark:border-slate-700">
+        <div data-alternative-footer className={`shrink-0 border-t border-slate-200 dark:border-slate-700 ${reviewing ? 'px-5 py-3' : 'bg-white px-[18px] pb-4 pt-2.5 dark:bg-slate-900'}`}>
+          {!reviewing && !editing && <p className="mb-2 text-center text-xs font-semibold text-violet-700 dark:text-violet-200">{preparationHint}</p>}
           {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}
           {showErrors && validation.error && <p role="alert" className="mb-2 text-sm text-red-700">{validation.error}</p>}
           {sendError && <p role="alert" className="mb-2 text-sm text-red-700">{sendError}</p>}
-          <div className="grid grid-cols-2 gap-2">
+          <div className={reviewing ? 'grid grid-cols-2 gap-2' : 'flex gap-2.5'}>
             {reviewing ? <button type="button" disabled={sending} onClick={() => setReviewing(false)} className="min-h-12 rounded-xl border py-3 font-bold">Volver al formulario</button>
-              : <Dialog.Close asChild><button type="button" className="min-h-12 rounded-xl border py-3 font-bold">Volver</button></Dialog.Close>}
+              : <Dialog.Close asChild><button type="button" className="zipco-alt-back">Volver</button></Dialog.Close>}
             {reviewing ? <button type="button" disabled={sending || !current || !validation.review || !canSubmitAlternative(Boolean(sourceOverride && onConfirm))}
               onClick={onConfirm ? async () => {
                 if (sendLock.current || !current || !validation.review) return;
@@ -155,7 +164,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
                 catch (error) { setSendError(error instanceof Error ? error.message : 'No se pudo confirmar el envío. Reintenta la misma operación.'); }
                 finally { sendLock.current = false; setSending(false); }
               } : undefined} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">{sending ? 'Enviando…' : 'Confirmar y enviar'}</button>
-              : <button type="button" disabled={!current || editing} onClick={() => { setShowErrors(true); if (current && !editing && validation.review) setReviewing(true); }} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">Revisar alternativa</button>}
+              : <div className="min-w-0 flex-[1.5]"><button type="button" disabled={!current || editing || !validation.review} onClick={() => { setShowErrors(true); if (current && !editing && validation.review) setReviewing(true); }} className="zipco-alt-go">Revisar alternativa</button></div>}
           </div>
         </div>
       </Dialog.Content>
