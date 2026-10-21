@@ -364,7 +364,8 @@ comprobados por API. Revisión física pendiente.
 
 ### UI-PROPOSAL-ORIGINAL-COMPACT-01 — Tú pediste resumido
 
-2026-10-21. Solo frontend, qa. Original del cliente compacto; nota, foto y snapshot
+2026-10-21. Solo frontend, qa. Código 51ef25c. Original del cliente compacto; nota, foto y snapshot
 en Ver detalle para dar espacio a la respuesta del negocio. 1145 pruebas/build QA
-y 21 recorridos Chrome sintéticos. Revisión física pendiente.
+y 21 recorridos Chrome sintéticos. Preview READY y alias QA comprobados.
+Revisión física pendiente.
 [Archivos y publicación](frontend-proposal-original-compact-qa.md).

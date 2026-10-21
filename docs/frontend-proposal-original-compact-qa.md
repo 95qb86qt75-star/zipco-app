@@ -24,4 +24,10 @@ final, idempotencia, versiones y visor de foto. Sin API/uploads/pedidos reales.
 Pendiente prueba física Android/iPhone y conformidad. Reintentos fiables de
 notificaciones siguen pendientes. Avances anteriores conservados.
 
-Publicación: registrar commit y READY/alias tras publicar Vercel QA.
+Publicación funcional: `51ef25c27249b89058717c1c10ccf9c52a611592`, origin/qa.
+Preview `dpl_D4JwNydN4cFBYqZpReBCKrN53Rvm` READY; SHA/ref qa y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Backend QA confirmado en preflight; build global null y productionBranch main.
+Build override: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
+Este resultado se respalda en cierre documental publicado con el mismo código
+funcional/opciones QA. Conformidad física pendiente.
