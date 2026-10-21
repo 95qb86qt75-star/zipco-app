@@ -74,3 +74,16 @@ siguen pendientes; este feedback no los resuelve.
 Commit/push qa y Vercel Preview QA, conservando el override temporal de build y
 Backend QA. Guardar nombre/código y resultado al comprobar READY. Sin modificar
 backend, Railway, main, producción ni avances anteriores.
+
+## Publicación comprobada — 2026-10-20
+
+Código `0ef735603d90b8a9945ad5aa15e3fa52bc86a7f6` enviado a origin/qa.
+Preview funcional **READY**, `dpl_4ejeKr2upMVYSRcwEcYrt2U4g1hb`, URL propia
+https://zipco-li4t79iyn-zipco-s-projects.vercel.app. Fuente GitHub/SHA exacto, build
+QA completo y alias habitual comprobados. Backend QA configurado conservado;
+build global null y rama de producción main sin cambios.
+
+Este resultado, el catálogo y el paso reportado por Bastián se guardan en un cierre
+documental posterior de qa, cuya publicación mantiene el mismo código funcional
+y override QA. Su SHA será la versión visible final. No se acredita aún la prueba
+física del holograma nuevo; el resto de validaciones integradas sigue pendiente.

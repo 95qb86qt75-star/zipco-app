@@ -182,3 +182,15 @@ con el mismo override de build temporal. No se hicieron acciones reales.
 
 La prueba autenticada Android/iPhone, carga real y notificaciones físicas siguen
 pendientes. No cerrar todavía la validación integrada ni los reintentos fiables.
+
+## Comprobación reportada y continuidad de UI — 2026-10-20
+
+Bastián informó que pasó la notificación y pudo enviar la respuesta al cliente.
+Se conserva como comprobación reportada de ese paso, sin extenderla a aceptación,
+rechazo, contrapropuesta/final, foto ni a ambos sistemas móviles. No repetir la
+operación confirmada para verificar feedback.
+
+Se añade [UI-ALTERNATIVE-SENT-HOLOGRAM-01](frontend-alternative-sent-hologram-qa.md),
+código 0ef735603d90b8a9945ad5aa15e3fa52bc86a7f6: reutiliza el holograma existente
+después del envío confirmado para indicar Esperando respuesta (negocio) y Por
+responder (cliente). Sin cambiar el contrato ni agregar otra notificación.

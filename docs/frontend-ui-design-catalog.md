@@ -255,3 +255,13 @@ por Bastián. Conserva movimiento reducido y comportamiento del formulario/enví
 Solo src/styles/index.css y documentación. Build QA y nueve escenarios táctiles
 de regresión aprobados; captura del brillo inspeccionada. Preview funcional READY;
 comprobación física pendiente. [Registro y publicación](frontend-alternative-review-qa.md).
+
+### UI-ALTERNATIVE-SENT-HOLOGRAM-01 — Confirmación de alternativa y ubicación
+
+2026-10-20. Código `0ef735603d90b8a9945ad5aa15e3fa52bc86a7f6`, rama qa.
+Reutiliza el holograma de Solicitudes tras el envío confirmado de alternativa o
+final: indica Esperando respuesta en negocio y Por responder en cliente. Dura
+2800ms, sobrevive a la salida de la tarjeta de Pendientes, no se repite por evento
+ni se emite ante fallo. Sin cambiar API, categorías, envío ni notificaciones.
+1135 pruebas, build QA y12 recorridos táctiles sintéticos aprobados. Prueba física
+del holograma pendiente. [Archivos y publicación](frontend-alternative-sent-hologram-qa.md).
