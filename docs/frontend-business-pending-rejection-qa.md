@@ -137,3 +137,11 @@ en ambos sistemas. Se conserva el historial anterior y sus límites de evidencia
 No se extiende esta confirmación a producción, a toda la app ni a la deuda de
 entrega fiable de avisos. Este registro es exclusivamente documental: no cambia
 código, contrato, configuración global ni estados de pedidos.
+
+## Diseño posterior del botón — 2026-10-21
+
+UI-REJECT-GLASS-01 aplica el diseño rojo de cristal entregado por Bastián solo
+a Rechazar solicitud. Formulario, motivos, confirmación y contrato anteriores
+se conservan. La conformidad funcional registrada arriba no implica aprobación
+del nuevo diseño; queda pendiente su revisión física.
+[Archivos, validación y publicación](frontend-reject-glass-button-qa.md).

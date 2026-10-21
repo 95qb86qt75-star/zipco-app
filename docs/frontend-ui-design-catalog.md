@@ -293,3 +293,11 @@ sintéticos aprobados. Preview funcional READY y alias QA comprobados por API.
 Bastián confirmó que funciona el 2026-10-21 sobre QA `58b6410`, sin especificar
 dispositivo ni cada acción. Diseño aprobado; no se extiende a todos los flujos
 o a ambos sistemas móviles. [Archivos, publicación y conformidad](frontend-accept-glass-buttons-qa.md).
+
+### UI-REJECT-GLASS-01 — Botón rojo Rechazar solicitud
+
+2026-10-21. Solo frontend, rama qa. Diseño entregado por Bastián aplicado solo
+al botón de entrada del rechazo inicial. Mantiene formulario, confirmación,
+permisos y acción; icono legacy protegido y botones verdes aprobados conservados.
+1137 pruebas/build QA, 8 combinaciones visuales rojas y 8 regresiones verdes
+aprobadas. Prueba física pendiente. [Archivos y publicación](frontend-reject-glass-button-qa.md).

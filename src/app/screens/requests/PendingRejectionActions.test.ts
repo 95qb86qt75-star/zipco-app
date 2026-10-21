@@ -12,6 +12,7 @@ vi.mock('./useCoordination', () => ({ default: () => ({ busy: state.busy, messag
   pending: () => state.pending, restored: () => state.restored, storageWarning: () => '',
   run: state.run, retry: state.retry, update: state.update }) }));
 import PendingRejectionActions from './PendingRejectionActions';
+import RejectGlassButton from './RejectGlassButton';
 import { normalizeBusinessOrdersPayload } from './orderNormalization';
 import { rejectPendingOrder } from './pendingRejectionFixtures';
 
@@ -23,7 +24,7 @@ const render = (input = rejectPendingOrder) => { state.index = 0; return Pending
 }); };
 const button = (root: React.ReactNode, text: string) => nodes(root).find(node => node.type === 'button' &&
   React.Children.toArray(node.props.children).includes(text))!;
-const open = () => button(render(), 'Rechazar solicitud').props.onClick({ currentTarget: null });
+const open = () => nodes(render()).find(node => node.type === RejectGlassButton)!.props.onClick({ currentTarget: null });
 const choose = (value: string) => nodes(render()).find(node => node.type === 'select')!.props.onChange({ target: { value } });
 beforeEach(() => { state.slots = []; state.busy = false; state.pending = null; state.restored = false;
   state.run.mockReset().mockResolvedValue(true); state.retry.mockReset(); state.update.mockReset(); vi.stubGlobal('React', React); });

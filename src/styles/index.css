@@ -1461,3 +1461,56 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .zipco-accept-wrap, .zipco-accept-blob, .zipco-accept-btn::after, .zipco-accept-check { animation: none; }
 }
+/* ===== Botón "Rechazar solicitud" liquid glass rojo (pegar al final de src/styles/index.css) ===== */
+.zipco-reject-wrap {
+  position: relative; display: block; overflow: hidden; margin-top: 10px; border-radius: 999px;
+  background: linear-gradient(115deg, #7f1d1d 0%, #dc2626 48%, #ef4444 100%);
+  box-shadow: 0 10px 26px rgba(220, 38, 38, .55), 0 0 0 1px rgba(252, 165, 165, .35);
+  animation: zipco-reject-halo 2.6s ease-in-out infinite;
+}
+.zipco-reject-blob { position: absolute; pointer-events: none; border-radius: 50%; filter: blur(6px); }
+.zipco-reject-b1 { left: -8px; top: -12px; width: 90px; height: 90px; background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .5), rgba(255, 255, 255, .08) 70%); animation: zipco-reject-d1 6s ease-in-out infinite; }
+.zipco-reject-b2 { right: -10px; bottom: -16px; width: 110px; height: 80px; background: radial-gradient(circle at 40% 40%, #fca5a5, rgba(252, 165, 165, .1) 72%); animation: zipco-reject-d2 7s ease-in-out infinite; }
+.zipco-reject-b3 { left: 48%; top: -20px; width: 70px; height: 70px; background: radial-gradient(circle at 40% 40%, #fdba74, rgba(253, 186, 116, .08) 72%); animation: zipco-reject-d3 5s ease-in-out infinite; }
+
+.zipco-reject-btn {
+  position: relative; isolation: isolate; overflow: hidden; display: flex; width: 100%; min-height: 56px;
+  align-items: center; gap: 12px; border: 0; border-radius: 999px; padding: 0 12px;
+  color: #fff; font-weight: 900; text-align: left;
+  text-shadow: 0 1px 3px rgba(76, 5, 25, .75), 0 0 10px rgba(76, 5, 25, .45);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .24) 0%, rgba(255, 255, 255, .04) 45%, rgba(255, 255, 255, .14) 100%);
+  -webkit-backdrop-filter: blur(5px) saturate(1.9) brightness(1.08); backdrop-filter: blur(5px) saturate(1.9) brightness(1.08);
+  box-shadow: inset 1.5px 1.5px 1px rgba(255, 255, 255, .95), inset -1.5px -1.5px 1px rgba(255, 255, 255, .45), inset 0 0 24px rgba(255, 255, 255, .3), 0 0 0 .5px rgba(255, 255, 255, .45);
+  transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), filter .2s;
+}
+.zipco-reject-btn::before { content: ""; position: absolute; left: 14%; right: 14%; top: 3px; height: 40%; z-index: -1; pointer-events: none; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, .65), rgba(255, 255, 255, 0)); }
+.zipco-reject-btn::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 24%; z-index: -1; pointer-events: none; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .6), transparent); transform: translateX(-140%) skewX(-18deg); animation: zipco-reject-sheen 3.4s ease-in-out 1.2s infinite; }
+.zipco-reject-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.zipco-reject-btn:active:not(:disabled) { transform: scale(.97); }
+.zipco-reject-btn:disabled { opacity: .65; }
+.zipco-reject-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.zipco-reject-btn > .zipco-reject-icon {
+  display: flex; flex: none; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .15));
+  box-shadow: inset 1.5px 1.5px 1px rgba(255, 255, 255, .95), 0 3px 8px rgba(76, 5, 25, .3);
+  animation: zipco-reject-wiggle 2.6s ease-in-out infinite;
+}
+.zipco-reject-label { flex: 1; min-width: 0; padding-right: 24px; text-align: center; white-space: nowrap; font-size: 17px; line-height: 1.1; letter-spacing: .12em; }
+.zipco-reject-wrap { min-width: 0; }
+.zipco-reject-btn { padding-block: 8px; }
+.zipco-reject-label { white-space: normal; overflow-wrap: anywhere; }
+.zipco-reject-btn:focus-visible { outline-offset: -3px; }
+@media (max-width: 380px) {
+  .zipco-reject-label { font-size: 15px; letter-spacing: .04em; padding-right: 8px; }
+}
+
+@keyframes zipco-reject-halo { 0%, 100% { box-shadow: 0 8px 22px rgba(220, 38, 38, .45), 0 0 0 1px rgba(252, 165, 165, .35); } 50% { box-shadow: 0 10px 32px rgba(239, 68, 68, .8), 0 0 0 1px rgba(252, 165, 165, .6); } }
+@keyframes zipco-reject-sheen { 0%, 50% { transform: translateX(-140%) skewX(-18deg); } 100% { transform: translateX(480%) skewX(-18deg); } }
+@keyframes zipco-reject-wiggle { 0%, 62%, 100% { transform: rotate(0) scale(1); } 70% { transform: rotate(-14deg) scale(1.12); } 78% { transform: rotate(12deg) scale(1.12); } 86% { transform: rotate(-6deg); } }
+@keyframes zipco-reject-d1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(200px, 8px) scale(1.15); } }
+@keyframes zipco-reject-d2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-180px, -4px) scale(.9); } }
+@keyframes zipco-reject-d3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-100px, 10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .zipco-reject-wrap, .zipco-reject-blob, .zipco-reject-btn::after, .zipco-reject-btn > .zipco-reject-icon { animation: none; }
+}

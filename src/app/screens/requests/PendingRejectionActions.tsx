@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { X } from 'lucide-react';
 import { coordinationAllowed } from './coordinationApi';
 import { PENDING_REJECTION_REASONS, validPendingRejectionReason, type PendingRejectionReason } from './requestProcess';
 import useCoordination from './useCoordination';
+import RejectGlassButton from './RejectGlassButton';
 import type { BusinessRequest, MyOrder } from './types';
 
 export default function PendingRejectionActions({ order, refresh }: {
@@ -31,11 +31,9 @@ export default function PendingRejectionActions({ order, refresh }: {
       : pending && !operation.busy ? <div className="space-y-2">
         <button type="button" onClick={() => void operation.retry()} className="min-h-12 w-full rounded-xl border px-3 text-sm font-bold">Reintentar rechazo pendiente</button>
         <button type="button" onClick={() => void operation.update()} className="min-h-12 w-full rounded-xl border px-3 text-sm font-bold">Actualizar estado</button>
-      </div> : <button type="button" disabled={operation.busy || !allowed} onClick={event => {
+      </div> : <RejectGlassButton disabled={operation.busy || !allowed} onClick={event => {
         previousFocus.current = event.currentTarget; setConfirm(false); setReason(''); setDetail(''); setOpen(true);
-      }} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-sm font-bold text-red-700 disabled:opacity-50 dark:text-red-300">
-        <X className="h-4 w-4" />Rechazar solicitud
-      </button>}
+      }} />}
     {open && allowed && !recover && (!pending || operation.busy) && <AlertDialog.Root open onOpenChange={value => {
       if (!value && !operation.busy) { setOpen(false); setConfirm(false); }
     }}><AlertDialog.Portal>
