@@ -1205,3 +1205,79 @@ body {
     font-size: 16px;
   }
 }
+
+/* ===== Revisión de alternativa: pegar al final de src/styles/index.css ===== */
+@keyframes zipco-review-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes zipco-review-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) rotate(-12deg);
+  }
+  60% {
+    transform: scale(1.12) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes zipco-review-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes zipco-review-sheen {
+  0%,
+  30% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(380%) skewX(-18deg);
+  }
+}
+
+.zipco-review-rise {
+  animation: zipco-review-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.zipco-review-pop {
+  animation: zipco-review-pop 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) 0.1s both;
+}
+.zipco-review-fill {
+  animation: zipco-review-fill 0.8s ease-out 0.1s both;
+}
+.zipco-review-total {
+  position: relative;
+  overflow: hidden;
+}
+.zipco-review-total::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 28%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.32), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+  animation: zipco-review-sheen 2.6s ease-in-out 0.9s 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zipco-review-rise,
+  .zipco-review-pop,
+  .zipco-review-fill,
+  .zipco-review-total::after {
+    animation: none;
+  }
+}

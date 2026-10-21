@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { ImagePlus, Trash2, X } from 'lucide-react';
 import type { ChangeKey } from './AlternativeProposalFields';
 import AlternativeChangeEditor, { type ChangeValues } from './AlternativeChangeEditor';
+import AlternativeReviewPanel from './AlternativeReviewPanel';
 import { alternativeSource, alternativeSourceCurrent, canPrepareAlternative, canSubmitAlternative, newAlternativeDraft, reviewAlternative, type AlternativeDraft } from './alternativeDraft';
 import type { BusinessRequest, MyOrder } from './types';
 
@@ -42,6 +43,8 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
   const [draft, setDraft] = useState<AlternativeDraft>(() => newAlternativeDraft(source));
   const [index, setIndex] = useState(0);
   const [reviewing, setReviewing] = useState(false);
+  const body = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (body.current) body.current.scrollTop = 0; }, [reviewing]);
   const [showErrors, setShowErrors] = useState(false);
   const [editing, setEditing] = useState(false);
   const [priceModes, setPriceModes] = useState(() => source.items.map(item => ({ unit: String(item.price), custom: '' })));
@@ -99,9 +102,9 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
       <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
       <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900">
         <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className="absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full"><X className="h-5 w-5" /></button></Dialog.Close>
-        <div data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
+        <div ref={body} data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
           <Dialog.Title className="pr-7 text-lg font-black">{reviewing ? 'Revisar alternativa' : 'Proponer una alternativa'}</Dialog.Title>
-          <Dialog.Description className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">Elige qué cambia. La solicitud original se conserva.</Dialog.Description>
+          <Dialog.Description className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
           {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
           <fieldset disabled={!current} className={reviewing ? 'hidden' : ''}>
             {source.items.length > 1 && <label className="mt-3 block text-sm font-bold">Artículo a modificar
@@ -124,23 +127,7 @@ export function AlternativeDraftDialog({ order, close }: { order: Order; close: 
               photoFields={null} />}
             {line && <div className="mt-4"><LocalAlternativePhoto /></div>}
           </fieldset>
-          {reviewing && validation.review && <div className="mt-4 space-y-3 rounded-2xl border border-violet-200 bg-violet-50/60 p-3 text-sm dark:bg-violet-950/30">
-            <p className="font-black">Comparación · Borrador sin enviar</p>
-            {source.items.map((item, i) => {
-              const proposed = draft.lines[i], changedItem = proposed.selected.has('item');
-              const quantity = proposed.selected.has('quantity') ? Number(proposed.quantity) : item.quantity;
-              const subtotal = changedItem ? Number(proposed.price) : (proposed.selected.has('price') ? Number(proposed.price) : item.price) * quantity;
-              return <div key={i} className="border-t border-violet-200 pt-2">
-                <p>Original: {item.quantity}x {item.name} · {pesos(item.price * item.quantity)}</p>
-                <p className="font-bold">Alternativa: {quantity}x {changedItem ? proposed.name.trim() : item.name} · {pesos(subtotal)}</p>
-                {changedItem && proposed.description.trim() && <p>{proposed.description.trim()}</p>}
-              </div>;
-            })}
-            <p>Total original: {source.total === null ? 'No disponible' : pesos(source.total)}</p>
-            <p className="font-black">Total propuesto: {pesos(validation.review.totalPriceClp)}</p>
-            <p>Fecha y hora propuestas: {(draft.scheduleChanged ? draft.immediate : source.needNow) ? 'Lo antes posible' : `${draft.scheduleChanged ? draft.date : source.date} · ${draft.scheduleChanged ? draft.time : source.time} (Chile)`}</p>
-            <p className="whitespace-pre-wrap break-words">Explicación: {validation.review.message}</p>
-          </div>}
+          {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review} />}
         </div>
         <div data-alternative-footer className="shrink-0 border-t border-slate-200 px-5 py-3 dark:border-slate-700">
           {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}

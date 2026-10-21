@@ -74,8 +74,9 @@ try {
   await send('Network.enable'); await send('Network.setBlockedURLs', { urls: ['https://*'] });
   await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
   const evidence = [];
-  const scenarios = [[400,870,'product'],[400,870,'service'],[393,852,'product'],[393,852,'service'],[320,700,'product'],[320,700,'service'],[393,852,'product',true],[393,500,'product']];
-  for (const [width, height, type, multi] of scenarios) {
+  const scenarios = [[400,870,'product'],[400,870,'service'],[393,852,'product'],[393,852,'service'],[320,700,'product'],[320,700,'service'],[393,852,'product',true],[393,500,'product'],[393,852,'product',false,true]];
+  for (const [width, height, type, multi, reduced] of scenarios) {
+    await send('Emulation.setEmulatedMedia', { features: [{ name:'prefers-reduced-motion', value:reduced ? 'reduce' : 'no-preference' }] });
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: true });
     await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}/?type=${type}${multi ? '&multi=1' : ''}` });
     await wait('document.querySelector("button")?.textContent === "Proponer alternativa"');
@@ -94,7 +95,15 @@ try {
     assert.equal(await evaluate(`document.querySelector('button[aria-label="Precio, cambio guardado"]').getAttribute('aria-pressed')`), 'true');
     await fill('textarea', 'Cambio de precio por nueva preparación.', 'HTMLTextAreaElement');
     await touch('Revisar alternativa');
-    await wait('document.querySelector("[role=dialog]")?.textContent.includes("Comparación · Borrador sin enviar")');
+    await wait('!!document.querySelector("[data-alternative-review]")');
+    await wait('document.querySelector(".zipco-review-total [aria-hidden]")?.textContent === document.querySelector(".zipco-review-total .sr-only")?.textContent');
+    assert.equal(await evaluate(`document.querySelector('[data-alternative-body]').scrollTop`), 0, 'Review must start at its heading');
+    if (reduced) assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-review-rise')).animationName`), 'none');
+    assert.equal(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('El envío aún no está habilitado')`), false);
+    if ((width===393||width===320) && height>=700 && type==='product' && !multi && !reduced) {
+      const shot=await send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(path.join(directory,`review-panel-${width}.png`),Buffer.from(shot.data,'base64'));
+    }
     const review = await evaluate(`(()=>{const d=document.querySelector('[role=dialog]');return {fits:d.scrollWidth<=d.clientWidth+1,
       blocked:[...d.querySelectorAll('button')].find(b=>b.textContent==='Confirmar y enviar')?.disabled,
       requests:window.blockedRequests, persisted:localStorage.length+sessionStorage.length};})()`);

@@ -12,6 +12,7 @@ vi.mock('react', async original => ({ ...await original<typeof import('react')>(
 }));
 import PendingAlternativeActions, { AlternativeDraftDialog, LocalAlternativePhoto } from './PendingAlternativeActions';
 import AlternativeChangeEditor from './AlternativeChangeEditor';
+import AlternativeReviewPanel from './AlternativeReviewPanel';
 import { normalizeBusinessOrdersPayload } from './orderNormalization';
 import { rawOrder, pendingProcess } from './requestProcessFixtures';
 type Node = React.ReactElement<Record<string, any>>;
@@ -47,7 +48,8 @@ describe('recovered alternative design, preparation only', () => {
     const review = render(); expect(nodes(review).find(n => n.type === Dialog.Title)?.props.children).toBe('Revisar alternativa');
     expect(button(review, 'Confirmar y enviar').props.disabled).toBe(true);
     expect(button(review, 'Confirmar y enviar').props.onClick).toBeUndefined();
-    expect(nodes(review).some(n => n.props.children === 'Comparación · Borrador sin enviar')).toBe(true);
+    expect(nodes(review).find(n => n.type === AlternativeReviewPanel)?.props.review).toMatchObject({ totalPriceClp: 3000, message: 'Cambio de precio por la preparación.' });
+    expect(nodes(review).some(n => typeof n.props.children === 'string' && n.props.children.includes('El envío aún no está habilitado'))).toBe(false);
     expect(fetch).not.toHaveBeenCalled(); expect(localStorage.setItem).not.toHaveBeenCalled(); expect(sessionStorage.setItem).not.toHaveBeenCalled();
     nodes(review).find(n => n.type === Dialog.Root)!.props.onOpenChange(false); expect(close).toHaveBeenCalledOnce();
     expect(JSON.stringify(o)).toBe(before);
