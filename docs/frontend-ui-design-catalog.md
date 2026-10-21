@@ -317,9 +317,11 @@ esta disposición pendiente. [Archivos y publicación](frontend-business-pending
 
 ### UI-BUSINESS-PENDING-REVEAL-01 — Apertura suave en un solo bloque
 
-2026-10-21. Solo frontend, rama qa. Corrige la aparición anticipada de Proponer
+2026-10-21. Código `0f71fd36fa5fb4a374e232867dd5f545f79a0239`, rama qa.
+Solo frontend. Corrige la aparición anticipada de Proponer
 y Rechazar: un solo revelado desde arriba para detalle, Aceptar, Proponer,
 Rechazar y Ocultar detalle. Conserva borradores, foco y movimiento reducido.
 1138 pruebas/build QA y 234 comprobaciones locales aprobadas, incluidas
-secuencias de fotogramas. Prueba física pendiente.
+secuencias de fotogramas. Preview funcional READY y alias QA comprobados por API.
+Prueba física pendiente.
 [Causa, archivos y publicación](frontend-business-pending-responses-qa.md).

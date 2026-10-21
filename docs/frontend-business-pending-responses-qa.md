@@ -135,3 +135,15 @@ Sin campos/endpoints/payloads nuevos o modificados; mismo contrato y Backend QA.
 No requiere Railway ni cambios en worker, main o producción. Se conservan los
 pendientes generales de notificaciones. Guardar commit/push en qa y publicar
 Preview con el override QA vigente; registrar READY en el cierre documental.
+
+### Publicación de la apertura suave — 2026-10-21
+
+Código `0f71fd36fa5fb4a374e232867dd5f545f79a0239`, enviado a origin/qa.
+Vercel Preview **READY**, `dpl_DqSsF6opXfEqYiKieoDVh7UNKYEc`, URL propia
+https://zipco-jh2mg20r6-zipco-s-projects.vercel.app. GitSource/SHA exacto, ref qa,
+target Preview y alias habitual comprobados por API. Se mantienen Backend QA,
+override de build, build global null y rama de producción main sin cambios.
+
+Este resultado y catálogo se guardan en un commit documental posterior,
+publicado con idéntico código funcional y build QA. Su SHA es la versión final.
+La conformidad de la nueva animación desde el celular sigue pendiente.
