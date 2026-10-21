@@ -92,9 +92,14 @@ try {
    assert(await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),r=card.getBoundingClientRect();return [...card.querySelectorAll('.zipco-aurora-header *')].every(e=>e.getBoundingClientRect().right<=r.right+1);})()`),'Large totals stay inside legacy headers');
    evidence.push(`${width}/${dark?'dark':'light'}/legacy/${business}/${state}`);
   }
-  await evaluate(`window.show('AWAITING_BUSINESS_RESPONSE',true)`);await wait('!!document.querySelector(".zipco-pending-business-responses[hidden]")');
-  assert(await evaluate(`!document.querySelector('.zipco-pending-business-responses').getClientRects().length`),'Pending response buttons are hidden initially');
-  await touch('.zipco-open-panel');await wait('!!document.querySelector(".zipco-accept-btn")');await delay(650);
+  await evaluate(`window.show('AWAITING_BUSINESS_RESPONSE',true)`);await wait('!!document.querySelector(\'.zipco-pending-business-responses[data-expanded="false"]\')');
+  assert(await evaluate(`document.querySelector('.zipco-pending-business-responses').inert&&document.querySelector('.zipco-pending-business-body').getBoundingClientRect().height<1`),'Pending response buttons are hidden and inert initially');
+  await evaluate(`window.revealFrames=[];window.revealEnd=performance.now()+800;requestAnimationFrame(function sample(){const body=document.querySelector('.zipco-pending-business-body'),r=body.getBoundingClientRect();const visible=s=>{const e=document.querySelector(s);if(!e||getComputedStyle(body.parentElement).visibility==='hidden')return false;const er=e.getBoundingClientRect();return Math.min(r.bottom,er.bottom)-Math.max(r.top,er.top)>1;};window.revealFrames.push({height:r.height,visible:['[data-pending-order-detail]','.zipco-accept-btn','.zipco-glass-btn','.zipco-reject-btn','.zipco-hide-order-detail'].map(visible)});if(performance.now()<window.revealEnd)requestAnimationFrame(sample);else window.revealDone=true;});true`);
+  await touch('.zipco-open-panel');await wait('window.revealDone===true');
+  const frames=await evaluate('window.revealFrames');
+  assert(frames.some(f=>f.height>1&&f.height<frames.at(-1).height-1),'Opening has intermediate heights');
+  assert(frames.every(f=>f.visible.every((shown,index)=>!shown||f.visible.slice(0,index).every(Boolean))),'Each frame reveals detail, accept, propose, reject and hide in order');
+  await evaluate('window.revealDone=false');
   assert.deepEqual(await evaluate(`[...document.querySelector('article').querySelectorAll('button')].filter(b=>b.getClientRects().length).map(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.textContent).trim())`),['Aceptar pedido','Proponer alternativa','Rechazar solicitud','Ocultar detalle']);
   assert.notEqual(await evaluate(`getComputedStyle(document.querySelector('.zipco-hide-order-detail')).boxShadow`),'none');
   await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`pending-expanded-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64')));
@@ -105,6 +110,7 @@ try {
   // Programmatic fold models a parent collapse while a portal is open; it must retain local state.
   await evaluate(`document.querySelector('.zipco-hide-order-detail').click()`);await delay(100);
   assert.equal(await evaluate(`document.querySelector('textarea').value`),'Motivo sintético conservado');
+  assert(await evaluate(`document.querySelector('.zipco-pending-business-responses').inert`),'Closing blocks interaction immediately');
   await touch('[role=alertdialog] button');await wait('!document.querySelector("[role=alertdialog]")');
   await wait('!!document.querySelector(".zipco-open-panel")');await touch('.zipco-open-panel');await delay(650);
   assert(await evaluate(`window.savedReject===document.querySelector('.zipco-reject-btn')&&window.savedProposal===document.querySelector('.zipco-glass-btn')`),'Folding retains response components');
@@ -132,11 +138,14 @@ try {
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('article')).animationName`),'none');
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-glass-blob')).animationName`),'none');
  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'notification-400.png'),Buffer.from(shot.data,'base64')));
+ await evaluate(`window.show('AWAITING_BUSINESS_RESPONSE',true)`);await wait('!!document.querySelector(".zipco-open-panel")');
+ await touch('.zipco-open-panel');
+ assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-pending-business-responses')).transitionDuration`),'0s','Reduced motion removes the reveal transition');
  await evaluate(`window.show('COORDINATION_PENDING',false)`);await wait('!!document.querySelector(".zipco-open-panel")');
  await evaluate(`document.querySelector('.zipco-open-panel').click()`);await wait('document.querySelector("article").textContent.includes("Nota acordada")');
  await delay(650);
  assert.equal(await evaluate('window.posts'),0,'Disclosure does not submit an action');
  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'coordination-expanded-400.png'),Buffer.from(shot.data,'base64')));
- console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,realBackendAccess:false,orderActions:0}));
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,realBackendAccess:false,orderActions:0}));
  await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

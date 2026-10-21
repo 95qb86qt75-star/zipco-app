@@ -93,3 +93,45 @@ El resultado y catálogo se guardan en un commit documental posterior, que se
 publica con idéntico código funcional/opciones. Su SHA es la versión visible
 final. La validación visual fue local; conformidad física de esta disposición
 pendiente. No se modificó ni repitió ninguna acción de pedidos reales.
+
+## UI-BUSINESS-PENDING-REVEAL-01 — Apertura suave y ordenada — 2026-10-21
+
+Clasificación: solo frontend. Base limpia QA `39b7bdffd4d28e0607737bfd31c283ccd94f1a6e`.
+Bastián confirmó que el plegado funciona, pero reportó que Proponer alternativa
+y Rechazar solicitud aparecían antes del detalle y Aceptar pedido. La conformidad
+con el plegado no se interpreta como aprobación de esa secuencia de animación.
+
+Causa comprobada en ProcessOrderCard: detalle/aceptación estaban dentro de
+AnimatePresence mode=wait y su motion.div de altura/opacidad, mientras el grupo
+externo de respuestas retiraba hidden inmediatamente al cambiar isExpanded.
+El grupo inferior aparecía mientras todavía terminaba la salida del acceso
+plegado y empezaba la animación separada del detalle.
+
+Corrección: detalle, foto, aceptación, propuesta, rechazo y cierre comparten
+un único contenedor de revelado. Su fila CSS Grid pasa de 0fr a 1fr en 360 ms,
+con opacidad de 240 ms y recorte común desde arriba. El acceso plegado ya no
+introduce un AnimatePresence separado para la solicitud inicial del negocio.
+No hay temporizadores ni demoras independientes por botón.
+
+Se conservan los componentes montados al plegar, incluido el detalle. Aria-hidden
+y el atributo nativo inert impiden anunciar/enfocar/operar controles plegados.
+Los portales conservan borrador y motivo si se pliega desde el padre. Un margen
+interno de recorte conserva los brillos de los botones. Movimiento reducido
+elimina la transición manteniendo el orden. Cliente, negociación posterior,
+coordinación, permisos, envíos y navegación no cambian.
+
+Archivos: ProcessOrderCard.tsx y src/styles/index.css; regresión existente en
+processCardVisualFlow.test.ts y scripts/check-order-card-aurora.mjs. El detalle
+se extrae a un nodo compartido para evitar dos versiones de sus datos/acciones.
+
+Validación: **1138 pruebas / 97 archivos**, build QA/PWA y **234 comprobaciones
+de navegador** aprobadas. Las seis aperturas de negocio a 320/393/400 px en ambos
+temas muestrean fotogramas: existen alturas intermedias y ningún control inferior
+se revela antes de sus anteriores. Se verifican orden final, foco bloqueado al
+cerrar, formularios conservados y transición anulada con movimiento reducido.
+Sin POST ni acceso al backend en la matriz sintética. Prueba física pendiente.
+
+Sin campos/endpoints/payloads nuevos o modificados; mismo contrato y Backend QA.
+No requiere Railway ni cambios en worker, main o producción. Se conservan los
+pendientes generales de notificaciones. Guardar commit/push en qa y publicar
+Preview con el override QA vigente; registrar READY en el cierre documental.

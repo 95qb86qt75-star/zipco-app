@@ -65,19 +65,20 @@ describe('reused 2A card design without legacy actions', () => {
     } }])[0];
     const responses = (view: React.ReactNode) => elements(view).find(node => node.props.className === 'zipco-pending-business-responses')!;
     const folded = render({ ...props, order, business: true });
-    expect(responses(folded).props.hidden).toBe(true);
+    expect(responses(folded).props).toMatchObject({ 'data-expanded': false, 'aria-hidden': true, inert: '' });
     const retained = elements(responses(folded)).filter(node => node.type === ProposalNegotiation || node.type === PendingRejectionActions);
     expect(retained).toHaveLength(2);
     (elements(folded).find(node => node.type === OrderCardDisclosure)!.props.onOpen as () => void)();
     const expanded = render({ ...props, order, business: true });
-    expect(responses(expanded).props.hidden).toBe(false);
+    expect(responses(expanded).props).toMatchObject({ 'data-expanded': true, 'aria-hidden': false });
+    expect(responses(expanded).props.inert).toBeUndefined();
     const nodes = elements(expanded);
     const hide = nodes.find(node => node.props.className === 'zipco-hide-order-detail')!;
     const orderOf = [AcceptGlassButton, ProposalNegotiation, PendingRejectionActions].map(type => nodes.findIndex(node => node.type === type));
     expect(orderOf[0]).toBeLessThan(orderOf[1]); expect(orderOf[1]).toBeLessThan(orderOf[2]); expect(orderOf[2]).toBeLessThan(nodes.indexOf(hide));
     (hide.props.onClick as (e: unknown) => void)(event());
     const closed = render({ ...props, order, business: true });
-    expect(responses(closed).props.hidden).toBe(true);
+    expect(responses(closed).props).toMatchObject({ 'data-expanded': false, 'aria-hidden': true, inert: '' });
     expect(elements(responses(closed)).filter(node => node.type === ProposalNegotiation || node.type === PendingRejectionActions).map(node => node.key))
       .toEqual(retained.map(node => node.key));
     expect(props.onAccept).not.toHaveBeenCalled(); expect(props.onRetry).not.toHaveBeenCalled();
@@ -386,7 +387,10 @@ describe('reused 2A card design without legacy actions', () => {
     expect(header.props.image).toBe(business ? raw.customerImage : raw.businessImage);
     const html = renderToStaticMarkup(view);
     expect(html).toContain('Nueva'); expect(html).toContain('zipco-open-panel');
-    expect(html).not.toContain('Imagen adjunta'); expect(html).not.toContain('Cancelar pedido');
+    if (business) expect(elements(view).find(node => node.props.className === 'zipco-pending-business-responses')?.props)
+      .toMatchObject({ 'aria-hidden': true, inert: '' });
+    else expect(html).not.toContain('Imagen adjunta');
+    expect(html).not.toContain('Cancelar pedido');
   });
 
   it('expands and collapses locally, marking the interaction read without dispatching an action', () => {

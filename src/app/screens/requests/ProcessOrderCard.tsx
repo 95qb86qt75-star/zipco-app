@@ -52,6 +52,23 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     badge: 'bg-slate-100 text-slate-700', panel: 'border-slate-200 from-white to-slate-50', accent: 'text-slate-700',
   };
   const toggle = () => { onOpen?.(); if (onToggle) onToggle(); else setLocalExpanded((value) => !value); };
+  const pendingDetails = awaiting && <>
+    <div data-pending-order-detail className={`mt-3 rounded-[16px] border bg-gradient-to-br p-3 ${tone.panel}`}>
+      <p className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.16em] ${tone.accent}`}>
+        <Sparkles className="h-4 w-4" />Detalle del nuevo pedido
+      </p>
+      {products.state === 'available' && products.items.map((item, index) => <div key={index} className="mt-2 flex items-start justify-between gap-3 text-xs">
+        <span className="min-w-0 font-semibold text-slate-800"><strong>{item.quantity}x</strong> {item.name}</span>
+        <span className="shrink-0 font-black text-teal-800">${(item.price * item.quantity).toLocaleString('es-CL')}</span>
+      </div>)}
+      {order.note && <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">Nota: {order.note}</p>}
+      {price !== null && <OrderPricePanel price={price} />}
+    </div>
+    {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={business} />}
+    {business && order.recordState === 'available' && canAcceptFixedOrder(order) && products.state === 'available' &&
+      <AcceptGlassButton label={isUpdating ? 'Guardando…' : 'Aceptar pedido'} price={isUpdating ? null : price} disabled={isUpdating}
+        onClick={(event) => { event.stopPropagation(); onAccept?.(); }} />}
+  </>;
   const summary = negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : awaiting
     ? business ? 'Revisa la solicitud y responde al cliente.' : 'Esperando la primera respuesta del negocio.'
     : agreement.state.status === 'loading' ? 'Cargando condiciones aceptadas…'
@@ -90,7 +107,8 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}
-    {negotiating ? null : hasConditions ? <>
+    {business && awaiting ? !isExpanded && <OrderCardDisclosure title="Pedido del cliente" hint="Revisar y responder" price={null}
+      panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} /> : negotiating ? null : hasConditions ? <>
       <section aria-label="Condiciones aceptadas" className={`mt-2.5 overflow-hidden rounded-[15px] border bg-gradient-to-br text-slate-900 ${tone.panel} dark:border-teal-500/50 dark:from-slate-900 dark:via-slate-900 dark:to-teal-950/40 dark:text-slate-100`}>
         {conditionsHeader}{conditionsDetails}
       </section>
@@ -100,35 +118,26 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         hint={awaiting ? (business ? 'Revisar y responder' : 'Revisar pedido') : 'Actualizar pedido'} price={null}
         panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} />
         : <motion.div key="expanded" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-          {awaiting && <>
-            <div className={`mt-3 rounded-[16px] border bg-gradient-to-br p-3 ${tone.panel}`}>
-              <p className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.16em] ${tone.accent}`}>
-                <Sparkles className="h-4 w-4" />Detalle del nuevo pedido
-              </p>
-              {products.state === 'available' && products.items.map((item, index) => <div key={index} className="mt-2 flex items-start justify-between gap-3 text-xs">
-                <span className="min-w-0 font-semibold text-slate-800"><strong>{item.quantity}x</strong> {item.name}</span>
-                <span className="shrink-0 font-black text-teal-800">${(item.price * item.quantity).toLocaleString('es-CL')}</span>
-              </div>)}
-              {order.note && <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-4 text-slate-600">Nota: {order.note}</p>}
-              {price !== null && <OrderPricePanel price={price} />}
-            </div>
-            {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={business} />}
-            {business && order.recordState === 'available' && canAcceptFixedOrder(order) && products.state === 'available' &&
-              <AcceptGlassButton label={isUpdating ? 'Guardando…' : 'Aceptar pedido'} price={isUpdating ? null : price} disabled={isUpdating}
-                onClick={(event) => { event.stopPropagation(); onAccept?.(); }} />}
-          </>}
+          {pendingDetails}
           {!(business && awaiting) && <button type="button" aria-expanded={true} onClick={(event) => { event.stopPropagation(); toggle(); }}
             className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>}
         </motion.div>}
     </AnimatePresence>}
     {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
-    <div className={business && awaiting ? 'zipco-pending-business-responses' : undefined} hidden={business && awaiting && !isExpanded}>
+    <div className={business && awaiting ? 'zipco-pending-business-responses' : undefined}
+      data-expanded={business && awaiting ? isExpanded : undefined} aria-hidden={business && awaiting ? !isExpanded : undefined}
+      {...(business && awaiting && !isExpanded ? { inert: '' } : {})}>
+      <div className={business && awaiting ? 'zipco-pending-business-body' : undefined}>
+      <div className={business && awaiting ? 'zipco-pending-business-content' : undefined}>
+      {business && awaiting && pendingDetails}
       {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} variant="aurora" />}
       {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
       {business && awaiting && <button type="button" aria-expanded={isExpanded}
         onClick={(event) => { event.stopPropagation(); toggle(); }} className="zipco-hide-order-detail">
         <ChevronUp aria-hidden="true" className="h-4 w-4 shrink-0" />Ocultar detalle
       </button>}
+      </div>
+      </div>
     </div>
     {agreement.state.status === 'error' && !isExpanded && <div role="alert" className="mt-2 text-sm">
       <p>{agreement.state.message}</p><button type="button" className="min-h-11 rounded-xl border px-3 py-2" onClick={(event) => { event.stopPropagation(); agreement.retry(); }}>Reintentar condiciones</button>

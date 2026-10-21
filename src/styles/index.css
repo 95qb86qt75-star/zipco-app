@@ -1515,8 +1515,22 @@ body {
   .zipco-reject-wrap, .zipco-reject-blob, .zipco-reject-btn::after, .zipco-reject-btn > .zipco-reject-icon { animation: none; }
 }
 
-/* Pending business responses stay mounted while the native hidden container folds. */
-.zipco-pending-business-responses > div > [role="alert"] { color: #fda4af; }
+/* One clipped reveal for detail and every pending response, in document order. */
+.zipco-pending-business-responses {
+  display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden;
+  margin-inline: -12px;
+  transition: grid-template-rows .36s cubic-bezier(.22,.61,.36,1), opacity .24s ease, visibility 0s linear .36s;
+}
+.zipco-pending-business-responses[data-expanded="true"] {
+  grid-template-rows: 1fr; opacity: 1; visibility: visible;
+  transition-delay: 0s;
+}
+.zipco-pending-business-body { min-height: 0; overflow: hidden; }
+.zipco-pending-business-content { padding: 0 12px 12px; }
+.zipco-pending-business-content > div > [role="alert"] { color: #fda4af; }
+@media (prefers-reduced-motion: reduce) {
+  .zipco-pending-business-responses { transition: none; }
+}
 .zipco-hide-order-detail {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; min-height: 44px; margin-top: 16px; padding: 10px 14px;
