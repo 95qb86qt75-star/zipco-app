@@ -84,3 +84,19 @@ build, build global null y rama de producción main conservados.
 Este resultado y catálogo se guardan en cierre documental posterior, publicado
 con idéntico código funcional/opciones. Su SHA identifica la versión final.
 Prueba física del acceso directo en Android/iPhone pendiente.
+
+## Conformidad de Bastián — 2026-10-21
+
+Sobre QA `2ae69e883354062f283024aabb41028f8942ae44`, Bastián confirmó
+«funcona excelente». Queda aprobado el acceso directo al formulario sin cuadro
+intermedio, UI-ALTERNATIVE-DIRECT-OPEN-01, código funcional `6f06059`.
+
+El mensaje no especifica dispositivo ni pruebas de error, lectura lenta o
+permisos retirados. No se extiende esa conformidad a ambos sistemas móviles,
+a todos los recorridos de negociación o al cierre general de notificaciones.
+No se repiten acciones del pedido para registrar la aprobación.
+
+Cierre solo documental: esta ficha y el catálogo. Revisión del diff, commit/push
+en qa y publicación con idéntico código funcional y build QA. No requiere
+repetir pruebas funcionales ni modificar campos, endpoints, backend, Railway,
+main o producción. Los pendientes generales se conservan.

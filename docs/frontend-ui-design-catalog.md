@@ -333,5 +333,7 @@ Solo frontend. Proponer alternativa verifica la lectura y
 abre el formulario aprobado directamente; carga en el botón y error/reintento
 en la tarjeta. Conserva permisos, comparación posterior, envío e idempotencia.
 1138 pruebas/build QA y 15 recorridos táctiles sintéticos aprobados.
-Preview funcional READY y alias QA comprobados por API. Prueba física pendiente.
+Preview funcional READY y alias QA comprobados por API. Bastián confirmó que
+funciona sobre QA `2ae69e8`, sin especificar dispositivo o escenarios de error.
+Acceso directo aprobado; no se extiende a todos los flujos o a ambos sistemas.
 [Causa, archivos y publicación](frontend-alternative-direct-open-qa.md).
