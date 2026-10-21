@@ -367,5 +367,8 @@ Historial y pedidos antiguos; se mantienen textos, acciones y condiciones reales
 No se acredita conformidad física por la entrega del diseño. Validación local:
 1137 pruebas, build QA, 228 combinaciones visuales y 12 recorridos táctiles
 sintéticos aprobados. Sin acciones contra pedidos reales, backend o producción.
-Pendiente revisar el resultado publicado desde Android/iPhone.
+Código `7f735502fdf30b34118ebb4e276ad46d960bf931` enviado a origin/qa;
+Preview funcional READY y alias QA comprobados por API. Sin acceso anónimo a la
+app por la protección existente de Vercel. Pendiente revisar el resultado
+publicado desde Android/iPhone.
 [Origen, archivos, alcance y publicación](frontend-order-card-aurora-qa.md).

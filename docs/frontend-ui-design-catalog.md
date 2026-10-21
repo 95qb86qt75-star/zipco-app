@@ -270,11 +270,13 @@ pruebas de negociación. [Archivos, publicación y comprobación](frontend-alter
 
 ### UI-ORDER-CARD-AURORA-01 — Tarjeta común por estado del pedido
 
-2026-10-21. Solo frontend, rama qa. Adaptación de los cuatro archivos de diseño
+2026-10-21. Código `7f735502fdf30b34118ebb4e276ad46d960bf931`, rama qa.
+Solo frontend. Adaptación de los cuatro archivos de diseño
 aportados por Bastián: Aurora nocturna, avatar, etiqueta, total y botón con luces.
 Se aplica a cliente/negocio en Pendientes, negociación, coordinación, En curso,
 Listos e Historial, con los textos/acciones existentes. Incluye pedidos antiguos,
 mantiene cotizaciones, acuerdo exacto, permisos, holograma y borde por notificación.
 1137 pruebas y build QA aprobados; 228 combinaciones visuales y 12 recorridos
-táctiles sintéticos. Prueba física Android/iPhone pendiente. Commit y resultado
+táctiles sintéticos. Preview funcional READY y alias QA comprobados por API.
+Prueba física Android/iPhone pendiente. Commit y resultado
 de publicación en la [ficha del diseño](frontend-order-card-aurora-qa.md).

@@ -118,3 +118,22 @@ Commit y push a origin/qa; publicar en Vercel Preview QA, con las mismas opcione
 por despliegue (`ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run
 build -- --mode qa`) y alias QA habitual. Registrar resultado READY en el cierre.
 Conservar todos los avances anteriores y no dejar documentación pendiente local.
+
+## Publicación comprobada — 2026-10-21
+
+Código `7f735502fdf30b34118ebb4e276ad46d960bf931`, enviado a origin/qa.
+Vercel Preview funcional **READY**, `dpl_F3j2TMNJi7f1Uu3VBNJAis2nPXtC`, URL propia
+https://zipco-7uc66dnpk-zipco-s-projects.vercel.app. GitSource GitHub/qa/SHA exacto
+y alias https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Logs de build QA y Build Completed comprobados. Backend QA verificado en
+configuración de Preview. Build global null y rama de producción main conservados.
+
+La consulta pública sin sesión redirige a Login de Vercel; no se toma ese HTML
+como una prueba de carga de ZIPCO ni se modifica la protección del Preview.
+La validación visual se realizó en el navegador local con la compilación QA;
+prueba física desde el acceso habitual instalado todavía pendiente.
+
+Este resultado, catálogo y registro de revisión se guardan en un commit
+documental posterior a la publicación. Mantiene el mismo código funcional y
+se publica con el mismo override de build QA; su SHA será la versión visible
+final. Sin cambios adicionales en comportamiento, backend, main o producción.
