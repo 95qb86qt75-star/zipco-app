@@ -64,4 +64,11 @@ Chrome no acredita Safari/WebKit. Reintentos fiables de notificaciones pendiente
 
 ## Publicación
 
-Registrar commit y READY/alias tras publicar Vercel QA.
+Código funcional `73800d9896b7cac13ed9eb31dbf9c718b73f0d2d`, enviado a origin/qa.
+Preview `dpl_98XWtpgYVhLXAkybnsmvXSq3j9jN` READY y alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+GitSource SHA/ref qa exactos. Backend QA confirmado en preflight;
+build global null y productionBranch main conservados. Build override:
+ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
+Este resultado y catálogo se respaldan en cierre documental y se publican
+con idéntico código funcional/opciones QA. Conformidad física aún pendiente.

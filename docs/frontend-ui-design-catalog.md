@@ -356,7 +356,8 @@ Preview funcional READY y alias QA comprobados. Revisión física pendiente.
 
 ### UI-PROPOSAL-CHAT-01 — Revisar propuesta en burbujas
 
-2026-10-21. Solo frontend, qa. Versiones cronológicas, comparación por línea,
+2026-10-21. Solo frontend, qa. Código 73800d9. Versiones cronológicas, comparación por línea,
 turnos y fotos con autor correcto. Acciones y contrato existentes conservados.
-1145 pruebas/build QA y 21 recorridos Chrome sintéticos. Revisión física pendiente.
+1145 pruebas/build QA y 21 recorridos Chrome sintéticos. Preview READY y alias QA
+comprobados por API. Revisión física pendiente.
 [Diseño, archivos y publicación](frontend-proposal-chat-qa.md).
