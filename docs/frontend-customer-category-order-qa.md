@@ -17,7 +17,13 @@ pedidos guardados. Railway QA no fue necesario. Main y producción intactos.
 Validación: 56 pruebas aprobadas en cinco archivos (selección, navegación desde
 notificaciones, agrupación, pantalla y pestañas). Se actualizó la expectativa
 del orden anterior en `RequestsScreen2A.test.ts`. Build QA/PWA aprobado; aviso
-de tamaño de bundle preexistente. Publicación pendiente de registrar.
+de tamaño de bundle preexistente.
+
+Código respaldado en GitHub, rama `qa`: `d776291b573adcd6e15686b8bceb1b13a194cae9`.
+Vercel QA READY: `dpl_Cc7d3PZxFbxZYmwhsEYUWV1hdv25`, commit exacto verificado;
+alias habitual `https://zipco-app-git-qa-zipco-s-projects.vercel.app` confirmado.
+Build con modo QA, diagnóstico de lecturas activo y trazas push desactivadas.
+Este registro de cierre también se respalda en Git y se publica en QA.
 
 Prueba en celular pendiente: entrar a Mis Pedidos con pedidos Por responder y
 Coordinación; comprobar ese orden y seleccionar ambas categorías para revisar
