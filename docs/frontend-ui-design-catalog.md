@@ -380,9 +380,9 @@ Preview READY y alias QA comprobados. Revisión física pendiente.
 
 ### PERF-REQUEST-CARDS-01 — Menor carga decorativa de las tarjetas
 
-2026-10-21. Solo frontend, qa. Gradientes estáticos y efectos breves en listas;
+2026-10-21. Solo frontend, qa. Código 9be29ca. Gradientes estáticos y efectos breves en listas;
 elimina filtros superpuestos y bucles permanentes conservando acciones/enfoque.
 Prueba local de 20 tarjetas: 140 a 0 animaciones infinitas; no acredita Safari.
 1146 pruebas/build QA, 234 verificaciones de tarjetas y 23 recorridos de negociación
-aprobados. Prueba física del iPhone pendiente.
+aprobados. Preview READY y alias QA comprobados. Prueba física del iPhone pendiente.
 [Evidencia, límites y publicación](frontend-request-card-render-budget-qa.md).

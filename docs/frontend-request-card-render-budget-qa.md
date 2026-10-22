@@ -62,4 +62,11 @@ entrar a Solicitudes, esperar unos segundos, deslizar varias tarjetas y capturar
 No se da por solucionada la lentitud en dispositivo antes de esa prueba.
 Reintentos fiables de notificaciones siguen pendientes.
 
-Publicación: registrar commit y comprobación READY/alias tras desplegar QA.
+Código funcional `9be29ca279e8e99bfd3d0dbd9acf5162839f1dc9`, origin/qa.
+Preview `dpl_D4QVqgYpuTktdBPernctJT3mXmqS` READY y alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+SHA/ref qa exactos, Backend QA confirmado en preflight; build global null y
+productionBranch main conservados. Build override:
+ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
+Resultado guardado en cierre documental publicado con el mismo código/opciones.
+No equivale a conformidad física: pendiente prueba del usuario en el iPhone.
