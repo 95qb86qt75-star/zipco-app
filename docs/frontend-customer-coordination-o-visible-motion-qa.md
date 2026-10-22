@@ -82,7 +82,13 @@ segundo plano/cubiertos por hoja, cliente con Ahora no sin POST, detalle con
 altura estable CPU4x y los ocho Q con sus tiempos, deduplicación y limpieza de
 sesión. Captura del cliente revisada:
 `node_modules/.cache/order-card-aurora-browser/customer-coordination-o.png`
-(evidencia local ignorada). Cero acciones reales. Publicación pendiente.
+(evidencia local ignorada). Cero acciones reales.
+
+Código/estilos/pruebas respaldados en GitHub `qa`: `0984c9d`.
+Publicación funcional Vercel QA READY: `dpl_HR6PpgGNzPiFf8vPkHLtCZW9LPj4`, SHA
+`0984c9d956c0b91fbc5bf1223bc6c2b6944f0d0e`, alias habitual confirmado
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app`.
+Este cierre también se respalda y publica en QA sin cambios funcionales nuevos.
 
 Prueba física pendiente, un paso a la vez en iPhone/Android: Mis Pedidos →
 Coordinación, comprobar tarjeta y hoja, Ahora no, autorización, chispas y apertura
