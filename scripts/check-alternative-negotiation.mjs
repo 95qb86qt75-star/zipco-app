@@ -142,8 +142,11 @@ try {
     const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`customer-comparison-${width}.png`),Buffer.from(shot.data,'base64'));
     await closeSheet('button');
     assert.equal(await evaluate('!!document.querySelector(".zipco-chat-foot").textContent.includes("Actualizar propuestas")'),false,'Refresh moved to header only');
-    await touch('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');await touch('Volver');assert.equal(await evaluate('window.posts.length'),1);
+    await touch('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-chat-panel .zipco-accept-check')).animationPlayState`),'paused','Covered customer review pauses while accepting');
+    await touch('Volver');assert.equal(await evaluate('window.posts.length'),1);
     await wait('!document.querySelector("[data-accept-authorize]")');await delay(250);
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-chat-panel .zipco-accept-check')).animationPlayState`),'running','Closing the top card resumes review effects');
     await touch('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');await touch('Solo aceptar · autorizo después');await wait('window.current.state==="COORDINATION_PENDING"');
     assert.equal(await evaluate('window.selectedView'),'coordination');
     assert(await evaluate('!!document.querySelector(".zipco-d-hs")'),'Success survives accepted card unmount');
@@ -293,6 +296,8 @@ try {
   for(const width of [320,393]){
     await send('Emulation.setDeviceMetricsOverride',{width,height:740,deviceScaleFactor:1,mobile:true});
     await reset(2,true);await decide('Aceptar contrapropuesta');await wait('!!document.querySelector("[data-accept-authorize]")');
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('[data-accept-authorize]')).animationDuration`),'0.18s','Business confirmation enters quickly');
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-chat-panel .zipco-accept-check')).animationPlayState`),'paused','Covered business review pauses');
     assert(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Todo listo para')&&document.querySelector('[data-accept-authorize]').textContent.includes('coordinar tu pedido')`));
     assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Aceptar y autorizar contacto')`),false,'Business card never offers unsupported automatic consent');
     assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Solo aceptar · autorizo después')`),false);

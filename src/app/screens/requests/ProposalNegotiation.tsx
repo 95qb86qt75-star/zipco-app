@@ -176,7 +176,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-        <Dialog.Content className="zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0">
+        <Dialog.Content data-accept-overlay={authCard || undefined} className="zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0">
           <div className="absolute right-2 top-2 z-10 flex gap-1">
             <button type="button" disabled={busy} aria-label="Actualizar propuestas" title="Actualizar propuestas" onClick={() => void load()} className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><RefreshCw className="h-[17px] w-[17px]" /></button>
             <Dialog.Close asChild><button type="button" disabled={busy} aria-label="Cerrar propuestas" className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><X className="h-[17px] w-[17px]" /></button></Dialog.Close>

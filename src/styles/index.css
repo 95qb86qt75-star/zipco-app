@@ -2035,3 +2035,33 @@ body {
 .zipco-d-wabtn-ic { flex:none; }
 .zipco-d-back { min-height:44px; }
 .zipco-sheet.holo :is(button,a):focus-visible { outline:3px solid #7c3aed; outline-offset:-3px; }
+
+/* PERF-ACCEPT-CARD-01: short entry, stable card border, covered review paused. */
+.zipco-chat-panel[data-accept-overlay="true"] *,
+.zipco-chat-panel[data-accept-overlay="true"] *::before,
+.zipco-chat-panel[data-accept-overlay="true"] *::after {
+  animation-play-state:paused !important;
+}
+.zipco-d-accept-overlay {
+  -webkit-backdrop-filter:blur(5px) saturate(1.1);
+  backdrop-filter:blur(5px) saturate(1.1);
+}
+.zipco-sheet.holo[data-accept-authorize] {
+  animation:none;
+  background-position:50% 0;
+}
+.zipco-sheet.holo[data-accept-authorize] :is(.zipco-d-rays,.zipco-d-wabtn) { animation:none; }
+.zipco-sheet.holo[data-accept-authorize] .zipco-d-rays { filter:none; }
+@keyframes zipco-d-accept-enter {
+  from { opacity:0; transform:translateY(6px); }
+  to { opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  .zipco-sheet.holo[data-accept-authorize] { animation:zipco-d-accept-enter .18s ease-out both; }
+  .zipco-sheet.holo[data-accept-authorize] .zipco-d-wabtn::after {
+    content:""; position:absolute; inset:0 auto 0 0; width:24%; z-index:-1;
+    pointer-events:none; background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+    transform:translateX(-140%) skewX(-18deg);
+    animation:zipco-accept-sheen 3.6s ease-in-out .6s infinite;
+  }
+}

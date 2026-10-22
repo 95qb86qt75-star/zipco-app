@@ -4,6 +4,14 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### PERF-ACCEPT-CARD-01 — Apertura rápida sin borde intermitente
+
+2026-10-22. Solo frontend, qa. Entrada180ms y borde estable en la confirmación;
+revisión cubierta pausada y efectos de vidrio conservados con menor carga.
+[Evidencia y límites](frontend-accept-card-render-budget-qa.md).
+El botón de negocio con consentimiento sigue pendiente de
+[coordinación contractual](frontend-business-counter-contact-contract-diagnostic-qa.md).
+
 ### UI-BUSINESS-COUNTER-ACCEPT-N-01 — Confirmación holograma del negocio
 
 2026-10-22. Solo frontend, qa. Aceptar contrapropuesta abre «Todo listo para

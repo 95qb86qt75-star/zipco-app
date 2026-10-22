@@ -20,7 +20,7 @@ export default function AcceptAuthorizeCard({ open, busy, counterpartName, busin
 }) {
   return <Dialog.Root open={open} onOpenChange={value => { if (!value && !busy) onClose(); }}>
     <Dialog.Portal>
-      <Dialog.Overlay className="zipco-sheet-ov" />
+      <Dialog.Overlay className="zipco-sheet-ov zipco-d-accept-overlay" />
       <Dialog.Content data-accept-authorize className="zipco-sheet holo"
         onPointerDownOutside={event => { if (busy) event.preventDefault(); }}
         onEscapeKeyDown={event => { if (busy) event.preventDefault(); }}
