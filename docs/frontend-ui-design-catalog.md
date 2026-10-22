@@ -372,7 +372,8 @@ Revisión física pendiente.
 
 ### UI-PROPOSAL-CHAT-H-01 — Detalles plegables y tabla de cambios
 
-2026-10-21. Solo frontend, qa. Burbujas con botones de vidrio independientes,
+2026-10-21. Solo frontend, qa. Código 9e8fc83. Burbujas con botones de vidrio independientes,
 resumen y tabla anterior/propuesta; foto compacta y datos completos conservados.
-1146 pruebas/build QA y 23 recorridos Chrome sintéticos aprobados. Revisión física pendiente.
+1146 pruebas/build QA y 23 recorridos Chrome sintéticos aprobados.
+Preview READY y alias QA comprobados. Revisión física pendiente.
 [Diseño, validación y publicación](frontend-proposal-chat-h-qa.md).
