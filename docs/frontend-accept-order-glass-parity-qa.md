@@ -48,3 +48,18 @@ Pendiente prueba física en Android y regresión de fluidez en iPhone después d
 publicar. Restaurar efectos en el botón visible tiene un coste visual mayor que
 la versión simplificada; la medición sintética de listas no demuestra su coste
 en WebKit real. Reintentos fiables de notificaciones siguen pendientes.
+
+## Conformidad de Bastián — 2026-10-22
+
+Tras publicar QA `be6c445` (cierre READY `dpl_2kAYZ36am8EWezBYErE3YFYyojGL`),
+Bastián confirmó «listo funciona genial». Se registra como aprobado el diseño
+y animación de Aceptar pedido en Mi Negocio, en el contexto de su prueba Android.
+No se asume una nueva prueba de fluidez en iPhone ni una matriz completa.
+La regresión física de iPhone y los reintentos fiables de notificaciones siguen
+pendientes. Esta conformidad actualiza el estado pendiente descrito arriba.
+
+Solo documentación: esta ficha y catálogo. Validación diff --check; el código
+funcional conserva las 1147 pruebas, build y verificaciones visuales anteriores,
+sin necesidad de repetirlos por este registro. Commit/push en qa y publicación
+QA con idéntico código y opciones; sin campos/endpoints ni Railway necesarios.
+main y producción intactos.

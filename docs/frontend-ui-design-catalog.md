@@ -8,6 +8,8 @@ no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
 2026-10-22. Solo frontend, qa. Aceptar pedido de Mi Negocio recupera el mismo
 vidrio, halo, check y luces de Aceptar propuesta, solo desplegado y visible.
+Bastián confirmó «listo funciona genial» tras QA be6c445 en el contexto Android.
+Diseño aprobado; regresión física de iPhone pendiente.
 [Diseño, validación y publicación](frontend-accept-order-glass-parity-qa.md).
 
 ### UI-RESPONSE-MOTION-01 — Movimiento de respuestas visibles
