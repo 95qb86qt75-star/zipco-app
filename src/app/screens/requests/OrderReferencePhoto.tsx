@@ -14,8 +14,8 @@ function renderPhotoPortal({ nested, open, setOpen, children }: { nested: boolea
 function PhotoContent({ nested, children }: { nested: boolean; children: ReactNode }) {
   return nested ? <Dialog.Content asChild aria-describedby={undefined}>{children}</Dialog.Content> : <>{children}</>;
 }
-export default function OrderReferencePhoto({ src, business = true, title = 'Imagen adjunta', caption, nestedDialog = false }: {
-  src: string | null; business?: boolean; title?: string; caption?: string; nestedDialog?: boolean;
+export default function OrderReferencePhoto({ src, business = true, title = 'Imagen adjunta', caption, nestedDialog = false, compact = false }: {
+  src: string | null; business?: boolean; title?: string; caption?: string; nestedDialog?: boolean; compact?: boolean;
 }) {
   const [showPhoto, setShowPhoto] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -46,7 +46,7 @@ export default function OrderReferencePhoto({ src, business = true, title = 'Ima
         event.stopPropagation();
         setShowPhoto(true);
       }}
-      className="group relative mt-3 flex min-h-14 w-full items-center gap-3 overflow-hidden rounded-[16px] border border-cyan-300/70 bg-gradient-to-r from-cyan-50 via-white to-teal-50 px-3 text-left shadow-[0_6px_18px_rgba(34,211,238,0.13)] transition active:scale-[0.98] dark:border-cyan-400/30 dark:from-cyan-400/10 dark:via-slate-900 dark:to-teal-400/10"
+      className={`group relative flex w-full items-center overflow-hidden rounded-[16px] border border-cyan-300/70 bg-gradient-to-r from-cyan-50 via-white to-teal-50 text-left shadow-[0_6px_18px_rgba(34,211,238,0.13)] transition active:scale-[0.98] dark:border-cyan-400/30 dark:from-cyan-400/10 dark:via-slate-900 dark:to-teal-400/10 ${compact ? 'mt-1 min-h-11 gap-2 px-2 py-1' : 'mt-3 min-h-14 gap-3 px-3'}`}
     >
       <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-cyan-200/20 to-transparent dark:via-cyan-300/5" />
       <motion.span
@@ -57,15 +57,15 @@ export default function OrderReferencePhoto({ src, business = true, title = 'Ima
           repeat: Infinity,
           ease: "easeInOut",
         }}
-        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-[0_0_16px_rgba(34,211,238,0.55)]"
+        className={`relative flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-white shadow-[0_0_16px_rgba(34,211,238,0.55)] ${compact ? 'h-8 w-8' : 'h-10 w-10'}`}
       >
         <ImageIcon className="h-5 w-5" />
       </motion.span>
       <span className="relative min-w-0 flex-1">
-        <strong className="block text-sm font-black text-slate-900 dark:text-white">
+        <strong className={`block font-black text-slate-900 dark:text-white ${compact ? 'text-xs' : 'text-sm'}`}>
           {title}
         </strong>
-        <span className="block text-xs text-slate-500 dark:text-slate-300">
+        <span className={`block text-slate-500 dark:text-slate-300 ${compact ? 'text-[10px]' : 'text-xs'}`}>
           {caption ?? (business ? 'El cliente agregó una foto de referencia.' : 'Agregaste una foto de referencia.')}
         </span>
       </span>

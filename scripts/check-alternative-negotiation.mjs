@@ -25,6 +25,7 @@ function processForRole(){const actor=proposalsFixture(Math.min(read.proposals.l
 window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;sessionStorage.clear();redraw();};
 window.role=(business)=>{role=business;redraw();};
 window.originalPhoto=()=>{read.proposals[0].subjectSnapshot.referencePhoto='https://res.cloudinary.com/test/image/upload/original.jpg';redraw();};
+window.chatStress=(kind)=>{for(const p of read.proposals){const s=p.subjectSnapshot;s.items[0].nameSnapshot='NombreExtensoSinEspacios'.repeat(5);s.items[0].descriptionSnapshot=('Descripción larga con detalle. ').repeat(15)+(p.sequence?' Cambio.':'');if(kind==='service'){s.orderType='service';s.items[0].quantity=1;s.items[0].subtotalClp=s.items[0].unitPriceClpSnapshot;}else{s.items.push({...s.items[0],nameSnapshot:'Segundo artículo',quantity:1,subtotalClp:s.items[0].unitPriceClpSnapshot});}p.totalPriceClp=s.items.reduce((n,it)=>n+it.subtotalClp,0);}read.process.proposalSummary.totalPriceClp=read.proposals.at(-1).totalPriceClp;redraw();};
 window.fetch=async (input,options={})=>{
  const url=String(input);if(url.includes('api.cloudinary.com')){window.uploads++;return new Response(JSON.stringify({secure_url:'https://res.cloudinary.com/test/image/upload/synthetic.jpg'}));}
  if(url.endsWith('/proposals')){window.proposalReads++;if(window.pauseReads)await new Promise(resolve=>window.releaseRead=()=>{window.pauseReads=false;resolve();});if(window.getFails)throw Error('Synthetic read failure');if(window.stale){read=proposalsFixture(1,role);window.stale=false;}return new Response(JSON.stringify({...read,process:window.denyDraft?{...processForRole(),allowedActions:[]}:processForRole()}));}
@@ -99,14 +100,15 @@ try {
     await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('window.uploads'),1);
     assert.equal(await evaluate('window.feedback.length'),1,'Only confirmed business submission emits success feedback');
     await evaluate('window.role(false);window.originalPhoto()');await delay(100);await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');
-    assert.equal(await evaluate('document.querySelector("[data-original-details]").open'),false,'Original starts compact');
+    assert.equal(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').getAttribute('aria-expanded')`),'false','Original starts compact');
     assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-chat-mine').getBoundingClientRect().height<150`),'Compact original with photo leaves space for proposal');
-    await evaluate('document.querySelector("[data-original-details] summary").click()');
-    assert(await evaluate(`document.querySelector('[data-original-details]').open && document.querySelector('[data-original-details]').textContent.includes('Nota original') && !!document.querySelector('[data-original-details] button')`),'Original note, snapshot and photo remain accessible');
-    await evaluate('document.querySelector("[data-original-details] summary").click()');
+    await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').click()`);
+    assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-chat-detail').hidden===false && document.querySelector('[data-proposal-sequence="0"]').textContent.includes('Nota original') && !!document.querySelector('[data-proposal-sequence="0"] .zipco-chat-detail button')`),'Original note, snapshot and photo remain accessible');
+    await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').click()`);
     assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"]').textContent.includes('$2.000') && document.querySelector('[data-proposal-sequence="1"]').textContent.includes('$3.000')`));
     assert.equal(await evaluate('document.querySelector("[role=dialog]").scrollWidth<=document.querySelector("[role=dialog]").clientWidth+1'),true);
-    await evaluate(`document.querySelector('[data-proposal-sequence="1"] button').click()`);
+    await evaluate(`document.querySelector('[data-proposal-sequence="1"] .zipco-glassbtn').click()`);
+    await evaluate(`document.querySelector('[data-proposal-sequence="1"] button:not(.zipco-glassbtn)').click()`);
     await wait(`!!document.querySelector('button[aria-label="Cerrar imagen"]')`);
     assert(await evaluate(`(()=>{const b=document.querySelector('button[aria-label="Cerrar imagen"]'),r=b.getBoundingClientRect();return document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===b||b.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));})()`),'Photo close must be above the proposal dialog');
     await touch('Cerrar imagen');
@@ -141,9 +143,10 @@ try {
       assert.equal(await evaluate('document.querySelectorAll(".zipco-chat-foot button[aria-label]").length'),0,'Closed history offers no new decisions');
     }
   }
-  for(const [sequence,business,width,dark,reduced] of [[1,false,320,false,false],[1,false,393,true,true],[2,true,320,false,false],[2,false,393,true,false],[3,false,320,true,true],[3,true,393,false,false]]){
+  for(const [sequence,business,width,dark,reduced,stress] of [[1,false,320,false,false],[1,false,393,true,true],[2,true,320,false,false],[2,false,393,true,false],[3,false,320,true,true],[3,true,393,false,false],[1,false,320,false,false,'multi'],[1,false,393,true,true,'service']]){
     await send('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:true});
     await reset(sequence,business);await evaluate(`document.documentElement.classList.toggle('dark',${dark});true`);
+    if(stress)await evaluate(`window.chatStress(${JSON.stringify(stress)})`);
     await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]});
     await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');await delay(850);
     assert.equal(await evaluate(`(()=>{const d=document.querySelector('[role=dialog]');return d.scrollWidth<=d.clientWidth+1;})()`),true,'Chat must fit narrow screens');
@@ -153,7 +156,14 @@ try {
     if(reduced)assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-chat > *")).animationName'),'none');
     assert.equal(await evaluate('window.posts.length'),0,'Reading chat never sends an action');
     const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`chat-${sequence}-${business?'business':'customer'}-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64'));
-    evidence.push(`chat-${sequence}-${business}-${width}-${dark}-${reduced}`);
+    await evaluate(`document.querySelector('[data-proposal-sequence="${sequence}"] .zipco-glassbtn').click()`);await delay(950);
+    assert.equal(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').getAttribute('aria-expanded')`),'false','Opening a proposal preserves independent original disclosure');
+    assert.equal(await evaluate(`(()=>{const d=document.querySelector('[role=dialog]');return d.scrollWidth<=d.clientWidth+1;})()`),true,'Expanded comparison fits narrow screens');
+    if(reduced)assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-chat-cell-new")).animationName'),'none');
+    await evaluate(`(()=>{const b=document.querySelector('[data-proposal-sequence="${sequence}"]');(b.querySelector('.zipco-chat-table')||b.querySelector('.zipco-chat-detail')).scrollIntoView({block:'center',behavior:'instant'});return true;})()`);
+    if(width>=390)assert(await evaluate(`(()=>{const label=document.querySelector('[data-proposal-sequence="${sequence}"] .zipco-glassbtn-label');return label.scrollWidth<=label.clientWidth+1;})()`),'Expanded detail label fits at 390px');
+    const opened=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`chat-h-open-${sequence}-${business?'business':'customer'}-${width}-${dark?'dark':'light'}.png`),Buffer.from(opened.data,'base64'));
+    evidence.push(`chat-${sequence}-${business}-${width}-${dark}-${reduced}${stress?'-'+stress:''}`);
   }
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.fail=true');await touch('Confirmar y enviar');await wait('!!document.querySelector("[role=alert]")');
   assert.equal(await evaluate('window.feedback.length'),0,'Failed send must not display a success hologram');
