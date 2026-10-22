@@ -97,7 +97,15 @@ los hologramas contienen una entrada animada antes de mostrar sus textos.
 Los fallos iniciales fueron expectativas del diseño anterior y sincronización/
 codificación de controles en el script de navegador; se actualizaron y repitieron
 las comprobaciones. También se corrigió una regla CSS de pseudoelemento que no
-limitaba un destello continuo. Validación final aprobada. Publicación pendiente.
+limitaba un destello continuo. Validación final aprobada.
+
+Respaldo GitHub `qa`: integración `a1c366c`; estilos `36c15db`.
+El primer commit omitió el CSS: se corrigió con el segundo commit y se verificó
+su presencia antes del cierre. Publicación completa: Vercel QA READY
+`dpl_CC2nQa7ZGm7bfGGP3a1hMX9z7wFB`, SHA exacto
+`36c15dbe86be9425b2fa9ce7e746d31a501045d4`, con alias habitual confirmado:
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app`.
+Este cierre también se respalda en Git y publica en QA, conservando código/estilos.
 
 Datos sintéticos exclusivamente: sin acciones sobre pedidos reales ni cargas
 reales de fotos. Queda pendiente probar en Android/iPhone: entrar a Por coordinar,
