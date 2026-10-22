@@ -35,7 +35,15 @@ Se excluye color heredado de wrappers decorativos, que no pinta contenido.
 Halo, check y backdrop-filter se detienen al salir de pantalla. Sin acciones
 ni acceso real a backend. Presupuesto visual aprobado: 20 tarjetas de cliente,
 0 animaciones infinitas/fuera de pantalla y 0 decoraciones activas al estabilizar;
-scroll 900 sin red (Chrome CPU 4x, no WebKit). Pendiente publicación QA.
+scroll 900 sin red (Chrome CPU 4x, no WebKit).
+
+Código `d242267592fc808391b732c4c44d968f7a03bf7e` enviado a origin/qa.
+Vercel `dpl_B5b68jxzLvJ69esdtv5d83zCNUW8` READY; SHA/ref y alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app verificados por API.
+Build preview: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0
+npm run build -- --mode qa. Preflight confirmó backend QA, build global null y
+productionBranch main conservados. Cierre documental con el mismo código y
+opciones QA; aún sin aprobación física del usuario para este ajuste.
 Pendiente prueba física en Android y regresión de fluidez en iPhone después de
 publicar. Restaurar efectos en el botón visible tiene un coste visual mayor que
 la versión simplificada; la medición sintética de listas no demuestra su coste
