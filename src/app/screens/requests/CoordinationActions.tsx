@@ -57,7 +57,7 @@ export default function CoordinationActions({ order, business, service, refresh 
       {productReady && process.readyNoticeAcknowledged === undefined && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado del aviso</button>}
       {allowed('ACK_READY_NOTICE') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setConfirm('ACK_READY_NOTICE')}>Confirmar aviso</button>}
       {allowed('CONFIRM_RECEIPT') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setConfirm('CONFIRM_RECEIPT')}>Confirmar recepción</button>}
-      {allowed('AUTHORIZE_CONTACT') && !process?.coordination?.customerContactAuthorized && !deferred && <div className="space-y-2">
+      {!business && allowed('AUTHORIZE_CONTACT') && !process?.coordination?.customerContactAuthorized && !deferred && <div className="space-y-2">
         <div className="flex items-center gap-2.5">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100/80 text-teal-600"><WhatsAppMark className="h-7 w-7" /></span>
           <p className="flex items-start gap-1.5 text-sm font-black leading-tight text-slate-950"><LockKeyhole aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600" />Autorizar contacto para este pedido</p>
@@ -68,7 +68,11 @@ export default function CoordinationActions({ order, business, service, refresh 
         </button>
         <button type="button" className="zipco-coordination-glass" disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>
       </div>}
-      {deferred && allowed('AUTHORIZE_CONTACT') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setDeferred(false)}>Revisar autorización de contacto</button>}
+      {!business && deferred && allowed('AUTHORIZE_CONTACT') && <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => setDeferred(false)}>Revisar autorización de contacto</button>}
+      {business && allowed('AUTHORIZE_CONTACT') && !process?.coordination?.businessContactAuthorized && <div className="space-y-2">
+        <p className="text-sm">Autoriza compartir con {client} el teléfono de tu perfil para coordinar este pedido por WhatsApp. El consentimiento del cliente es independiente.</p>
+        <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => void submit('AUTHORIZE_CONTACT')}>Autorizar contacto</button>
+      </div>}
       {allowed('OPEN_WHATSAPP') && <>
         {business && <p className="text-sm">Acuerda con {client} los detalles, el pago y {service ? 'la realización del servicio' : 'la entrega'}.</p>}
         <button type="button" className={buttonClass} disabled={operation.busy} onClick={() => {

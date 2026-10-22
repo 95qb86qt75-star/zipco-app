@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { acceptedProposal, PROPOSAL_ACCEPTED_EVENT, type AcceptedProposal } from './proposalAcceptance';
 import { announceDealClosed } from './DealSuccess';
-import { coordinationAllowed, refreshCoordinationOrder } from './coordinationApi';
+import { contactAuthorized, coordinationAllowed, refreshCoordinationOrder } from './coordinationApi';
 import { readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import useCoordination from './useCoordination';
-import type { MyOrder } from './types';
+import type { BusinessRequest, MyOrder } from './types';
 import { RequestProcessError } from './requestProcessErrors';
 
 /** Mounted at screen level so filtering the accepted card never cancels consent. */
@@ -27,8 +27,8 @@ export default function AcceptedProposalHost({ onAccepted, refresh }: {
       if (seen.size > 100) seen.delete(seen.values().next().value!);
       callbacks.current.onAccepted(value.business);
       // Choice to accept is already committed; contact is a separate, permission-checked operation.
-      if (!value.business && value.authorize) setFlow(value);
-      announceDealClosed(key);
+      if (value.authorize) setFlow(value);
+      else announceDealClosed(key);
     };
     const reset = () => setFlow(current => current && current.session !== readCoordinationSession() ? null : current);
     window.addEventListener(PROPOSAL_ACCEPTED_EVENT, receive);
@@ -36,31 +36,36 @@ export default function AcceptedProposalHost({ onAccepted, refresh }: {
     return () => { window.removeEventListener(PROPOSAL_ACCEPTED_EVENT, receive); unsubscribe(); };
   }, []);
   if (!flow || flow.session !== readCoordinationSession()) return null;
-  return <AcceptedContactFollowUp key={`${flow.session.revision}:${flow.receipt.requestProcess.id}:${flow.receipt.requestProcess.version}`}
-    flow={flow} close={() => setFlow(null)} refresh={() => callbacks.current.refresh()} />;
+  return <AcceptedContactFollowUp key={`${flow.session.revision}:${flow.business}:${flow.receipt.requestProcess.id}:${flow.receipt.requestProcess.version}`}
+    flow={flow} close={() => setFlow(null)} refresh={() => callbacks.current.refresh()} complete={() => {
+      announceDealClosed(`${flow.session.revision}:${flow.business}:${flow.receipt.requestProcess.id}:${flow.receipt.requestProcess.version}`);
+      setFlow(null);
+    }} />;
 }
 
-function AcceptedContactFollowUp({ flow, close, refresh }: { flow: AcceptedProposal; close: () => void; refresh: () => void }) {
-  const [order, setOrder] = useState<MyOrder | null>(null);
+function AcceptedContactFollowUp({ flow, close, complete, refresh }: { flow: AcceptedProposal; close: () => void; complete: () => void; refresh: () => void }) {
+  const [order, setOrder] = useState<BusinessRequest | MyOrder | null>(null);
+  const [autoStart, setAutoStart] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const controller = useRef<AbortController | null>(null);
   const active = (request: AbortController) => readCoordinationSession() === flow.session &&
     controller.current === request && !request.signal.aborted;
-  const load = async () => {
+  const load = async (automatic = true) => {
     controller.current?.abort();
+    setOrder(null); setAutoStart(automatic);
     const request = new AbortController(); controller.current = request; setLoading(true); setError('');
     try {
-      const current = await refreshCoordinationOrder(flow.receipt.orderId, false, flow.session.token, flow.session.businessId, request.signal);
+      const current = await refreshCoordinationOrder(flow.receipt.orderId, flow.business, flow.session.token, flow.session.businessId, request.signal);
       if (!active(request)) return;
       const process = current?.requestProcess;
       if (!current || current.recordState !== 'available' || !process || process.id !== flow.receipt.requestProcess.id ||
         process.version < flow.receipt.requestProcess.version || process.agreementPublicId !== flow.receipt.requestProcess.agreementPublicId)
         throw new Error('No se pudieron verificar los permisos actuales del pedido.');
-      if (process.coordination?.customerContactAuthorized === true) { close(); return; }
-      if (!coordinationAllowed(process, false, 'AUTHORIZE_CONTACT'))
+      if (contactAuthorized(process, flow.business)) { complete(); return; }
+      if (!coordinationAllowed(process, flow.business, 'AUTHORIZE_CONTACT'))
         throw new Error('El estado del pedido cambió o no permite autorizar contacto. Revísalo en Coordinación.');
-      setOrder(current as MyOrder);
+      setOrder(current);
     } catch (e) {
       if (active(request) && e instanceof RequestProcessError && e.status === 401)
         window.dispatchEvent(new Event('zipco-coordination-session-expired'));
@@ -69,13 +74,14 @@ function AcceptedContactFollowUp({ flow, close, refresh }: { flow: AcceptedPropo
   };
   useEffect(() => { void load(); return () => controller.current?.abort(); }, []);
   return <Dialog.Root open onOpenChange={() => undefined}>
-    <Dialog.Portal><Dialog.Overlay className="zipco-sheet-ov" />
-      <Dialog.Content className="zipco-sheet holo" aria-describedby="zipco-contact-followup-description"
+    <Dialog.Portal><Dialog.Overlay className="zipco-sheet-ov zipco-d-accept-overlay" />
+      <Dialog.Content data-contact-followup className="zipco-sheet holo" aria-describedby="zipco-contact-followup-description"
         onEscapeKeyDown={event => event.preventDefault()} onPointerDownOutside={event => event.preventDefault()}>
         <div className="zipco-d-holo-in space-y-3">
-          <Dialog.Title className="zipco-d-auth-ttl">Tu propuesta quedó aceptada</Dialog.Title>
+          <Dialog.Title className="zipco-d-auth-ttl">{flow.business ? 'La contrapropuesta quedó aceptada' : 'Tu propuesta quedó aceptada'}</Dialog.Title>
           <Dialog.Description id="zipco-contact-followup-description" className="zipco-d-auth-sub">El pedido está en Coordinación. La autorización de contacto se confirma por separado.</Dialog.Description>
-          {order ? <AuthorizeAcceptedContact order={order} close={close} refresh={refresh} /> : <>
+          {order ? <AuthorizeAcceptedContact order={order} business={flow.business} autoStart={autoStart}
+            close={close} complete={complete} refresh={refresh} reload={() => void load(false)} /> : <>
             {loading && <p role="status" className="text-center text-sm">Verificando autorización de contacto…</p>}
             {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
             {!loading && <button type="button" className="zipco-d-wabtn" onClick={() => void load()}>Actualizar pedido</button>}
@@ -87,9 +93,12 @@ function AcceptedContactFollowUp({ flow, close, refresh }: { flow: AcceptedPropo
   </Dialog.Root>;
 }
 
-function AuthorizeAcceptedContact({ order, close, refresh }: { order: MyOrder; close: () => void; refresh: () => void }) {
+function AuthorizeAcceptedContact({ order, business, autoStart, close, complete, refresh, reload }: {
+  order: BusinessRequest | MyOrder; business: boolean; autoStart: boolean;
+  close: () => void; complete: () => void; refresh: () => void; reload: () => void;
+}) {
   // Same shared durable intention store and endpoint as CoordinationActions; no second consent queue.
-  const operation = useCoordination(order, false, refresh);
+  const operation = useCoordination(order, business, refresh);
   const started = useRef(false);
   const mounted = useRef(true);
   const [settled, setSettled] = useState(false);
@@ -97,13 +106,13 @@ function AuthorizeAcceptedContact({ order, close, refresh }: { order: MyOrder; c
     const success = retry ? await operation.retry() : await operation.run('AUTHORIZE_CONTACT');
     if (!mounted.current) return;
     setSettled(true);
-    if (success && !operation.storageWarning()) close();
+    if (success && !operation.storageWarning() && contactAuthorized(operation.currentOrder()?.requestProcess, business)) complete();
   };
   useEffect(() => {
     mounted.current = true;
     if (!started.current) {
       started.current = true;
-      if (operation.pending() || operation.restored() || operation.storageWarning()) setSettled(true);
+      if (!autoStart || operation.pending() || operation.restored() || operation.storageWarning()) setSettled(true);
       else void attempt();
     }
     return () => { mounted.current = false; };
@@ -114,8 +123,13 @@ function AuthorizeAcceptedContact({ order, close, refresh }: { order: MyOrder; c
     {(operation.message || operation.storageWarning()) && <p role="alert" className="text-sm text-rose-700">{operation.storageWarning() || operation.message}</p>}
     {settled && <>
       <p className="text-sm">La aceptación está confirmada. Si el contacto no quedó autorizado, puedes continuarlo desde este pedido en Coordinación.</p>
-      {recovery ? <button type="button" className="zipco-d-wabtn" disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado</button>
-        : operation.pending()?.action === 'AUTHORIZE_CONTACT' ? <button type="button" className="zipco-d-wabtn" disabled={operation.busy} onClick={() => void attempt(true)}>Reintentar autorización pendiente</button> : null}
+      {recovery ? <button type="button" className="zipco-d-wabtn" disabled={operation.busy} onClick={async () => {
+        await operation.update();
+        if (mounted.current && contactAuthorized(operation.currentOrder()?.requestProcess, business)) complete();
+      }}>Actualizar estado</button>
+        : operation.pending()?.action === 'AUTHORIZE_CONTACT' ? <button type="button" className="zipco-d-wabtn" disabled={operation.busy} onClick={() => void attempt(true)}>Reintentar autorización pendiente</button>
+          : !autoStart && coordinationAllowed(order.requestProcess, business, 'AUTHORIZE_CONTACT') ? <button type="button" className="zipco-d-wabtn" disabled={operation.busy} onClick={() => void attempt()}>Autorizar contacto</button> : null}
+      {!recovery && !operation.pending() && <button type="button" className="zipco-d-wasoft" disabled={operation.busy} onClick={reload}>Revisar autorización</button>}
       <button type="button" className="zipco-d-wasoft" disabled={operation.busy} onClick={close}>Continuar en Coordinación</button>
     </>}
   </div>;

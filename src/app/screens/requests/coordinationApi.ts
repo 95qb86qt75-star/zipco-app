@@ -55,6 +55,10 @@ export function coordinationBody(action: CoordinationAction, version: number, re
   return { expectedVersion: version, ...(['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP'].includes(action) ? { consentAccepted: true as const } : {}) };
 }
 
+export function contactAuthorized(process: RequestProcessSummary | null | undefined, business: boolean) {
+  return process?.coordination?.[business ? 'businessContactAuthorized' : 'customerContactAuthorized'] === true;
+}
+
 export function coordinationAllowed(process: RequestProcessSummary | null | undefined, business: boolean, action: CoordinationAction) {
   if (!process?.allowedActions.includes(action)) return false;
   if (action === 'CANCEL_PENDING_REQUEST') return !business && process.state === 'AWAITING_BUSINESS_RESPONSE' && process.agreementPublicId === null;
@@ -66,7 +70,7 @@ export function coordinationAllowed(process: RequestProcessSummary | null | unde
   if (action === 'CONFIRM_RECEIPT') return !business && process.state === 'READY' && process.readyNoticeAcknowledged === true;
   if (!process.coordination) return false;
   const coordinating = ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state);
-  if (action === 'AUTHORIZE_CONTACT') return !business && coordinating;
+  if (action === 'AUTHORIZE_CONTACT') return coordinating;
   if (action === 'START_WORK') return business && coordinating;
   if (action === 'OPEN_WHATSAPP' && !business && !process.coordination.customerContactAuthorized) return false;
   return action === 'ANNUL_COORDINATION' ? coordinating : coordinating || process.state === 'IN_PROGRESS' || process.state === 'READY';

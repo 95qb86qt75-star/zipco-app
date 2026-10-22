@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { coordinationAllowed, coordinationBody, sendCoordination, whatsappUrl } from './coordinationApi';
+import { contactAuthorized, coordinationAllowed, coordinationBody, sendCoordination, whatsappUrl } from './coordinationApi';
 import { normalizeRequestProcess } from './requestProcess';
 import { statusViewFor } from './requestStatusGrouping';
 import { processApiError } from './requestProcessErrors';
@@ -93,7 +93,7 @@ describe('coordination public contract', () => {
     const valid = normalizeRequestProcess(process)!;
     expect(coordinationAllowed(valid, true, 'START_WORK')).toBe(true);
     expect(coordinationAllowed(valid, false, 'START_WORK')).toBe(false);
-    expect(coordinationAllowed(valid, true, 'AUTHORIZE_CONTACT')).toBe(false);
+    expect(coordinationAllowed(valid, true, 'AUTHORIZE_CONTACT')).toBe(true);
     expect(coordinationAllowed(valid, false, 'AUTHORIZE_CONTACT')).toBe(true);
     expect(coordinationAllowed({ ...valid, coordination: { ...valid.coordination!, customerContactAuthorized: false } }, false, 'OPEN_WHATSAPP')).toBe(false);
     expect(coordinationAllowed({ ...valid, state: 'IN_PROGRESS' }, false, 'OPEN_WHATSAPP')).toBe(true);
@@ -105,6 +105,14 @@ describe('coordination public contract', () => {
     const current = [{ id: 20, status: 'cancelled', requestProcess: { ...coordinationProcess, version: 5, state: 'COORDINATION_CANCELLED' } }];
     const original = [{ id: 20, status: 'accepted', requestProcess: coordinationProcess }];
     expect(mergeProcessOrderUpdates(original, current)).toEqual(current);
+  });
+  it('uses each actor own consent without implying the other participant authorized contact', () => {
+    const own = { ...coordinationProcess, allowedActions: ['AUTHORIZE_CONTACT'],
+      coordination: { businessContactAuthorized: true, customerContactAuthorized: false } };
+    expect(contactAuthorized(own, true)).toBe(true); expect(contactAuthorized(own, false)).toBe(false);
+    expect(coordinationAllowed({ ...own, allowedActions: [] }, true, 'AUTHORIZE_CONTACT')).toBe(false);
+    expect(coordinationAllowed({ ...own, agreementPublicId: null }, true, 'AUTHORIZE_CONTACT')).toBe(false);
+    expect(coordinationAllowed({ ...own, state: 'COORDINATION_CANCELLED' }, true, 'AUTHORIZE_CONTACT')).toBe(false);
   });
   it('builds exact bodies and validates Other without carrying incompatible details', () => {
     expect(coordinationBody('AUTHORIZE_CONTACT', 2)).toEqual({ expectedVersion: 2, consentAccepted: true });

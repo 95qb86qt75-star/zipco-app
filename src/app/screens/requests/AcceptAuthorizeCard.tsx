@@ -9,7 +9,7 @@ const WaIcon = ({ size }: { size: number }) => <svg width={size} height={size} v
 
 /**
  * Tarjeta holograma compartida. El cliente puede elegir consentimiento separado;
- * el negocio confirma su contrapropuesta sin modificar la autorización de contacto.
+ * el negocio puede autorizar el teléfono del propietario tras aceptar la contrapropuesta.
  * authorize=true  → "Aceptar y autorizar contacto"
  * authorize=false → "Solo aceptar · autorizo después" (queda el bloque existente de CoordinationActions)
  */
@@ -34,7 +34,7 @@ export default function AcceptAuthorizeCard({ open, busy, counterpartName, busin
                 <span className="zipco-d-orbtick"><svg width="11" height="11" viewBox="0 0 24 24" {...ICON} strokeWidth={3.4}><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span></span></div>
             <Dialog.Title className="zipco-d-auth-ttl" style={{ marginBottom: 0 }}>Todo listo para<br /><span>coordinar tu pedido</span></Dialog.Title>
             <Dialog.Description className="zipco-d-auth-sub">{business
-              ? <>Acepta la contrapropuesta de <b>{counterpartName}</b> para continuar en Coordinación. El contacto se autoriza por separado.</>
+              ? <>Aceptarás esta contrapropuesta y autorizarás compartir el teléfono de tu perfil con <b>{counterpartName}</b> para coordinar por WhatsApp los detalles de pago y retiro.</>
               : <>Acepta la propuesta y autoriza a <b>{counterpartName}</b> a escribirte por WhatsApp.</>}</Dialog.Description>
             <div className="zipco-d-ticket">
               <div style={{ minWidth: 0 }}><div className="zipco-d-ticket-t">{title}</div><div className="zipco-d-ticket-w">{when}</div></div>
@@ -42,14 +42,14 @@ export default function AcceptAuthorizeCard({ open, busy, counterpartName, busin
             </div>
             <div className="zipco-d-trusts">
               <span className="zipco-d-trust"><LockKeyhole width={12} height={12} strokeWidth={2.4} aria-hidden="true" />Solo este pedido</span>
-              <span className="zipco-d-trust"><Smartphone width={12} height={12} strokeWidth={2.4} aria-hidden="true" />{business ? 'Contacto por separado' : 'Comparte tu teléfono'}</span>
+              <span className="zipco-d-trust"><Smartphone width={12} height={12} strokeWidth={2.4} aria-hidden="true" />Comparte tu teléfono</span>
             </div>
             {error && <p role="alert" className="mt-3 text-sm text-rose-700">{error}</p>}
             <button type="button" className="zipco-d-wabtn" disabled={busy} aria-busy={busy}
-              aria-label={business ? 'Confirmar contrapropuesta' : undefined} onClick={() => onChoose(!business)}>
-              <span className="zipco-d-wabtn-ic"><WaIcon size={22} /></span><span>{busy ? 'Aceptando…' : business ? 'Aceptar contrapropuesta' : 'Aceptar y autorizar contacto'}</span>
+              onClick={() => onChoose(true)}>
+              <span className="zipco-d-wabtn-ic"><WaIcon size={22} /></span><span>{busy ? 'Aceptando…' : 'Aceptar y autorizar contacto'}</span>
             </button>
-            {!business && <button type="button" className="zipco-d-wasoft" disabled={busy} onClick={() => onChoose(false)}>Solo aceptar · autorizo después</button>}
+            <button type="button" className="zipco-d-wasoft" disabled={busy} onClick={() => onChoose(false)}>Solo aceptar · autorizo después</button>
             <button type="button" className="zipco-d-back" disabled={busy} onClick={onClose}>Volver</button>
           </div>
         </div>

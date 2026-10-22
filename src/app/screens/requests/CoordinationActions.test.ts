@@ -144,6 +144,16 @@ describe('coordination presentation and deliberate consent', () => {
     expect(hooks.run).toHaveBeenCalledOnce();
     expect(hooks.run).toHaveBeenCalledWith('AUTHORIZE_CONTACT', 'COORDINATION_NOT_REACHED', '');
   });
+  it('lets the owner finish only their own contact authorization with approved server permissions', () => {
+    const view = render(true);
+    expect(renderToStaticMarkup(view)).toContain('Autoriza compartir con Cliente de prueba el teléfono de tu perfil');
+    expect(hooks.run).not.toHaveBeenCalled();
+    click(view, 'Autorizar contacto');
+    expect(hooks.run).toHaveBeenCalledWith('AUTHORIZE_CONTACT', 'COORDINATION_NOT_REACHED', '');
+    const granted = { ...raw, requestProcess: { ...raw.requestProcess,
+      coordination: { customerContactAuthorized: false, businessContactAuthorized: true } } };
+    expect(renderToStaticMarkup(render(true, false, granted))).not.toContain('>Autorizar contacto<');
+  });
   it('keeps the new authorization button disabled while an operation is in progress', () => {
     hooks.busy = true;
     const view = render(false);

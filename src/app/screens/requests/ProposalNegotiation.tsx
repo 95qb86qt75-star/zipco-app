@@ -118,7 +118,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     lock.current = true; setBusy(true); setError('');
     const finish = (receipt: ProposalReceipt) => {
       if (!active()) return;
-      if (isAcceptAction(action)) announceProposalAccepted({ order, receipt, business, authorize: !business && authorize, session: session! });
+      if (isAcceptAction(action)) announceProposalAccepted({ order, receipt, business, authorize, session: session! });
       window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: receipt }));
       announceProposalSent(action, receipt);
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
@@ -199,7 +199,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
               <div className="grid grid-cols-2 gap-2"><button className="zipco-chat-ctr h-12" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
                 {(() => {
-                  const confirm = async () => { try { await execute(decision, undefined, null, expired, !business && decision === 'ACCEPT_PROPOSAL' && authorizeChoice.current); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
+                  const confirm = async () => { try { await execute(decision, undefined, null, expired, isAcceptAction(decision) && authorizeChoice.current); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
                   const blocked = busy || !choices.includes(decision);
                   return isAcceptAction(decision)
                     ? <AcceptGlassButton size="compact" flush label="Sí, confirmar" disabled={blocked} onClick={confirm} />
@@ -241,8 +241,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             title={proposalTitle(read.proposals[read.proposals.length - 1])} when={whenLong(read.proposals[read.proposals.length - 1])}
             total={money(read.proposals[read.proposals.length - 1].totalPriceClp)} error={error}
             onChoose={async authorize => {
-              authorizeChoice.current = !business && authorize;
-              try { await execute(business ? 'ACCEPT_COUNTER_PROPOSAL' : 'ACCEPT_PROPOSAL', undefined, null, false, !business && authorize); }
+              authorizeChoice.current = authorize;
+              try { await execute(business ? 'ACCEPT_COUNTER_PROPOSAL' : 'ACCEPT_PROPOSAL', undefined, null, false, authorize); }
               catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo aceptar. Reintenta la misma operación.'); }
             }} />}
         </Dialog.Content></Dialog.Portal>

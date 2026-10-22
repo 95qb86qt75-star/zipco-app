@@ -22,17 +22,25 @@ window.React=React;let role=true,read=proposalsFixture(0),redraw=()=>{};let save
 window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.stale=false;
 window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;
 window.authFail=false;window.authLose=false;window.authDeny=false;window.acceptedGetFail=false;window.orderReads=0;window.selectedView=null;
+window.orderReadPaths=[];window.authAlready=false;window.authInvalid=false;window.authConflict=false;window.authAfterGetFail=false;
 window.feedback=[];window.addEventListener('zipco-proposal-sent',event=>window.feedback.push(event.detail));
 window.addEventListener('zipco-proposal-accepted',event=>window.acceptanceEvent=event.detail);
 function processForRole(){const actor=proposalsFixture(Math.min(read.proposals.length-1,3),role).process;
- return {...read.process,allowedActions:read.process.agreementPublicId?(role||window.authDeny?[]:read.process.coordination?.customerContactAuthorized?['OPEN_WHATSAPP','ANNUL_COORDINATION']:['AUTHORIZE_CONTACT','ANNUL_COORDINATION']):read.process.state==='CLOSED'?[]:actor.allowedActions};}
+ const own=role?'businessContactAuthorized':'customerContactAuthorized';
+ const other=role?'customerContactAuthorized':'businessContactAuthorized';
+ return {...read.process,allowedActions:read.process.agreementPublicId?(window.authDeny?[]:[...(read.process.coordination?.[own]?[]:['AUTHORIZE_CONTACT']),...(read.process.coordination?.[other]?['OPEN_WHATSAPP']:[]),'ANNUL_COORDINATION']):read.process.state==='CLOSED'?[]:actor.allowedActions};}
 window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;sessionStorage.clear();redraw();};
 window.role=(business)=>{role=business;redraw();};
 window.originalPhoto=()=>{read.proposals[0].subjectSnapshot.referencePhoto='https://res.cloudinary.com/test/image/upload/original.jpg';redraw();};
 window.chatStress=(kind)=>{for(const p of read.proposals){const s=p.subjectSnapshot;s.items[0].nameSnapshot='NombreExtensoSinEspacios'.repeat(5);s.items[0].descriptionSnapshot=('Descripción larga con detalle. ').repeat(15)+(p.sequence?' Cambio.':'');if(kind==='service'){s.orderType='service';s.items[0].quantity=1;s.items[0].subtotalClp=s.items[0].unitPriceClpSnapshot;}else{s.items.push({...s.items[0],nameSnapshot:'Segundo artículo',quantity:1,subtotalClp:s.items[0].unitPriceClpSnapshot});}p.totalPriceClp=s.items.reduce((n,it)=>n+it.subtotalClp,0);}read.process.proposalSummary.totalPriceClp=read.proposals.at(-1).totalPriceClp;redraw();};
 window.fetch=async (input,options={})=>{
  const url=String(input);if(url.includes('api.cloudinary.com')){window.uploads++;return new Response(JSON.stringify({secure_url:'https://res.cloudinary.com/test/image/upload/synthetic.jpg'}));}
- if(url.includes('/orders/my-orders?processContract=alternatives-v1')){window.orderReads++;if(window.pauseOrderReads)await new Promise(resolve=>window.releaseOrderRead=()=>{window.pauseOrderReads=false;resolve();});if(window.acceptedGetFail)throw Error('Synthetic accepted-order read failure');return new Response(JSON.stringify([{...rawOrder,businessName:'Negocio sintético',status:'accepted',requestProcess:processForRole()}]));}
+ if(url.includes('/orders/my-orders?processContract=alternatives-v1')||url.includes('/orders/business/8?processContract=alternatives-v1')){
+  window.orderReads++;window.orderReadPaths.push(url);if(window.pauseOrderReads)await new Promise(resolve=>window.releaseOrderRead=()=>{window.pauseOrderReads=false;resolve();});if(window.acceptedGetFail)throw Error('Synthetic accepted-order read failure');
+  if(window.authAlready){window.authAlready=false;read.process={...read.process,version:read.process.version+1,coordination:{...read.process.coordination,[role?'businessContactAuthorized':'customerContactAuthorized']:true}};}
+  window.currentConsent=structuredClone(read.process.coordination);
+  return new Response(JSON.stringify([{...rawOrder,businessName:'Negocio sintético',customerName:'Usuario Pauta QA',status:'accepted',requestProcess:processForRole()}]));
+ }
  if(url.endsWith('/proposals')){window.proposalReads++;if(window.pauseReads)await new Promise(resolve=>window.releaseRead=()=>{window.pauseReads=false;resolve();});if(window.getFails)throw Error('Synthetic read failure');if(window.stale){read=proposalsFixture(1,role);window.stale=false;}return new Response(JSON.stringify({...read,process:window.denyDraft?{...processForRole(),allowedActions:[]}:processForRole()}));}
  if(!url.includes('/actions/'))throw Error('Unexpected synthetic endpoint');
  const action=url.split('/').pop(),body=JSON.parse(options.body),key=options.headers['Idempotency-Key'];
@@ -41,11 +49,14 @@ window.fetch=async (input,options={})=>{
  if(saved.has(key))return new Response(JSON.stringify(saved.get(key)));
  if(action==='authorize-contact'){
   if(window.authFail){window.authFail=false;throw Error('Synthetic contact failure');}
+  if(window.authInvalid){window.authInvalid=false;window.authDeny=true;return new Response(JSON.stringify({code:'INVALID_PROFILE_CONTACT'}),{status:409});}
+  if(window.authConflict){window.authConflict=false;read.process.version++;return new Response(JSON.stringify({code:'STALE_VERSION'}),{status:409});}
   if(window.authDeny||body.expectedVersion!==read.process.version)return new Response(JSON.stringify({code:'STALE_VERSION'}),{status:409});
   if(body.consentAccepted!==true)throw Error('Missing explicit contact consent');
-  read.process={...read.process,version:read.process.version+1,coordination:{customerContactAuthorized:true,businessContactAuthorized:false}};
+  read.process={...read.process,version:read.process.version+1,coordination:{...read.process.coordination,[role?'businessContactAuthorized':'customerContactAuthorized']:true}};
   const receipt={orderId:20,orderStatus:'accepted',requestProcess:{...read.process,allowedActions:[]}};saved.set(key,receipt);
-  if(window.authLose){window.authLose=false;throw Error('Synthetic committed contact response loss');}return new Response(JSON.stringify(receipt));
+  if(window.authLose){window.authLose=false;throw Error('Synthetic committed contact response loss');}
+  if(window.authAfterGetFail){window.authAfterGetFail=false;window.acceptedGetFail=true;}return new Response(JSON.stringify(receipt));
  }
  if(window.expire&&action.startsWith('accept-')&&!body.acceptPastSchedule)return new Response(JSON.stringify({code:'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED'}),{status:409});
  const accepts=action.startsWith('accept-'),rejects=action.startsWith('reject-');
@@ -68,7 +79,7 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
  localStorage.setItem('zipco-user-id',role?'12':'11');localStorage.setItem('zipco-token','synthetic-session');
  if(role)localStorage.setItem('zipco-business-id','8');else localStorage.removeItem('zipco-business-id');
  const process=normalizeRequestProcess(processForRole());
- const order=normalizeBusinessOrdersPayload([{...rawOrder,needNow:true,orderType:'product',status:process.state==='CLOSED'?'rejected':process.agreementPublicId?'accepted':read.proposals.length===1?'pending':'alternative_proposed',requestProcess:process}])[0];
+ const order=normalizeBusinessOrdersPayload([{...rawOrder,customerName:'Usuario Pauta QA',needNow:true,orderType:'product',status:process.state==='CLOSED'?'rejected':process.agreementPublicId?'accepted':read.proposals.length===1?'pending':'alternative_proposed',requestProcess:process}])[0];
  window.current={state:process.state,version:process.version,view:statusViewFor('orders',order.status,process)};
  return <><DealSuccessHost/><AcceptedProposalHost onAccepted={()=>{window.selectedView='coordination';}} refresh={()=>{window.refreshes++;redraw();}}/>
   {!process.agreementPublicId&&<Negotiation key={String(role)+'-'+(revision>10000?revision:0)} order={order} business={role} variant="aurora" refresh={()=>{window.refreshes++;redraw();}}/>}</>;
@@ -96,7 +107,7 @@ try {
   const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Synthetic flow did not settle: '+expression);};
-  const touch=async label=>{if(await evaluate('!!document.querySelector("[data-accept-authorize]")'))await delay(600);const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
+  const touch=async label=>{if(await evaluate('!!document.querySelector("[data-accept-authorize],[data-contact-followup]")'))await delay(250);const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
   const fill=async(selector,value,kind='HTMLInputElement')=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(${kind}.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   const reset=async(sequence=0,business=true)=>{await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.reset');await evaluate(`window.reset(${sequence},${business})`);await delay(100);};
   const form=async (price='1500')=>{await touch('Precio');await fill('input[aria-label="Nuevo precio por unidad"]',price);await touch('Guardar');await fill('textarea','Cambio de precio para la prueba sintética.','HTMLTextAreaElement');await touch('Revisar alternativa');await wait('!!document.querySelector("[data-alternative-review]")');};
@@ -171,7 +182,7 @@ try {
     if(label==='Aceptar contrapropuesta'){
       assert(await evaluate('!!document.querySelector("[data-accept-authorize]")'),'Business counter uses the same hologram card');
       assert.equal(await evaluate('document.querySelector(".zipco-chat-foot").textContent.includes("¿confirmas esta propuesta exacta?")'),false);
-      await touch('Confirmar contrapropuesta');
+      await touch('Solo aceptar · autorizo después');
     }else await touch('Sí, confirmar');
     await wait('window.posts.length===1&&!document.querySelector("[role=dialog]")');
     assert.equal(await evaluate('window.current.view'),label.startsWith('Rechazar')?'history':'coordination');evidence.push(label+'-'+sequence);
@@ -299,25 +310,68 @@ try {
     assert.equal(await evaluate(`getComputedStyle(document.querySelector('[data-accept-authorize]')).animationDuration`),'0.18s','Business confirmation enters quickly');
     assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-chat-panel .zipco-accept-check')).animationPlayState`),'paused','Covered business review pauses');
     assert(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Todo listo para')&&document.querySelector('[data-accept-authorize]').textContent.includes('coordinar tu pedido')`));
-    assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Aceptar y autorizar contacto')`),false,'Business card never offers unsupported automatic consent');
-    assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Solo aceptar · autorizo después')`),false);
+    assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Aceptar y autorizar contacto')`),true,'Owner consent uses the confirmed backend contract');
+    assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Solo aceptar · autorizo después')`),true);
+    assert(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('teléfono de tu perfil')&&document.querySelector('[data-accept-authorize]').textContent.includes('pago y retiro')`));
+    assert(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('con Usuario Pauta QA para coordinar por WhatsApp')`),'Consent copy uses the actual customer name');
     await delay(600);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'business-counter-accept-'+width+'.png'),Buffer.from(shot.data,'base64')));
     await touch('Volver');await wait('!document.querySelector("[data-accept-authorize]")');assert.equal(await evaluate('window.posts.length'),0,'Closing business confirmation sends nothing');
     await delay(250);await touch('Aceptar contrapropuesta');await wait('!!document.querySelector("[data-accept-authorize]")');
     await evaluate(`window.pauseAccept=true;const button=document.querySelector('.zipco-d-wabtn');button.click();button.click();true`);await wait('window.posts.length===1');
     await evaluate('window.releaseAccept()');await wait('!document.querySelector("[role=dialog]")');
-    const posts=await evaluate('window.posts');assert.deepEqual(posts.map(p=>p.action),['accept-counter-proposal']);
+    const posts=await evaluate('window.posts');assert.deepEqual(posts.map(p=>p.action),['accept-counter-proposal','authorize-contact']);
     assert.deepEqual(posts[0].body,{expectedVersion:3,proposalId:125,confirmationAccepted:true});
+    assert.deepEqual(posts[1].body,{expectedVersion:5,consentAccepted:true});assert.notEqual(posts[0].key,posts[1].key);
+    assert.deepEqual(await evaluate('window.currentConsent'),{customerContactAuthorized:false,businessContactAuthorized:true});
+    assert(await evaluate('window.orderReadPaths.every(p=>p.includes("/orders/business/8?processContract=alternatives-v1"))'));
     assert.equal(await evaluate('window.selectedView'),'coordination');assert(await evaluate('!!document.querySelector(".zipco-d-hs")'));
-    evidence.push('business-counter-card-same-design-cancel-double-tap-no-consent-'+width);
+    evidence.push('business-counter-card-cancel-double-tap-owner-consent-only-'+width);
   }
-  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.fail=true');await touch('Confirmar contrapropuesta');
-  await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');await touch('Confirmar contrapropuesta');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.fail=true');await touch('Solo aceptar · autorizo después');
+  await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');await touch('Solo aceptar · autorizo después');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
   assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('business-counter-card-error-preserved-same-key-retry');
-  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.expire=true');await touch('Confirmar contrapropuesta');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.expire=true');await touch('Solo aceptar · autorizo después');
   await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');await touch('Sí, confirmar');
   await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');assert.equal(await evaluate('window.posts[1].body.acceptPastSchedule'),true);
   assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('business-counter-card-expired-explicit-confirmation');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await touch('Solo aceptar · autorizo después');await wait('!document.querySelector("[role=dialog]")');
+  assert.deepEqual(await evaluate('window.posts.map(p=>p.action)'),['accept-counter-proposal']);evidence.push('business-solo-accept-never-grants-consent');
+  for(const flag of ['authFail','authLose']){
+    await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.'+flag+'=true');await touch('Aceptar y autorizar contacto');
+    await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Failed contact is not a combined success');
+    await touch('Reintentar autorización pendiente');await wait('window.posts.length===3&&!document.querySelector("[role=dialog]")');
+    assert.equal(await evaluate('window.posts[1].key===window.posts[2].key'),true);assert.deepEqual(await evaluate('window.posts[1].body'),await evaluate('window.posts[2].body'));
+    assert.deepEqual(await evaluate('window.posts.map(p=>p.action)'),['accept-counter-proposal','authorize-contact','authorize-contact']);
+    assert.deepEqual(await evaluate('window.currentConsent'),{customerContactAuthorized:false,businessContactAuthorized:true});evidence.push('business-'+flag+'-same-key-body-customer-independent');
+  }
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.authAlready=true');await touch('Aceptar y autorizar contacto');
+  await wait('window.orderReads===1&&!document.querySelector("[role=dialog]")');assert.equal(await evaluate('window.posts.length'),1);evidence.push('business-already-authorized-no-renewal-post');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.authDeny=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('window.posts.length'),1);await touch('Continuar en Coordinación');evidence.push('business-missing-permission-no-contact-post');
+  for(const flag of ['authConflict','authInvalid']){
+    await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.'+flag+'=true');await touch('Aceptar y autorizar contacto');
+    await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('window.posts.length'),2,'Acceptance stays committed; contact conflict is not forced');
+    if(flag==='authInvalid')assert(await evaluate('document.querySelector("[role=alert]").textContent.includes("teléfono internacional de tu perfil")'));
+    await evaluate('window.authDeny=false');await touch('Revisar autorización');await wait('!![...document.querySelectorAll("button")].find(b=>b.textContent==="Autorizar contacto")');
+    assert.equal(await evaluate('window.posts.length'),2,'Refreshing reevaluates without granting automatically');
+    await touch('Autorizar contacto');await wait('window.posts.length===3&&!document.querySelector("[role=dialog]")');
+    assert.notEqual(await evaluate('window.posts[1].key'),await evaluate('window.posts[2].key'));
+    assert.equal(await evaluate('window.posts.filter(p=>p.action==="accept-counter-proposal").length'),1);evidence.push('business-'+flag+'-explicit-recheck-and-contact-only');
+  }
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.authAfterGetFail=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('window.posts.length'),2);assert(await evaluate('!!document.querySelector("[role=dialog]")'),'A contact receipt without authoritative GET keeps recovery visible');
+  assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'No combined-success hologram before current consent is verified');
+  await evaluate('window.acceptedGetFail=false');await touch('Actualizar estado');await wait('!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts.length'),2);evidence.push('business-confirmed-contact-read-failure-readonly-recovery');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.lose=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');await touch('Aceptar y autorizar contacto');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
+  assert.deepEqual(await evaluate('window.posts.map(p=>p.action)'),['accept-counter-proposal','authorize-contact']);evidence.push('business-accept-reply-loss-read-confirmed-before-contact');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.expire=true');await touch('Aceptar y autorizar contacto');
+  await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');await touch('Sí, confirmar');await wait('window.posts.length===3&&!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);assert.equal(await evaluate('window.posts[2].action'),'authorize-contact');evidence.push('business-expired-confirmation-retains-owner-consent-choice');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.pauseOrderReads=true');await touch('Aceptar y autorizar contacto');await wait('window.orderReads===1');
+  await evaluate(`localStorage.removeItem('zipco-token');window.dispatchEvent(new Event('zipco-session-changed'));window.releaseOrderRead();true`);await delay(200);
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector("[role=dialog]")'),false);evidence.push('business-session-change-between-accept-and-contact');
   console.log(JSON.stringify({passed:evidence.length,evidence,touchEvents:true,backendAccess:false,realOrderActions:false,realUploads:false}));await send('Browser.close');
 } catch(error) {
  if(socket?.readyState===1) {

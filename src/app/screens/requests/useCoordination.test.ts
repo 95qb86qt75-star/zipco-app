@@ -36,6 +36,77 @@ beforeEach(() => {
     removeEventListener: target.removeEventListener.bind(target), location: { assign: navigate } });
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
+describe('owner contact authorization after counter acceptance', () => {
+  const ownerSource = () => ({ ...raw, requestProcess: { ...process, allowedActions: ['AUTHORIZE_CONTACT'],
+    coordination: { customerContactAuthorized: true, businessContactAuthorized: false } } });
+  it('retries uncertain owner consent with the same body and key without opening WhatsApp', async () => {
+    const source = ownerSource();
+    const granted = { ...source, requestProcess: { ...source.requestProcess, version: 3,
+      coordination: { customerContactAuthorized: true, businessContactAuthorized: true } } };
+    const result = { orderId: 20, orderStatus: 'accepted', requestProcess: granted.requestProcess };
+    const fetcher = vi.fn().mockRejectedValueOnce(new TypeError('offline')).mockResolvedValueOnce(response(result)).mockResolvedValueOnce(response([granted]));
+    vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([source])[0], true, vi.fn());
+    expect(await hook.run('AUTHORIZE_CONTACT')).toBe(false);
+    expect(await hook.retry()).toBe(true);
+    expect(fetcher.mock.calls[0][1].headers['Idempotency-Key']).toBe(fetcher.mock.calls[1][1].headers['Idempotency-Key']);
+    expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body);
+    expect(hook.currentOrder()?.requestProcess?.coordination?.businessContactAuthorized).toBe(true);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+  it('does not settle an owner intention just because the customer has consented', async () => {
+    const source = ownerSource(), key = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    sessionStorage.setItem('zipco-coordination:synthetic:business:7', JSON.stringify({ action: 'AUTHORIZE_CONTACT', body: { expectedVersion: 2, consentAccepted: true }, key }));
+    const fetcher = vi.fn().mockResolvedValue(response([source]));vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([source])[0], true, vi.fn());
+    hook.pending(); await hook.update();
+    expect(hook.pending()?.key).toBe(key); expect(hook.restored()).toBe(false);
+    expect(fetcher.mock.calls.every(([, init]) => !init?.method)).toBe(true);
+  });
+  it('skips renewal when the owner already authorized, regardless of customer consent', async () => {
+    const source = ownerSource(); source.requestProcess.coordination = { businessContactAuthorized: true, customerContactAuthorized: false };
+    const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([source])[0], true, vi.fn());
+    expect(await hook.run('AUTHORIZE_CONTACT')).toBe(false);expect(fetcher).not.toHaveBeenCalled();
+  });
+  it('settles restored owner consent from the owner flag even while customer consent is absent', async () => {
+    const source = ownerSource(); source.requestProcess.coordination = { businessContactAuthorized: true, customerContactAuthorized: false };
+    const key = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    sessionStorage.setItem('zipco-coordination:synthetic:business:7', JSON.stringify({ action: 'AUTHORIZE_CONTACT', body: { expectedVersion: 2, consentAccepted: true }, key }));
+    const fetcher = vi.fn().mockResolvedValue(response([source]));vi.stubGlobal('fetch', fetcher);
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([source])[0], true, vi.fn());
+    hook.pending(); await hook.update(); expect(hook.pending()).toBeNull();
+    expect(fetcher.mock.calls.every(([, init]) => !init?.method)).toBe(true);
+  });
+  it('prefers newer contact consent reads over a historical successful receipt', async () => {
+    const source = ownerSource();
+    const granted = { orderId: 20, orderStatus: 'accepted', requestProcess: { ...source.requestProcess, version: 3,
+      coordination: { customerContactAuthorized: true, businessContactAuthorized: true } } };
+    const changed = { ...source, requestProcess: { ...source.requestProcess, version: 4 } };
+    const fetcher = vi.fn().mockResolvedValueOnce(response(granted)).mockResolvedValueOnce(response([changed]));
+    vi.stubGlobal('fetch', fetcher);const dispatch = vi.spyOn(window, 'dispatchEvent');
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([source])[0], true, vi.fn());
+    expect(await hook.run('AUTHORIZE_CONTACT')).toBe(true);
+    expect(hook.currentOrder()?.requestProcess?.coordination?.businessContactAuthorized).toBe(false);
+    const event = dispatch.mock.calls.find(([event]) => event.type === 'zipco-process-receipt')![0] as CustomEvent;
+    expect(event.detail.requestProcess.version).toBe(4);expect(event.detail.requestProcess.coordination.businessContactAuthorized).toBe(false);
+  });
+  it('does not expose a read older than the confirmed contact operation as current consent', async () => {
+    const source = ownerSource();
+    const granted = { orderId: 20, orderStatus: 'accepted', requestProcess: { ...source.requestProcess, version: 3,
+      coordination: { customerContactAuthorized: true, businessContactAuthorized: true } } };
+    const stale = { ...source, requestProcess: { ...source.requestProcess, coordination: granted.requestProcess.coordination } };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(granted)).mockResolvedValueOnce(response([stale])));
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([source])[0], true, vi.fn());
+    expect(await hook.run('AUTHORIZE_CONTACT')).toBe(true);expect(hook.currentOrder()).toBeNull();
+  });
+});
 describe('pending rejection recovery with mocked backend', () => {
   it('confirms only once despite double touch and failed GET, retaining the receipt', async () => {
     let finish!: (value: Response) => void;

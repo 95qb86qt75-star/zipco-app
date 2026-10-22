@@ -4,13 +4,20 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-BUSINESS-COUNTER-CONTACT-01 — Consentimiento del propietario al aceptar
+
+2026-10-22. Frontend con backend c1f3b57/contrato aa38e8b confirmado. Aceptar y
+autorizar contacto del propietario, o solo aceptar; recuperación por actor y
+éxito combinado tras lectura actual. Sin endpoints nuevos ni cambios Railway.
+[Contrato, diseño, archivos y validación](frontend-business-counter-contact-qa.md).
+
 ### PERF-ACCEPT-CARD-01 — Apertura rápida sin borde intermitente
 
 2026-10-22. Solo frontend, qa. Entrada180ms y borde estable en la confirmación;
 revisión cubierta pausada y efectos de vidrio conservados con menor carga.
 [Evidencia y límites](frontend-accept-card-render-budget-qa.md).
-El botón de negocio con consentimiento sigue pendiente de
-[coordinación contractual](frontend-business-counter-contact-contract-diagnostic-qa.md).
+El pendiente contractual del botón de negocio quedó resuelto con aa38e8b;
+véase [integración del consentimiento](frontend-business-counter-contact-qa.md).
 
 ### UI-BUSINESS-COUNTER-ACCEPT-N-01 — Confirmación holograma del negocio
 

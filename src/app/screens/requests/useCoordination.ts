@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BusinessRequest, MyOrder } from './types';
 import { createCoordinationIntents, uncertainCoordinationMessage } from './coordinationIntent';
-import { coordinationAllowed, coordinationBody, refreshCoordinationOrder, sendCoordination, type CoordinationReason, type CoordinationAction } from './coordinationApi';
+import { contactAuthorized, coordinationAllowed, coordinationBody, refreshCoordinationOrder, sendCoordination, type CoordinationReason, type CoordinationAction } from './coordinationApi';
 import { RequestProcessError } from './requestProcessErrors';
 import { operationScope, readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import { showAppToast } from '../Toast';
@@ -20,6 +20,8 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
   const controllers = useRef(new Set<AbortController>());
   const binding = useRef({ session: readCoordinationSession(), business, orderId: order.id, processId: order.requestProcess?.id });
   const context = useRef({ business, orderId: order.id, processId: order.requestProcess?.id });
+  const lastRead = useRef<Awaited<ReturnType<typeof refreshCoordinationOrder>>>(null);
+  const confirmedVersion = useRef(0);
   context.current = { business, orderId: order.id, processId: order.requestProcess?.id };
   const original = binding.current;
   const session = original.session;
@@ -39,10 +41,15 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
   const storageWarning = () => active() && original.processId ? intents().warning(scope, original.processId) : '';
   const restored = () => active() && original.processId ? intents().needsReconciliation(scope, original.processId) : false;
   const announce = (text: string) => { if (active()) { setMessage(text); showAppToast(text, 'error'); } };
-  const reconcile = (signal: AbortSignal) => refreshCoordinationOrder(original.orderId!, original.business, session!.token, session!.businessId, signal);
+  const reconcile = async (signal: AbortSignal) => {
+    const value = await refreshCoordinationOrder(original.orderId!, original.business, session!.token, session!.businessId, signal);
+    if (active() && value?.requestProcess?.id === original.processId) lastRead.current = value;
+    return value;
+  };
   const update = async () => {
     if (!active() || lock.current) return;
     const controller = new AbortController(); controllers.current.add(controller); lock.current = true; setBusy(true);
+    lastRead.current = null;
     try {
       const latest = await reconcile(controller.signal);
       if (!active()) return;
@@ -50,7 +57,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       const intent = pending();
       if (intent && (restored() || ['CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(intent.action))) {
         const current = latest.requestProcess;
-        const applied = intent.action === 'AUTHORIZE_CONTACT' ? current.coordination?.customerContactAuthorized === true
+        const applied = intent.action === 'AUTHORIZE_CONTACT' ? contactAuthorized(current, business)
           : intent.action === 'ACK_READY_NOTICE' ? current.readyNoticeAcknowledged === true
           : intent.action === 'CONFIRM_RECEIPT' ? current.state === 'COMPLETED'
           : intent.action === 'CANCEL_PENDING_REQUEST' ? isPendingRequestCancelled(current)
@@ -81,20 +88,23 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     const process = order.requestProcess;
     if (!retry && !coordinationAllowed(process, business, action)) return false;
     if (retry && (!pending() || pending()?.action !== action ||
-      (['START_WORK', 'MARK_READY', 'REJECT_PENDING_REQUEST'].includes(action) && !business) || (['AUTHORIZE_CONTACT', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'CANCEL_PENDING_REQUEST'].includes(action) && business))) return false;
+      (['START_WORK', 'MARK_READY', 'REJECT_PENDING_REQUEST'].includes(action) && !business) || (['ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'CANCEL_PENDING_REQUEST'].includes(action) && business))) return false;
+    if (!retry && action === 'AUTHORIZE_CONTACT' && contactAuthorized(process, business)) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setMessage('');
+    lastRead.current = null;
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.
       const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail),
         (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal, process.currentProposalId), retry, active);
       if (!response || !active()) return false;
+      confirmedVersion.current = Math.max(confirmedVersion.current, response.result.requestProcess.version);
       let latest: Awaited<ReturnType<typeof refreshCoordinationOrder>> = null;
       const emitReceipt = () => {
         const current = latest?.requestProcess;
-        // Customer confirmation replays may predate a later receipt or omit the
-        // optional acknowledgment. Prefer the authoritative read when available.
-        const detail = (action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT') && latest && current &&
+        // Confirmation/consent replays may predate newer server state. Prefer
+        // the authoritative read, including phone-revision consent changes.
+        const detail = (action === 'AUTHORIZE_CONTACT' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT') && latest && current &&
           current.id === response.result.requestProcess.id && current.version >= response.result.requestProcess.version
           ? { orderId: order.id, orderStatus: latest.status, requestProcess: current } : response.result;
         window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail }));
@@ -138,7 +148,8 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       return false;
     } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
-  return { busy, message, needsUpdate, restored, storageWarning, update, pending, run, retry: () => {
+  return { busy, message, needsUpdate, restored, storageWarning, update, pending, run,
+    currentOrder: () => active() && (lastRead.current?.requestProcess?.version ?? -1) >= confirmedVersion.current ? lastRead.current : null, retry: () => {
     const intent = pending();
     return intent ? run(intent.action, intent.body.reasonCode, intent.body.reasonDetail, true) : Promise.resolve(false);
   } };

@@ -1,5 +1,11 @@
 # DIAG-BUSINESS-COUNTER-CONTACT-01 — Autorizar contacto al aceptar contrapropuesta
 
+Estado actualizado 2026-10-22: backend confirmó soporte publicado en c1f3b57 y
+aclaración contractual aa38e8b, trasladada por Bastián. Se leyó el contrato
+actualizado antes de integrar. El diagnóstico histórico de abajo queda resuelto
+por [UI-BUSINESS-COUNTER-CONTACT-01](frontend-business-counter-contact-qa.md).
+La secuencia combinada real en celulares sigue pendiente de probar.
+
 2026-10-22. Requiere coordinación frontend ↔ backend antes de implementar.
 No se modifican permisos ni se presenta como realizada una autorización.
 
