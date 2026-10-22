@@ -1759,3 +1759,72 @@ body {
   .zipco-chat-title { font-size:13px; }
   .zipco-chat-cell-old,.zipco-chat-cell-new { font-size:12px; }
 }
+
+/* PERF-REQUEST-CARDS-01: keep the glass palette without continuous list repaint. */
+.zipco-aurora-card::before {
+  filter:none;
+  background:radial-gradient(ellipse,rgba(139,92,246,.6),rgba(139,92,246,.22) 45%,transparent 74%);
+  animation:none;
+}
+.zipco-aurora-card::after {
+  filter:none;
+  background:radial-gradient(ellipse,rgba(20,184,166,.42),rgba(20,184,166,.14) 45%,transparent 74%);
+  animation:none;
+}
+.zipco-aurora-card .zipco-aurora-chip,
+.zipco-aurora-card .zipco-glass-btn,
+.zipco-aurora-card .zipco-accept-btn,
+.zipco-aurora-card .zipco-reject-btn {
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.zipco-aurora-card .zipco-aurora-dot,
+.zipco-aurora-card .zipco-glass-btn::after,
+.zipco-aurora-card .zipco-accept-wrap,
+.zipco-aurora-card .zipco-accept-btn::after,
+.zipco-aurora-card .zipco-accept-check,
+.zipco-aurora-card .zipco-reject-wrap,
+.zipco-aurora-card .zipco-reject-btn::after,
+.zipco-aurora-card .zipco-reject-icon {
+  animation-iteration-count:2;
+}
+.zipco-aurora-card .zipco-glass-blob,
+.zipco-aurora-card .zipco-accept-blob,
+.zipco-aurora-card .zipco-reject-blob {
+  filter:none;
+  animation-duration:1.5s;
+  animation-iteration-count:1;
+}
+.zipco-aurora-card .zipco-glass-btn::after,
+.zipco-aurora-card .zipco-accept-btn::after,
+.zipco-aurora-card .zipco-reject-btn::after {
+  animation-duration:1.5s;
+  animation-iteration-count:1;
+}
+.zipco-aurora-card .zipco-glass-b1,
+.zipco-aurora-card .zipco-accept-b1,
+.zipco-aurora-card .zipco-reject-b1 {
+  background:radial-gradient(circle at 35% 35%,rgba(255,255,255,.8),rgba(255,255,255,.12) 40%,transparent 72%);
+}
+.zipco-aurora-card .zipco-glass-b2 {
+  background:radial-gradient(circle at 40% 40%,rgba(245,184,255,.75),rgba(245,184,255,.15) 40%,transparent 72%);
+}
+.zipco-aurora-card .zipco-glass-b3 {
+  background:radial-gradient(circle at 40% 40%,rgba(140,240,255,.75),rgba(140,240,255,.15) 40%,transparent 72%);
+}
+.zipco-aurora-card .zipco-accept-b2,
+.zipco-aurora-card .zipco-accept-b3 {
+  background:radial-gradient(circle at 40% 40%,rgba(103,232,249,.75),rgba(167,243,208,.15) 40%,transparent 72%);
+}
+.zipco-aurora-card .zipco-reject-b2,
+.zipco-aurora-card .zipco-reject-b3 {
+  background:radial-gradient(circle at 40% 40%,rgba(252,165,165,.75),rgba(253,186,116,.15) 40%,transparent 72%);
+}
+.zipco-pending-business-responses[data-expanded="false"] :is(.zipco-accept-wrap,.zipco-accept-blob,.zipco-accept-check,.zipco-glass-blob,.zipco-reject-wrap,.zipco-reject-blob,.zipco-reject-icon),
+.zipco-pending-business-responses[data-expanded="false"] :is(.zipco-accept-btn,.zipco-glass-btn,.zipco-reject-btn)::after {
+  animation:none;
+}
+/* Keep the notification marker above the decorative background. */
+.zipco-aurora-card.zipco-notification-target::after {
+  background:#0284c7;
+}
