@@ -90,13 +90,13 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
 
-  if (business && accepted && process && ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state) && 'customerName' in order) {
+  if (accepted && process && ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state)) {
     const subject = accepted.subjectSnapshot;
     const single = subject.items.length === 1;
     const title = single ? `${subject.orderType === 'service' ? '' : `${subject.items[0].quantity}× `}${subject.items[0].nameSnapshot}` : `${subject.items.length} ${subject.orderType === 'service' ? 'servicios' : 'productos'}`;
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2 && process.proposalSummary?.type !== 'ORIGINAL_REQUEST';
-    return <BusinessCoordinationCard key={`${process.id}:${accepted.agreementPublicId}`} order={order} name={name} image={image} price={price}
+    return <BusinessCoordinationCard key={`${business}:${process.id}:${accepted.agreementPublicId}`} order={order} business={business} name={name} image={image} price={price}
       statusLabel={stateLabel} isUnread={isUnread} negotiated={negotiated} acceptedAt={accepted.confirmedAt} accepted={accepted} onInspect={onOpen}
       conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
       conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenLong}`} explanation={negotiated ? subject.proposalMessage : subject.note}

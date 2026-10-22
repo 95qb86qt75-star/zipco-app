@@ -12,7 +12,7 @@ import { coordinationFeedback } from './coordinationFeedback';
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
 const intents = () => shared ??= createCoordinationIntents(undefined, typeof sessionStorage === 'undefined' ? undefined : sessionStorage);
 
-export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback = false) {
+export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback: boolean | 'coordination-steps' = false) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [needsUpdate, setNeedsUpdate] = useState(false);
@@ -131,7 +131,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       }
       if (feedback && active() && !storageWarning()) {
         const notice = coordinationFeedback(action, response.result, latest, business);
-        if (notice) announceAction(notice.kind, { key: notice.key });
+        if (notice && !(feedback === 'coordination-steps' && action === 'AUTHORIZE_CONTACT')) announceAction(notice.kind, { key: notice.key });
       }
       if (active()) refresh(); return true;
     } catch (error) {

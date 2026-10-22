@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-CUSTOMER-COORDINATION-O-01 — Cliente y movimiento visible
+
+2026-10-22. Solo frontend QA. Diseño O compartido por cliente/negocio,
+consentimiento por actor y brillos visibles que se pausan fuera de pantalla.
+[Archivos, secuencia, contrato y validación](frontend-customer-coordination-o-visible-motion-qa.md).
+
 ### UI-COORDINATION-O-Q-01 — Coordinación Medianoche y avisos Q
 
 2026-10-22. Solo frontend QA. Diseño O del negocio, hojas flotantes y diseño Q

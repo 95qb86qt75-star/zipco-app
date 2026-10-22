@@ -79,11 +79,11 @@ try {
    const geometry=await evaluate(`(()=>{const card=document.querySelector(':is(.zipco-aurora-card,.zipco-co-dk)'),rect=card.getBoundingClientRect(),wide=[...card.querySelectorAll('*')].filter(e=>!e.closest('[aria-hidden="true"]')&&e.getBoundingClientRect().right>rect.right+1).map(e=>e.className);return {ok:rect.left>=0&&rect.right<=innerWidth+1&&wide.length===0&&document.documentElement.scrollWidth<=innerWidth,wide,price:document.querySelector(':is(.zipco-aurora-price,[data-agreement-price])').textContent,body:card.textContent};})()`);
    if(!geometry.ok)await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'overflow.png'),Buffer.from(shot.data,'base64')));
    assert(geometry.ok,`Card overflow: ${width}/${dark}/${business}/${state} ${JSON.stringify(geometry)}`);
-   if(business&&['COORDINATION_PENDING','COORDINATING'].includes(state)){
-    assert(geometry.body.includes('Todo listo para')&&geometry.body.includes('Autorizo comenzar')&&geometry.body.includes('por WhatsApp'),'Business coordination retains the approved contact design and separate actions');
+   if(['COORDINATION_PENDING','COORDINATING'].includes(state)){
+    assert(geometry.body.includes('Todo listo para')&&geometry.body.includes(business?'Autorizo comenzar':'Autorizo iniciar')&&geometry.body.includes('por WhatsApp'),'Both participants retain the approved contact design and separate actions');
     const loops=await evaluate(`document.querySelector('.zipco-co-dk').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations===Infinity&&a.playState==='running').map(a=>({name:a.animationName,target:a.effect.target.className}))`);
-    assert.equal(loops.length,0,`List contact decoration has no infinite animation: ${JSON.stringify(loops)}`);
-    if(width===393&&!dark&&state==='COORDINATION_PENDING')await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true}).then(shot=>fs.writeFileSync(path.join(directory,'business-coordination-holo.png'),Buffer.from(shot.data,'base64')));
+    assert(loops.length<=4,`Only a few lightweight visible accents animate: ${JSON.stringify(loops)}`);
+    if(width===393&&!dark&&state==='COORDINATION_PENDING')await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true}).then(shot=>fs.writeFileSync(path.join(directory,business?'business-coordination-holo.png':'customer-coordination-o.png'),Buffer.from(shot.data,'base64')));
    }
    if(state==='IN_PROGRESS')assert(geometry.body.includes(business?'Notificar pedido listo':'preparando tu pedido'));
    if(state==='READY')assert(geometry.body.includes(business?'Esperando que el cliente':'Confirmar aviso'));
@@ -173,8 +173,9 @@ try {
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-pending-business-responses')).transitionDuration`),'0s','Reduced motion removes the reveal transition');
  await delay(100);
  assert.equal(await evaluate(`document.querySelectorAll('[data-response-motion="active"]').length`),0,'Reduced motion keeps response effects static');
- await evaluate(`window.show('COORDINATION_PENDING',false)`);await wait('!!document.querySelector(".zipco-open-panel")');
- await evaluate(`document.querySelector('.zipco-open-panel').click()`);await wait('document.querySelector("article").textContent.includes("Nota acordada")');
+ await evaluate(`window.show('COORDINATION_PENDING',false)`);await wait('!!document.querySelector(".zipco-co-strip2")');
+ await evaluate(`document.querySelector('.zipco-co-strip2').click()`);await wait('!!document.querySelector("[data-coordination-sheet]")');await delay(200);
+ await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Ver acuerdo completo').click()`);await wait('document.querySelector("article").textContent.includes("Nota acordada")');
  await delay(650);
  assert.equal(await evaluate('window.posts'),0,'Disclosure does not submit an action');
  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'coordination-expanded-400.png'),Buffer.from(shot.data,'base64')));
@@ -185,19 +186,18 @@ try {
   await wait('!!document.querySelector(".zipco-open-panel,.zipco-co-strip2")&&document.querySelector(":is(.zipco-aurora-price,[data-agreement-price])").textContent.includes("2.000")');
   await evaluate(`window.conditionsReads=window.reads;window.coordinationNode=document.querySelector('[aria-label="Acciones de coordinación"]');true`);
   for(let repeat=0;repeat<3;repeat++){
-   if(business){
+   {
     await evaluate(`document.querySelector('.zipco-co-strip2').click()`);await wait('!!document.querySelector("[data-coordination-sheet]")');
     await delay(200);await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Ver acuerdo completo')).click()`);
-   }else await evaluate(`document.querySelector('.zipco-open-panel').click()`);
+   }
    await wait('!!document.querySelector(".zipco-accepted-conditions-reveal")');
-   if(business){await wait('!document.querySelector("[data-coordination-sheet]")');await delay(80);}
+   await wait('!document.querySelector("[data-coordination-sheet]")');await delay(80);
    const frames=await evaluate(`new Promise(resolve=>{let frames=[];function sample(){const e=document.querySelector('.zipco-accepted-conditions-reveal');frames.push({height:e.getBoundingClientRect().height,animations:e.getAnimations().map(a=>({duration:a.effect.getTiming().duration,keys:Object.keys(a.effect.getKeyframes()[0])}))});if(frames.length<8)requestAnimationFrame(sample);else resolve(frames);}requestAnimationFrame(sample);})`);
    assert(frames.every(f=>Math.abs(f.height-frames[0].height)<1),`Accepted detail height is stable across reveal frames (${business}/${reduced}): ${JSON.stringify(frames.map(f=>f.height))}`);
    assert(frames.every(f=>f.animations.every(a=>a.duration<=120&&!a.keys.some(k=>['height','transform','filter'].includes(k)))),'Detail uses a short opacity reveal without layout animation');
    if(reduced)assert(frames.every(f=>f.animations.length===0),'Reduced motion opens without animation');
    assert(await evaluate(`window.coordinationNode===document.querySelector('[aria-label="Acciones de coordinación"]')`),'Contact controls stay mounted during reveal');
-   if(business)await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Ocultar condiciones').click()`);
-   else await evaluate(`document.querySelector('.zipco-open-panel').click()`);
+   await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Ocultar condiciones').click()`);
    await wait('!document.querySelector(".zipco-accepted-conditions-reveal")');
   }
   assert.equal(await evaluate('window.reads-window.conditionsReads'),0,'Repeated disclosure does not read the agreement again');
@@ -205,6 +205,30 @@ try {
  assert.equal(await evaluate('window.posts'),0,'Disclosure does not perform order actions');
  await send('Emulation.setCPUThrottlingRate',{rate:1});
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+ for(const business of [false,true]){
+  await evaluate(`window.show('COORDINATION_PENDING',${business})`);await delay(200);await wait('!!document.querySelector(".zipco-co-dk")');
+  await evaluate(`document.querySelector('.zipco-co-dk').scrollIntoView({block:'start',behavior:'instant'})`);
+  await wait('document.querySelector(".zipco-co-dk").dataset.coordinationMotion==="active"');
+  if(!business){
+   assert.equal(await evaluate(`document.querySelector('.zipco-co-dk').dataset.coordinationRole`),'customer');
+   assert(await evaluate(`document.querySelector('.zipco-contact-consent').textContent.includes('Autorizo iniciar')`),'Customer preserves its own approved authorization button');
+   await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Ahora no').click()`);await wait('document.querySelector("article").textContent.includes("Revisar autorización de contacto")');
+   assert.equal(await evaluate('window.posts'),0,'Deferring contact performs no order action');
+   await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Revisar autorización de contacto').click()`);await wait('!!document.querySelector(".zipco-contact-consent")');
+  }
+  const accents=await evaluate(`document.querySelector('.zipco-co-dk').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations===Infinity&&a.playState==='running').map(a=>({name:a.animationName,keys:Object.keys(a.effect.getKeyframes()[0])}))`);
+  assert(accents.length>0&&accents.length<=4,'Coordination keeps visible motion after three cycles instead of finishing');
+  assert(accents.every(a=>!a.keys.some(k=>['boxShadow','backgroundPosition','filter','height'].includes(k))),'Continuous accents use composited transform/opacity rather than card repaint effects');
+  await evaluate(`Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));true`);
+  await wait('document.querySelector(".zipco-co-dk").dataset.coordinationMotion==="idle"');
+  assert.equal(await evaluate(`document.querySelector('.zipco-co-dk').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations===Infinity&&a.playState==='running').length`),0,'Background coordination effects pause');
+  await evaluate(`delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));document.querySelector('.zipco-co-dk').style.transform='translateY(2500px)';true`);
+  await wait('document.querySelector(".zipco-co-dk").dataset.coordinationMotion==="idle"');
+  await evaluate(`document.querySelector('.zipco-co-dk').style.transform='';true`);await wait('document.querySelector(".zipco-co-dk").dataset.coordinationMotion==="active"');
+  await touch('.zipco-co-strip2');await wait('!!document.querySelector("[data-coordination-sheet]")');
+  await wait('document.querySelector(".zipco-co-dk").dataset.coordinationMotion==="idle"');
+  await evaluate(`document.querySelector('[data-coordination-sheet] .zipco-co-lnk').click()`);await wait('!document.querySelector("[data-coordination-sheet]")');
+ }
  for(const width of [320,360,393,400]){
   await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
   await evaluate(`window.show('COORDINATION_PENDING',true)`);await delay(200);await wait('!!document.querySelector(".zipco-co-strip2")&&!!document.querySelector(".zipco-co-fold")');
@@ -236,6 +260,6 @@ try {
  await delay(2300);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Reduced Q clears after 2.2 seconds');
  await evaluate(`window.action('authorized');localStorage.setItem('zipco-user-id','another-session');window.dispatchEvent(new Event('zipco-session-changed'));true`);
  await delay(100);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Session change removes Q feedback');
- console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},coordinationSheets:[320,360,393,400],actionHolograms:8,feedbackDedup:true,feedbackTimers:true,feedbackSessionCleanup:true,realBackendAccess:false,orderActions:0}));
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},coordinationVisibleMotion:true,coordinationPausesOffscreenAndCovered:true,coordinationSheets:[320,360,393,400],actionHolograms:8,feedbackDedup:true,feedbackTimers:true,feedbackSessionCleanup:true,realBackendAccess:false,orderActions:0}));
  await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

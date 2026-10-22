@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, LockKeyhole, Trash2, User } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
-import type { BusinessRequest } from './types';
-import { ANNUL_REASONS, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
+import type { BusinessRequest, MyOrder } from './types';
+import { ANNUL_REASONS, contactAuthorized, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
 import useCoordination from './useCoordination';
 import WhatsAppMark from './WhatsAppMark';
 import { AnnulSheet, ConditionsSheet, type AcceptedSummary } from './CoordinationSheets';
 import { BUTTON_SPARKS, LINE_SPARKS, RAIL_SPARKS } from './coordinationSparks';
+import useCoordinationMotion from './useCoordinationMotion';
+import { announceAction } from './ActionHologram';
+import { readCoordinationSession } from './coordinationSession';
 
 /**
- * Tarjeta del NEGOCIO para pedidos en COORDINATION_PENDING / COORDINATING (diseño O, aprobado).
- * Reemplaza, solo para el negocio y solo en esos estados, el bloque "Condiciones aceptadas" + CoordinationActions.
+ * Shared design O for both participants in COORDINATION_PENDING / COORDINATING.
+ * The actor selects the existing coordination permissions and its own consent flag.
  * Estructura: cabecera compacta → franja "Condiciones aceptadas" (abre una hoja flotante) → mensaje + stepper de 3 pasos
  * → "Anular solicitud" (abre una hoja flotante, en un solo paso).
  */
@@ -28,43 +31,48 @@ const Sparks = () => <span className="zipco-co-us" aria-hidden="true">{BUTTON_SP
 const Step = ({ className = '', node, children }: { className?: string; node: ReactNode; children: ReactNode }) =>
   <div className={`zipco-co-st ${className}`.trim()}>{node}<div className="zipco-co-sb">{children}</div></div>;
 
-export default function BusinessCoordinationCard({ order, name, image, price, statusLabel, isUnread = false, negotiated, acceptedAt, accepted,
+export default function BusinessCoordinationCard({ order, business = true, name, image, price, statusLabel, isUnread = false, negotiated, acceptedAt, accepted,
   conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onOpenAgreement, agreementDetails, onInspect, refresh }: {
-  order: BusinessRequest; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
-  /** true si hubo propuesta/contrapropuesta ("Propuesta aceptada"); false si el cliente aceptó el pedido tal cual ("Pedido aceptado"). */
+  order: BusinessRequest | MyOrder; business?: boolean; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
+  /** true for a negotiated agreement; false for the accepted original order. */
   negotiated: boolean; acceptedAt?: string | null; accepted: AcceptedSummary;
   conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
   /** Abre el detalle completo de siempre (AcceptedConditionsPanel). */
   onOpenAgreement: () => void; agreementDetails?: ReactNode; onInspect?: () => void; refresh: () => void;
 }) {
-  const [latest, setLatest] = useState<BusinessRequest | null>(null);
+  const [latest, setLatest] = useState<BusinessRequest | MyOrder | null>(null);
   const current = latest?.requestProcess && latest.requestProcess.id === order.requestProcess?.id &&
     latest.requestProcess.agreementPublicId === order.requestProcess?.agreementPublicId &&
     latest.requestProcess.version > (order.requestProcess?.version ?? 0) ? latest : order;
   const process = current.requestProcess;
-  const operation = useCoordination(current, true, refresh, true);
+  const currentStatus = useRef({ process, business });
+  currentStatus.current = { process, business };
+  const operation = useCoordination(current, business, refresh, 'coordination-steps');
   const [sheet, setSheet] = useState<'cond' | 'anul' | null>(null);
+  const motionRef = useCoordinationMotion(sheet !== null);
   const [folded, setFolded] = useState(false); // tarjeta resumida (solo cabecera + progreso)
+  const [deferred, setDeferred] = useState(false);
   const [reason, setReason] = useState<AnnulReason>('COORDINATION_NOT_REACHED');
   const [detail, setDetail] = useState('');
-  const authorized = process?.coordination?.businessContactAuthorized === true;
+  const authorized = contactAuthorized(process, business);
   type Phase = 'idle' | 'requesting' | 'loading' | 'ready';
   const [animationPhase, setPhase] = useState<Phase>(authorized ? 'ready' : 'idle');
   const phase = authorized ? animationPhase === 'loading' ? 'loading' : 'ready'
     : animationPhase === 'requesting' && operation.busy ? 'requesting' : 'idle';
   const [fresh, setFresh] = useState(false); // true = el negocio autorizó en ESTA sesión (con animación); false = ya venía autorizado
   const timer = useRef<number | undefined>(undefined);
+  const feedbackTimer = useRef<number | undefined>(undefined);
   const mounted = useRef(true);
   const requestLock = useRef(false);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; window.clearTimeout(timer.current); }; }, []);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; window.clearTimeout(timer.current); window.clearTimeout(feedbackTimer.current); }; }, []);
 
-  const allowed = (action: CoordinationAction) => current.recordState === 'available' && coordinationAllowed(process, true, action);
+  const allowed = (action: CoordinationAction) => current.recordState === 'available' && coordinationAllowed(process, business, action);
   const run = (action: CoordinationAction) => operation.run(action, reason, detail);
   const pending = operation.pending();
   const recoveryOnly = operation.needsUpdate || operation.storageWarning() || operation.restored();
-  const customerPending = process?.coordination?.customerContactAuthorized === false;
+  const counterpartPending = process?.coordination?.[business ? 'customerContactAuthorized' : 'businessContactAuthorized'] === false;
   const canOpen = allowed('OPEN_WHATSAPP');
-  const client = name || 'el cliente';
+  const client = name || (business ? 'el cliente' : 'el negocio');
 
   // Consent and navigation remain separate. No local unlock substitutes for server consent.
   const unlock = async () => {
@@ -75,25 +83,41 @@ export default function BusinessCoordinationCard({ order, name, image, price, st
     try { ok = await run('AUTHORIZE_CONTACT'); } finally { requestLock.current = false; }
     if (!mounted.current) return;
     const verified = operation.currentOrder();
-    if (!ok || !verified || !('customerName' in verified) || verified.requestProcess?.coordination?.businessContactAuthorized !== true) {
+    if (!ok || !verified || verified.id !== order.id || verified.requestProcess?.id !== process?.id ||
+      verified.requestProcess?.agreementPublicId !== process?.agreementPublicId || !contactAuthorized(verified.requestProcess, business)) {
       setPhase('idle'); setFresh(false); return;
     }
     setLatest(verified); setFresh(true); setPhase('loading');
+    window.clearTimeout(timer.current);
+    window.clearTimeout(feedbackTimer.current);
+    const session = readCoordinationSession();
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    timer.current = window.setTimeout(() => { if (mounted.current) setPhase('ready'); }, reduced ? LOAD_MS_REDUCED : LOAD_MS);
+    timer.current = window.setTimeout(() => {
+      if (!mounted.current || readCoordinationSession() !== session) return;
+      setPhase('ready');
+      feedbackTimer.current = window.setTimeout(() => {
+        const current = currentStatus.current;
+        if (mounted.current && readCoordinationSession() === session && current.business === business &&
+          current.process?.id === verified.requestProcess!.id && current.process.agreementPublicId === verified.requestProcess!.agreementPublicId &&
+          contactAuthorized(current.process, business))
+          announceAction('authorized', { key: `${business}:${verified.requestProcess!.id}:${verified.requestProcess!.version}:AUTHORIZE_CONTACT` });
+      }, reduced ? 0 : 2900);
+    }, reduced ? LOAD_MS_REDUCED : LOAD_MS);
   };
   const go = async () => {
     if (operation.busy || !authorized || phase !== 'ready' || !canOpen || recoveryOnly || pending) return;
+    window.clearTimeout(feedbackTimer.current);
     await run('OPEN_WHATSAPP');
   };
   const annul = async () => {
     if (operation.busy || !allowed('ANNUL_COORDINATION') || recoveryOnly || pending) return;
+    window.clearTimeout(feedbackTimer.current);
     if (await run('ANNUL_COORDINATION') && mounted.current) { setSheet(null); setDetail(''); }
   };
 
   const step2Done = authorized;
   const waLabel = 'Iniciar coordinación por WhatsApp';
-  return <article id={`order-${order.id}`} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state}
+  return <article ref={motionRef} data-coordination-motion="idle" id={`order-${order.id}`} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state} data-coordination-role={business ? 'business' : 'customer'}
     aria-label={`${client}: coordinación pendiente`} className="zipco-co-dk scroll-mb-36"
     onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); event.currentTarget.classList.remove('zipco-notification-target'); onInspect?.(); setFolded(value => !value); } }}
     onClick={event => { event.currentTarget.classList.remove('zipco-notification-target'); event.stopPropagation(); }}>
@@ -156,19 +180,22 @@ export default function BusinessCoordinationCard({ order, name, image, price, st
           </Step>
 
           {!step2Done ? <Step node={<span className="zipco-co-sd on">2</span>}>
+            {!business && deferred ? <button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={() => setDeferred(false)}>Revisar autorización de contacto</button> : <>
             <div className="zipco-co-wrapb"><Sparks />
-              <button type="button" className="zipco-co-go glowup" style={{ marginTop: 0 }} disabled={operation.busy || !allowed('AUTHORIZE_CONTACT')} onClick={() => void unlock()}>
-                <span className="zipco-co-wi"><WhatsAppMark className="h-[22px] w-[22px]" /></span><span>{phase === 'requesting' ? 'Autorizando contacto…' : 'Autorizo comenzar coordinación'}</span>
+              <button type="button" className={business ? 'zipco-co-go glowup' : 'zipco-contact-consent'} style={{ marginTop: 0 }} disabled={operation.busy || !allowed('AUTHORIZE_CONTACT')} onClick={() => void unlock()}>
+                <span className={business ? 'zipco-co-wi' : 'zipco-contact-consent-icon'}><WhatsAppMark className="h-[22px] w-[22px]" /></span><span>{phase === 'requesting' ? 'Autorizando contacto…' : business ? 'Autorizo comenzar coordinación' : 'Autorizo iniciar coordinación'}</span>
               </button>
             </div>
-            <div className="zipco-co-sm" style={{ marginTop: 6 }}>Autorizas compartir con {client} el teléfono de tu perfil solo para este pedido. El consentimiento del cliente es independiente.</div>
+            <div className="zipco-co-sm" style={{ marginTop: 6 }}>Autorizas compartir con {client} el teléfono de tu perfil solo para este pedido. El consentimiento {business ? 'del cliente' : 'del negocio'} es independiente.</div>
+            {!business && <button type="button" className="zipco-co-go2 zipco-co-defer" disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>}
+            </>}
             {!allowed('AUTHORIZE_CONTACT') && <button type="button" className="zipco-co-lnk" disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado</button>}
           </Step> : fresh ? <div className="zipco-co-st vstep">
             <span className="zipco-co-vl" aria-hidden="true"><b />{LINE_SPARKS.map(([c, d, t, dx, dy, s], i) => <i key={i} style={vars({ c, d: `${d}s`, t: `${t}s`, dx: `${dx}px`, dy: `${dy}px`, s })} />)}</span>
             <span className="zipco-co-sd donepop"><Check size={13} strokeWidth={3.4} aria-hidden="true" /></span>
-            <div className="zipco-co-sb"><div className="zipco-co-sl">Coordinación autorizada</div><div className="zipco-co-sm">Cliente podrá contactarte por WhatsApp</div></div>
+            <div className="zipco-co-sb"><div className="zipco-co-sl">Coordinación autorizada</div><div className="zipco-co-sm">{business ? 'El cliente' : 'El negocio'} podrá contactarte por WhatsApp</div></div>
           </div> : <Step className="done" node={<span className="zipco-co-sd"><Check size={13} strokeWidth={3.4} aria-hidden="true" /></span>}>
-            <div className="zipco-co-sl">Coordinación autorizada</div><div className="zipco-co-sm">Cliente podrá contactarte por WhatsApp</div>
+            <div className="zipco-co-sl">Coordinación autorizada</div><div className="zipco-co-sm">{business ? 'El cliente' : 'El negocio'} podrá contactarte por WhatsApp</div>
           </Step>}
 
           <Step className="last" node={phase === 'ready'
@@ -187,7 +214,7 @@ export default function BusinessCoordinationCard({ order, name, image, price, st
               <button type="button" className={`zipco-co-go glowup${fresh ? ' swell' : ''}`} style={{ marginTop: 0 }} disabled={operation.busy || !canOpen} onClick={() => void go()}>
                 <span className="zipco-co-wi"><WhatsAppMark className="h-[22px] w-[22px]" /></span><span>{waLabel}</span>
               </button>
-            </div><div className="zipco-co-sm" style={{ marginTop: 6 }}>{canOpen ? 'Acuerda pago y entrega con el cliente.' : customerPending ? 'Esperando autorización de contacto del cliente.' : 'Actualiza el pedido para continuar.'}</div></>}
+            </div><div className="zipco-co-sm" style={{ marginTop: 6 }}>{canOpen ? `Acuerda los detalles de pago y ${accepted.subjectSnapshot.orderType === 'service' ? 'realización del servicio' : 'entrega'} con ${client}.` : counterpartPending ? `Esperando autorización de contacto ${business ? 'del cliente' : 'del negocio'}.` : 'Actualiza el pedido para continuar.'}</div></>}
           </Step>
         </div>}
 

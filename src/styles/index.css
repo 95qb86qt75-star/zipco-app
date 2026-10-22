@@ -2303,3 +2303,25 @@ body {
 .zipco-co-dk .zipco-co-st .zipco-co-sm { animation:none; }
 .zipco-co-dk .zipco-co-go.glowup { animation:zipco-co-un-glow 1.9s ease-in-out .7s 3; }
 .zipco-co-dk .zipco-co-go.glowup.swell { animation:zipco-co-un-glow 1.9s ease-in-out .7s 3,zipco-co-un-swell 2.2s ease-in-out .7s 1; }
+
+/* UI-CUSTOMER-COORDINATION-O-01: visible accents shared by both participants. */
+.zipco-co-defer { margin-top:9px; }
+.zipco-co-dk .zipco-contact-consent { -webkit-backdrop-filter:none; backdrop-filter:none; }
+.zipco-co-dk .zipco-co-go.glowup { animation:none; }
+.zipco-co-dk .zipco-co-go.glowup.swell { animation:zipco-co-un-swell 2.2s ease-in-out .7s 1; }
+.zipco-co-dk .zipco-co-go.glowup::after { animation:zipco-co-un-sheen 2.6s ease-in-out .5s infinite; }
+.zipco-co-dk .zipco-co-wi { animation:zipco-co-un-wig 2.8s ease-in-out 1s infinite; }
+.zipco-co-dk .zipco-co-sdpulse { animation:zipco-co-visible-pulse 2s ease-in-out infinite; }
+.zipco-co-dk .zipco-co-colrow::before { animation:zipco-co-visible-glow 2.2s ease-in-out infinite; box-shadow:inset 0 0 0 1.5px rgba(94,234,212,.6); }
+.zipco-co-dk .zipco-co-colrow::after { animation:zipco-co-cr-sheen 2.8s ease-in-out infinite; }
+.zipco-co-dk .zipco-co-colrow .nd::after { animation:zipco-co-visible-ring 1.8s ease-out infinite; border:1px solid #5eead4; }
+.zipco-co-dk .zipco-co-colrow .chev svg { animation:zipco-co-cr-bob 1.4s ease-in-out infinite; }
+.zipco-co-dk .zipco-contact-consent::before { animation:zipco-consent-shine 2.2s ease-in-out infinite; }
+.zipco-co-dk .zipco-contact-consent-icon { animation:zipco-consent-glow 2.2s ease-in-out infinite; }
+@keyframes zipco-co-visible-glow { 0%,100% { opacity:.3; } 50% { opacity:1; } }
+@keyframes zipco-co-visible-pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.06); opacity:.85; } }
+@keyframes zipco-co-visible-ring { from { transform:scale(1); opacity:.8; } to { transform:scale(1.5); opacity:0; } }
+.zipco-co-dk[data-coordination-motion="idle"] *,
+.zipco-co-dk[data-coordination-motion="idle"] *::before,
+.zipco-co-dk[data-coordination-motion="idle"] *::after { animation-play-state:paused!important; }
+.zipco-co-dk .zipco-co-go:disabled::after,.zipco-co-dk .zipco-contact-consent:disabled::before { animation:none; }
