@@ -176,6 +176,26 @@ try {
  await delay(650);
  assert.equal(await evaluate('window.posts'),0,'Disclosure does not submit an action');
  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'coordination-expanded-400.png'),Buffer.from(shot.data,'base64')));
- console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,realBackendAccess:false,orderActions:0}));
+ await send('Emulation.setCPUThrottlingRate',{rate:4});
+ for(const business of [false,true])for(const reduced of [false,true]){
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]});
+  await evaluate(`window.show('COORDINATION_PENDING',${business})`);
+  await wait('!!document.querySelector(".zipco-open-panel")&&document.querySelector(".zipco-aurora-price").textContent.includes("2.000")');
+  await evaluate(`window.conditionsReads=window.reads;window.coordinationNode=document.querySelector('[aria-label="Acciones de coordinación"]');true`);
+  for(let repeat=0;repeat<3;repeat++){
+   await evaluate(`document.querySelector('.zipco-open-panel').click()`);
+   await wait('!!document.querySelector(".zipco-accepted-conditions-reveal")');
+   const frames=await evaluate(`new Promise(resolve=>{let frames=[];function sample(){const e=document.querySelector('.zipco-accepted-conditions-reveal');frames.push({height:e.getBoundingClientRect().height,animations:e.getAnimations().map(a=>({duration:a.effect.getTiming().duration,keys:Object.keys(a.effect.getKeyframes()[0])}))});if(frames.length<8)requestAnimationFrame(sample);else resolve(frames);}requestAnimationFrame(sample);})`);
+   assert(frames.every(f=>Math.abs(f.height-frames[0].height)<1),'Accepted detail height is stable across reveal frames');
+   assert(frames.every(f=>f.animations.every(a=>a.duration<=120&&!a.keys.some(k=>['height','transform','filter'].includes(k)))),'Detail uses a short opacity reveal without layout animation');
+   if(reduced)assert(frames.every(f=>f.animations.length===0),'Reduced motion opens without animation');
+   assert(await evaluate(`window.coordinationNode===document.querySelector('[aria-label="Acciones de coordinación"]')`),'Contact controls stay mounted during reveal');
+   await evaluate(`document.querySelector('.zipco-open-panel').click()`);
+   await wait('!document.querySelector(".zipco-accepted-conditions-reveal")');
+  }
+  assert.equal(await evaluate('window.reads-window.conditionsReads'),0,'Repeated disclosure does not read the agreement again');
+ }
+ assert.equal(await evaluate('window.posts'),0,'Disclosure does not perform order actions');
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},realBackendAccess:false,orderActions:0}));
  await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

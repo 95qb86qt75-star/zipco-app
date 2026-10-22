@@ -2079,3 +2079,9 @@ body {
 .zipco-business-coordination :is(.zipco-d-wabtn,.zipco-d-wasoft):disabled { opacity:.55; }
 .zipco-business-coordination .zipco-d-wabtn-ic { flex:none; }
 .zipco-business-coordination .zipco-d-trust { white-space:normal; }
+
+/* PERF-ACCEPTED-CONDITIONS-01: resolve layout once; only fade the detail. */
+@keyframes zipco-conditions-reveal { from { opacity:0; } to { opacity:1; } }
+@media (prefers-reduced-motion:no-preference) {
+  .zipco-accepted-conditions-reveal { animation:zipco-conditions-reveal .12s ease-out; }
+}

@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### PERF-ACCEPTED-CONDITIONS-01 — Apertura breve de condiciones
+
+2026-10-22. Solo frontend QA. Altura final inmediata y aparición de opacidad
+120ms; conserva el holograma de coordinación sin desplazarlo en cada cuadro.
+[Hallazgo, alcance y validación](frontend-accepted-conditions-reveal-qa.md).
+
 ### UI-BUSINESS-COORDINATION-HOLO-01 — Contacto con diseño holograma
 
 2026-10-22. Solo frontend QA. Por coordinar del negocio reutiliza el diseño

@@ -82,13 +82,12 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     price={null} panelClass={tone.panel} accentClass={tone.accent} onOpen={toggle} expanded={isExpanded} acceptedSummary integrated />;
   const coordinationActions = coordination && accepted && <CoordinationActions key="coordination-actions" order={order} business={business}
     service={accepted.subjectSnapshot.orderType === 'service'} refresh={onRetry} />;
-  const conditionsDetails = <AnimatePresence initial={false}>
-    {isExpanded && <motion.div key="conditions" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+  // Reveal the accepted snapshot without resizing the entire decorated card each frame.
+  const conditionsDetails = isExpanded && <div className="zipco-accepted-conditions-reveal"
       onClick={(event) => event.stopPropagation()}>
       <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} embedded
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
-    </motion.div>}
-  </AnimatePresence>;
+    </div>;
 
   return <article id={`order-${order.id}`} tabIndex={0}
     aria-label={`${name || 'Pedido'}: ${isExpanded ? 'ocultar' : 'mostrar'} detalle`}
