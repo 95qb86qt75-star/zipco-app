@@ -391,8 +391,8 @@ percibida aprobada; no se extiende a Android ni a todos los pasos de captura.
 
 ### UI-PROPOSAL-FLOATING-DETAIL-01 — Detalle flotante y pie integrado
 
-2026-10-21. Solo frontend, qa. Detalle Radix sobre la revisión, comparación/fotos,
+2026-10-21. Solo frontend, qa. Código b56dc52. Detalle Radix sobre la revisión, comparación/fotos,
 cuatro cierres y pie de vidrio sin caja. Aceptar y contrato conservados.
 1147 pruebas/build QA, 23 recorridos de negociación y presupuesto visual de lista
-aprobados. Prueba física pendiente.
+aprobados. Preview READY y alias QA comprobados. Prueba física pendiente.
 [Diseño, archivos y publicación](frontend-proposal-floating-detail-qa.md).

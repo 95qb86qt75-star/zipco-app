@@ -68,4 +68,11 @@ Sin API QA, acciones ni uploads reales. Chrome no acredita Safari/WebKit.
 Pendiente prueba física Android/iPhone y conformidad de esta UI. No modifica la
 aprobación de rendimiento anterior. Reintentos fiables de notificaciones pendientes.
 
-Publicación: registrar SHA y comprobación READY/alias después de desplegar QA.
+Código funcional `b56dc5270eec7077ba2ce440678012e17bbe2570`, origin/qa.
+Preview `dpl_HA7LZhn3jRRFFF29jjYCZxTL4R42` READY y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+SHA/ref qa exactos, Backend QA confirmado en preflight; build global null y
+productionBranch main conservados. Build override:
+ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
+Resultado respaldado en cierre documental, publicado con el mismo código/opciones.
+Prueba física y conformidad de esta UI pendientes.
