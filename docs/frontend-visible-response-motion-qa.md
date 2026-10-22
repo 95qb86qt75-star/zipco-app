@@ -45,6 +45,12 @@ conservados. Sin acceso real a backend ni acciones de pedido.
 Presupuesto visual aprobado: 20 tarjetas de cliente, 0 animaciones infinitas,
 0 fuera de pantalla, 0 decoraciones activas al estabilizarse; scroll hasta 900
 sin solicitudes de red. Chrome sintético con CPU 4x, no medición de WebKit/iPhone.
-Pendiente antes del cierre: publicación exacta Vercel QA.
+Código funcional `70f061a9882e0c9e29da9dd73f55d64022da06f4`, commit/push en
+origin/qa. Despliegue `dpl_8pZy9gyR2d1AW7QgL7rxAtSzH1pT` READY, SHA/ref exactos
+y alias https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Override QA: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0
+npm run build -- --mode qa. Preflight verificó backend QA, build global null y
+productionBranch main conservados. El cierre documental se publica con el mismo
+código y configuración; no implica aprobación física del usuario.
 Pruebas físicas Android/iPhone pendientes. Los reintentos fiables de
 notificaciones siguen pendientes para el cierre general.
