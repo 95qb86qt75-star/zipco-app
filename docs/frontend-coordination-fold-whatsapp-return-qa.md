@@ -85,6 +85,9 @@ Los reintentos fiables de notificaciones siguen pendientes del cierre general.
 
 ## Respaldo y publicación
 
-Rama `qa`. Publicación exacta y respaldo GitHub se registran al cerrar la entrega.
+Rama `qa`. Código y estilos respaldados en GitHub: `216ca2f174adea59b8ebcc154f33b6d3659abea6`.
+Vercel QA READY: `dpl_9mrtyKicvUrtY1xgECSEYRtBE4AX`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA, con código idéntico.
 Railway QA no requirió cambios ni despliegue. Backend, main y producción intactos.
 No se ejecutaron comandos de integración a producción incluidos en el paquete.
