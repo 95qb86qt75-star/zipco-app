@@ -2065,3 +2065,17 @@ body {
     animation:zipco-accept-sheen 3.6s ease-in-out .6s infinite;
   }
 }
+
+/* UI-BUSINESS-COORDINATION-HOLO-01: approved contact design within the order list.
+   Static decoration avoids restarting continuous effects across multiple cards. */
+.zipco-business-coordination { isolation:isolate; border-color:#ddd6fe; }
+.zipco-business-coordination > :not(.zipco-d-holo-grid) { position:relative; }
+.zipco-business-coordination .zipco-d-orbwrap { height:96px; margin-top:0; }
+.zipco-business-coordination .zipco-d-auth-ttl { font-size:22px; margin-top:0; }
+.zipco-business-coordination .zipco-d-auth-sub { padding:0; }
+.zipco-business-coordination :is(.zipco-d-rays,.zipco-d-ring,.zipco-d-orb,.zipco-d-wabtn) { animation:none; }
+.zipco-business-coordination .zipco-d-rays { filter:none; }
+.zipco-business-coordination :is(.zipco-d-wabtn,.zipco-d-wasoft) { height:auto; min-height:48px; padding:10px 12px; overflow-wrap:anywhere; }
+.zipco-business-coordination :is(.zipco-d-wabtn,.zipco-d-wasoft):disabled { opacity:.55; }
+.zipco-business-coordination .zipco-d-wabtn-ic { flex:none; }
+.zipco-business-coordination .zipco-d-trust { white-space:normal; }

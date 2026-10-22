@@ -33,7 +33,7 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
  const sequence=sequences.indexOf(state);const read=sequence===0&&business?pendingBusinessRead():proposalsFixture(Math.max(0,sequence),business);
  const coordinated={...coordinationProcess,state:state==='READY_ACK'?'READY':state,readyNoticeAcknowledged:state==='READY_ACK',
   coordination:{customerContactAuthorized:false,businessContactAuthorized:false},
-  allowedActions:state==='IN_PROGRESS'?business?['MARK_READY']:[]:state.startsWith('READY')?business?[]:state==='READY_ACK'?['CONFIRM_RECEIPT']:['ACK_READY_NOTICE']:state==='COMPLETED'?[]:business?[]:['AUTHORIZE_CONTACT']};
+  allowedActions:state==='IN_PROGRESS'?business?['MARK_READY']:[]:state.startsWith('READY')?business?[]:state==='READY_ACK'?['CONFIRM_RECEIPT']:['ACK_READY_NOTICE']:state==='COMPLETED'?[]:business?['AUTHORIZE_CONTACT','OPEN_WHATSAPP','START_WORK','ANNUL_COORDINATION']:['AUTHORIZE_CONTACT']};
  const source=state==='CANCELLED'?cancelledPendingOrder:state==='REJECTED'?rejectedPendingOrder:rawOrder;
  const raw={...source,customerName:'Cliente sintético con nombre extenso de prueba',businessName:'Negocio sintético con nombre extenso de prueba',
   referencePhoto:null,status:legacy?state:sequence===0?'pending':sequence>0?'alternative_proposed':state.startsWith('READY')?'ready':state==='COMPLETED'?'completed':state==='CANCELLED'?'cancelled':state==='REJECTED'?'rejected':'accepted',
@@ -78,6 +78,11 @@ try {
    const geometry=await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),rect=card.getBoundingClientRect(),wide=[...card.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>rect.right+1).map(e=>e.className);return {ok:rect.left>=0&&rect.right<=innerWidth+1&&wide.length===0&&document.documentElement.scrollWidth<=innerWidth,wide,price:document.querySelector('.zipco-aurora-price').textContent,body:card.textContent};})()`);
    if(!geometry.ok)await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'overflow.png'),Buffer.from(shot.data,'base64')));
    assert(geometry.ok,`Card overflow: ${width}/${dark}/${business}/${state} ${JSON.stringify(geometry)}`);
+   if(business&&['COORDINATION_PENDING','COORDINATING'].includes(state)){
+    assert(geometry.body.includes('Todo listo para')&&geometry.body.includes('Autorizar contacto')&&geometry.body.includes('Coordinar por WhatsApp'),'Business coordination retains the approved contact design and separate actions');
+    assert.equal(await evaluate(`document.querySelector('.zipco-business-coordination').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations===Infinity&&a.playState==='running').length`),0,'List contact decoration has no infinite animation');
+    if(width===393&&!dark&&state==='COORDINATION_PENDING')await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true}).then(shot=>fs.writeFileSync(path.join(directory,'business-coordination-holo.png'),Buffer.from(shot.data,'base64')));
+   }
    if(state==='IN_PROGRESS')assert(geometry.body.includes(business?'Notificar pedido listo':'preparando tu pedido'));
    if(state==='READY')assert(geometry.body.includes(business?'Esperando que el cliente':'Confirmar aviso'));
    if(state==='READY_ACK')assert(geometry.body.includes(business?'Pendiente de retiro':'Confirmar recepción'));

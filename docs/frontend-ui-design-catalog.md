@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-BUSINESS-COORDINATION-HOLO-01 — Contacto con diseño holograma
+
+2026-10-22. Solo frontend QA. Por coordinar del negocio reutiliza el diseño
+«Todo listo para coordinar tu pedido», conservando las acciones autorizadas.
+[Diseño reutilizado, archivos y validación](frontend-business-coordination-holo-qa.md).
+
 ### UI-CUSTOMER-CATEGORY-ORDER-01 — Por responder antes de Coordinación
 
 2026-10-22. Solo frontend QA. Mis Pedidos presenta Pendientes, Por responder,
