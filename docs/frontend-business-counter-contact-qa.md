@@ -112,7 +112,13 @@ confirmado con recuperación de solo lectura, fecha vencida y cambio de sesión.
 Copias con nombre dinámico y ausencia de éxito conjunto antes de verificar contacto.
 Regresión visual aprobada: entrada180ms, 5 efectos pequeños activos y 0 bajo la
 revisión cubierta (escena Chrome CPU4x, no Android/WebKit físico).
-Publicación exacta: en cierre.
+Código funcional `19360253b88b11fdbba8a86320ac6669487523b8`, commit/push origin/qa.
+Vercel `dpl_CL6exXwQyv4HhF6GoYVVADCY3i4T` READY, SHA/ref qa exactos y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app verificados por API.
+Preflight: backend QA, build global null y productionBranch main conservados.
+Override preview: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run
+build -- --mode qa. Cierre documental publicado con el mismo código/opciones.
+No equivale a aprobación física: secuencia móvil combinada aún pendiente.
 
 Pendiente prueba física combinada en Android negocio e iPhone cliente, un paso
 a la vez. Pruebas locales sintéticas, sin acciones/uploads/pedidos reales.
