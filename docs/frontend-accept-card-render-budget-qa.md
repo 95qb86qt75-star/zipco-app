@@ -64,7 +64,13 @@ en 99 archivos y 38 recorridos de negociación Chrome aprobados, incluida
 entrada180ms del negocio y pausa/reanudación de la revisión del cliente y negocio.
 Medición optimizada aprobada: 5 efectos pequeños, 0 bajo revisión cubierta, sin
 bucles de flotación de tarjeta, gradiente móvil del borde o sombras variables.
-Publicación exacta: en cierre. No pedidos, uploads ni red
+Código funcional `32282237e1c33c47144429497ca536e39b49fa6a`, commit/push origin/qa.
+Vercel `dpl_2SABe7mUaYZC5hFNm2fzJ9KiEhjZ` READY, SHA/ref qa y alias habitual
+https://zipco-app-git-qa-zipco-s-projects.vercel.app verificados por API.
+Override: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build
+-- --mode qa. Preflight verificó backend QA, build global null y productionBranch
+main. Cierre documental con idéntico código/opciones; prueba física aún pendiente.
+No pedidos, uploads ni red
 backend real en verificaciones locales. Reintentos fiables de notificaciones
 siguen pendientes.
 
