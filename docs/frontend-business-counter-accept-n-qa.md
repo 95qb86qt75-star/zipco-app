@@ -56,7 +56,13 @@ sin POST y doble toque protegido, error con formulario conservado/reintento con
 la misma clave y fecha vencida con confirmación explícita. Se verifica un único
 accept-counter-proposal con el proposalId, versión y confirmationAccepted
 exactos; sin POST de autorización, selección Coordinación y holograma posterior.
-Publicación exacta: en cierre.
+Código funcional `d8ef84463c952a73f5ccbaec254f8808334419c2`, commit/push origin/qa.
+Vercel `dpl_E6yP4WuPYrRLueMC27TyGcsFcYwX` READY; SHA/ref qa y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app verificados por API.
+Preflight comprobó backend QA, build global null y productionBranch main.
+Override: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build
+-- --mode qa. Cierre documental publicado con el mismo código/opciones.
+No hay aprobación física del usuario aún para esta variante del negocio.
 Pruebas móviles reales pendientes: negocio Android y cliente iPhone, un paso a
 la vez. Sin acciones, pedidos o uploads reales en pruebas locales.
 Reintentos fiables de notificaciones siguen pendientes para el cierre general.
