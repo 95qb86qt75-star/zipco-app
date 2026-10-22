@@ -122,7 +122,13 @@ autorización tras filtrado/desmontaje y doble toque en 320/393px; respuestas pe
 de aceptación y contacto; lectura fallida posterior; permiso de contacto retirado;
 fecha vencida con consentimiento explícito; cambio de sesión durante aceptación
 y antes de autorizar. Duración 5.7/2.2s y deduplicación de hologramas verificadas.
-Publicación exacta QA: en cierre.
+Código funcional `95b9d16bcd098cbee304f633a062b1ae2cf21ed5`, commit/push origin/qa.
+Despliegue `dpl_FAhmwwAs2MdPp8csYcsygjsZUG1H` READY. SHA/ref qa y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app verificados por API.
+Preflight confirmó backend QA, build global null y productionBranch main.
+Override por preview: ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0
+npm run build -- --mode qa. Cierre documental publicado con el mismo código y
+opciones; sin aprobación física todavía para este bloque.
 Pruebas físicas pendientes: un paso a la vez en Android/iPhone, incluyendo
 fluidez y holograma, aceptación sola, aceptación con contacto y recuperación.
 Sin acciones, uploads, pedidos o datos reales en las verificaciones locales.
