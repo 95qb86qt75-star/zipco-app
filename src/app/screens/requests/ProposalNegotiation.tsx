@@ -16,6 +16,7 @@ import AcceptGlassButton from './AcceptGlassButton';
 import ProposalChat, { proposalTitle, whenLong } from './ProposalChat';
 import AcceptAuthorizeCard from './AcceptAuthorizeCard';
 import { announceProposalAccepted } from './proposalAcceptance';
+import { announceAction } from './ActionHologram';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -121,6 +122,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       if (isAcceptAction(action)) announceProposalAccepted({ order, receipt, business, authorize, session: session! });
       window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: receipt }));
       announceProposalSent(action, receipt);
+      if (action === 'COUNTER_PROPOSAL' && receipt.requestProcess.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE')
+        announceAction('counter', { key: `${receipt.orderId}:${receipt.requestProcess.version}:${action}` });
+      if (['REJECT_PROPOSAL', 'REJECT_COUNTER_PROPOSAL'].includes(action) && isProposalRejected(receipt.requestProcess))
+        announceAction('rejected', { key: `${receipt.orderId}:${receipt.requestProcess.version}:${action}` });
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
       setDecision(null); setAuthCard(false); setOpen(false); setDraftAction(null); refresh();
     };

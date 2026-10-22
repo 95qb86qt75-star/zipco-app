@@ -6,11 +6,13 @@ import { RequestProcessError } from './requestProcessErrors';
 import { operationScope, readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import { showAppToast } from '../Toast';
 import { isPendingRequestCancelled, isPendingRequestRejected } from './requestProcess';
+import { announceAction, dismissAction } from './ActionHologram';
+import { coordinationFeedback } from './coordinationFeedback';
 
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
 const intents = () => shared ??= createCoordinationIntents(undefined, typeof sessionStorage === 'undefined' ? undefined : sessionStorage);
 
-export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void) {
+export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback = false) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [needsUpdate, setNeedsUpdate] = useState(false);
@@ -123,9 +125,13 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       else if (action === 'OPEN_WHATSAPP') {
         if (response.navigation && latest?.requestProcess && latest.requestProcess.version >= response.result.requestProcess.version &&
           latest.requestProcess.id === process.id && coordinationAllowed(latest.requestProcess, business, 'OPEN_WHATSAPP')) {
-          try { if (active()) window.location.assign(response.navigation.url); }
-          catch { announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
+          try { if (active()) { if (feedback) announceAction('redirecting'); window.location.assign(response.navigation.url); } }
+          catch { if (feedback) dismissAction(); announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
         } else setMessage('El contacto ya no está disponible para este pedido. Se actualizaron sus condiciones.');
+      }
+      if (feedback && active() && !storageWarning()) {
+        const notice = coordinationFeedback(action, response.result, latest, business);
+        if (notice) announceAction(notice.kind, { key: notice.key });
       }
       if (active()) refresh(); return true;
     } catch (error) {

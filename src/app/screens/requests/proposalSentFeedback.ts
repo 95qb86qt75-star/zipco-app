@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { isRecord } from './orderValueParsers';
 import { normalizeRequestProcess, positiveInteger } from './requestProcess';
+import { readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 
 export const PROPOSAL_SENT_EVENT = 'zipco-proposal-sent';
-export type FlowFeedback = { title: string; description: string };
+export type FlowFeedback = { title: string; description: string; kind?: 'alternative' | 'final' };
 
 export function proposalSentFeedback(action: unknown, receipt: unknown) {
   if (!['PROPOSE_ALTERNATIVE', 'PROPOSE_FINAL'].includes(String(action)) || !isRecord(receipt) ||
@@ -27,6 +28,8 @@ export function announceProposalSent(action: unknown, receipt: unknown) {
 export function subscribeProposalSentFeedback(show: Dispatch<SetStateAction<FlowFeedback | null>>) {
   const seen = new Set<string>();
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let session = readCoordinationSession();
+  let activeMessage: FlowFeedback | null = null;
   const receive = (event: Event) => {
     const detail: unknown = (event as CustomEvent).detail;
     if (!isRecord(detail)) return;
@@ -35,12 +38,17 @@ export function subscribeProposalSentFeedback(show: Dispatch<SetStateAction<Flow
     seen.add(feedback.key);
     if (seen.size > 100) seen.delete(seen.values().next().value!);
     if (timer) clearTimeout(timer);
-    const message = { title: feedback.title, description: feedback.description };
+    const message: FlowFeedback = { title: feedback.title, description: feedback.description, kind: detail.action === 'PROPOSE_FINAL' ? 'final' : 'alternative' };
+    activeMessage = message; session = readCoordinationSession();
     show(message);
-    timer = setTimeout(() => show(current => current === message ? null : current), 2800);
+    timer = setTimeout(() => show(current => current === message ? null : current), window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 2200 : 4300);
   };
   window.addEventListener(PROPOSAL_SENT_EVENT, receive);
-  return () => { window.removeEventListener(PROPOSAL_SENT_EVENT, receive); if (timer) clearTimeout(timer); };
+  const unsubscribe = subscribeCoordinationSession(() => {
+    const next = readCoordinationSession();
+    if (next !== session) { session = next; seen.clear(); if (timer) clearTimeout(timer); const previous=activeMessage; activeMessage=null; show(current => current === previous ? null : current); }
+  });
+  return () => { window.removeEventListener(PROPOSAL_SENT_EVENT, receive); unsubscribe(); if (timer) clearTimeout(timer); };
 }
 
 export function useProposalSentFeedback(show: Dispatch<SetStateAction<FlowFeedback | null>>) {

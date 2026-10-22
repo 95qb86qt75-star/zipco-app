@@ -19,8 +19,9 @@ import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
 import {normalizeBusinessOrdersPayload,normalizeMyOrdersPayload} from './src/app/screens/requests/orderNormalization';
 import {rawOrder,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
 import {cancelledPendingOrder} from './src/app/screens/requests/pendingCancellationFixtures';
+import ActionHologramHost,{announceAction,dismissAction} from './src/app/screens/requests/ActionHologram';
 import {rejectedPendingOrder} from './src/app/screens/requests/pendingRejectionFixtures';
-window.React=React;window.posts=0;window.reads=0;let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
+window.React=React;window.action=announceAction;window.dismissAction=dismissAction;window.posts=0;window.reads=0;let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
 const pendingBusinessRead=()=>{const read=proposalsFixture(0,true);read.process.allowedActions.push('REJECT_PENDING_REQUEST');return read;};
 window.fetch=async(input,options={})=>{if(options.method&&options.method!=='GET'){window.posts++;throw Error('Actions are forbidden in this visual fixture');}
  if(String(input).endsWith('/proposals'))return new Response(JSON.stringify(pendingBusinessRead()));
@@ -40,10 +41,10 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
   requestProcess:legacy?null:state==='CANCELLED'||state==='REJECTED'?source.requestProcess:sequence>=0?read.process:coordinated};
  const order=(business?normalizeBusinessOrdersPayload:normalizeMyOrdersPayload)([raw])[0];window.recordAvailable=order.recordState==='available'&&!order.requestProcessInvalid;
  const props={isUpdating:false,onRetry:()=>{},onAction:()=>{},isUnread:true};
- return <main style={{padding:12}} key={revision}><div data-card-fixture>
+ return <><ActionHologramHost/><main style={{padding:12}} key={revision}><div data-card-fixture>
   {legacy?['completed','cancelled','rejected'].includes(state)?<OrderHistoryList orders={[order]} owner={business?'business':'customer'} deleted={false} onArchive={()=>{}}/>
    :business?<BusinessOrderCard {...props} request={order}/>:<MyOrderCard {...props} order={order}/>
-   :['COMPLETED','CANCELLED','REJECTED'].includes(state)?<ProcessHistoryCard order={order}/>:<ProcessOrderCard {...props} order={order} business={business}/>}</div></main>;
+   :['COMPLETED','CANCELLED','REJECTED'].includes(state)?<ProcessHistoryCard order={order}/>:<ProcessOrderCard {...props} order={order} business={business}/>}</div></main></>;
 }createRoot(document.getElementById('root')).render(<App/>);
 ` }, bundle: true, format: 'esm', jsx: 'automatic', outfile: path.join(directory, 'fixture.js'),
   define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}' } });
@@ -72,15 +73,16 @@ try {
   await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
   await evaluate(`document.documentElement.classList.toggle('dark',${dark})`);
   for(const business of [false,true])for(const state of ['AWAITING_BUSINESS_RESPONSE','AWAITING_CUSTOMER_DECISION','AWAITING_BUSINESS_COUNTER_RESPONSE','AWAITING_CUSTOMER_FINAL_DECISION','COORDINATION_PENDING','COORDINATING','IN_PROGRESS','READY','READY_ACK','COMPLETED','CANCELLED','REJECTED']){
-   await evaluate(`window.show(${JSON.stringify(state)},${business})`);await wait('window.recordAvailable&&!!document.querySelector(".zipco-aurora-card")');await delay(65);
-   if(['COORDINATION_PENDING','COORDINATING','IN_PROGRESS','READY','READY_ACK'].includes(state))await wait('document.querySelector(".zipco-aurora-price").textContent.includes("2.000")');
+   await evaluate(`window.show(${JSON.stringify(state)},${business})`);await wait('window.recordAvailable&&!!document.querySelector(":is(.zipco-aurora-card,.zipco-co-dk)")');await delay(65);
+   if(['COORDINATION_PENDING','COORDINATING','IN_PROGRESS','READY','READY_ACK'].includes(state))await wait('document.querySelector(":is(.zipco-aurora-price,[data-agreement-price])").textContent.includes("2.000")');
    // The clipped decorative pseudo-elements intentionally extend 50px outside the card.
-   const geometry=await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),rect=card.getBoundingClientRect(),wide=[...card.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>rect.right+1).map(e=>e.className);return {ok:rect.left>=0&&rect.right<=innerWidth+1&&wide.length===0&&document.documentElement.scrollWidth<=innerWidth,wide,price:document.querySelector('.zipco-aurora-price').textContent,body:card.textContent};})()`);
+   const geometry=await evaluate(`(()=>{const card=document.querySelector(':is(.zipco-aurora-card,.zipco-co-dk)'),rect=card.getBoundingClientRect(),wide=[...card.querySelectorAll('*')].filter(e=>!e.closest('[aria-hidden="true"]')&&e.getBoundingClientRect().right>rect.right+1).map(e=>e.className);return {ok:rect.left>=0&&rect.right<=innerWidth+1&&wide.length===0&&document.documentElement.scrollWidth<=innerWidth,wide,price:document.querySelector(':is(.zipco-aurora-price,[data-agreement-price])').textContent,body:card.textContent};})()`);
    if(!geometry.ok)await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'overflow.png'),Buffer.from(shot.data,'base64')));
    assert(geometry.ok,`Card overflow: ${width}/${dark}/${business}/${state} ${JSON.stringify(geometry)}`);
    if(business&&['COORDINATION_PENDING','COORDINATING'].includes(state)){
-    assert(geometry.body.includes('Todo listo para')&&geometry.body.includes('Autorizar contacto')&&geometry.body.includes('Coordinar por WhatsApp'),'Business coordination retains the approved contact design and separate actions');
-    assert.equal(await evaluate(`document.querySelector('.zipco-business-coordination').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations===Infinity&&a.playState==='running').length`),0,'List contact decoration has no infinite animation');
+    assert(geometry.body.includes('Todo listo para')&&geometry.body.includes('Autorizo comenzar')&&geometry.body.includes('por WhatsApp'),'Business coordination retains the approved contact design and separate actions');
+    const loops=await evaluate(`document.querySelector('.zipco-co-dk').getAnimations({subtree:true}).filter(a=>a.effect.getTiming().iterations===Infinity&&a.playState==='running').map(a=>({name:a.animationName,target:a.effect.target.className}))`);
+    assert.equal(loops.length,0,`List contact decoration has no infinite animation: ${JSON.stringify(loops)}`);
     if(width===393&&!dark&&state==='COORDINATION_PENDING')await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true}).then(shot=>fs.writeFileSync(path.join(directory,'business-coordination-holo.png'),Buffer.from(shot.data,'base64')));
    }
    if(state==='IN_PROGRESS')assert(geometry.body.includes(business?'Notificar pedido listo':'preparando tu pedido'));
@@ -91,10 +93,10 @@ try {
   }
   for(const business of [false,true])for(const state of ['pending','alternative_proposed','accepted','ready','completed','cancelled','rejected']){
    await evaluate(`window.show(${JSON.stringify(state)},${business},true)`);await delay(75);
-   assert(await evaluate('!!document.querySelector(".zipco-aurora-card")'),'Legacy card retains Aurora');
-   if(['completed','cancelled','rejected'].includes(state))assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-aurora-card')).animationName`),'none','History swipe transform belongs to Motion');
-   await evaluate(`document.querySelector('.zipco-aurora-price').textContent='$50.000.000'`);
-   assert(await evaluate(`(()=>{const card=document.querySelector('.zipco-aurora-card'),r=card.getBoundingClientRect();return [...card.querySelectorAll('.zipco-aurora-header *')].every(e=>e.getBoundingClientRect().right<=r.right+1);})()`),'Large totals stay inside legacy headers');
+   assert(await evaluate('!!document.querySelector(":is(.zipco-aurora-card,.zipco-co-dk)")'),'Legacy card retains Aurora');
+   if(['completed','cancelled','rejected'].includes(state))assert.equal(await evaluate(`getComputedStyle(document.querySelector(':is(.zipco-aurora-card,.zipco-co-dk)')).animationName`),'none','History swipe transform belongs to Motion');
+   await evaluate(`document.querySelector(':is(.zipco-aurora-price,[data-agreement-price])').textContent='$50.000.000'`);
+   assert(await evaluate(`(()=>{const card=document.querySelector(':is(.zipco-aurora-card,.zipco-co-dk)'),r=card.getBoundingClientRect();return [...card.querySelectorAll('.zipco-aurora-header *')].every(e=>e.getBoundingClientRect().right<=r.right+1);})()`),'Large totals stay inside legacy headers');
    evidence.push(`${width}/${dark?'dark':'light'}/legacy/${business}/${state}`);
   }
   await evaluate(`window.show('AWAITING_BUSINESS_RESPONSE',true)`);await wait('!!document.querySelector(\'.zipco-pending-business-responses[data-expanded="false"]\')');
@@ -180,22 +182,60 @@ try {
  for(const business of [false,true])for(const reduced of [false,true]){
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:reduced?'reduce':'no-preference'}]});
   await evaluate(`window.show('COORDINATION_PENDING',${business})`);
-  await wait('!!document.querySelector(".zipco-open-panel")&&document.querySelector(".zipco-aurora-price").textContent.includes("2.000")');
+  await wait('!!document.querySelector(".zipco-open-panel,.zipco-co-strip2")&&document.querySelector(":is(.zipco-aurora-price,[data-agreement-price])").textContent.includes("2.000")');
   await evaluate(`window.conditionsReads=window.reads;window.coordinationNode=document.querySelector('[aria-label="Acciones de coordinación"]');true`);
   for(let repeat=0;repeat<3;repeat++){
-   await evaluate(`document.querySelector('.zipco-open-panel').click()`);
+   if(business){
+    await evaluate(`document.querySelector('.zipco-co-strip2').click()`);await wait('!!document.querySelector("[data-coordination-sheet]")');
+    await delay(200);await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Ver acuerdo completo')).click()`);
+   }else await evaluate(`document.querySelector('.zipco-open-panel').click()`);
    await wait('!!document.querySelector(".zipco-accepted-conditions-reveal")');
+   if(business){await wait('!document.querySelector("[data-coordination-sheet]")');await delay(80);}
    const frames=await evaluate(`new Promise(resolve=>{let frames=[];function sample(){const e=document.querySelector('.zipco-accepted-conditions-reveal');frames.push({height:e.getBoundingClientRect().height,animations:e.getAnimations().map(a=>({duration:a.effect.getTiming().duration,keys:Object.keys(a.effect.getKeyframes()[0])}))});if(frames.length<8)requestAnimationFrame(sample);else resolve(frames);}requestAnimationFrame(sample);})`);
-   assert(frames.every(f=>Math.abs(f.height-frames[0].height)<1),'Accepted detail height is stable across reveal frames');
+   assert(frames.every(f=>Math.abs(f.height-frames[0].height)<1),`Accepted detail height is stable across reveal frames (${business}/${reduced}): ${JSON.stringify(frames.map(f=>f.height))}`);
    assert(frames.every(f=>f.animations.every(a=>a.duration<=120&&!a.keys.some(k=>['height','transform','filter'].includes(k)))),'Detail uses a short opacity reveal without layout animation');
    if(reduced)assert(frames.every(f=>f.animations.length===0),'Reduced motion opens without animation');
    assert(await evaluate(`window.coordinationNode===document.querySelector('[aria-label="Acciones de coordinación"]')`),'Contact controls stay mounted during reveal');
-   await evaluate(`document.querySelector('.zipco-open-panel').click()`);
+   if(business)await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Ocultar condiciones').click()`);
+   else await evaluate(`document.querySelector('.zipco-open-panel').click()`);
    await wait('!document.querySelector(".zipco-accepted-conditions-reveal")');
   }
   assert.equal(await evaluate('window.reads-window.conditionsReads'),0,'Repeated disclosure does not read the agreement again');
  }
  assert.equal(await evaluate('window.posts'),0,'Disclosure does not perform order actions');
- console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},realBackendAccess:false,orderActions:0}));
+ await send('Emulation.setCPUThrottlingRate',{rate:1});
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+ for(const width of [320,360,393,400]){
+  await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
+  await evaluate(`window.show('COORDINATION_PENDING',true)`);await delay(200);await wait('!!document.querySelector(".zipco-co-strip2")&&!!document.querySelector(".zipco-co-fold")');
+  await touch('.zipco-co-fold');await wait('!!document.querySelector(".zipco-co-colrow")');assert(await evaluate(`document.querySelector('.zipco-co-colrow').getAttribute('aria-expanded')==='false'`),'O card folds');
+  await touch('.zipco-co-colrow');await wait('!!document.querySelector(".zipco-co-strip2")');await touch('.zipco-co-strip2');await wait('!!document.querySelector("[data-coordination-sheet]")');await delay(230);
+  assert(await evaluate(`(()=>{const r=document.querySelector('[data-coordination-sheet]').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1;})()`),'Condition sheet stays inside the mobile viewport');
+  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`conditions-o-${width}.png`),Buffer.from(shot.data,'base64')));
+  await evaluate(`document.querySelector('[data-coordination-sheet] .zipco-co-lnk').click()`);await wait('!document.querySelector("[data-coordination-sheet]")');
+  await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Anular solicitud').click()`);await wait('!!document.querySelector(".zipco-co-rs")');
+  await evaluate(`[...document.querySelectorAll('.zipco-co-r')].find(b=>b.textContent.includes('Otro motivo')).click()`);await wait('!!document.querySelector(".zipco-co-ta")');
+  assert(await evaluate(`document.querySelector('.zipco-co-danger').disabled`),'Other reason requires an explanation before submission');
+  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`annul-o-${width}.png`),Buffer.from(shot.data,'base64')));
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await wait('!document.querySelector("[data-coordination-sheet]")');
+ }
+ for(const kind of ['alternative','final','counter','authorized','redirecting','ready','rejected','annulled']){
+  await evaluate(`window.action('${kind}')`);await wait('!!document.querySelector(".zipco-ah")');await delay(650);
+  assert(await evaluate(`(()=>{const e=document.querySelector('.zipco-ah-d');return e.getBoundingClientRect().right<=innerWidth&&e.textContent.length>10;})()`),'Q message fits the mobile viewport');
+  await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`action-${kind}.png`),Buffer.from(shot.data,'base64')));
+ }
+ await evaluate(`window.dismissAction()`);await wait('!document.querySelector(".zipco-ah")');
+ await evaluate(`window.action('authorized',{key:'dedup-check'});true`);await wait('!!document.querySelector(".zipco-ah")');
+ await evaluate(`window.savedAction=document.querySelector('.zipco-ah');window.action('authorized',{key:'dedup-check'});true`);
+ assert(await evaluate(`window.savedAction===document.querySelector('.zipco-ah')`),'Duplicate action feedback does not restart');
+ await evaluate(`window.action('counter')`);await delay(100);assert(await evaluate(`window.savedAction!==document.querySelector('.zipco-ah')`),'A new action replaces the feedback');
+ await delay(4400);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Q feedback clears after 4.3 seconds');
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ await evaluate(`window.action('annulled')`);await wait('!!document.querySelector(".zipco-ah")');
+ assert.equal(await evaluate(`document.querySelector('.zipco-ah').getAnimations({subtree:true}).length`),0,'Reduced motion Q is static');
+ await delay(2300);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Reduced Q clears after 2.2 seconds');
+ await evaluate(`window.action('authorized');localStorage.setItem('zipco-user-id','another-session');window.dispatchEvent(new Event('zipco-session-changed'));true`);
+ await delay(100);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Session change removes Q feedback');
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},coordinationSheets:[320,360,393,400],actionHolograms:8,feedbackDedup:true,feedbackTimers:true,feedbackSessionCleanup:true,realBackendAccess:false,orderActions:0}));
  await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

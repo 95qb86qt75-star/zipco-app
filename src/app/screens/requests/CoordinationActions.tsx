@@ -15,7 +15,7 @@ export default function CoordinationActions({ order, business, service, refresh 
   const [deferred, setDeferred] = useState(false);
   const [reason, setReason] = useState<AnnulReason>('COORDINATION_NOT_REACHED');
   const [detail, setDetail] = useState('');
-  const operation = useCoordination(order, business, refresh);
+  const operation = useCoordination(order, business, refresh, true);
   const process = order.requestProcess;
   const businessCoordination = business && ['COORDINATION_PENDING', 'COORDINATING'].includes(process?.state ?? '');
   const buttonClass = businessCoordination ? 'zipco-d-wasoft' : defaultButtonClass;

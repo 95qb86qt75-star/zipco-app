@@ -28,7 +28,7 @@ it('presents success once per proposal, survives card removal and cleans its tim
   announceProposalSent('PROPOSE_ALTERNATIVE', receipt());
   expect(current?.title).toBe('Alternativa enviada al cliente');
   vi.advanceTimersByTime(2700); announceProposalSent('PROPOSE_ALTERNATIVE', receipt()); expect(show).toHaveBeenCalledTimes(1);
-  vi.advanceTimersByTime(100); expect(current).toBeNull();
+  vi.advanceTimersByTime(1600); expect(current).toBeNull();
   announceProposalSent('PROPOSE_FINAL', receipt(3)); expect(current?.title).toContain('final');
   dispose(); const calls = show.mock.calls.length;
   vi.runAllTimers(); announceProposalSent('PROPOSE_FINAL', { ...receipt(3), orderId: 21 }); expect(show).toHaveBeenCalledTimes(calls);

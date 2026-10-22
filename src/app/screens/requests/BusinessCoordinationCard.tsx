@@ -1,0 +1,214 @@
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, LockKeyhole, Trash2, User } from 'lucide-react';
+import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
+import type { BusinessRequest } from './types';
+import { ANNUL_REASONS, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
+import useCoordination from './useCoordination';
+import WhatsAppMark from './WhatsAppMark';
+import { AnnulSheet, ConditionsSheet, type AcceptedSummary } from './CoordinationSheets';
+import { BUTTON_SPARKS, LINE_SPARKS, RAIL_SPARKS } from './coordinationSparks';
+
+/**
+ * Tarjeta del NEGOCIO para pedidos en COORDINATION_PENDING / COORDINATING (diseño O, aprobado).
+ * Reemplaza, solo para el negocio y solo en esos estados, el bloque "Condiciones aceptadas" + CoordinationActions.
+ * Estructura: cabecera compacta → franja "Condiciones aceptadas" (abre una hoja flotante) → mensaje + stepper de 3 pasos
+ * → "Anular solicitud" (abre una hoja flotante, en un solo paso).
+ */
+const LOAD_MS = 3900;          // la línea y el botón "cargan" ~3,9 s hasta desbloquear el paso 3
+const LOAD_MS_REDUCED = 500;   // prefers-reduced-motion
+const TZ = 'America/Santiago';
+const when = (iso?: string | null) => {
+  if (!iso) return '';
+  const date = new Date(iso);
+  return `${date.toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} · ${date.toLocaleTimeString('es-CL', { timeZone: TZ, hour: 'numeric', minute: '2-digit' })}`;
+};
+const vars = (values: Record<string, string | number>) => Object.fromEntries(Object.entries(values).map(([k, v]) => [`--${k}`, v])) as CSSProperties;
+
+const Sparks = () => <span className="zipco-co-us" aria-hidden="true">{BUTTON_SPARKS.map(([x, y, c, s], i) => <i key={i} style={vars({ x: `${x}px`, y: `${y}px`, c, s })} />)}</span>;
+const Step = ({ className = '', node, children }: { className?: string; node: ReactNode; children: ReactNode }) =>
+  <div className={`zipco-co-st ${className}`.trim()}>{node}<div className="zipco-co-sb">{children}</div></div>;
+
+export default function BusinessCoordinationCard({ order, name, image, price, statusLabel, isUnread = false, negotiated, acceptedAt, accepted,
+  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onOpenAgreement, agreementDetails, onInspect, refresh }: {
+  order: BusinessRequest; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
+  /** true si hubo propuesta/contrapropuesta ("Propuesta aceptada"); false si el cliente aceptó el pedido tal cual ("Pedido aceptado"). */
+  negotiated: boolean; acceptedAt?: string | null; accepted: AcceptedSummary;
+  conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
+  /** Abre el detalle completo de siempre (AcceptedConditionsPanel). */
+  onOpenAgreement: () => void; agreementDetails?: ReactNode; onInspect?: () => void; refresh: () => void;
+}) {
+  const [latest, setLatest] = useState<BusinessRequest | null>(null);
+  const current = latest?.requestProcess && latest.requestProcess.id === order.requestProcess?.id &&
+    latest.requestProcess.agreementPublicId === order.requestProcess?.agreementPublicId &&
+    latest.requestProcess.version > (order.requestProcess?.version ?? 0) ? latest : order;
+  const process = current.requestProcess;
+  const operation = useCoordination(current, true, refresh, true);
+  const [sheet, setSheet] = useState<'cond' | 'anul' | null>(null);
+  const [folded, setFolded] = useState(false); // tarjeta resumida (solo cabecera + progreso)
+  const [reason, setReason] = useState<AnnulReason>('COORDINATION_NOT_REACHED');
+  const [detail, setDetail] = useState('');
+  const authorized = process?.coordination?.businessContactAuthorized === true;
+  type Phase = 'idle' | 'requesting' | 'loading' | 'ready';
+  const [animationPhase, setPhase] = useState<Phase>(authorized ? 'ready' : 'idle');
+  const phase = authorized ? animationPhase === 'loading' ? 'loading' : 'ready'
+    : animationPhase === 'requesting' && operation.busy ? 'requesting' : 'idle';
+  const [fresh, setFresh] = useState(false); // true = el negocio autorizó en ESTA sesión (con animación); false = ya venía autorizado
+  const timer = useRef<number | undefined>(undefined);
+  const mounted = useRef(true);
+  const requestLock = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; window.clearTimeout(timer.current); }; }, []);
+
+  const allowed = (action: CoordinationAction) => current.recordState === 'available' && coordinationAllowed(process, true, action);
+  const run = (action: CoordinationAction) => operation.run(action, reason, detail);
+  const pending = operation.pending();
+  const recoveryOnly = operation.needsUpdate || operation.storageWarning() || operation.restored();
+  const customerPending = process?.coordination?.customerContactAuthorized === false;
+  const canOpen = allowed('OPEN_WHATSAPP');
+  const client = name || 'el cliente';
+
+  // Consent and navigation remain separate. No local unlock substitutes for server consent.
+  const unlock = async () => {
+    if (requestLock.current || phase !== 'idle' || operation.busy || !allowed('AUTHORIZE_CONTACT') || recoveryOnly || pending) return;
+    requestLock.current = true;
+    setPhase('requesting');
+    let ok = false;
+    try { ok = await run('AUTHORIZE_CONTACT'); } finally { requestLock.current = false; }
+    if (!mounted.current) return;
+    const verified = operation.currentOrder();
+    if (!ok || !verified || !('customerName' in verified) || verified.requestProcess?.coordination?.businessContactAuthorized !== true) {
+      setPhase('idle'); setFresh(false); return;
+    }
+    setLatest(verified); setFresh(true); setPhase('loading');
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    timer.current = window.setTimeout(() => { if (mounted.current) setPhase('ready'); }, reduced ? LOAD_MS_REDUCED : LOAD_MS);
+  };
+  const go = async () => {
+    if (operation.busy || !authorized || phase !== 'ready' || !canOpen || recoveryOnly || pending) return;
+    await run('OPEN_WHATSAPP');
+  };
+  const annul = async () => {
+    if (operation.busy || !allowed('ANNUL_COORDINATION') || recoveryOnly || pending) return;
+    if (await run('ANNUL_COORDINATION') && mounted.current) { setSheet(null); setDetail(''); }
+  };
+
+  const step2Done = authorized;
+  const waLabel = 'Iniciar coordinación por WhatsApp';
+  return <article id={`order-${order.id}`} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state}
+    aria-label={`${client}: coordinación pendiente`} className="zipco-co-dk scroll-mb-36"
+    onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); event.currentTarget.classList.remove('zipco-notification-target'); onInspect?.(); setFolded(value => !value); } }}
+    onClick={event => { event.currentTarget.classList.remove('zipco-notification-target'); event.stopPropagation(); }}>
+    <span className="zipco-co-a1" aria-hidden="true" /><span className="zipco-co-a2" aria-hidden="true" />
+    <div style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span className="zipco-co-av">{image
+          ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" />
+          : <User size={24} strokeWidth={2} aria-hidden="true" />}</span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 17, lineHeight: 1.15, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="zipco-co-client-name">{client}</span>
+            {isUnread && <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">Nueva</span>}
+          </div>
+          <div style={{ marginTop: 5 }}><span className="zipco-co-pill"><i />{statusLabel}</span></div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div data-agreement-price style={{ fontSize: 23, lineHeight: 1, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{price === null ? '—' : `$${price.toLocaleString('es-CL')}`}</div>
+          <div style={{ marginTop: 4, fontSize: 9.5, fontWeight: 800, letterSpacing: '.14em', color: '#d5dbe5' }}>ACORDADO</div>
+        </div>
+      </div>
+
+      {folded ? <button type="button" className="zipco-co-colrow" aria-expanded={false} onClick={() => { onInspect?.(); setFolded(false); }}
+        style={{ ['--att' as string]: phase === 'loading' ? 0 : 1 }}>
+        <span className="nd" aria-hidden="true">{phase === 'idle' ? '2' : '3'}</span>
+        <span className="tx">
+          <b>{phase === 'idle' ? 'Autorizar contacto' : phase === 'loading' ? 'Preparando WhatsApp…' : waLabel}</b>
+          <small>{phase === 'idle' ? 'Falta tu acción · toca para abrir' : phase === 'loading' ? 'Paso 3 de 3 · un momento' : 'Paso 3 de 3 · listo para iniciar'}</small>
+        </span>
+        <span className="chev"><ChevronDown size={15} strokeWidth={2.8} aria-hidden="true" /><span className="sr-only">Mostrar coordinación</span></span>
+      </button> : <>
+      <button type="button" className="zipco-co-strip2" aria-haspopup="dialog" onClick={() => { onInspect?.(); setSheet('cond'); }}>
+        <span className="zipco-co-strip2-ic"><CircleCheck size={16} strokeWidth={2.3} aria-hidden="true" /></span>
+        <span style={{ minWidth: 0 }}><div className="zipco-co-strip2-l">Condiciones aceptadas</div><div className="zipco-co-strip2-v">{conditionsSummary}</div></span>
+        <span className="zipco-co-strip2-go"><ChevronRight size={15} strokeWidth={2.8} aria-hidden="true" /></span>
+      </button>
+
+      <section className="zipco-co-co2" aria-label="Acciones de coordinación">
+        <div className="zipco-co-co2-top">
+          <span className="zipco-co-co2-orb"><Check size={24} strokeWidth={3} aria-hidden="true" /></span>
+          <div style={{ minWidth: 0 }}>
+            <div className="zipco-co-co2-t">{negotiated ? 'Propuesta aceptada' : 'Pedido aceptado'} · <span style={{ color: '#5eead4' }}>{client}</span></div>
+            <div className="zipco-co-co2-s">Todo listo para coordinar el pedido.</div>
+          </div>
+        </div>
+
+        {operation.message && <p role="alert" className="zipco-co-co2-p" style={{ marginTop: 12 }}>{operation.message}</p>}
+
+        {recoveryOnly ? <div className="zipco-co-steps">
+          <p role="alert" className="zipco-co-co2-p" style={{ margin: 0 }}>{operation.storageWarning() || (operation.restored()
+            ? 'Se recuperó una operación anterior. Actualiza su estado antes de reintentar.' : 'La operación ya fue confirmada. Actualiza el estado sin repetirla.')}</p>
+          <button type="button" className="zipco-co-go2" style={{ marginTop: 10 }} disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado</button>
+        </div> : pending ? <div className="zipco-co-steps">
+          <p className="zipco-co-co2-p" style={{ margin: 0 }}>Hay una operación pendiente de confirmación. Reintenta con las mismas condiciones antes de realizar otra acción.</p>
+          <button type="button" className="zipco-co-go2" style={{ marginTop: 10 }} disabled={operation.busy} onClick={() => void operation.retry()}>Reintentar operación pendiente</button>
+        </div> : <div className="zipco-co-steps">
+          <Step className="done" node={<span className="zipco-co-sd"><Check size={13} strokeWidth={3.4} aria-hidden="true" /></span>}>
+            <div className="zipco-co-sl">{negotiated ? 'Propuesta aceptada' : 'Pedido aceptado'}</div>
+            {acceptedAt && <div className="zipco-co-sm">{when(acceptedAt)}</div>}
+          </Step>
+
+          {!step2Done ? <Step node={<span className="zipco-co-sd on">2</span>}>
+            <div className="zipco-co-wrapb"><Sparks />
+              <button type="button" className="zipco-co-go glowup" style={{ marginTop: 0 }} disabled={operation.busy || !allowed('AUTHORIZE_CONTACT')} onClick={() => void unlock()}>
+                <span className="zipco-co-wi"><WhatsAppMark className="h-[22px] w-[22px]" /></span><span>{phase === 'requesting' ? 'Autorizando contacto…' : 'Autorizo comenzar coordinación'}</span>
+              </button>
+            </div>
+            <div className="zipco-co-sm" style={{ marginTop: 6 }}>Autorizas compartir con {client} el teléfono de tu perfil solo para este pedido. El consentimiento del cliente es independiente.</div>
+            {!allowed('AUTHORIZE_CONTACT') && <button type="button" className="zipco-co-lnk" disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado</button>}
+          </Step> : fresh ? <div className="zipco-co-st vstep">
+            <span className="zipco-co-vl" aria-hidden="true"><b />{LINE_SPARKS.map(([c, d, t, dx, dy, s], i) => <i key={i} style={vars({ c, d: `${d}s`, t: `${t}s`, dx: `${dx}px`, dy: `${dy}px`, s })} />)}</span>
+            <span className="zipco-co-sd donepop"><Check size={13} strokeWidth={3.4} aria-hidden="true" /></span>
+            <div className="zipco-co-sb"><div className="zipco-co-sl">Coordinación autorizada</div><div className="zipco-co-sm">Cliente podrá contactarte por WhatsApp</div></div>
+          </div> : <Step className="done" node={<span className="zipco-co-sd"><Check size={13} strokeWidth={3.4} aria-hidden="true" /></span>}>
+            <div className="zipco-co-sl">Coordinación autorizada</div><div className="zipco-co-sm">Cliente podrá contactarte por WhatsApp</div>
+          </Step>}
+
+          <Step className="last" node={phase === 'ready'
+            ? <span className="zipco-co-sd on zipco-co-sdpulse">3</span>
+            : <span className="zipco-co-sd"><LockKeyhole size={12} strokeWidth={2.6} aria-hidden="true" /></span>}>
+            {(phase === 'idle' || phase === 'requesting') && <><button type="button" className="zipco-co-go2 lock" disabled><LockKeyhole size={17} strokeWidth={2.4} aria-hidden="true" /><span>{waLabel}</span></button>
+              <div className="zipco-co-sm" style={{ marginTop: 6 }}>Se activa al autorizar el contacto.</div></>}
+            {phase === 'loading' && <><div className="zipco-co-wrapb">
+              <button type="button" className="zipco-co-ld dk" disabled aria-busy="true">
+                <span className="zipco-co-ld-l zipco-co-ld-dim"><LockKeyhole size={17} strokeWidth={2.4} aria-hidden="true" />{waLabel}</span>
+                <span className="zipco-co-ld-l zipco-co-ld-fill d"><span className="zipco-co-wi0"><WhatsAppMark className="h-5 w-5" /></span>{waLabel}</span>
+              </button>
+              <span className="zipco-co-rail d" aria-hidden="true"><b />{RAIL_SPARKS.map(([c, d, t, dx, dy, s, top], i) => <i key={i} style={{ ...vars({ c, d: `${d}s`, t: `${t}s`, dx: `${dx}px`, dy: `${dy}px`, s }), top }} />)}</span>
+            </div><div className="zipco-co-sm" style={{ marginTop: 6 }} role="status">Preparando WhatsApp…</div></>}
+            {phase === 'ready' && <><div className="zipco-co-wrapb">{canOpen && <Sparks />}
+              <button type="button" className={`zipco-co-go glowup${fresh ? ' swell' : ''}`} style={{ marginTop: 0 }} disabled={operation.busy || !canOpen} onClick={() => void go()}>
+                <span className="zipco-co-wi"><WhatsAppMark className="h-[22px] w-[22px]" /></span><span>{waLabel}</span>
+              </button>
+            </div><div className="zipco-co-sm" style={{ marginTop: 6 }}>{canOpen ? 'Acuerda pago y entrega con el cliente.' : customerPending ? 'Esperando autorización de contacto del cliente.' : 'Actualiza el pedido para continuar.'}</div></>}
+          </Step>
+        </div>}
+
+        <p className="zipco-co-sm">ZIPCO no procesa ni verifica pagos.</p>
+        {allowed('START_WORK') && !recoveryOnly && !pending && <button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={() => void run('START_WORK')}>Coordinación lista — comenzar pedido</button>}
+        {allowed('ANNUL_COORDINATION') && !recoveryOnly && !pending && <div className="zipco-co-lks">
+          <button type="button" className="zipco-co-lk rose" disabled={operation.busy} onClick={() => setSheet('anul')}><Trash2 size={14} strokeWidth={2.3} aria-hidden="true" />Anular solicitud</button>
+        </div>}
+        <button type="button" className="zipco-co-fold" aria-expanded={true} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
+        {operation.busy && phase !== 'loading' && <p role="status" className="zipco-co-co2-p">Actualizando pedido…</p>}
+      </section>
+      </>}
+    </div>
+
+    {!folded && agreementDetails}
+    <ConditionsSheet open={sheet === 'cond'} onOpenChange={value => setSheet(value ? 'cond' : null)} accepted={accepted}
+      title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation}
+      explanationLabel={negotiated ? 'Explicación de la propuesta aceptada' : 'Nota del cliente'}
+      onOpenAgreement={() => { setSheet(null); onOpenAgreement(); }} />
+    <AnnulSheet open={sheet === 'anul'} onOpenChange={value => setSheet(value ? 'anul' : null)} busy={operation.busy}
+      reasons={Object.entries(ANNUL_REASONS) as Array<[string, string]>} reason={reason} onReason={value => { setReason(value as AnnulReason); setDetail(''); }}
+      detail={detail} onDetail={setDetail} onConfirm={() => void annul()} />
+  </article>;
+}

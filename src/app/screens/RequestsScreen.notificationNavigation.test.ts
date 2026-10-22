@@ -92,12 +92,11 @@ it('keeps the existing success hologram visible when a sent alternative leaves t
     announceProposalSent('PROPOSE_ALTERNATIVE', sent);
     hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: sent.requestProcess }]);
     const result = render();
-    expect(nodes(result).some(node => node.props.className?.includes('zipco-hologram-card zipco-flow-hologram'))).toBe(true);
-    expect(nodes(result).some(node => node.props.children === 'Alternativa enviada al cliente')).toBe(true);
-    expect(nodes(result).some(node => typeof node.props.children === 'string' && node.props.children.includes('«Esperando respuesta»') && node.props.children.includes('«Por responder»'))).toBe(true);
+    expect(nodes(result).some(node => node.props.kind === 'alternative' && node.props.title === 'Alternativa enviada al cliente')).toBe(true);
+    expect(nodes(result).some(node => typeof node.props.description === 'string' && node.props.description.includes('«Esperando respuesta»') && node.props.description.includes('«Por responder»'))).toBe(true);
     expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('pending');
-    vi.advanceTimersByTime(2800);
-    expect(nodes(render()).some(node => node.props.className?.includes('zipco-flow-hologram'))).toBe(false);
+    vi.advanceTimersByTime(4300);
+    expect(nodes(render()).some(node => node.props.kind === 'alternative')).toBe(false);
     expect(hooks.action).not.toHaveBeenCalled();
   } finally { vi.useRealTimers(); }
 });

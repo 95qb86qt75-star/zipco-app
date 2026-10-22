@@ -2,6 +2,7 @@ import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
 import DealSuccessHost from './requests/DealSuccess';
+import ActionHologramHost, { ActionHologram } from './requests/ActionHologram';
 import AcceptedProposalHost from './requests/AcceptedProposalHost';
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -105,6 +106,7 @@ export default function RequestsScreen({
     label: string;
   } | null>(null);
   const [activeTransfer, setActiveTransfer] = useState<{
+    kind?: 'alternative' | 'final';
     title: string;
     description: string;
   } | null>(null);
@@ -598,6 +600,7 @@ export default function RequestsScreen({
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       <DealSuccessHost />
+      <ActionHologramHost />
       <AcceptedProposalHost refresh={() => void loadOrders(true)} onAccepted={business => {
         const role = business ? 'my-business' : 'my-orders';
         setSubTab(role); setRequestType('orders'); setAttentionFilter('browse'); setSummaryScrollPending(null);
@@ -1459,7 +1462,8 @@ export default function RequestsScreen({
         <div data-summary-scroll-space aria-hidden="true" />
       </div>
       <AnimatePresence>
-        {activeTransfer && (
+        {activeTransfer && ('kind' in activeTransfer && (activeTransfer.kind === 'alternative' || activeTransfer.kind === 'final') ?
+          <ActionHologram kind={activeTransfer.kind} title={activeTransfer.title} description={activeTransfer.description} /> : (
           <motion.div
             className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/55 px-6 backdrop-blur-xl"
             initial={{ opacity: 0 }}
@@ -1487,7 +1491,7 @@ export default function RequestsScreen({
               </p>
             </motion.div>
           </motion.div>
-        )}
+        ))}
       </AnimatePresence>
       <AnimatePresence>
         {historyTransfer !== null && (

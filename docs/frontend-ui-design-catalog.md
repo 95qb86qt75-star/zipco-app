@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-COORDINATION-O-Q-01 — Coordinación Medianoche y avisos Q
+
+2026-10-22. Solo frontend QA. Diseño O del negocio, hojas flotantes y diseño Q
+para acciones confirmadas. Conserva contratos, consentimiento y controles.
+[Fuente visual, ocho verificaciones, archivos y pruebas](frontend-business-coordination-o-action-holograms-q-qa.md).
+
 ### PERF-ACCEPTED-CONDITIONS-01 — Apertura breve de condiciones
 
 2026-10-22. Solo frontend QA. Altura final inmediata y aparición de opacidad
