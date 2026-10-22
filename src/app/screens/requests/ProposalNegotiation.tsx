@@ -5,14 +5,17 @@ import type { BusinessRequest, MyOrder } from './types';
 import { AlternativeDraftDialog } from './PendingAlternativeActions';
 import { proposalDraftSource, type AlternativeReview } from './alternativeDraft';
 import { NEGOTIATION_STATES, PROPOSAL_PATHS, proposalAllowed, type Proposal, type ProposalAction, type ProposalRead } from './proposalContract';
-import { ProposalError, readProposals, sendProposalAction, uploadProposalPhoto, type ProposalBody } from './proposalApi';
+import { ProposalError, readProposals, sendProposalAction, uploadProposalPhoto, type ProposalBody, type ProposalReceipt } from './proposalApi';
+import { refreshCoordinationOrder } from './coordinationApi';
 import { proposalIntents } from './proposalIntent';
 import { operationScope, readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import OrderReferencePhoto from './OrderReferencePhoto';
 import { isProposalRejected } from './requestProcess';
 import { announceProposalSent } from './proposalSentFeedback';
 import AcceptGlassButton from './AcceptGlassButton';
-import ProposalChat from './ProposalChat';
+import ProposalChat, { proposalTitle, whenLong } from './ProposalChat';
+import AcceptAuthorizeCard from './AcceptAuthorizeCard';
+import { announceProposalAccepted } from './proposalAcceptance';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -65,6 +68,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [draftAction, setDraftAction] = useState<ProposalAction | null>(null);
   const [decision, setDecision] = useState<ProposalAction | null>(null);
   const [expired, setExpired] = useState(false);
+  const [authCard, setAuthCard] = useState(false);
+  const authorizeChoice = useRef(false);
   const lock = useRef(false);
   const mounted = useRef(true);
   const session = useRef(readCoordinationSession()).current;
@@ -79,7 +84,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   useEffect(() => {
     mounted.current = true;
     const abort = () => controllers.current.forEach(c => c.abort());
-    const unsub = subscribeCoordinationSession(() => { if (!active()) { abort(); setRead(null); setOpen(false); setDraftAction(null); } });
+    const unsub = subscribeCoordinationSession(() => { if (!active()) { abort(); setRead(null); setOpen(false); setDraftAction(null); setAuthCard(false); authorizeChoice.current = false; } });
     return () => { mounted.current = false; unsub(); abort(); };
   }, []);
   const load = async (startDraft = false) => {
@@ -107,15 +112,36 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const exact = read && read.process.id === process.id && read.process.version >= process.version;
   const choices = exact ? (Object.keys(PROPOSAL_PATHS) as ProposalAction[]).filter(action => proposalAllowed(read.process, business, action)) : [];
 
-  const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false) => {
+  const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
     if (!active() || lock.current || !read || !choices.includes(action)) throw new ProposalError('Actualiza las condiciones antes de confirmar.', 0);
     const captured = read; const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setError('');
+    const finish = (receipt: ProposalReceipt) => {
+      if (!active()) return;
+      if (isAcceptAction(action)) announceProposalAccepted({ order, receipt, business, authorize: !business && authorize, session: session! });
+      window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: receipt }));
+      announceProposalSent(action, receipt);
+      window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
+      setDecision(null); setAuthCard(false); setOpen(false); setDraftAction(null); refresh();
+    };
     try {
       // A current authorized read is required even when the visible order list is stale.
       const latest = await readProposals(process.id, session!.token, controller.signal);
       if (!active()) throw new Error('La sesión cambió. No se enviará otra operación.');
       if (latest.process.version !== captured.process.version || latest.process.currentProposalId !== captured.process.currentProposalId || !proposalAllowed(latest.process, business, action)) {
+        // A lost acceptance response is reconciled by authoritative reads. Never
+        // post again or invent a receipt from the old local proposal snapshot.
+        if (isAcceptAction(action) && latest.process.state === 'COORDINATION_PENDING' && latest.process.agreementPublicId &&
+          latest.process.currentProposalId === captured.process.currentProposalId && latest.process.version >= captured.process.version + 2) {
+          const current = await refreshCoordinationOrder(order.id!, business, session!.token, session!.businessId, controller.signal);
+          if (!active()) return;
+          const p = current?.requestProcess;
+          if (current?.recordState === 'available' && current.status === 'accepted' && p?.id === process.id &&
+            p.state === 'COORDINATION_PENDING' && p.currentProposalId === captured.process.currentProposalId &&
+            p.agreementPublicId === latest.process.agreementPublicId && p.version >= latest.process.version) {
+            finish({ orderId: current.id, orderStatus: current.status, requestProcess: p }); return;
+          }
+        }
         setRead(latest); setDraftAction(null); setOpen(true); refresh(); throw new ProposalError('El pedido cambió. Revisa su estado actualizado antes de responder.', 409, 'STALE_VERSION', true);
       }
       let photo: string | null = null;
@@ -128,14 +154,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         confirmationAccepted: true, ...(review ? { photo } : {}), ...(past ? { acceptPastSchedule: true } : {}) };
       const receipt = await proposalIntents().run(operationScope(session!, business), process.id, action, body,
         key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal));
-      if (!active()) return;
-      window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: receipt }));
-      announceProposalSent(action, receipt);
-      window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
       // POST is final. A failed subsequent read must never send it again.
-      setDecision(null); setOpen(false); setDraftAction(null); refresh();
+      finish(receipt);
     } catch (e) {
-      if (active() && e instanceof ProposalError && e.code === 'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED') setExpired(true);
+      if (active() && e instanceof ProposalError && e.code === 'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED') { setExpired(true); setAuthCard(false); setDecision(action); }
       if (active() && e instanceof ProposalError && e.status === 401) window.dispatchEvent(new Event('zipco-coordination-session-expired'));
       throw e;
     } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
@@ -152,7 +174,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         : <button type="button" className={`${button} w-full`} disabled={busy} aria-busy={busy} onClick={openProposals}>{label}</button>;
     })()}
     {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
-    {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); } }}>
+    {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
         <Dialog.Content className="zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0">
           <div className="absolute right-2 top-2 z-10 flex gap-1">
@@ -177,7 +199,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
               <div className="grid grid-cols-2 gap-2"><button className="zipco-chat-ctr h-12" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
                 {(() => {
-                  const confirm = async () => { try { await execute(decision, undefined, null, expired); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
+                  const confirm = async () => { try { await execute(decision, undefined, null, expired, !business && decision === 'ACCEPT_PROPOSAL' && authorizeChoice.current); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
                   const blocked = busy || !choices.includes(decision);
                   return isAcceptAction(decision)
                     ? <AcceptGlassButton size="compact" flush label="Sí, confirmar" disabled={blocked} onClick={confirm} />
@@ -187,6 +209,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               {(() => {
                 const go = (action: ProposalAction) => {
                   if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) setDraftAction(action);
+                  else if (action === 'ACCEPT_PROPOSAL' && !business) { setAuthCard(true); setExpired(false); authorizeChoice.current = false; }
                   else { setDecision(action); setExpired(false); }
                 };
                 const accepts = choices.filter(isAcceptAction);
@@ -211,6 +234,15 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               })()}
             </>}
           </div>
+          {read && <AcceptAuthorizeCard open={authCard} busy={busy} onClose={() => setAuthCard(false)}
+            businessName={'businessName' in order ? order.businessName || 'el negocio' : 'el negocio'}
+            title={proposalTitle(read.proposals[read.proposals.length - 1])} when={whenLong(read.proposals[read.proposals.length - 1])}
+            total={money(read.proposals[read.proposals.length - 1].totalPriceClp)} error={error}
+            onChoose={async authorize => {
+              authorizeChoice.current = authorize;
+              try { await execute('ACCEPT_PROPOSAL', undefined, null, false, authorize); }
+              catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo aceptar. Reintenta la misma operación.'); }
+            }} />}
         </Dialog.Content></Dialog.Portal>
     </Dialog.Root>}
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}

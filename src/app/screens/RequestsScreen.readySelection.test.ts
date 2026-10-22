@@ -26,6 +26,7 @@ import BusinessOrdersTab from './requests/BusinessOrdersTab';
 import RequestStatusTab from './requests/RequestStatusTab';
 import { normalizeMyOrdersPayload, normalizeBusinessOrdersPayload } from './requests/orderNormalization';
 import { coordinationProcess, rawOrder } from './requests/requestProcessFixtures';
+import AcceptedProposalHost from './requests/AcceptedProposalHost';
 
 type Node = React.ReactElement<Record<string, unknown> & { children?: React.ReactNode }>;
 function nodes(root: React.ReactNode): Node[] {
@@ -45,6 +46,20 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('visible customer ready summary in RequestsScreen', () => {
+  it('selects Coordination after confirmed proposal acceptance for either actor, with no authorization from navigation', () => {
+    hooks.hasBusiness = true;
+    hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
+    hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
+    const accept = (business: boolean) => {
+      const host = nodes(render()).find(node => node.type === AcceptedProposalHost)!;
+      (host.props.onAccepted as (business: boolean) => void)(business);
+      const screen = render();
+      expect(nodes(screen).find(node => node.type === RequestStatusTab && (node.props.item as { key: string }).key === 'coordination')?.props.selected).toBe(true);
+      expect(nodes(screen).some(node => node.type === (business ? BusinessOrdersTab : MyOrdersTab))).toBe(true);
+    };
+    accept(false); accept(true);
+    expect(fetch).not.toHaveBeenCalled(); expect(hooks.action).not.toHaveBeenCalled();
+  });
   it('shows the business Por coordinar bell, selects that category and filters its orders without executing actions', () => {
     hooks.hasBusiness = true;
     hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess },

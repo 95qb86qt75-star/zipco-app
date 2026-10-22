@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowRight, Calendar, Check, DollarSign, FileText, Hash, Image as ImageIcon, Maximize2, Package, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Calendar, Check, DollarSign, FileText, Hash, Image as ImageIcon, Maximize2, Package, ShoppingBag, Sparkles, StickyNote, X } from 'lucide-react';
 import type { Proposal, ProposalRead } from './proposalContract';
 import OrderReferencePhoto from './OrderReferencePhoto';
 
@@ -10,10 +10,16 @@ const TZ = 'America/Santiago';
 const time = (iso: string) => new Date(iso).toLocaleTimeString('es-CL', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
 const day = (iso: string) => new Date(iso).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'long' });
 // Disponibilidad corta para la tabla ("Ahora" / "22 oct · 12:00") y larga para el detalle.
-const whenShort = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Ahora'
+export const whenShort = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Ahora'
   : `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} · ${time(p.scheduledFor)}`;
-const whenLong = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Lo antes posible'
+export const whenLong = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Lo antes posible'
   : new Intl.DateTimeFormat('es-CL', { timeZone: TZ, dateStyle: 'medium', timeStyle: 'short' }).format(new Date(p.scheduledFor));
+
+/** Título corto de una propuesta: "2× Producto QA", "Servicio X" o "3 productos". */
+export const proposalTitle = (p: Proposal) => {
+  const s = p.subjectSnapshot;
+  return s.items.length === 1 ? `${s.orderType === 'service' ? '' : `${s.items[0].quantity}× `}${s.items[0].nameSnapshot}` : `${s.items.length} productos`;
+};
 
 type Row = { key: string; label: string; value: string; basis?: 'unit' | 'line'; signature?: string };
 // Filas comparables. Un solo producto: cantidad, precio, disponibilidad, producto, descripción. Varios: total, disponibilidad, productos.
@@ -122,12 +128,51 @@ function CompareTable({ current, previous, mineBefore }: { current: Proposal; pr
   </>;
 }
 
+/** "Tú pediste": tarjeta holograma clara (héroe con precio, baldosas de datos y foto). Solo para el pedido original propio. */
+function PedidoSheet({ proposal, label, at, title, pic, dismiss }: { proposal: Proposal; label: string; at: string; title: string; pic: ReactNode; dismiss: () => void }) {
+  const s = proposal.subjectSnapshot;
+  const sub = s.items.length === 1 ? s.items[0].descriptionSnapshot : s.items.map(it => `${it.quantity}× ${it.nameSnapshot}`).join(' · ');
+  return <Dialog.Portal>
+    <Dialog.Overlay className="zipco-sheet-ov" onPointerDown={event => { if (event.target === event.currentTarget) { event.preventDefault(); event.stopPropagation(); dismiss(); } }} />
+    <Dialog.Content data-proposal-sheet className="zipco-sheet holo" aria-describedby={undefined}>
+      <div className="zipco-d-holo-in zipco-d-ped">
+        <span className="zipco-d-holo-grid" aria-hidden="true" /><span className="zipco-d-holo-sheen" aria-hidden="true" />
+        <div className="zipco-sheet-in">
+          <div className="zipco-d-top">
+            <Dialog.Title className="zipco-d-who"><span>{label}</span><time>{at}</time></Dialog.Title>
+            <Dialog.Close asChild><button type="button" className="zipco-d-x" aria-label="Cerrar detalle"><X aria-hidden="true" strokeWidth={3} /></button></Dialog.Close>
+          </div>
+          <div className="zipco-d-ped-hero">
+            <span className="zipco-d-ped-orb"><ShoppingBag aria-hidden="true" /></span>
+            <div className="zipco-d-ped-ttl"><b>{title}</b>{sub && <span>{sub}</span>}</div>
+            <b className="zipco-d-ped-price">{money(proposal.totalPriceClp)}</b>
+          </div>
+          <div className="zipco-d-ped-tiles">
+            {s.items.map((item, index) => <div key={index} className="zipco-d-tile" data-original-order-line>
+              <span className="zipco-d-tile-ic"><Package aria-hidden="true" /></span>
+              <div className="min-w-0 flex-1">
+                <div className="zipco-d-tile-v">{s.orderType === 'service' ? '' : `${item.quantity}× `}{item.nameSnapshot}</div>
+                {s.items.length > 1 && item.descriptionSnapshot && <p className="whitespace-pre-wrap break-words text-xs text-slate-600">{item.descriptionSnapshot}</p>}
+                <p className="text-xs text-slate-600">{typeof item.unitPriceClpSnapshot === 'number' ? `${money(item.unitPriceClpSnapshot)} por unidad · ` : 'Precio total de esta línea · '}{money(item.subtotalClp)}</p>
+              </div>
+            </div>)}
+            <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><Calendar aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Disponibilidad</div><div className="zipco-d-tile-v">{whenLong(proposal)}</div></div></div>
+            {s.note && <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><StickyNote aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Tu nota</div><div className="zipco-d-tile-v">{s.note}</div></div></div>}
+          </div>
+          {pic}
+          <CloseButton kind="gp" />
+        </div>
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>;
+}
+
 function Bubble({ proposal, previous, business }: { proposal: Proposal; previous?: Proposal; business: boolean }) {
   const [open, setOpen] = useState(false);
   const s = proposal.subjectSnapshot;
   const mine = (proposal.authorActor === 'BUSINESS') === business;
   const label = mine ? MINE[proposal.sequence] : THEIRS[proposal.sequence];
-  const title = s.items.length === 1 ? `${s.orderType === 'service' ? '' : `${s.items[0].quantity}× `}${s.items[0].nameSnapshot}` : `${s.items.length} productos`;
+  const title = proposalTitle(proposal);
   const photo = proposal.sequence === 0 ? s.referencePhoto : s.proposalPhoto;
   const own = proposal.sequence % 2 === 0 ? 'cliente' : 'negocio';
   const isOrder = proposal.sequence === 0;
@@ -150,12 +195,14 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
           </div>
           <DetailButton kind={kind} label={btnLabel} />
         </div>
-        <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
+        {isOrder
+          ? <PedidoSheet proposal={proposal} label={label} at={at} title={title} pic={pic} dismiss={() => setOpen(false)} />
+          : <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
           <div className="zipco-sheet-head"><b>{title}</b><b className="money">{money(proposal.totalPriceClp)}</b></div>
           <div className="zipco-sheet-rows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>
           {pic}
           <CloseButton kind={kind} />
-        </Sheet>
+        </Sheet>}
       </Dialog.Root>
     </div>;
   }

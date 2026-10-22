@@ -11,6 +11,8 @@ fs.mkdirSync(directory, { recursive: true });
 await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
 import Negotiation from './src/app/screens/requests/ProposalNegotiation';
+import AcceptedProposalHost from './src/app/screens/requests/AcceptedProposalHost';
+import DealSuccessHost from './src/app/screens/requests/DealSuccess';
 import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
 import {normalizeRequestProcess} from './src/app/screens/requests/requestProcess';
 import {normalizeBusinessOrdersPayload} from './src/app/screens/requests/orderNormalization';
@@ -19,23 +21,35 @@ import {statusViewFor} from './src/app/screens/requests/requestStatusGrouping';
 window.React=React;let role=true,read=proposalsFixture(0),redraw=()=>{};let saved=new Map();
 window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.stale=false;
 window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;
+window.authFail=false;window.authLose=false;window.authDeny=false;window.acceptedGetFail=false;window.orderReads=0;window.selectedView=null;
 window.feedback=[];window.addEventListener('zipco-proposal-sent',event=>window.feedback.push(event.detail));
+window.addEventListener('zipco-proposal-accepted',event=>window.acceptanceEvent=event.detail);
 function processForRole(){const actor=proposalsFixture(Math.min(read.proposals.length-1,3),role).process;
- return {...read.process,allowedActions:read.process.agreementPublicId||read.process.state==='CLOSED'?[]:actor.allowedActions};}
+ return {...read.process,allowedActions:read.process.agreementPublicId?(role||window.authDeny?[]:read.process.coordination?.customerContactAuthorized?['OPEN_WHATSAPP','ANNUL_COORDINATION']:['AUTHORIZE_CONTACT','ANNUL_COORDINATION']):read.process.state==='CLOSED'?[]:actor.allowedActions};}
 window.reset=(sequence=0,business=true)=>{read=proposalsFixture(sequence,business);role=business;saved.clear();window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;sessionStorage.clear();redraw();};
 window.role=(business)=>{role=business;redraw();};
 window.originalPhoto=()=>{read.proposals[0].subjectSnapshot.referencePhoto='https://res.cloudinary.com/test/image/upload/original.jpg';redraw();};
 window.chatStress=(kind)=>{for(const p of read.proposals){const s=p.subjectSnapshot;s.items[0].nameSnapshot='NombreExtensoSinEspacios'.repeat(5);s.items[0].descriptionSnapshot=('Descripción larga con detalle. ').repeat(15)+(p.sequence?' Cambio.':'');if(kind==='service'){s.orderType='service';s.items[0].quantity=1;s.items[0].subtotalClp=s.items[0].unitPriceClpSnapshot;}else{s.items.push({...s.items[0],nameSnapshot:'Segundo artículo',quantity:1,subtotalClp:s.items[0].unitPriceClpSnapshot});}p.totalPriceClp=s.items.reduce((n,it)=>n+it.subtotalClp,0);}read.process.proposalSummary.totalPriceClp=read.proposals.at(-1).totalPriceClp;redraw();};
 window.fetch=async (input,options={})=>{
  const url=String(input);if(url.includes('api.cloudinary.com')){window.uploads++;return new Response(JSON.stringify({secure_url:'https://res.cloudinary.com/test/image/upload/synthetic.jpg'}));}
+ if(url.includes('/orders/my-orders?processContract=alternatives-v1')){window.orderReads++;if(window.pauseOrderReads)await new Promise(resolve=>window.releaseOrderRead=()=>{window.pauseOrderReads=false;resolve();});if(window.acceptedGetFail)throw Error('Synthetic accepted-order read failure');return new Response(JSON.stringify([{...rawOrder,businessName:'Negocio sintético',status:'accepted',requestProcess:processForRole()}]));}
  if(url.endsWith('/proposals')){window.proposalReads++;if(window.pauseReads)await new Promise(resolve=>window.releaseRead=()=>{window.pauseReads=false;resolve();});if(window.getFails)throw Error('Synthetic read failure');if(window.stale){read=proposalsFixture(1,role);window.stale=false;}return new Response(JSON.stringify({...read,process:window.denyDraft?{...processForRole(),allowedActions:[]}:processForRole()}));}
  if(!url.includes('/actions/'))throw Error('Unexpected synthetic endpoint');
  const action=url.split('/').pop(),body=JSON.parse(options.body),key=options.headers['Idempotency-Key'];
  window.posts.push({action,key,body});if(window.fail){window.fail=false;throw Error('Synthetic response failure');}
+ if(window.pauseAccept&&action.startsWith('accept-'))await new Promise(resolve=>window.releaseAccept=()=>{window.pauseAccept=false;resolve();});
  if(saved.has(key))return new Response(JSON.stringify(saved.get(key)));
+ if(action==='authorize-contact'){
+  if(window.authFail){window.authFail=false;throw Error('Synthetic contact failure');}
+  if(window.authDeny||body.expectedVersion!==read.process.version)return new Response(JSON.stringify({code:'STALE_VERSION'}),{status:409});
+  if(body.consentAccepted!==true)throw Error('Missing explicit contact consent');
+  read.process={...read.process,version:read.process.version+1,coordination:{customerContactAuthorized:true,businessContactAuthorized:false}};
+  const receipt={orderId:20,orderStatus:'accepted',requestProcess:{...read.process,allowedActions:[]}};saved.set(key,receipt);
+  if(window.authLose){window.authLose=false;throw Error('Synthetic committed contact response loss');}return new Response(JSON.stringify(receipt));
+ }
  if(window.expire&&action.startsWith('accept-')&&!body.acceptPastSchedule)return new Response(JSON.stringify({code:'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED'}),{status:409});
  const accepts=action.startsWith('accept-'),rejects=action.startsWith('reject-');
- if(accepts){read.process={...read.process,state:'COORDINATION_PENDING',version:read.process.version+2,agreementPublicId:'synthetic-agreement',allowedActions:[]};}
+ if(accepts){read.process={...read.process,state:'COORDINATION_PENDING',version:read.process.version+2,agreementPublicId:'synthetic-agreement',coordination:{customerContactAuthorized:false,businessContactAuthorized:false},allowedActions:[]};}
  else if(rejects){read.process={...read.process,state:'CLOSED',version:read.process.version+1,allowedActions:[],closure:{reasonCode:role?'BUSINESS_REJECTED_COUNTER_PROPOSAL':'CUSTOMER_REJECTED_PROPOSAL',reasonDetail:null,actor:role?'BUSINESS':'CUSTOMER',actorUserId:role?12:11,closedAt:'2026-10-20T12:00:00Z'}};}
  else {const previous=read.proposals.at(-1);const sequence=read.proposals.length;
   const next=proposalsFixture(sequence,role).proposals.at(-1);next.subjectSnapshot=structuredClone(previous.subjectSnapshot);
@@ -56,7 +70,8 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
  const process=normalizeRequestProcess(processForRole());
  const order=normalizeBusinessOrdersPayload([{...rawOrder,needNow:true,orderType:'product',status:process.state==='CLOSED'?'rejected':process.agreementPublicId?'accepted':read.proposals.length===1?'pending':'alternative_proposed',requestProcess:process}])[0];
  window.current={state:process.state,version:process.version,view:statusViewFor('orders',order.status,process)};
- return <Negotiation key={String(role)+'-'+(revision>10000?revision:0)} order={order} business={role} variant="aurora" refresh={()=>{window.refreshes++;redraw();}}/>;
+ return <><DealSuccessHost/><AcceptedProposalHost onAccepted={()=>{window.selectedView='coordination';}} refresh={()=>{window.refreshes++;redraw();}}/>
+  {!process.agreementPublicId&&<Negotiation key={String(role)+'-'+(revision>10000?revision:0)} order={order} business={role} variant="aurora" refresh={()=>{window.refreshes++;redraw();}}/>}</>;
 }createRoot(document.getElementById('root')).render(<App/>);
 ` }, bundle: true, format: 'esm', jsx: 'automatic', outfile: path.join(directory, 'fixture.js'),
   define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}' } });
@@ -81,7 +96,7 @@ try {
   const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Synthetic flow did not settle: '+expression);};
-  const touch=async label=>{const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
+  const touch=async label=>{if(await evaluate('!!document.querySelector("[data-accept-authorize]")'))await delay(600);const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
   const fill=async(selector,value,kind='HTMLInputElement')=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(${kind}.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   const reset=async(sequence=0,business=true)=>{await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.reset');await evaluate(`window.reset(${sequence},${business})`);await delay(100);};
   const form=async (price='1500')=>{await touch('Precio');await fill('input[aria-label="Nuevo precio por unidad"]',price);await touch('Guardar');await fill('textarea','Cambio de precio para la prueba sintética.','HTMLTextAreaElement');await touch('Revisar alternativa');await wait('!!document.querySelector("[data-alternative-review]")');};
@@ -89,7 +104,7 @@ try {
   const closeSheet=async (method='x')=>{
     if(method==='escape'){await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});}
     else if(method==='outside'){await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:2,y:2}]});await delay(60);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);}
-    else await evaluate(`document.querySelector('[data-proposal-sheet] ${method==='button'?'.zipco-glassbtn':'.zipco-sheet-x'}').click()`);
+    else await evaluate(`document.querySelector('[data-proposal-sheet] ${method==='button'?'.zipco-glassbtn':':is(.zipco-sheet-x,.zipco-d-x)'}').click()`);
     try{await wait('!document.querySelector("[data-proposal-sheet]")');}catch(error){const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,'floating-close-failure.png'),Buffer.from(shot.data,'base64'));throw Error(String(error)+'; '+JSON.stringify({method,dom:await evaluate('({hit:document.elementFromPoint(2,2)?.className,state:document.querySelector("[data-proposal-sheet]")?.dataset.state,pointerEvents:document.body.style.pointerEvents})')}));}
     assert(await evaluate('!!document.querySelector("[data-proposal-comparison]")'),'Closing detail preserves parent review');
   };
@@ -127,8 +142,11 @@ try {
     const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`customer-comparison-${width}.png`),Buffer.from(shot.data,'base64'));
     await closeSheet('button');
     assert.equal(await evaluate('!!document.querySelector(".zipco-chat-foot").textContent.includes("Actualizar propuestas")'),false,'Refresh moved to header only');
-    await touch('Aceptar propuesta');await touch('Volver');assert.equal(await evaluate('window.posts.length'),1);
-    await touch('Aceptar propuesta');await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');
+    await touch('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');await touch('Volver');assert.equal(await evaluate('window.posts.length'),1);
+    await wait('!document.querySelector("[data-accept-authorize]")');await delay(250);
+    await touch('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');await touch('Solo aceptar · autorizo después');await wait('window.current.state==="COORDINATION_PENDING"');
+    assert.equal(await evaluate('window.selectedView'),'coordination');
+    assert(await evaluate('!!document.querySelector(".zipco-d-hs")'),'Success survives accepted card unmount');
     assert.equal(await evaluate('window.posts.length'),2);assert.equal(await evaluate('window.current.view'),'coordination');evidence.push('business-photo-customer-accept-'+width);
   }
   await reset(1,false);await decide('Hacer mi única contrapropuesta');await wait('!!document.querySelector("textarea")');
@@ -143,7 +161,7 @@ try {
   assert.equal(await evaluate('window.feedback.length'),1,'Business final uses the same success feedback');
   await evaluate('window.role(false)');await delay(100);await decide('Aceptar propuesta');
   assert.equal(await evaluate(`document.querySelector('[role=dialog]').textContent.includes('Hacer mi única contrapropuesta')`),false);
-  await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');evidence.push('custom-counter-final-accept');
+  await touch('Solo aceptar · autorizo después');await wait('window.current.state==="COORDINATION_PENDING"');evidence.push('custom-counter-final-accept');
   for(const [sequence,business,label] of [[1,false,'Rechazar propuesta'],[2,true,'Rechazar contrapropuesta'],[2,true,'Aceptar contrapropuesta'],[3,false,'Rechazar propuesta']]){
     await reset(sequence,business);await decide(label);
     assert.equal(await evaluate(`!!document.querySelector('[role=dialog] .zipco-accept-btn')`),label.startsWith('Aceptar'),'Only acceptance confirmations use the green glass button');
@@ -185,7 +203,7 @@ try {
   assert.equal(await evaluate('window.feedback.length'),0,'Failed send must not display a success hologram');
   assert(await evaluate('!!document.querySelector("[data-alternative-review]")'));await touch('Confirmar y enviar');await wait('window.current.state==="AWAITING_CUSTOMER_DECISION"');
   assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('failed-send-preserves-form-key');
-  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.expire=true');await touch('Sí, confirmar');await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.expire=true');await touch('Solo aceptar · autorizo después');await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');
   assert.equal(await evaluate('window.posts[0].body.acceptPastSchedule'),undefined);await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');
   assert.equal(await evaluate('window.posts[1].body.acceptPastSchedule'),true);assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('expired-explicit-confirmation');
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.lose=true');await touch('Confirmar y enviar');await wait('!!document.querySelector("[role=alert]")');
@@ -207,5 +225,70 @@ try {
   await evaluate('window.getFails=false');await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');assert.equal(await evaluate('window.posts.length'),0);evidence.push('initial-read-error-inline-retry-direct-form');
   await reset();await evaluate('window.denyDraft=true');await touch('Proponer alternativa');await wait('!!document.querySelector("[role=alert]")');
   assert.equal(await evaluate('!!document.querySelector("textarea")'),false);assert.equal(await evaluate('window.posts.length'),0);assert.equal(await evaluate('window.refreshes'),1);evidence.push('revoked-initial-permission-no-form-refresh');
+  for(const width of [320,393]) {
+    await send('Emulation.setDeviceMetricsOverride',{width,height:740,deviceScaleFactor:1,mobile:true});
+    await reset(1,false);await decide('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');
+    assert(await evaluate(`(()=>{const e=document.querySelector('[data-accept-authorize]'),r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1&&e.scrollWidth<=e.clientWidth+1;})()`),'Authorization card fits mobile viewport');
+    await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'accept-authorize-'+width+'.png'),Buffer.from(shot.data,'base64')));
+    await evaluate(`window.pauseAccept=true;const b=document.querySelector('.zipco-d-wabtn');b.click();b.click();true`);await wait('window.posts.length===1');
+    await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+    assert(await evaluate('!!document.querySelector("[data-accept-authorize]")'),'Busy authorization confirmation stays mounted');
+    assert.equal(await evaluate('window.posts.length'),1,'Double tap accepts once');
+    await evaluate('window.releaseAccept()');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
+    const posts=await evaluate('window.posts');assert.deepEqual(posts.map(p=>p.action),['accept-proposal','authorize-contact']);
+    assert.deepEqual(posts[1].body,{expectedVersion:posts[0].body.expectedVersion+2,consentAccepted:true});
+    assert.notEqual(posts[0].key,posts[1].key,'Separate explicit decisions have independent idempotency');
+    assert.equal(await evaluate('window.selectedView'),'coordination');assert(await evaluate('window.orderReads>=2'));
+    assert(await evaluate('!!document.querySelector(".zipco-d-hs")'),'Hologram is mounted once outside filtered card');
+    assert.equal(await evaluate('document.querySelectorAll(".zipco-d-hs").length'),1);
+    if(width===320){
+      await evaluate(`window.savedHologram=document.querySelector('.zipco-d-hs');window.dispatchEvent(new CustomEvent('zipco-proposal-accepted',{detail:window.acceptanceEvent}));true`);
+      assert.equal(await evaluate('window.savedHologram===document.querySelector(".zipco-d-hs")'),true,'Duplicate receipt does not restart the hologram');
+      await delay(2000);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'deal-success-320.png'),Buffer.from(shot.data,'base64')));
+      await delay(3900);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Normal hologram clears after 5.7 seconds');
+    }
+    evidence.push('accept-then-authorize-survives-filter-double-tap-'+width);
+  }
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.authFail=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('window.posts.filter(p=>p.action==="accept-proposal").length'),1);
+  await touch('Reintentar autorización pendiente');await wait('window.posts.length===3&&!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts[1].key===window.posts[2].key'),true);evidence.push('contact-failure-retries-same-key-no-second-acceptance');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.lose=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false);
+  await touch('Aceptar y autorizar contacto');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
+  assert.deepEqual(await evaluate('window.posts.map(p=>p.action)'),['accept-proposal','authorize-contact'],'Reconciled acceptance is not posted again');
+  assert.equal(await evaluate('window.selectedView'),'coordination');evidence.push('committed-accept-response-loss-read-confirmed-then-contact-no-repost');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.authLose=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[role=alert]")');await touch('Reintentar autorización pendiente');await wait('window.posts.length===3&&!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts[1].key===window.posts[2].key'),true);evidence.push('committed-contact-response-loss-idempotent');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.acceptedGetFail=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('window.posts.length'),1,'Failed authoritative read never authorizes');
+  await evaluate('window.acceptedGetFail=false');await touch('Actualizar pedido');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');evidence.push('accepted-read-failure-recovers-without-reacceptance');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.authDeny=true');await touch('Aceptar y autorizar contacto');
+  await wait('!!document.querySelector("[role=alert]")');assert.equal(await evaluate('window.posts.length'),1,'No consent POST without current allowedActions');
+  assert.equal(await evaluate('window.selectedView'),'coordination');await touch('Continuar en Coordinación');evidence.push('accepted-but-contact-permission-revoked');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.expire=true');await touch('Aceptar y autorizar contacto');
+  await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');
+  assert.equal(await evaluate('window.posts.length'),1,'Expired schedule does not authorize before acceptance');
+  await touch('Sí, confirmar');await wait('window.posts.length===3&&!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);assert.equal(await evaluate('window.posts[2].action'),'authorize-contact');evidence.push('expired-confirmation-retains-explicit-contact-choice');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.pauseAccept=true');await touch('Aceptar y autorizar contacto');await wait('window.posts.length===1');
+  await evaluate(`localStorage.removeItem('zipco-token');window.dispatchEvent(new Event('zipco-session-changed'));window.releaseAccept();true`);await delay(250);
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Session change prevents success and contact follow-up');evidence.push('session-change-during-accept-no-contact');
+  await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.pauseOrderReads=true');await touch('Aceptar y autorizar contacto');await wait('window.orderReads===1');
+  await evaluate(`localStorage.removeItem('zipco-token');window.dispatchEvent(new Event('zipco-session-changed'));window.releaseOrderRead();true`);await delay(200);
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector("[role=dialog]")||!!document.querySelector(".zipco-d-hs")'),false);evidence.push('session-change-after-accept-before-contact-no-late-effects');
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  await reset(1,false);await decide('Aceptar propuesta');await touch('Solo aceptar · autorizo después');await wait('!!document.querySelector(".zipco-d-hs")');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-d-hs-in")).animationName'),'none');
+  await delay(2400);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Reduced motion hologram clears after 2.2 seconds');
+  assert.equal(await evaluate('window.posts.length'),1);evidence.push('solo-accept-no-consent-reduced-success-timeout');
   console.log(JSON.stringify({passed:evidence.length,evidence,touchEvents:true,backendAccess:false,realOrderActions:false,realUploads:false}));await send('Browser.close');
+} catch(error) {
+ if(socket?.readyState===1) {
+  const id=900001;socket.send(JSON.stringify({id,method:'Page.captureScreenshot',params:{format:'png'}}));
+  await new Promise(resolve=>{const timeout=setTimeout(resolve,1000);const receive=event=>{const m=JSON.parse(event.data);if(m.id!==id)return;socket.removeEventListener('message',receive);clearTimeout(timeout);if(m.result?.data)fs.writeFileSync(path.join(directory,'failed-flow.png'),Buffer.from(m.result.data,'base64'));resolve();};socket.addEventListener('message',receive);});
+ }
+ throw error;
 } finally {socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

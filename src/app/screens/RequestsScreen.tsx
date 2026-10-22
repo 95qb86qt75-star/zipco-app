@@ -1,6 +1,8 @@
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
+import DealSuccessHost from './requests/DealSuccess';
+import AcceptedProposalHost from './requests/AcceptedProposalHost';
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
@@ -595,6 +597,12 @@ export default function RequestsScreen({
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+      <DealSuccessHost />
+      <AcceptedProposalHost refresh={() => void loadOrders(true)} onAccepted={business => {
+        const role = business ? 'my-business' : 'my-orders';
+        setSubTab(role); setRequestType('orders'); setAttentionFilter('browse'); setSummaryScrollPending(null);
+        setStatusViews(current => ({ ...current, [`${role}-orders`]: 'coordination' }));
+      }} />
       <div className="zipco-safe-header border-b border-slate-200/60 px-4 pb-3">
         <div className="flex items-center gap-3 mb-4">
           <button

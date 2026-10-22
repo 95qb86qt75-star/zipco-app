@@ -4,6 +4,13 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-PROPOSAL-ACCEPT-AUTHORIZE-N-01 — Aceptación y contacto, diseño N / opción K
+
+2026-10-22. Solo frontend sobre contrato existente, qa. Tarjeta de aceptación con
+o sin consentimiento, selección Coordinación y holograma de cierre persistente.
+Detalle original holograma claro. Sin cambios en la aceptación directa ni en API.
+[Diseño, contrato, recuperación y pruebas](frontend-proposal-accept-authorize-n-qa.md).
+
 ### UI-ACCEPT-ORDER-PARITY-01 — Vidrio y animación de Aceptar pedido
 
 2026-10-22. Solo frontend, qa. Aceptar pedido de Mi Negocio recupera el mismo
