@@ -165,7 +165,12 @@ try {
   for(const [sequence,business,label] of [[1,false,'Rechazar propuesta'],[2,true,'Rechazar contrapropuesta'],[2,true,'Aceptar contrapropuesta'],[3,false,'Rechazar propuesta']]){
     await reset(sequence,business);await decide(label);
     assert.equal(await evaluate(`!!document.querySelector('[role=dialog] .zipco-accept-btn')`),label.startsWith('Aceptar'),'Only acceptance confirmations use the green glass button');
-    await touch('Sí, confirmar');await wait('window.posts.length===1&&!document.querySelector("[role=dialog]")');
+    if(label==='Aceptar contrapropuesta'){
+      assert(await evaluate('!!document.querySelector("[data-accept-authorize]")'),'Business counter uses the same hologram card');
+      assert.equal(await evaluate('document.querySelector(".zipco-chat-foot").textContent.includes("¿confirmas esta propuesta exacta?")'),false);
+      await touch('Confirmar contrapropuesta');
+    }else await touch('Sí, confirmar');
+    await wait('window.posts.length===1&&!document.querySelector("[role=dialog]")');
     assert.equal(await evaluate('window.current.view'),label.startsWith('Rechazar')?'history':'coordination');evidence.push(label+'-'+sequence);
     if(label.startsWith('Rechazar')){
       await touch('Ver propuestas e historial');await wait('!!document.querySelector("[data-proposal-comparison]")');
@@ -284,6 +289,30 @@ try {
   assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-d-hs-in")).animationName'),'none');
   await delay(2400);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Reduced motion hologram clears after 2.2 seconds');
   assert.equal(await evaluate('window.posts.length'),1);evidence.push('solo-accept-no-consent-reduced-success-timeout');
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+  for(const width of [320,393]){
+    await send('Emulation.setDeviceMetricsOverride',{width,height:740,deviceScaleFactor:1,mobile:true});
+    await reset(2,true);await decide('Aceptar contrapropuesta');await wait('!!document.querySelector("[data-accept-authorize]")');
+    assert(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Todo listo para')&&document.querySelector('[data-accept-authorize]').textContent.includes('coordinar tu pedido')`));
+    assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Aceptar y autorizar contacto')`),false,'Business card never offers unsupported automatic consent');
+    assert.equal(await evaluate(`document.querySelector('[data-accept-authorize]').textContent.includes('Solo aceptar · autorizo después')`),false);
+    await delay(600);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'business-counter-accept-'+width+'.png'),Buffer.from(shot.data,'base64')));
+    await touch('Volver');await wait('!document.querySelector("[data-accept-authorize]")');assert.equal(await evaluate('window.posts.length'),0,'Closing business confirmation sends nothing');
+    await delay(250);await touch('Aceptar contrapropuesta');await wait('!!document.querySelector("[data-accept-authorize]")');
+    await evaluate(`window.pauseAccept=true;const button=document.querySelector('.zipco-d-wabtn');button.click();button.click();true`);await wait('window.posts.length===1');
+    await evaluate('window.releaseAccept()');await wait('!document.querySelector("[role=dialog]")');
+    const posts=await evaluate('window.posts');assert.deepEqual(posts.map(p=>p.action),['accept-counter-proposal']);
+    assert.deepEqual(posts[0].body,{expectedVersion:3,proposalId:125,confirmationAccepted:true});
+    assert.equal(await evaluate('window.selectedView'),'coordination');assert(await evaluate('!!document.querySelector(".zipco-d-hs")'));
+    evidence.push('business-counter-card-same-design-cancel-double-tap-no-consent-'+width);
+  }
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.fail=true');await touch('Confirmar contrapropuesta');
+  await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');await touch('Confirmar contrapropuesta');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
+  assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('business-counter-card-error-preserved-same-key-retry');
+  await reset(2,true);await decide('Aceptar contrapropuesta');await evaluate('window.expire=true');await touch('Confirmar contrapropuesta');
+  await wait('document.querySelector("[role=dialog]").textContent.includes("¿Quieres aceptar igualmente?")');await touch('Sí, confirmar');
+  await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');assert.equal(await evaluate('window.posts[1].body.acceptPastSchedule'),true);
+  assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);evidence.push('business-counter-card-expired-explicit-confirmation');
   console.log(JSON.stringify({passed:evidence.length,evidence,touchEvents:true,backendAccess:false,realOrderActions:false,realUploads:false}));await send('Browser.close');
 } catch(error) {
  if(socket?.readyState===1) {

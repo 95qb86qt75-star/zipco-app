@@ -4,6 +4,13 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-BUSINESS-COUNTER-ACCEPT-N-01 — Confirmación holograma del negocio
+
+2026-10-22. Solo frontend, qa. Aceptar contrapropuesta abre «Todo listo para
+coordinar tu pedido» con el diseño N. Confirma la acción existente y conserva
+el contacto en su recorrido actual. Cliente con ambas opciones intacto.
+[Diseño, alcance, contrato y pruebas](frontend-business-counter-accept-n-qa.md).
+
 ### UI-PROPOSAL-ACCEPT-AUTHORIZE-N-01 — Aceptación y contacto, diseño N / opción K
 
 2026-10-22. Solo frontend sobre contrato existente, qa. Tarjeta de aceptación con

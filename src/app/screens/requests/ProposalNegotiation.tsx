@@ -209,7 +209,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               {(() => {
                 const go = (action: ProposalAction) => {
                   if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) setDraftAction(action);
-                  else if (action === 'ACCEPT_PROPOSAL' && !business) { setAuthCard(true); setExpired(false); authorizeChoice.current = false; }
+                  else if (isAcceptAction(action)) { setAuthCard(true); setExpired(false); authorizeChoice.current = false; }
                   else { setDecision(action); setExpired(false); }
                 };
                 const accepts = choices.filter(isAcceptAction);
@@ -235,12 +235,14 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             </>}
           </div>
           {read && <AcceptAuthorizeCard open={authCard} busy={busy} onClose={() => setAuthCard(false)}
-            businessName={'businessName' in order ? order.businessName || 'el negocio' : 'el negocio'}
+            business={business} counterpartName={business
+              ? 'customerName' in order ? order.customerName || 'el cliente' : 'el cliente'
+              : 'businessName' in order ? order.businessName || 'el negocio' : 'el negocio'}
             title={proposalTitle(read.proposals[read.proposals.length - 1])} when={whenLong(read.proposals[read.proposals.length - 1])}
             total={money(read.proposals[read.proposals.length - 1].totalPriceClp)} error={error}
             onChoose={async authorize => {
-              authorizeChoice.current = authorize;
-              try { await execute('ACCEPT_PROPOSAL', undefined, null, false, authorize); }
+              authorizeChoice.current = !business && authorize;
+              try { await execute(business ? 'ACCEPT_COUNTER_PROPOSAL' : 'ACCEPT_PROPOSAL', undefined, null, false, !business && authorize); }
               catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo aceptar. Reintenta la misma operación.'); }
             }} />}
         </Dialog.Content></Dialog.Portal>
