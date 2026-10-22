@@ -388,3 +388,11 @@ aprobados. Preview READY y alias QA comprobados. Bastián confirmó «excelente 
 funciona bien» tras QA ed65893 en el contexto de Solicitudes/iPhone. Mejora
 percibida aprobada; no se extiende a Android ni a todos los pasos de captura.
 [Evidencia, límites y publicación](frontend-request-card-render-budget-qa.md).
+
+### UI-PROPOSAL-FLOATING-DETAIL-01 — Detalle flotante y pie integrado
+
+2026-10-21. Solo frontend, qa. Detalle Radix sobre la revisión, comparación/fotos,
+cuatro cierres y pie de vidrio sin caja. Aceptar y contrato conservados.
+1147 pruebas/build QA, 23 recorridos de negociación y presupuesto visual de lista
+aprobados. Prueba física pendiente.
+[Diseño, archivos y publicación](frontend-proposal-floating-detail-qa.md).

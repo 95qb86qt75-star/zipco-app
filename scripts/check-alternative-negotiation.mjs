@@ -86,6 +86,13 @@ try {
   const reset=async(sequence=0,business=true)=>{await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.reset');await evaluate(`window.reset(${sequence},${business})`);await delay(100);};
   const form=async (price='1500')=>{await touch('Precio');await fill('input[aria-label="Nuevo precio por unidad"]',price);await touch('Guardar');await fill('textarea','Cambio de precio para la prueba sintética.','HTMLTextAreaElement');await touch('Revisar alternativa');await wait('!!document.querySelector("[data-alternative-review]")');};
   const decide=async label=>{await touch('Revisar propuesta y responder');await wait('!!document.querySelector("[data-proposal-comparison]")');await touch(label);};
+  const closeSheet=async (method='x')=>{
+    if(method==='escape'){await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});}
+    else if(method==='outside'){await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:2,y:2}]});await delay(60);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);}
+    else await evaluate(`document.querySelector('[data-proposal-sheet] ${method==='button'?'.zipco-glassbtn':'.zipco-sheet-x'}').click()`);
+    try{await wait('!document.querySelector("[data-proposal-sheet]")');}catch(error){const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,'floating-close-failure.png'),Buffer.from(shot.data,'base64'));throw Error(String(error)+'; '+JSON.stringify({method,dom:await evaluate('({hit:document.elementFromPoint(2,2)?.className,state:document.querySelector("[data-proposal-sheet]")?.dataset.state,pointerEvents:document.body.style.pointerEvents})')}));}
+    assert(await evaluate('!!document.querySelector("[data-proposal-comparison]")'),'Closing detail preserves parent review');
+  };
   await send('Network.enable');await send('Network.setBlockedURLs',{urls:['https://*']});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
   const evidence=[];
   for(const width of [393,320]) {
@@ -103,18 +110,23 @@ try {
     assert.equal(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').getAttribute('aria-expanded')`),'false','Original starts compact');
     assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-chat-mine').getBoundingClientRect().height<150`),'Compact original with photo leaves space for proposal');
     await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').click()`);
-    assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-chat-detail').hidden===false && document.querySelector('[data-proposal-sequence="0"]').textContent.includes('Nota original') && !!document.querySelector('[data-proposal-sequence="0"] .zipco-chat-detail button')`),'Original note, snapshot and photo remain accessible');
-    await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').click()`);
+    await wait('!!document.querySelector("[data-proposal-sheet]")');
+    assert(await evaluate(`document.querySelector('[data-proposal-sheet]').textContent.includes('Nota original') && !!document.querySelector('[data-proposal-sheet] button:not(.zipco-glassbtn):not(.zipco-sheet-x)')`),'Original note, snapshot and photo remain accessible');
+    await closeSheet();
     assert(await evaluate(`document.querySelector('[data-proposal-sequence="0"]').textContent.includes('$2.000') && document.querySelector('[data-proposal-sequence="1"]').textContent.includes('$3.000')`));
     assert.equal(await evaluate('document.querySelector("[role=dialog]").scrollWidth<=document.querySelector("[role=dialog]").clientWidth+1'),true);
     await evaluate(`document.querySelector('[data-proposal-sequence="1"] .zipco-glassbtn').click()`);
-    await evaluate(`document.querySelector('[data-proposal-sequence="1"] button:not(.zipco-glassbtn)').click()`);
+    await wait('!!document.querySelector("[data-proposal-sheet]")');
+    await evaluate(`document.querySelector('[data-proposal-sheet] button:not(.zipco-glassbtn):not(.zipco-sheet-x)').click()`);
     await wait(`!!document.querySelector('button[aria-label="Cerrar imagen"]')`);
     assert(await evaluate(`(()=>{const b=document.querySelector('button[aria-label="Cerrar imagen"]'),r=b.getBoundingClientRect();return document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)===b||b.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));})()`),'Photo close must be above the proposal dialog');
     await touch('Cerrar imagen');
     await wait(`!document.querySelector('button[aria-label="Cerrar imagen"]')`);
     assert(await evaluate('!!document.querySelector("[data-proposal-comparison]")'),'Closing photo preserves review');
+    assert(await evaluate('!!document.querySelector("[data-proposal-sheet]")'),'Closing photo preserves floating detail');
     const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`customer-comparison-${width}.png`),Buffer.from(shot.data,'base64'));
+    await closeSheet('button');
+    assert.equal(await evaluate('!!document.querySelector(".zipco-chat-foot").textContent.includes("Actualizar propuestas")'),false,'Refresh moved to header only');
     await touch('Aceptar propuesta');await touch('Volver');assert.equal(await evaluate('window.posts.length'),1);
     await touch('Aceptar propuesta');await touch('Sí, confirmar');await wait('window.current.state==="COORDINATION_PENDING"');
     assert.equal(await evaluate('window.posts.length'),2);assert.equal(await evaluate('window.current.view'),'coordination');evidence.push('business-photo-customer-accept-'+width);
@@ -156,13 +168,17 @@ try {
     if(reduced)assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-chat > *")).animationName'),'none');
     assert.equal(await evaluate('window.posts.length'),0,'Reading chat never sends an action');
     const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`chat-${sequence}-${business?'business':'customer'}-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64'));
-    await evaluate(`document.querySelector('[data-proposal-sequence="${sequence}"] .zipco-glassbtn').click()`);await delay(950);
+    await evaluate(`document.querySelector('[data-proposal-sequence="${sequence}"] .zipco-glassbtn').click()`);await wait('!!document.querySelector("[data-proposal-sheet]")');await delay(950);
     assert.equal(await evaluate(`document.querySelector('[data-proposal-sequence="0"] .zipco-glassbtn').getAttribute('aria-expanded')`),'false','Opening a proposal preserves independent original disclosure');
-    assert.equal(await evaluate(`(()=>{const d=document.querySelector('[role=dialog]');return d.scrollWidth<=d.clientWidth+1;})()`),true,'Expanded comparison fits narrow screens');
+    const sheetGeometry=await evaluate(`(()=>{const d=document.querySelector('[data-proposal-sheet]'),r=d.getBoundingClientRect();return {width:d.clientWidth,scroll:d.scrollWidth,top:r.top,bottom:r.bottom,height:innerHeight,wide:[...d.querySelectorAll('*')].filter(e=>e.getBoundingClientRect().right>r.right+1).map(e=>String(e.className)).slice(0,8)};})()`);
+    if(sheetGeometry.scroll>sheetGeometry.width+1||sheetGeometry.top<0||sheetGeometry.bottom>sheetGeometry.height+1){const failed=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,'floating-overflow.png'),Buffer.from(failed.data,'base64'));}
+    assert(sheetGeometry.scroll<=sheetGeometry.width+1&&sheetGeometry.top>=0&&sheetGeometry.bottom<=sheetGeometry.height+1,'Floating comparison fits narrow screens: '+JSON.stringify({sequence,business,width,stress,...sheetGeometry}));
     if(reduced)assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-chat-cell-new")).animationName'),'none');
-    await evaluate(`(()=>{const b=document.querySelector('[data-proposal-sequence="${sequence}"]');(b.querySelector('.zipco-chat-table')||b.querySelector('.zipco-chat-detail')).scrollIntoView({block:'center',behavior:'instant'});return true;})()`);
-    if(width>=390)assert(await evaluate(`(()=>{const label=document.querySelector('[data-proposal-sequence="${sequence}"] .zipco-glassbtn-label');return label.scrollWidth<=label.clientWidth+1;})()`),'Expanded detail label fits at 390px');
+    if(reduced)assert.equal(await evaluate('getComputedStyle(document.querySelector("[data-proposal-sheet]")).animationName'),'none');
+    if(!stress)assert(await evaluate('document.querySelector("[data-proposal-sheet]").scrollHeight<=document.querySelector("[data-proposal-sheet]").clientHeight+1'),'Typical short detail fits without scrolling');
+    if(width>=390)assert(await evaluate(`(()=>{const label=document.querySelector('[data-proposal-sheet] .zipco-glassbtn-label');return label.scrollWidth<=label.clientWidth+1;})()`),'Close label fits at 390px');
     const opened=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(directory,`chat-h-open-${sequence}-${business?'business':'customer'}-${width}-${dark?'dark':'light'}.png`),Buffer.from(opened.data,'base64'));
+    await closeSheet(reduced?'escape':business?'outside':'button');
     evidence.push(`chat-${sequence}-${business}-${width}-${dark}-${reduced}${stress?'-'+stress:''}`);
   }
   await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');await form();await evaluate('window.fail=true');await touch('Confirmar y enviar');await wait('!!document.querySelector("[role=alert]")');

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowRight, MessageCircle, X } from 'lucide-react';
+import { ArrowRight, MessageCircle, RefreshCw, X } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from './types';
 import { AlternativeDraftDialog } from './PendingAlternativeActions';
 import { proposalDraftSource, type AlternativeReview } from './alternativeDraft';
@@ -154,11 +154,14 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-        <Dialog.Content className="zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] bg-white p-0 dark:bg-slate-900">
-          <Dialog.Close asChild><button type="button" disabled={busy} aria-label="Cerrar propuestas" className="absolute right-3 top-3 z-10 flex h-[38px] w-[38px] items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><X className="h-[17px] w-[17px]" /></button></Dialog.Close>
-          <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-16">
+        <Dialog.Content className="zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0">
+          <div className="absolute right-2 top-2 z-10 flex gap-1">
+            <button type="button" disabled={busy} aria-label="Actualizar propuestas" title="Actualizar propuestas" onClick={() => void load()} className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><RefreshCw className="h-[17px] w-[17px]" /></button>
+            <Dialog.Close asChild><button type="button" disabled={busy} aria-label="Cerrar propuestas" className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><X className="h-[17px] w-[17px]" /></button></Dialog.Close>
+          </div>
+          <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
             <Dialog.Title className="text-[22px] font-extrabold leading-tight">{initial ? 'Proponer alternativa' : 'Revisar propuesta'}</Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300">La conversación con {business ? 'el cliente' : 'el negocio'}, en orden. La solicitud original se conserva.</Dialog.Description>
+            <Dialog.Description className="mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300">Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
           </div>
           <div className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
             {busy && <p role="status" className="text-sm text-slate-500">Cargando…</p>}
@@ -168,7 +171,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               canCounter={!business && choices.includes('COUNTER_PROPOSAL')} />}
           </div>
           {error && <p role="alert" className="px-5 pt-2 text-sm text-red-700">{error}</p>}
-          <div className="zipco-chat-foot shrink-0 space-y-2 border-t border-slate-200 bg-white px-4 pb-4 pt-2.5 dark:border-slate-700 dark:bg-slate-900">
+          <div className="zipco-chat-foot shrink-0 space-y-2 px-4 pb-4 pt-1.5">
             {decision ? <>
               <p className="text-sm font-bold">{expired ? 'La fecha y hora propuestas ya pasaron. ¿Quieres aceptar igualmente?' : `${titles[decision]}: ¿confirmas esta propuesta exacta?`}</p>
               <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
@@ -206,7 +209,6 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                   </div>}
                 </>;
               })()}
-              <button type="button" className="mx-auto block min-h-11 px-3 text-xs font-bold text-violet-700 dark:text-violet-200" disabled={busy} onClick={() => void load()}>Actualizar propuestas</button>
             </>}
           </div>
         </Dialog.Content></Dialog.Portal>

@@ -1611,14 +1611,19 @@ body {
 @keyframes zipco-chat-pop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
 @keyframes zipco-chat-glow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.5),0 4px 10px rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(52,211,153,0),0 4px 14px rgba(16,185,129,.7)}}
 @keyframes zipco-chat-boxglow{0%,100%{box-shadow:inset 0 0 0 1.5px rgba(52,211,153,.5),0 0 0 0 rgba(52,211,153,.35),0 8px 22px rgba(16,185,129,.2)}50%{box-shadow:inset 0 0 0 1.5px rgba(110,231,183,.85),0 0 0 6px rgba(52,211,153,0),0 10px 26px rgba(16,185,129,.4)}}
-@keyframes zipco-chat-bounce{0%,100%{transform:translateY(-1px)}50%{transform:translateY(3px)}}
+@keyframes zipco-chat-nudge{0%,100%{transform:translate(0,0)}50%{transform:translate(1.5px,-1.5px) scale(1.14)}}
+@keyframes zipco-sheet-in{from{opacity:0;transform:perspective(900px) translateY(54px) rotateX(26deg) scale(.84)}to{opacity:1;transform:perspective(900px) translateY(0) rotateX(0) scale(1)}}
+@keyframes zipco-sheet-float{0%,100%{transform:perspective(900px) translateY(0) rotateX(0)}50%{transform:perspective(900px) translateY(-3px) rotateX(1.4deg)}}
+@keyframes zipco-sheet-fade{from{opacity:0}to{opacity:1}}
 
 .zipco-chat{display:flex;flex-direction:column;gap:10px;padding:2px 0 4px}
 .zipco-chat > *{animation:zipco-chat-rise .5s cubic-bezier(.2,.8,.2,1) both}
 .zipco-chat > *:nth-child(2){animation-delay:.05s}.zipco-chat > *:nth-child(3){animation-delay:.12s}
 .zipco-chat > *:nth-child(4){animation-delay:.2s}.zipco-chat > *:nth-child(5){animation-delay:.28s}
-.zipco-chat-scroll{background:linear-gradient(#fbfbff,#f4f3fd);scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
-:is(.dark) .zipco-chat-scroll{background:transparent}
+.zipco-chat-scroll{background:transparent;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+/* Panel del diálogo: degradado continuo (sin barra blanca abajo). Poner clase zipco-chat-panel en Dialog.Content y quitar bg-white */
+.zipco-chat-panel{background:linear-gradient(#ffffff 0,#fbfbff 80px,#f1effc 100%)}
+:is(.dark) .zipco-chat-panel{background:#0f172a}
 .zipco-chat-date{display:inline-block;border-radius:999px;background:#ece9fb;padding:3px 12px;font-size:10.5px;font-weight:700;color:#6d28d9}
 .zipco-chat-who{margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .zipco-chat-who time{font-size:10px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.7}
@@ -1632,12 +1637,11 @@ body {
 .zipco-chat-headrow{margin-top:3px;display:flex;align-items:center;gap:8px}
 .zipco-chat-thumb{position:relative;overflow:hidden;flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#c4b5fd,#7dd3c8)}
 .zipco-chat-thumb svg{position:relative;width:14px;height:14px}
-.zipco-chat-detail{margin-top:8px;display:grid;gap:5px;border-top:1px solid rgba(255,255,255,.2);padding-top:8px}
-.zipco-chat-detail[hidden]{display:none}
 .zipco-chat-drow{display:flex;justify-content:space-between;gap:10px;font-size:12px}
 .zipco-chat-drow span{flex:none;opacity:.7}
 .zipco-chat-drow b{min-width:0;text-align:right;font-weight:700;overflow-wrap:anywhere}
 .zipco-chat-drows{margin-top:8px;display:grid;gap:5px}
+.zipco-chat-sub{display:block;margin-top:1px;font-size:12px;font-weight:600;color:#6ee7b7}
 
 /* Burbuja de la otra parte (izquierda, Aurora) */
 .zipco-chat-theirs{position:relative;isolation:isolate;overflow:hidden;max-width:97%;border-radius:20px 20px 20px 4px;padding:10px 12px;color:#fff;
@@ -1652,7 +1656,6 @@ body {
 .zipco-chat-offer-top{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
 .zipco-chat-price{flex:none;font-size:26px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(167,139,250,.95)}
 .zipco-chat-when{margin:4px 0 0;font-size:12px;color:#cbd5e1}
-.zipco-chat-offer [hidden]{display:none}
 
 /* Resumen cerrado: "✦ N cambios" + etiquetas */
 .zipco-chat-sum{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
@@ -1702,8 +1705,7 @@ body {
 .zipco-glassbtn-arrow{position:absolute;z-index:3;right:6px;top:50%;margin-top:-14px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.4),rgba(255,255,255,.08));box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 0 10px rgba(255,255,255,.5),0 3px 8px rgba(0,0,40,.25)}
 .zipco-glassbtn-chev{width:15px;height:15px;transition:transform .25s}
-.zipco-glassbtn[data-open="true"] .zipco-glassbtn-chev{transform:rotate(180deg)}
-.zipco-glassbtn[data-open="false"] .zipco-glassbtn-chev{animation:zipco-chat-bounce 1.1s ease-in-out infinite}
+.zipco-glassbtn[data-open="false"] .zipco-glassbtn-chev{animation:zipco-chat-nudge 1.4s ease-in-out infinite}
 .zipco-glassbtn:focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
 
 /* Separador de turno y burbuja fantasma */
@@ -1714,23 +1716,50 @@ body {
 .zipco-chat-dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;animation:zipco-chat-pulse 2s ease infinite}
 .zipco-chat-ghost{align-self:center;max-width:92%;margin:0;text-align:center;font-size:11.5px;line-height:1.35;color:#8b7fc7}
 
-/* Botones del pie: Contraproponer / Rechazar (sin cambios) */
-.zipco-chat-ctr,.zipco-chat-rej{white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;border:0;border-radius:999px;font-weight:800}
-.zipco-chat-ctr{background:#f5f3ff;color:#5b21b6;box-shadow:inset 0 0 0 1.5px #ddd6fe}
-.zipco-chat-rej{background:#fff1f2;color:#be123c;box-shadow:inset 0 0 0 1.5px #fecdd3}
+/* Pie: sin caja ni borde, botones directamente sobre el fondo. Quitar de ese div: border-t border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900.
+   "Aceptar propuesta" NO se toca: sigue siendo AcceptGlassButton. */
+.zipco-chat-foot{background:transparent}
+.zipco-chat-ctr,.zipco-chat-rej{position:relative;overflow:hidden;isolation:isolate;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;border:0;border-radius:999px;color:#fff;font-weight:800;text-shadow:0 1px 3px rgba(20,0,60,.35)}
+.zipco-chat-ctr{background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.5),transparent 48%),linear-gradient(100deg,#a78bfa,#7c3aed 45%,#4f46e5);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 3px 6px rgba(255,255,255,.45),inset 0 -6px 10px rgba(49,20,140,.35),0 8px 20px rgba(91,60,220,.45)}
+.zipco-chat-rej{background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.5),transparent 48%),linear-gradient(100deg,#fda4af,#f43f5e 45%,#be123c);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 3px 6px rgba(255,255,255,.45),inset 0 -6px 10px rgba(130,10,50,.35),0 8px 20px rgba(225,29,72,.4)}
+.zipco-chat-ctr::before,.zipco-chat-rej::before{content:"";position:absolute;z-index:-1;left:6%;width:26%;top:4px;height:34%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.04));pointer-events:none}
 .zipco-chat-ctr:disabled,.zipco-chat-rej:disabled{opacity:.5}
-.zipco-chat-once{border-radius:6px;background:#ede9fe;padding:1px 6px;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase}
+.zipco-chat-once{border-radius:6px;background:rgba(255,255,255,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);padding:1px 6px;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase}
+
+/* Tarjeta flotante de detalle (Radix Dialog anidado): fondo difuminado + entrada 3D */
+.zipco-sheet-ov{position:fixed;inset:0;z-index:1100;background:radial-gradient(120% 80% at 50% 0%,rgba(139,92,246,.28),transparent 60%),rgba(12,8,38,.45);-webkit-backdrop-filter:blur(9px) saturate(1.25);backdrop-filter:blur(9px) saturate(1.25);animation:zipco-sheet-fade .25s both}
+.zipco-sheet{position:fixed;z-index:1101;inset:0;margin:auto;width:calc(100% - 1.5rem);max-width:24rem;height:fit-content;max-height:88dvh;overflow:hidden auto;box-sizing:border-box;border-radius:26px;padding:14px;color:#fff;
+  transform-origin:50% 100%;box-shadow:0 34px 70px rgba(5,2,30,.6),0 10px 24px rgba(5,2,30,.4),0 0 0 1px rgba(255,255,255,.16),0 0 56px rgba(139,92,246,.5),inset 0 1px 0 rgba(255,255,255,.25);
+  animation:zipco-sheet-in .55s cubic-bezier(.2,.9,.25,1.08) both,zipco-sheet-float 5.5s ease-in-out .7s infinite}
+.zipco-sheet:focus{outline:none}
+.zipco-sheet.mine{background:linear-gradient(145deg,#7c3aed,#4f46e5 75%)}
+.zipco-sheet.theirs{background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%)}
+.zipco-sheet-in{position:relative}
+.zipco-sheet-blob{position:absolute;border-radius:50%;filter:blur(32px);pointer-events:none}
+.zipco-sheet-blob.b1{right:-50px;top:-60px;width:200px;height:150px;background:rgba(139,92,246,.6);animation:zipco-chat-aur1 9s ease-in-out infinite}
+.zipco-sheet-blob.b2{left:-60px;bottom:-50px;width:180px;height:130px;background:rgba(20,184,166,.42);animation:zipco-chat-aur2 11s ease-in-out infinite}
+.zipco-sheet-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.zipco-sheet.mine .zipco-chat-who{color:#ddd6fe}.zipco-sheet.theirs .zipco-chat-who{color:#99f6e4}
+.zipco-sheet .zipco-chat-who{justify-content:flex-start;gap:8px}
+.zipco-sheet-x{flex:none;width:30px;height:30px;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.1));box-shadow:inset 1px 1px 1px rgba(255,255,255,.6),0 0 0 1px rgba(255,255,255,.22)}
+.zipco-sheet-x svg{width:14px;height:14px}
+.zipco-sheet-head{margin-top:6px;display:flex;align-items:center;gap:8px;font-size:16px}
+.zipco-sheet-head b:first-child{flex:1;min-width:0;overflow-wrap:anywhere}.zipco-sheet-head .money{font-size:20px;font-variant-numeric:tabular-nums}
+.zipco-sheet-rows{margin-top:8px;display:grid;gap:7px;border-top:1px solid rgba(255,255,255,.2);padding-top:10px}
+.zipco-sheet .zipco-chat-drow{font-size:13px}
+.zipco-chat-quote.big{margin-top:6px;font-size:14.5px}
+.zipco-chat-offer.big{margin-top:9px;border-radius:16px;padding:10px 12px}
 
 @media (prefers-reduced-motion:reduce){
   .zipco-chat > *,.zipco-chat-theirs::before,.zipco-chat-theirs::after,.zipco-chat-dot,.zipco-chat-pill,.zipco-chat-pill::after,
   .zipco-chat-box,.zipco-chat-box::after,.zipco-chat-cell-new,.zipco-chat-okdot,
-  .zipco-glassbtn,.zipco-glassbtn::after,.zipco-glassbtn-chev{animation:none!important}
+  .zipco-glassbtn,.zipco-glassbtn::after,.zipco-glassbtn-chev,.zipco-sheet,.zipco-sheet-ov,.zipco-sheet-blob{animation:none!important}
 }
 
-/* UI-PROPOSAL-CHAT-H-01: preserve responsive, dark and accessible behavior. */
-.zipco-chat-mine,.zipco-chat-theirs { min-width:0; overflow-wrap:anywhere; }
-.zipco-chat-who { flex-wrap:wrap; }
-.zipco-chat-headrow,.zipco-chat-offer-top { flex-wrap:wrap; }
+
+/* UI-PROPOSAL-FLOATING-DETAIL-01: bound effects and preserve mobile layout. */
+.zipco-chat-mine,.zipco-chat-theirs,.zipco-sheet { min-width:0; overflow-wrap:anywhere; }
+.zipco-chat-who,.zipco-chat-headrow,.zipco-chat-offer-top,.zipco-sheet-head { flex-wrap:wrap; }
 .zipco-chat-headrow .zipco-chat-title { flex-basis:90px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
 .zipco-chat-money { white-space:nowrap; }
 .zipco-chat-table { grid-template-columns:minmax(46px,.72fr) minmax(0,1fr) minmax(0,1.12fr); column-gap:7px; }
@@ -1740,19 +1769,26 @@ body {
 .zipco-chat-pill { min-width:0; max-width:100%; overflow-wrap:anywhere; }
 .zipco-chat-pill svg { flex:none; }
 .zipco-chat-cell-new { padding-left:5px; padding-right:5px; }
-.zipco-chat-kept-values { margin-top:5px; font-size:11px; }
-.zipco-chat-kept-values > summary { cursor:pointer; display:flex; min-height:44px; align-items:center; font-weight:700; }
 .zipco-chat-drow { flex-wrap:wrap; }
 .zipco-chat-drow b { white-space:pre-wrap; }
+.zipco-chat-keep { min-width:0; max-width:100%; align-items:flex-start; overflow-wrap:anywhere; }
+.zipco-chat-keep svg { flex:none; margin-top:3px; }
 .zipco-glassbtn { min-height:44px; height:auto; padding:8px 0; font-size:14px; }
-.zipco-glassbtn[data-open="true"]::after { animation:none; opacity:0; }
 .zipco-chat-ctr,.zipco-chat-rej { white-space:normal; }
-.zipco-chat-ctr:focus-visible,.zipco-chat-rej:focus-visible,.zipco-chat-kept-values > summary:focus-visible { outline:3px solid #a78bfa; outline-offset:3px; }
-.dark .zipco-chat-date,.dark .zipco-chat-ctr { background:#2e1065; color:#ede9fe; }
-.dark .zipco-chat-turn span { background:#0f172a; color:#ddd6fe; }
-.dark .zipco-chat-turn span[data-turn="closed"],.dark .zipco-chat-rej { background:#4c0519; color:#fecdd3; }
-.dark .zipco-chat-once { background:#4c1d95; color:#ede9fe; }
+.zipco-chat-ctr:focus-visible,.zipco-chat-rej:focus-visible { outline:3px solid #a78bfa; outline-offset:3px; }
+.zipco-sheet { animation:zipco-sheet-in .45s cubic-bezier(.2,.9,.25,1.08) both; max-height:calc(100dvh - 2rem); overscroll-behavior:contain; }
+.zipco-sheet-x { width:44px; height:44px; }
+.zipco-sheet-lights { position:absolute; inset:0; border-radius:inherit; overflow:hidden; pointer-events:none; }
+.zipco-sheet-blob,.zipco-chat-theirs::before,.zipco-chat-theirs::after { filter:none; animation:none; }
+.zipco-sheet-blob.b1,.zipco-chat-theirs::before { background:radial-gradient(ellipse,rgba(139,92,246,.6),rgba(139,92,246,.2) 45%,transparent 74%); }
+.zipco-sheet-blob.b2,.zipco-chat-theirs::after { background:radial-gradient(ellipse,rgba(20,184,166,.42),rgba(20,184,166,.14) 45%,transparent 74%); }
+.zipco-glassbtn[data-open="false"],.zipco-glassbtn[data-open="false"] .zipco-glassbtn-chev,.zipco-chat-dot,.zipco-chat-pill,.zipco-chat-box { animation-iteration-count:2; }
+.zipco-glassbtn::after,.zipco-chat-pill::after,.zipco-chat-box::after { animation-duration:1.5s; animation-iteration-count:1; }
+.zipco-glassbtn[data-open="true"]::after { animation:none; opacity:0; }
 .zipco-chat-ghost { color:#6d28d9; }
+.dark .zipco-chat-date { background:#2e1065; color:#ede9fe; }
+.dark .zipco-chat-turn span { background:#0f172a; color:#ddd6fe; }
+.dark .zipco-chat-turn span[data-turn="closed"] { background:#4c0519; color:#fecdd3; }
 .dark .zipco-chat-ghost { color:#c4b5fd; }
 @media (max-width:360px) {
   .zipco-glassbtn { font-size:12px; white-space:normal; line-height:1.15; }

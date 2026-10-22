@@ -14,8 +14,8 @@ function renderPhotoPortal({ nested, open, setOpen, children }: { nested: boolea
 function PhotoContent({ nested, children }: { nested: boolean; children: ReactNode }) {
   return nested ? <Dialog.Content asChild aria-describedby={undefined}>{children}</Dialog.Content> : <>{children}</>;
 }
-export default function OrderReferencePhoto({ src, business = true, title = 'Imagen adjunta', caption, nestedDialog = false, compact = false }: {
-  src: string | null; business?: boolean; title?: string; caption?: string; nestedDialog?: boolean; compact?: boolean;
+export default function OrderReferencePhoto({ src, business = true, title = 'Imagen adjunta', caption, nestedDialog = false, compact = false, viewerZIndex = 1100 }: {
+  src: string | null; business?: boolean; title?: string; caption?: string; nestedDialog?: boolean; compact?: boolean; viewerZIndex?: number;
 }) {
   const [showPhoto, setShowPhoto] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -81,7 +81,7 @@ export default function OrderReferencePhoto({ src, business = true, title = 'Ima
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[1000] flex h-[100dvh] flex-col bg-slate-950/95 px-4 backdrop-blur-md"
-          style={{ ...(nestedDialog ? { zIndex: 1100 } : {}), paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+          style={{ ...(nestedDialog ? { zIndex: viewerZIndex } : {}), paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           onClick={(event) => { event.stopPropagation(); setShowPhoto(false); }}
           role="dialog"
           aria-modal="true"

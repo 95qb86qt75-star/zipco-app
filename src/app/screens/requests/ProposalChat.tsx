@@ -1,33 +1,43 @@
-import { useId, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import * as React from 'react';
-import { ArrowRight, Calendar, Check, ChevronDown, DollarSign, FileText, Hash, Image as ImageIcon, Package, Sparkles } from 'lucide-react';
+import * as Dialog from '@radix-ui/react-dialog';
+import { ArrowRight, Calendar, Check, DollarSign, FileText, Hash, Image as ImageIcon, Maximize2, Package, Sparkles, X } from 'lucide-react';
 import type { Proposal, ProposalRead } from './proposalContract';
 import OrderReferencePhoto from './OrderReferencePhoto';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const TZ = 'America/Santiago';
 const time = (iso: string) => new Date(iso).toLocaleTimeString('es-CL', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
-const day = (iso: string) => new Date(iso).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
+const day = (iso: string) => new Date(iso).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'long' });
 // Disponibilidad corta para la tabla ("Ahora" / "22 oct · 12:00") y larga para el detalle.
 const whenShort = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Ahora'
-  : `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '')} · ${time(p.scheduledFor)} (Chile)`;
+  : `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} · ${time(p.scheduledFor)}`;
 const whenLong = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Lo antes posible'
   : new Intl.DateTimeFormat('es-CL', { timeZone: TZ, dateStyle: 'medium', timeStyle: 'short' }).format(new Date(p.scheduledFor));
 
-type Row = { key: string; label: string; value: string };
-// Keep each snapshot line and its price basis; never aggregate away a change.
+type Row = { key: string; label: string; value: string; basis?: 'unit' | 'line'; signature?: string };
+// Filas comparables. Un solo producto: cantidad, precio, disponibilidad, producto, descripción. Varios: total, disponibilidad, productos.
 function rowsOf(p: Proposal): Row[] {
   const s = p.subjectSnapshot;
-  return [...s.items.flatMap((it, index) => {
+  return [...s.items.flatMap((it, index): Row[] => {
     const prefix = s.items.length > 1 ? `${index + 1}. ` : '';
     return [
-      ...(s.orderType === 'product' ? [{ key: `qty:${index}`, label: `${prefix}Cantidad`, value: String(it.quantity) }] : []),
-      { key: `price:${index}`, label: `${prefix}Precio`, value: it.source === 'CUSTOM' ? `${money(it.subtotalClp)} total de la opción` : `${money(it.unitPriceClpSnapshot!)} por unidad` },
+      ...(s.orderType === 'product' ? [{ key: `qty:${index}`, label: `${prefix}Cant.`, value: String(it.quantity) }] : []),
+      { key: `price:${index}`, label: `${prefix}${it.source === 'CUSTOM' ? 'Precio total' : 'Precio u.'}`, value: money(it.source === 'CUSTOM' ? it.subtotalClp : it.unitPriceClpSnapshot!), basis: it.source === 'CUSTOM' ? 'line' : 'unit' },
       { key: `name:${index}`, label: `${prefix}${s.orderType === 'service' ? 'Servicio' : 'Producto'}`, value: it.nameSnapshot },
       { key: `desc:${index}`, label: `${prefix}Descripción`, value: it.descriptionSnapshot || 'Sin descripción' },
-      ...(s.items.length > 1 ? [{ key: `total:${index}`, label: `${prefix}Total de esta línea`, value: money(it.subtotalClp) }] : []),
+      ...(s.items.length > 1 ? [{ key: `total:${index}`, label: `${prefix}Total línea`, value: money(it.subtotalClp) }] : []),
     ];
-  }), { key: 'when', label: 'Cuándo', value: whenShort(p) }];
+  }), { key: 'when', label: 'Cuándo', value: whenShort(p), signature: p.subjectSnapshot.needNow ? 'IMMEDIATE' : p.scheduledFor! }];
+}
+
+export function comparisonRows(current: Proposal, previous: Proposal) {
+  const before = rowsOf(previous);
+  return rowsOf(current).map(row => {
+    const old = before.find(r => r.key === row.key);
+    return { ...row, old: old?.value ?? '—', oldBasis: old?.basis,
+      changed: !old || old.value !== row.value || old.basis !== row.basis || old.signature !== row.signature };
+  });
 }
 const ICONS: Record<string, ReactNode> = {
   qty: <Hash />, price: <DollarSign />, total: <DollarSign />, when: <Calendar />, name: <Package />, desc: <FileText />,
@@ -37,16 +47,43 @@ const MINE = ['Tú pediste', 'Tú propusiste', 'Tú contrapropusiste', 'Tu propu
 const THEIRS = ['El cliente pidió', 'El negocio responde', 'El cliente contrapone', 'Propuesta final del negocio'];
 const CURRENT_HEAD = ['Pedido', 'Propuesta', 'Contrapropuesta', 'Propuesta final'];
 
-/** Botón de vidrio líquido que abre/cierra el detalle. Azul para el pedido (.gp) y turquesa para propuestas (.gt). */
-function DetailButton({ kind, open, label, onClick, controls }: { kind: 'gp' | 'gt'; open: boolean; label: string; onClick: () => void; controls: string }) {
-  return <button type="button" className={`zipco-glassbtn ${kind}`} data-open={open} aria-expanded={open} aria-controls={controls} onClick={onClick}>
-    <span className="zipco-glassbtn-label">{open ? 'Ocultar' : 'Ver'} {label}</span>
-    <span className="zipco-glassbtn-arrow"><ChevronDown className="zipco-glassbtn-chev" strokeWidth={3.2} aria-hidden="true" /></span>
-  </button>;
+/** Botón de vidrio líquido que abre el detalle flotante. Azul para el pedido (.gp) y turquesa para propuestas (.gt). */
+function DetailButton({ kind, label }: { kind: 'gp' | 'gt'; label: string }) {
+  return <Dialog.Trigger asChild>
+    <button type="button" className={`zipco-glassbtn ${kind}`} data-open="false" aria-haspopup="dialog">
+      <span className="zipco-glassbtn-label">Ver {label}</span>
+      <span className="zipco-glassbtn-arrow"><Maximize2 className="zipco-glassbtn-chev" strokeWidth={3} aria-hidden="true" /></span>
+    </button>
+  </Dialog.Trigger>;
+}
+
+/** Botón "Cerrar detalle" al pie de la tarjeta flotante. */
+const CloseButton = ({ kind }: { kind: 'gp' | 'gt' }) => <Dialog.Close asChild>
+  <button type="button" className={`zipco-glassbtn ${kind}`} data-open="true" style={{ marginTop: 12 }}>
+    <span className="zipco-glassbtn-label">Cerrar detalle</span>
+    <span className="zipco-glassbtn-arrow"><X className="zipco-glassbtn-chev" strokeWidth={3} aria-hidden="true" /></span>
+  </button>
+</Dialog.Close>;
+
+/** Tarjeta flotante sobre la pantalla: fondo difuminado y entrada 3D. */
+function Sheet({ tone, label, time: at, children, dismiss }: { tone: 'mine' | 'theirs'; label: string; time: string; children: ReactNode; dismiss: () => void }) {
+  return <Dialog.Portal>
+    <Dialog.Overlay className="zipco-sheet-ov" onPointerDown={event => { if (event.target === event.currentTarget) { event.preventDefault(); event.stopPropagation(); dismiss(); } }} />
+    <Dialog.Content data-proposal-sheet className={`zipco-sheet ${tone}`} aria-describedby={undefined}>
+      {tone === 'theirs' && <div className="zipco-sheet-lights" aria-hidden="true"><i className="zipco-sheet-blob b1" /><i className="zipco-sheet-blob b2" /></div>}
+      <div className="zipco-sheet-in">
+        <div className="zipco-sheet-top">
+          <Dialog.Title className="zipco-chat-who"><span>{label}</span><time>{at}</time></Dialog.Title>
+          <Dialog.Close asChild><button type="button" className="zipco-sheet-x" aria-label="Cerrar detalle"><X aria-hidden="true" strokeWidth={3} /></button></Dialog.Close>
+        </div>
+        {children}
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>;
 }
 
 const PhotoBox = ({ src, proposal, own, business }: { src: string; proposal: Proposal; own: string; business: boolean }) => <div className="mt-2">
-  <OrderReferencePhoto compact nestedDialog business={business} src={src}
+  <OrderReferencePhoto compact nestedDialog viewerZIndex={1201} business={business} src={src}
     title={`Foto del ${own}`} caption={proposal.sequence === 0 ? 'Adjuntada con la solicitud original.' : 'Adjuntada con esta propuesta.'} />
 </div>;
 
@@ -63,11 +100,7 @@ function detailRows(p: Proposal, noteLabel: string): { label: string; value: str
 
 // Tabla "antes → propuesta": las filas que cambiaron dentro de un recuadro verde, y lo que se mantuvo en chips.
 function CompareTable({ current, previous, mineBefore }: { current: Proposal; previous: Proposal; mineBefore: boolean }) {
-  const before = rowsOf(previous);
-  const rows = rowsOf(current).map(row => {
-    const old = before.find(r => r.key === row.key);
-    return { ...row, old: old?.value ?? '—', changed: !old || old.value !== row.value };
-  });
+  const rows = comparisonRows(current, previous);
   const changed = rows.filter(r => r.changed), kept = rows.filter(r => !r.changed);
   const prevHead = previous.sequence === 0 ? (mineBefore ? 'Pediste' : 'Pidió') : (mineBefore ? 'Tu propuesta' : 'Propuesta anterior');
   return <>
@@ -77,22 +110,20 @@ function CompareTable({ current, previous, mineBefore }: { current: Proposal; pr
       <span role="columnheader" className="zipco-chat-th">{prevHead}</span>
       <span role="columnheader" className="zipco-chat-th-new"><span className="zipco-chat-pill"><Sparkles aria-hidden="true" />{CURRENT_HEAD[current.sequence]}</span></span></div>
       {changed.map((row, i) => <div key={row.key} role="row" className="contents" style={{ ['--d' as string]: `${i * 90}ms` }}>
-        <span className="zipco-chat-cell-l" role="rowheader">{ICONS[row.key.split(':')[0]]}{row.label}</span>
-        <span className="zipco-chat-cell-old" role="cell"><s>{row.old}</s></span>
-        <span className="zipco-chat-cell-new" role="cell"><span className="zipco-chat-okdot"><Check strokeWidth={3} aria-hidden="true" /></span><span>{row.value}</span></span>
+        <span className="zipco-chat-cell-l" role="rowheader">{ICONS[row.key.split(':')[0]]}{row.oldBasis && row.oldBasis !== row.basis ? 'Precio' : row.label}</span>
+        <span className="zipco-chat-cell-old" role="cell"><span>{row.old}{row.oldBasis && row.oldBasis !== row.basis && <small className="zipco-chat-sub">{row.oldBasis === 'unit' ? 'Unitario' : 'Total línea'}</small>}</span></span>
+        <span className="zipco-chat-cell-new" role="cell"><span className="zipco-chat-okdot"><Check strokeWidth={3} aria-hidden="true" /></span><span>{row.key === 'when' && row.value.includes(' · ') ? <>{row.value.split(' · ')[0]}<small className="zipco-chat-sub">{row.value.split(' · ').slice(1).join(' · ')}</small></> : row.value}{row.basis && row.oldBasis !== row.basis && <small className="zipco-chat-sub">{row.basis === 'unit' ? 'Unitario' : 'Total línea'}</small>}</span></span>
       </div>)}
     </div>}
     {kept.length > 0 && <div className="zipco-chat-kept">
       <span className="zipco-chat-kept-l">Se mantuvo</span>
-      {kept.map(row => <span key={row.key} className="zipco-chat-keep" title={row.value}><Check strokeWidth={3} aria-hidden="true" />{row.label === 'Cant.' ? 'Cantidad' : row.label === 'Cuándo' ? 'Disponibilidad' : row.label}</span>)}
+      {kept.map(row => <span key={row.key} className="zipco-chat-keep"><Check strokeWidth={3} aria-hidden="true" /><span>{row.label === 'Cant.' ? 'Cantidad' : row.label === 'Cuándo' ? 'Disponibilidad' : row.label}: <b>{row.value}</b></span></span>)}
     </div>}
-    {kept.length > 0 && <details className="zipco-chat-kept-values"><summary>Ver valores conservados</summary>{kept.map(row => <div key={row.key} className="zipco-chat-drow"><span>{row.label}</span><b>{row.value}</b></div>)}</details>}
   </>;
 }
 
 function Bubble({ proposal, previous, business }: { proposal: Proposal; previous?: Proposal; business: boolean }) {
-  const [open, setOpen] = useState(false); // cerrado por defecto: el botón llama la atención
-  const panelId = useId();
+  const [open, setOpen] = useState(false);
   const s = proposal.subjectSnapshot;
   const mine = (proposal.authorActor === 'BUSINESS') === business;
   const label = mine ? MINE[proposal.sequence] : THEIRS[proposal.sequence];
@@ -103,48 +134,60 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
   const btnLabel = isOrder ? 'detalle del pedido' : 'detalle de la propuesta';
   const kind = isOrder ? 'gp' : 'gt';
   const message = isOrder ? s.note : s.proposalMessage;
-  const who = <p className="zipco-chat-who"><span>{label}</span><time dateTime={proposal.createdAt} title={`${day(proposal.createdAt)} · ${time(proposal.createdAt)} (Chile)`}>{time(proposal.createdAt)}</time></p>;
+  const at = time(proposal.createdAt);
+  const who = <p className="zipco-chat-who"><span>{label}</span><time dateTime={proposal.createdAt}>{at}</time></p>;
   const pic = photo && <PhotoBox src={photo} proposal={proposal} own={own} business={business} />;
 
   if (mine) {
     const rows = detailRows(proposal, isOrder ? 'Tu nota' : 'Tu mensaje');
     return <div data-proposal-sequence={proposal.sequence} className="flex flex-col items-end">
-      <div className="zipco-chat-mine">
-        {who}
-        <div className="zipco-chat-headrow">
-          <b className="zipco-chat-title">{title}</b><b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>
-          {photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <div className="zipco-chat-mine">
+          {who}
+          <div className="zipco-chat-headrow">
+            <b className="zipco-chat-title">{title}</b><b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>
+            {photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}
+          </div>
+          <DetailButton kind={kind} label={btnLabel} />
         </div>
-        <div id={panelId} hidden={!open} className="zipco-chat-detail">
-          {rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}
+        <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
+          <div className="zipco-sheet-head"><b>{title}</b><b className="money">{money(proposal.totalPriceClp)}</b></div>
+          <div className="zipco-sheet-rows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>
           {pic}
-        </div>
-        <DetailButton kind={kind} open={open} label={btnLabel} onClick={() => setOpen(v => !v)} controls={panelId} />
-      </div>
+          <CloseButton kind={kind} />
+        </Sheet>
+      </Dialog.Root>
     </div>;
   }
 
   const rows = detailRows(proposal, isOrder ? 'Nota del cliente' : 'Mensaje');
-  const diff = previous && rowsOf(proposal).filter(r => { const o = rowsOf(previous).find(x => x.key === r.key); return !o || o.value !== r.value; });
+  const diff = previous && comparisonRows(proposal, previous).filter(r => r.changed);
   return <div data-proposal-sequence={proposal.sequence} className="flex flex-col items-start">
-    <div className="zipco-chat-theirs">
-      {who}
-      {message && <p className="zipco-chat-quote">“{message}”</p>}
-      <div className="zipco-chat-offer">
-        <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
-        {!open && (diff && diff.length > 0
-          ? <div className="zipco-chat-sum"><span className="zipco-chat-pill static"><Sparkles aria-hidden="true" />{diff.length} {diff.length === 1 ? 'cambio' : 'cambios'}</span>
-            {diff.map(r => <span key={r.key} className="zipco-chat-sumchip">{r.label === 'Cant.' ? 'Cantidad' : r.label === 'Precio u.' ? 'Precio' : r.label}</span>)}</div>
-          : !previous && <p className="zipco-chat-when">{whenLong(proposal)}</p>)}
-        <div id={panelId} hidden={!open}>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <div className="zipco-chat-theirs">
+        {who}
+        {message && <p className="zipco-chat-quote">“{message}”</p>}
+        <div className="zipco-chat-offer">
+          <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
+          {diff && diff.length > 0
+            ? <div className="zipco-chat-sum"><span className="zipco-chat-pill static"><Sparkles aria-hidden="true" />{diff.length} {diff.length === 1 ? 'cambio' : 'cambios'}</span>
+              {diff.map(r => <span key={r.key} className="zipco-chat-sumchip">{r.label === 'Cant.' ? 'Cantidad' : r.label === 'Precio u.' ? 'Precio' : r.label}</span>)}</div>
+            : !previous && <p className="zipco-chat-when">{whenLong(proposal)}</p>}
+        </div>
+        <DetailButton kind={kind} label={btnLabel} />
+      </div>
+      <Sheet tone="theirs" label={label} time={at} dismiss={() => setOpen(false)}>
+        {message && <p className="zipco-chat-quote big">“{message}”</p>}
+        <div className="zipco-chat-offer big">
+          <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
           {previous
             ? <CompareTable current={proposal} previous={previous} mineBefore={(previous.authorActor === 'BUSINESS') === business} />
             : <div className="zipco-chat-drows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>}
         </div>
-      </div>
-      {open && pic}
-      <DetailButton kind={kind} open={open} label={btnLabel} onClick={() => setOpen(v => !v)} controls={panelId} />
-    </div>
+        {pic}
+        <CloseButton kind={kind} />
+      </Sheet>
+    </Dialog.Root>
   </div>;
 }
 
