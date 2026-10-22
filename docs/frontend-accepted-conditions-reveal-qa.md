@@ -33,7 +33,12 @@ de opacidad ≤120ms, sin animación en movimiento reducido, controles conservad
 cero lecturas adicionales del acuerdo y cero acciones de pedido. No equivale a
 una medición física de rendimiento. El primer intento de esta comprobación
 falló al serializar una referencia DOM en el script; corregido el retorno de
-la comprobación y repetido satisfactoriamente. Publicación pendiente de registrar.
+la comprobación y repetido satisfactoriamente.
+
+Código respaldado en GitHub `qa`: `7e06f77ba14d01bb686d3aec8f8207882fe67d6c`.
+Vercel QA READY `dpl_7pZruktBUgfsPFKbuyaXbpZh2dXh`, SHA y alias habitual
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA.
 
 Pendiente físico: Mi Negocio → Por coordinar → Revisar condiciones/Ocultar
 condiciones varias veces en Android e iPhone; comprobar fluidez, contenido y
