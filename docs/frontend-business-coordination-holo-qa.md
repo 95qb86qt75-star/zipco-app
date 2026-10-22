@@ -39,7 +39,11 @@ ambos roles y 12 estados. Comprueba ausencia de desborde, acciones separadas
 y cero animaciones infinitas en el bloque nuevo. Captura revisada en
 `node_modules/.cache/order-card-aurora-browser/business-coordination-holo.png`
 (evidencia local ignorada por Git). Sin backend real ni acciones reales.
-Publicación: pendiente de registrar.
+Código y documentación enviados a GitHub, rama `qa`:
+`53816b6c716f96a03f485106a52f968e3308b73c`.
+Vercel QA READY `dpl_5SfhadYo7z1yRRbLfD1ZJtjuf3Tu`, SHA y alias habitual
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` verificados.
+Este cierre documental también se respalda y publica en QA.
 
 Prueba física pendiente: Mi Negocio → Por coordinar en Android e iPhone;
 revisar diseño, desplazamiento, autorización propia/cliente, acceso deliberado
