@@ -2341,3 +2341,6 @@ body {
 .zipco-co-start-title { margin-top:12px; text-align:center; font-size:22px; line-height:1.1; font-weight:800; color:#0f172a; }
 .zipco-co-start-description { margin:8px auto 0; max-width:290px; text-align:center; font-size:12.5px; line-height:1.4; color:#64748b; }
 @media (prefers-reduced-motion:reduce) { .zipco-co-fb,.zipco-co-colrow[data-folded] { transition:none!important; } }
+
+/* Continue the same acceptance design while checking contact; avoid a second entry flash. */
+.zipco-sheet.holo[data-contact-followup],.zipco-sheet.holo[data-contact-followup] .zipco-d-holo-in { animation:none; }

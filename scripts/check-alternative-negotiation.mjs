@@ -121,6 +121,39 @@ try {
   };
   await send('Network.enable');await send('Network.setBlockedURLs',{urls:['https://*']});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
   const evidence=[];
+  for(const width of [320,393]){
+    await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
+    let preparedStyle;
+    for(const [step,business,entry] of [[0,true,'Proponer alternativa'],[1,false,'Hacer mi única contrapropuesta'],[2,true,'Proponer alternativa final']]){
+      await reset(step,business);
+      if(step)await decide(entry);else await touch(entry);
+      await wait('!!document.querySelector("textarea")');
+      const style=await evaluate(`(()=>{const tile=document.querySelector('.zipco-alt-tile'),base=document.querySelector('.zipco-alt-orig');return {tiles:document.querySelectorAll('.zipco-alt-tile').length,radius:getComputedStyle(tile).borderRadius,background:getComputedStyle(base).backgroundImage,textarea:!!document.querySelector('.zipco-alt-ta'),footer:!!document.querySelector('.zipco-alt-go')};})()`);
+      if(!step)preparedStyle=style;else assert.deepEqual(style,preparedStyle,'Counter and final retain the initial preparation design');
+      await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'draft-parity-'+step+'-'+width+'.png'),Buffer.from(shot.data,'base64')));
+      await touch('Cantidad');await touch('Aumentar cantidad');await touch('Guardar');
+      await fill('textarea','Cantidad explicada para comprobar el diseño compartido.','HTMLTextAreaElement');await touch('Revisar alternativa');
+      await wait('!!document.querySelector("[data-alternative-review]")');
+      assert(await evaluate('!!document.querySelector(".zipco-review-total")'),'Same approved review design for every draft');
+      assert.equal(await evaluate('window.posts.length'),0,'Preparing and reviewing never sends');
+      await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'review-parity-'+step+'-'+width+'.png'),Buffer.from(shot.data,'base64')));
+    }
+    evidence.push('initial-counter-final-design-parity-'+width);
+  }
+  for(const business of [false,true]){
+    await reset(business?2:1,business);await evaluate('window.pauseReads=true;document.querySelector(".zipco-glass-btn").click();document.querySelector(".zipco-glass-btn").click();');
+    await wait('window.proposalReads===1');await delay(250);
+    assert.equal(await evaluate('!!document.querySelector("[role=dialog]")'),false,'No empty loading card while opening review');
+    await evaluate('window.releaseRead()');await wait('!!document.querySelector("[data-proposal-comparison]")');
+    assert.equal(await evaluate('window.posts.length'),0);evidence.push('review-opens-on-authorized-read-'+business);
+    await reset(business?2:1,business);await decide(business?'Aceptar contrapropuesta':'Aceptar propuesta');
+    await evaluate('window.pauseOrderReads=true');await touch('Aceptar y autorizar contacto');await wait('window.orderReads===1');
+    assert(await evaluate(`(()=>{const e=document.querySelector('[data-contact-followup]');return e&&e.textContent.includes('Todo listo para')&&!e.textContent.includes('Tu propuesta quedó aceptada')&&!e.textContent.includes('La contrapropuesta quedó aceptada')&&!!e.querySelector('.zipco-d-orb')&&!!e.querySelector('.zipco-d-ticket')&&getComputedStyle(e).animationName==='none';})()`),'Contact verification keeps the approved design and exact ticket without a second entry');
+    await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'accept-followup-'+business+'.png'),Buffer.from(shot.data,'base64')));
+    await evaluate('window.releaseOrderRead()');await wait('!document.querySelector("[role=dialog]")');
+    assert.deepEqual(await evaluate('window.posts.map(p=>p.action)'),[business?'accept-counter-proposal':'accept-proposal','authorize-contact']);
+    evidence.push('approved-acceptance-design-through-contact-'+business);
+  }
   for(const width of [393,320]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
     await reset();await touch('Proponer alternativa');await wait('!!document.querySelector("textarea")');

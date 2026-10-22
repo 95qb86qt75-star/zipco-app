@@ -1,5 +1,6 @@
 import type { BusinessRequest, MyOrder } from './types';
 import type { ProposalReceipt } from './proposalApi';
+import type { Proposal } from './proposalContract';
 import { readCoordinationSession, type CoordinationSession } from './coordinationSession';
 import { normalizeRequestProcess } from './requestProcess';
 
@@ -7,6 +8,8 @@ export const PROPOSAL_ACCEPTED_EVENT = 'zipco-proposal-accepted';
 export type AcceptedProposal = {
   order: BusinessRequest | MyOrder; receipt: ProposalReceipt; business: boolean;
   authorize: boolean; session: CoordinationSession;
+  /** Local display snapshot from the exact authorized proposal read; never sent to the API. */
+  proposal?: Proposal;
 };
 
 // Local follow-up only, after the exact proposal POST has been verified. No new API action.
@@ -17,7 +20,8 @@ export function acceptedProposal(value: AcceptedProposal | undefined): AcceptedP
     value.receipt.orderId !== value.order.id) return null;
   const process = normalizeRequestProcess(value.receipt.requestProcess);
   if (!process || process.id !== value.order.requestProcess?.id || process.state !== 'COORDINATION_PENDING' ||
-    !process.agreementPublicId || process.version <= value.order.requestProcess.version) return null;
+    !process.agreementPublicId || process.version <= value.order.requestProcess.version ||
+    (value.proposal && value.proposal.id !== process.currentProposalId)) return null;
   return { ...value, receipt: { ...value.receipt, requestProcess: process } };
 }
 

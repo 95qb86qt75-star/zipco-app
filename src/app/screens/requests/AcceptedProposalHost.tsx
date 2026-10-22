@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import * as Dialog from '@radix-ui/react-dialog';
 import { acceptedProposal, PROPOSAL_ACCEPTED_EVENT, type AcceptedProposal } from './proposalAcceptance';
 import { announceDealClosed } from './DealSuccess';
 import { contactAuthorized, coordinationAllowed, refreshCoordinationOrder } from './coordinationApi';
@@ -8,6 +7,8 @@ import { readCoordinationSession, subscribeCoordinationSession } from './coordin
 import useCoordination from './useCoordination';
 import type { BusinessRequest, MyOrder } from './types';
 import { RequestProcessError } from './requestProcessErrors';
+import AcceptAuthorizeCard from './AcceptAuthorizeCard';
+import { proposalTitle, whenLong } from './ProposalChat';
 
 /** Mounted at screen level so filtering the accepted card never cancels consent. */
 export default function AcceptedProposalHost({ onAccepted, refresh }: {
@@ -73,24 +74,19 @@ function AcceptedContactFollowUp({ flow, close, complete, refresh }: { flow: Acc
     } finally { if (active(request)) setLoading(false); }
   };
   useEffect(() => { void load(); return () => controller.current?.abort(); }, []);
-  return <Dialog.Root open onOpenChange={() => undefined}>
-    <Dialog.Portal><Dialog.Overlay className="zipco-sheet-ov zipco-d-accept-overlay" />
-      <Dialog.Content data-contact-followup className="zipco-sheet holo" aria-describedby="zipco-contact-followup-description"
-        onEscapeKeyDown={event => event.preventDefault()} onPointerDownOutside={event => event.preventDefault()}>
-        <div className="zipco-d-holo-in space-y-3">
-          <Dialog.Title className="zipco-d-auth-ttl">{flow.business ? 'La contrapropuesta quedó aceptada' : 'Tu propuesta quedó aceptada'}</Dialog.Title>
-          <Dialog.Description id="zipco-contact-followup-description" className="zipco-d-auth-sub">El pedido está en Coordinación. La autorización de contacto se confirma por separado.</Dialog.Description>
-          {order ? <AuthorizeAcceptedContact order={order} business={flow.business} autoStart={autoStart}
+  return <AcceptAuthorizeCard open busy business={flow.business} onClose={() => undefined} onChoose={() => undefined}
+    counterpartName={flow.business ? ('customerName' in flow.order ? flow.order.customerName || 'el cliente' : 'el cliente')
+      : ('businessName' in flow.order ? flow.order.businessName || 'el negocio' : 'el negocio')}
+    title={flow.proposal ? proposalTitle(flow.proposal) : ''} when={flow.proposal ? whenLong(flow.proposal) : ''}
+    total={flow.proposal ? `$${flow.proposal.totalPriceClp.toLocaleString('es-CL')}` : ''}
+    followUp={<div className="mt-3 space-y-3">{order ? <AuthorizeAcceptedContact order={order} business={flow.business} autoStart={autoStart}
             close={close} complete={complete} refresh={refresh} reload={() => void load(false)} /> : <>
-            {loading && <p role="status" className="text-center text-sm">Verificando autorización de contacto…</p>}
+            {loading && <p role="status" className="text-center text-sm">Finalizando autorización…</p>}
             {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
             {!loading && <button type="button" className="zipco-d-wabtn" onClick={() => void load()}>Actualizar pedido</button>}
-            <button type="button" className="zipco-d-wasoft" disabled={loading} onClick={close}>Continuar en Coordinación</button>
+            {!loading && <button type="button" className="zipco-d-wasoft" onClick={close}>Continuar en Coordinación</button>}
           </>}
-        </div>
-      </Dialog.Content>
-    </Dialog.Portal>
-  </Dialog.Root>;
+        </div>} />;
 }
 
 function AuthorizeAcceptedContact({ order, business, autoStart, close, complete, refresh, reload }: {

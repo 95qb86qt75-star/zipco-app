@@ -26,6 +26,11 @@ it('accepts an authoritative receipt without inventing contact permissions', () 
   expect(confirmed?.receipt.requestProcess.allowedActions).toEqual([]);
   expect(confirmed?.authorize).toBe(true);
 });
+it('keeps only the exact accepted proposal as the local display snapshot', () => {
+  const confirmed = value(), proposal = proposalsFixture(1, false).proposals[1];
+  expect(acceptedProposal({ ...confirmed, proposal })?.proposal).toEqual(proposal);
+  expect(acceptedProposal({ ...confirmed, proposal: { ...proposal, id: proposal.id + 1 } })).toBeNull();
+});
 it('only emits local follow-up after verified acceptance, without posting an API action', () => {
   const confirmed = value(); announceProposalAccepted(confirmed);
   expect(dispatch).toHaveBeenCalledOnce();

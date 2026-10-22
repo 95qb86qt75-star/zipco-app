@@ -4,6 +4,13 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-COUNTERPROPOSAL-CONTINUITY-01 — Contrapropuesta y aceptación con diseño compartido
+
+2026-10-22. Solo frontend QA. Entrada de vidrio compartida por contrapropuesta y
+propuesta final; revisión directa tras lectura y tarjeta aprobada durante la
+autorización, sin los dos diálogos antiguos. 55 recorridos sintéticos aprobados.
+[Archivos, validaciones y publicación](frontend-counterproposal-design-continuity-qa.md).
+
 ### UI-COORDINATION-FOLD-RETURN-01 — Cierre suave y regreso de WhatsApp
 
 2026-10-22. Solo frontend QA. Plegado visible compartido y confirmación del
