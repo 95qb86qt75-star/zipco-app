@@ -1864,3 +1864,22 @@ body {
 .zipco-aurora-card.zipco-notification-target::after {
   background:#0284c7;
 }
+
+/* UI-RESPONSE-MOTION-01: keep the list budget; animate visible response buttons only. */
+.zipco-pending-business-responses :is(.zipco-accept-wrap,.zipco-accept-check,.zipco-reject-wrap,.zipco-reject-icon) {
+  animation: none;
+}
+.zipco-pending-business-responses :is(.zipco-accept-wrap,.zipco-glass-wrap,.zipco-reject-wrap):not([data-response-motion="active"]) :is(.zipco-accept-blob,.zipco-glass-blob,.zipco-reject-blob),
+.zipco-pending-business-responses :is(.zipco-accept-wrap,.zipco-glass-wrap,.zipco-reject-wrap):not([data-response-motion="active"]) :is(.zipco-accept-btn,.zipco-glass-btn,.zipco-reject-btn)::after {
+  animation: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .zipco-pending-business-responses[data-expanded="true"] [data-response-motion="active"] :is(.zipco-accept-blob,.zipco-glass-blob,.zipco-reject-blob) {
+    animation-duration: 6s;
+    animation-iteration-count: infinite;
+  }
+  .zipco-pending-business-responses[data-expanded="true"] [data-response-motion="active"] :is(.zipco-accept-btn,.zipco-glass-btn,.zipco-reject-btn)::after {
+    animation-duration: 3.6s;
+    animation-iteration-count: infinite;
+  }
+}

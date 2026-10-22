@@ -3,6 +3,13 @@
 Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
+
+### UI-RESPONSE-MOTION-01 — Movimiento de respuestas visibles
+
+2026-10-22. Solo frontend, qa. Recupera luces y brillo repetidos de Aceptar,
+Proponer alternativa y Rechazar en negocio solo mientras estén desplegados y
+visibles. Conserva la optimización de la lista y movimiento reducido.
+[Causa, validación y publicación](frontend-visible-response-motion-qa.md).
 Las notas de revisión locales anteriores se conservan por separado.
 
 Actualización 2026-10-19: el cierre y respaldo de aquellas notas, las fichas más

@@ -17,6 +17,7 @@ import PendingCancellationActions from './PendingCancellationActions';
 import PendingRejectionActions from './PendingRejectionActions';
 import ProposalNegotiation from './ProposalNegotiation';
 import { NEGOTIATION_STATES } from './proposalContract';
+import useVisibleResponseMotion from './useVisibleResponseMotion';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -39,6 +40,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   const image = 'customerImage' in order ? order.customerImage : order.businessImage;
   const schedule = awaiting ? formatDeliverySchedule(order, business ? 'business' : 'customer') : null;
   const isExpanded = onToggle ? expanded ?? false : localExpanded;
+  const responseMotionRef = useVisibleResponseMotion(Boolean(business && awaiting && isExpanded));
   const stateLabel = business && awaiting ? 'Nuevo pedido' : processStatusLabel(order);
   const hasConditions = coordination || Boolean(process?.agreementPublicId);
   const unavailableText = awaiting ? 'Productos no disponibles. Actualiza el pedido.'
@@ -124,7 +126,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         </motion.div>}
     </AnimatePresence>}
     {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
-    <div className={business && awaiting ? 'zipco-pending-business-responses' : undefined}
+    <div ref={responseMotionRef} className={business && awaiting ? 'zipco-pending-business-responses' : undefined}
       data-expanded={business && awaiting ? isExpanded : undefined} aria-hidden={business && awaiting ? !isExpanded : undefined}
       {...(business && awaiting && !isExpanded ? { inert: '' } : {})}>
       <div className={business && awaiting ? 'zipco-pending-business-body' : undefined}>

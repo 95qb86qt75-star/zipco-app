@@ -104,6 +104,18 @@ try {
   assert.notEqual(await evaluate(`getComputedStyle(document.querySelector('.zipco-hide-order-detail')).boxShadow`),'none');
   await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`pending-expanded-${width}-${dark?'dark':'light'}.png`),Buffer.from(shot.data,'base64')));
   await evaluate(`window.savedReject=document.querySelector('.zipco-reject-btn');window.savedProposal=document.querySelector('.zipco-glass-btn');true`);
+  for (const selector of ['.zipco-accept-wrap','.zipco-glass-wrap','.zipco-reject-wrap']) {
+   await evaluate(`document.querySelector('${selector}').scrollIntoView({block:'center'});true`);
+   await wait(`document.querySelector('${selector}').dataset.responseMotion==='active'`);
+   assert.equal(await evaluate(`getComputedStyle(document.querySelector('${selector} i')).animationIterationCount`),'infinite','Visible expanded buttons retain moving light');
+   assert.equal(await evaluate(`getComputedStyle(document.querySelector('${selector} button'),'::after').animationIterationCount`),'infinite','Visible button sheen repeats');
+  }
+  await evaluate(`Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));true`);
+  assert.equal(await evaluate(`document.querySelectorAll('[data-response-motion="active"]').length`),0,'Background document stops response effects');
+  await evaluate(`delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));document.querySelector('.zipco-reject-wrap').style.transform='translateY(2000px)';true`);
+  await wait(`document.querySelector('.zipco-reject-wrap').dataset.responseMotion==='idle'`);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-reject-blob')).animationName`),'none','Offscreen button has no animation');
+  await evaluate(`document.querySelector('.zipco-reject-wrap').style.transform='';true`);
   await touch('.zipco-reject-btn');await wait('!!document.querySelector("[role=alertdialog] select")');
   await evaluate(`(()=>{const e=document.querySelector('select');Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(e,'other');e.dispatchEvent(new Event('change',{bubbles:true}));})()`);await wait('!!document.querySelector("textarea")');
   await evaluate(`(()=>{const e=document.querySelector('textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(e,'Motivo sintético conservado');e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
@@ -111,6 +123,7 @@ try {
   await evaluate(`document.querySelector('.zipco-hide-order-detail').click()`);await delay(100);
   assert.equal(await evaluate(`document.querySelector('textarea').value`),'Motivo sintético conservado');
   assert(await evaluate(`document.querySelector('.zipco-pending-business-responses').inert`),'Closing blocks interaction immediately');
+  assert.equal(await evaluate(`document.querySelectorAll('[data-response-motion="active"]').length`),0,'Folded buttons stop response effects');
   await touch('[role=alertdialog] button');await wait('!document.querySelector("[role=alertdialog]")');
   await wait('!!document.querySelector(".zipco-open-panel")');await touch('.zipco-open-panel');await delay(650);
   assert(await evaluate(`window.savedReject===document.querySelector('.zipco-reject-btn')&&window.savedProposal===document.querySelector('.zipco-glass-btn')`),'Folding retains response components');
@@ -141,6 +154,8 @@ try {
  await evaluate(`window.show('AWAITING_BUSINESS_RESPONSE',true)`);await wait('!!document.querySelector(".zipco-open-panel")');
  await touch('.zipco-open-panel');
  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-pending-business-responses')).transitionDuration`),'0s','Reduced motion removes the reveal transition');
+ await delay(100);
+ assert.equal(await evaluate(`document.querySelectorAll('[data-response-motion="active"]').length`),0,'Reduced motion keeps response effects static');
  await evaluate(`window.show('COORDINATION_PENDING',false)`);await wait('!!document.querySelector(".zipco-open-panel")');
  await evaluate(`document.querySelector('.zipco-open-panel').click()`);await wait('document.querySelector("article").textContent.includes("Nota acordada")');
  await delay(650);
