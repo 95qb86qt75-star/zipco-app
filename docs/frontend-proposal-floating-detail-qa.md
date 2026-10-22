@@ -65,8 +65,9 @@ servicios, múltiples líneas y texto largo. Detalle típico sin scroll; casos l
 con contención dentro de viewport. Capturas inspeccionadas. diff --check aprobado.
 Sin API QA, acciones ni uploads reales. Chrome no acredita Safari/WebKit.
 
-Pendiente prueba física Android/iPhone y conformidad de esta UI. No modifica la
-aprobación de rendimiento anterior. Reintentos fiables de notificaciones pendientes.
+La conformidad posterior del usuario se registra abajo; no se atribuyen pruebas
+por plataforma sin especificación. Aprobación de rendimiento anterior conservada.
+Reintentos fiables de notificaciones pendientes.
 
 Código funcional `b56dc5270eec7077ba2ce440678012e17bbe2570`, origin/qa.
 Preview `dpl_HA7LZhn3jRRFFF29jjYCZxTL4R42` READY y alias
@@ -75,4 +76,20 @@ SHA/ref qa exactos, Backend QA confirmado en preflight; build global null y
 productionBranch main conservados. Build override:
 ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
 Resultado respaldado en cierre documental, publicado con el mismo código/opciones.
-Prueba física y conformidad de esta UI pendientes.
+Este registro de publicación precede a la conformidad posterior del usuario.
+
+## Conformidad y respaldo final — 2026-10-21
+
+Tras QA `92c44761ec186e5c6ab026dc4cbe89376b91391c`, Bastián confirmó
+«funcionando todo correctamente» y pidió guardar todo con commit para continuar
+las pruebas. UI-PROPOSAL-FLOATING-DETAIL-01 queda aprobada en el alcance de su
+revisión. No especificó dispositivos ni cada caso ejecutado; no se afirma una
+matriz completa Android/iPhone ni se cierra el pendiente de reintentos push.
+
+El código funcional `b56dc52` y cierre `92c4476` ya estaban en origin/qa. Esta
+aprobación y el catálogo se respaldan mediante un nuevo commit documental/push
+y publicación Vercel QA del mismo código funcional con las mismas opciones.
+Validación de este cierre: revisión documental, diff --check y sincronización
+Git/alias/SHA/READY. No se repiten las 1147 pruebas/build ni acciones de pedidos
+porque el código no cambia. Campos/endpoints sin cambios; backend, Railway,
+main y producción intactos. Avances anteriores conservados.

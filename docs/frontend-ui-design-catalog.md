@@ -394,5 +394,7 @@ percibida aprobada; no se extiende a Android ni a todos los pasos de captura.
 2026-10-21. Solo frontend, qa. Código b56dc52. Detalle Radix sobre la revisión, comparación/fotos,
 cuatro cierres y pie de vidrio sin caja. Aceptar y contrato conservados.
 1147 pruebas/build QA, 23 recorridos de negociación y presupuesto visual de lista
-aprobados. Preview READY y alias QA comprobados. Prueba física pendiente.
+aprobados. Preview READY y alias QA comprobados. Bastián confirmó «funcionando
+todo correctamente» tras QA 92c4476; diseño aprobado. No especificó plataforma
+ni matriz de casos; reintentos fiables de notificaciones siguen pendientes.
 [Diseño, archivos y publicación](frontend-proposal-floating-detail-qa.md).
