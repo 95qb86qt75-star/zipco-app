@@ -67,12 +67,12 @@ describe('Requests screen with mixed server generations', () => {
     expect(html).not.toContain('Por coordinar');
     expect(html).toContain(search.includes('quotes') ? 'Esperando cliente' : 'Por responder');
   });
-  it('puts customer pending before coordination without changing the other filters', () => {
+  it('puts customer waiting between pending and coordination without changing the other filters', () => {
     state.requests = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
     window.location.search = '?open=requests-customer';
     const html = render();
     const tabs = html.slice(html.indexOf('zipco-status-tabs'));
-    const positions = ['Pendientes', 'Coordinación', 'Por responder', 'En curso', 'Historial']
+    const positions = ['Pendientes', 'Por responder', 'Coordinación', 'En curso', 'Historial']
       .map((label) => tabs.indexOf(`<span>${label}</span>`));
     expect(positions.every((position) => position >= 0)).toBe(true);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));

@@ -968,12 +968,12 @@ export default function RequestsScreen({
                   label: "Pendientes",
                   count: statusCounts.pending,
                 },
-                ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "waiting",
                   label: "Por responder",
                   count: statusCounts.waiting,
                 },
+                ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "active",
                   label: "En curso",
