@@ -70,3 +70,17 @@ productionBranch main conservados. Build override:
 ZIPCO_QA_LOAD_DIAGNOSTICS=1 ZIPCO_QA_NOTIFICATION_TRACE=0 npm run build -- --mode qa.
 Resultado guardado en cierre documental publicado con el mismo código/opciones.
 No equivale a conformidad física: pendiente prueba del usuario en el iPhone.
+
+## Conformidad de Bastián — 2026-10-21
+
+Tras publicar QA ed65893, Bastián confirmó «excelente ahora funciona bien» en
+el contexto de la lentitud reportada en Solicitudes desde su iPhone.
+Se registra la mejora percibida como aprobada para PERF-REQUEST-CARDS-01.
+No se atribuyen tiempos medidos al dispositivo, no se asume que haya ejecutado
+cada paso de captura/desplazamiento y no se extiende la confirmación a Android
+ni al cierre general de notificaciones.
+
+Solo documentación: esta ficha y catálogo, diff --check y commit/push en qa.
+Sin cambios funcionales ni necesidad de repetir las 1146 pruebas/build o acciones
+de pedidos. Publicación QA con idéntico código y opciones; backend, Railway,
+main y producción intactos. Reintentos fiables de notificaciones pendientes.

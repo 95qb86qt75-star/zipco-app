@@ -384,5 +384,7 @@ Preview READY y alias QA comprobados. Revisión física pendiente.
 elimina filtros superpuestos y bucles permanentes conservando acciones/enfoque.
 Prueba local de 20 tarjetas: 140 a 0 animaciones infinitas; no acredita Safari.
 1146 pruebas/build QA, 234 verificaciones de tarjetas y 23 recorridos de negociación
-aprobados. Preview READY y alias QA comprobados. Prueba física del iPhone pendiente.
+aprobados. Preview READY y alias QA comprobados. Bastián confirmó «excelente ahora
+funciona bien» tras QA ed65893 en el contexto de Solicitudes/iPhone. Mejora
+percibida aprobada; no se extiende a Android ni a todos los pasos de captura.
 [Evidencia, límites y publicación](frontend-request-card-render-budget-qa.md).
