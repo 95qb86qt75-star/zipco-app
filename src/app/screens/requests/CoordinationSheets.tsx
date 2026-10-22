@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Calendar, Clock, ExternalLink, FileText, PencilLine, ShoppingBag, Trash2, UserX, X, Check } from 'lucide-react';
 import type { AgreementReadDto } from './agreement';
+import WhatsAppMark from './WhatsAppMark';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 
@@ -64,6 +65,27 @@ export function ConditionsSheet({ open, onOpenChange, accepted, title, subtitle,
 
 const REASON_ICON: Record<string, typeof UserX> = { OTHER: PencilLine };
 const FALLBACK_ICONS = [UserX, Clock];
+
+export function StartWorkSheet({ open,onOpenChange,busy,client,service=false,error,recovery,onConfirm }: {
+  open:boolean;onOpenChange:(value:boolean)=>void;busy:boolean;client:string;service?:boolean;
+  error?:string;recovery?:ReactNode;onConfirm:()=>void;
+}) {
+  return <Dialog.Root open={open} onOpenChange={value=>{if(!busy)onOpenChange(value);}}>
+    <Shell busy={busy} onDismiss={()=>{if(!busy)onOpenChange(false);}}
+      style={{background:'radial-gradient(120% 70% at 92% 0%,rgba(167,243,208,.8),transparent 60%),radial-gradient(90% 60% at 0% 100%,rgba(221,214,254,.7),transparent 60%),linear-gradient(165deg,#ffffff,#f3fffb 60%,#f6f2ff)'}}>
+      <div className="zipco-d-top"><span className="zipco-d-who" style={{color:'#047857'}}>Coordinación</span><XButton label="Cerrar" busy={busy}/></div>
+      <div className="zipco-co-start-orb"><span className="zipco-co-co2-orb"><WhatsAppMark className="h-6 w-6"/><span className="tick"><Check size={11} aria-hidden="true"/></span></span></div>
+      <Dialog.Title className="zipco-co-start-title">¿Coordinación lista<br/>por WhatsApp?</Dialog.Title>
+      <p className="zipco-co-start-description">Confirma que ya acordaron el pago y {service?'la realización del servicio':'la entrega'} con <b>{client}</b>. Pasarás a preparar el pedido.</p>
+      {error&&<p role="alert" className="mt-3 text-sm text-rose-700">{error}</p>}
+      {recovery||<div className="zipco-co-yn">
+        <button type="button" className="zipco-co-go" disabled={busy} onClick={onConfirm}><Check size={17} aria-hidden="true"/>{busy?'Guardando…':'Sí, comenzar'}</button>
+        <Dialog.Close asChild><button type="button" className="zipco-co-no" disabled={busy}>No, aún no</button></Dialog.Close>
+      </div>}
+      {recovery&&<Dialog.Close asChild><button type="button" className="zipco-co-lnk" disabled={busy}>No, aún no</button></Dialog.Close>}
+    </Shell>
+  </Dialog.Root>;
+}
 
 /**
  * Anular en UN paso: motivo (fichas) + explicación solo para "Otro motivo" + confirmar. Reemplaza el <select> y la

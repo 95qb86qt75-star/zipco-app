@@ -16,7 +16,7 @@ it('never claims a navigation or success from an unrelated read',()=>{
  expect(coordinationFeedback('ANNUL_COORDINATION',receipt,latest,true)).toBeNull();
  expect(coordinationFeedback('AUTHORIZE_CONTACT',{...receipt,orderId:99999},latest,true)).toBeNull();
 });
-it.each([['MARK_READY','READY','ready'],['ANNUL_COORDINATION','COORDINATION_CANCELLED','annulled']] as const)('shows %s only after the corresponding current state', (action,state,kind)=>{
+it.each([['MARK_READY','READY','ready'],['ANNUL_COORDINATION','COORDINATION_CANCELLED','annulled'],['START_WORK','IN_PROGRESS','started']] as const)('shows %s only after the corresponding current state', (action,state,kind)=>{
  const current={...latest,requestProcess:{...latest.requestProcess!,state}};
  expect(coordinationFeedback(action,{...receipt,requestProcess:current.requestProcess},current,true)?.kind).toBe(kind);
 });

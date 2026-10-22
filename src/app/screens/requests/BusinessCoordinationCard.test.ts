@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
-const state = vi.hoisted(() => ({ slots: [] as any[], cursor: 0, run: vi.fn(), update: vi.fn(), retry: vi.fn(), announce:vi.fn(),actor:true, latest: null as any, busy: false, recovery: false, pending: false }));
+const state = vi.hoisted(() => ({ slots: [] as any[], cursor: 0, run: vi.fn(), update: vi.fn(), retry: vi.fn(), announce:vi.fn(),release:vi.fn(),prompt:null as any,actor:true, latest: null as any, busy: false, recovery: false, pending: false }));
+vi.mock('./useStartWorkPrompt',()=>({default:(props:unknown)=>{state.prompt=props;return state.release;}}));
 vi.mock('./ActionHologram',()=>({announceAction:state.announce}));
 vi.mock('react', async original => ({ ...await original<typeof import('react')>(),
   useState: (initial: any) => { const i=state.cursor++; if (!(i in state.slots)) state.slots[i]=initial; return [state.slots[i], (v:any)=>state.slots[i]=typeof v==='function'?v(state.slots[i]):v]; },
@@ -10,7 +11,7 @@ vi.mock('react', async original => ({ ...await original<typeof import('react')>(
 vi.mock('./useCoordination', () => ({ default: (_order:unknown,business:boolean) => {state.actor=business;return { busy:state.busy, message:'', needsUpdate:state.recovery, storageWarning:()=>'', restored:()=>false,
   pending:()=>state.pending?{}:null, run:state.run, update:state.update, retry:state.retry, currentOrder:()=>state.latest };} }));
 import BusinessCoordinationCard from './BusinessCoordinationCard';
-import { AnnulSheet, ConditionsSheet } from './CoordinationSheets';
+import { AnnulSheet, ConditionsSheet, StartWorkSheet } from './CoordinationSheets';
 import { rawOrder, coordinationProcess, agreementFixture } from './requestProcessFixtures';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import type { BusinessRequest,MyOrder } from './types';
@@ -23,7 +24,7 @@ function order(authorized=false, actions=['AUTHORIZE_CONTACT','OPEN_WHATSAPP','S
 const render=(input:BusinessRequest|MyOrder=order(),business=true)=>{state.cursor=0;return BusinessCoordinationCard({order:input,business,name:business?'Cliente QA':'Negocio QA',price:12000,statusLabel:'Coordinación pendiente',
   negotiated:true,acceptedAt:agreementFixture.confirmedAt,accepted:agreementFixture,conditionsTitle:'Producto QA',conditionsSubtitle:'',conditionsWhen:'Ahora',conditionsSummary:'Producto QA · Ahora',onOpenAgreement:vi.fn(),refresh:vi.fn()});};
 const click=(view:React.ReactNode,text:string)=>{const n=nodes(view).find(n=>n.type==='button'&&renderToStaticMarkup(n).includes(text));expect(n).toBeDefined();return n!.props.onClick();};
-beforeEach(()=>{vi.useFakeTimers();state.slots=[];state.cursor=0;state.latest=null;state.busy=false;state.recovery=false;state.pending=false;state.announce.mockReset();state.run.mockReset().mockResolvedValue(false);state.update.mockReset();state.retry.mockReset();vi.stubGlobal('React',React);vi.stubGlobal('window',{matchMedia:()=>({matches:true}),setTimeout,clearTimeout});});
+beforeEach(()=>{vi.useFakeTimers();state.slots=[];state.cursor=0;state.latest=null;state.busy=false;state.recovery=false;state.pending=false;state.prompt=null;state.release.mockReset();state.announce.mockReset();state.run.mockReset().mockResolvedValue(false);state.update.mockReset();state.retry.mockReset();vi.stubGlobal('React',React);const events=new EventTarget();vi.stubGlobal('window',{matchMedia:()=>({matches:true}),setTimeout,clearTimeout,dispatchEvent:events.dispatchEvent.bind(events)});});
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();});
 it('does not authorize locally when the permission is absent',async()=>{
  const view=render(order(false,['OPEN_WHATSAPP']));expect(nodes(view).find(n=>n.type==='button'&&renderToStaticMarkup(n).includes('Autorizo comenzar'))?.props.disabled).toBe(true);
@@ -86,4 +87,29 @@ it('does not let a delayed authorization notice replace a newer WhatsApp action'
  state.latest={...order(true),requestProcess:{...order(true).requestProcess!,version:coordinationProcess.version+1}};
  await click(render(original),'Autorizo comenzar');render(original);vi.advanceTimersByTime(3900);await click(render(original),'Iniciar coordinación');
  vi.advanceTimersByTime(3000);expect(state.announce).not.toHaveBeenCalled();
+});
+const coordinating=()=>({...order(true),requestProcess:{...order(true).requestProcess!,state:'COORDINATING'}});
+it('offers the delayed sheet only to the business in the server-permitted coordinating state',()=>{
+ render(coordinating());expect(state.prompt.enabled).toBe(true);expect(nodes(render(coordinating())).some(n=>n.type==='button'&&renderToStaticMarkup(n).includes('comenzar pedido'))).toBe(false);
+ render(order());expect(state.prompt.enabled).toBe(false);const clientView=render(customer(true,true),false);expect(state.prompt.enabled).toBe(false);expect(nodes(clientView).some(n=>n.type===StartWorkSheet)).toBe(false);
+});
+it('opens confirmation without POST, closes No without POST, and requires explicit Yes',async()=>{
+ render(coordinating());state.prompt.onOpen();let view=render(coordinating());let sheet=nodes(view).find(n=>n.type===StartWorkSheet)!;expect(sheet.props.open).toBe(true);expect(state.run).not.toHaveBeenCalled();
+ sheet.props.onOpenChange(false);expect(state.run).not.toHaveBeenCalled();expect(state.release).toHaveBeenCalled();
+ render(coordinating());state.prompt.onOpen();view=render(coordinating());sheet=nodes(view).find(n=>n.type===StartWorkSheet)!;
+ await sheet.props.onConfirm();expect(state.run).toHaveBeenCalledWith('START_WORK','COORDINATION_NOT_REACHED','');expect(nodes(render(coordinating())).find(n=>n.type===StartWorkSheet)?.props.open).toBe(true);
+});
+it('blocks double confirmation and retains the sheet when submission fails',async()=>{
+ render(coordinating());state.prompt.onOpen();let resolve!:(value:boolean)=>void;state.run.mockReturnValue(new Promise<boolean>(r=>resolve=r));
+ const sheet=nodes(render(coordinating())).find(n=>n.type===StartWorkSheet)!;sheet.props.onConfirm();sheet.props.onConfirm();expect(state.run).toHaveBeenCalledTimes(1);
+ resolve(false);await Promise.resolve();expect(nodes(render(coordinating())).find(n=>n.type===StartWorkSheet)?.props.open).toBe(true);
+});
+it('offers reconciliation or the exact pending retry within the confirmation sheet',()=>{
+ render(coordinating());state.prompt.onOpen();state.pending=true;let sheet=nodes(render(coordinating())).find(n=>n.type===StartWorkSheet)!;expect(renderToStaticMarkup(sheet.props.recovery)).toContain('Reintentar operación pendiente');
+ state.pending=false;state.recovery=true;sheet=nodes(render(coordinating())).find(n=>n.type===StartWorkSheet)!;expect(renderToStaticMarkup(sheet.props.recovery)).toContain('Actualizar estado');
+});
+it('retains the folded body while making all its controls inaccessible',()=>{
+ click(render(),'Ocultar tarjeta');const view=render();const body=nodes(view).find(n=>n.props.className==='zipco-co-fb')!;
+ expect(body.props['data-folded']).toBe(true);expect(body.props['aria-hidden']).toBe(true);expect(body.props.inert).toBe('');
+ expect(nodes(body).some(n=>n.type==='button'&&renderToStaticMarkup(n).includes('Autorizo comenzar'))).toBe(true);expect(state.run).not.toHaveBeenCalled();
 });

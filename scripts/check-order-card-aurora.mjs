@@ -20,13 +20,29 @@ import {normalizeBusinessOrdersPayload,normalizeMyOrdersPayload} from './src/app
 import {rawOrder,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
 import {cancelledPendingOrder} from './src/app/screens/requests/pendingCancellationFixtures';
 import ActionHologramHost,{announceAction,dismissAction} from './src/app/screens/requests/ActionHologram';
+import {WhatsappReturnTracker,whatsappReturnKey,markWhatsappOpened,clearWhatsappReturn} from './src/app/screens/requests/whatsappReturn';
 import {rejectedPendingOrder} from './src/app/screens/requests/pendingRejectionFixtures';
-window.React=React;window.action=announceAction;window.dismissAction=dismissAction;window.posts=0;window.reads=0;let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
+window.React=React;window.action=announceAction;window.dismissAction=dismissAction;window.posts=0;window.reads=0;window.startPosts=[];let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
 const pendingBusinessRead=()=>{const read=proposalsFixture(0,true);read.process.allowedActions.push('REJECT_PENDING_REQUEST');return read;};
-window.fetch=async(input,options={})=>{if(options.method&&options.method!=='GET'){window.posts++;throw Error('Actions are forbidden in this visual fixture');}
+window.fetch=async(input,options={})=>{
+ if(window.startScenario){
+  if(options.method==='POST'){
+   if(!String(input).endsWith('/actions/start-work'))throw Error('Unexpected scenario action');
+   window.startPosts.push({body:JSON.parse(options.body),key:options.headers['Idempotency-Key']});
+   if(window.startFail)throw Error('Synthetic uncertain response before commit');
+   window.backendRaw={...window.backendRaw,status:'accepted',requestProcess:{...window.backendRaw.requestProcess,state:'IN_PROGRESS',version:window.backendRaw.requestProcess.version+1,allowedActions:['MARK_READY']}};
+   return new Response(JSON.stringify({orderId:window.backendRaw.id,orderStatus:'accepted',requestProcess:window.backendRaw.requestProcess}));
+  }
+  if(String(input).includes('/orders/business/'))return new Response(JSON.stringify([window.backendRaw]));
+ }
+ if(options.method&&options.method!=='GET'){window.posts++;throw Error('Actions are forbidden in this visual fixture');}
  if(String(input).endsWith('/proposals'))return new Response(JSON.stringify(pendingBusinessRead()));
  if(String(input).endsWith('/agreement')){window.reads++;return new Response(JSON.stringify(agreementFixture));}throw Error('Unexpected fixture read');};
 window.show=(next,role,old=false)=>{state=next;business=role;legacy=old;redraw();};
+window.startReturnScenario=()=>{window.startScenario=true;window.startFail=false;business=true;state='COORDINATING';window.backendRaw={...rawOrder,status:'accepted',customerName:'Cliente QA',requestProcess:{...coordinationProcess,state:'COORDINATING',coordination:{customerContactAuthorized:true,businessContactAuthorized:true},allowedActions:['OPEN_WHATSAPP','START_WORK','ANNUL_COORDINATION']}};redraw();};
+window.prepareDeparture=()=>{const key=whatsappReturnKey(normalizeBusinessOrdersPayload([window.backendRaw])[0]);window.returnKey=key;markWhatsappOpened(key);};
+window.resetReturn=()=>clearWhatsappReturn(window.returnKey);
+window.addEventListener('zipco-process-receipt',e=>{if(window.startScenario&&e.detail.orderId===window.backendRaw.id){window.backendRaw={...window.backendRaw,status:e.detail.orderStatus,requestProcess:e.detail.requestProcess};redraw();}});
 function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n=>n+1);
  localStorage.setItem('zipco-token','synthetic-session');localStorage.setItem('zipco-user-id',business?'12':'11');
  if(business)localStorage.setItem('zipco-business-id','8');else localStorage.removeItem('zipco-business-id');
@@ -36,12 +52,12 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
   coordination:{customerContactAuthorized:false,businessContactAuthorized:false},
   allowedActions:state==='IN_PROGRESS'?business?['MARK_READY']:[]:state.startsWith('READY')?business?[]:state==='READY_ACK'?['CONFIRM_RECEIPT']:['ACK_READY_NOTICE']:state==='COMPLETED'?[]:business?['AUTHORIZE_CONTACT','OPEN_WHATSAPP','START_WORK','ANNUL_COORDINATION']:['AUTHORIZE_CONTACT']};
  const source=state==='CANCELLED'?cancelledPendingOrder:state==='REJECTED'?rejectedPendingOrder:rawOrder;
- const raw={...source,customerName:'Cliente sintético con nombre extenso de prueba',businessName:'Negocio sintético con nombre extenso de prueba',
+ const raw=window.startScenario?window.backendRaw:{...source,customerName:'Cliente sintético con nombre extenso de prueba',businessName:'Negocio sintético con nombre extenso de prueba',
   referencePhoto:null,status:legacy?state:sequence===0?'pending':sequence>0?'alternative_proposed':state.startsWith('READY')?'ready':state==='COMPLETED'?'completed':state==='CANCELLED'?'cancelled':state==='REJECTED'?'rejected':'accepted',
   requestProcess:legacy?null:state==='CANCELLED'||state==='REJECTED'?source.requestProcess:sequence>=0?read.process:coordinated};
  const order=(business?normalizeBusinessOrdersPayload:normalizeMyOrdersPayload)([raw])[0];window.recordAvailable=order.recordState==='available'&&!order.requestProcessInvalid;
  const props={isUpdating:false,onRetry:()=>{},onAction:()=>{},isUnread:true};
- return <><ActionHologramHost/><main style={{padding:12}} key={revision}><div data-card-fixture>
+ return <><ActionHologramHost/><WhatsappReturnTracker/><main style={{padding:12}} key={revision}><div data-card-fixture>
   {legacy?['completed','cancelled','rejected'].includes(state)?<OrderHistoryList orders={[order]} owner={business?'business':'customer'} deleted={false} onArchive={()=>{}}/>
    :business?<BusinessOrderCard {...props} request={order}/>:<MyOrderCard {...props} order={order}/>
    :['COMPLETED','CANCELLED','REJECTED'].includes(state)?<ProcessHistoryCard order={order}/>:<ProcessOrderCard {...props} order={order} business={business}/>}</div></main></>;
@@ -232,8 +248,13 @@ try {
  for(const width of [320,360,393,400]){
   await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
   await evaluate(`window.show('COORDINATION_PENDING',true)`);await delay(200);await wait('!!document.querySelector(".zipco-co-strip2")&&!!document.querySelector(".zipco-co-fold")');
-  await touch('.zipco-co-fold');await wait('!!document.querySelector(".zipco-co-colrow")');assert(await evaluate(`document.querySelector('.zipco-co-colrow').getAttribute('aria-expanded')==='false'`),'O card folds');
-  await touch('.zipco-co-colrow');await wait('!!document.querySelector(".zipco-co-strip2")');await touch('.zipco-co-strip2');await wait('!!document.querySelector("[data-coordination-sheet]")');await delay(230);
+  const original=await evaluate(`document.querySelector('.zipco-co-fb').getBoundingClientRect().height`);
+  await touch('.zipco-co-fold');await wait('document.querySelector(".zipco-co-fb").dataset.folded==="true"');
+  const during=await evaluate(`document.querySelector('.zipco-co-fb').getBoundingClientRect().height`);assert(during>0&&during<original,'Body visibly contracts instead of disappearing instantly');
+  assert(await evaluate(`document.querySelector('.zipco-co-fb').inert&&document.querySelector('.zipco-co-fb').getAttribute('aria-hidden')==='true'`),'Closing body cannot receive interaction');
+  await delay(700);assert(await evaluate(`document.querySelector('.zipco-co-fb').getBoundingClientRect().height<1`),'Fold settles completely');
+  assert(await evaluate(`document.querySelector('.zipco-co-colrow').getAttribute('aria-expanded')==='false'`),'O card folds');
+  await touch('.zipco-co-colrow');await wait('document.querySelector(".zipco-co-fb").dataset.folded==="false"');await delay(700);await touch('.zipco-co-strip2');await wait('!!document.querySelector("[data-coordination-sheet]")');await delay(230);
   assert(await evaluate(`(()=>{const r=document.querySelector('[data-coordination-sheet]').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1;})()`),'Condition sheet stays inside the mobile viewport');
   await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`conditions-o-${width}.png`),Buffer.from(shot.data,'base64')));
   await evaluate(`document.querySelector('[data-coordination-sheet] .zipco-co-lnk').click()`);await wait('!document.querySelector("[data-coordination-sheet]")');
@@ -243,7 +264,7 @@ try {
   await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`annul-o-${width}.png`),Buffer.from(shot.data,'base64')));
   await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await wait('!document.querySelector("[data-coordination-sheet]")');
  }
- for(const kind of ['alternative','final','counter','authorized','redirecting','ready','rejected','annulled']){
+ for(const kind of ['alternative','final','counter','authorized','redirecting','started','ready','rejected','annulled']){
   await evaluate(`window.action('${kind}')`);await wait('!!document.querySelector(".zipco-ah")');await delay(650);
   assert(await evaluate(`(()=>{const e=document.querySelector('.zipco-ah-d');return e.getBoundingClientRect().right<=innerWidth&&e.textContent.length>10;})()`),'Q message fits the mobile viewport');
   await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,`action-${kind}.png`),Buffer.from(shot.data,'base64')));
@@ -260,6 +281,24 @@ try {
  await delay(2300);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Reduced Q clears after 2.2 seconds');
  await evaluate(`window.action('authorized');localStorage.setItem('zipco-user-id','another-session');window.dispatchEvent(new Event('zipco-session-changed'));true`);
  await delay(100);assert.equal(await evaluate(`!!document.querySelector('.zipco-ah')`),false,'Session change removes Q feedback');
- console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},coordinationVisibleMotion:true,coordinationPausesOffscreenAndCovered:true,coordinationSheets:[320,360,393,400],actionHolograms:8,feedbackDedup:true,feedbackTimers:true,feedbackSessionCleanup:true,realBackendAccess:false,orderActions:0}));
+ await send('Emulation.setDeviceMetricsOverride',{width:393,height:852,deviceScaleFactor:1,mobile:true});
+ await evaluate(`window.startReturnScenario()`);await delay(250);await wait('document.querySelector(".zipco-co-dk")?.dataset.auroraState==="COORDINATING"');
+ await evaluate(`window.prepareDeparture()`);await delay(4200);assert.equal(await evaluate(`!!document.querySelector('.zipco-co-start-title')`),false,'A navigation attempt alone does not prompt before departure');
+ await evaluate(`Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));true`);await delay(100);
+ await evaluate(`delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('focus'));true`);
+ await delay(3500);assert.equal(await evaluate(`!!document.querySelector('.zipco-co-start-title')`),false,'Return confirmation waits four seconds');
+ await wait('!!document.querySelector(".zipco-co-start-title")');assert.equal(await evaluate('window.startPosts.length'),0,'Showing the question does not start work');
+ await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'start-work-return-sheet-393.png'),Buffer.from(shot.data,'base64')));
+ await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='No, aún no').click()`);await wait('!document.querySelector(".zipco-co-start-title")');
+ await evaluate(`window.dispatchEvent(new Event('focus'))`);await delay(4200);assert.equal(await evaluate(`!!document.querySelector('.zipco-co-start-title')`),false,'No dismisses without an action and suppresses the next focus');
+ assert.equal(await evaluate('window.startPosts.length'),0,'No performs no POST');
+ await evaluate(`window.resetReturn()`);await wait('!!document.querySelector(".zipco-co-start-title")');await evaluate(`window.startFail=true`);
+ await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Sí, comenzar').click()`);await wait('!!document.querySelector("[data-coordination-sheet] [role=alert]")');
+ assert(await evaluate(`!!document.querySelector('.zipco-co-start-title')`),'Failure retains the question and error');
+ await evaluate(`window.startFail=false;[...document.querySelectorAll('button')].find(b=>b.textContent==='Reintentar operación pendiente').click()`);
+ await wait('document.querySelector("article").textContent.includes("Notificar pedido listo")');
+ assert(await evaluate(`document.querySelector('.zipco-ah')?.getAttribute('aria-label')==='Pedido en curso'`),'Verified work start emits the Q success after category change');
+ const requests=await evaluate('window.startPosts');assert.equal(requests.length,2);assert.equal(requests[0].key,requests[1].key);assert.deepEqual(requests[0].body,requests[1].body);assert.deepEqual(Object.keys(requests[0].body),['expectedVersion']);
+ console.log(JSON.stringify({passed:evidence.length,states:12,widths:[320,393,400],themes:['light','dark'],roles:['customer','business'],pendingFold:true,actionOrder:true,orderedAnimationFrames:true,retainedForms:true,hideDetailGlow:true,legacyActive:true,historySwipe:true,notificationFocus:true,reducedMotion:true,disclosure:true,conditionsReveal:{cpuThrottle:4,roles:2,motionModes:2,repetitions:3,stableHeight:true,preservedControls:true,extraReads:0},coordinationVisibleMotion:true,coordinationPausesOffscreenAndCovered:true,coordinationSheets:[320,360,393,400],foldTransition:true,actionHolograms:9,feedbackDedup:true,feedbackTimers:true,feedbackSessionCleanup:true,whatsappReturnPrompt:true,startWorkExplicit:true,startWorkRetrySameKey:true,syntheticStartRequests:requests.length,realBackendAccess:false,orderActions:0}));
  await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(resolve=>server.close(resolve));}

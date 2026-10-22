@@ -3,6 +3,7 @@ import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
 import DealSuccessHost from './requests/DealSuccess';
 import ActionHologramHost, { ActionHologram } from './requests/ActionHologram';
+import { WhatsappReturnTracker } from './requests/whatsappReturn';
 import AcceptedProposalHost from './requests/AcceptedProposalHost';
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -601,6 +602,7 @@ export default function RequestsScreen({
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       <DealSuccessHost />
       <ActionHologramHost />
+      <WhatsappReturnTracker />
       <AcceptedProposalHost refresh={() => void loadOrders(true)} onAccepted={business => {
         const role = business ? 'my-business' : 'my-orders';
         setSubTab(role); setRequestType('orders'); setAttentionFilter('browse'); setSummaryScrollPending(null);

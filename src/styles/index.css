@@ -2325,3 +2325,19 @@ body {
 .zipco-co-dk[data-coordination-motion="idle"] *::before,
 .zipco-co-dk[data-coordination-motion="idle"] *::after { animation-play-state:paused!important; }
 .zipco-co-dk .zipco-co-go:disabled::after,.zipco-co-dk .zipco-contact-consent:disabled::before { animation:none; }
+
+/* UI-COORDINATION-FOLD-RETURN-01: finite fold, retaining live operation state. */
+.zipco-co-fb { display:grid; grid-template-rows:1fr; opacity:1; transform:none; visibility:visible; transition:grid-template-rows .65s cubic-bezier(.65,0,.25,1),opacity .35s ease,transform .65s cubic-bezier(.65,0,.25,1),visibility 0s; }
+.zipco-co-fb-in { min-height:0; overflow:hidden; }
+.zipco-co-fb[data-folded="true"] { grid-template-rows:0fr; opacity:0; transform:translateY(-10px) scale(.97); visibility:hidden; pointer-events:none; transition:grid-template-rows .65s cubic-bezier(.65,0,.25,1),opacity .35s ease,transform .65s cubic-bezier(.65,0,.25,1),visibility 0s .65s; }
+.zipco-co-colrow[data-folded] { max-height:0; opacity:0; transform:translateY(-10px) scale(.97); margin-top:0; padding-top:0; padding-bottom:0; visibility:hidden; pointer-events:none; transition:max-height .65s cubic-bezier(.2,.9,.25,1.1),opacity .35s ease,transform .65s cubic-bezier(.2,.9,.25,1.1),margin-top .45s ease,padding .45s ease,visibility 0s .65s; }
+.zipco-co-colrow[data-folded="true"] { max-height:130px; opacity:1; transform:none; margin-top:12px; padding-top:10px; padding-bottom:10px; visibility:visible; pointer-events:auto; transition-delay:.12s,.12s,.12s,0s,0s,0s; }
+.zipco-co-colrow[data-folded="false"],.zipco-co-colrow[data-folded="false"] *, .zipco-co-colrow[data-folded="false"]::before,.zipco-co-colrow[data-folded="false"]::after,.zipco-co-colrow[data-folded="false"] *::after,
+.zipco-co-fb[data-folded="true"] *,.zipco-co-fb[data-folded="true"] *::before,.zipco-co-fb[data-folded="true"] *::after { animation-play-state:paused!important; }
+.zipco-co-yn { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:10px; margin-top:18px; }
+.zipco-co-yn .zipco-co-go { margin:0; height:auto; min-height:48px; padding:10px; }
+.zipco-co-no { border:1.5px solid #cbd5e1; border-radius:999px; background:#fff; color:#334155; font-size:13px; font-weight:800; min-height:48px; padding:10px; }
+.zipco-co-start-orb { display:flex; justify-content:center; margin-top:10px; }
+.zipco-co-start-title { margin-top:12px; text-align:center; font-size:22px; line-height:1.1; font-weight:800; color:#0f172a; }
+.zipco-co-start-description { margin:8px auto 0; max-width:290px; text-align:center; font-size:12.5px; line-height:1.4; color:#64748b; }
+@media (prefers-reduced-motion:reduce) { .zipco-co-fb,.zipco-co-colrow[data-folded] { transition:none!important; } }

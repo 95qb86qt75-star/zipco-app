@@ -5,11 +5,13 @@ import type { BusinessRequest, MyOrder } from './types';
 import { ANNUL_REASONS, contactAuthorized, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
 import useCoordination from './useCoordination';
 import WhatsAppMark from './WhatsAppMark';
-import { AnnulSheet, ConditionsSheet, type AcceptedSummary } from './CoordinationSheets';
+import { AnnulSheet, ConditionsSheet, StartWorkSheet, type AcceptedSummary } from './CoordinationSheets';
 import { BUTTON_SPARKS, LINE_SPARKS, RAIL_SPARKS } from './coordinationSparks';
 import useCoordinationMotion from './useCoordinationMotion';
 import { announceAction } from './ActionHologram';
 import { readCoordinationSession } from './coordinationSession';
+import { clearWhatsappReturn,dismissWhatsappReturn,whatsappReturnKey } from './whatsappReturn';
+import useStartWorkPrompt from './useStartWorkPrompt';
 
 /**
  * Shared design O for both participants in COORDINATION_PENDING / COORDINATING.
@@ -45,10 +47,11 @@ export default function BusinessCoordinationCard({ order, business = true, name,
     latest.requestProcess.agreementPublicId === order.requestProcess?.agreementPublicId &&
     latest.requestProcess.version > (order.requestProcess?.version ?? 0) ? latest : order;
   const process = current.requestProcess;
+  const cardSession=useRef(readCoordinationSession());
   const currentStatus = useRef({ process, business });
   currentStatus.current = { process, business };
   const operation = useCoordination(current, business, refresh, 'coordination-steps');
-  const [sheet, setSheet] = useState<'cond' | 'anul' | null>(null);
+  const [sheet, setSheet] = useState<'cond' | 'anul' | 'start' | null>(null);
   const motionRef = useCoordinationMotion(sheet !== null);
   const [folded, setFolded] = useState(false); // tarjeta resumida (solo cabecera + progreso)
   const [deferred, setDeferred] = useState(false);
@@ -73,6 +76,26 @@ export default function BusinessCoordinationCard({ order, business = true, name,
   const counterpartPending = process?.coordination?.[business ? 'customerContactAuthorized' : 'businessContactAuthorized'] === false;
   const canOpen = allowed('OPEN_WHATSAPP');
   const client = name || (business ? 'el cliente' : 'el negocio');
+  const returnKey = business ? whatsappReturnKey(current) : null;
+  const canStart = business && readCoordinationSession()===cardSession.current && process?.state === 'COORDINATING' && allowed('START_WORK');
+  const releaseStart = useStartWorkPrompt({key:returnKey,enabled:canStart,
+    blocked:sheet!==null||operation.busy||Boolean(recoveryOnly)||Boolean(pending)||phase==='loading'||phase==='requesting',
+    onOpen:()=>setSheet(value=>value??'start'),onInvalidate:()=>setSheet(value=>value==='start'?null:value)});
+  useEffect(()=>{if(sheet==='start'&&!canStart&&!operation.busy){releaseStart();setSheet(null);}},[sheet,canStart,operation.busy]);
+  useEffect(()=>{
+    const root=motionRef.current;if(!root)return;
+    const row=root.querySelector<HTMLButtonElement>('.zipco-co-colrow');
+    if(folded&&root.querySelector('.zipco-co-fb')?.contains(document.activeElement))row?.focus({preventScroll:true});
+    else if(!folded&&document.activeElement===row)root.querySelector<HTMLButtonElement>('.zipco-co-strip2')?.focus({preventScroll:true});
+  },[folded]);
+  const startLock = useRef(false);
+  const closeStart = () => { if(operation.busy)return; if(returnKey)dismissWhatsappReturn(returnKey);releaseStart();setSheet(null); };
+  const start = async () => {
+    if(startLock.current||!canStart||operation.busy||recoveryOnly||pending)return;
+    startLock.current=true;
+    try{ if(await run('START_WORK')){if(returnKey)clearWhatsappReturn(returnKey);releaseStart();if(mounted.current)setSheet(null);} }
+    finally{startLock.current=false;}
+  };
 
   // Consent and navigation remain separate. No local unlock substitutes for server consent.
   const unlock = async () => {
@@ -140,15 +163,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
         </div>
       </div>
 
-      {folded ? <button type="button" className="zipco-co-colrow" aria-expanded={false} onClick={() => { onInspect?.(); setFolded(false); }}
-        style={{ ['--att' as string]: phase === 'loading' ? 0 : 1 }}>
-        <span className="nd" aria-hidden="true">{phase === 'idle' ? '2' : '3'}</span>
-        <span className="tx">
-          <b>{phase === 'idle' ? 'Autorizar contacto' : phase === 'loading' ? 'Preparando WhatsApp…' : waLabel}</b>
-          <small>{phase === 'idle' ? 'Falta tu acción · toca para abrir' : phase === 'loading' ? 'Paso 3 de 3 · un momento' : 'Paso 3 de 3 · listo para iniciar'}</small>
-        </span>
-        <span className="chev"><ChevronDown size={15} strokeWidth={2.8} aria-hidden="true" /><span className="sr-only">Mostrar coordinación</span></span>
-      </button> : <>
+      <div className="zipco-co-fb" data-folded={folded} aria-hidden={folded} {...(folded?{inert:''}:{})}><div className="zipco-co-fb-in">
       <button type="button" className="zipco-co-strip2" aria-haspopup="dialog" onClick={() => { onInspect?.(); setSheet('cond'); }}>
         <span className="zipco-co-strip2-ic"><CircleCheck size={16} strokeWidth={2.3} aria-hidden="true" /></span>
         <span style={{ minWidth: 0 }}><div className="zipco-co-strip2-l">Condiciones aceptadas</div><div className="zipco-co-strip2-v">{conditionsSummary}</div></span>
@@ -219,17 +234,25 @@ export default function BusinessCoordinationCard({ order, business = true, name,
         </div>}
 
         <p className="zipco-co-sm">ZIPCO no procesa ni verifica pagos.</p>
-        {allowed('START_WORK') && !recoveryOnly && !pending && <button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={() => void run('START_WORK')}>Coordinación lista — comenzar pedido</button>}
         {allowed('ANNUL_COORDINATION') && !recoveryOnly && !pending && <div className="zipco-co-lks">
           <button type="button" className="zipco-co-lk rose" disabled={operation.busy} onClick={() => setSheet('anul')}><Trash2 size={14} strokeWidth={2.3} aria-hidden="true" />Anular solicitud</button>
         </div>}
         <button type="button" className="zipco-co-fold" aria-expanded={true} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
         {operation.busy && phase !== 'loading' && <p role="status" className="zipco-co-co2-p">Actualizando pedido…</p>}
       </section>
-      </>}
+      {agreementDetails}
+      </div></div>
+      <button type="button" className="zipco-co-colrow" data-folded={folded} aria-hidden={!folded} tabIndex={folded?0:-1} aria-expanded={!folded} onClick={() => { onInspect?.(); setFolded(false); }}
+        style={{ ['--att' as string]: phase === 'loading' ? 0 : 1 }}>
+        <span className="nd" aria-hidden="true">{phase === 'idle' ? '2' : '3'}</span>
+        <span className="tx">
+          <b>{phase === 'idle' ? 'Autorizar contacto' : phase === 'loading' ? 'Preparando WhatsApp…' : waLabel}</b>
+          <small>{phase === 'idle' ? 'Falta tu acción · toca para abrir' : phase === 'loading' ? 'Paso 3 de 3 · un momento' : 'Paso 3 de 3 · listo para iniciar'}</small>
+        </span>
+        <span className="chev"><ChevronDown size={15} strokeWidth={2.8} aria-hidden="true" /><span className="sr-only">Mostrar coordinación</span></span>
+      </button>
     </div>
 
-    {!folded && agreementDetails}
     <ConditionsSheet open={sheet === 'cond'} onOpenChange={value => setSheet(value ? 'cond' : null)} accepted={accepted}
       title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation}
       explanationLabel={negotiated ? 'Explicación de la propuesta aceptada' : 'Nota del cliente'}
@@ -237,5 +260,10 @@ export default function BusinessCoordinationCard({ order, business = true, name,
     <AnnulSheet open={sheet === 'anul'} onOpenChange={value => setSheet(value ? 'anul' : null)} busy={operation.busy}
       reasons={Object.entries(ANNUL_REASONS) as Array<[string, string]>} reason={reason} onReason={value => { setReason(value as AnnulReason); setDetail(''); }}
       detail={detail} onDetail={setDetail} onConfirm={() => void annul()} />
+    {business&&<StartWorkSheet open={sheet==='start'&&canStart} onOpenChange={value=>{if(!value)closeStart();}}
+      busy={operation.busy} client={client} service={accepted.subjectSnapshot.orderType==='service'} error={operation.message}
+      recovery={recoveryOnly?<button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>
+        :pending?<button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={()=>void operation.retry()}>Reintentar operación pendiente</button>:undefined}
+      onConfirm={()=>void start()}/>}
   </article>;
 }

@@ -8,6 +8,7 @@ import { showAppToast } from '../Toast';
 import { isPendingRequestCancelled, isPendingRequestRejected } from './requestProcess';
 import { announceAction, dismissAction } from './ActionHologram';
 import { coordinationFeedback } from './coordinationFeedback';
+import { clearWhatsappReturn, markWhatsappOpened, whatsappReturnKey } from './whatsappReturn';
 
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
 const intents = () => shared ??= createCoordinationIntents(undefined, typeof sessionStorage === 'undefined' ? undefined : sessionStorage);
@@ -100,6 +101,9 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail),
         (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal, process.currentProposalId), retry, active);
       if (!response || !active()) return false;
+      if(business&&['START_WORK','ANNUL_COORDINATION'].includes(action)){
+        const key=whatsappReturnKey(order);if(key)clearWhatsappReturn(key);
+      }
       confirmedVersion.current = Math.max(confirmedVersion.current, response.result.requestProcess.version);
       let latest: Awaited<ReturnType<typeof refreshCoordinationOrder>> = null;
       const emitReceipt = () => {
@@ -125,8 +129,9 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       else if (action === 'OPEN_WHATSAPP') {
         if (response.navigation && latest?.requestProcess && latest.requestProcess.version >= response.result.requestProcess.version &&
           latest.requestProcess.id === process.id && coordinationAllowed(latest.requestProcess, business, 'OPEN_WHATSAPP')) {
-          try { if (active()) { if (feedback) announceAction('redirecting'); window.location.assign(response.navigation.url); } }
-          catch { if (feedback) dismissAction(); announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
+          const returnKey = business && latest ? whatsappReturnKey(latest) : null;
+          try { if (active()) { if (returnKey) markWhatsappOpened(returnKey); if (feedback) announceAction('redirecting'); window.location.assign(response.navigation.url); } }
+          catch { if(returnKey)clearWhatsappReturn(returnKey); if (feedback) dismissAction(); announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
         } else setMessage('El contacto ya no está disponible para este pedido. Se actualizaron sus condiciones.');
       }
       if (feedback && active() && !storageWarning()) {

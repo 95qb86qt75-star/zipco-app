@@ -8,7 +8,7 @@ import { readCoordinationSession, subscribeCoordinationSession } from './coordin
  * Se monta UNA vez (junto a <DealSuccessHost />) y se dispara con announceAction(kind) desde cualquier parte, así sigue
  * visible aunque el componente que lo disparó se desmonte al cambiar el pedido de pestaña.
  */
-export type ActionKind = 'alternative' | 'final' | 'counter' | 'authorized' | 'redirecting' | 'ready' | 'rejected' | 'annulled';
+export type ActionKind = 'alternative' | 'final' | 'counter' | 'authorized' | 'redirecting' | 'started' | 'ready' | 'rejected' | 'annulled';
 
 export const ACTION_HOLOGRAM_EVENT = 'zipco-action-hologram';
 let sequence = 0;
@@ -42,6 +42,7 @@ const TRASH_LID: Shape[] = [['path', { d: 'M3 6h18' }], ['path', { d: 'M8 6V4a2 
  * (son los reales). El resto son propuestas del diseño: revísalas con producto antes de publicar.
  */
 const VARIANTS: Record<ActionKind, Variant> = {
+  started: { title:'Pedido en curso',desc:'Coordinación confirmada. Avisa al cliente cuando el pedido esté listo.',icon:[['circle',{cx:'12',cy:'12',r:'10'}],['path',{d:'m7 12 3 3 7-7'}]],motion:'pop',colors:['#5eead4','#0891b2','#a78bfa'],glow:['rgba(34,211,238,.45)','rgba(139,92,246,.4)'] },
   alternative: { title: 'Alternativa enviada al cliente', desc: 'En Mi Negocio queda en «Esperando respuesta». El cliente la encontrará en «Por responder».', icon: SEND, motion: 'fly', colors: ['#a78bfa', '#6366f1', '#5eead4'], glow: ['rgba(139,92,246,.45)', 'rgba(94,234,212,.4)'] },
   final: { title: 'Propuesta final enviada al cliente', desc: 'En Mi Negocio queda en «Esperando respuesta». El cliente la encontrará en «Por responder».', icon: SEND, motion: 'fly', colors: ['#c084fc', '#7c3aed', '#f0abfc'], glow: ['rgba(192,132,252,.5)', 'rgba(240,171,252,.4)'] },
   counter: { title: 'Contrapropuesta enviada', desc: 'El negocio la verá en «Esperando respuesta» y podrá revisarla para responder.', icon: SWAP, motion: 'swap', colors: ['#5eead4', '#0d9488', '#a78bfa'], glow: ['rgba(45,212,191,.45)', 'rgba(139,92,246,.4)'] },

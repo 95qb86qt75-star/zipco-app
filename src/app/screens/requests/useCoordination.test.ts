@@ -22,6 +22,16 @@ const raw = { ...rawOrder, status: 'accepted', requestProcess: process };
 const receipt = { orderId: 20, orderStatus: 'accepted', requestProcess: { ...coordinationProcess, state: 'COORDINATING', version: 3 } };
 const response = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status });
 const url = 'https://wa.me/12345678?text=Mensaje';
+it.each(['success','missing-navigation','read-failed','navigation-threw'] as const)('records a return marker only for verified WhatsApp navigation (%s)',async scenario=>{
+ const latest={...raw,requestProcess:{...receipt.requestProcess,allowedActions:['OPEN_WHATSAPP'],coordination:{businessContactAuthorized:true,customerContactAuthorized:true}}};
+ const payload=scenario==='missing-navigation'?{result:receipt,navigation:null,navigationUnavailableReason:'CONTACT_NOT_AVAILABLE'}:{result:receipt,navigation:{url}};
+ const fetcher=vi.fn().mockResolvedValueOnce(response(payload));
+ if(scenario==='read-failed')fetcher.mockRejectedValueOnce(Error('read failed'));else fetcher.mockResolvedValueOnce(response([latest]));
+ vi.stubGlobal('fetch',fetcher);if(scenario==='navigation-threw')navigate.mockImplementation(()=>{throw Error('blocked');});
+ const {default:useCoordination}=await import('./useCoordination');const marker=await import('./whatsappReturn');const order=normalizeBusinessOrdersPayload([raw])[0];
+ await useCoordination(order,true,vi.fn()).run('OPEN_WHATSAPP');
+ expect(marker.shouldAskWhatsappReturn(marker.whatsappReturnKey(order)!)).toBe(scenario!=='success');
+});
 let navigate: ReturnType<typeof vi.fn>;
 let identity: Map<string, string>;
 beforeEach(() => {

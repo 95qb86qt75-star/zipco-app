@@ -4,6 +4,14 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-COORDINATION-FOLD-RETURN-01 — Cierre suave y regreso de WhatsApp
+
+2026-10-22. Solo frontend QA. Plegado visible compartido y confirmación del
+propietario después de volver de WhatsApp, con START_WORK existente e idempotente.
+1.204 pruebas y build QA/PWA aprobados; comprobaciones sintéticas de tarjetas y
+regreso. Validación física pendiente.
+[Archivos, contrato y publicación](frontend-coordination-fold-whatsapp-return-qa.md).
+
 ### UI-CUSTOMER-COORDINATION-O-01 — Cliente y movimiento visible
 
 2026-10-22. Solo frontend QA. Diseño O compartido por cliente/negocio,
