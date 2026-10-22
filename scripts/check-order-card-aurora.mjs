@@ -109,6 +109,16 @@ try {
    await wait(`document.querySelector('${selector}').dataset.responseMotion==='active'`);
    assert.equal(await evaluate(`getComputedStyle(document.querySelector('${selector} i')).animationIterationCount`),'infinite','Visible expanded buttons retain moving light');
    assert.equal(await evaluate(`getComputedStyle(document.querySelector('${selector} button'),'::after').animationIterationCount`),'infinite','Visible button sheen repeats');
+   if(selector==='.zipco-accept-wrap') {
+    const parity=await evaluate(`(()=>{const live=document.querySelector('.zipco-accept-wrap'),reference=live.cloneNode(true);reference.style.position='fixed';reference.style.top='-10000px';document.body.append(reference);const sample=root=>[null,'.zipco-accept-check','.zipco-accept-b1','.zipco-accept-b2','.zipco-accept-b3','.zipco-accept-btn'].map(selector=>{const element=selector?root.querySelector(selector):root;return [null,...(selector==='.zipco-accept-btn'?['::after']:[])].map(pseudo=>{const style=getComputedStyle(element,pseudo);return ['animationName','animationDuration','animationDelay','animationIterationCount','animationTimingFunction','backgroundImage','filter','backdropFilter','borderRadius'].map(key=>style[key]);});});const result={live:sample(live),reference:sample(reference)};reference.remove();return result;})()`);
+    assert.deepEqual(parity.live,parity.reference,'Accept order matches the proposal acceptance glass, halo, check, lights and sheen');
+    await evaluate(`document.querySelector('.zipco-accept-wrap').style.transform='translateY(2000px)';true`);
+    await wait(`document.querySelector('.zipco-accept-wrap').dataset.responseMotion==='idle'`);
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-accept-wrap')).animationName`),'none','Order halo stops offscreen');
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-accept-check')).animationName`),'none','Order check stops offscreen');
+    assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-accept-btn')).backdropFilter`),'none','Order glass filter stops offscreen');
+    await evaluate(`document.querySelector('.zipco-accept-wrap').style.transform='';true`);
+   }
   }
   await evaluate(`Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));true`);
   assert.equal(await evaluate(`document.querySelectorAll('[data-response-motion="active"]').length`),0,'Background document stops response effects');

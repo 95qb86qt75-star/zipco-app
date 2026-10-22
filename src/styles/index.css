@@ -1874,6 +1874,36 @@ body {
   animation: none;
 }
 @media (prefers-reduced-motion: no-preference) {
+  /* UI-ACCEPT-ORDER-PARITY-01: same glass treatment as proposal acceptance,
+     scoped to the expanded, visible order button. */
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] {
+    animation: zipco-accept-halo 2.6s ease-in-out infinite;
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-check {
+    animation: zipco-accept-pop 2.6s ease-in-out infinite;
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-btn {
+    -webkit-backdrop-filter: blur(5px) saturate(1.9) brightness(1.08);
+    backdrop-filter: blur(5px) saturate(1.9) brightness(1.08);
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-blob {
+    filter: blur(6px);
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-b1 {
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.85), rgba(255,255,255,.12) 70%);
+    animation: zipco-accept-d1 6s ease-in-out infinite;
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-b2 {
+    background: radial-gradient(circle at 40% 40%, #a7f3d0, rgba(167,243,208,.1) 72%);
+    animation: zipco-accept-d2 7s ease-in-out infinite;
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-b3 {
+    background: radial-gradient(circle at 40% 40%, #67e8f9, rgba(103,232,249,.1) 72%);
+    animation: zipco-accept-d3 5s ease-in-out infinite;
+  }
+  .zipco-pending-business-responses[data-expanded="true"] .zipco-accept-wrap[data-response-motion="active"] .zipco-accept-btn::after {
+    animation: zipco-accept-sheen 3.2s ease-in-out .6s infinite;
+  }
   .zipco-pending-business-responses[data-expanded="true"] [data-response-motion="active"] :is(.zipco-accept-blob,.zipco-glass-blob,.zipco-reject-blob) {
     animation-duration: 6s;
     animation-iteration-count: infinite;
