@@ -514,6 +514,20 @@ export default function RequestsScreen({
   }, [subTab, requestType, statusView, attentionFilter]);
 
   useEffect(() => {
+    const presented = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (subTab !== 'my-business' || requestType !== 'orders' || statusView !== 'active' ||
+        typeof detail?.agreementPublicId !== 'string' || !detail.agreementPublicId ||
+        !orderRecords.some(order => order.id === detail?.orderId && order.requestProcess?.agreementPublicId === detail.agreementPublicId &&
+          ['IN_PROGRESS', 'READY'].includes(order.requestProcess.state))) return;
+      setAttentionFilter('browse'); setSelectedBusinessActivity(null);
+      setStatusViews(current => ({ ...current, 'my-business-orders': 'ready' }));
+    };
+    window.addEventListener('zipco-ready-presented', presented);
+    return () => window.removeEventListener('zipco-ready-presented', presented);
+  }, [subTab, requestType, statusView, orderRecords]);
+
+  useEffect(() => {
     if (!summaryScrollPending) return;
     if (subTab !== summaryScrollPending.role || requestType !== summaryScrollPending.kind ||
         statusView !== summaryScrollPending.view || attentionFilter !== summaryScrollPending.attention ||

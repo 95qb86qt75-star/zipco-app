@@ -4,6 +4,14 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-BUSINESS-PROGRESS-R-01 / UI-AGREEMENT-TIMELINE-V2-01 — Preparación y acuerdo completo
+
+2026-10-23. Solo frontend QA. Diseño R del negocio para En curso/Listos con
+deslizador, confirmación de aviso y holograma. Hoja V2 con propuestas vinculadas
+al acuerdo aceptado, disponible desde condiciones del negocio en O/R.
+Pendiente conformidad visual del usuario con la implementación.
+[Archivos, contrato, pruebas y publicación](frontend-business-progress-r-agreement-v2-qa.md).
+
 ### UI-CATEGORY-COUNT-LOADING-01 — Cantidades durante la carga
 
 2026-10-23. Solo frontend QA. Categorías muestran … mientras carga la lectura,

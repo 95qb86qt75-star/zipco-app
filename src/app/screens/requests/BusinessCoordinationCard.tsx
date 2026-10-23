@@ -12,6 +12,7 @@ import { announceAction } from './ActionHologram';
 import { readCoordinationSession } from './coordinationSession';
 import { clearWhatsappReturn,dismissWhatsappReturn,whatsappReturnKey } from './whatsappReturn';
 import useStartWorkPrompt from './useStartWorkPrompt';
+import AgreementSheet from './AgreementSheet';
 
 /**
  * Shared design O for both participants in COORDINATION_PENDING / COORDINATING.
@@ -52,7 +53,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
   const currentStatus = useRef({ process, business });
   currentStatus.current = { process, business };
   const operation = useCoordination(current, business, refresh, 'coordination-steps');
-  const [sheet, setSheet] = useState<'cond' | 'anul' | 'start' | null>(null);
+  const [sheet, setSheet] = useState<'cond' | 'anul' | 'start' | 'agree' | null>(null);
   const motionRef = useCoordinationMotion(sheet !== null);
   const [folded, setFolded] = useState(notificationOpen === 0);
   useEffect(() => { if (notificationOpen > 0) setFolded(false); }, [notificationOpen]);
@@ -243,7 +244,9 @@ export default function BusinessCoordinationCard({ order, business = true, name,
     <ConditionsSheet open={sheet === 'cond'} onOpenChange={value => setSheet(value ? 'cond' : null)} accepted={accepted}
       title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation}
       explanationLabel={negotiated ? 'Explicación de la propuesta aceptada' : 'Nota del cliente'}
-      onOpenAgreement={() => { setSheet(null); onOpenAgreement(); }} />
+      fullAgreement={business} onOpenAgreement={() => { if (business) setSheet('agree'); else { setSheet(null); onOpenAgreement(); } }} />
+    {business && <AgreementSheet open={sheet === 'agree'} onOpenChange={value => setSheet(value ? 'agree' : null)} processId={process?.id}
+      client={client} accepted={accepted} acceptedAt={acceptedAt} />}
     <AnnulSheet open={sheet === 'anul'} onOpenChange={value => setSheet(value ? 'anul' : null)} busy={operation.busy}
       reasons={Object.entries(ANNUL_REASONS) as Array<[string, string]>} reason={reason} onReason={value => { setReason(value as AnnulReason); setDetail(''); }}
       detail={detail} onDetail={setDetail} onConfirm={() => void annul()} />

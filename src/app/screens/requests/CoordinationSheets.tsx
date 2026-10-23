@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Calendar, Clock, ExternalLink, FileText, PencilLine, ShoppingBag, Trash2, UserX, X, Check } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, ExternalLink, FileCheck, FileText, PencilLine, ShoppingBag, Trash2, UserX, X, Check } from 'lucide-react';
 import type { AgreementReadDto } from './agreement';
 import WhatsAppMark from './WhatsAppMark';
 
@@ -29,9 +29,10 @@ const Shell = ({ children, onDismiss, style, busy = false }: { children: ReactNo
  * Reutiliza el marco de "Tú pediste" (zipco-sheet holo + zipco-d-ped*). `onOpenAgreement` abre el detalle completo
  * (el AcceptedConditionsPanel de siempre) para quien necesite todas las condiciones.
  */
-export function ConditionsSheet({ open, onOpenChange, accepted, title, subtitle, when, explanation, explanationLabel, onOpenAgreement }: {
+export function ConditionsSheet({ open, onOpenChange, accepted, title, subtitle, when, explanation, explanationLabel, onOpenAgreement, fullAgreement = false }: {
   open: boolean; onOpenChange: (open: boolean) => void; accepted: AcceptedSummary;
   title: string; subtitle: string; when: string; explanation?: string | null; explanationLabel: string; onOpenAgreement: () => void;
+  fullAgreement?: boolean;
 }) {
   return <Dialog.Root open={open} onOpenChange={onOpenChange}>
     <Shell onDismiss={() => onOpenChange(false)} >
@@ -54,10 +55,14 @@ export function ConditionsSheet({ open, onOpenChange, accepted, title, subtitle,
         <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><Calendar aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Fecha y hora</div><div className="zipco-d-tile-v">{when}</div></div></div>
         {explanation && <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><FileText aria-hidden="true" /></span><div><div className="zipco-d-tile-l">{explanationLabel}</div><div className="zipco-d-tile-v">{explanation}</div></div></div>}
       </div>
-      <button type="button" className="zipco-glassbtn gt" data-open="true" style={{ marginTop: 14 }} onClick={onOpenAgreement}>
+      {fullAgreement ? <button type="button" className="zipco-ag-cta" onClick={onOpenAgreement}>
+        <span className="ic"><FileCheck size={22} strokeWidth={2.2} aria-hidden="true" /></span>
+        <span className="tx"><b>Ver acuerdo completo</b><small>Pedido original y cada propuesta</small></span>
+        <span className="go"><ChevronRight size={17} strokeWidth={3} aria-hidden="true" /></span>
+      </button> : <button type="button" className="zipco-glassbtn gt" data-open="true" style={{ marginTop: 14 }} onClick={onOpenAgreement}>
         <span className="zipco-glassbtn-label">Ver acuerdo completo</span>
         <span className="zipco-glassbtn-arrow"><ExternalLink className="zipco-glassbtn-chev" strokeWidth={3} aria-hidden="true" /></span>
-      </button>
+      </button>}
       <Dialog.Close asChild><button type="button" className="zipco-co-lnk">Cerrar</button></Dialog.Close>
     </Shell>
   </Dialog.Root>;

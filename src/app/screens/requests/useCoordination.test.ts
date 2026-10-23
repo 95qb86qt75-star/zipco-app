@@ -368,6 +368,37 @@ describe('coordination hook with mocked server and external navigation', () => {
     expect(navigate).not.toHaveBeenCalled();
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ expectedVersion: 2 });
   });
+  it('waits for verified ready presentation before publishing the receipt and keeps the operation locked', async () => {
+    const input = { ...raw, requestProcess: { ...process, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } };
+    const result = { orderId: 20, orderStatus: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };
+    const fetcher = vi.fn().mockResolvedValueOnce(response(result))
+      .mockResolvedValueOnce(response([{ ...input, status: 'ready', requestProcess: result.requestProcess }]));
+    vi.stubGlobal('fetch', fetcher);
+    let release!: () => void; const presentation = vi.fn(() => new Promise<void>(resolve => { release = resolve; }));
+    const dispatch = vi.spyOn(window, 'dispatchEvent'); const refresh = vi.fn();
+    const { default: useCoordination } = await import('./useCoordination');
+    const hook = useCoordination(normalizeBusinessOrdersPayload([input])[0], true, refresh, false, presentation);
+    const running = hook.run('MARK_READY');
+    await vi.waitFor(() => expect(presentation).toHaveBeenCalledOnce());
+    expect(presentation).toHaveBeenCalledWith('true:7:3:MARK_READY');
+    expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt')).toBe(false);
+    expect(await hook.run('MARK_READY')).toBe(false); expect(refresh).not.toHaveBeenCalled();
+    release(); expect(await running).toBe(true);
+    expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt')).toBe(true);
+    expect(fetcher.mock.calls.filter(call => call[1]?.method === 'POST')).toHaveLength(1);
+    expect(refresh).toHaveBeenCalledOnce();
+  });
+  it.each(['read-failed', 'newer-completed'])('never presents notification success without a verified READY read (%s)', async mode => {
+    const input = { ...raw, requestProcess: { ...process, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } };
+    const result = { orderId: 20, orderStatus: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };
+    const fetcher = vi.fn().mockResolvedValueOnce(response(result));
+    if (mode === 'read-failed') fetcher.mockRejectedValueOnce(new TypeError('offline'));
+    else fetcher.mockResolvedValueOnce(response([{ ...input, status: 'completed', requestProcess: { ...result.requestProcess, state: 'COMPLETED', version: 4, readyNoticeAcknowledged: true } }]));
+    vi.stubGlobal('fetch', fetcher); const presentation = vi.fn();
+    const { default: useCoordination } = await import('./useCoordination');
+    await useCoordination(normalizeBusinessOrdersPayload([input])[0], true, vi.fn(), false, presentation).run('MARK_READY');
+    expect(presentation).not.toHaveBeenCalled();
+  });
   it('retries a lost MARK_READY response with the same key and body, preserving newer reads', async () => {
     const input = { ...raw, requestProcess: { ...process, state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } };
     const result = { orderId: 20, orderStatus: 'ready', requestProcess: { ...process, state: 'READY', version: 3, allowedActions: [] } };

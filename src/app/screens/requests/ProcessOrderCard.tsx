@@ -21,6 +21,7 @@ import { NEGOTIATION_STATES } from './proposalContract';
 import useVisibleResponseMotion from './useVisibleResponseMotion';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
 import CoordinationCardShell from './CoordinationCardShell';
+import BusinessProgressCard from './BusinessProgressCard';
 import { contactAuthorized } from './coordinationApi';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
@@ -117,9 +118,22 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
       conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
       conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenLong}`} explanation={negotiated ? subject.proposalMessage : subject.note}
       onOpenAgreement={() => { onOpen?.(); if (onToggle) { if (!isExpanded) onToggle(); } else setLocalExpanded(true); }} refresh={onRetry}
-      agreementDetails={isExpanded && <section aria-label="Condiciones aceptadas" className="mt-3 rounded-2xl bg-white p-2 text-slate-900">
+      agreementDetails={!business && isExpanded && <section aria-label="Condiciones aceptadas" className="mt-3 rounded-2xl bg-white p-2 text-slate-900">
         {conditionsDetails}<button type="button" className="min-h-11 w-full text-sm font-bold text-violet-700" onClick={event => { event.stopPropagation(); toggle(); }}>Ocultar condiciones</button>
       </section>} />;
+  }
+
+  if (business && accepted && process && ['IN_PROGRESS', 'READY'].includes(process.state) && 'customerName' in order) {
+    const subject = accepted.subjectSnapshot;
+    const single = subject.items.length === 1;
+    const title = single ? `${subject.orderType === 'service' ? '' : `${subject.items[0].quantity}× `}${subject.items[0].nameSnapshot}` : `${subject.items.length} productos`;
+    const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
+    const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
+    const negotiated = accepted.subjectSchemaVersion === 2;
+    return <BusinessProgressCard key={`${process.id}:${accepted.agreementPublicId}`} order={order} name={name} image={image} price={price} statusLabel={stateLabel}
+      isUnread={isUnread} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated} notificationOpen={notificationOpen} onInspect={onOpen}
+      conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
+      conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />;
   }
 
   return <article id={`order-${order.id}`} tabIndex={0}

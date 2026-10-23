@@ -24,6 +24,7 @@ import AcceptGlassButton from './AcceptGlassButton';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
+import BusinessProgressCard from './BusinessProgressCard';
 import CoordinationCardShell from './CoordinationCardShell';
 import PendingCancellationActions from './PendingCancellationActions';
 import PendingRejectionActions from './PendingRejectionActions';
@@ -138,21 +139,15 @@ describe('reused 2A card design without legacy actions', () => {
     const order = normalizeBusinessOrdersPayload([{ ...raw, status: state === 'READY' ? 'ready' : 'accepted', requestProcess: { ...coordinationProcess, state } }])[0];
     const view = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });
     const nodes = elements(view);
-    const summary = nodes.find((node) => node.type === 'section' && node.props['aria-label'] === 'Condiciones aceptadas')!;
-    const panel = elements(summary).find((node) => node.type === AcceptedConditionsPanel)!;
-    expect(panel.props).toMatchObject({ business: true, embedded: true, state: hooks.agreement });
+    expect(view.type).toBe(['IN_PROGRESS', 'READY'].includes(state) ? BusinessProgressCard : BusinessCoordinationCard);
+    expect(view.props.accepted).toBe(agreementFixture);
+    expect(view.props.explanation).toBe('Nota acordada');
+    expect(view.props.conditionsSubtitle).toBe('Descripción acordada');
+    expect(nodes.some(node => node.type === CoordinationActions || node.type === AcceptedConditionsPanel)).toBe(false);
     const html = renderToStaticMarkup(view);
-    expect(html.match(/Condiciones aceptadas/g)).toHaveLength(2); // Region label and the single disclosure title.
-    expect(html).not.toContain('>Total:<');
-    expect(html.toLowerCase()).toContain('acordado');
-    for (const text of ['Producto acordado', 'Descripción acordada', 'Subtotal', 'Fecha y hora:', 'Nota acordada', 'Imagen adjunta', 'El cliente agregó una foto de referencia.', 'Abrir acuerdo']) expect(html).toContain(text);
-    expect(html).not.toContain('Agregaste una foto de referencia.');
-    expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
-    if (view.type === BusinessCoordinationCard) expect(view.props.accepted).toBe(agreementFixture);
-    else expect(nodes.indexOf(panel)).toBeLessThan(nodes.findIndex((node) => node.type === CoordinationActions));
-    const compact = elements(render({ ...props, order, business: true, expanded: false, onToggle: vi.fn() }));
-    expect(compact.some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
-    expect(compact.find((node) => node.type === CoordinationActions || node.type === BusinessCoordinationCard)?.props.order).toBe(order);
+    expect(html).toContain('Producto acordado'); expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
+    expect(view.props.accepted.subjectSnapshot.referencePhoto).toBe(agreementFixture.subjectSnapshot.referencePhoto);
+
   });
   it.each([true, false])('keeps the immutable agreement accessible in completed history (business=%s)', (business) => {
     hooks.agreement = { status: 'loaded', agreement: agreementFixture };
@@ -180,7 +175,9 @@ describe('reused 2A card design without legacy actions', () => {
       readyNoticeAcknowledged: true, allowedActions: ['CONFIRM_RECEIPT'] } };
     const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
     const html = renderToStaticMarkup(render({ ...props, order, business, expanded: true }));
-    expect(html).toContain('Pendiente de retiro'); expect(html).toContain('Nota acordada');
+    expect(html).toContain('Pendiente de retiro');
+    if (business) expect(render({ ...props, order, business }).props.accepted).toBe(agreementFixture);
+    else expect(html).toContain('Nota acordada');
     expect(html).not.toContain('Completado');
   });
   it.each([true, false])('retains immutable agreement and ready status in each participant view (business=%s)', (business) => {
@@ -189,6 +186,11 @@ describe('reused 2A card design without legacy actions', () => {
     const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
     const view = render({ ...props, order, business, expanded: true });
     const html = renderToStaticMarkup(view);
+    if (business) {
+      expect(view.type).toBe(BusinessProgressCard); expect(view.props.accepted).toBe(agreementFixture);
+      expect(html).toContain('Pedido notificado'); expect(html).not.toContain('Nota de prueba');
+      return;
+    }
     expect(html).toContain('Pedido listo'); expect(html).toContain('Nota acordada');
     expect(html).not.toContain('Nota de prueba'); expect(html).not.toContain('Confirmar entrega');
     const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
@@ -201,6 +203,12 @@ describe('reused 2A card design without legacy actions', () => {
       const input = { ...raw, status: 'accepted', requestProcess: { ...coordinationProcess, state } };
       const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
       const view = render({ ...props, order, business, expanded: true, onToggle: vi.fn() });
+      if (business) {
+        expect(view.props.accepted).toBe(agreementFixture);
+        expect(view.type).toBe(viewName === 'coordination' ? BusinessCoordinationCard : BusinessProgressCard);
+        expect(elements(view).some(node => node.type === AcceptedConditionsPanel)).toBe(false);
+        continue;
+      }
       const panel = elements(view).find((node) => node.type === AcceptedConditionsPanel)!;
       expect(panel.props.returnView).toBe(viewName);
       expect(renderToStaticMarkup(panel)).toContain(`participant=${business ? 'business' : 'customer'}&amp;view=${viewName}`);
@@ -217,6 +225,11 @@ describe('reused 2A card design without legacy actions', () => {
     const expanded = render({ ...props, order, business });
     expect(expanded.type).toBe(BusinessCoordinationCard); expect(expanded.key).toBe(key);
     const nodes = elements(expanded);
+    if (business) {
+      expect(expanded.props.accepted).toBe(agreementFixture);
+      expect(nodes.some(node => node.type === AcceptedConditionsPanel)).toBe(false);
+      return;
+    }
     const panel = nodes.find((node) => node.type === AcceptedConditionsPanel)!;
     expect(panel.props.embedded).toBe(true); expect(panel.props.state).toBe(hooks.agreement);
     expect(elements(nodes.find((node) => node.type === 'section')!).some((node) => node.type === AcceptedConditionsPanel && node.props.embedded === true)).toBe(true);
@@ -302,7 +315,8 @@ describe('reused 2A card design without legacy actions', () => {
     (view.props.onOpenAgreement as () => void)();
     view = render({ ...props, order, business: true });
     expect(view.type).toBe(BusinessCoordinationCard); expect(view.key).toBe(identity);
-    expect(elements(view).find(node=>node.type===AcceptedConditionsPanel)?.props.state).toBe(hooks.agreement);
+    expect(elements(view).some(node=>node.type===AcceptedConditionsPanel)).toBe(false);
+    expect(view.props.accepted).toBe(agreementFixture);
   });
 
   it.each([true, false])('uses the approved photo subtitle before and after acceptance (business=%s)', (business) => {
@@ -439,7 +453,12 @@ describe('reused 2A card design without legacy actions', () => {
     const view = render({ ...props, order, business, expanded: true });
     expect(view.props.conditionsTitle).toContain('Producto acordado');
     const html = renderToStaticMarkup(view);
-    for (const text of ['Coordinación pendiente', 'Condiciones aceptadas', 'Nota acordada', 'Imagen adjunta']) expect(html).toContain(text);
+    for (const text of ['Coordinación pendiente', 'Condiciones aceptadas']) expect(html).toContain(text);
+    if (business) {
+      expect(view.props.accepted).toBe(agreementFixture); expect(view.props.explanation).toBe('Nota acordada');
+      expect(html).not.toContain('Nota de prueba'); return;
+    }
+    for (const text of ['Nota acordada', 'Imagen adjunta']) expect(html).toContain(text);
     for (const text of ['Nota de prueba', 'Producto de prueba', 'Preparación', 'Marcar como listo']) expect(html).not.toContain(text);
     const panel = elements(view).find((node) => node.type === AcceptedConditionsPanel)!;
     expect(panel.props.state).toBe(hooks.agreement);

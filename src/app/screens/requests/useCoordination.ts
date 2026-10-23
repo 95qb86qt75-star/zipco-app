@@ -23,7 +23,8 @@ function waitForWhatsappPreview(signal: AbortSignal): Promise<boolean> {
   });
 }
 
-export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback: boolean | 'coordination-steps' = false) {
+export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback: boolean | 'coordination-steps' = false,
+  beforeReadyPublish?: (key: string) => Promise<void>) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [needsUpdate, setNeedsUpdate] = useState(false);
@@ -134,7 +135,18 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         emitReceipt(); return true;
       }
       if (!active()) return false;
+      // Presentation waits only after the durable action and authoritative read.
+      const readyNotice = beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
+        latest?.requestProcess?.agreementPublicId === process.agreementPublicId
+        ? coordinationFeedback(action, response.result, latest, business) : null;
+      if (readyNotice) {
+        try { await beforeReadyPublish!(readyNotice.key); } catch { /* Presentation cannot reverse a confirmed operation. */ }
+        if (!active()) return true;
+      }
       emitReceipt();
+      if (readyNotice) window.dispatchEvent(new CustomEvent('zipco-ready-presented', {
+        detail: { orderId: order.id, agreementPublicId: process.agreementPublicId },
+      }));
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
       if (storageWarning()) announce(storageWarning());
       else if (action === 'OPEN_WHATSAPP') {

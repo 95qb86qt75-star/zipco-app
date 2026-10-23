@@ -82,6 +82,21 @@ beforeEach(() => {
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
 
+it.each(['matching', 'different-agreement', 'other-category'])('navigates to Listos only for its own completed presentation (%s)', mode => {
+  hooks.loading = false; session = true;
+  window.location.search = `?open=requests-business&view=${mode === 'other-category' ? 'coordination' : 'active'}`;
+  hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: { ...coordinationProcess,
+    state: 'IN_PROGRESS', allowedActions: ['MARK_READY'] } }]);
+  render();
+  if (mode === 'matching') hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'ready', requestProcess: { ...coordinationProcess, state: 'READY', allowedActions: [] } }]);
+  window.dispatchEvent(new CustomEvent('zipco-ready-presented', { detail: { orderId:20,
+    agreementPublicId: mode === 'different-agreement' ? 'another' : coordinationProcess.agreementPublicId } }));
+  const result = render();
+  expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key)
+    .toBe(mode === 'matching' ? 'ready' : mode === 'other-category' ? 'coordination' : 'active');
+  expect(hooks.action).not.toHaveBeenCalled();
+});
+
 it('keeps the existing success hologram visible when a sent alternative leaves the pending list', () => {
   vi.useFakeTimers();
   try {
