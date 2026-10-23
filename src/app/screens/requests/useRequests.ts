@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFixedOrderAcceptance } from './fixedOrderAcceptance';
+import { announceAction } from './ActionHologram';
+import { readCoordinationSession } from './coordinationSession';
 import { hasRequestProcess } from './requestProcess';
 import { RequestProcessError, REFRESH_CONDITIONS_MESSAGE } from './requestProcessErrors';
 import { mergeProcessOrderUpdates } from './processOrderUpdates';
@@ -239,6 +241,7 @@ export default function useRequests(onSessionExpired: () => void) {
       try {
         if (hasRequestProcess(order)) {
           if (!order.requestProcess) return false;
+          const acceptanceSession = readCoordinationSession();
           const result = await acceptanceRef.current.accept(actionable.id, order.requestProcess, token, async () => {
             const businessId = parsePositiveInteger(localStorage.getItem('zipco-business-id'));
             if (!businessId) throw new RequestProcessError('No se pudo verificar el negocio. Actualiza la pantalla.', 0);
@@ -253,7 +256,9 @@ export default function useRequests(onSessionExpired: () => void) {
             item.id === result.orderId ? { ...item, status: result.orderStatus, requestProcess: result.requestProcess } : item);
           setRequests(update);
           setMyOrders(update);
-          showAppToast('Pedido aceptado. Coordinación pendiente.');
+          if (acceptanceSession && readCoordinationSession() === acceptanceSession)
+            announceAction('accepted', { key: `fixed-order:${result.requestProcess.id}:${result.requestProcess.version}`,
+              title: 'Pedido aceptado', description: 'El pedido pasó a Por coordinar. Revisa la autorización de contacto para continuar por WhatsApp.' });
           await loadOrders(true);
           return true;
         }

@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-BUSINESS-FIXED-ACCEPT-Q-01 — Pedido original aceptado por el negocio
+
+2026-10-22. Solo frontend QA. Conecta el Q verde al recorrido Aceptar pedido
+de useRequests, tras confirmación real. 1.210 pruebas y build QA/PWA aprobados.
+[Causa, archivos y publicación](frontend-business-fixed-accept-hologram-qa.md).
+
 ### UI-PROPOSAL-ACCEPTED-Q-01 — Propuesta aceptada en verde
 
 2026-10-22. Solo frontend QA. Documento con check del diseño Q para aceptación

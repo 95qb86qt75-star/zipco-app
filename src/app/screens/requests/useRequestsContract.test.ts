@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { rawOrder, coordinationProcess } from './requestProcessFixtures';
+import { rawOrder, coordinationProcess, pendingProcess } from './requestProcessFixtures';
+import { ACTION_HOLOGRAM_EVENT } from './ActionHologram';
 
 // Run the real hook callbacks with a small state harness; network responses remain mocked.
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, toast: vi.fn(), effects: [] as Array<() => unknown> }));
@@ -30,6 +31,35 @@ import { rejectPendingOrder, rejectedPendingReceipt } from './pendingRejectionFi
 
 const render = () => { hooks.cursor = 0; return useRequests(vi.fn()); };
 const reply = (body: unknown) => new Response(JSON.stringify(body));
+
+describe('business fixed acceptance hologram', () => {
+  it.each(['confirmed', 'read-failure', 'post-failure', 'invalid-receipt', 'changed-session'])('announces only a verified acceptance in its original session: %s', async mode => {
+    const storage = new Map([['zipco-user-id','12'],['zipco-token','test'],['zipco-business-id','1']]);
+    vi.stubGlobal('localStorage', { getItem:(key:string)=>storage.get(key)??null });
+    vi.stubGlobal('sessionStorage', { getItem:()=>null,setItem:vi.fn(),removeItem:vi.fn() });
+    const dispatchEvent=vi.fn(); vi.stubGlobal('window',{dispatchEvent});
+    const input={...rawOrder,status:'pending',orderType:'product',needNow:true,requestProcess:pendingProcess};
+    const accepted={orderId:rawOrder.id,orderStatus:'accepted',requestProcess:coordinationProcess};
+    const fetcher=vi.fn(async (_url:string,init?:RequestInit)=>{
+      if(init?.method==='POST'){
+        if(mode==='post-failure')throw Error('Synthetic lost response');
+        if(mode==='changed-session')storage.set('zipco-token','other-session');
+        return reply(mode==='invalid-receipt'?{...accepted,orderId:999}:accepted);
+      }
+      if(mode==='read-failure')throw Error('Synthetic list failure');
+      return reply([{...input,status:'accepted',requestProcess:coordinationProcess}]);
+    }); vi.stubGlobal('fetch',fetcher);
+    hooks.slots=[normalizeBusinessOrdersPayload([input]),normalizeMyOrdersPayload([input])];
+    const current=render(); await current.performAction(current.requests[0],'business','accept');
+    const feedback=dispatchEvent.mock.calls.map(([event])=>event).filter(event=>event.type===ACTION_HOLOGRAM_EVENT);
+    if(['confirmed','read-failure'].includes(mode)){
+      expect(feedback).toHaveLength(1);
+      expect(feedback[0].detail).toMatchObject({kind:'accepted',title:'Pedido aceptado',key:`fixed-order:${coordinationProcess.id}:${coordinationProcess.version}`});
+      expect(render().requests[0].requestProcess?.state).toBe('COORDINATION_PENDING');
+    }else expect(feedback).toHaveLength(0);
+    expect(fetcher.mock.calls.filter(([,init])=>init?.method==='POST')).toHaveLength(1);
+  });
+});
 
 beforeEach(() => {
   hooks.slots = []; hooks.cursor = 0; hooks.toast.mockReset(); hooks.effects = [];
