@@ -72,5 +72,9 @@ persona, un paso por vez. El fallo exacto observado en Android requiere confirma
 el resultado de esta entrega; no se da por verificado en el teléfono.
 Reintentos fiables de notificaciones siguen pendientes del cierre general.
 
-Rama qa; publicación y respaldo al cierre. Railway/backend no necesarios.
+Código respaldado en GitHub, rama qa: `2c8547203d4899e6768326b26169c425ac664165`.
+Vercel QA READY `dpl_25K2HzxVonBvncW3AmwKfYo6xvth`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA con código idéntico.
+Railway/backend no necesarios.
 Main y producción sin cambios.
