@@ -1326,6 +1326,7 @@ export default function RequestsScreen({
                   transition={{ duration: 0.24 }}
                 >
                   <MyOrdersTab
+                    key={`customer-orders-${statusView}-${attentionFilter ?? 'all'}`}
                     myOrders={filteredMyOrders}
                     updatingOrderIds={updatingOrderIds}
                     onRetry={loadOrders}
@@ -1388,6 +1389,7 @@ export default function RequestsScreen({
               hasBusiness &&
               subTab === "my-business" && (
                 <BusinessOrdersTab
+                  key={`business-orders-${statusView}-${attentionFilter ?? 'all'}`}
                   requests={filteredBusinessOrders}
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}

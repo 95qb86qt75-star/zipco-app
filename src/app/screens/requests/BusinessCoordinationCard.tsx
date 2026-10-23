@@ -34,13 +34,14 @@ const Step = ({ className = '', node, children }: { className?: string; node: Re
   <div className={`zipco-co-st ${className}`.trim()}>{node}<div className="zipco-co-sb">{children}</div></div>;
 
 export default function BusinessCoordinationCard({ order, business = true, name, image, price, statusLabel, isUnread = false, negotiated, acceptedAt, accepted,
-  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onOpenAgreement, agreementDetails, onInspect, refresh }: {
+  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onOpenAgreement, agreementDetails, onInspect, refresh, notificationOpen = 0 }: {
   order: BusinessRequest | MyOrder; business?: boolean; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
   /** true for a negotiated agreement; false for the accepted original order. */
   negotiated: boolean; acceptedAt?: string | null; accepted: AcceptedSummary;
   conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
   /** Abre el detalle completo de siempre (AcceptedConditionsPanel). */
   onOpenAgreement: () => void; agreementDetails?: ReactNode; onInspect?: () => void; refresh: () => void;
+  notificationOpen?: number;
 }) {
   const [latest, setLatest] = useState<BusinessRequest | MyOrder | null>(null);
   const current = latest?.requestProcess && latest.requestProcess.id === order.requestProcess?.id &&
@@ -53,7 +54,8 @@ export default function BusinessCoordinationCard({ order, business = true, name,
   const operation = useCoordination(current, business, refresh, 'coordination-steps');
   const [sheet, setSheet] = useState<'cond' | 'anul' | 'start' | null>(null);
   const motionRef = useCoordinationMotion(sheet !== null);
-  const [folded, setFolded] = useState(false); // tarjeta resumida (solo cabecera + progreso)
+  const [folded, setFolded] = useState(notificationOpen === 0);
+  useEffect(() => { if (notificationOpen > 0) setFolded(false); }, [notificationOpen]);
   const [deferred, setDeferred] = useState(false);
   const [reason, setReason] = useState<AnnulReason>('COORDINATION_NOT_REACHED');
   const [detail, setDetail] = useState('');

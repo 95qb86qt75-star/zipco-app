@@ -113,3 +113,9 @@ it('retains the folded body while making all its controls inaccessible',()=>{
  expect(body.props['data-folded']).toBe(true);expect(body.props['aria-hidden']).toBe(true);expect(body.props.inert).toBe('');
  expect(nodes(body).some(n=>n.type==='button'&&renderToStaticMarkup(n).includes('Autorizo comenzar'))).toBe(true);expect(state.run).not.toHaveBeenCalled();
 });
+it.each([false,true])('starts collapsed for normal navigation for actor business=%s',business=>{
+ const view=render(business?order():customer(),business),body=nodes(view).find(n=>n.props.className==='zipco-co-fb')!;
+ expect(body.props['data-folded']).toBe(true);expect(body.props.inert).toBe('');
+ click(view,'Mostrar coordinación');expect(nodes(render(business?order():customer(),business)).find(n=>n.props.className==='zipco-co-fb')!.props['data-folded']).toBe(false);
+ expect(state.run).not.toHaveBeenCalled();
+});

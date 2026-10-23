@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-REQUEST-CARDS-COLLAPSED-01 — Tarjetas cerradas al navegar
+
+2026-10-23. Solo frontend QA. Categorías comienzan con tarjetas resumidas;
+la navegación explícita desde notificación abre solamente su pedido destino.
+[Archivos, validación y publicación](frontend-request-cards-collapsed-navigation-qa.md).
+
 ### UI-WHATSAPP-PREVIEW-3S-01 — Tres segundos antes de WhatsApp
 
 2026-10-23. Solo frontend QA. Espera de tres segundos con bloqueo de doble toque

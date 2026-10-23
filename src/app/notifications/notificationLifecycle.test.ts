@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createNotificationNavigation, parseNotificationTarget, waitForNotificationCard } from './notificationNavigation';
+import { createNotificationNavigation, parseNotificationTarget, waitForNotificationCard, NOTIFICATION_CARD_OPEN_EVENT } from './notificationNavigation';
 import { presentationKey, readSystemPresentations, PRESENTATION_CACHE, PRESENTATION_PATH,
   deliverUnpresentedNotice, rememberOpenedPresentation, noticeMatchesPresentation } from './notificationDelivery';
 import { customerOrderNotice } from './orderNotice';
@@ -62,6 +62,13 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it('requests expansion only for the card explicitly focused by notification navigation',()=>{
+    const dom=domHarness(),dispatchEvent=vi.fn();Object.assign(dom.element,{dispatchEvent});
+    const complete=vi.fn();const stop=waitForNotificationCard('order-20',complete,dom.environment);
+    expect(dispatchEvent).not.toHaveBeenCalled();dom.render();
+    expect(dispatchEvent).toHaveBeenCalledOnce();expect(dispatchEvent.mock.calls[0][0]).toMatchObject({type:NOTIFICATION_CARD_OPEN_EVENT,detail:{id:'order-20'},bubbles:true});
+    dom.mutation();expect(dispatchEvent).toHaveBeenCalledOnce();stop();
+  });
   it.each(['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL'])('deduplicates proposal event %s while retaining its exact navigation and subsequent events', async action => {
     const sw = worker('iPhone');
     const normalized = action.toLowerCase().replaceAll('_', '-');

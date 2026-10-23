@@ -4,17 +4,20 @@ const directory=path.resolve('node_modules/.cache/business-own-feedback'),assets
 await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
 import React,{useState,useEffect} from 'react';import {createRoot} from 'react-dom/client';
 import useRequests from './src/app/screens/requests/useRequests';import BusinessOrdersTab from './src/app/screens/requests/BusinessOrdersTab';
+import MyOrdersTab from './src/app/screens/requests/MyOrdersTab';
+import {waitForNotificationCard} from './src/app/notifications/notificationNavigation';
 import ActionHologramHost from './src/app/screens/requests/ActionHologram';import Toast from './src/app/screens/Toast';
 import {rawOrder,pendingProcess,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
 import {rejectedPendingProcess} from './src/app/screens/requests/pendingRejectionFixtures';
 window.React=React;window.posts=[];window.toasts=[];window.receipt=false;window.failed=false;window.stale=false;
-localStorage.setItem('zipco-user-id','12');localStorage.setItem('zipco-token','synthetic-session');localStorage.setItem('zipco-business-id','1');
-let state='pending',process=pendingProcess;
+const query=new URLSearchParams(location.search),business=query.get('role')!=='customer';
+localStorage.setItem('zipco-user-id','12');localStorage.setItem('zipco-token','synthetic-session');if(business)localStorage.setItem('zipco-business-id','1');else localStorage.removeItem('zipco-business-id');
+let state=query.get('state')==='coordination'?'accepted':'pending',process=state==='accepted'?coordinationProcess:pendingProcess;
 const order=()=>({...rawOrder,status:state,businessName:'Negocio QA',customerName:'Cliente QA',needNow:true,orderType:'product',requestProcess:process});
 window.fetch=async(input,options={})=>{const url=String(input);
- if(url.endsWith('/orders/my-orders?processContract=alternatives-v1'))return new Response('[]');
+ if(url.endsWith('/orders/my-orders?processContract=alternatives-v1'))return new Response(JSON.stringify(business?[]:[order()]));
  if(url.endsWith('/orders/business/1?processContract=alternatives-v1'))return new Response(JSON.stringify([order()]));
- if(url.endsWith('/agreement'))return new Response(JSON.stringify(agreementFixture));
+ if(url.endsWith('/agreement')){if(query.has('slowAgreement'))await new Promise(resolve=>window.releaseAgreement=resolve);return new Response(JSON.stringify(agreementFixture));}
  if(options.method==='POST'){
   window.posts.push({url,body:JSON.parse(options.body),key:options.headers['Idempotency-Key']});
   if(window.failed){window.failed=false;throw Error('Synthetic network failure');}
@@ -25,12 +28,13 @@ window.fetch=async(input,options={})=>{const url=String(input);
  throw Error('Unexpected synthetic read '+url);
 };
 const expire=()=>{};
-function App(){const requests=useRequests(expire);const [toast,setToast]=useState(null),[view,setView]=useState('pending');
+function App(){const requests=useRequests(expire);const [toast,setToast]=useState(null),[view,setView]=useState(query.get('state')==='coordination'?'coordination':'pending');
+ window.chooseView=setView;window.openNotification=()=>waitForNotificationCard('order-20',()=>window.notificationFocused=true);
  useEffect(()=>{const receive=e=>{window.toasts.push(e.detail);setToast(e.detail)};window.addEventListener('zipco-toast',receive);return()=>window.removeEventListener('zipco-toast',receive)},[]);
  return <><ActionHologramHost/>{toast&&<Toast notification={toast} onClose={()=>setToast(null)}/>}
- <main style={{padding:16}} data-view={view}><BusinessOrdersTab requests={requests.requests.filter(o=>view==='pending'?o.status==='pending':true)} updatingOrderIds={requests.updatingOrderIds}
+ <main style={{padding:16}} data-view={view}>{business?<BusinessOrdersTab key={view} requests={requests.requests.filter(o=>view==='pending'?o.status==='pending':true)} updatingOrderIds={requests.updatingOrderIds}
  onAction={async(o,a,r,d)=>{if(await requests.performAction(o,'business',a,r,d))setView('coordination')}} onRetry={requests.loadOrders}
- onProposeAlternative={requests.proposeAlternative} emptyTitle="Sin pendientes" emptyDescription=""/></main></>;
+ onProposeAlternative={requests.proposeAlternative} emptyTitle="Sin pendientes" emptyDescription=""/>:<MyOrdersTab key={view} myOrders={requests.myOrders.filter(o=>view==='pending'?o.status==='pending':true)} updatingOrderIds={requests.updatingOrderIds} onAction={async()=>{}} onRetry={requests.loadOrders} emptyTitle="Sin pendientes" emptyDescription=""/>}</main></>;
 }createRoot(document.getElementById('root')).render(<App/>);
 `},bundle:true,format:'esm',jsx:'automatic',outfile:path.join(directory,'fixture.js'),define:{'process.env.NODE_ENV':'"production"','import.meta.env':'{}'}});
 const css=fs.readFileSync(path.join(assets,fs.readdirSync(assets).find(n=>n.endsWith('.css'))));
@@ -52,5 +56,16 @@ try{
   assert.equal(await evaluate('window.toasts.filter(t=>t.type==="success").length'),0);assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('document.querySelector("main").dataset.view'),'coordination');
   await delay(1500);assert.equal(await evaluate('!!document.querySelector(".zipco-ah")'),true);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'accepted-'+width+'.png'),Buffer.from(shot.data,'base64')));results.push('confirmed-root-hologram-no-toast-'+width);
  }
- console.log(JSON.stringify({passed:results.length,results,realHook:true,realBusinessTab:true,realConfirmation:true,touch:true,backendAccess:false,realOrderActions:false}));await send('Browser.close');
+ for(const role of ['business','customer'])for(const slow of [false,true]){
+  await send('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/?role='+role+'&state=coordination&orderId=20'+(slow?'&slowAgreement=1':'')});
+  await wait('!!document.querySelector("#order-20")');
+  if(slow){await wait('!!window.releaseAgreement');await evaluate('window.openNotification()');await wait('window.notificationFocused===true');await evaluate('window.releaseAgreement()');await wait('document.querySelector(".zipco-co-fb")?.dataset.folded==="false"');results.push('notification-before-agreement-'+role);continue;}
+  await wait('document.querySelector(".zipco-co-fb")?.dataset.folded==="true"');
+  await evaluate('window.openNotification()');await wait('document.querySelector(".zipco-co-fb")?.dataset.folded==="false"');
+  await delay(700);await touch('.zipco-co-fold');await wait('document.querySelector(".zipco-co-fb").dataset.folded==="true"');await delay(700);
+  await touch('.zipco-co-colrow');await wait('document.querySelector(".zipco-co-fb").dataset.folded==="false"');
+  await evaluate('window.chooseView("pending")');await wait('document.querySelector("main").dataset.view==="pending"');await evaluate('window.chooseView("coordination")');await wait('document.querySelector(".zipco-co-fb")?.dataset.folded==="true"');
+  assert.equal(await evaluate('window.posts.length'),0);results.push('default-collapsed-notification-open-manual-and-category-reset-'+role);
+ }
+ console.log(JSON.stringify({passed:results.length,results,realHook:true,realBusinessTab:true,realCustomerTab:true,realConfirmation:true,touch:true,backendAccess:false,realOrderActions:false}));await send('Browser.close');
 }finally{socket?.close();browser.kill();await new Promise(r=>server.close(r));}

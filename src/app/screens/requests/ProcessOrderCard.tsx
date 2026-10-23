@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { NOTIFICATION_CARD_OPEN_EVENT } from '../../notifications/notificationNavigation';
 import { AnimatePresence, motion } from 'motion/react';
 import { Calendar, ChevronUp, Sparkles, Zap } from 'lucide-react';
 import AcceptGlassButton from './AcceptGlassButton';
@@ -27,6 +28,16 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   isUnread?: boolean; expanded?: boolean; onToggle?: () => void;
 }) {
   const [localExpanded, setLocalExpanded] = useState(expanded ?? false);
+  const [notificationOpen, setNotificationOpen] = useState(0);
+  useEffect(() => {
+    const open = (event: Event) => {
+      if ((event as CustomEvent).detail?.id !== `order-${order.id}`) return;
+      setNotificationOpen(value => value + 1);
+      if (!onToggle) setLocalExpanded(true);
+    };
+    window.addEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
+    return () => window.removeEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
+  }, [order.id, onToggle]);
   const process = order.requestProcess;
   const awaiting = process?.state === 'AWAITING_BUSINESS_RESPONSE';
   const negotiating = NEGOTIATION_STATES.includes(process?.state ?? '');
@@ -97,7 +108,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2 && process.proposalSummary?.type !== 'ORIGINAL_REQUEST';
     return <BusinessCoordinationCard key={`${business}:${process.id}:${accepted.agreementPublicId}`} order={order} business={business} name={name} image={image} price={price}
-      statusLabel={stateLabel} isUnread={isUnread} negotiated={negotiated} acceptedAt={accepted.confirmedAt} accepted={accepted} onInspect={onOpen}
+      statusLabel={stateLabel} isUnread={isUnread} negotiated={negotiated} acceptedAt={accepted.confirmedAt} accepted={accepted} onInspect={onOpen} notificationOpen={notificationOpen}
       conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
       conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenLong}`} explanation={negotiated ? subject.proposalMessage : subject.note}
       onOpenAgreement={() => { onOpen?.(); if (onToggle) { if (!isExpanded) onToggle(); } else setLocalExpanded(true); }} refresh={onRetry}

@@ -1,5 +1,6 @@
 import { CalendarDays, ClipboardList, Sparkles } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { NOTIFICATION_CARD_OPEN_EVENT } from '../../notifications/notificationNavigation';
 import BusinessOrderCard from "./BusinessOrderCard";
 import EmptyRequestsState from "./EmptyRequestsState";
 import OrderActionModal from "./OrderActionModal";
@@ -60,12 +61,17 @@ export default function BusinessOrdersTab({
   const [alternativeTime, setAlternativeTime] = useState("");
   const [alternativePhoto, setAlternativePhoto] = useState("");
   const [sendingAlternative, setSendingAlternative] = useState(false);
-  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(() => {
-    const targetId = Number(
-      new URLSearchParams(window.location.search).get("orderId"),
-    );
-    return Number.isInteger(targetId) && targetId > 0 ? targetId : null;
-  });
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  useEffect(() => {
+    const open = (event: Event) => {
+      const id = (event as CustomEvent).detail?.id;
+      if (typeof id !== 'string' || !/^order-[1-9]\d*$/.test(id)) return;
+      const orderId = Number(id.slice(6));
+      if (Number.isSafeInteger(orderId)) setExpandedOrderId(orderId);
+    };
+    window.addEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
+    return () => window.removeEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
+  }, []);
   const displayed = requests.filter(
     (order) => order.recordState === "available",
   );

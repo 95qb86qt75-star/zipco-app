@@ -1,4 +1,5 @@
 import { canonicalPresentationKey } from './notificationDelivery';
+export const NOTIFICATION_CARD_OPEN_EVENT = 'zipco-notification-card-open';
 export type NotificationTarget = { url: string; identity: string; eventKey: string | null };
 
 export function parseNotificationTarget(value: string, origin: string): NotificationTarget | null {
@@ -70,6 +71,7 @@ export function waitForNotificationCard(
     observer.disconnect();
     environment.document.removeEventListener('visibilitychange', tryFocus);
     element.classList.add('zipco-notification-target');
+    element.dispatchEvent?.(new CustomEvent(NOTIFICATION_CARD_OPEN_EVENT, { detail: { id }, bubbles: true }));
     const scroller = element.closest<HTMLElement>('[data-requests-scroll]');
     if (scroller) {
       // The header is outside this scroller. Measure after the highlight adds
