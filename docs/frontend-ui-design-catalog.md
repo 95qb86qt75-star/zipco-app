@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-PROPOSAL-ACCEPTED-Q-01 — Propuesta aceptada en verde
+
+2026-10-22. Solo frontend QA. Documento con check del diseño Q para aceptación
+del cliente; negocio conserva Cierre exitoso, sin avisos duplicados.
+[Archivos, contrato, pruebas y publicación](frontend-proposal-accepted-hologram-q-qa.md).
+
 ### UI-COUNTERPROPOSAL-CONTINUITY-01 — Contrapropuesta y aceptación con diseño compartido
 
 2026-10-22. Solo frontend QA. Entrada de vidrio compartida por contrapropuesta y

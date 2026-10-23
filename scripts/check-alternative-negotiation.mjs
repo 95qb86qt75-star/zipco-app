@@ -13,6 +13,7 @@ import React,{useState} from 'react';import {createRoot} from 'react-dom/client'
 import Negotiation from './src/app/screens/requests/ProposalNegotiation';
 import AcceptedProposalHost from './src/app/screens/requests/AcceptedProposalHost';
 import DealSuccessHost from './src/app/screens/requests/DealSuccess';
+import ActionHologramHost from './src/app/screens/requests/ActionHologram';
 import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
 import {normalizeRequestProcess} from './src/app/screens/requests/requestProcess';
 import {normalizeBusinessOrdersPayload} from './src/app/screens/requests/orderNormalization';
@@ -81,7 +82,7 @@ function App(){const [revision,setRevision]=useState(0);redraw=()=>setRevision(n
  const process=normalizeRequestProcess(processForRole());
  const order=normalizeBusinessOrdersPayload([{...rawOrder,customerName:'Usuario Pauta QA',needNow:true,orderType:'product',status:process.state==='CLOSED'?'rejected':process.agreementPublicId?'accepted':read.proposals.length===1?'pending':'alternative_proposed',requestProcess:process}])[0];
  window.current={state:process.state,version:process.version,view:statusViewFor('orders',order.status,process)};
- return <><DealSuccessHost/><AcceptedProposalHost onAccepted={()=>{window.selectedView='coordination';}} refresh={()=>{window.refreshes++;redraw();}}/>
+ return <><ActionHologramHost/><DealSuccessHost/><AcceptedProposalHost onAccepted={()=>{window.selectedView='coordination';}} refresh={()=>{window.refreshes++;redraw();}}/>
   {!process.agreementPublicId&&<Negotiation key={String(role)+'-'+(revision>10000?revision:0)} order={order} business={role} variant="aurora" refresh={()=>{window.refreshes++;redraw();}}/>}</>;
 }createRoot(document.getElementById('root')).render(<App/>);
 ` }, bundle: true, format: 'esm', jsx: 'automatic', outfile: path.join(directory, 'fixture.js'),
@@ -107,7 +108,7 @@ try {
   const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   const wait=async expression=>{for(let i=0;i<100;i++){if(await evaluate(expression))return;await delay(50);}throw Error('Synthetic flow did not settle: '+expression);};
-  const touch=async label=>{if(await evaluate('!!document.querySelector("[data-accept-authorize],[data-contact-followup]")'))await delay(250);const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
+  const touch=async label=>{if(await evaluate('!!document.querySelector(".zipco-ah")'))await wait('!document.querySelector(".zipco-ah")');if(await evaluate('!!document.querySelector("[data-accept-authorize],[data-contact-followup]")'))await delay(250);const p=await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>(b.querySelector('.zipco-accept-label')?.textContent||b.getAttribute('aria-label')||b.textContent).trim()===${JSON.stringify(label)});if(!b||b.disabled)throw Error('Missing enabled control: '+${JSON.stringify(label)});b.scrollIntoView({block:'center',behavior:'instant'});const r=b.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});await delay(30);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(100);};
   const fill=async(selector,value,kind='HTMLInputElement')=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});Object.getOwnPropertyDescriptor(${kind}.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
   const reset=async(sequence=0,business=true)=>{await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/`});await wait('!!window.reset');await evaluate(`window.reset(${sequence},${business})`);await delay(100);};
   const form=async (price='1500')=>{await touch('Precio');await fill('input[aria-label="Nuevo precio por unidad"]',price);await touch('Guardar');await fill('textarea','Cambio de precio para la prueba sintética.','HTMLTextAreaElement');await touch('Revisar alternativa');await wait('!!document.querySelector("[data-alternative-review]")');};
@@ -121,6 +122,20 @@ try {
   };
   await send('Network.enable');await send('Network.setBlockedURLs',{urls:['https://*']});await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
   const evidence=[];
+  await send('Emulation.setDeviceMetricsOverride',{width:360,height:852,deviceScaleFactor:1,mobile:true});
+  for(const sequence of [1,3])for(const authorize of [false,true]){
+    await reset(sequence,false);await decide('Aceptar propuesta');await evaluate('window.fail=true');
+    const choice=authorize?'Aceptar y autorizar contacto':'Solo aceptar · autorizo después';
+    await touch(choice);await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');
+    assert.equal(await evaluate('!!document.querySelector(".zipco-ah,.zipco-d-hs")'),false,'Failed acceptance never emits success');
+    await touch(choice);await wait(`!!document.querySelector('.zipco-ah[aria-label="Propuesta aceptada"]')`);
+    assert.equal(await evaluate('document.querySelectorAll(".zipco-ah,.zipco-d-hs").length'),1,'Exactly one acceptance hologram');
+    assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true,'Display change preserves acceptance idempotency');
+    assert.equal(await evaluate('window.posts.filter(p=>p.action==="authorize-contact").length'),authorize?1:0);
+    assert(await evaluate(`(()=>{const e=document.querySelector('.zipco-ah-t'),r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&e.textContent==='Propuesta aceptada';})()`));
+    if(sequence===1&&!authorize){await delay(1800);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'proposal-accepted-360.png'),Buffer.from(shot.data,'base64')));}
+    evidence.push('accepted-q-after-retry-'+sequence+'-'+authorize);
+  }
   for(const width of [320,393]){
     await send('Emulation.setDeviceMetricsOverride',{width,height:852,deviceScaleFactor:1,mobile:true});
     let preparedStyle;
@@ -193,7 +208,8 @@ try {
     assert.equal(await evaluate(`getComputedStyle(document.querySelector('.zipco-chat-panel .zipco-accept-check')).animationPlayState`),'running','Closing the top card resumes review effects');
     await touch('Aceptar propuesta');await wait('!!document.querySelector("[data-accept-authorize]")');await touch('Solo aceptar · autorizo después');await wait('window.current.state==="COORDINATION_PENDING"');
     assert.equal(await evaluate('window.selectedView'),'coordination');
-    assert(await evaluate('!!document.querySelector(".zipco-d-hs")'),'Success survives accepted card unmount');
+    assert(await evaluate(`!!document.querySelector('.zipco-ah[aria-label="Propuesta aceptada"]')`),'Accepted feedback survives filtered card');
+    assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Customer never shows the handshake as well');
     assert.equal(await evaluate('window.posts.length'),2);assert.equal(await evaluate('window.current.view'),'coordination');evidence.push('business-photo-customer-accept-'+width);
   }
   await reset(1,false);await decide('Hacer mi única contrapropuesta');await wait('!!document.querySelector("textarea")');
@@ -291,13 +307,13 @@ try {
     assert.deepEqual(posts[1].body,{expectedVersion:posts[0].body.expectedVersion+2,consentAccepted:true});
     assert.notEqual(posts[0].key,posts[1].key,'Separate explicit decisions have independent idempotency');
     assert.equal(await evaluate('window.selectedView'),'coordination');assert(await evaluate('window.orderReads>=2'));
-    assert(await evaluate('!!document.querySelector(".zipco-d-hs")'),'Hologram is mounted once outside filtered card');
-    assert.equal(await evaluate('document.querySelectorAll(".zipco-d-hs").length'),1);
+    assert(await evaluate(`!!document.querySelector('.zipco-ah[aria-label="Propuesta aceptada"]')`),'Accepted hologram is mounted outside filtered card');
+    assert.equal(await evaluate('document.querySelectorAll(".zipco-ah,.zipco-d-hs").length'),1);
     if(width===320){
-      await evaluate(`window.savedHologram=document.querySelector('.zipco-d-hs');window.dispatchEvent(new CustomEvent('zipco-proposal-accepted',{detail:window.acceptanceEvent}));true`);
-      assert.equal(await evaluate('window.savedHologram===document.querySelector(".zipco-d-hs")'),true,'Duplicate receipt does not restart the hologram');
-      await delay(2000);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'deal-success-320.png'),Buffer.from(shot.data,'base64')));
-      await delay(3900);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Normal hologram clears after 5.7 seconds');
+      await evaluate(`window.savedHologram=document.querySelector('.zipco-ah');window.dispatchEvent(new CustomEvent('zipco-proposal-accepted',{detail:window.acceptanceEvent}));true`);
+      assert.equal(await evaluate('window.savedHologram===document.querySelector(".zipco-ah")'),true,'Duplicate receipt does not restart the hologram');
+      await delay(1800);await send('Page.captureScreenshot',{format:'png'}).then(shot=>fs.writeFileSync(path.join(directory,'proposal-accepted-320.png'),Buffer.from(shot.data,'base64')));
+      await delay(2700);assert.equal(await evaluate('!!document.querySelector(".zipco-ah")'),false,'Accepted hologram clears after 4.3 seconds');
     }
     evidence.push('accept-then-authorize-survives-filter-double-tap-'+width);
   }
@@ -307,7 +323,7 @@ try {
   assert.equal(await evaluate('window.posts[1].key===window.posts[2].key'),true);evidence.push('contact-failure-retries-same-key-no-second-acceptance');
   await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.lose=true');await touch('Aceptar y autorizar contacto');
   await wait('!!document.querySelector("[data-accept-authorize] [role=alert]")');
-  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false);
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs,.zipco-ah")'),false);
   await touch('Aceptar y autorizar contacto');await wait('window.posts.length===2&&!document.querySelector("[role=dialog]")');
   assert.deepEqual(await evaluate('window.posts.map(p=>p.action)'),['accept-proposal','authorize-contact'],'Reconciled acceptance is not posted again');
   assert.equal(await evaluate('window.selectedView'),'coordination');evidence.push('committed-accept-response-loss-read-confirmed-then-contact-no-repost');
@@ -327,14 +343,15 @@ try {
   assert.equal(await evaluate('window.posts[0].key===window.posts[1].key'),true);assert.equal(await evaluate('window.posts[2].action'),'authorize-contact');evidence.push('expired-confirmation-retains-explicit-contact-choice');
   await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.pauseAccept=true');await touch('Aceptar y autorizar contacto');await wait('window.posts.length===1');
   await evaluate(`localStorage.removeItem('zipco-token');window.dispatchEvent(new Event('zipco-session-changed'));window.releaseAccept();true`);await delay(250);
-  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Session change prevents success and contact follow-up');evidence.push('session-change-during-accept-no-contact');
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs,.zipco-ah")'),false,'Session change prevents success and contact follow-up');evidence.push('session-change-during-accept-no-contact');
   await reset(1,false);await decide('Aceptar propuesta');await evaluate('window.pauseOrderReads=true');await touch('Aceptar y autorizar contacto');await wait('window.orderReads===1');
   await evaluate(`localStorage.removeItem('zipco-token');window.dispatchEvent(new Event('zipco-session-changed'));window.releaseOrderRead();true`);await delay(200);
-  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector("[role=dialog]")||!!document.querySelector(".zipco-d-hs")'),false);evidence.push('session-change-after-accept-before-contact-no-late-effects');
+  assert.equal(await evaluate('window.posts.length'),1);assert.equal(await evaluate('!!document.querySelector("[role=dialog],.zipco-d-hs,.zipco-ah")'),false);evidence.push('session-change-after-accept-before-contact-no-late-effects');
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
-  await reset(1,false);await decide('Aceptar propuesta');await touch('Solo aceptar · autorizo después');await wait('!!document.querySelector(".zipco-d-hs")');
-  assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-d-hs-in")).animationName'),'none');
-  await delay(2400);assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false,'Reduced motion hologram clears after 2.2 seconds');
+  await reset(1,false);await decide('Aceptar propuesta');await touch('Solo aceptar · autorizo después');await wait('!!document.querySelector(".zipco-ah")');
+  assert.equal(await evaluate('document.querySelector(".zipco-ah").getAnimations({subtree:true}).length'),0);
+  assert.equal(await evaluate('!!document.querySelector(".zipco-d-hs")'),false);
+  await delay(2400);assert.equal(await evaluate('!!document.querySelector(".zipco-ah")'),false,'Reduced motion accepted feedback clears after 2.2 seconds');
   assert.equal(await evaluate('window.posts.length'),1);evidence.push('solo-accept-no-consent-reduced-success-timeout');
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
   for(const width of [320,393]){

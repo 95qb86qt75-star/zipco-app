@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { acceptedProposal, PROPOSAL_ACCEPTED_EVENT, type AcceptedProposal } from './proposalAcceptance';
 import { announceDealClosed } from './DealSuccess';
+import { announceAction } from './ActionHologram';
 import { contactAuthorized, coordinationAllowed, refreshCoordinationOrder } from './coordinationApi';
 import { readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import useCoordination from './useCoordination';
@@ -9,6 +10,11 @@ import type { BusinessRequest, MyOrder } from './types';
 import { RequestProcessError } from './requestProcessErrors';
 import AcceptAuthorizeCard from './AcceptAuthorizeCard';
 import { proposalTitle, whenLong } from './ProposalChat';
+
+function announceAcceptanceComplete(business: boolean, key: string) {
+  if (business) announceDealClosed(key);
+  else announceAction('accepted', { key });
+}
 
 /** Mounted at screen level so filtering the accepted card never cancels consent. */
 export default function AcceptedProposalHost({ onAccepted, refresh }: {
@@ -29,7 +35,7 @@ export default function AcceptedProposalHost({ onAccepted, refresh }: {
       callbacks.current.onAccepted(value.business);
       // Choice to accept is already committed; contact is a separate, permission-checked operation.
       if (value.authorize) setFlow(value);
-      else announceDealClosed(key);
+      else announceAcceptanceComplete(value.business, key);
     };
     const reset = () => setFlow(current => current && current.session !== readCoordinationSession() ? null : current);
     window.addEventListener(PROPOSAL_ACCEPTED_EVENT, receive);
@@ -39,7 +45,7 @@ export default function AcceptedProposalHost({ onAccepted, refresh }: {
   if (!flow || flow.session !== readCoordinationSession()) return null;
   return <AcceptedContactFollowUp key={`${flow.session.revision}:${flow.business}:${flow.receipt.requestProcess.id}:${flow.receipt.requestProcess.version}`}
     flow={flow} close={() => setFlow(null)} refresh={() => callbacks.current.refresh()} complete={() => {
-      announceDealClosed(`${flow.session.revision}:${flow.business}:${flow.receipt.requestProcess.id}:${flow.receipt.requestProcess.version}`);
+      announceAcceptanceComplete(flow.business, `${flow.session.revision}:${flow.business}:${flow.receipt.requestProcess.id}:${flow.receipt.requestProcess.version}`);
       setFlow(null);
     }} />;
 }
