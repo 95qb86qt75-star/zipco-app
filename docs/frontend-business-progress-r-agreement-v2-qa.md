@@ -90,7 +90,12 @@ Además, **13 recorridos anteriores de aceptación/errores/coordinación y apert
 dirigida aprobados**. La navegación local a Listos se prueba con el efecto real
 de RequestsScreen y solo para el mismo acuerdo/categoría. Se revisaron capturas
 de la tarjeta, el envío estabilizado y la hoja V2; artefactos locales bajo
-node_modules/.cache/business-progress-r. Publicación se registra al cerrar.
+node_modules/.cache/business-progress-r.
+
+Código respaldado en GitHub, rama qa: 36c827e80e8e702622673fabb229ad8bd63b4fc4.
+Vercel QA READY dpl_5wvwf5jSaUef6LbvaLw1Rirt9yzZ, SHA exacto y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Este cierre documental también se respalda y publica con código idéntico.
 Solo HTTP sintético en Chrome, sin pedidos, mensajes o notificaciones
 reales. Se conservan los checks anteriores de aceptación y notificación dirigida.
 No hay scripts lint ni tsc independiente configurados; no se declara su ejecución.
