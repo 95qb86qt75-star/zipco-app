@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, LockKeyhole, Trash2, User } from 'lucide-react';
-import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
+import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, LockKeyhole, Trash2 } from 'lucide-react';
+import { CoordinationCardHeader } from './CoordinationCardShell';
 import type { BusinessRequest, MyOrder } from './types';
 import { ANNUL_REASONS, contactAuthorized, coordinationAllowed, type AnnulReason, type CoordinationAction } from './coordinationApi';
 import useCoordination from './useCoordination';
@@ -148,22 +148,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
     onClick={event => { event.currentTarget.classList.remove('zipco-notification-target'); event.stopPropagation(); }}>
     <span className="zipco-co-a1" aria-hidden="true" /><span className="zipco-co-a2" aria-hidden="true" />
     <div style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span className="zipco-co-av">{image
-          ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" />
-          : <User size={24} strokeWidth={2} aria-hidden="true" />}</span>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 17, lineHeight: 1.15, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="zipco-co-client-name">{client}</span>
-            {isUnread && <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">Nueva</span>}
-          </div>
-          <div style={{ marginTop: 5 }}><span className="zipco-co-pill"><i />{statusLabel}</span></div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div data-agreement-price style={{ fontSize: 23, lineHeight: 1, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{price === null ? '—' : `$${price.toLocaleString('es-CL')}`}</div>
-          <div style={{ marginTop: 4, fontSize: 9.5, fontWeight: 800, letterSpacing: '.14em', color: '#d5dbe5' }}>ACORDADO</div>
-        </div>
-      </div>
+      <CoordinationCardHeader name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread}/>
 
       <div className="zipco-co-fb" data-folded={folded} aria-hidden={folded} {...(folded?{inert:''}:{})}><div className="zipco-co-fb-in">
       <button type="button" className="zipco-co-strip2" aria-haspopup="dialog" onClick={() => { onInspect?.(); setSheet('cond'); }}>

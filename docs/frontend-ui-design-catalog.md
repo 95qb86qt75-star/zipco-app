@@ -4,6 +4,13 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-COORDINATION-CATEGORY-SHELL-01 — Coordinación estable durante la carga
+
+2026-10-23. Solo frontend QA. Por coordinar usa su diseño compacto desde el
+primer render, con datos del acuerdo pendientes de verificación y acciones
+bloqueadas durante GET. Conserva plegado y navegación desde notificaciones.
+[Archivos, pruebas y publicación](frontend-coordination-category-shell-qa.md).
+
 ### UI-REQUEST-CARDS-COLLAPSED-01 — Tarjetas cerradas al navegar
 
 2026-10-23. Solo frontend QA. Categorías comienzan con tarjetas resumidas;

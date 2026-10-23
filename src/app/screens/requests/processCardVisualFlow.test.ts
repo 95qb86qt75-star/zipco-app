@@ -24,6 +24,7 @@ import AcceptGlassButton from './AcceptGlassButton';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
+import CoordinationCardShell from './CoordinationCardShell';
 import PendingCancellationActions from './PendingCancellationActions';
 import PendingRejectionActions from './PendingRejectionActions';
 import ProposalNegotiation from './ProposalNegotiation';
@@ -316,13 +317,14 @@ describe('reused 2A card design without legacy actions', () => {
     hooks.agreement = status === 'error' ? { status, message: 'Error recuperable' } : { status };
     const order = normalizeBusinessOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const compact = render({ ...props, order, business: true });
-    expect(elements(compact).find((node) => node.type === OrderCardDisclosure)?.props.price).toBeNull();
+    expect(compact.type).toBe(CoordinationCardShell);
+    expect(renderToStaticMarkup(compact)).not.toContain('$2.000');
     expect(elements(compact).some((node) => node.type === CoordinationActions)).toBe(false);
     const expanded = render({ ...props, order, business: true, expanded: true, onToggle: vi.fn() });
     const html = renderToStaticMarkup(expanded);
     expect(html).not.toContain(raw.note); expect(html).not.toContain(raw.referencePhoto);
     expect(html).not.toContain('Producto de prueba');
-    expect(html).toContain(status === 'loading' ? 'Cargando condiciones' : status === 'absent' ? 'Actualiza el pedido' : 'Reintentar');
+    expect(html).toContain(status === 'loading' ? 'Verificando condiciones' : status === 'absent' ? 'Actualiza el pedido' : 'Reintentar');
   });
 
   it.each([true, false])('propagates photo context through accepted conditions and history links (business=%s)', (business) => {
@@ -448,8 +450,8 @@ describe('reused 2A card design without legacy actions', () => {
     const order = normalizeMyOrdersPayload([{ ...raw, status: 'accepted', requestProcess: coordinationProcess }])[0];
     const view = render({ ...props, order });
     expect(renderToStaticMarkup(view)).toContain('Error recuperable');
-    const retry = elements(view).find((node) => node.type === 'button' && node.props.className?.toString().includes('rounded-xl border'))!;
-    (retry.props.onClick as (event: unknown) => void)(event()); expect(hooks.retry).toHaveBeenCalledOnce();
+    expect(view.type).toBe(CoordinationCardShell);
+    (view.props.retry as () => void)(); expect(hooks.retry).toHaveBeenCalledOnce();
   });
 
   it('keeps refreshing unknown and malformed processes without enabling acceptance', () => {

@@ -46,8 +46,8 @@ describe('2A presentation and legacy compatibility', () => {
     const order = normalizeMyOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }])[0];
     for (const element of [React.createElement(BusinessOrderCard, { request, ...callbacks }), React.createElement(MyOrderCard, { order, ...callbacks })]) {
       const html = render(element);
-      expect(html).toContain('Coordinación pendiente'); expect(html).toContain('Condiciones aceptadas');
-      expect(html).toContain('Cargando condiciones');
+      expect(html).toContain('Coordinación pendiente'); expect(html).toContain('data-coordination-placeholder');
+      expect(html).toContain('Verificando condiciones'); expect(html).not.toContain('zipco-aurora-card');
       expect(html).not.toMatch(/preparando|Preparación|preparación/);
       expect(html).not.toContain('Nota de prueba');
       expect(html).not.toContain('photo.jpg');

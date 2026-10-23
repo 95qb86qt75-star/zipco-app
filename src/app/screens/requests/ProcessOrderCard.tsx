@@ -20,6 +20,8 @@ import ProposalNegotiation from './ProposalNegotiation';
 import { NEGOTIATION_STATES } from './proposalContract';
 import useVisibleResponseMotion from './useVisibleResponseMotion';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
+import CoordinationCardShell from './CoordinationCardShell';
+import { contactAuthorized } from './coordinationApi';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -101,7 +103,10 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
 
-  if (accepted && process && ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state)) {
+  if (process && ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state)) {
+    if (!accepted) return <CoordinationCardShell id={order.id} name={name || (business ? 'Cliente' : 'Negocio')} image={image}
+      statusLabel={stateLabel} isUnread={isUnread} authorized={contactAuthorized(process,business)} retry={agreement.retry}
+      error={agreement.state.status === 'error' ? agreement.state.message : agreement.state.status === 'absent' ? 'No se pudieron verificar las condiciones aceptadas. Actualiza el pedido.' : undefined}/>;
     const subject = accepted.subjectSnapshot;
     const single = subject.items.length === 1;
     const title = single ? `${subject.orderType === 'service' ? '' : `${subject.items[0].quantity}× `}${subject.items[0].nameSnapshot}` : `${subject.items.length} ${subject.orderType === 'service' ? 'servicios' : 'productos'}`;
