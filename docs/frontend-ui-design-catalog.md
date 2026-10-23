@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-CATEGORY-COUNT-LOADING-01 — Cantidades durante la carga
+
+2026-10-23. Solo frontend QA. Categorías muestran … mientras carga la lectura,
+— en error y la cantidad real al terminar, sin requerir tocar campanitas.
+[Alcance, límites, pruebas y publicación](frontend-category-count-loading-qa.md).
+
 ### UI-COORDINATION-CATEGORY-SHELL-01 — Coordinación estable durante la carga
 
 2026-10-23. Solo frontend QA. Por coordinar usa su diseño compacto desde el

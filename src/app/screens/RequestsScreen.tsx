@@ -155,6 +155,8 @@ export default function RequestsScreen({
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
   );
+  const statusCountState = (requestType === 'orders' ? isLoading : quotes.loading)
+    ? 'loading' : (requestType === 'orders' ? loadError : quotes.error) ? 'unavailable' : undefined;
   const businessOrderStatusCounts = countStatusViews(
     requests.filter((record) => record.recordState === "available"),
     "orders",
@@ -1000,6 +1002,7 @@ export default function RequestsScreen({
               ] as const)
           ).map((item) => (
             <RequestStatusTab key={item.key} item={item} selected={statusView === item.key}
+              countState={statusCountState}
               reducedMotion={prefersReducedMotion} onSelect={() => selectStatusView(item.key)} />
           ))}
         </div>

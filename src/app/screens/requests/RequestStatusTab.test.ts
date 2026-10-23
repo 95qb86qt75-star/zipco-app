@@ -29,3 +29,21 @@ describe('shared compact category presentation', () => {
     expect(html).not.toContain('overflow-x-auto');
   });
 });
+
+describe('category count presentation', () => {
+  it('distinguishes loading, failed reads and a confirmed empty category', () => {
+    vi.stubGlobal('React', React);
+    try {
+      const markup = (countState?: 'loading' | 'unavailable') => renderToStaticMarkup(
+        React.createElement(RequestStatusTab, { item: { key: 'pending', label: 'Pendientes', count: 0 },
+          selected: true, reducedMotion: true, onSelect: () => undefined, countState }));
+      expect(markup('loading')).toContain('aria-busy="true"');
+      expect(markup('loading')).toContain('Cantidad pendiente de carga');
+      expect(markup('loading')).not.toContain('>0</span>');
+      expect(markup('unavailable')).toContain('Cantidad no disponible');
+      expect(markup('unavailable')).not.toContain('>0</span>');
+      expect(markup()).toContain('>0</span>');
+      expect(markup()).not.toContain('Cantidad pendiente de carga');
+    } finally { vi.unstubAllGlobals(); }
+  });
+});

@@ -46,6 +46,23 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('visible customer ready summary in RequestsScreen', () => {
+  it('shows pending business counts during load and updates them without selecting a bell', () => {
+    hooks.hasBusiness = true; hooks.orders = []; hooks.loading = true;
+    const businessButton = nodes(render()).find(node => node.type === 'button' && nodes(node.props.children).length > 0 &&
+      React.Children.toArray(node.props.children).includes('Mi Negocio'))!;
+    (businessButton.props.onClick as () => void)();
+    const tabs = () => nodes(render()).filter(node => node.type === RequestStatusTab);
+    expect(tabs().length).toBeGreaterThan(0);
+    expect(tabs().every(node => node.props.countState === 'loading')).toBe(true);
+    hooks.businessOrders = normalizeBusinessOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
+    hooks.loading = false;
+    expect(tabs().every(node => node.props.countState === undefined)).toBe(true);
+    expect(tabs().find(node => (node.props.item as { key: string }).key === 'coordination')?.props.item).toMatchObject({ count: 1 });
+    expect(tabs().find(node => (node.props.item as { key: string }).key === 'pending')?.props.item).toMatchObject({ count: 0 });
+    hooks.error = 'No se pudo leer';
+    expect(tabs().every(node => node.props.countState === 'unavailable')).toBe(true);
+    expect(hooks.action).not.toHaveBeenCalled(); expect(hooks.load).not.toHaveBeenCalled(); expect(fetch).not.toHaveBeenCalled();
+  });
   it('selects Coordination after confirmed proposal acceptance for either actor, with no authorization from navigation', () => {
     hooks.hasBusiness = true;
     hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'accepted', requestProcess: coordinationProcess }]);
