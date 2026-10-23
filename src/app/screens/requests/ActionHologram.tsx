@@ -19,7 +19,7 @@ export const announceAction = (kind: ActionKind, text?: { title?: string; descri
   return id;
 };
 /** Oculta el holograma (p. ej. si la operación falló después de anunciarlo). */
-export const dismissAction = () => window.dispatchEvent(new CustomEvent(ACTION_HOLOGRAM_EVENT, { detail: null }));
+export const dismissAction = (id?: number) => window.dispatchEvent(new CustomEvent(ACTION_HOLOGRAM_EVENT, { detail: id === undefined ? null : { dismissId: id } }));
 
 type Shape = readonly [tag: 'path' | 'circle', attrs: Record<string, string>];
 type Motion = 'fly' | 'swap' | 'pop' | 'shake';
@@ -63,6 +63,7 @@ const SPARKS: ReadonlyArray<readonly [number, number, string, number]> = [
 ];
 const FULL_MS = 4300;   // coincide con la animación de 4,2 s
 const REDUCED_MS = 2200; // prefers-reduced-motion: sin animación, solo el mensaje
+export const WHATSAPP_REDIRECT_MS = 3000;
 
 const Shapes = ({ shapes }: { shapes: readonly Shape[] }) => <>{shapes.map(([tag, attrs], index) => {
   const Tag = tag;
@@ -75,8 +76,9 @@ export default function ActionHologramHost() {
     const seen = new Set<string>();
     let session = readCoordinationSession();
     const on = (event: Event) => {
-      const value = (event as CustomEvent<Feedback | null>).detail;
+      const value = (event as CustomEvent<Feedback | { dismissId: number } | null>).detail;
       if (!value) { setShown(null); return; }
+      if ('dismissId' in value) { setShown(current => current?.id === value.dismissId ? null : current); return; }
       if (!Object.hasOwn(VARIANTS, value.kind) || value.session !== readCoordinationSession()) return;
       session = value.session;
       const key = value.key ? `${value.session?.revision}:${value.key}` : null;
@@ -94,7 +96,8 @@ export default function ActionHologramHost() {
   useEffect(() => {
     if (!shown) return;
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const timer = window.setTimeout(() => setShown(null), reduced ? REDUCED_MS : FULL_MS);
+    const duration = reduced ? REDUCED_MS : FULL_MS;
+    const timer = window.setTimeout(() => setShown(null), shown.kind === 'redirecting' ? Math.max(duration, WHATSAPP_REDIRECT_MS) : duration);
     return () => window.clearTimeout(timer);
   }, [shown]);
   return shown ? <ActionHologram key={shown.id} kind={shown.kind} title={shown.title} description={shown.description} /> : null;

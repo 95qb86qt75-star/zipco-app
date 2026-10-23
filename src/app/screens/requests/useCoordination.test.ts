@@ -34,6 +34,25 @@ it.each(['success','missing-navigation','read-failed','navigation-threw'] as con
 });
 let navigate: ReturnType<typeof vi.fn>;
 let identity: Map<string, string>;
+it.each(['business','customer','session-change','unmount'] as const)('shows the redirect hologram for three seconds with no duplicate operation (%s)',async scenario=>{
+ vi.useFakeTimers();
+ try{
+  const latest={...raw,requestProcess:{...process,state:'COORDINATING',version:3}};
+  const fetcher=vi.fn().mockResolvedValueOnce(response({result:receipt,navigation:{url}})).mockResolvedValueOnce(response([latest]));vi.stubGlobal('fetch',fetcher);
+  const dispatch=vi.spyOn(window,'dispatchEvent');const {default:useCoordination}=await import('./useCoordination');
+  const business=scenario!=='customer';const order=(business?normalizeBusinessOrdersPayload([raw]):normalizeMyOrdersPayload([raw]))[0];
+  const hook=useCoordination(order,business,vi.fn(),true),request=hook.run('OPEN_WHATSAPP');
+  await vi.advanceTimersByTimeAsync(0);
+  expect(dispatch.mock.calls.find(([e])=>e.type==='zipco-action-hologram')?.[0]).toMatchObject({detail:{kind:'redirecting'}});
+  expect(navigate).not.toHaveBeenCalled();expect(await hook.run('OPEN_WHATSAPP')).toBe(false);
+  await vi.advanceTimersByTimeAsync(2999);expect(navigate).not.toHaveBeenCalled();
+  if(scenario==='session-change'){identity.set('zipco-token','another-session');window.dispatchEvent(new Event('zipco-session-changed'));}
+  if(scenario==='unmount')hooks.cleanups.forEach(cleanup=>cleanup());
+  await vi.advanceTimersByTimeAsync(1);await request;
+  if(['session-change','unmount'].includes(scenario))expect(navigate).not.toHaveBeenCalled();else expect(navigate).toHaveBeenCalledExactlyOnceWith(url);
+  expect(fetcher).toHaveBeenCalledTimes(2);expect(fetcher.mock.calls.filter(([,options])=>options?.method==='POST')).toHaveLength(1);
+ }finally{vi.useRealTimers();}
+});
 beforeEach(() => {
   vi.resetModules(); hooks.index = 0; hooks.slots = []; hooks.cleanups = []; hooks.toast.mockReset();
   const values = new Map<string, string>();

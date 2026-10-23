@@ -6,12 +6,22 @@ import { RequestProcessError } from './requestProcessErrors';
 import { operationScope, readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
 import { showAppToast } from '../Toast';
 import { isPendingRequestCancelled, isPendingRequestRejected } from './requestProcess';
-import { announceAction, dismissAction } from './ActionHologram';
+import { announceAction, dismissAction, WHATSAPP_REDIRECT_MS } from './ActionHologram';
 import { coordinationFeedback } from './coordinationFeedback';
 import { clearWhatsappReturn, markWhatsappOpened, whatsappReturnKey } from './whatsappReturn';
 
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
 const intents = () => shared ??= createCoordinationIntents(undefined, typeof sessionStorage === 'undefined' ? undefined : sessionStorage);
+
+function waitForWhatsappPreview(signal: AbortSignal): Promise<boolean> {
+  return new Promise(resolve => {
+    if (signal.aborted) { resolve(false); return; }
+    const finish = (ready: boolean) => { clearTimeout(timer); signal.removeEventListener('abort', abort); resolve(ready); };
+    const abort = () => finish(false);
+    const timer = setTimeout(() => finish(true), WHATSAPP_REDIRECT_MS);
+    signal.addEventListener('abort', abort, { once: true });
+  });
+}
 
 export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback: boolean | 'coordination-steps' = false) {
   const [busy, setBusy] = useState(false);
@@ -24,6 +34,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
   const binding = useRef({ session: readCoordinationSession(), business, orderId: order.id, processId: order.requestProcess?.id });
   const context = useRef({ business, orderId: order.id, processId: order.requestProcess?.id });
   const lastRead = useRef<Awaited<ReturnType<typeof refreshCoordinationOrder>>>(null);
+  const visibleOrder = useRef(order); visibleOrder.current = order;
   const confirmedVersion = useRef(0);
   context.current = { business, orderId: order.id, processId: order.requestProcess?.id };
   const original = binding.current;
@@ -130,8 +141,17 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if (response.navigation && latest?.requestProcess && latest.requestProcess.version >= response.result.requestProcess.version &&
           latest.requestProcess.id === process.id && coordinationAllowed(latest.requestProcess, business, 'OPEN_WHATSAPP')) {
           const returnKey = business && latest ? whatsappReturnKey(latest) : null;
-          try { if (active()) { if (returnKey) markWhatsappOpened(returnKey); if (feedback) announceAction('redirecting'); window.location.assign(response.navigation.url); } }
-          catch { if(returnKey)clearWhatsappReturn(returnKey); if (feedback) dismissAction(); announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
+          const feedbackId = feedback ? announceAction('redirecting') : undefined;
+          const ready = !feedback || await waitForWhatsappPreview(controller.signal);
+          const visible = visibleOrder.current;
+          const current = (visible.requestProcess?.version ?? -1) >= latest.requestProcess.version ? visible : latest;
+          if (!ready || !active() || current.requestProcess?.agreementPublicId !== latest.requestProcess.agreementPublicId ||
+              !coordinationAllowed(current.requestProcess, business, 'OPEN_WHATSAPP')) {
+            if (feedbackId !== undefined) dismissAction(feedbackId);
+            return false;
+          }
+          try { if (active()) { if (returnKey) markWhatsappOpened(returnKey); window.location.assign(response.navigation.url); } }
+          catch { if(returnKey)clearWhatsappReturn(returnKey); if (feedbackId !== undefined) dismissAction(feedbackId); announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
         } else setMessage('El contacto ya no está disponible para este pedido. Se actualizaron sus condiciones.');
       }
       if (feedback && active() && !storageWarning()) {

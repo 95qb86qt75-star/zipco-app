@@ -4,6 +4,12 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-WHATSAPP-PREVIEW-3S-01 — Tres segundos antes de WhatsApp
+
+2026-10-23. Solo frontend QA. Espera de tres segundos con bloqueo de doble toque
+y cancelación por cambio de sesión o desmontaje, usando el contrato existente.
+[Archivos, pruebas y publicación](frontend-whatsapp-hologram-delay-qa.md).
+
 ### UI-BUSINESS-OWN-FEEDBACK-01 — Acciones propias con hologramas
 
 2026-10-22. Solo frontend QA. Host único en App, Q de rechazo inicial y reemplazo
