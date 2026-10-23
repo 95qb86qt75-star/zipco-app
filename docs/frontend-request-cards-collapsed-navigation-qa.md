@@ -64,5 +64,9 @@ tarjeta, tocar una notificación recibida en segundo plano, comprobar que se abr
 solo su destino y volver a navegar normalmente. No se declara validación física.
 Los reintentos fiables de notificaciones siguen pendientes del cierre general.
 
-Rama qa; respaldo/publicación al cierre. Railway QA no requerido.
+Código respaldado en GitHub, rama qa: `6981c4d3d6516f2262e7a808717b0b0b45908898`.
+Vercel QA READY `dpl_6gSKw7zFgfZ9Ybx8nWDCmnTdfhKM`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA con código idéntico.
+Railway QA no requerido.
 Main, producción y backend sin modificaciones.
