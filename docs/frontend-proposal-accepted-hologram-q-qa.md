@@ -66,4 +66,9 @@ Solo aceptar y con contacto; icono/texto, cierre automático y movimiento reduci
 Negocio: confirmar que conserva Cierre exitoso. Probar un paso por vez.
 Los reintentos fiables de notificaciones siguen pendientes del cierre general.
 
-Rama qa. Railway QA no necesario. Backend, main y producción intactos.
+Código respaldado en GitHub, rama `qa`:
+`abfaee9d2e395d965ea1681c733f33877c8eb0c6`.
+Vercel QA READY `dpl_CVxY2nTWmkRT9hEgientLmmLeGhR`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA con código idéntico.
+Railway QA no necesario. Backend, main y producción intactos.
