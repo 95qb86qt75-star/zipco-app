@@ -33,7 +33,10 @@ cotizaciones existentes. Sin campos ni endpoints nuevos. Sin acciones reales.
 
 Suite: 1.221 pruebas / 104 archivos aprobados. Build QA/PWA aprobado; aviso
 existente de bundle mayor de 500 kB. No hay tsc independiente configurado.
-Publicación exacta se registra al cerrar.
+Código respaldado en GitHub QA: 9ff4c138058166d9910db67765bf9cb14c83164c.
+Vercel QA READY: dpl_49MsUN5iwuGkbLtg67kn8QDzGb7F. SHA, rama qa y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Este cierre documental también se respalda y publica con código idéntico.
 Pendiente verificar Android/iPhone con red lenta: ver … al entrar, números
 automáticos al terminar y 0 solamente para categorías vacías confirmadas.
 Si la discrepancia persiste con la lectura terminada, requiere reproducir ese
