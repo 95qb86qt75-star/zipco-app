@@ -2,7 +2,7 @@ import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
 import DealSuccessHost from './requests/DealSuccess';
-import ActionHologramHost, { ActionHologram } from './requests/ActionHologram';
+import { ActionHologram } from './requests/ActionHologram';
 import { WhatsappReturnTracker } from './requests/whatsappReturn';
 import AcceptedProposalHost from './requests/AcceptedProposalHost';
 import { useEffect, useState } from "react";
@@ -601,7 +601,6 @@ export default function RequestsScreen({
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       <DealSuccessHost />
-      <ActionHologramHost />
       <WhatsappReturnTracker />
       <AcceptedProposalHost refresh={() => void loadOrders(true)} onAccepted={business => {
         const role = business ? 'my-business' : 'my-orders';
@@ -1398,32 +1397,8 @@ export default function RequestsScreen({
                       if (accepted) selectStatusView('coordination');
                       return;
                     }
-                    const transfer =
-                      action === "accept"
-                        ? {
-                            title: "Pedido aceptado",
-                            description:
-                              "Pasó a En curso. Cuando esté listo, notifícale al cliente.",
-                          }
-                        : action === "mark-ready"
-                          ? {
-                              title: "Cliente notificado",
-                              description: `Avisamos a ${order.customerName || "tu cliente"}. Esperamos su confirmación.`,
-                            }
-                          : null;
-                    if (transfer) setActiveTransfer(transfer);
-                    await Promise.all([
-                      performAction(order, "business", action, reason, detail),
-                      transfer
-                        ? new Promise((resolve) =>
-                            window.setTimeout(
-                              resolve,
-                              prefersReducedMotion ? 700 : 2800,
-                            ),
-                          )
-                        : Promise.resolve(),
-                    ]);
-                    if (transfer) setActiveTransfer(null);
+                    const confirmed = await performAction(order, "business", action, reason, detail);
+                    if (!confirmed) return;
                     if (action !== "mark-ready") {
                       const next = action === "reject" ? "history" : "active";
                       setStatusViews((current) => ({

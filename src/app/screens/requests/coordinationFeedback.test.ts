@@ -2,8 +2,15 @@ import { expect,it } from 'vitest';
 import { coordinationFeedback } from './coordinationFeedback';
 import { rawOrder,coordinationProcess } from './requestProcessFixtures';
 import { normalizeBusinessOrdersPayload } from './orderNormalization';
+import { rejectedPendingOrder, rejectedPendingReceipt } from './pendingRejectionFixtures';
 const latest=normalizeBusinessOrdersPayload([{...rawOrder,status:'accepted',requestProcess:{...coordinationProcess,coordination:{businessContactAuthorized:true,customerContactAuthorized:false}}}])[0];
 const receipt={orderId:latest.id!,orderStatus:'accepted' as const,requestProcess:latest.requestProcess!};
+it('confirms business rejection only from the matching authoritative closed request',()=>{
+ const current=normalizeBusinessOrdersPayload([rejectedPendingOrder])[0];
+ expect(coordinationFeedback('REJECT_PENDING_REQUEST',rejectedPendingReceipt,current,true)?.kind).toBe('rejected');
+ expect(coordinationFeedback('REJECT_PENDING_REQUEST',rejectedPendingReceipt,current,false)).toBeNull();
+ expect(coordinationFeedback('REJECT_PENDING_REQUEST',rejectedPendingReceipt,null,true)).toBeNull();
+});
 it('only confirms the actor actually authorized on the current read',()=>{
  expect(coordinationFeedback('AUTHORIZE_CONTACT',receipt,latest,true)?.kind).toBe('authorized');
  expect(coordinationFeedback('AUTHORIZE_CONTACT',receipt,latest,false)).toBeNull();

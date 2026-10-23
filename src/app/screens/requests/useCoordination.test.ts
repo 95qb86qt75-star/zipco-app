@@ -118,6 +118,15 @@ describe('owner contact authorization after counter acceptance', () => {
   });
 });
 describe('pending rejection recovery with mocked backend', () => {
+  it('uses a hologram instead of a success toast after verified business rejection', async()=>{
+    const fetcher=vi.fn().mockResolvedValueOnce(response(rejectedPendingReceipt)).mockResolvedValueOnce(response([rejectedPendingOrder]));
+    vi.stubGlobal('fetch',fetcher);const dispatch=vi.spyOn(window,'dispatchEvent');
+    const {default:useCoordination}=await import('./useCoordination');
+    const hook=useCoordination(normalizeBusinessOrdersPayload([rejectPendingOrder])[0],true,vi.fn(),true);
+    expect(await hook.run('REJECT_PENDING_REQUEST','unavailable')).toBe(true);
+    expect(dispatch.mock.calls.find(([e])=>e.type==='zipco-action-hologram')?.[0]).toMatchObject({detail:{kind:'rejected',title:'Solicitud rechazada'}});
+    expect(hooks.toast).not.toHaveBeenCalled();
+  });
   it('confirms only once despite double touch and failed GET, retaining the receipt', async () => {
     let finish!: (value: Response) => void;
     const fetcher = vi.fn().mockImplementationOnce(() => new Promise<Response>(resolve => { finish = resolve; })).mockRejectedValue(new TypeError('offline'));

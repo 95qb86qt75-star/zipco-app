@@ -238,10 +238,10 @@ export default function useRequests(onSessionExpired: () => void) {
         return false;
 
       setUpdatingOrderIds((current) => new Set(current).add(actionable.id));
+      const acceptanceSession = readCoordinationSession();
       try {
         if (hasRequestProcess(order)) {
           if (!order.requestProcess) return false;
-          const acceptanceSession = readCoordinationSession();
           const result = await acceptanceRef.current.accept(actionable.id, order.requestProcess, token, async () => {
             const businessId = parsePositiveInteger(localStorage.getItem('zipco-business-id'));
             if (!businessId) throw new RequestProcessError('No se pudo verificar el negocio. Actualiza la pantalla.', 0);
@@ -263,6 +263,14 @@ export default function useRequests(onSessionExpired: () => void) {
           return true;
         }
         await patchOrderStatus(actionable.id, payload, token);
+        const ownBusinessFeedback = actor === 'business' && ['accept','reject','cancel','mark-ready'].includes(action);
+        if (ownBusinessFeedback && acceptanceSession && readCoordinationSession() === acceptanceSession) {
+          const notice = action === 'accept' ? { kind:'accepted' as const,title:'Pedido aceptado',description:'El pedido fue aceptado. Revisa sus siguientes pasos en Solicitudes.' }
+            : action === 'reject' ? {kind:'rejected' as const,title:'Solicitud rechazada',description:'La solicitud quedó en Historial.'}
+              : action === 'cancel' ? {kind:'annulled' as const,title:'Solicitud anulada',description:'La solicitud quedó en Historial.'}
+                : {kind:'ready' as const,title:'Pedido listo',description:'El pedido quedó marcado como listo. Coordina la entrega con el cliente.'};
+          announceAction(notice.kind,{key:`legacy-order:${actionable.id}:${payload.status}`,title:notice.title,description:notice.description});
+        }
         const reloaded = await loadOrders();
         if (reloaded) {
           if (actor === "customer" && action === "complete-reception") {
@@ -271,7 +279,7 @@ export default function useRequests(onSessionExpired: () => void) {
               description: "Lo guardamos en tu Historial.",
               durationMs: 7000,
             });
-          } else {
+          } else if (!ownBusinessFeedback) {
             showAppToast("Pedido actualizado correctamente.");
           }
         }
@@ -357,9 +365,11 @@ export default function useRequests(onSessionExpired: () => void) {
       try {
         const order = requests.find((item) => item.id === id);
         if (!order || hasRequestProcess(order)) return;
+        const session = readCoordinationSession();
         await proposeOrderAlternative(id, payload, token);
         await loadOrders();
-        showAppToast("Alternativa enviada al cliente.");
+        if (session && readCoordinationSession() === session) announceAction('alternative', { key:`legacy-alternative:${id}:${crypto.randomUUID()}`,
+          description:'El cliente podrá revisar tu alternativa en Solicitudes.' });
       } catch (error) {
         showAppToast(
           error instanceof OrdersApiError

@@ -14,7 +14,7 @@ export default function PendingRejectionActions({ order, refresh }: {
   const [reason, setReason] = useState<PendingRejectionReason | ''>('');
   const [detail, setDetail] = useState('');
   const previousFocus = useRef<HTMLElement | null>(null);
-  const operation = useCoordination(order, true, refresh);
+  const operation = useCoordination(order, true, refresh, true);
   const allowed = order.recordState === 'available' && coordinationAllowed(order.requestProcess, true, 'REJECT_PENDING_REQUEST');
   const pending = operation.pending();
   const recover = operation.needsUpdate || operation.restored() || Boolean(operation.storageWarning()) || Boolean(pending && pending.action !== 'REJECT_PENDING_REQUEST');

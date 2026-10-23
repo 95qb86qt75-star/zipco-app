@@ -4,6 +4,13 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-BUSINESS-OWN-FEEDBACK-01 — Acciones propias con hologramas
+
+2026-10-22. Solo frontend QA. Host único en App, Q de rechazo inicial y reemplazo
+de toasts de éxito legacy del negocio. Errores y avisos entrantes conservados.
+1.212 pruebas, build y cuatro recorridos móviles sintéticos aprobados.
+[Evidencia, límites, archivos y publicación](frontend-business-own-feedback-qa.md).
+
 ### UI-BUSINESS-FIXED-ACCEPT-Q-01 — Pedido original aceptado por el negocio
 
 2026-10-22. Solo frontend QA. Conecta el Q verde al recorrido Aceptar pedido

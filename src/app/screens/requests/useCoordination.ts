@@ -136,7 +136,8 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       }
       if (feedback && active() && !storageWarning()) {
         const notice = coordinationFeedback(action, response.result, latest, business);
-        if (notice && !(feedback === 'coordination-steps' && action === 'AUTHORIZE_CONTACT')) announceAction(notice.kind, { key: notice.key });
+        if (notice && !(feedback === 'coordination-steps' && action === 'AUTHORIZE_CONTACT')) announceAction(notice.kind, { key: notice.key,
+          ...(action === 'REJECT_PENDING_REQUEST' ? { title:'Solicitud rechazada', description:'La solicitud quedó en Historial. Puedes consultar el motivo del rechazo.' } : {}) });
       }
       if (active()) refresh(); return true;
     } catch (error) {
