@@ -65,5 +65,9 @@ confirmar que conserva la tarjeta compacta y probar apertura manual. Luego proba
 la navegación desde notificación. Un paso por vez; no se declara aprobación física.
 Los reintentos fiables de notificaciones siguen pendientes del cierre general.
 
-Rama qa; publicación y respaldo al cierre. Railway/backend no requeridos.
+Código respaldado en GitHub, rama qa: `633ebc288995c1ecc1950a4484db0251d1347bce`.
+Vercel QA READY `dpl_vZHD9jkg88iU7ZX4hUw2xhSiWjzG`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA con código idéntico.
+Railway/backend no requeridos.
 Main y producción sin modificaciones.
