@@ -40,5 +40,9 @@ que el navegador abra WhatsApp; después volver y comprobar el flujo existente.
 No se declara probado el lanzamiento real de la aplicación móvil.
 Los reintentos fiables de notificaciones siguen pendientes del cierre general.
 
-Rama qa; respaldo/publicación al cierre. Railway/backend no requeridos.
+Código respaldado en GitHub, rama qa: `0441fb7e7d1a77e09fbecab5ca9cf18d1b59e9c2`.
+Vercel QA READY `dpl_99WotKEBQYbYomvAQnDBqjQ3eaBg`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA con código idéntico.
+Railway/backend no requeridos.
 Main y producción intactos.
