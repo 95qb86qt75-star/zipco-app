@@ -39,5 +39,9 @@ Pendiente: Android/iPhone, Mi Negocio → Pendientes → Revisar y responder →
 Aceptar pedido; comprobar Q, paso a Por coordinar y contadores. Un paso por vez.
 Reintentos fiables de notificaciones siguen pendientes del cierre general.
 
-Rama qa; publicación exacta se registra al cierre. Railway no necesario.
+Código respaldado en GitHub, rama qa: `39e8c512b1234454758259ff3f768dba7ff1a1d7`.
+Vercel QA READY `dpl_JDyNMSe6zwNr8gPLprpsskeiVRUy`, SHA exacto y alias
+`https://zipco-app-git-qa-zipco-s-projects.vercel.app` comprobados.
+Este cierre documental también se respalda y publica en QA con código idéntico.
+Railway no necesario.
 Backend, main y producción sin cambios.
