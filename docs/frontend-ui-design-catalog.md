@@ -4,6 +4,15 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### FIX-CUSTOMER-COORDINATION-AGREEMENT-01 — Acuerdo completo del cliente
+
+2026-10-24. Solo frontend QA. Ver acuerdo completo en Coordinación del cliente
+abre la hoja compartida actual con su perspectiva; elimina la ruta embebida
+antigua y conserva el botón de condiciones. 1.286 pruebas, build QA/PWA y 41
+recorridos Chrome aprobados, incluidos toque, foto y reintento sin POST.
+Pendiente confirmación en iPhone con la versión nueva.
+[Causa, archivos, contrato y publicación](frontend-customer-coordination-agreement-sheet-qa.md).
+
 ### UI-AGREEMENT-DETAIL-ORDER-01 — Detalle, nota y foto
 
 2026-10-24. Solo frontend QA. Acuerdo completo elimina el resumen intermedio

@@ -119,10 +119,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
       statusLabel={stateLabel} isUnread={isUnread} negotiated={negotiated} acceptedAt={accepted.confirmedAt} accepted={accepted} onInspect={onOpen} notificationOpen={notificationOpen}
       conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
       conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenLong}`} explanation={negotiated ? subject.proposalMessage : subject.note}
-      onOpenAgreement={() => { onOpen?.(); if (onToggle) { if (!isExpanded) onToggle(); } else setLocalExpanded(true); }} refresh={onRetry}
-      agreementDetails={!business && isExpanded && <section aria-label="Condiciones aceptadas" className="mt-3 rounded-2xl bg-white p-2 text-slate-900">
-        {conditionsDetails}<button type="button" className="min-h-11 w-full text-sm font-bold text-violet-700" onClick={event => { event.stopPropagation(); toggle(); }}>Ocultar condiciones</button>
-      </section>} />;
+      refresh={onRetry} />;
   }
 
   if (process && ['IN_PROGRESS', 'READY'].includes(process.state) && !accepted && order.recordState === 'available')

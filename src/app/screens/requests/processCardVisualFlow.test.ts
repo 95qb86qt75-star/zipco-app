@@ -24,6 +24,8 @@ import AcceptGlassButton from './AcceptGlassButton';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
+import AgreementSheet from './AgreementSheet';
+import { ConditionsSheet } from './CoordinationSheets';
 import BusinessProgressCard from './BusinessProgressCard';
 import CustomerProgressCard from './CustomerProgressCard';
 import ProgressCardShell from './ProgressCardShell';
@@ -46,7 +48,7 @@ function elements(root: React.ReactNode): Node[] {
   return React.Children.toArray(root).flatMap((child) => {
     if (!React.isValidElement(child)) return [];
     const view = child as Node;
-    return [view, ...elements(view.props.children), ...elements(view.props.agreementDetails as React.ReactNode)];
+    return [view, ...elements(view.props.children)];
   });
 }
 const event = () => ({ stopPropagation: vi.fn() });
@@ -234,35 +236,32 @@ describe('reused 2A card design without legacy actions', () => {
         expect(view.type).toBe(CustomerProgressCard); expect(view.props.accepted).toBe(agreementFixture);
         expect(elements(view).some(node => node.type === AcceptedConditionsPanel)).toBe(false); continue;
       }
-      const panel = elements(view).find((node) => node.type === AcceptedConditionsPanel)!;
-      expect(panel.props.returnView).toBe(viewName);
-      expect(renderToStaticMarkup(panel)).toContain(`participant=${business ? 'business' : 'customer'}&amp;view=${viewName}`);
+      expect(view.type).toBe(BusinessCoordinationCard);
+      expect(view.props.accepted).toBe(agreementFixture);
+      expect(view.props.agreementDetails).toBeUndefined();
     }
   });
-  it.each([false,true])('keeps the shared coordination card mounted when opening and hiding accepted conditions (business=%s)', (business) => {
-    hooks.agreement = { status: 'loaded', agreement: agreementFixture };
-    const input = { ...raw, status: 'accepted', requestProcess: coordinationProcess };
+  it.each([false,true])('opens only the shared agreement sheet from coordination conditions (business=%s)', business => {
+    hooks.agreement = { status:'loaded', agreement:agreementFixture };
+    const input = { ...raw,status:'accepted',requestProcess:coordinationProcess };
     const order = business ? normalizeBusinessOrdersPayload([input])[0] : normalizeMyOrdersPayload([input])[0];
-    const compact = render({ ...props, order, business });
-    expect(compact.type).toBe(BusinessCoordinationCard); expect(compact.props.business).toBe(business);
-    const key=compact.key;
-    (compact.props.onOpenAgreement as () => void)();
-    const expanded = render({ ...props, order, business });
-    expect(expanded.type).toBe(BusinessCoordinationCard); expect(expanded.key).toBe(key);
-    const nodes = elements(expanded);
-    if (business) {
-      expect(expanded.props.accepted).toBe(agreementFixture);
-      expect(nodes.some(node => node.type === AcceptedConditionsPanel)).toBe(false);
-      return;
-    }
-    const panel = nodes.find((node) => node.type === AcceptedConditionsPanel)!;
-    expect(panel.props.embedded).toBe(true); expect(panel.props.state).toBe(hooks.agreement);
-    expect(elements(nodes.find((node) => node.type === 'section')!).some((node) => node.type === AcceptedConditionsPanel && node.props.embedded === true)).toBe(true);
-    (nodes.find((node) => node.type === 'button' && node.props.children === 'Ocultar condiciones')!.props.onClick as (event:unknown) => void)(event());
-    const closedView = render({ ...props, order, business });
-    const closed = elements(closedView);
-    expect(closed.some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
-    expect(closedView.type).toBe(BusinessCoordinationCard);expect(closedView.key).toBe(key);
+    const card = render({...props,order,business});
+    expect(card.type).toBe(BusinessCoordinationCard);
+    expect(card.props.agreementDetails).toBeUndefined();
+    hooks.slots=[];
+    const draw = () => { hooks.cursor=0; return BusinessCoordinationCard(card.props as React.ComponentProps<typeof BusinessCoordinationCard>); };
+    let nodes=elements(draw());
+    const conditions=nodes.find(node=>node.type===ConditionsSheet)!;
+    expect(conditions.props.fullAgreement).toBe(business);
+    (conditions.props.onOpenAgreement as ()=>void)();
+    nodes=elements(draw());
+    const sheet=nodes.find(node=>node.type===AgreementSheet)!;
+    expect(sheet.props).toMatchObject({open:true,perspective:business?'business':'customer',accepted:agreementFixture,processId:coordinationProcess.id});
+    expect(nodes.find(node=>node.type===ConditionsSheet)?.props.open).toBe(false);
+    expect(nodes.some(node=>node.type===AcceptedConditionsPanel)).toBe(false);
+    (sheet.props.onOpenChange as (open:boolean)=>void)(false);
+    expect(elements(draw()).find(node=>node.type===AgreementSheet)?.props.open).toBe(false);
+    expect(props.onRetry).not.toHaveBeenCalled();expect(props.onAccept).not.toHaveBeenCalled();
   });
   it('renders compact agreement data and the original photo without a second card or total panel', () => {
     const panel = AcceptedConditionsPanel({ state: { status: 'loaded', agreement: agreementFixture }, retry: vi.fn(), embedded: true });
@@ -337,8 +336,7 @@ describe('reused 2A card design without legacy actions', () => {
     const identity = view.key;
     expect(view.props.price).toBe(agreementFixture.totalPriceClp);
     expect(elements(view).some((node) => node.type === AcceptedConditionsPanel)).toBe(false);
-    (view.props.onOpenAgreement as () => void)();
-    view = render({ ...props, order, business: true });
+    view = render({ ...props, order, business: true, expanded:true });
     expect(view.type).toBe(BusinessCoordinationCard); expect(view.key).toBe(identity);
     expect(elements(view).some(node=>node.type===AcceptedConditionsPanel)).toBe(false);
     expect(view.props.accepted).toBe(agreementFixture);
@@ -483,10 +481,10 @@ describe('reused 2A card design without legacy actions', () => {
       expect(view.props.accepted).toBe(agreementFixture); expect(view.props.explanation).toBe('Nota acordada');
       expect(html).not.toContain('Nota de prueba'); return;
     }
-    for (const text of ['Nota acordada', 'Imagen adjunta']) expect(html).toContain(text);
+    expect(view.props.explanation).toBe('Nota acordada');
+    expect(view.props.accepted.subjectSnapshot.referencePhoto).toBe(agreementFixture.subjectSnapshot.referencePhoto);
     for (const text of ['Nota de prueba', 'Producto de prueba', 'Preparación', 'Marcar como listo']) expect(html).not.toContain(text);
-    const panel = elements(view).find((node) => node.type === AcceptedConditionsPanel)!;
-    expect(panel.props.state).toBe(hooks.agreement);
+    expect(elements(view).some(node=>node.type===AcceptedConditionsPanel)).toBe(false);
   });
 
   it('retries an agreement error even while the card is collapsed', () => {

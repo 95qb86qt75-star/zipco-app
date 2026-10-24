@@ -35,13 +35,12 @@ const Step = ({ className = '', node, children }: { className?: string; node: Re
   <div className={`zipco-co-st ${className}`.trim()}>{node}<div className="zipco-co-sb">{children}</div></div>;
 
 export default function BusinessCoordinationCard({ order, business = true, name, image, price, statusLabel, isUnread = false, negotiated, acceptedAt, accepted,
-  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onOpenAgreement, agreementDetails, onInspect, refresh, notificationOpen = 0 }: {
+  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onInspect, refresh, notificationOpen = 0 }: {
   order: BusinessRequest | MyOrder; business?: boolean; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
   /** true for a negotiated agreement; false for the accepted original order. */
   negotiated: boolean; acceptedAt?: string | null; accepted: AcceptedSummary;
   conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
-  /** Abre el detalle completo de siempre (AcceptedConditionsPanel). */
-  onOpenAgreement: () => void; agreementDetails?: ReactNode; onInspect?: () => void; refresh: () => void;
+  onInspect?: () => void; refresh: () => void;
   notificationOpen?: number;
 }) {
   const [latest, setLatest] = useState<BusinessRequest | MyOrder | null>(null);
@@ -228,7 +227,6 @@ export default function BusinessCoordinationCard({ order, business = true, name,
         <button type="button" className="zipco-co-fold" aria-expanded={true} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
         {operation.busy && phase !== 'loading' && <p role="status" className="zipco-co-co2-p">Actualizando pedido…</p>}
       </section>
-      {agreementDetails}
       </div></div>
       <button type="button" className="zipco-co-colrow" data-folded={folded} aria-hidden={!folded} tabIndex={folded?0:-1} aria-expanded={!folded} onClick={() => { onInspect?.(); setFolded(false); }}
         style={{ ['--att' as string]: phase === 'loading' ? 0 : 1 }}>
@@ -244,9 +242,9 @@ export default function BusinessCoordinationCard({ order, business = true, name,
     <ConditionsSheet open={sheet === 'cond'} onOpenChange={value => setSheet(value ? 'cond' : null)} accepted={accepted}
       title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation}
       explanationLabel={negotiated ? 'Explicación de la propuesta aceptada' : 'Nota del cliente'}
-      fullAgreement={business} onOpenAgreement={() => { if (business) setSheet('agree'); else { setSheet(null); onOpenAgreement(); } }} />
-    {business && <AgreementSheet open={sheet === 'agree'} onOpenChange={value => setSheet(value ? 'agree' : null)} processId={process?.id}
-      client={client} accepted={accepted} acceptedAt={acceptedAt} />}
+      fullAgreement={business} onOpenAgreement={() => setSheet('agree')} />
+    <AgreementSheet open={sheet === 'agree'} onOpenChange={value => setSheet(value ? 'agree' : null)} processId={process?.id}
+      perspective={business ? 'business' : 'customer'} client={client} accepted={accepted} acceptedAt={acceptedAt} />
     <AnnulSheet open={sheet === 'anul'} onOpenChange={value => setSheet(value ? 'anul' : null)} busy={operation.busy}
       reasons={Object.entries(ANNUL_REASONS) as Array<[string, string]>} reason={reason} onReason={value => { setReason(value as AnnulReason); setDetail(''); }}
       detail={detail} onDetail={setDetail} onConfirm={() => void annul()} />
