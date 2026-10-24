@@ -64,6 +64,35 @@ beforeEach(() => {
   vi.stubGlobal('window', { dispatchEvent: target.dispatchEvent.bind(target), addEventListener: target.addEventListener.bind(target),
     removeEventListener: target.removeEventListener.bind(target), location: { assign: navigate } });
 });
+it.each(['ACK_READY_NOTICE','CONFIRM_RECEIPT'] as const)('presents customer %s only after verified read and before publishing',async action=>{
+ const ack=action==='ACK_READY_NOTICE';
+ const source={...raw,status:'ready',requestProcess:{...process,state:'READY',version:5,readyNoticeAcknowledged:!ack,allowedActions:[action]}};
+ const latest={...source,status:ack?'ready':'completed',requestProcess:{...source.requestProcess,state:ack?'READY':'COMPLETED',version:6,readyNoticeAcknowledged:true,allowedActions:ack?['CONFIRM_RECEIPT']:[]}};
+ const result={orderId:20,orderStatus:latest.status,requestProcess:latest.requestProcess};
+ const fetcher=vi.fn().mockResolvedValueOnce(response(result)).mockResolvedValueOnce(response([latest]));vi.stubGlobal('fetch',fetcher);
+ const dispatch=vi.spyOn(window,'dispatchEvent');let release!:()=>void;
+ const present=vi.fn(()=>new Promise<void>(resolve=>{release=resolve;}));
+ const {default:useCoordination}=await import('./useCoordination');
+ const hook=useCoordination(normalizeMyOrdersPayload([source])[0],false,vi.fn(),true,undefined,present);
+ const running=hook.run(action);await vi.waitFor(()=>expect(present).toHaveBeenCalledTimes(1));
+ expect(present.mock.calls[0]).toMatchObject([action,expect.any(String),expect.objectContaining({requestProcess:expect.objectContaining({version:6})})]);
+ expect(dispatch.mock.calls.some(([e])=>e.type==='zipco-process-receipt')).toBe(false);
+ expect(await hook.run(action)).toBe(false);release();expect(await running).toBe(true);
+ expect(dispatch.mock.calls.some(([e])=>e.type==='zipco-process-receipt')).toBe(true);
+ expect(dispatch.mock.calls.some(([e])=>e.type==='zipco-customer-received-presented')).toBe(!ack);
+ expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({expectedVersion:5,confirmationAccepted:true});
+ expect(fetcher.mock.calls.filter(([,options])=>options?.method==='POST')).toHaveLength(1);
+});
+it.each(['read-failed','ack-unverified','older-read'] as const)('does not present customer success from %s',async scenario=>{
+ const source={...raw,status:'ready',requestProcess:{...process,state:'READY',version:5,readyNoticeAcknowledged:false,allowedActions:['ACK_READY_NOTICE']}};
+ const result={orderId:20,orderStatus:'ready',requestProcess:{...source.requestProcess,version:6,readyNoticeAcknowledged:true}};
+ const latest={...source,requestProcess:{...result.requestProcess,version:scenario==='older-read'?5:6,readyNoticeAcknowledged:scenario!=='ack-unverified'}};
+ const fetcher=vi.fn().mockResolvedValueOnce(response(result));
+ if(scenario==='read-failed')fetcher.mockRejectedValueOnce(Error('offline'));else fetcher.mockResolvedValueOnce(response([latest]));
+ vi.stubGlobal('fetch',fetcher);const present=vi.fn();const {default:useCoordination}=await import('./useCoordination');
+ await useCoordination(normalizeMyOrdersPayload([source])[0],false,vi.fn(),true,undefined,present).run('ACK_READY_NOTICE');
+ expect(present).not.toHaveBeenCalled();expect(fetcher.mock.calls.filter(([,options])=>options?.method==='POST')).toHaveLength(1);
+});
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
 describe('owner contact authorization after counter acceptance', () => {
   const ownerSource = () => ({ ...raw, requestProcess: { ...process, allowedActions: ['AUTHORIZE_CONTACT'],

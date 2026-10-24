@@ -1,6 +1,6 @@
+import { ProgressCardHeader } from './ProgressCardShell';
 import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Hourglass, Package, PackageCheck, User } from 'lucide-react';
-import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
+import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Hourglass, Package, PackageCheck } from 'lucide-react';
 import type { BusinessRequest } from './types';
 import { coordinationAllowed } from './coordinationApi';
 import useCoordination from './useCoordination';
@@ -84,20 +84,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
   return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} aria-label={`${client}: ${ready ? 'pedido notificado' : 'pedido en curso'}`} className="zipco-co-dk zipco-ec-dk scroll-mb-36" onClick={event => event.stopPropagation()}>
     <span className="zipco-co-a1" aria-hidden="true" /><span className="zipco-co-a2" aria-hidden="true" />
     <div style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span className="zipco-co-av">{image ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" /> : <User size={24} strokeWidth={2} aria-hidden="true" />}</span>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: 17, lineHeight: 1.15, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="truncate">{client}</span>
-            {isUnread && <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">Nueva</span>}
-          </div>
-          <div style={{ marginTop: 5 }}><span className="zipco-co-pill"><i style={ready ? { background: '#4ade80' } : undefined} />{statusLabel}</span></div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 23, lineHeight: 1, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{price === null ? '—' : `$${price.toLocaleString('es-CL')}`}</div>
-          <div style={{ marginTop: 4, fontSize: 9.5, fontWeight: 800, letterSpacing: '.14em', color: '#d5dbe5' }}>ACORDADO</div>
-        </div>
-      </div>
+      <ProgressCardHeader business name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread} ready={ready} />
 
       <div className="zipco-co-fb" data-folded={folded} aria-hidden={folded} {...(folded ? { inert: '' } : {})}><div className="zipco-co-fb-in">
         <button type="button" className="zipco-co-strip2" aria-haspopup="dialog" style={{ marginTop: 12 }} onClick={() => setSheet('cond')}>

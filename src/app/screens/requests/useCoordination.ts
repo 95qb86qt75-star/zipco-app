@@ -9,6 +9,7 @@ import { isPendingRequestCancelled, isPendingRequestRejected } from './requestPr
 import { announceAction, dismissAction, WHATSAPP_REDIRECT_MS } from './ActionHologram';
 import { coordinationFeedback } from './coordinationFeedback';
 import { clearWhatsappReturn, markWhatsappOpened, whatsappReturnKey } from './whatsappReturn';
+import type { CustomerReceiptAction } from './CustomerReceiptDialog';
 
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
 const intents = () => shared ??= createCoordinationIntents(undefined, typeof sessionStorage === 'undefined' ? undefined : sessionStorage);
@@ -24,7 +25,8 @@ function waitForWhatsappPreview(signal: AbortSignal): Promise<boolean> {
 }
 
 export default function useCoordination(order: BusinessRequest | MyOrder, business: boolean, refresh: () => void, feedback: boolean | 'coordination-steps' = false,
-  beforeReadyPublish?: (key: string) => Promise<void>) {
+  beforeReadyPublish?: (key: string) => Promise<void>,
+  beforeCustomerPublish?: (action: CustomerReceiptAction, key: string, latest: BusinessRequest | MyOrder) => Promise<void>) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [needsUpdate, setNeedsUpdate] = useState(false);
@@ -139,12 +141,25 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       const readyNotice = beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
         latest?.requestProcess?.agreementPublicId === process.agreementPublicId
         ? coordinationFeedback(action, response.result, latest, business) : null;
+      const clientNotice = beforeCustomerPublish && !business && !storageWarning() && latest?.requestProcess &&
+        latest.requestProcess.agreementPublicId === process.agreementPublicId && latest.requestProcess.id === process.id &&
+        latest.requestProcess.version >= response.result.requestProcess.version &&
+        ((action === 'ACK_READY_NOTICE' && latest.requestProcess.state === 'READY' && latest.requestProcess.readyNoticeAcknowledged === true) ||
+          (action === 'CONFIRM_RECEIPT' && latest.requestProcess.state === 'COMPLETED'));
       if (readyNotice) {
         try { await beforeReadyPublish!(readyNotice.key); } catch { /* Presentation cannot reverse a confirmed operation. */ }
         if (!active()) return true;
       }
+      if (clientNotice) {
+        try { await beforeCustomerPublish!(action as CustomerReceiptAction, `${business}:${process.id}:${response.result.requestProcess.version}:${action}`, latest!); }
+        catch { /* Presentation cannot reverse a confirmed operation. */ }
+        if (!active()) return true;
+      }
       emitReceipt();
       if (readyNotice) window.dispatchEvent(new CustomEvent('zipco-ready-presented', {
+        detail: { orderId: order.id, agreementPublicId: process.agreementPublicId },
+      }));
+      if (clientNotice && action === 'CONFIRM_RECEIPT') window.dispatchEvent(new CustomEvent('zipco-customer-received-presented', {
         detail: { orderId: order.id, agreementPublicId: process.agreementPublicId },
       }));
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));

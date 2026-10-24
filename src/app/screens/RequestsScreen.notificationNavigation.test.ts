@@ -1,3 +1,4 @@
+vi.mock('./requests/useReadyTransitions', () => ({ default: () => ({ chipBump:false, tip:false }) }));
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as any[], cursor: 0, effects: [] as (() => void)[], dirty: false,
@@ -94,6 +95,17 @@ it.each(['matching', 'different-agreement', 'other-category'])('navigates to Lis
   const result = render();
   expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key)
     .toBe(mode === 'matching' ? 'ready' : mode === 'other-category' ? 'coordination' : 'active');
+  expect(hooks.action).not.toHaveBeenCalled();
+});
+
+it.each(['matching','different-agreement','other-category','business'])('selects customer Historial after its verified received presentation (%s)', mode=>{
+  hooks.loading=false;session=true;
+  window.location.search=`?open=requests-${mode==='business'?'business':'customer'}&view=${mode==='other-category'?'active':'ready'}`;
+  hooks.orders=normalizeMyOrdersPayload([{...rawOrder,status:'ready',requestProcess:{...coordinationProcess,state:'READY'}}]);
+  render();
+  window.dispatchEvent(new CustomEvent('zipco-customer-received-presented',{detail:{orderId:20,agreementPublicId:mode==='different-agreement'?'another':coordinationProcess.agreementPublicId}}));
+  const result=render();expect(nodes(result).find(node=>node.type===RequestStatusTab&&node.props.selected)?.props.item.key)
+    .toBe(mode==='matching'?'history':mode==='other-category'?'active':'ready');
   expect(hooks.action).not.toHaveBeenCalled();
 });
 

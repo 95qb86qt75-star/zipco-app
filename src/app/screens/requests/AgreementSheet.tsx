@@ -6,7 +6,7 @@ import { readCoordinationSession } from './coordinationSession';
 import { subscribeCoordinationSession } from './coordinationSession';
 import type { AgreementReadDto } from './agreement';
 import OrderReferencePhoto from './OrderReferencePhoto';
-import { buildTimeline, money, whenOf, type Round, type Timeline } from './agreementTimeline';
+import { buildTimeline, money, whenOf, type Round, type Timeline, type Perspective } from './agreementTimeline';
 
 /**
  * Hoja "Acuerdo completo" (diseño R, versión V2 aprobada): resumen del acuerdo + línea de tiempo desplegable de cada ronda
@@ -21,13 +21,13 @@ import { buildTimeline, money, whenOf, type Round, type Timeline } from './agree
 export type AgreementAccepted = AgreementReadDto;
 type Load = { status: 'loading' } | { status: 'ready'; timeline: Timeline | null } | { status: 'error' };
 
-const Photo = ({ photo }: { photo: unknown }) => {
+const Photo = ({ photo, label }: { photo: unknown; label: string }) => {
   // Validated snapshots use the existing nested photo viewer.
   const url = typeof photo === 'string' ? photo : null;
-  return url ? <OrderReferencePhoto src={url} title="Foto de referencia" caption="Imagen adjunta a esta propuesta." nestedDialog compact viewerZIndex={1600} /> : null;
+  return url ? <OrderReferencePhoto src={url} title={label} caption="Imagen adjunta a esta propuesta." nestedDialog compact viewerZIndex={1600} /> : null;
 };
 
-function RoundRow({ round, index, open, onToggle }: { round: Round; index: number; open: boolean; onToggle: () => void }) {
+function RoundRow({ round, index, open, onToggle, perspective }: { round: Round; index: number; open: boolean; onToggle: () => void; perspective: Perspective }) {
   const kind = round.side === 'client' ? 'c' : 'n';
   const bodyId = `zipco-ag-round-${round.key}`;
   const h = round.headline;
@@ -48,16 +48,16 @@ function RoundRow({ round, index, open, onToggle }: { round: Round; index: numbe
         {round.message && <div className={`zipco-ag2-q ${kind}`}>“{round.message}”</div>}
         <details className="zipco-ag-details"><summary>Detalle de esta propuesta</summary>
           {round.details.map((line, i) => <p key={i}>{line}</p>)}</details>
-        {round.photo != null && round.photo !== '' && <Photo photo={round.photo} />}
+        {round.photo != null && round.photo !== '' && <Photo photo={round.photo} label={index === 0 ? perspective === 'customer' ? 'Tu foto de referencia' : 'Foto de referencia del cliente' : 'Foto de la propuesta'} />}
         {round.kept.length > 0 && <div className="zipco-ag2-k"><i>Se mantuvo</i>{round.kept.map(k => <span key={k}><Check size={9} strokeWidth={3.4} aria-hidden="true" />{k}</span>)}</div>}
       </div></div>
     </div>
   </div>;
 }
 
-export default function AgreementSheet({ open, onOpenChange, processId, client, accepted, acceptedAt }: {
+export default function AgreementSheet({ open, onOpenChange, processId, client, accepted, acceptedAt, perspective = 'business' }: {
   open: boolean; onOpenChange: (open: boolean) => void; processId?: number | null; client: string;
-  accepted: AgreementAccepted; acceptedAt?: string | null;
+  accepted: AgreementAccepted; acceptedAt?: string | null; perspective?: Perspective;
 }) {
   const [load, setLoad] = useState<Load>({ status: 'loading' });
   const [loadedKey, setLoadedKey] = useState('');
@@ -74,7 +74,7 @@ export default function AgreementSheet({ open, onOpenChange, processId, client, 
       .then(read => {
         if (controller.signal.aborted || readCoordinationSession() !== session) return;
         if (read.process.agreementPublicId !== accepted.agreementPublicId || accepted.requestProcessId !== processId) throw new Error('Acuerdo distinto');
-        const timeline = buildTimeline(read.proposals, accepted);
+        const timeline = buildTimeline(read.proposals, accepted, perspective);
         setLoadedKey(accepted.agreementPublicId); setLoad({ status: 'ready', timeline });
       })
       .catch(error => {
@@ -84,7 +84,7 @@ export default function AgreementSheet({ open, onOpenChange, processId, client, 
         }
       });
     return () => { controller.abort(); unsubscribe(); };
-  }, [open, processId, accepted, attempt]);
+  }, [open, processId, accepted, attempt, perspective]);
 
   const timeline = load.status === 'ready' && loadedKey === accepted.agreementPublicId ? load.timeline : null;
   // The summary always comes from the immutable agreement, even if history fails.
@@ -128,7 +128,7 @@ export default function AgreementSheet({ open, onOpenChange, processId, client, 
           {timeline && <>
             <div className="zipco-ag-sec"><span>{timeline.section}</span><i /><em>{timeline.count}</em></div>
             <div>
-              {timeline.rounds.map((round, i) => <RoundRow key={round.key} round={round} index={i} open={current === i} onToggle={() => setOpened(current === i ? -1 : i)} />)}
+              {timeline.rounds.map((round, i) => <RoundRow key={round.key} round={round} index={i} open={current === i} perspective={perspective} onToggle={() => setOpened(current === i ? -1 : i)} />)}
               <div className="zipco-ag2-r e" style={{ animationDelay: '700ms' }}>
                 <span className="zipco-ag2-nd g"><Check size={16} strokeWidth={3.4} aria-hidden="true" /></span>
                 <div style={{ alignSelf: 'center', fontSize: 13, fontWeight: 800, color: '#047857' }}>{timeline.marker}</div>

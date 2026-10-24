@@ -1,3 +1,4 @@
+vi.mock('./requests/useReadyTransitions', () => ({ default: () => ({ chipBump:false, tip:false }) }));
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, orders: [] as unknown[], action: vi.fn(), load: vi.fn(),

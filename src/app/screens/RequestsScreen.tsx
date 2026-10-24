@@ -1,4 +1,5 @@
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
+import useReadyTransitions from './requests/useReadyTransitions';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
 import DealSuccessHost from './requests/DealSuccess';
@@ -133,6 +134,12 @@ export default function RequestsScreen({
   const historyFilter = historyFilters[viewKey] ?? "all";
   const sortDirection = sortDirections[viewKey] ?? "newest";
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
+  const customerReadyArrival = useReadyTransitions(myOrders, id => {
+    if (!myOrders.some(order => order.id === id && order.requestProcess?.state === 'READY')) return;
+    setAttentionFilter('browse');
+    setStatusViews(current => ({ ...current, 'my-orders-orders': 'ready' }));
+  }, { active: subTab === 'my-orders' && requestType === 'orders', loaded: !isLoading && !loadError,
+    navigationKey: `${subTab}:${requestType}:${statusView}:${attentionFilter}` });
   const quoteRecords =
     subTab === "my-orders" ? quotes.myQuotes : quotes.businessQuotes;
   const customerOrderAttention = getCustomerAttentionItems(
@@ -526,6 +533,20 @@ export default function RequestsScreen({
     window.addEventListener('zipco-ready-presented', presented);
     return () => window.removeEventListener('zipco-ready-presented', presented);
   }, [subTab, requestType, statusView, orderRecords]);
+
+  useEffect(() => {
+    const received = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (subTab !== 'my-orders' || requestType !== 'orders' || statusView !== 'ready' ||
+        typeof detail?.agreementPublicId !== 'string' || !detail.agreementPublicId ||
+        !myOrders.some(order => order.id === detail.orderId && order.requestProcess?.agreementPublicId === detail.agreementPublicId &&
+          ['READY', 'COMPLETED'].includes(order.requestProcess.state))) return;
+      setAttentionFilter('browse'); setStatusViews(current => ({ ...current, 'my-orders-orders': 'history' }));
+      setHistoryFilters(current => ({ ...current, 'my-orders-orders': 'all' }));
+    };
+    window.addEventListener('zipco-customer-received-presented', received);
+    return () => window.removeEventListener('zipco-customer-received-presented', received);
+  }, [subTab, requestType, statusView, myOrders]);
 
   useEffect(() => {
     if (!summaryScrollPending) return;
@@ -1016,6 +1037,7 @@ export default function RequestsScreen({
               ] as const)
           ).map((item) => (
             <RequestStatusTab key={item.key} item={item} selected={statusView === item.key}
+              arrival={subTab === 'my-orders' && requestType === 'orders' && item.key === 'ready' ? customerReadyArrival : undefined}
               countState={statusCountState}
               reducedMotion={prefersReducedMotion} onSelect={() => selectStatusView(item.key)} />
           ))}

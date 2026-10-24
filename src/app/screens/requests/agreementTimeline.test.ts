@@ -26,6 +26,15 @@ describe('immutable agreement timeline', () => {
     const { proposals } = data(3); const { accepted } = data(1);
     expect(buildTimeline(proposals, accepted)?.rounds).toHaveLength(2);
   });
+  it.each([0,1,2,3])('keeps the same accepted round while presenting the customer perspective (%s)', sequence => {
+    const {proposals,accepted}=data(sequence);
+    const result=buildTimeline(proposals,accepted,'customer')!;
+    expect(result.rounds[0].label).toBe('Tú pediste');
+    expect(result.rounds.at(-1)?.accepted).toBe(true);
+    expect(result.marker).toContain(sequence%2?'Tú aceptaste':'El negocio aceptó');
+    expect(result.who).not.toContain('El cliente');
+    expect(result.final).toEqual(buildTimeline(proposals,accepted)!.final);
+  });
   it('rejects a different accepted proposal or mismatched immutable values', () => {
     const { proposals, accepted } = data(2);
     expect(() => buildTimeline(proposals, { ...accepted, acceptedProposalId: 999 })).toThrow();

@@ -22,6 +22,8 @@ import useVisibleResponseMotion from './useVisibleResponseMotion';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
 import CoordinationCardShell from './CoordinationCardShell';
 import BusinessProgressCard from './BusinessProgressCard';
+import CustomerProgressCard from './CustomerProgressCard';
+import ProgressCardShell from './ProgressCardShell';
 import { contactAuthorized } from './coordinationApi';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
@@ -121,6 +123,24 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
       agreementDetails={!business && isExpanded && <section aria-label="Condiciones aceptadas" className="mt-3 rounded-2xl bg-white p-2 text-slate-900">
         {conditionsDetails}<button type="button" className="min-h-11 w-full text-sm font-bold text-violet-700" onClick={event => { event.stopPropagation(); toggle(); }}>Ocultar condiciones</button>
       </section>} />;
+  }
+
+  if (process && ['IN_PROGRESS', 'READY'].includes(process.state) && !accepted && order.recordState === 'available')
+    return <ProgressCardShell id={order.id} business={business} name={name || (business ? 'Cliente' : 'Negocio')} image={image}
+      statusLabel={stateLabel} isUnread={isUnread} retry={agreement.retry}
+      error={agreement.state.status === 'error' ? agreement.state.message : agreement.state.status === 'absent' ? 'No se pudieron verificar las condiciones aceptadas.' : undefined} />;
+
+  if (!business && accepted && process && ['IN_PROGRESS', 'READY'].includes(process.state) && 'businessName' in order) {
+    const subject = accepted.subjectSnapshot, single = subject.items.length === 1;
+    const title = single ? `${subject.orderType === 'service' ? '' : `${subject.items[0].quantity}× `}${subject.items[0].nameSnapshot}` : `${subject.items.length} productos`;
+    const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
+    const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
+    const negotiated = accepted.subjectSchemaVersion === 2;
+    return <CustomerProgressCard key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
+      statusLabel={process.state === 'READY' ? 'Listo' : 'En curso'} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated}
+      notificationOpen={notificationOpen} onInspect={onOpen} isUnread={isUnread} conditionsTitle={title}
+      conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
+      conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />;
   }
 
   if (business && accepted && process && ['IN_PROGRESS', 'READY'].includes(process.state) && 'customerName' in order) {

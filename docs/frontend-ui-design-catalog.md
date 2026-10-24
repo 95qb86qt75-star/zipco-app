@@ -4,6 +4,15 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-CUSTOMER-PROGRESS-S-01 / UI-READY-ARRIVAL-T-01 / UI-PROGRESS-CATEGORY-SHELL-01
+
+2026-10-23. Solo frontend QA. Cliente En curso/Listos con anillo y brillo,
+confirmación de aviso/recepción y acuerdo V2 desde el cliente. Llegada a Listos
+coordinada con holograma, rebote y globo. Marco de progreso desde la carga para
+ambos actores, sin aparición de Aurora anterior. 1.271 pruebas, build QA/PWA y
+52 recorridos Chrome sintéticos aprobados. Pendiente conformidad en teléfono.
+[Archivos, contrato, límites y publicación](frontend-customer-progress-s-ready-arrival-qa.md).
+
 ### UI-BUSINESS-PROGRESS-R-01 / UI-AGREEMENT-TIMELINE-V2-01 — Preparación y acuerdo completo
 
 2026-10-23. Solo frontend QA. Diseño R del negocio para En curso/Listos con

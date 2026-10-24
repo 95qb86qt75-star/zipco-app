@@ -7,6 +7,7 @@
 import type { Proposal } from './proposalContract';
 import type { AgreementReadDto } from './agreement';
 export type ProposalLike = Proposal;
+export type Perspective = 'business' | 'customer';
 export type Side = 'client' | 'business';
 export type Change = { label: string; from: string; to: string };
 export type Round = {
@@ -62,7 +63,7 @@ export function diffProposals(prev: ProposalLike, cur: ProposalLike): { changes:
 const LABELS: Record<number, [Side, string]> = { 0: ['client', 'El cliente pidió'], 1: ['business', 'Tú propusiste'], 2: ['client', 'El cliente contrapone'], 3: ['business', 'Tu final'] };
 
 /** Links normalized history to acceptedProposalId and the immutable agreement. */
-export function buildTimeline(all: ProposalLike[], accepted: AgreementReadDto): Timeline | null {
+export function buildTimeline(all: ProposalLike[], accepted: AgreementReadDto, perspective: Perspective = 'business'): Timeline | null {
   const chosen = all.find(p => p.id === accepted.acceptedProposalId);
   if (!chosen || chosen.totalPriceClp !== accepted.totalPriceClp || chosen.scheduledFor !== accepted.scheduledFor ||
     chosen.subjectSchemaVersion !== accepted.subjectSchemaVersion || chosen.subjectSnapshot.note !== accepted.subjectSnapshot.note ||
@@ -81,7 +82,7 @@ export function buildTimeline(all: ProposalLike[], accepted: AgreementReadDto): 
   const last = sorted[sorted.length - 1];
   const rounds: Round[] = sorted.map((p, i) => {
     const side = p.authorActor === 'CUSTOMER' ? 'client' : 'business';
-    const label = LABELS[p.sequence][1];
+    const label = perspective === 'customer' ? ['Tú pediste', 'El negocio propuso', 'Tu contrapropuesta', 'Final del negocio'][p.sequence] : LABELS[p.sequence][1];
     const snap = p.subjectSnapshot;
     const details = snap.items.map(item => `${item.quantity}× ${item.nameSnapshot} · ${item.descriptionSnapshot || 'Sin descripción'} · ${item.unitPriceClpSnapshot === null ? 'Precio total de esta línea' : `${money(item.unitPriceClpSnapshot)} por unidad`} · Subtotal ${money(item.subtotalClp)}`);
     const message = (i === 0 ? snap.note : snap.proposalMessage ?? snap.note) || null;
@@ -93,13 +94,15 @@ export function buildTimeline(all: ProposalLike[], accepted: AgreementReadDto): 
   });
   const clientProposed = last.authorActor === 'CUSTOMER';
   const acceptedAt = clientProposed ? accepted.businessAcceptedAt : accepted.customerAcceptedAt;
-  const who = last.sequence === 0 ? 'Tú aceptaste el pedido tal como se pidió' : last.sequence === 2 ? 'Tú aceptaste la contrapropuesta'
+  const mine = perspective === 'customer';
+  const who = mine ? ['El negocio aceptó tu pedido tal como lo pediste', 'Tú aceptaste la propuesta del negocio', 'El negocio aceptó tu contrapropuesta', 'Tú aceptaste la propuesta final del negocio'][last.sequence]
+    : last.sequence === 0 ? 'Tú aceptaste el pedido tal como se pidió' : last.sequence === 2 ? 'Tú aceptaste la contrapropuesta'
     : last.sequence === 3 ? 'El cliente aceptó tu propuesta final' : 'El cliente aceptó tu propuesta';
   const item = last.subjectSnapshot.items.length === 1 ? last.subjectSnapshot.items[0] : null;
   return {
     rounds, who,
-    marker: `${clientProposed ? 'Tú aceptaste' : 'El cliente aceptó'}${acceptedAt ? ` · ${timeOf(acceptedAt)}` : ''}`,
-    section: rounds.length === 1 ? 'Pedido del cliente' : 'Cómo llegaron al acuerdo',
+    marker: `${clientProposed ? mine ? 'El negocio aceptó' : 'Tú aceptaste' : mine ? 'Tú aceptaste' : 'El cliente aceptó'}${acceptedAt ? ` · ${timeOf(acceptedAt)}` : ''}`,
+    section: rounds.length === 1 ? mine ? 'Tu pedido' : 'Pedido del cliente' : 'Cómo llegaron al acuerdo',
     count: rounds.length === 1 ? 'Sin cambios' : `${rounds.length} propuestas`,
     final: { title: titleOf(last), price: money(last.totalPriceClp), quantity: item?.quantity ?? null,
       unit: item?.unitPriceClpSnapshot != null ? `${money(item.unitPriceClpSnapshot)} c/u` : null, when: slot(last, 'Lo antes posible') },
