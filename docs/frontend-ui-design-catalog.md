@@ -10,6 +10,7 @@ no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 resultados obsoletos descartados. Recuperación por GET sin repetir WhatsApp;
 diagnóstico QA distingue cancelación, red, HTTP y parseo sin ocultar fallos
 vigentes. 1.286 pruebas, build QA/PWA y 39 recorridos Chrome aprobados.
+Código 0b456a0 en qa, Vercel READY y alias/SHA exactos comprobados.
 Pendiente validación en el iPhone que reportó el incidente.
 [Evidencia, archivos, contrato y publicación](frontend-whatsapp-load-recovery-qa.md).
 

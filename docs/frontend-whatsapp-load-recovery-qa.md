@@ -97,8 +97,14 @@ en node_modules/.cache/whatsapp-load-recovery y customer-progress-s.
 
 ## Publicación y pendiente
 
-Rama qa; commit y despliegue exactos se completan tras verificar Vercel READY.
-Main y producción no fueron modificados. Pendiente validar en el mismo iPhone:
+Código respaldado en GitHub, rama qa:
+0b456a03c9e322c41dbc9427fd42a480b969db8f. Vercel QA READY:
+dpl_8rhdbCgHFUPeZQrBwkRHWCqhcgqv. Alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app y SHA exacto comprobados por API.
+ProductionBranch sigue main y configuración global de build intacta. Este cierre
+documental también se respalda y publica, con el mismo código funcional.
+Railway QA no requirió cambios. Main y producción no fueron modificados.
+Pendiente validar en el mismo iPhone:
 Escribir al negocio → regresar, revisar que se recupere sin toast por cancelación
 esperada y copiar diagnóstico nuevo si persiste un error. Sin esa evidencia
 no se da por cerrada la causa de transporte específica del dispositivo.
