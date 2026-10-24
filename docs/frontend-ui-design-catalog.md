@@ -10,7 +10,8 @@ no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 de la ronda abierta y ordena Detalle de esta propuesta, nota y foto. Resumen
 plegado y comparaciones dentro del detalle conservados para ambas perspectivas.
 1.286 pruebas, build QA/PWA y 39 recorridos Chrome aprobados, más comprobación
-enfocada de las cuatro rondas aceptadas del negocio. Pendiente revisión física.
+enfocada de las cuatro rondas aceptadas del negocio. Código 80d200b, rama qa,
+Vercel READY y alias/SHA exactos comprobados. Pendiente revisión física.
 [Archivos, contrato y publicación](frontend-agreement-detail-order-qa.md).
 
 ### FIX-WHATSAPP-LOAD-RECOVERY-01 — Lecturas al salir y regresar

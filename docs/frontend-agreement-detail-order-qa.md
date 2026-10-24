@@ -51,7 +51,12 @@ node_modules/.cache/customer-progress-s y business-progress-r.
 
 ## Publicación y pendientes
 
-Rama qa. SHA y despliegue se completan tras comprobar Vercel QA READY.
+Código respaldado en GitHub, rama qa:
+80d200b04eaab7f611332e4091911791354b33eb. Vercel QA READY:
+dpl_hwxk9LBzYKypjGzT72A7He413Wj2. Alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app y SHA exacto comprobados por API.
+ProductionBranch sigue main y configuración global de build intacta. El cierre
+documental también se respalda y publica, con código funcional idéntico.
 Railway QA no necesita cambios. Main y producción no fueron modificados.
 Pendiente conformidad visual de Bastián con la nueva disposición en teléfono;
 las capturas recibidas son la referencia del cambio, no prueba del resultado.
