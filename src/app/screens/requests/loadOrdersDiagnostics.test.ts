@@ -28,12 +28,28 @@ describe('QA diagnostic build gate', () => {
 });
 
 describe('sanitized read failures only', () => {
+  it('records a controlled cancellation with load context and never copies the reason message',async()=>{
+    const controller=new AbortController();controller.abort();
+    await expect(diagnoseLoadOrdersRead('loadOrders.customer',()=>Promise.reject(new DOMException('private URL and token','AbortError')),consume,
+      {loadId:9,trigger:'resume',signal:controller.signal,cancellationReason:()=> 'pagehide'})).rejects.toThrow();
+    expect(diagnosticSnapshot()[0]).toMatchObject({loadId:9,trigger:'resume',failureKind:'cancelled',cancellationReason:'pagehide',errorName:'AbortError',httpStatus:null});
+    expect(diagnosticText()).not.toContain('private');
+  });
+  it.each(['AbortError','TypeError'])('distinguishes unowned %s before any Response without inventing HTTP',async name=>{
+    const failure=name==='AbortError'?new DOMException('synthetic cancellation','AbortError'):new TypeError('synthetic network failure');
+    await expect(diagnoseLoadOrdersRead('loadOrders.customer',()=>Promise.reject(failure),consume)).rejects.toBe(failure);
+    expect(diagnosticSnapshot()).toMatchObject([{operation:'loadOrders.customer',method:'GET',route:'/orders/my-orders',httpStatus:null,publicCode:null,frontendVersion:'test-build-local',errorName:name,failureKind:name==='AbortError'?'unexpected-abort':'network',cancellationReason:null,phase:'fetch'}]);
+  });
+  it('keeps status zero distinct from an absent Response',async()=>{
+    await expect(diagnoseLoadOrdersRead('loadOrders.customer',async()=>Response.error(),consume)).rejects.toThrow();
+    expect(diagnosticSnapshot()[0]).toMatchObject({httpStatus:0,publicCode:null,failureKind:'network'});
+  });
   it.each([400, 401, 403, 404, 409, 500])('records HTTP %s without exposing other response fields', async (status) => {
     const request = vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'STALE_VERSION',
       message: 'private message', phone: 'private phone', url: 'private URL', token: 'private token' }), { status }));
     await expect(diagnoseLoadOrdersRead('loadOrders.business', request, consume)).rejects.toThrow('private backend error');
     await settle(); expect(request).toHaveBeenCalledOnce();
-    expect(diagnosticSnapshot()[0]).toEqual({ operation: 'loadOrders.business', method: 'GET',
+    expect(diagnosticSnapshot()[0]).toMatchObject({ operation: 'loadOrders.business', method: 'GET', failureKind:'http',
       route: '/orders/business/:businessId', httpStatus: status, publicCode: 'STALE_VERSION', frontendVersion: 'test-build-local' });
     expect(diagnosticText()).not.toContain('private');
   });
@@ -68,7 +84,7 @@ describe('sanitized read failures only', () => {
       await expect(diagnoseLoadOrdersRead('loadOrders.customer', async () => { throw new Error(); }, consume)).rejects.toThrow();
     }
     expect(diagnosticSnapshot()).toHaveLength(20);
-    expect(Object.keys(diagnosticSnapshot()[0]).sort()).toEqual(['operation', 'method', 'route', 'httpStatus', 'publicCode', 'frontendVersion'].sort());
+    expect(Object.keys(diagnosticSnapshot()[0]).sort()).toEqual(['operation','method','route','httpStatus','publicCode','frontendVersion','loadId','trigger','failureKind','phase','errorName','cancellationReason','startedAt','elapsedMs','visibility'].sort());
     clearDiagnostics(); expect(diagnosticSnapshot()).toEqual([]); unsubscribe();
   });
 });

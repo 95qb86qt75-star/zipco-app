@@ -70,6 +70,80 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); clearDiagnostics(); vi.restoreAllMocks(); });
 
 describe('loadOrders temporary diagnostics preserve the existing reads', () => {
+  it('cancels on unmount and never publishes a late success from an uncooperative transport',async()=>{
+    vi.stubGlobal('localStorage',{getItem:(key:string)=>key==='zipco-token'?'synthetic':null});
+    let finish!:(response:Response)=>void;const fetcher=vi.fn((_url:string,_init?:RequestInit)=>new Promise<Response>(resolve=>{finish=resolve;}));vi.stubGlobal('fetch',fetcher);
+    render();const unmount=hooks.effects.find(fn=>fn.toString().includes("unmount"))!() as ()=>void;
+    const reading=render().loadOrders(true);unmount();expect(fetcher.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    finish(reply([{...rawOrder,businessName:'Late synthetic'}]));expect(await reading).toBe(false);expect(render().myOrders).toEqual([]);expect(hooks.toast).not.toHaveBeenCalled();
+  });
+  it.each(['pagehide','visibilitychange'] as const)('records controlled %s cancellation without a toast, then recovers by GET only',async event=>{
+    vi.useFakeTimers();try{
+      vi.stubEnv('QA_LOAD_DIAGNOSTICS',true);
+      vi.stubGlobal('localStorage',{getItem:(key:string)=>key==='zipco-token'?'synthetic':null});
+      const page=new EventTarget(),doc=Object.assign(new EventTarget(),{visibilityState:'visible'});
+      vi.stubGlobal('window',page);vi.stubGlobal('document',doc);
+      const fetcher=vi.fn().mockImplementationOnce((_url,init)=>new Promise((_resolve,reject)=>{
+        init.signal.addEventListener('abort',()=>reject(new DOMException('synthetic','AbortError')),{once:true});
+      })).mockResolvedValueOnce(reply([{...rawOrder,businessName:'Synthetic'}]));vi.stubGlobal('fetch',fetcher);
+      const hook=render(),cleanup=hooks.effects.find(fn=>fn.toString().includes('pagehide'))!() as ()=>void;
+      const reading=hook.loadOrders(true,'refresh-event');
+      doc.visibilityState='hidden';(event==='pagehide'?page:doc).dispatchEvent(new Event(event));expect(await reading).toBe(false);
+      expect(render().loadError).toBe('');expect(hooks.toast).not.toHaveBeenCalled();
+      expect(diagnosticSnapshot()[0]).toMatchObject({failureKind:'cancelled',errorName:'AbortError',trigger:'refresh-event',cancellationReason:event==='pagehide'?'pagehide':'page-hidden',visibility:'hidden'});
+      doc.visibilityState='visible';doc.dispatchEvent(new Event('visibilitychange'));page.dispatchEvent(new Event('pageshow'));
+      await vi.advanceTimersByTimeAsync(150);expect(fetcher).toHaveBeenCalledTimes(2);expect(render().myOrders).toHaveLength(1);expect(render().loadError).toBe('');
+      expect(fetcher.mock.calls.every(([,init])=>!init.method)).toBe(true);cleanup();
+    }finally{vi.useRealTimers();}
+  });
+  it('shares a current read across ordinary refresh triggers',async()=>{
+    vi.stubGlobal('localStorage',{getItem:(key:string)=>key==='zipco-token'?'synthetic':null});
+    let finish!:(response:Response)=>void;const fetcher=vi.fn(()=>new Promise<Response>(resolve=>{finish=resolve;}));vi.stubGlobal('fetch',fetcher);
+    const hook=render(),first=hook.loadOrders(true,'resume'),second=hook.loadOrders(true,'refresh-event');
+    expect(fetcher).toHaveBeenCalledTimes(1);finish(reply([{...rawOrder,businessName:'Synthetic'}]));expect(await first).toBe(true);expect(await second).toBe(true);
+  });
+  it('rejects an old successful read after a session replacement',async()=>{
+    let token='before';vi.stubGlobal('localStorage',{getItem:(key:string)=>key==='zipco-token'?token:null});
+    let finish!:(response:Response)=>void;const fetcher=vi.fn().mockImplementationOnce(()=>new Promise<Response>(resolve=>{finish=resolve;})).mockResolvedValueOnce(reply([{...rawOrder,id:21,businessName:'New session'}]));vi.stubGlobal('fetch',fetcher);
+    const load=render().loadOrders,old=load(true);token='after';expect(await load(true)).toBe(true);finish(reply([{...rawOrder,businessName:'Old session'}]));expect(await old).toBe(false);
+    expect(render().myOrders.map(order=>order.id)).toEqual([21]);expect(hooks.toast).not.toHaveBeenCalled();
+  });
+  it('retains a real HTTP error and public code for the current read',async()=>{
+    vi.stubEnv('QA_LOAD_DIAGNOSTICS',true);vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({code:'INCOMPATIBLE_STATE'}),{status:503})));
+    expect(await render().loadOrders(true,'resume')).toBe(false);expect(render().loadError).not.toBe('');expect(hooks.toast).toHaveBeenCalled();
+    await vi.waitFor(()=>expect(diagnosticSnapshot()[0]).toMatchObject({failureKind:'http',httpStatus:503,publicCode:'INCOMPATIBLE_STATE',trigger:'resume'}));
+  });
+  it.each(['AbortError','TypeError'])('preserves a visible error for unexpected %s with no controlled cancellation',async name=>{
+    vi.stubEnv('QA_LOAD_DIAGNOSTICS',true);vi.stubEnv('QA_LOAD_DIAGNOSTICS_VERSION','b5329f3-reproduction');
+    vi.stubGlobal('fetch',vi.fn().mockRejectedValue(name==='AbortError'?new DOMException('synthetic cancelled load','AbortError'):new TypeError('synthetic network failure')));
+    expect(await render().loadOrders(true)).toBe(false);
+    expect(render().loadError).toContain('No se pudieron cargar los pedidos');
+    expect(hooks.toast).toHaveBeenCalledWith('No se pudieron cargar los pedidos. Intenta nuevamente.','error');
+    expect(diagnosticSnapshot()[0]).toMatchObject({operation:'loadOrders.customer',httpStatus:null,publicCode:null});
+  });
+  it('supersedes a pre-receipt read and rejects its late error after a new successful read',async()=>{
+    vi.stubGlobal('localStorage',{getItem:(key:string)=>key==='zipco-token'?'synthetic':null});
+    let failOlder!:(error:unknown)=>void;
+    const fetcher=vi.fn().mockImplementationOnce(()=>new Promise((_resolve,reject)=>{failOlder=reject;}))
+      .mockResolvedValueOnce(reply([{...rawOrder,businessName:'Synthetic'}]));
+    vi.stubGlobal('fetch',fetcher);const load=render().loadOrders;
+    const older=load(true);expect(await load(true,'receipt')).toBe(true);expect(render().myOrders).toHaveLength(1);expect(render().loadError).toBe('');
+    failOlder(new DOMException('synthetic old navigation read','AbortError'));expect(await older).toBe(false);
+    expect(render().myOrders).toHaveLength(1);expect(render().loadError).toBe('');expect(hooks.toast).not.toHaveBeenCalled();
+    expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true);
+  });
+  it('coalesces visibilitychange and pageshow into one readonly recovery',async()=>{
+    vi.useFakeTimers();
+    const page=new EventTarget(),doc=Object.assign(new EventTarget(),{visibilityState:'visible'});
+    vi.stubGlobal('window',page);vi.stubGlobal('document',doc);
+    const fetcher=vi.fn().mockImplementation(()=>new Promise(()=>{}));vi.stubGlobal('fetch',fetcher);
+    render();const effect=hooks.effects.find(effect=>effect.toString().includes('visibilitychange'))!;
+    const cleanup=effect() as ()=>void;
+    doc.dispatchEvent(new Event('visibilitychange'));page.dispatchEvent(new Event('pageshow'));
+    await vi.advanceTimersByTimeAsync(150);expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher.mock.calls.every(([url,init])=>url.endsWith('/orders/my-orders?processContract=alternatives-v1')&&init?.signal&&!init?.method)).toBe(true);
+    cleanup();vi.useRealTimers();
+  });
   it('retains confirmed rejection and original data in both lists after failed and stale reads', async () => {
     const listeners = new Map<string, (event: Event) => void>();
     vi.stubGlobal('window', { addEventListener: (name: string, listener: (event: Event) => void) => listeners.set(name, listener), removeEventListener: vi.fn() });
@@ -182,7 +256,9 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
         ? ['/orders/my-orders?processContract=alternatives-v1', '/orders/business/1?processContract=alternatives-v1'] : ['/orders/my-orders?processContract=alternatives-v1', '/businesses/9', '/orders/business/1?processContract=alternatives-v1']);
   });
   it('does not collect failures when disabled', async () => {
-    vi.stubEnv('QA_LOAD_DIAGNOSTICS', false);
+    // Custom Vite env stubs stringify booleans; an empty value represents the
+    // falsy build gate here (the actual build injects a boolean literal).
+    vi.stubEnv('QA_LOAD_DIAGNOSTICS', '');
     const fetcher = vi.fn().mockResolvedValue(new Response('{}', { status: 500 }));
     vi.stubGlobal('fetch', fetcher);
     expect(await render().loadOrders(true)).toBe(false);

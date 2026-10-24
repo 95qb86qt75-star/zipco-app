@@ -64,6 +64,26 @@ beforeEach(() => {
   vi.stubGlobal('window', { dispatchEvent: target.dispatchEvent.bind(target), addEventListener: target.addEventListener.bind(target),
     removeEventListener: target.removeEventListener.bind(target), location: { assign: navigate } });
 });
+it('refreshes before WhatsApp and dismisses its hologram without loading again after navigation',async()=>{
+  vi.useFakeTimers();try{
+    const source={...raw,status:'ready',requestProcess:{...process,state:'READY',version:5,readyNoticeAcknowledged:true,allowedActions:['OPEN_WHATSAPP','CONFIRM_RECEIPT']}};
+    const latest={...source,requestProcess:{...source.requestProcess,version:6}};
+    const result={orderId:20,orderStatus:'ready',requestProcess:latest.requestProcess};
+    const fetcher=vi.fn().mockResolvedValueOnce(response({result,navigation:{url}})).mockResolvedValueOnce(response([latest]));vi.stubGlobal('fetch',fetcher);
+    const sequence:string[]=[];
+    for(const type of ['zipco-process-receipt','zipco-requests-refresh','zipco-action-hologram'])window.addEventListener(type,()=>sequence.push(type));
+    navigate.mockImplementation(()=>sequence.push('navigation-assign'));
+    const refresh=vi.fn(()=>sequence.push('refresh-callback'));
+    const {default:useCoordination}=await import('./useCoordination');
+    const task=useCoordination(normalizeMyOrdersPayload([source])[0],false,refresh,true).run('OPEN_WHATSAPP');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sequence).toEqual(['zipco-process-receipt','zipco-requests-refresh','zipco-action-hologram']);
+    expect(refresh).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(3000);expect(await task).toBe(true);
+    expect(sequence).toEqual(['zipco-process-receipt','zipco-requests-refresh','zipco-action-hologram','zipco-action-hologram','navigation-assign']);
+    expect(refresh).not.toHaveBeenCalled();
+    expect(fetcher.mock.calls.filter(([,options])=>options?.method==='POST')).toHaveLength(1);
+  }finally{vi.useRealTimers();}
+});
 it.each(['ACK_READY_NOTICE','CONFIRM_RECEIPT'] as const)('presents customer %s only after verified read and before publishing',async action=>{
  const ack=action==='ACK_READY_NOTICE';
  const source={...raw,status:'ready',requestProcess:{...process,state:'READY',version:5,readyNoticeAcknowledged:!ack,allowedActions:[action]}};

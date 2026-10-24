@@ -565,7 +565,7 @@ export default function RequestsScreen({
 
   useEffect(() => {
     const refresh = () => {
-      void loadOrders(true);
+      void loadOrders(true, 'refresh-event');
       void quotes.load(true);
     };
     window.addEventListener("zipco-requests-refresh", refresh);

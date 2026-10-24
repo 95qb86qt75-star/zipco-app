@@ -177,7 +177,14 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
             if (feedbackId !== undefined) dismissAction(feedbackId);
             return false;
           }
-          try { if (active()) { if (returnKey) markWhatsappOpened(returnKey); window.location.assign(response.navigation.url); } }
+          try { if (active()) {
+            if (returnKey) markWhatsappOpened(returnKey);
+            if (feedbackId !== undefined) dismissAction(feedbackId);
+            window.location.assign(response.navigation.url);
+            // The verified receipt already refreshed the list. Do not start
+            // another read while leaving; resume recovers with GET only.
+            return true;
+          } }
           catch { if(returnKey)clearWhatsappReturn(returnKey); if (feedbackId !== undefined) dismissAction(feedbackId); announce('No se pudo iniciar la navegación a WhatsApp. Puedes volver a intentarlo.'); }
         } else setMessage('El contacto ya no está disponible para este pedido. Se actualizaron sus condiciones.');
       }

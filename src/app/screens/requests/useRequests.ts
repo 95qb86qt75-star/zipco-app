@@ -27,7 +27,7 @@ import {
 } from "./ordersApi";
 import { isRecord } from "./orderValueParsers";
 import { normalizeRequestProcess, isPendingRequestRejected, isProposalRejected } from './requestProcess';
-import { diagnoseLoadOrdersRead } from './loadOrdersDiagnostics';
+import { diagnoseLoadOrdersRead, type LoadReadContext, type LoadTrigger, type LoadCancellation } from './loadOrdersDiagnostics';
 import type {
   BusinessRequest,
   ClosureReason,
@@ -38,10 +38,15 @@ import type {
 
 const FALLBACK_BUSINESS_IMAGE =
   "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80";
+let loadSequence = 0;
+type OrderLoadFlight = {
+  token: string; businessId: string | null; controller: AbortController; context: LoadReadContext;
+  cancelReason: LoadCancellation | null; promise: Promise<boolean>;
+};
 
 async function readOrdersResponse<T>(operation: Parameters<typeof diagnoseLoadOrdersRead>[0] | null,
-  request: () => Promise<Response>, consume: (response: Response) => Promise<T>): Promise<T> {
-  if (import.meta.env.QA_LOAD_DIAGNOSTICS && operation) return diagnoseLoadOrdersRead(operation, request, consume);
+  request: () => Promise<Response>, consume: (response: Response) => Promise<T>, context?: LoadReadContext): Promise<T> {
+  if (import.meta.env.QA_LOAD_DIAGNOSTICS && operation) return diagnoseLoadOrdersRead(operation, request, consume, context);
   return consume(await request());
 }
 
@@ -58,128 +63,170 @@ export default function useRequests(onSessionExpired: () => void) {
   const currentOrders = useRef<Array<BusinessRequest | MyOrder>>([]);
   currentOrders.current = [...requests, ...myOrders];
   const businessNameCache = useRef(new Map<number, string>());
+  const loader = useRef<{ mounted: boolean; flight: OrderLoadFlight | null }>({ mounted: true, flight: null });
+  const cancelLoad = useCallback((reason: LoadCancellation) => {
+    const flight = loader.current.flight;
+    if (flight) { flight.cancelReason = reason; loader.current.flight = null; flight.controller.abort(); }
+    if (loader.current.mounted) setIsLoading(false);
+  }, []);
   const hasBusiness =
     typeof window !== "undefined" &&
     Boolean(localStorage.getItem("zipco-business-id"));
 
-  const getBusinessName = useCallback(async (id: number) => {
+  const getBusinessName = useCallback(async (id: number, context: LoadReadContext) => {
     if (businessNameCache.current.has(id))
       return businessNameCache.current.get(id) ?? "";
-    return readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.businessName' : null, () => fetch(`${API_BASE_URL}/businesses/${id}`), async (response) => {
+    return readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.businessName' : null, () => fetch(`${API_BASE_URL}/businesses/${id}`, {signal:context.signal}), async (response) => {
       if (!response.ok) return "";
       const payload: unknown = await response.json();
       const name = isRecord(payload) && typeof payload.name === "string" ? payload.name : "";
-      businessNameCache.current.set(id, name);
+      if (!context.signal.aborted) businessNameCache.current.set(id, name);
       return name;
-    });
+    }, context);
   }, []);
 
   const loadOrders = useCallback(
-    async (silent = false) => {
+    async (silent = false, trigger: LoadTrigger = 'manual') => {
       const token = localStorage.getItem("zipco-token");
       const businessId = localStorage.getItem("zipco-business-id");
+      if (!loader.current.mounted) return false;
       if (!token) {
+        cancelLoad('superseded');
         setIsLoading(false);
         return false;
       }
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return false;
+      const previous = loader.current.flight;
+      if (previous && previous.token === token && previous.businessId === businessId && trigger !== 'receipt') return previous.promise;
+      if (previous) cancelLoad('superseded');
+      const controller = new AbortController();
+      const flight: OrderLoadFlight = { token, businessId, controller, cancelReason:null, promise:Promise.resolve(false),
+        context:{loadId:++loadSequence,trigger,signal:controller.signal,cancellationReason:()=>flight.cancelReason} };
+      loader.current.flight = flight;
+      const active = () => loader.current.mounted && loader.current.flight === flight && !controller.signal.aborted &&
+        localStorage.getItem('zipco-token') === token && localStorage.getItem('zipco-business-id') === businessId;
       if (!silent) setIsLoading(true);
-      setLoadError("");
-      try {
-        const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders?processContract=alternatives-v1`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }), async (myResponse) => {
-          if (!myResponse.ok)
-            throw new OrdersApiError(
-              "No se pudieron cargar tus pedidos.",
-              myResponse.status,
-            );
-          return myResponse.json();
-        });
-        const normalized = normalizeMyOrdersPayload(myPayload);
-        const customerOrders = await Promise.all(
-            normalized.map(async (order) => {
-              if (order.businessName)
+      const execute = async () => {
+        try {
+          const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders?processContract=alternatives-v1`, {
+            headers: { Authorization: `Bearer ${token}` }, signal:controller.signal,
+          }), async (myResponse) => {
+            if (!myResponse.ok)
+              throw new OrdersApiError(
+                "No se pudieron cargar tus pedidos.",
+                myResponse.status,
+              );
+            return myResponse.json();
+          }, flight.context);
+          if (!active()) return false;
+          const normalized = normalizeMyOrdersPayload(myPayload);
+          const customerOrders = await Promise.all(
+              normalized.map(async (order) => {
+                if (order.businessName)
+                  return {
+                    ...order,
+                    businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
+                  };
+                const resolvedName =
+                  order.businessId === null
+                    ? ""
+                    : await getBusinessName(order.businessId, flight.context);
                 return {
                   ...order,
+                  businessName:
+                    resolvedName ||
+                    (order.businessId === null
+                      ? "Negocio no disponible"
+                      : `Negocio #${order.businessId}`),
                   businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
                 };
-              const resolvedName =
-                order.businessId === null
-                  ? ""
-                  : await getBusinessName(order.businessId);
-              return {
-                ...order,
-                businessName:
-                  resolvedName ||
-                  (order.businessId === null
-                    ? "Negocio no disponible"
-                    : `Negocio #${order.businessId}`),
-                businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
-              };
-            }),
-          );
-        setMyOrders((current) => mergeProcessOrderUpdates(customerOrders, current));
+              }),
+            );
+          if (!active()) return false;
+          setMyOrders((current) => mergeProcessOrderUpdates(customerOrders, current));
 
-        if (businessId) {
-          const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
-            `${API_BASE_URL}/orders/business/${businessId}?processContract=alternatives-v1`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          ), async (businessResponse) => {
-            if (!businessResponse.ok) {
-              throw new OrdersApiError(
-                "No se pudieron cargar los pedidos del negocio.",
-                businessResponse.status,
-              );
-            }
-            return businessResponse.json();
-          });
-          setRequests((current) => mergeProcessOrderUpdates(normalizeBusinessOrdersPayload(businessPayload), current));
-        } else {
-          setRequests([]);
+          if (businessId) {
+            const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
+              `${API_BASE_URL}/orders/business/${businessId}?processContract=alternatives-v1`,
+              {
+                headers: { Authorization: `Bearer ${token}` }, signal:controller.signal,
+              },
+            ), async (businessResponse) => {
+              if (!businessResponse.ok) {
+                throw new OrdersApiError(
+                  "No se pudieron cargar los pedidos del negocio.",
+                  businessResponse.status,
+                );
+              }
+              return businessResponse.json();
+            }, flight.context);
+            if (!active()) return false;
+            setRequests((current) => mergeProcessOrderUpdates(normalizeBusinessOrdersPayload(businessPayload), current));
+          } else {
+            setRequests([]);
+          }
+          setLoadError('');
+          return true;
+        } catch (error) {
+          // Suppress only a controlled cancellation or an obsolete/session-bound
+          // result. An unexpected AbortError/TypeError from a current read is real.
+          if (!active()) return false;
+          if (error instanceof OrdersApiError && error.status === 401) {
+            showAppToast(
+              "Tu sesión venció. Ingresa nuevamente por SMS.",
+              "error",
+            );
+            onSessionExpired();
+          } else {
+            setLoadError(
+              "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.",
+            );
+            showAppToast(
+              "No se pudieron cargar los pedidos. Intenta nuevamente.",
+              "error",
+            );
+          }
+          return false;
+        } finally {
+          if (loader.current.flight === flight) {
+            loader.current.flight = null;
+            if (loader.current.mounted) setIsLoading(false);
+          }
         }
-        return true;
-      } catch (error) {
-        if (error instanceof OrdersApiError && error.status === 401) {
-          showAppToast(
-            "Tu sesión venció. Ingresa nuevamente por SMS.",
-            "error",
-          );
-          onSessionExpired();
-        } else {
-          setLoadError(
-            "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.",
-          );
-          showAppToast(
-            "No se pudieron cargar los pedidos. Intenta nuevamente.",
-            "error",
-          );
-        }
-        return false;
-      } finally {
-        if (!silent) setIsLoading(false);
-      }
+      };
+      flight.promise = execute();
+      return flight.promise;
     },
-    [getBusinessName, onSessionExpired],
+    [getBusinessName, onSessionExpired, cancelLoad],
   );
 
   useEffect(() => {
-    void loadOrders();
-  }, [loadOrders]);
+    loader.current.mounted = true;
+    void loadOrders(false, 'initial');
+    return () => { loader.current.mounted = false; cancelLoad('unmount'); };
+  }, [loadOrders, cancelLoad]);
 
   useEffect(() => {
     const expire = () => onSessionExpired();
-    const resume = () => { if (document.visibilityState === 'visible') void loadOrders(true); };
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const resume = () => {
+      clearTimeout(timer);
+      if (document.visibilityState === 'hidden') { cancelLoad('page-hidden'); return; }
+      timer = setTimeout(() => { if (document.visibilityState === 'visible') void loadOrders(true, 'resume'); }, 150);
+    };
+    const hide = () => { clearTimeout(timer); cancelLoad('pagehide'); };
     window.addEventListener('zipco-coordination-session-expired', expire);
     document.addEventListener('visibilitychange', resume);
     window.addEventListener('pageshow', resume);
+    window.addEventListener('pagehide', hide);
     return () => {
       window.removeEventListener('zipco-coordination-session-expired', expire);
       document.removeEventListener('visibilitychange', resume);
       window.removeEventListener('pageshow', resume);
+      window.removeEventListener('pagehide', hide);
+      clearTimeout(timer);
     };
-  }, [loadOrders, onSessionExpired]);
+  }, [loadOrders, onSessionExpired, cancelLoad]);
 
   useEffect(() => {
     const receive = (event: Event) => {
@@ -195,7 +242,7 @@ export default function useRequests(onSessionExpired: () => void) {
         return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled' | 'ready' | 'completed' | 'rejected' | 'alternative_proposed', requestProcess };
       });
       setRequests(apply); setMyOrders(apply);
-      void loadOrders(true);
+      void loadOrders(true, 'receipt');
     };
     window.addEventListener('zipco-process-receipt', receive);
     return () => window.removeEventListener('zipco-process-receipt', receive);

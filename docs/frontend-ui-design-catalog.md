@@ -4,6 +4,15 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### FIX-WHATSAPP-LOAD-RECOVERY-01 — Lecturas al salir y regresar
+
+2026-10-23. Solo frontend QA. Cargas compartidas, cancelación controlada y
+resultados obsoletos descartados. Recuperación por GET sin repetir WhatsApp;
+diagnóstico QA distingue cancelación, red, HTTP y parseo sin ocultar fallos
+vigentes. 1.286 pruebas, build QA/PWA y 39 recorridos Chrome aprobados.
+Pendiente validación en el iPhone que reportó el incidente.
+[Evidencia, archivos, contrato y publicación](frontend-whatsapp-load-recovery-qa.md).
+
 ### UI-CUSTOMER-PROGRESS-S-01 / UI-READY-ARRIVAL-T-01 / UI-PROGRESS-CATEGORY-SHELL-01
 
 2026-10-23. Solo frontend QA. Cliente En curso/Listos con anillo y brillo,
