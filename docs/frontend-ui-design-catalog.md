@@ -4,6 +4,15 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-AGREEMENT-DETAIL-ORDER-01 — Detalle, nota y foto
+
+2026-10-24. Solo frontend QA. Acuerdo completo elimina el resumen intermedio
+de la ronda abierta y ordena Detalle de esta propuesta, nota y foto. Resumen
+plegado y comparaciones dentro del detalle conservados para ambas perspectivas.
+1.286 pruebas, build QA/PWA y 39 recorridos Chrome aprobados, más comprobación
+enfocada de las cuatro rondas aceptadas del negocio. Pendiente revisión física.
+[Archivos, contrato y publicación](frontend-agreement-detail-order-qa.md).
+
 ### FIX-WHATSAPP-LOAD-RECOVERY-01 — Lecturas al salir y regresar
 
 2026-10-23. Solo frontend QA. Cargas compartidas, cancelación controlada y

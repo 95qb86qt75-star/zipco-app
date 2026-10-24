@@ -11,6 +11,7 @@ import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';imp
 window.React=React;sessionStorage.clear();const q=new URLSearchParams(location.search);const business=!q.has('customer');
 localStorage.setItem('zipco-user-id','12');localStorage.setItem('zipco-token','synthetic');if(business)localStorage.setItem('zipco-business-id','1');else localStorage.removeItem('zipco-business-id');
 const seq=Number(q.get('seq')||0),history=proposalsFixture(seq),last=history.proposals[seq];
+history.proposals[0].subjectSnapshot.referencePhoto='https://example.test/customer-reference.jpg';
 if(q.has('service'))for(const p of history.proposals){p.subjectSnapshot.orderType='service';p.subjectSnapshot.items[0].quantity=1;if(p.subjectSnapshot.items[0].unitPriceClpSnapshot!==null)p.subjectSnapshot.items[0].unitPriceClpSnapshot=p.totalPriceClp;}
 const accepted={...agreementFixture,acceptedProposalId:last.id,subjectSchemaVersion:last.subjectSchemaVersion,subjectSnapshot:last.subjectSnapshot,totalPriceClp:last.totalPriceClp,scheduledFor:last.scheduledFor};
 let process={...coordinationProcess,currentProposalId:last.id,state:q.has('ready')?'READY':q.has('coordination')?'COORDINATING':'IN_PROGRESS',version:5,
@@ -68,6 +69,12 @@ try{
   await visit('seq='+seq);await click('.zipco-co-colrow');await delay(700);await click('.zipco-co-strip2');await wait('!!document.querySelector(".zipco-ag-cta")');await shot('conditions-'+seq);
   await click('.zipco-ag-cta');await wait('!!document.querySelector(".zipco-ag2-r")');await delay(900);
   assert.equal(await evaluate('document.querySelectorAll(".zipco-ag2-r:not(.e)").length'),seq+1);assert.equal(await evaluate('document.querySelectorAll(".zipco-ag2-ok").length'),1);assert.equal(await evaluate('document.querySelectorAll(".zipco-ag2-x[data-open=true]").length'),1);
+  assert.equal(await evaluate('(()=>{const row=document.querySelector(".zipco-ag2-x[data-open=true]").parentElement,body=row.querySelector(".zipco-ag2-xi");return !row.querySelector(":scope > .zipco-ag2-s")&&body.firstElementChild.matches("details.zipco-ag-details")&&body.children[1].matches(".zipco-ag2-q")})()'),true);
+  await click('.zipco-ag2-x[data-open=true] .zipco-ag-details summary');assert.equal(await evaluate('document.querySelector(".zipco-ag2-x[data-open=true] .zipco-ag-details").open'),true);
+  assert.equal(await evaluate('document.querySelector(".zipco-ag2-x[data-open=true] .zipco-ag-details").textContent.includes("Descripción sintética")'),true);
+  await evaluate('document.querySelector(".zipco-ag2-x[data-open=true]").parentElement.querySelector(".zipco-ag2-h").click()');await delay(100);
+  assert.equal(await evaluate('!!document.querySelector(".zipco-ag2-c > .zipco-ag2-s")'),true);
+  await evaluate('document.querySelector(".zipco-ag2-ok").closest(".zipco-ag2-c").querySelector(".zipco-ag2-h").click()');await delay(100);
   assert.equal(await evaluate('window.posts.length'),0);assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);await shot('agreement-'+seq);await click('.zipco-ag-x');await wait('!document.querySelector(".zipco-ag-sheet")');results.push('agreement-'+seq);
  }
  await visit('coordination=1');await click('.zipco-co-colrow');await delay(700);await click('.zipco-co-strip2');await wait('!!document.querySelector(".zipco-ag-cta")');await click('.zipco-ag-cta');await wait('!!document.querySelector(".zipco-ag-sheet")');results.push('coordination-opens-agreement');

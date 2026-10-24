@@ -39,15 +39,18 @@ function RoundRow({ round, index, open, onToggle, perspective }: { round: Round;
         {round.accepted && <span className="zipco-ag2-ok">Acordada</span>}
         <span className="zipco-ag2-chev" style={open ? { transform: 'rotate(180deg)' } : undefined}><ChevronDown size={15} strokeWidth={2.8} aria-hidden="true" /></span>
       </button>
-      <div className="zipco-ag2-s">
+      {!open && <div className="zipco-ag2-s">
         {h.kind === 'order' && <><b>{h.title}</b> · {h.price} · {h.when}</>}
         {h.kind === 'changes' && h.changes.map((c, i) => <span key={c.label}>{i > 0 && ' · '}{c.label} <s>{c.from}</s> → <b>{c.to}</b></span>)}
         {h.kind === 'same' && 'Sin cambios respecto a la anterior'}
-      </div>
+      </div>}
       <div className="zipco-ag2-x" id={bodyId} data-open={open} aria-hidden={!open} {...(!open ? { inert: '' } : {})} style={{ gridTemplateRows: open ? '1fr' : '0fr' }}><div className="zipco-ag2-xi">
-        {round.message && <div className={`zipco-ag2-q ${kind}`}>“{round.message}”</div>}
         <details className="zipco-ag-details"><summary>Detalle de esta propuesta</summary>
+          {h.kind === 'order' && <p>Disponibilidad: {h.when}</p>}
+          {h.kind === 'changes' && <div className="zipco-ag2-s">{h.changes.map((c, i) => <span key={c.label}>{i > 0 && ' · '}{c.label} <s>{c.from}</s> → <b>{c.to}</b></span>)}</div>}
+          {h.kind === 'same' && <p>Sin cambios respecto a la anterior</p>}
           {round.details.map((line, i) => <p key={i}>{line}</p>)}</details>
+        {round.message && <div className={`zipco-ag2-q ${kind}`}>“{round.message}”</div>}
         {round.photo != null && round.photo !== '' && <Photo photo={round.photo} label={index === 0 ? perspective === 'customer' ? 'Tu foto de referencia' : 'Foto de referencia del cliente' : 'Foto de la propuesta'} />}
         {round.kept.length > 0 && <div className="zipco-ag2-k"><i>Se mantuvo</i>{round.kept.map(k => <span key={k}><Check size={9} strokeWidth={3.4} aria-hidden="true" />{k}</span>)}</div>}
       </div></div>
