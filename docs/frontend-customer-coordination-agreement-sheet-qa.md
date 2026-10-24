@@ -61,6 +61,11 @@ Emulación Chrome/touch no equivale a una prueba nativa de Safari/iPhone.
 
 ## Publicación y pendientes
 
-Rama qa. Commit y despliegue exactos se completan tras verificar READY y alias.
+Código respaldado en GitHub, rama qa:
+1423d940e5836d7b895973f587d5d902efc88b31. Vercel QA READY:
+dpl_EADcfqcgxMmAo1TvZpPEGpq3opU5. Alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app y SHA exacto comprobados por API.
+ProductionBranch sigue main y build global intacto. El cierre documental también
+se respalda y publica, con el mismo código funcional ya validado.
 Main y producción no fueron modificados. Pendiente confirmar en el iPhone del
 usuario que el botón existente abre esta hoja con la versión nueva cargada.

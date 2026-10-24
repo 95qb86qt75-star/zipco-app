@@ -10,6 +10,7 @@ no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 abre la hoja compartida actual con su perspectiva; elimina la ruta embebida
 antigua y conserva el botón de condiciones. 1.286 pruebas, build QA/PWA y 41
 recorridos Chrome aprobados, incluidos toque, foto y reintento sin POST.
+Código 1423d94 en qa, Vercel READY y alias/SHA exactos comprobados.
 Pendiente confirmación en iPhone con la versión nueva.
 [Causa, archivos, contrato y publicación](frontend-customer-coordination-agreement-sheet-qa.md).
 
