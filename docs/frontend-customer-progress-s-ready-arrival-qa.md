@@ -110,9 +110,13 @@ cuenta regresiva son exclusivamente fixtures locales.
 
 ## Publicación y pendientes
 
-Rama qa. Código y cierre documental se respaldan y publican por SHA exacto en
-Vercel QA; se completa el cierre al verificar READY y alias. Railway QA no
-necesita cambios. Main y producción no fueron modificados.
+Código respaldado en GitHub, rama qa:
+e3229085d373be969fefbc9edff68defde7ed491. Vercel QA **READY**:
+dpl_EhfpwzyDYcPSPSyNnKSdM3uetRup. SHA exacto, ref qa, destino Preview y alias
+https://zipco-app-git-qa-zipco-s-projects.vercel.app comprobados por API.
+Se verificó que productionBranch sigue main y el build global sigue sin cambios.
+Este cierre documental también se respalda y publica, con código funcional
+idéntico. Railway QA no necesitó cambios. Main y producción no fueron modificados.
 
 Pendiente prueba física Android/iPhone: navegar En curso/Listos, abrir desde
 notificación, observar llegada, confirmar aviso y recepción con pedidos QA

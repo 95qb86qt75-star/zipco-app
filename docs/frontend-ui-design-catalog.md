@@ -10,7 +10,8 @@ no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 confirmación de aviso/recepción y acuerdo V2 desde el cliente. Llegada a Listos
 coordinada con holograma, rebote y globo. Marco de progreso desde la carga para
 ambos actores, sin aparición de Aurora anterior. 1.271 pruebas, build QA/PWA y
-52 recorridos Chrome sintéticos aprobados. Pendiente conformidad en teléfono.
+52 recorridos Chrome sintéticos aprobados. Código e322908, rama qa, Vercel QA
+READY y alias/SHA exactos comprobados. Pendiente conformidad en teléfono.
 [Archivos, contrato, límites y publicación](frontend-customer-progress-s-ready-arrival-qa.md).
 
 ### UI-BUSINESS-PROGRESS-R-01 / UI-AGREEMENT-TIMELINE-V2-01 — Preparación y acuerdo completo
