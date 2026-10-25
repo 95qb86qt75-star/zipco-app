@@ -143,3 +143,46 @@ Sin pedidos reales ni uploads en estas comprobaciones; prueba física pendiente.
 Commit/push por integración GitHub en qa y verificación READY del alias habitual
 pendientes al preparar esta ficha. Main y producción intactos. Los cuatro
 documentos locales anteriores sin seguimiento quedan fuera de este commit.
+
+## Contraponer y conservar el camino en la final — 2026-10-25
+
+Clasificación: solo frontend, sobre el contrato S2 publicado. El usuario
+confirma dos cambios: mismo editor para Contraponer 1 vez del cliente y no
+repetir WhatsApp/retiro al enviar la propuesta final del negocio.
+
+Contraponer utiliza AlternativeDraftDialog y el mismo botón compartido de
+vidrio de Proponer alternativa. Título compacto «Contraponer · 1 vez»; precio,
+cantidad, disponibilidad, producto, explicación, foto y revisión usan los mismos
+componentes. El consentimiento propio del cliente se muestra en la revisión
+antes de confirmar, conservando el editor con el diseño aprobado. No cambia
+el límite de una contrapropuesta, los permisos ni el consentimiento del otro.
+
+PROPOSE_FINAL toma el plan vigente de la lectura autorizada de propuestas y
+reenvía sus campos comerciales (camino, mensaje, horario/dirección y opción
+de contacto) sin abrir el selector ni editarlos. La revisión muestra el plan
+conservado; si corresponde compartir contacto, conserva el texto explícito del
+consentimiento propio del negocio al confirmar. El backend crea el plan propio
+de la propuesta final; no se reutiliza artificialmente una FK ni se modifica el
+plan anterior. Si falta el plan, no se inventa otro y el envío queda bloqueado.
+Se mantiene el preflight de versión/propuesta y la idempotencia existentes.
+
+Archivos: `ProposalNegotiation.tsx`, `PendingAlternativeActions.tsx`,
+`availabilityChoice.ts` (src/app/screens/requests),
+`scripts/check-availability-flow.mjs`, esta ficha y el catálogo UI.
+No hay campos/endpoints nuevos: GET propuestas conserva
+`?processContract=availability-v1`; POST counter-proposal conserva la preferencia
+del cliente; POST propose-final conserva fulfillment completo y consentimiento
+propio del negocio cuando corresponde. Finales legacy siguen su cuerpo anterior.
+Sin cambios de contrato, migraciones ni despliegues Railway.
+
+Validación: 1339 pruebas/112 archivos, build QA/PWA y 10 recorridos Chrome con
+HTTP simulado aprobados. Comprobado el editor completo de contrapropuesta y
+la igualdad de fulfillment inicial/final para WhatsApp y retiro con instrucciones
+propias y opción de contacto. Captura inspeccionada:
+node_modules/.cache/availability-flow/customer-counter-editor.png.
+Sin acciones de pedidos reales. Revisión física Android/iPhone pendiente.
+
+Base da09d1d, rama qa; commit/push GitHub y verificación Vercel READY pendientes
+al preparar la ficha. Main y producción intactos. Se conservan fuera de esta
+entrega cinco documentos locales de diagnóstico/coordinación sin seguimiento,
+incluida la validación de campos de retiro aún pendiente con backend.

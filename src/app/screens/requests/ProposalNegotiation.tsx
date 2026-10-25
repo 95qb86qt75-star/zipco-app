@@ -20,7 +20,7 @@ import { announceAction } from './ActionHologram';
 import {availabilityFlow,BUSINESS_CONTACT_COPY,BUSINESS_CONTACT_VERSION,type FulfillmentChoice} from './availabilityContract';
 import {CUSTOMER_CONTACT_TEXT_VERSION} from '../createOrderApi';
 import {ConfirmAvailabilityDesign} from './availability-design/AvailabilityDesign';
-import {fulfillmentFromChoice} from './availabilityChoice';
+import {fulfillmentFromChoice,fulfillmentFromPlan} from './availabilityChoice';
 import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
@@ -140,7 +140,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     const newFlow=availabilityFlow(captured.process),plan=captured.proposals.at(-1)?.availability??captured.process.availability;
     const permitsContact=plan?.path==='WHATSAPP'||plan?.allowCustomerWhatsapp===true;
     const extra:Pick<ProposalBody,'fulfillment'|'customerContactPreference'|'businessContactConsent'>=newFlow?
-      action==='PROPOSE_ALTERNATIVE'||action==='PROPOSE_FINAL'?{fulfillment:chosenFulfillment.current??undefined}
+      action==='PROPOSE_FINAL'?{fulfillment:fulfillmentFromPlan(plan)}
+      :action==='PROPOSE_ALTERNATIVE'?{fulfillment:chosenFulfillment.current??undefined}
       :action==='COUNTER_PROPOSAL'||action==='ACCEPT_PROPOSAL'?{customerContactPreference:{allowed:permitsContact?contactPreference:false,textVersion:CUSTOMER_CONTACT_TEXT_VERSION}}
       :action==='ACCEPT_COUNTER_PROPOSAL'&&permitsContact?{businessContactConsent:{accepted:true,textVersion:BUSINESS_CONTACT_VERSION}}:{}:{};
     if(newFlow&&['PROPOSE_ALTERNATIVE','PROPOSE_FINAL'].includes(action)&&!extra.fulfillment)throw new ProposalError('Elige cómo seguirá esta propuesta antes de enviarla.',0);
@@ -260,7 +261,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                   {others.length > 0 && <div className="flex gap-2.5">
                     {others.map(action => {
                       const reject = action.startsWith('REJECT_');
-                      if (!reject) return <ProposalDraftButton key={action} label={action === 'COUNTER_PROPOSAL' ? 'Contraproponer' : titles[action]}
+                      if (!reject) return <ProposalDraftButton key={action} label={action === 'COUNTER_PROPOSAL' ? 'Contraponer' : titles[action]}
                         ariaLabel={titles[action]} once={action === 'COUNTER_PROPOSAL'} busy={busy} onClick={() => go(action)} />;
                       return <button key={action} type="button" aria-label={titles[action]} disabled={busy} onClick={() => go(action)}
                         className={`${reject ? 'zipco-chat-rej' : 'zipco-chat-ctr'} min-h-11 min-w-0 ${reject ? 'flex-1' : 'flex-[1.35] flex-col'} px-2 py-2 text-[13px]`}>
@@ -290,15 +291,17 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         </Dialog.Content></Dialog.Portal>
     </Dialog.Root>}
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
-      sourceOverride={proposalDraftSource(read)} title={titles[draftAction]}
+      sourceOverride={proposalDraftSource(read)} title={draftAction==='COUNTER_PROPOSAL'?'Contraponer · 1 vez':titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
       close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => {
-        if(availabilityFlow(read.process)&&business&&!chosenFulfillment.current)return new Promise<boolean>((resolve,reject)=>{
+        if(availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_ALTERNATIVE'&&!chosenFulfillment.current)return new Promise<boolean>((resolve,reject)=>{
           pendingFulfillment.current={send:()=>execute(draftAction,review,file),resolve,reject};setFulfillmentOpen(true);
         });
         return execute(draftAction,review,file);
       } : undefined}
-      extraFields={availabilityFlow(read.process)&&!business?read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>:undefined} />}
+      reviewFields={availabilityFlow(read.process)?business&&draftAction==='PROPOSE_FINAL'?<div className="my-3 rounded-xl border p-3 text-xs">
+        {read.process.availability?<><p className="mb-2 font-bold">Se conserva la opción de la propuesta anterior</p><AvailabilityPlanSummary plan={read.process.availability}/>{read.process.availability.allowCustomerWhatsapp&&<p className="mt-2">{BUSINESS_CONTACT_COPY}</p>}</>:<p role="alert">No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p>}
+      </div>:!business?read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>:undefined:undefined} />}
     <ConfirmAvailabilityDesign open={fulfillmentOpen} onOpenChange={value=>{
       if(!value&&!busy){setFulfillmentOpen(false);const pending=pendingFulfillment.current;pendingFulfillment.current=null;pending?.resolve(false);}
     }} purpose="proposal" busy={busy} onChoose={async choice=>{

@@ -4,6 +4,16 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-COUNTER-EDITOR-FINAL-PATH-01 — Contraponer y propuesta final
+
+2026-10-25. Solo frontend sobre S2: Contraponer 1 vez comparte el editor/diseño
+de alternativas; el consentimiento del cliente está en la revisión. La final
+del negocio conserva WhatsApp/retiro e instrucciones vigentes, sin repetir el
+selector. Mismos endpoints/payload S2 y consentimiento propio por actor.
+1339 pruebas, build QA/PWA y diez recorridos simulados aprobados; revisión física
+pendiente. Sin cambios Railway, main o producción.
+[Archivos, contrato y comprobaciones](frontend-alternative-direct-open-qa.md).
+
 ### UI-AVAILABILITY-CONTINUATION-S2-01 — Pantallas reales 3–5
 
 2026-10-25. Frontend + backend: integración del contrato S2 ya publicado en
