@@ -7,7 +7,9 @@ export const OWN_BUSINESS_ORDER_MESSAGE = 'No puedes realizar pedidos en tu prop
 export const GENERIC_CREATE_ORDER_MESSAGE = 'No se pudo enviar el pedido.';
 export const CATALOG_CHANGED_MESSAGE = 'El catálogo cambió. Revisa nuevamente tu pedido.';
 
-export type CreateOrderPayload = { businessId: number; items: Array<{ catalogItemId: number; quantity: number }>; note: string; needNow: boolean; deliveryDate: string | null; deliveryTime: string | null; referencePhoto: string | null };
+export const CUSTOMER_CONTACT_TEXT_VERSION = 'availability-customer-whatsapp-v1' as const;
+export type CustomerContactPreference = { allowed: boolean; textVersion: typeof CUSTOMER_CONTACT_TEXT_VERSION };
+export type CreateOrderPayload = { businessId: number; items: Array<{ catalogItemId: number; quantity: number }>; note: string; needNow: boolean; deliveryDate: string | null; deliveryTime: string | null; referencePhoto: string | null; customerContactPreference?: CustomerContactPreference };
 export type CreateOrderDraft = Omit<CreateOrderPayload, 'deliveryDate' | 'deliveryTime'> & { deliveryDate: string; deliveryTime: string };
 
 export function hasCompleteDeliverySelection(
@@ -26,7 +28,8 @@ export function buildCreateOrderPayload(draft: CreateOrderDraft): CreateOrderPay
     needNow: draft.needNow,
     deliveryDate: draft.deliveryDate === '' ? null : draft.deliveryDate,
     deliveryTime: draft.deliveryTime === '' ? null : draft.deliveryTime,
-    referencePhoto: draft.referencePhoto
+    referencePhoto: draft.referencePhoto,
+    ...(draft.customerContactPreference !== undefined ? { customerContactPreference: { ...draft.customerContactPreference } } : {}),
   };
 }
 export type CreatedOrder = { id: number; total: number; items: OrderItemResponse[]; requestProcess?: RequestProcessSummary | null };

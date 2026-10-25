@@ -122,17 +122,18 @@ export function DesignConfirmation({ open, onOpenChange, title, description, con
   </AlertDialog.Portal></AlertDialog.Root>;
 }
 
-export function ConsultationDesignSheet({ open, onOpenChange, data, contact, onContactChange, onSend, busy = false, error }: {
+export function ConsultationDesignSheet({ open, onOpenChange, data, contact, onContactChange, onSend, busy = false, contactLocked = false, error }: {
   open: boolean; onOpenChange: (open: boolean) => void; data: RequestDesignData; contact: boolean;
-  onContactChange: (checked: boolean) => void; onSend: () => void; busy?: boolean; error?: string;
+  onContactChange: (checked: boolean) => void; onSend: () => void; busy?: boolean; contactLocked?: boolean; error?: string;
 }) {
   const [removeContact, setRemoveContact] = useState(false);
   return <><Modal open={open} onOpenChange={value => { if (!busy) onOpenChange(value); }} sheet icon={<Send />} busy={busy}
     title="Requiero este producto" description="El negocio te confirmará si lo tiene disponible. Aún no compras nada.">
     <div className="zipco-av-summary-chips">{data.items.map((item, index) => <span key={index}>{item.quantity}× {item.name}</span>)}<b>{money(data.total)}</b><span>{data.immediate && <Zap />}{data.schedule}</span></div>
     <div className="zipco-av-consent"><div><b>Permitir que este negocio me escriba por WhatsApp</b><p>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</p></div>
-      <ContactSwitch checked={contact} disabled={busy} onChange={() => { contact ? setRemoveContact(true) : onContactChange(true); }} />
+      <ContactSwitch checked={contact} disabled={busy || contactLocked} onChange={() => { contact ? setRemoveContact(true) : onContactChange(true); }} />
     </div>
+    {contactLocked && <p className="zipco-av-dialog-hint">Reintentaremos la solicitud original con la misma elección de contacto.</p>}
     {error && <p role="alert" className="zipco-av-error">{error}</p>}
     <button type="button" className="zipco-av-primary zipco-av-send" disabled={busy} onClick={onSend}><Send aria-hidden="true" />{busy ? 'Enviando…' : 'Enviar solicitud'}</button>
   </Modal>

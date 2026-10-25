@@ -8,7 +8,7 @@ import { readCoordinationSession, subscribeCoordinationSession } from './coordin
  * Se monta UNA vez (junto a <DealSuccessHost />) y se dispara con announceAction(kind) desde cualquier parte, así sigue
  * visible aunque el componente que lo disparó se desmonte al cambiar el pedido de pestaña.
  */
-export type ActionKind = 'alternative' | 'final' | 'counter' | 'authorized' | 'redirecting' | 'accepted' | 'started' | 'ready' | 'rejected' | 'annulled' | 'clientReady' | 'clientAck' | 'clientReceived';
+export type ActionKind = 'requestSent' | 'alternative' | 'final' | 'counter' | 'authorized' | 'redirecting' | 'accepted' | 'started' | 'ready' | 'rejected' | 'annulled' | 'clientReady' | 'clientAck' | 'clientReceived';
 
 export const ACTION_HOLOGRAM_EVENT = 'zipco-action-hologram';
 let sequence = 0;
@@ -44,6 +44,7 @@ const TRASH_LID: Shape[] = [['path', { d: 'M3 6h18' }], ['path', { d: 'M8 6V4a2 
  * (son los reales). El resto son propuestas del diseño: revísalas con producto antes de publicar.
  */
 const VARIANTS: Record<ActionKind, Variant> = {
+  requestSent: { title: 'Consulta enviada', desc: 'Queda en «Pendientes» hasta que el negocio responda.', icon: SEND, motion: 'fly', colors: ['#4ade80', '#06b6d4', '#5eead4'], glow: ['rgba(74,222,128,.5)', 'rgba(34,211,238,.4)'] },
   clientReady: { title: '¡Tu pedido está listo!', desc: 'El negocio ya lo preparó. Confirma el aviso para coordinar el retiro.', icon: PKG, motion: 'pop', colors: ['#5eead4', '#0891b2', '#a78bfa'], glow: ['rgba(34,211,238,.45)', 'rgba(139,92,246,.4)'] },
   clientAck: { title: '¡Aviso confirmado!', desc: 'Confirmaste que viste el aviso. Coordina el retiro y confirma la recepción.', icon: CHECKCIRCLE, motion: 'pop', colors: ['#4ade80', '#16a34a', '#bbf7d0'], glow: ['rgba(74,222,128,.5)', 'rgba(52,211,153,.4)'] },
   clientReceived: { title: '¡Pedido recibido!', desc: 'Gracias por confirmar. Tu pedido quedó completado.', icon: PKG, motion: 'pop', colors: ['#4ade80', '#16a34a', '#bbf7d0'], glow: ['rgba(74,222,128,.5)', 'rgba(52,211,153,.4)'] },

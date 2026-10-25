@@ -17,6 +17,13 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  customerContactPreference?: {
+    allowed: boolean;
+    textVersion: 'availability-customer-whatsapp-v1';
+    recordedAt: string;
+    effective: false;
+    requiresReconfirmation: boolean;
+  };
   id: number;
   state: string;
   version: number;
@@ -52,6 +59,15 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
       !Array.isArray(value.allowedActions) ||
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as ProcessAction))) return null;
   if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
+  let customerContactPreference: RequestProcessSummary['customerContactPreference'];
+  if (value.customerContactPreference !== undefined) {
+    const p = value.customerContactPreference;
+    if (!isRecord(p) || typeof p.allowed !== 'boolean' || p.textVersion !== 'availability-customer-whatsapp-v1' ||
+      typeof p.recordedAt !== 'string' || !Number.isFinite(Date.parse(p.recordedAt)) ||
+      p.effective !== false || typeof p.requiresReconfirmation !== 'boolean' || (!p.allowed && p.requiresReconfirmation)) return null;
+    customerContactPreference = { allowed: p.allowed, textVersion: p.textVersion, recordedAt: p.recordedAt,
+      effective: false, requiresReconfirmation: p.requiresReconfirmation };
+  }
   let proposalSummary: RequestProcessSummary['proposalSummary'];
   if (value.proposalSummary !== undefined) {
     const s = value.proposalSummary;
@@ -93,6 +109,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     agreementPublicId: value.agreementPublicId as string | null,
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
     ...(closure ? { closure } : {}),
+    ...(customerContactPreference ? { customerContactPreference } : {}),
     ...(proposalSummary ? { proposalSummary } : {}),
     ...(typeof value.readyNoticeAcknowledged === 'boolean' ? { readyNoticeAcknowledged: value.readyNoticeAcknowledged } : {}),
     ...(isRecord(value.coordination) ? { coordination: {

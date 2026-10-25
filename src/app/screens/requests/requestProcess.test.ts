@@ -8,6 +8,15 @@ import { pendingProcess, coordinationProcess, rawOrder } from './requestProcessF
 
 afterEach(() => vi.restoreAllMocks());
 describe('2A normalization and compatibility', () => {
+  it('retains conditional preference separately from effective contact grants', () => {
+    const preference = { allowed: true, textVersion: 'availability-customer-whatsapp-v1', recordedAt: '2026-10-24T20:00:00.000Z', effective: false, requiresReconfirmation: true };
+    const parsed = normalizeRequestProcess({ ...pendingProcess, customerContactPreference: preference });
+    expect(parsed?.customerContactPreference).toEqual(preference);
+    expect(parsed?.coordination).toBeUndefined();
+    expect(normalizeRequestProcess(pendingProcess)).not.toHaveProperty('customerContactPreference');
+    for (const invalid of [null, { ...preference, effective: true }, { ...preference, allowed: 'true' }, { ...preference, textVersion: 'unknown' }])
+      expect(normalizeRequestProcess({ ...pendingProcess, customerContactPreference: invalid })).toBeNull();
+  });
   it('normalizes the optional acknowledgment without inventing it for historical receipts', () => {
     expect(normalizeRequestProcess(coordinationProcess)).not.toHaveProperty('readyNoticeAcknowledged');
     for (const readyNoticeAcknowledged of [true, false])

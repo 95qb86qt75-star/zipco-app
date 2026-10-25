@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useRef, useState } from "react";
 import {
   ArrowLeft,
   CalendarDays,
@@ -19,6 +19,7 @@ import {
   createOrder,
   CreateOrderError,
   GENERIC_CREATE_ORDER_MESSAGE,
+  CUSTOMER_CONTACT_TEXT_VERSION,
 } from "./createOrderApi";
 import { getCloudinarySecureImageUrl } from "./profile/business-config/catalogValidation";
 import type { CatalogItem } from "./profile/business-config/types";
@@ -26,6 +27,8 @@ import { nextOrderQuantity } from "./checkoutOrderState";
 import OrderMomentSelector from './OrderMomentSelector';
 import { selectOrderMoment, type OrderMoment } from './orderMoment';
 import { createOrderCreationIntent, OrderSelectionError } from './orderCreationIntent';
+import { ConsultationDesignSheet } from './requests/availability-design/AvailabilityDesign';
+import { announceAction } from './requests/ActionHologram';
 
 export default function CheckoutScreen({
   business,
@@ -50,7 +53,9 @@ export default function CheckoutScreen({
     selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {}),
   );
   const [note, setNote] = useState("");
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [consultationOpen, setConsultationOpen] = useState(false);
+  const [contactAllowed, setContactAllowed] = useState(true);
+  const [submissionError, setSubmissionError] = useState<string | undefined>();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedHour, setSelectedHour] = useState("");
@@ -59,7 +64,6 @@ export default function CheckoutScreen({
   const needNow = orderMoment === 'now';
   const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [officialTotal, setOfficialTotal] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [isPhotoOpen, setIsPhotoOpen] = useState(false);
@@ -68,14 +72,6 @@ export default function CheckoutScreen({
   const creationIntent = useRef(createOrderCreationIntent());
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!showConfirmation) return;
-    const timer = window.setTimeout(() => {
-      setShowConfirmation(false);
-      onOrderComplete();
-    }, 2800);
-    return () => window.clearTimeout(timer);
-  }, [onOrderComplete, showConfirmation]);
   const availableHours = Array.from({ length: 14 }, (_, index) =>
     String(index + 9).padStart(2, "0"),
   );
@@ -211,6 +207,7 @@ export default function CheckoutScreen({
       return;
     }
 
+    setSubmissionError(undefined);
     setIsSubmitting(true);
     try {
       const created = await creationIntent.current.submit({
@@ -220,6 +217,7 @@ export default function CheckoutScreen({
           businessId: business.id,
           items: selectedItems.map((product) => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 })),
           note, referencePhoto,
+          customerContactPreference: { allowed: contactAllowed, textVersion: CUSTOMER_CONTACT_TEXT_VERSION },
         },
       }, (payload, idempotencyKey) => createOrder({
         url: `${API_BASE_URL}/orders`,
@@ -229,13 +227,15 @@ export default function CheckoutScreen({
         idempotencyKey, payload,
       }), (message) => showAppToast(message, 'warning'));
       if (!created) return;
-      setOfficialTotal(created.total);
-      setShowConfirmation(true);
+      setConsultationOpen(false);
+      announceAction('requestSent');
+      onOrderComplete();
     } catch (error) {
       const message =
         error instanceof CreateOrderError || error instanceof OrderSelectionError
           ? error.message
           : GENERIC_CREATE_ORDER_MESSAGE;
+      setSubmissionError(message);
       showAppToast(message, error instanceof OrderSelectionError ? 'warning' : 'error');
       if (error instanceof CreateOrderError && error.status === 409 && error.outcome === 'not-created')
         onCatalogConflict();
@@ -245,6 +245,12 @@ export default function CheckoutScreen({
       setIsSubmitting(false);
     }
   };
+
+  const pendingPayload = creationIntent.current.pendingPayload();
+  const reviewItems = (pendingPayload?.items ?? selectedItems.map(product => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 }))).map(item => {
+    const product = products.find(product => product.id === item.catalogItemId);
+    return { name: product?.name ?? 'Producto', quantity: item.quantity, unitPrice: product?.priceClp ?? 0 };
+  });
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
@@ -688,71 +694,35 @@ export default function CheckoutScreen({
             </p>
           </div>
           <button
-            onClick={handleSubmitOrder}
+            onClick={() => { if (!creationIntent.current.isBlocked()) setConsultationOpen(true); }}
             disabled={isUploadingPhoto || isSubmitting}
             className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-500/30 transition-all active:scale-[0.98]"
           >
             <Send className="w-5 h-5" />
-            <span>{isSubmitting ? "Enviando..." : creationIntent.current.hasPending() ? 'Reintentar envío' : "Realizar pedido"}</span>
+            <span>{isSubmitting ? "Enviando..." : creationIntent.current.hasPending() ? 'Reintentar envío' : "Requiero este producto"}</span>
           </button>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirmation && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 p-6 backdrop-blur-xl">
-          <div className="zipco-hologram-card zipco-flow-hologram w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl dark:border dark:border-teal-300/60 dark:bg-slate-950 dark:text-white">
-            <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              ¡Pedido enviado!
-            </h3>
-
-            <p className="text-sm text-gray-600 text-center mb-1">
-              Tu solicitud ha sido enviada a:
-            </p>
-            <p className="text-base font-bold text-teal-600 text-center mb-4">
-              {business.name}
-            </p>
-            {officialTotal !== null && (
-              <p className="mb-4 text-center text-sm font-bold text-slate-900">
-                Total confirmado: ${officialTotal.toLocaleString("es-CL")}
-              </p>
-            )}
-
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
-              <p className="text-sm text-blue-800 text-center">
-                Revisa tu barra en la opción <strong>Solicitudes</strong> para
-                ver el estado de tu pedido
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowConfirmation(false);
-                onOrderComplete();
-              }}
-              className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 px-6 rounded-full font-semibold hover:shadow-lg transition-all"
-            >
-              Entendido
-            </button>
-          </div>
-        </div>
-      )}
+      <ConsultationDesignSheet
+        open={consultationOpen}
+        onOpenChange={setConsultationOpen}
+        data={{
+          counterpart: business.name,
+          items: reviewItems,
+          total: reviewItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0),
+          immediate: pendingPayload?.needNow ?? needNow,
+          schedule: pendingPayload
+            ? pendingPayload.needNow ? 'Ahora' : `${pendingPayload.deliveryDate} · ${pendingPayload.deliveryTime}`
+            : needNow ? 'Ahora' : `${selectedDate || 'Selecciona fecha'} · ${selectedTime || 'Selecciona hora'}`,
+        }}
+        contact={creationIntent.current.pendingPayload()?.customerContactPreference?.allowed ?? contactAllowed}
+        contactLocked={creationIntent.current.hasPending()}
+        onContactChange={setContactAllowed}
+        onSend={handleSubmitOrder}
+        busy={isSubmitting || isUploadingPhoto}
+        error={submissionError}
+      />
     </div>
   );
 }

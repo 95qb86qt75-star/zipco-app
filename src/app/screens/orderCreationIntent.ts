@@ -27,6 +27,7 @@ export function createOrderCreationIntent(uuid = () => crypto.randomUUID()) {
 
   return {
     hasPending() { return pending !== null; },
+    pendingPayload() { return pending?.payload ?? null; },
     isBlocked() { return inFlight || confirmed; },
     async submit(draft: CreationDraft, send: SendOrder, notify: (message: string) => void) {
       if (inFlight || confirmed) return null;
@@ -51,6 +52,7 @@ export function createOrderCreationIntent(uuid = () => crypto.randomUUID()) {
           });
           payload.items.forEach(Object.freeze);
           Object.freeze(payload.items);
+          if (payload.customerContactPreference) Object.freeze(payload.customerContactPreference);
           Object.freeze(payload);
           pending = { identity: draft.identity, signature,
             selection: Object.freeze({ ...draft.selection }), key: uuid(), payload, uncertain: false };

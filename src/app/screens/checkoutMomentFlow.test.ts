@@ -23,6 +23,8 @@ vi.mock('./createOrderApi', async (importOriginal) => ({
   ...await importOriginal<typeof import('./createOrderApi')>(), createOrder: state.create,
 }));
 vi.mock('./Toast', () => ({ showAppToast: state.toast }));
+vi.mock('./requests/ActionHologram', () => ({ announceAction: vi.fn() }));
+import { ConsultationDesignSheet } from './requests/availability-design/AvailabilityDesign';
 import CheckoutScreen from './CheckoutScreen';
 import ServiceCheckoutScreen from './ServiceCheckoutScreen';
 import OrderMomentSelector from './OrderMomentSelector';
@@ -72,8 +74,40 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
   };
   const button = (label: string) => render().find((view) => view.type === 'button' && text(view.props.children).trim() === label)!;
   const input = (type: string) => render().find((view) => view.type === 'input' && view.props.type === type)!;
-  const submit = () => (render().find((view) => view.type === 'button' && text(view.props.children).trim() === 'Reintentar envío')
-    ?? button(kind === 'product' ? 'Realizar pedido' : 'Solicitar Servicio')).props.onClick!();
+  const sheet = () => render().find(view => view.type === ConsultationDesignSheet)!.props as React.ComponentProps<typeof ConsultationDesignSheet>;
+  const submit = () => {
+    if (kind === 'product') {
+      if (!sheet().open) button('Requiero este producto').props.onClick!();
+      return sheet().onSend();
+    }
+    return (button('Reintentar envío') ?? button('Solicitar Servicio')).props.onClick!();
+  };
+
+  if (kind === 'product') {
+    it('opens the real review without posting and saves an explicit unchecked preference', async () => {
+      button('Ahora').props.onClick!();
+      button('Requiero este producto').props.onClick!();
+      expect(state.create).not.toHaveBeenCalled();
+      expect(sheet().open).toBe(true);
+      expect(sheet().contact).toBe(true);
+      sheet().onContactChange(false);
+      await submit();
+      expect(state.create.mock.calls[0][0].payload.customerContactPreference).toEqual({ allowed: false, textVersion: 'availability-customer-whatsapp-v1' });
+      expect(sheet().open).toBe(false);
+    });
+
+    it('keeps the review open after failure and locks the original preference for retry', async () => {
+      state.create.mockRejectedValueOnce(new TypeError('network'));
+      button('Ahora').props.onClick!();
+      await submit();
+      expect(sheet().open).toBe(true);
+      expect(sheet().error).toBeTruthy();
+      expect(sheet().contactLocked).toBe(true);
+      expect(sheet().contact).toBe(true);
+      await submit();
+      expect(state.create.mock.calls[1][0].payload).toEqual(state.create.mock.calls[0][0].payload);
+    });
+  }
 
   it('switches modes without retaining date/time and preserves note, photo and items', async () => {
     if (kind === 'product') button('Agregar nota opcional').props.onClick!();
@@ -101,7 +135,8 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
     await submit();
     expect(state.create).toHaveBeenCalledOnce();
     expect(state.create.mock.calls[0][0].payload).toEqual({ businessId: 5, items: [{ catalogItemId: 7, quantity: 1 }],
-      note: 'Nota conservada', referencePhoto: photo, needNow: false, deliveryDate: '2026-10-15', deliveryTime: '23:00' });
+      note: 'Nota conservada', referencePhoto: photo, needNow: false, deliveryDate: '2026-10-15', deliveryTime: '23:00',
+      ...(kind === 'product' ? { customerContactPreference: { allowed: true, textVersion: 'availability-customer-whatsapp-v1' } } : {}) });
   });
 
   it('blocks a passed time before dispatching and does not roll to tomorrow', async () => {
@@ -165,7 +200,7 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
     let finish!: (value: unknown) => void;
     state.create.mockReturnValueOnce(new Promise((resolve) => { finish = resolve; }));
     button('Ahora').props.onClick!();
-    const savedSubmit = button(kind === 'product' ? 'Realizar pedido' : 'Solicitar Servicio').props.onClick!;
+    const savedSubmit = kind === 'product' ? sheet().onSend : button('Solicitar Servicio').props.onClick!;
     const first = savedSubmit();
     await savedSubmit();
     expect(state.create).toHaveBeenCalledOnce();

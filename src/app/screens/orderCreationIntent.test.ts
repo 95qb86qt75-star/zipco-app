@@ -11,6 +11,19 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-16T02:
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('creation intention lifecycle', () => {
+  it('copies and freezes contact intent and replays it after edits without changing the key', async () => {
+    const controller = createOrderCreationIntent(() => 'same-key');
+    const preference = { allowed: true, textVersion: 'availability-customer-whatsapp-v1' as const };
+    const input = { ...draft(), details: { ...draft().details, customerContactPreference: preference } };
+    const send = vi.fn().mockRejectedValueOnce(new Error('network')).mockResolvedValueOnce(result);
+    await expect(controller.submit(input, send, vi.fn())).rejects.toThrow();
+    preference.allowed = false;
+    expect(Object.isFrozen(controller.pendingPayload()?.customerContactPreference)).toBe(true);
+    await controller.submit(input, send, vi.fn());
+    expect(send.mock.calls[1][0].customerContactPreference.allowed).toBe(true);
+    expect(send.mock.calls[1][0]).toBe(send.mock.calls[0][0]);
+    expect(send.mock.calls[1][1]).toBe('same-key');
+  });
   it.each(['2026-10-16T02:59:30Z', '2026-10-16T03:01:00Z'])('replays identical body and key after %s without resolving the date again', async (instant) => {
     const uuid = vi.fn(() => 'original-key');
     const controller = createOrderCreationIntent(uuid);
