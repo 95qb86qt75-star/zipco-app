@@ -136,7 +136,13 @@ No se acreditan transferencias, entregas, push real ni inventario apartado.
 
 ## Publicación
 
-Preparado para commit en rama `qa` y publicación por la integración GitHub
-existente. Completar aquí SHA, Vercel READY y comprobación del bundle tras publicar.
+Código publicado en rama `qa` por la integración GitHub existente:
+`7ae7ac970dca3ead49cf68a56b55804a609d93e7`.
+Vercel **READY**, despliegue `dpl_DcteFk6Pd7DiKLKUWNzpPRPTmVRB`, estado GitHub
+success y alias habitual `https://zipco-app-git-qa-zipco-s-projects.vercel.app`.
+Bundle servido verificado: SHA exacto, configuración efectiva de API Railway QA,
+ruta de capacidades, creación V2 y acciones de reserva. El literal de fallback
+producción sigue en el código existente, pero la asignación QA tiene prioridad.
+Este cierre documental se respalda después en la misma rama, con código idéntico.
 Identidad Git previa conservada; sin Vercel CLI deploy ni reescrituras.
 `main` conserva `8295ab8c6024ab20851ebd371308d2f299b4668f` y producción intacta.
