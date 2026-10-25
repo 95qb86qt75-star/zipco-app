@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { qaLoadDiagnosticsEnabled } from './scripts/qa-load-diagnostics-config.mjs'
+import { qaAvailabilityDesignEnabled } from './scripts/qa-availability-design-config.mjs'
 
 
 function figmaAssetResolver() {
@@ -37,6 +38,7 @@ export default defineConfig(({ mode }) => {
     'import.meta.env.QA_LOAD_DIAGNOSTICS': JSON.stringify(diagnostics),
     'import.meta.env.QA_LOAD_DIAGNOSTICS_VERSION': JSON.stringify(diagnosticVersion),
     'import.meta.env.QA_NOTIFICATION_TRACE': JSON.stringify(clickTrace),
+    'import.meta.env.QA_AVAILABILITY_DESIGN': JSON.stringify(qaAvailabilityDesignEnabled(mode, process.env)),
   },
   plugins: [
     ...(clickTrace ? [{

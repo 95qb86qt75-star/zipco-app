@@ -5,9 +5,15 @@
   import AgreementRoute from './app/screens/requests/AgreementRoute';
   import "./styles/index.css";
 
-  createRoot(document.getElementById("root")!).render(<AgreementRoute><App /></AgreementRoute>);
+  const availabilityDesign = import.meta.env.QA_AVAILABILITY_DESIGN &&
+    new URLSearchParams(window.location.search).get('design') === 'availability';
+  if (availabilityDesign) {
+    void import('./design-preview/AvailabilityDesignPreview').then(({ mountAvailabilityDesign }) => mountAvailabilityDesign());
+  } else {
+    createRoot(document.getElementById("root")!).render(<AgreementRoute><App /></AgreementRoute>);
+  }
 
-  if ("serviceWorker" in navigator) {
+  if (!availabilityDesign && "serviceWorker" in navigator) {
     const hadControllerAtStartup = Boolean(navigator.serviceWorker.controller);
     let isReloadingForUpdate = false;
 
