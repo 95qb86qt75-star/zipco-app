@@ -20,8 +20,8 @@ evento. El detalle admite teclado, `aria-expanded`, `aria-controls`, nombre de
 estado accesible y aviso de solicitud sin leer. Se respeta movimiento reducido.
 
 La preferencia inicial S1 aparece solo si existe en el resumen normalizado:
-positiva, negativa o necesitada de reconfirmación. Se aclara que esta elección
-todavía no comparte el teléfono; no se presenta como permiso efectivo. Pedidos
+positiva, negativa o necesitada de reconfirmación. Su texto se mantiene
+condicionado a la compra; no se presenta como permiso efectivo. Pedidos
 antiguos sin preferencia no muestran esa línea. No se abre WhatsApp.
 
 La anulación conserva `PendingCancellationActions`, sus guards, confirmación
@@ -71,6 +71,21 @@ Disponibilidad, continuación y retiro permanecen fuera del alcance.
 - Capturas fuera de Git: `node_modules/.cache/customer-pending-card/`.
 
 ## Publicación
+
+### Ajuste del 25 de octubre tras revisión del usuario
+
+El usuario confirmó el diseño y pidió retirar la frase explicativa bajo la
+preferencia y mejorar la percepción de la animación en iPhone. Se elimina
+«Esta elección todavía no comparte tu teléfono» y su estilo ya sin uso.
+El título de la tarjeta real ahora combina resplandor con un pulso de opacidad
+de 1 a 0,62 cada 2,8 segundos. Mantiene el texto legible y sin cambios de layout.
+`prefers-reduced-motion: reduce` conserva el título fijo por accesibilidad.
+No se acredita un fallo específico de Safari ni una prueba física iPhone local.
+
+Validación del ajuste: 69 pruebas relacionadas aprobadas; navegador móvil en
+320, 390 y 430 px; comprobación del cambio efectivo de opacidad entre fases y
+de su desactivación con movimiento reducido; build QA/PWA aprobado. El usuario
+debe confirmar en el teléfono tras la publicación.
 
 Se publica exclusivamente mediante commit y push de `qa` a su integración
 GitHub existente. Se conserva la identidad original, sin cambiar Git global ni

@@ -56,7 +56,6 @@ export default function CustomerPendingCard({ order, expanded, onToggle, refresh
               : preference.allowed ? 'Permitiste que el negocio te escriba por WhatsApp si compras'
               : 'Sin autorizar el contacto por WhatsApp. Podrás autorizarlo más adelante.'}</span>
           </p>
-          <p className="zipco-customer-pending-contact-hint">Esta elección todavía no comparte tu teléfono.</p>
         </>}
         </>}
       </section>

@@ -97,7 +97,7 @@ try {
     await shot(`collapsed-${width}`);
     await button('Ver detalle');
     await check('document.body.textContent.includes("Hola necesito esto de prueba")&&document.querySelector("[aria-expanded=true]")!==null', 'detail preserved');
-    await check('document.body.textContent.includes("Permitiste que el negocio")&&document.body.textContent.includes("Esta elección todavía no comparte tu teléfono")', 'conditional preference');
+    await check('document.body.textContent.includes("Permitiste que el negocio")&&!document.body.textContent.includes("Esta elección todavía no comparte tu teléfono")', 'conditional preference without removed caption');
     await check('document.documentElement.scrollWidth<=innerWidth', 'no horizontal overflow');
     await shot(`expanded-${width}`);
     await button('Ocultar detalle');
@@ -113,6 +113,7 @@ try {
   await check('document.body.textContent.includes("Sin autorizar el contacto")&&document.documentElement.scrollWidth<=innerWidth', 'off preference and long name');
   await visit('unknown=1&noCancel=1',390);await button('Ver detalle');
   await check('!document.querySelector(".zipco-av-contact-intent")&&![...document.querySelectorAll("button")].some(b=>b.textContent.includes("Anular solicitud"))', 'no invented preference or action');
+  await check(`(()=>{const heading=document.querySelector('.zipco-av-neon');const animation=heading.getAnimations()[0];if(!animation)return false;animation.pause();animation.currentTime=0;const bright=Number(getComputedStyle(heading).opacity);animation.currentTime=1400;const dim=Number(getComputedStyle(heading).opacity);animation.play();return bright-dim>.3&&dim>.5})()`, 'visible opacity pulse while keeping the title readable');
   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   await check('getComputedStyle(document.querySelector(".zipco-av-neon")).animationName==="none"','reduced motion');
   assert.equal(exceptions.length,0,JSON.stringify(exceptions));

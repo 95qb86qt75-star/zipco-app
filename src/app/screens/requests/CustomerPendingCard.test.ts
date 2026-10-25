@@ -45,7 +45,6 @@ describe('real customer pending card', () => {
   it('uses only the recorded preference and distinguishes reconfirmation without authorizing contact', () => {
     const withPreference = (p: unknown) => render({ requestProcess: { ...cancelPendingOrder.requestProcess, customerContactPreference: p } }, true);
     expect(withPreference(preference)).toContain('Permitiste que el negocio te escriba por WhatsApp si compras');
-    expect(withPreference(preference)).toContain('Esta elección todavía no comparte tu teléfono.');
     expect(withPreference({ ...preference, allowed: false })).toContain('Sin autorizar el contacto');
     expect(withPreference({ ...preference, requiresReconfirmation: true })).toContain('necesita una nueva confirmación');
     expect(withPreference(preference)).not.toContain('wa.me');
