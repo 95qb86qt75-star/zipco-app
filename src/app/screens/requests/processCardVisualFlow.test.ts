@@ -5,6 +5,7 @@ const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, agreement: 
 vi.mock('react', async (original) => ({
   ...await original<typeof import('react')>(),
   useEffect: () => undefined,
+  useId: () => 'pending-test-detail',
   useRef: (current: unknown) => ({ current }),
   useState: (initial: unknown) => {
     const index = hooks.cursor++;
@@ -20,6 +21,7 @@ vi.mock('../../notifications/unreadInteractions', async original => ({
   ...await original<typeof import('../../notifications/unreadInteractions')>(), markInteractionRead: vi.fn(),
 }));
 import ProcessOrderCard from './ProcessOrderCard';
+import CustomerPendingCard from './CustomerPendingCard';
 import AcceptGlassButton from './AcceptGlassButton';
 import ProcessHistoryCard from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
@@ -62,7 +64,9 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 const render = (input: React.ComponentProps<typeof ProcessOrderCard>) => {
-  hooks.cursor = 0; return ProcessOrderCard(input);
+  hooks.cursor = 0;
+  const view = ProcessOrderCard(input);
+  return view.type === CustomerPendingCard ? CustomerPendingCard(view.props as React.ComponentProps<typeof CustomerPendingCard>) : view;
 };
 
 describe('reused 2A card design without legacy actions', () => {
@@ -303,14 +307,12 @@ describe('reused 2A card design without legacy actions', () => {
       expect(view.props.price).toBe(agreementFixture.totalPriceClp);expect(view.props.statusLabel).toBe('Coordinación pendiente');
       return;
     }
-    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
-    expect(header.props.priceLabel).toBe(accepted ? 'Acordado' : 'Solicitado');
-    const headerHtml = renderToStaticMarkup(header);
-    expect(headerHtml).toContain(accepted ? 'Coordinación pendiente' : 'Pendiente de respuesta');
-    expect(headerHtml).toContain('$2.000');
     const html = renderToStaticMarkup(view);
+    expect(html).toContain('SOLICITADO');
+    expect(html).toContain('Pendiente de respuesta');
+    expect(html).toContain('EN ESPERA');
     expect(html.match(/\$2\.000/g)).toHaveLength(1);
-    expect(elements(view).find((node) => node.type === OrderCardDisclosure)?.props.price).toBeNull();
+    expect(elements(view).find(node => node.props['aria-expanded'] === false)).toBeDefined();
   });
   it('preserves the historical customer header price when no corner status is requested', () => {
     const html = renderToStaticMarkup(React.createElement(CustomerOrderHeader, { name: raw.businessName, image: raw.businessImage,
@@ -321,9 +323,14 @@ describe('reused 2A card design without legacy actions', () => {
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0]
       : normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const compact = render({ ...props, order, business });
-    const disclosure = elements(compact).find((node) => node.type === OrderCardDisclosure)!;
-    expect(disclosure.props.title).toBe(business ? 'Pedido del cliente' : 'Tu pedido');
-    expect(disclosure.props.hint).toBe(business ? 'Revisar y responder' : 'Revisar pedido');
+    if (business) {
+      const disclosure = elements(compact).find((node) => node.type === OrderCardDisclosure)!;
+      expect(disclosure.props.title).toBe('Pedido del cliente');
+      expect(disclosure.props.hint).toBe('Revisar y responder');
+    } else {
+      expect(renderToStaticMarkup(compact)).toContain('ENTRADA DE SOLICITUD');
+      expect(elements(compact).find(node => node.props['aria-expanded'] === false)).toBeDefined();
+    }
     const expanded = render({ ...props, order, business, expanded: true, onToggle: vi.fn() });
     expect(elements(expanded).find((node) => node.type === OrderReferencePhoto)?.props.business).toBe(business);
   });
@@ -432,26 +439,32 @@ describe('reused 2A card design without legacy actions', () => {
     const order = business ? normalizeBusinessOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0]
       : normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     const view = render({ ...props, order, business, isUnread: true });
-    const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
-    expect(header.props.image).toBe(business ? raw.customerImage : raw.businessImage);
     const html = renderToStaticMarkup(view);
-    expect(html).toContain('Nueva'); expect(html).toContain('zipco-open-panel');
-    if (business) expect(elements(view).find(node => node.props.className === 'zipco-pending-business-responses')?.props)
-      .toMatchObject({ 'aria-hidden': true, inert: '' });
-    else expect(html).not.toContain('Imagen adjunta');
+    if (business) {
+      const header = elements(view).find((node) => node.type === AuroraProposalHeader)!;
+      expect(header.props.image).toBe(raw.customerImage);
+      expect(html).toContain('Nueva'); expect(html).toContain('zipco-open-panel');
+      expect(elements(view).find(node => node.props.className === 'zipco-pending-business-responses')?.props)
+        .toMatchObject({ 'aria-hidden': true, inert: '' });
+    } else {
+      expect(html).toContain(raw.businessName);
+      expect(html).toContain('data-unread="true"');
+      expect(html).toContain('Solicitud nueva sin leer');
+      expect(html).not.toContain('Imagen adjunta');
+    }
     expect(html).not.toContain('Cancelar pedido');
   });
 
   it('expands and collapses locally, marking the interaction read without dispatching an action', () => {
     const order = normalizeMyOrdersPayload([{ ...raw, requestProcess: { ...pendingProcess, allowedActions: [...pendingProcess.allowedActions, 'PROPOSE_ALTERNATIVE'] } }])[0];
     let view = render({ ...props, order });
-    const disclosure = elements(view).find((node) => node.type === OrderCardDisclosure)!;
-    (disclosure.props.onOpen as () => void)();
+    const disclosure = elements(view).find((node) => node.type === 'button' && node.props['aria-expanded'] === false)!;
+    (disclosure.props.onClick as () => void)();
     view = render({ ...props, order });
     expect(elements(view).some((node) => node.type === OrderReferencePhoto)).toBe(true);
     const collapse = elements(view).find((node) => node.type === 'button' && node.props['aria-expanded'] === true)!;
     (collapse.props.onClick as (event: unknown) => void)(event());
-    expect(elements(render({ ...props, order })).some((node) => node.type === OrderCardDisclosure)).toBe(true);
+    expect(elements(render({ ...props, order })).some((node) => node.type === 'button' && node.props['aria-expanded'] === false)).toBe(true);
     expect(props.onOpen).toHaveBeenCalledTimes(2); expect(props.onAccept).not.toHaveBeenCalled();
   });
 

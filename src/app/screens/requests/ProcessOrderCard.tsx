@@ -14,7 +14,6 @@ import { formatDeliverySchedule } from './utils';
 import { safePhoto } from './agreement';
 import CoordinationActions from './CoordinationActions';
 import { statusViewFor } from './requestStatusGrouping';
-import PendingCancellationActions from './PendingCancellationActions';
 import PendingRejectionActions from './PendingRejectionActions';
 import ProposalNegotiation from './ProposalNegotiation';
 import { NEGOTIATION_STATES } from './proposalContract';
@@ -25,6 +24,7 @@ import BusinessProgressCard from './BusinessProgressCard';
 import CustomerProgressCard from './CustomerProgressCard';
 import ProgressCardShell from './ProgressCardShell';
 import { contactAuthorized } from './coordinationApi';
+import CustomerPendingCard from './CustomerPendingCard';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -105,6 +105,9 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
       <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} embedded
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
+
+  if (!business && awaiting) return <CustomerPendingCard order={order} expanded={isExpanded}
+    onToggle={toggle} refresh={onRetry} isUnread={isUnread} />;
 
   if (process && ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state)) {
     if (!accepted) return <CoordinationCardShell id={order.id} name={name || (business ? 'Cliente' : 'Negocio')} image={image}
@@ -188,7 +191,6 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
             className="mt-2 min-h-11 w-full text-center text-[11px] font-bold text-slate-500">Ocultar detalle</button>}
         </motion.div>}
     </AnimatePresence>}
-    {!business && awaiting && <PendingCancellationActions key="pending-cancellation" order={order} refresh={onRetry} />}
     <div ref={responseMotionRef} className={business && awaiting ? 'zipco-pending-business-responses' : undefined}
       data-expanded={business && awaiting ? isExpanded : undefined} aria-hidden={business && awaiting ? !isExpanded : undefined}
       {...(business && awaiting && !isExpanded ? { inert: '' } : {})}>

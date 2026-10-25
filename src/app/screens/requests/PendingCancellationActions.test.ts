@@ -28,6 +28,16 @@ beforeEach(() => { state.slots = []; state.busy = false; state.pending = null; s
 afterEach(() => vi.unstubAllGlobals());
 
 describe('deliberate pending cancellation UI', () => {
+  it('keeps the ticket action compact without changing the confirmation or cancellation action', async () => {
+    state.index = 0;
+    const ticket = PendingCancellationActions({ order: normalizeMyOrdersPayload([cancelPendingOrder])[0], refresh: vi.fn(), variant: 'ticket' });
+    expect(button(ticket, 'Anular solicitud').props.className).toBe('zipco-av-cancel');
+    button(ticket, 'Anular solicitud').props.onClick({ currentTarget: null });
+    const popup = render();
+    expect(nodes(popup).find(node => node.type === AlertDialog.Title)?.props.children).toBe('¿Confirmas anulación de tu pedido?');
+    await button(popup, 'Sí').props.onClick();
+    expect(state.run).toHaveBeenCalledWith('CANCEL_PENDING_REQUEST');
+  });
   it('opens the exact Sí/No confirmation without running an action; No only closes it', () => {
     open(); const popup = render();
     expect(nodes(popup).find(node => node.type === AlertDialog.Title)?.props.children).toBe('¿Confirmas anulación de tu pedido?');

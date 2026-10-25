@@ -5,8 +5,8 @@ import { coordinationAllowed } from './coordinationApi';
 import useCoordination from './useCoordination';
 import type { BusinessRequest, MyOrder } from './types';
 
-export default function PendingCancellationActions({ order, refresh }: {
-  order: MyOrder | BusinessRequest; refresh: () => void;
+export default function PendingCancellationActions({ order, refresh, variant = 'default' }: {
+  order: MyOrder | BusinessRequest; refresh: () => void; variant?: 'default' | 'ticket';
 }) {
   const [confirm, setConfirm] = useState(false);
   const previousFocus = useRef<HTMLElement | null>(null);
@@ -19,7 +19,7 @@ export default function PendingCancellationActions({ order, refresh }: {
   const submit = async () => {
     if (await operation.run('CANCEL_PENDING_REQUEST')) setConfirm(false);
   };
-  return <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+  return <div className={variant === 'ticket' ? 'zipco-customer-pending-cancel' : 'mt-3'} onClick={(event) => event.stopPropagation()}>
     {operation.message && <p role="alert" className="mb-2 text-sm text-red-700 dark:text-red-300">{operation.message}</p>}
     {recover ? <button type="button" disabled={operation.busy} onClick={() => void operation.update()}
       className="min-h-12 w-full rounded-xl border px-3 text-sm font-bold">Actualizar estado</button>
@@ -28,7 +28,7 @@ export default function PendingCancellationActions({ order, refresh }: {
         <button type="button" onClick={() => void operation.update()} className="min-h-12 w-full rounded-xl border px-3 text-sm font-bold">Actualizar estado</button>
       </div>
       : <button type="button" disabled={operation.busy || !allowed} onClick={(event) => { previousFocus.current = event.currentTarget; setConfirm(true); }}
-        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-sm font-bold text-red-700 disabled:opacity-50 dark:text-red-300">
+        className={variant === 'ticket' ? 'zipco-av-cancel' : 'flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 text-sm font-bold text-red-700 disabled:opacity-50 dark:text-red-300'}>
         <Trash2 className="h-4 w-4" />Anular solicitud
       </button>}
     {confirm && allowed && !recover && (!pending || operation.busy) &&

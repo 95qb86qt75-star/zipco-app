@@ -39,6 +39,13 @@
 .zipco-av-centered{justify-content:center}
 .zipco-av-cancel{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:6px 11px;border:1px solid #fb7185b3;border-radius:12px;color:#fb7185;background:transparent;font-size:12px;font-weight:700;box-shadow:0 0 10px #fb718538}
 .zipco-av-cancel svg{width:15px;height:15px}
+.zipco-customer-pending{font-family:Outfit,system-ui,sans-serif}
+.zipco-customer-pending .zipco-av-ticket-footer{flex-wrap:wrap}
+.zipco-customer-pending .zipco-av-disclosure,.zipco-customer-pending .zipco-av-cancel{min-height:44px}
+.zipco-customer-pending-cancel{min-width:0;margin-left:auto}
+.zipco-customer-pending-cancel:has([role=alert]),.zipco-customer-pending-cancel:has(.space-y-2){flex-basis:100%}
+.zipco-customer-pending-cancel [role=alert]{color:#fda4af}
+.zipco-customer-pending-contact-hint{margin:0;color:#cbd5e1;font-size:11px;line-height:1.4}
 .zipco-av-business{background:linear-gradient(130deg,#a78bfa,#06b6d4);box-shadow:0 10px 25px #22d3ee40}
 .zipco-av-business .zipco-av-ticket-inner{background:#031623}
 .zipco-av-business .zipco-av-ticket-icon{border-radius:50%;width:40px;height:40px}
