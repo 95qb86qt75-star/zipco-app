@@ -12,7 +12,8 @@ export default function AvailabilityPostActions({order,business,refresh}:{order:
   const [dialog,setDialog]=useState<'cancel'|'revoke'|null>(null),[reason,setReason]=useState('');
   if(!availabilityFlow(order.requestProcess))return null;
   const process=order.requestProcess;
-  const canCancel=availabilityAllowed(process,business,'CANCEL_PICKUP'),canRevoke=availabilityAllowed(process,business,'REVOKE_CONTACT_CONSENT');
+  const showContactControls=process?.state!=='READY';
+  const canCancel=availabilityAllowed(process,business,'CANCEL_PICKUP'),canRevoke=showContactControls&&availabilityAllowed(process,business,'REVOKE_CONTACT_CONSENT');
   const canAuthorize=['IN_PROGRESS','READY'].includes(process?.state??'')&&coordinationAllowed(process,business,'AUTHORIZE_CONTACT')&&!contactAuthorized(process,business);
   const hasContact=canAuthorize||coordinationAllowed(process,business,'OPEN_WHATSAPP');
   const submit=async()=>{
@@ -21,12 +22,14 @@ export default function AvailabilityPostActions({order,business,refresh}:{order:
   };
   return <section className="mt-3 space-y-2 text-xs" aria-label="Opciones de esta solicitud">
     {process?.availability?.path==='LOCAL_PICKUP'&&<div className="rounded-xl border border-teal-300/40 p-3"><p className="font-bold">Retiro en el local</p><p>{process.availability.customerMessage}</p>{process.availability.scheduleOrAddress&&<p>{process.availability.scheduleOrAddress}</p>}<p className="mt-1">No es una reserva ni un pago verificado.</p></div>}
+    {showContactControls&&<>
     {hasContact&&<p>{CONTACT_COPY}</p>}
     {canAuthorize&&<button type="button" className="w-full rounded-xl border p-3 font-bold" disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>Autorizo compartir mi teléfono para este pedido</button>}
     {contact.message&&<p role="alert">{contact.message}</p>}
     {(contact.restored()||contact.storageWarning())&&<button type="button" className="w-full rounded-xl border p-3" disabled={contact.busy} onClick={()=>void contact.update()}>Actualizar permiso de contacto</button>}
     {contact.pending()?.action==='AUTHORIZE_CONTACT'&&!contact.restored()&&!contact.busy&&<button type="button" className="w-full rounded-xl border p-3" onClick={()=>void contact.retry()}>Reintentar mi autorización pendiente</button>}
     {canRevoke&&<button type="button" className="w-full rounded-xl border p-3" disabled={operation.busy} onClick={()=>setDialog('revoke')}>Retirar mi permiso de contacto</button>}
+    </>}
     {canCancel&&<button type="button" className="w-full rounded-xl border border-rose-300 p-3 font-bold" disabled={operation.busy} onClick={()=>setDialog('cancel')}>Cancelar retiro</button>}
     {operation.error&&<div role="alert"><p>{operation.error}</p><button type="button" className="rounded-xl border p-2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button></div>}
     <Dialog.Root open={dialog!==null} onOpenChange={value=>{if(!value&&!operation.busy)setDialog(null);}}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-slate-950/60 backdrop-blur-sm"/>
