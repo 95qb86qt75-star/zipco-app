@@ -43,7 +43,7 @@ export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: F
 
 export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
-  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void | boolean>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode; reviewFields?: import('react').ReactNode;
+  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void | boolean>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode; reviewFields?: import('react').ReactNode|((review:AlternativeReview)=>import('react').ReactNode);
 }) {
   const [source] = useState(() => sourceOverride ?? alternativeSource(order));
   const [draft, setDraft] = useState<AlternativeDraft>(() => newAlternativeDraft(source));
@@ -148,7 +148,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
           </fieldset>
           {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
             photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel} />}
-          {reviewing&&reviewFields}
+          {reviewing&&validation.review&&(typeof reviewFields==='function'?reviewFields(validation.review):reviewFields)}
         </div>
         <div data-alternative-footer className={`shrink-0 border-t border-slate-200 dark:border-slate-700 ${reviewing ? 'px-5 py-3' : 'bg-white px-[18px] pb-4 pt-2.5 dark:bg-slate-900'}`}>
           {!reviewing && !editing && <p className="mb-2 text-center text-xs font-semibold text-violet-700 dark:text-violet-200">{preparationHint}</p>}

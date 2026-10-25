@@ -38,6 +38,7 @@ function orderFor(business){return {...raw,status,requestProcess:processFor(busi
 const subject={orderType:'product',items:[{catalogItemId:5,nameSnapshot:'Producto QA',descriptionSnapshot:'Producto de prueba',quantity:1,unitPriceClpSnapshot:12000,subtotalClp:12000}],needNow:true,note:raw.note,referencePhoto:null};
 proposals=[{id:123,sequence:0,type:'ORIGINAL_REQUEST',authorActor:'CUSTOMER',authorUserId:1,createdAt:raw.createdAt,subjectSchemaVersion:1,subjectSnapshot:subject,totalPriceClp:12000,scheduledFor:null,reservationAmountClp:null}];
 window.fetch=async (url,init)=>{
+ if(String(url).endsWith('/request-process-capabilities'))return new Response(JSON.stringify({supportedContracts:['availability-v1','availability-v2'],reservationCreationEnabled:false}));
  const body=init?.body?JSON.parse(init.body):null,business=String(init?.headers?.Authorization).includes('business-test-only');
  window.flowCalls.push({url:String(url),method:init?.method??'GET',body});
  const json=(v,status=200)=>new Response(JSON.stringify(v),{status});
@@ -47,7 +48,7 @@ window.fetch=async (url,init)=>{
   return json({...orderFor(false),items:[{id:1,orderId:20,catalogItemId:5,nameSnapshot:'Producto QA',unitPriceClpSnapshot:12000,quantity:1,subtotalClp:12000}]},201);
  }
  if((init?.method??'GET')==='GET'){
-  if(!String(url).includes('processContract=availability-v1'))throw Error('Missing S2 read opt-in');
+  if(!String(url).includes('processContract=availability-v2'))throw Error('Missing S2 read opt-in');
   if(String(url).includes('/orders/'))return json([orderFor(business)]);
   if(String(url).includes('/agreement')){const latest=proposals.at(-1);return json({...agreementFixture,totalPriceClp:latest.totalPriceClp,acceptedProposalId:latest.id,subjectSchemaVersion:latest.subjectSchemaVersion,scheduledFor:null,subjectSnapshot:latest.subjectSnapshot,availability:plan});}
   if(String(url).includes('/proposals'))return json({process:processFor(business),proposals});

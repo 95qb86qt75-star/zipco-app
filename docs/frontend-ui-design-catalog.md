@@ -4,6 +4,17 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### PICKUP-RESERVATIONS-V2-01 — Reserva como variante de retiro
+
+2026-10-25. Frontend + backend: integración del contrato V2 publicado en Railway
+QA `92341e9`, con configuración del negocio, elección del cliente, confirmación
+del apartado, seguimiento y WhatsApp de aclaración tras cancelar. Incluye
+alternativas/contrapropuestas/final e Historial. Creación condicionada a la
+capacidad autenticada del servidor; no se activó desde frontend.
+1.364 pruebas, build QA/PWA y 25 escenarios sintéticos de navegador aprobados.
+Pendiente activar en QA y validar en ambos celulares antes de mejorar lo visual.
+[Contrato, archivos y entrega a backend](frontend-pickup-reservations-v2-qa.md).
+
 ### UI-COUNTER-EDITOR-FINAL-PATH-01 — Contraponer y propuesta final
 
 2026-10-25. Solo frontend sobre S2: Contraponer 1 vez comparte el editor/diseño

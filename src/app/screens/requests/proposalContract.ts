@@ -1,6 +1,7 @@
 import { isRecord, parseIsoDate } from './orderValueParsers';
 import { normalizeRequestProcess, positiveInteger, type RequestProcessSummary } from './requestProcess';
-import { normalizeAvailability, type AvailabilityPlan } from './availabilityContract';
+import { normalizeAvailability,availabilityFlow, type AvailabilityPlan } from './availabilityContract';
+import {reservationFlow,normalizeReservationOffer} from './reservationContract';
 
 export const PROPOSAL_PATHS = {
   PROPOSE_ALTERNATIVE: 'propose-alternative', COUNTER_PROPOSAL: 'counter-proposal', PROPOSE_FINAL: 'propose-final',
@@ -61,7 +62,9 @@ export function normalizeProposals(value: unknown, processId: number): ProposalR
       !positiveInteger(p.authorUserId) || !parseIsoDate(p.createdAt) || p.reservationAmountClp !== null) return null;
     const subject = normalizeProposalSubject(p.subjectSchemaVersion, p.subjectSnapshot, p.totalPriceClp, p.scheduledFor);
     const availability = p.availability === undefined ? undefined : normalizeAvailability(p.availability, p.id);
-    if (availability === null || availability && process.flowContract !== 'AVAILABILITY_V1') return null;
+    if (availability === null || availability && !availabilityFlow(process)||availability?.reservationOffer&&!reservationFlow(process)||
+      reservationFlow(process)&&availability?.path==='LOCAL_PICKUP'&&!availability.reservationOffer||
+      availability?.reservationOffer&&!normalizeReservationOffer(availability.reservationOffer,p.totalPriceClp as number)) return null;
     if (!subject || (i > 0 && (subject.orderType !== proposals[0].subjectSnapshot.orderType || subject.items.length !== proposals[0].subjectSnapshot.items.length))) return null;
     ids.add(p.id);
     proposals.push({ id: p.id, sequence: i, type: PROPOSAL_TYPES[i], authorActor: p.authorActor as Proposal['authorActor'],

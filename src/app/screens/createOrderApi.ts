@@ -60,17 +60,18 @@ export function normalizeCreatedOrder(value: unknown): CreatedOrder {
     ...(Object.prototype.hasOwnProperty.call(value, 'requestProcess') ? normalizeOrderProcess(value.requestProcess) : {}) };
 }
 
-type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; expectedFlow?: 'AVAILABILITY_V1'; fetchImpl?: typeof fetch };
+type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; expectedFlow?: 'AVAILABILITY_V1'|'AVAILABILITY_V2'; fetchImpl?: typeof fetch };
 export async function createOrder({ url, token, currentUserId, businessUserId, payload, idempotencyKey, expectedFlow, fetchImpl = fetch }: Input): Promise<CreatedOrder> {
   if (isOwnBusiness(businessUserId, currentUserId)) throw new CreateOrderError(OWN_BUSINESS_ORDER_MESSAGE, null, 'not-created');
   if (!idempotencyKey) throw new CreateOrderError('No se pudo preparar el envÃ­o seguro del pedido.', null, 'not-created');
   let response: Response;
-  try { response = await fetchImpl(url, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) }); }
+  try { response = await fetchImpl(url, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey,...(expectedFlow==='AVAILABILITY_V2'?{'X-Process-Contract':'availability-v2'}:{}) }, body: JSON.stringify(payload) }); }
   catch { throw new CreateOrderError('No se pudo conectar. Intenta nuevamente.', null); }
   if (!response.ok) {
     const messages: Record<number, string> = { 400: 'Revisa los datos del pedido.', 401: 'Tu sesión venció. Ingresa nuevamente.', 403: OWN_BUSINESS_ORDER_MESSAGE, 404: 'El negocio o uno de sus artículos ya no está disponible.', 409: CATALOG_CHANGED_MESSAGE };
     let body: unknown = null;
     try { body = await response.json(); } catch { /* Only approved messages may be displayed. */ }
+    if(response.status===409&&record(body)&&body.code==='RESERVATION_CREATION_DISABLED')throw new CreateOrderError('Las nuevas reservas están deshabilitadas. Conservamos este envío para reintentarlo sin duplicar la solicitud.',409);
     const schedule = [400, 422].includes(response.status) ? approvedScheduleMessage(body) : null;
     // Known validation/auth/resource rejections do not create an order. A generic
     // conflict may concern idempotency, so never release its intention implicitly.

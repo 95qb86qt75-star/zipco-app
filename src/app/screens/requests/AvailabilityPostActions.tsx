@@ -6,13 +6,14 @@ import {availabilityFlow,CONTACT_COPY} from './availabilityContract';
 import useAvailability from './useAvailability';
 import useCoordination from './useCoordination';
 import {coordinationAllowed,contactAuthorized} from './coordinationApi';
+import ReservationPanel from './ReservationPanel';
 
 export default function AvailabilityPostActions({order,business,refresh}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void}){
   const operation=useAvailability(order,business,refresh),contact=useCoordination(order,business,refresh);
   const [dialog,setDialog]=useState<'cancel'|'revoke'|null>(null),[reason,setReason]=useState('');
   if(!availabilityFlow(order.requestProcess))return null;
   const process=order.requestProcess;
-  const showContactControls=process?.state!=='READY';
+  const showContactControls=process?.state!=='READY'&&process?.reservation?.mode!=='PREPAYMENT';
   const canCancel=availabilityAllowed(process,business,'CANCEL_PICKUP'),canRevoke=showContactControls&&availabilityAllowed(process,business,'REVOKE_CONTACT_CONSENT');
   const canAuthorize=['IN_PROGRESS','READY'].includes(process?.state??'')&&coordinationAllowed(process,business,'AUTHORIZE_CONTACT')&&!contactAuthorized(process,business);
   const hasContact=canAuthorize||coordinationAllowed(process,business,'OPEN_WHATSAPP');
@@ -21,7 +22,8 @@ export default function AvailabilityPostActions({order,business,refresh}:{order:
     if(await operation.run(dialog==='cancel'?'CANCEL_PICKUP':'REVOKE_CONTACT_CONSENT',dialog==='cancel'?{reasonDetail:reason.trim()}:{}))setDialog(null);
   };
   return <section className="mt-3 space-y-2 text-xs" aria-label="Opciones de esta solicitud">
-    {process?.availability?.path==='LOCAL_PICKUP'&&<div className="rounded-xl border border-teal-300/40 p-3"><p className="font-bold">Retiro en el local</p><p>{process.availability.customerMessage}</p>{process.availability.scheduleOrAddress&&<p>{process.availability.scheduleOrAddress}</p>}<p className="mt-1">No es una reserva ni un pago verificado.</p></div>}
+    {process?.reservation&&<ReservationPanel order={order} business={business} refresh={refresh}/>}
+    {process?.availability?.path==='LOCAL_PICKUP'&&<div className="rounded-xl border border-teal-300/40 p-3"><p className="font-bold">Retiro en el local</p><p>{process.availability.customerMessage}</p>{process.availability.scheduleOrAddress&&<p>{process.availability.scheduleOrAddress}</p>}<p className="mt-1">{process.reservation?'Los pagos y el apartado se muestran en el seguimiento de reserva. ZIPCO no verifica transferencias.':'No es una reserva ni un pago verificado.'}</p></div>}
     {showContactControls&&<>
     {hasContact&&<p>{CONTACT_COPY}</p>}
     {canAuthorize&&<button type="button" className="w-full rounded-xl border p-3 font-bold" disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>Autorizo compartir mi teléfono para este pedido</button>}

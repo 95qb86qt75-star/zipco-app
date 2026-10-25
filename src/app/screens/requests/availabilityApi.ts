@@ -4,10 +4,11 @@ import { normalizeRequestProcess, type RequestProcessSummary } from './requestPr
 import { processApiError, RequestProcessError } from './requestProcessErrors';
 import { AVAILABILITY_ACTION_PATHS, availabilityFlow, type AvailabilityAction, type FulfillmentChoice } from './availabilityContract';
 import type { CustomerContactPreference } from '../createOrderApi';
+import {processContractHeaders,type ReservationChoice} from './reservationContract';
 
 export type AvailabilityBody = { expectedVersion: number; proposalId?: number; availabilityConfirmationId?: number;
   fulfillment?: FulfillmentChoice; conditionsAccepted?: true; customerContactPreference?: CustomerContactPreference;
-  acceptPastSchedule?: true; reasonDetail?: string };
+  acceptPastSchedule?: true; reasonDetail?: string;reservationChoice?:ReservationChoice };
 export type AvailabilityReceipt = { orderId: number; orderStatus: 'pending' | 'accepted' | 'cancelled' | 'ready'; requestProcess: RequestProcessSummary };
 export class AvailabilityError extends RequestProcessError {
   constructor(message: string, status: number, readonly code = '', refresh = false) { super(message,status,refresh); }
@@ -26,7 +27,7 @@ export async function sendAvailabilityAction(process: RequestProcessSummary, ord
   if (!availabilityAllowed(process,business,action) || body.expectedVersion !== process.version ||
     !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(key)) throw new AvailabilityError('Actualiza el pedido antes de confirmar.',0);
   const response = await fetch(`${API_BASE_URL}/request-processes/${process.id}/actions/${AVAILABILITY_ACTION_PATHS[action]}`, {
-    method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key},body:JSON.stringify(body),signal,
+    method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(process)},body:JSON.stringify(body),signal,
   });
   const raw: unknown = await response.json().catch(()=>null);
   if (!response.ok) {

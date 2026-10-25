@@ -3,6 +3,7 @@ import { createFixedOrderAcceptance } from './fixedOrderAcceptance';
 import { announceAction } from './ActionHologram';
 import { readCoordinationSession } from './coordinationSession';
 import { hasRequestProcess } from './requestProcess';
+import {availabilityFlow} from './availabilityContract';
 import { RequestProcessError, REFRESH_CONDITIONS_MESSAGE, FLOW_UPDATE_MESSAGE, processApiError } from './requestProcessErrors';
 import { mergeProcessOrderUpdates } from './processOrderUpdates';
 import { readBusinessOrderForRecovery } from './requestProcessApi';
@@ -235,7 +236,7 @@ export default function useRequests(onSessionExpired: () => void) {
       const receipt: unknown = (event as CustomEvent).detail;
       if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || !['pending', 'accepted', 'cancelled', 'ready', 'completed', 'rejected', 'alternative_proposed'].includes(String(receipt.orderStatus))) return;
       const process = normalizeRequestProcess(receipt.requestProcess);
-      if(receipt.orderStatus==='pending'&&(process?.flowContract!=='AVAILABILITY_V1'||process.state!=='AWAITING_CUSTOMER_CONTINUATION'))return;
+      if(receipt.orderStatus==='pending'&&(!availabilityFlow(process)||process?.state!=='AWAITING_CUSTOMER_CONTINUATION'))return;
       if (!process || (receipt.orderStatus === 'rejected' && !isPendingRequestRejected(process) && !isProposalRejected(process))) return;
       const apply = <T extends BusinessRequest | MyOrder>(items: T[]): T[] => items.map((item) => {
         if (item.id !== receipt.orderId || item.requestProcess?.id !== process.id || item.requestProcess.version > process.version) return item;

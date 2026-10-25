@@ -1,0 +1,11 @@
+// Synthetic contracts only; never real QA records or credentials.
+import {availabilityInitial,availabilityWaiting,availabilityAccepted,pickupPlan} from './availabilityFixtures';
+import type {RequestProcessSummary} from './requestProcess';
+import type {ReservationOffer,Reservation} from './reservationContract';
+export const freeOffer:ReservationOffer={mode:'FREE',confirmationDueAt:'2099-10-25T22:00:00Z',pickupBy:'2099-10-25T23:00:00Z'};
+export const paidOffer:ReservationOffer={mode:'PREPAYMENT',paymentDueAt:'2099-10-25T21:00:00Z',confirmationDueAt:'2099-10-25T22:00:00Z',pickupBy:'2099-10-25T23:00:00Z',paymentKind:'DEPOSIT',requiredAmountClp:1000,paymentInstructions:'Pide los datos por WhatsApp.'};
+export const reservationInitial:RequestProcessSummary={...availabilityInitial,flowContract:'AVAILABILITY_V2',serverNow:'2026-10-25T20:00:00Z'};
+export const reservationWaiting:RequestProcessSummary={...availabilityWaiting,flowContract:'AVAILABILITY_V2',serverNow:'2026-10-25T20:00:00Z',availability:{...pickupPlan,reservationOffer:freeOffer}};
+export const freeReservation:Reservation={id:801,mode:'FREE',status:'REQUESTED',effectiveStatus:'REQUESTED',requestedAt:'2026-10-25T20:00:00Z',confirmedAt:null,confirmedByUserId:null,paymentReceiptDeclaration:null,pickupCancellation:null,reasonDetail:null,continuedWithoutReservationAt:null};
+export const reservationRequested:RequestProcessSummary={...availabilityAccepted,flowContract:'AVAILABILITY_V2',state:'IN_PROGRESS',serverNow:'2026-10-25T20:00:00Z',availability:{...pickupPlan,reservationOffer:freeOffer},reservationChoice:{offerId:31,choice:'REQUEST_RESERVATION'},reservation:freeReservation,allowedActions:['CONFIRM_PICKUP_RESERVATION','DECLINE_PICKUP_RESERVATION','CANCEL_PICKUP']};
+export const paidRequested:RequestProcessSummary={...reservationRequested,availability:{...pickupPlan,allowCustomerWhatsapp:true,reservationOffer:paidOffer},reservation:{...freeReservation,mode:'PREPAYMENT',status:'AWAITING_BUSINESS_CONFIRMATION',effectiveStatus:'AWAITING_BUSINESS_CONFIRMATION'},coordination:{customerContactAuthorized:true,businessContactAuthorized:true},allowedActions:['CANCEL_PICKUP'],reservationFollowUp:{ownFollowUpClosedAt:null,allowedActions:['CONFIRM_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','OPEN_RESERVATION_WHATSAPP','REVOKE_RESERVATION_CONTACT','FINISH_OWN_RESERVATION_FOLLOW_UP']}};

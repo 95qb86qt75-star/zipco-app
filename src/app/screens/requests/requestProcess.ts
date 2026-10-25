@@ -1,8 +1,9 @@
-import { isRecord } from './orderValueParsers';
+import { isRecord,parseIsoDate } from './orderValueParsers';
 import { AVAILABILITY_ACTION_PATHS, AVAILABILITY_CLOSURES, availabilityFlow, normalizeAvailability, type AvailabilityPlan, type AvailabilityClosureReason } from './availabilityContract';
+import {RESERVATION_PATHS,reservationFlow,normalizeReservationChoice,normalizeReservation,normalizeReservationFollowUp,type Reservation,type ReservationChoice,type ReservationFollowUp} from './reservationContract';
 
 export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
-export type ProcessAction = typeof PROCESS_ACTIONS[number];
+export type ProcessAction = typeof PROCESS_ACTIONS[number]|keyof typeof RESERVATION_PATHS;
 
 export const PENDING_REJECTION_REASONS = {
   unavailable: 'Producto o servicio no disponible', cannot_meet_schedule: 'No puedo cumplir el horario',
@@ -18,7 +19,8 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
-  flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1';
+  flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1'|'AVAILABILITY_V2';
+  serverNow?:string;reservationChoice?:ReservationChoice;reservation?:Reservation;reservationFollowUp?:ReservationFollowUp;
   availability?: AvailabilityPlan;
   customerContactPreference?: {
     allowed: boolean;
@@ -61,14 +63,22 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
       !(value.agreementPublicId === null ||
         (typeof value.agreementPublicId === 'string' && value.agreementPublicId.trim())) ||
       !Array.isArray(value.allowedActions) ||
-      !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as ProcessAction))) return null;
+      !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as typeof PROCESS_ACTIONS[number])||Object.hasOwn(RESERVATION_PATHS,String(action)))) return null;
   if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
-  if (value.flowContract !== undefined && value.flowContract !== 'LEGACY_V1' && value.flowContract !== 'AVAILABILITY_V1') return null;
+  if (value.flowContract !== undefined && !['LEGACY_V1','AVAILABILITY_V1','AVAILABILITY_V2'].includes(String(value.flowContract))) return null;
   const availability = value.availability === undefined ? undefined : normalizeAvailability(value.availability, value.currentProposalId);
-  if (availability === null || (value.availability !== undefined && value.flowContract !== 'AVAILABILITY_V1') ||
-    (value.flowContract !== 'AVAILABILITY_V1' && (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.allowedActions.some(a => Object.hasOwn(AVAILABILITY_ACTION_PATHS, String(a))))) ||
-    (value.flowContract === 'AVAILABILITY_V1' && (value.allowedActions.includes('ACCEPT_FIXED_ORDER') ||
+  if (availability === null || (value.availability !== undefined && !availabilityFlow(value)) ||
+    (!availabilityFlow(value) && (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.allowedActions.some(a => Object.hasOwn(AVAILABILITY_ACTION_PATHS, String(a))))) ||
+    (availabilityFlow(value) && (value.allowedActions.includes('ACCEPT_FIXED_ORDER') ||
       (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.agreementPublicId !== null) && !availability))) return null;
+  const choice=value.reservationChoice===undefined?undefined:normalizeReservationChoice(value.reservationChoice),reservation=value.reservation===undefined?undefined:normalizeReservation(value.reservation),followUp=value.reservationFollowUp===undefined?undefined:normalizeReservationFollowUp(value.reservationFollowUp);
+  if(choice===null||reservation===null||followUp===null||value.serverNow!==undefined&&!parseIsoDate(value.serverNow)||
+    (!reservationFlow(value)&&(availability?.reservationOffer||choice||reservation||followUp||value.allowedActions.some(a=>Object.hasOwn(RESERVATION_PATHS,String(a)))))||
+    reservationFlow(value)&&availability?.path==='LOCAL_PICKUP'&&!availability.reservationOffer||
+    reservation&&(availability?.path!=='LOCAL_PICKUP'||!choice||choice.choice!=='REQUEST_RESERVATION'||choice.offerId!==availability.availabilityConfirmationId||availability.reservationOffer?.mode!==reservation.mode)||
+    followUp&&reservation?.mode!=='PREPAYMENT'||choice&&availability&&choice.offerId!==availability.availabilityConfirmationId||
+    choice?.choice==='REQUEST_RESERVATION'&&!reservation||reservation&&(!value.serverNow||!value.agreementPublicId)||
+    reservation?.mode==='PREPAYMENT'&&(!followUp||reservation.paymentReceiptDeclaration&&availability?.reservationOffer?.mode==='PREPAYMENT'&&reservation.paymentReceiptDeclaration.amountClp!==availability.reservationOffer.requiredAmountClp))return null;
   let customerContactPreference: RequestProcessSummary['customerContactPreference'];
   if (value.customerContactPreference !== undefined) {
     const p = value.customerContactPreference;
@@ -115,7 +125,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
   }
   if (isRecord(value.closure) && AVAILABILITY_CLOSURES.includes(value.closure.reasonCode as AvailabilityClosureReason)) {
     const c = value.closure, pickup = c.reasonCode === 'PICKUP_CANCELLED';
-    if (value.flowContract !== 'AVAILABILITY_V1' || value.state !== 'CLOSED' || value.allowedActions.length ||
+    if (!availabilityFlow(value) || value.state !== 'CLOSED' || value.allowedActions.length ||
       !positiveInteger(c.actorUserId) || c.actorUserId > 2147483647 || typeof c.closedAt !== 'string' || !Number.isFinite(Date.parse(c.closedAt)) ||
       (pickup ? !value.agreementPublicId || availability?.path !== 'LOCAL_PICKUP' || !['CUSTOMER','BUSINESS'].includes(String(c.actor)) ||
         typeof c.reasonDetail !== 'string' || c.reasonDetail !== c.reasonDetail.trim() || Array.from(c.reasonDetail).length < 3 || Array.from(c.reasonDetail).length > 1000
@@ -130,6 +140,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
     ...(value.flowContract ? { flowContract: value.flowContract as RequestProcessSummary['flowContract'] } : {}),
     ...(availability ? { availability } : {}),
+    ...(value.serverNow?{serverNow:value.serverNow as string}:{}),...(choice?{reservationChoice:choice}:{}),...(reservation?{reservation}:{}),...(followUp?{reservationFollowUp:followUp}:{}),
     ...(closure ? { closure } : {}),
     ...(customerContactPreference ? { customerContactPreference } : {}),
     ...(proposalSummary ? { proposalSummary } : {}),

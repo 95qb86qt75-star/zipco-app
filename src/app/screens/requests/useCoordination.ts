@@ -113,7 +113,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.
       const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail, process),
-        (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal, process.currentProposalId), retry, active);
+        (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal, process.currentProposalId,process.flowContract), retry, active);
       if (!response || !active()) return false;
       if(business&&['START_WORK','ANNUL_COORDINATION'].includes(action)){
         const key=whatsappReturnKey(order);if(key)clearWhatsappReturn(key);

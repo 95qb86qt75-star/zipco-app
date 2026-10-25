@@ -17,6 +17,7 @@ window.checkoutCalls=[]; window.checkoutComplete=0;
 localStorage.setItem('zipco-token','browser-test-only');
 localStorage.setItem('zipco-user-id','8');
 window.fetch=async (url,init)=>{
+ if(String(url).endsWith('/request-process-capabilities'))return new Response(JSON.stringify({supportedContracts:['availability-v1','availability-v2'],reservationCreationEnabled:false}));
  if(!String(url).endsWith('/orders/availability-requests')) throw Error('Unexpected HTTP');
  const body=JSON.parse(init.body);window.checkoutCalls.push({body,key:init.headers['Idempotency-Key']});
  await new Promise(resolve=>setTimeout(resolve,80));

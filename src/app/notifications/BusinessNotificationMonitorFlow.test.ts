@@ -50,7 +50,7 @@ beforeEach(() => {
     setItem: (key: string, value: string) => { values.set(key, value); },
   });
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
-    if (url.endsWith('/orders/my-orders?processContract=availability-v1')) return new Response(JSON.stringify([serverOrder]));
+    if (url.endsWith('/orders/my-orders?processContract=availability-v2')) return new Response(JSON.stringify([serverOrder]));
     if (url.endsWith('/quotes/my-quotes')) return new Response('[]');
     throw new Error('Unexpected test request');
   }));
@@ -86,7 +86,7 @@ function businessServer(initial: Array<{ id: number; status: string }>) {
   localStorage.setItem('zipco-business-id', '42');
   localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));
   vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
-    String(url).endsWith('/orders/business/42?processContract=availability-v1') ? orders : [],
+    String(url).endsWith('/orders/business/42?processContract=availability-v2') ? orders : [],
   )));
   return { setOrders: (next: typeof orders) => { orders = next; } };
 }
@@ -127,7 +127,7 @@ describe('monitor acceptance flow across service worker and polling', () => {
     localStorage.setItem('zipco-request-status-snapshot-v1', JSON.stringify({ customerOrders: [], customerQuotes: [] }));
     window.location.search = '?open=requests-business&orderId=92&notificationEvent=requests-business%3Aorder-92-created';
     vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
-      String(url).endsWith('/orders/business/42?processContract=availability-v1') ? [{ id: 91, status: 'pending' }, { id: 92, status: 'pending' }] : [],
+      String(url).endsWith('/orders/business/42?processContract=availability-v2') ? [{ id: 91, status: 'pending' }, { id: 92, status: 'pending' }] : [],
     )));
     BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
     expect(publishActiveRequestCount).toHaveBeenCalledWith(2);
@@ -199,7 +199,7 @@ describe('monitor acceptance flow across service worker and polling', () => {
     BusinessNotificationMonitor({ onSessionExpired: vi.fn() }); await tick();
     expect(JSON.parse(localStorage.getItem('zipco-request-status-snapshot-v1')!).business).toBeUndefined();
     vi.mocked(fetch).mockImplementation(async (url) => new Response(JSON.stringify(
-      String(url).endsWith('/orders/business/42?processContract=availability-v1') ? [{ id: 109, status: 'pending' }] : [],
+      String(url).endsWith('/orders/business/42?processContract=availability-v2') ? [{ id: 109, status: 'pending' }] : [],
     )));
     await vi.advanceTimersByTimeAsync(15_000);
     expect(showAppToast).not.toHaveBeenCalled();
@@ -255,7 +255,7 @@ describe('monitor acceptance flow across service worker and polling', () => {
     localStorage.setItem('zipco-business-id', '42');
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockImplementation(async (url) => new Response(JSON.stringify(
-      String(url).endsWith('/orders/business/42?processContract=availability-v1') ? [{ id: 66, status: 'accepted', requestProcess: coordinationProcess }] : [],
+      String(url).endsWith('/orders/business/42?processContract=availability-v2') ? [{ id: 66, status: 'accepted', requestProcess: coordinationProcess }] : [],
     )));
     await mount();
     const refresh = vi.fn(); window.addEventListener('zipco-requests-refresh', refresh);

@@ -13,6 +13,7 @@ import {safePhoto} from './agreement';
 import {formatDeliverySchedule} from './utils';
 import {CUSTOMER_CONTACT_TEXT_VERSION} from '../createOrderApi';
 import {AuroraProposalHeader} from './OrderCardAurora';
+import {reservationFlow} from './reservationContract';
 
 export default function AvailabilityFlowCard({order,business,expanded,onToggle,refresh,isUnread=false}:{
   order:BusinessRequest|MyOrder;business:boolean;expanded:boolean;onToggle:()=>void;refresh:()=>void;isUnread?:boolean;
@@ -20,6 +21,7 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
   const operation=useAvailability(order,business,refresh);
   const [sheet,setSheet]=useState(false),[decline,setDecline]=useState(false),[past,setPast]=useState(false);
   const [contact,setContact]=useState(true);
+  const [reservationNote,setReservationNote]=useState(''),[selectedReserve,setSelectedReserve]=useState(false),[choiceError,setChoiceError]=useState('');
   const process=order.requestProcess,plan=process?.availability;
   const name=business?'customerName'in order?order.customerName:'Cliente':'businessName'in order?order.businessName:'Negocio';
   if(!process)return null;
@@ -33,10 +35,13 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
   const confirm=async(choice:AvailabilityDesignChoice)=>{
     if(await operation.run('CONFIRM_AVAILABILITY',{proposalId:process.currentProposalId,fulfillment:fulfillmentFromChoice(choice)}))setSheet(false);
   };
-  const continueRequest=async(acceptPast=false)=>{
+  const continueRequest=async(acceptPast=false,reserve=selectedReserve)=>{
     if(!plan)return;
+    setSelectedReserve(reserve);setChoiceError('');
+    if(reserve&&plan.reservationOffer?.mode==='PREPAYMENT'&&!contact){setChoiceError('Para solicitar reserva con pago necesitas autorizar tu propio teléfono. También puedes ir sin reserva.');return;}
     const ok=await operation.run('CONTINUE_REQUEST',{proposalId:process.currentProposalId,availabilityConfirmationId:plan.availabilityConfirmationId,
       conditionsAccepted:true,customerContactPreference:{allowed:plan.path==='LOCAL_PICKUP'&&!plan.allowCustomerWhatsapp?false:contact,textVersion:CUSTOMER_CONTACT_TEXT_VERSION},
+      ...(reservationFlow(process)&&plan.path==='LOCAL_PICKUP'?{reservationChoice:{offerId:plan.availabilityConfirmationId,choice:reserve?'REQUEST_RESERVATION' as const:'NONE' as const,...(reserve?{note:reservationNote.trim()}:{})}}:{}),
       ...(acceptPast?{acceptPastSchedule:true}:{})});
     if(!ok)setPast(true);
   };
@@ -51,12 +56,14 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
           <div className="zipco-av-secondary-actions zipco-av-live-secondary"><ProposalNegotiation order={order} business refresh={refresh} variant="aurora"/><PendingRejectionActions order={order} refresh={refresh}/></div>
           {error}
         </div>}/>
-      <ConfirmAvailabilityDesign open={sheet} onOpenChange={setSheet} onChoose={confirm} busy={operation.busy} error={operation.error||undefined}/>
+      <ConfirmAvailabilityDesign open={sheet} onOpenChange={setSheet} onChoose={confirm} busy={operation.busy} error={operation.error||undefined} reservationContract={reservationFlow(process)} reservationTotal={data.total}/>
     </>:!business&&plan?<>
       <AvailableRequestDesign data={data} expanded={expanded} onToggle={onToggle} contact={contact} onContactChange={setContact}
-        pickup={plan.path==='LOCAL_PICKUP'?{message:plan.customerMessage??'',scheduleOrAddress:plan.scheduleOrAddress??'',allowsContact:plan.allowCustomerWhatsapp}:undefined}
+        pickup={plan.path==='LOCAL_PICKUP'?{message:plan.customerMessage??'',scheduleOrAddress:plan.scheduleOrAddress??'',allowsContact:plan.allowCustomerWhatsapp,...(plan.reservationOffer?{reservationOffer:plan.reservationOffer}:{})}:undefined}
         busy={operation.busy||!availabilityAllowed(process,false,'CONTINUE_REQUEST')||!availabilityAllowed(process,false,'DECLINE_REQUEST')}
-        onContinue={()=>void continueRequest()} onDecline={()=>setDecline(true)} error={operation.error||undefined}
+        onContinue={()=>void continueRequest(false,false)} onDecline={()=>setDecline(true)} error={choiceError||operation.error||undefined}
+        onReserve={reservationFlow(process)&&plan.reservationOffer&&plan.reservationOffer.mode!=='NONE'?()=>void continueRequest(false,true):undefined}
+        reservationNote={reservationNote} onReservationNote={setReservationNote}
         extraDetails={<>{order.note&&<p className="zipco-av-note">Nota: {order.note}</p>}<p className="zipco-av-schedule">{data.schedule}</p>{reference}</>}/>
       {operation.error&&<button className="mt-2 rounded-xl border p-2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>}
     </>:<article className="zipco-aurora-card rounded-[24px] p-4">

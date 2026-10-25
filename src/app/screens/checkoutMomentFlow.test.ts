@@ -2,7 +2,7 @@ import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CatalogItem } from './profile/business-config/types';
 
-const state = vi.hoisted(() => ({ values: [] as unknown[], cursor: 0, create: vi.fn(), toast: vi.fn() }));
+const state = vi.hoisted(() => ({ values: [] as unknown[], cursor: 0, create: vi.fn(), toast: vi.fn(),capabilities:vi.fn() }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   useState: (initial: unknown) => {
@@ -24,6 +24,7 @@ vi.mock('./createOrderApi', async (importOriginal) => ({
 }));
 vi.mock('./Toast', () => ({ showAppToast: state.toast }));
 vi.mock('./requests/ActionHologram', () => ({ announceAction: vi.fn() }));
+vi.mock('./requests/reservationCapabilities',()=>({readReservationCapabilities:state.capabilities}));
 import { ConsultationDesignSheet } from './requests/availability-design/AvailabilityDesign';
 import CheckoutScreen from './CheckoutScreen';
 import ServiceCheckoutScreen from './ServiceCheckoutScreen';
@@ -56,6 +57,7 @@ const noop = () => undefined;
 
 beforeEach(() => {
   state.values = []; state.cursor = 0; state.create.mockReset().mockResolvedValue({ id: 1, total: 1000 }); state.toast.mockReset();
+  state.capabilities.mockReset().mockResolvedValue({reservationCreationEnabled:false});
   vi.stubGlobal('React', React);
   vi.stubGlobal('localStorage', { getItem: () => 'test' });
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ secure_url: photo }))));
@@ -84,6 +86,15 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
   };
 
   if (kind === 'product') {
+    it('creates V2 only when the authenticated capability is enabled and freezes the route on retry',async()=>{
+      state.capabilities.mockResolvedValue({reservationCreationEnabled:true});state.create.mockRejectedValueOnce(new TypeError('network'));
+      button('Ahora').props.onClick!();await submit();
+      expect(state.create.mock.calls[0][0].url).toMatch(/\/orders\/availability-reservation-requests$/);
+      expect(state.create.mock.calls[0][0].expectedFlow).toBe('AVAILABILITY_V2');
+      state.capabilities.mockResolvedValue({reservationCreationEnabled:false});await submit();
+      expect(state.capabilities).toHaveBeenCalledOnce();expect(state.create.mock.calls[1][0].url).toBe(state.create.mock.calls[0][0].url);expect(state.create.mock.calls[1][0].idempotencyKey).toBe(state.create.mock.calls[0][0].idempotencyKey);
+    });
+    it('keeps S2 creation when reservations are disabled',async()=>{button('Ahora').props.onClick!();await submit();expect(state.create.mock.calls[0][0].expectedFlow).toBe('AVAILABILITY_V1');expect(state.create.mock.calls[0][0].url).toMatch(/\/orders\/availability-requests$/);});
     it('opens the real review without posting and saves an explicit unchecked preference', async () => {
       button('Ahora').props.onClick!();
       button('Requiero este producto').props.onClick!();

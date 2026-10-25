@@ -2,6 +2,7 @@ import { isRecord, parseIsoDate } from './orderValueParsers';
 import { positiveInteger } from './requestProcess';
 import { normalizeProposalSubject } from './proposalContract';
 import { normalizeAvailability, type AvailabilityPlan } from './availabilityContract';
+import {normalizeReservationChoice,normalizeReservationOffer,type ReservationChoice} from './reservationContract';
 
 export type AgreementItem = {
   catalogItemId: number | null; nameSnapshot: string; descriptionSnapshot: string;
@@ -10,6 +11,7 @@ export type AgreementItem = {
 };
 export type AgreementReadDto = {
   availability?: AvailabilityPlan;
+  reservationChoice?:ReservationChoice;
   agreementPublicId: string; requestProcessId: number; acceptedProposalId: number;
   subjectSchemaVersion: 1 | 2;
   subjectSnapshot: { orderType: 'product' | 'service'; items: AgreementItem[];
@@ -51,6 +53,9 @@ export function normalizeAgreement(value: unknown): AgreementReadDto | null {
     items.reduce((sum, item) => sum + (item?.subtotalClp ?? 0), 0) !== value.totalPriceClp) return null;
   const availability = value.availability === undefined ? undefined : normalizeAvailability(value.availability, value.acceptedProposalId);
   if (availability === null) return null;
+  const choice=value.reservationChoice===undefined?undefined:normalizeReservationChoice(value.reservationChoice);
+  if(choice===null||availability?.reservationOffer&&!normalizeReservationOffer(availability.reservationOffer,value.totalPriceClp as number)||
+    choice&&availability&&choice.offerId!==availability.availabilityConfirmationId)return null;
   // Whitelist fields: contacts and other extra response data never enter the model.
   return {
     agreementPublicId: value.agreementPublicId, requestProcessId: value.requestProcessId,
@@ -63,5 +68,6 @@ export function normalizeAgreement(value: unknown): AgreementReadDto | null {
     businessAcceptedAt: value.businessAcceptedAt as string, confirmedAt: value.confirmedAt as string,
     createdAt: value.createdAt as string,
     ...(availability ? { availability } : {}),
+    ...(choice?{reservationChoice:choice}:{}),
   };
 }

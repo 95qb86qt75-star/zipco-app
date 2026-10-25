@@ -4,6 +4,7 @@ import { isPendingRequestCancelled, isPendingRequestRejected, validPendingReject
 import { processApiError, RequestProcessError } from './requestProcessErrors';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
 import { AVAILABILITY_QUERY, CONTACT_VERSION, availabilityFlow } from './availabilityContract';
+import {processContractHeaders,reservationFlow} from './reservationContract';
 
 export const COORDINATION_PATHS = {
   AUTHORIZE_CONTACT: 'authorize-contact', OPEN_WHATSAPP: 'open-whatsapp',
@@ -63,11 +64,22 @@ export function contactAuthorized(process: RequestProcessSummary | null | undefi
 
 export function coordinationAllowed(process: RequestProcessSummary | null | undefined, business: boolean, action: CoordinationAction) {
   if (!process?.allowedActions.includes(action)) return false;
+  if(reservationFlow(process)&&process.reservation?.mode==='PREPAYMENT'&&action==='OPEN_WHATSAPP')return false;
   if (action === 'CANCEL_PENDING_REQUEST') return !business && process.state === 'AWAITING_BUSINESS_RESPONSE' && process.agreementPublicId === null;
   if (action === 'REJECT_PENDING_REQUEST') return business && process.state === 'AWAITING_BUSINESS_RESPONSE' && process.agreementPublicId === null;
   if (!process.agreementPublicId) return false;
   // Readiness does not depend on phone numbers or contact consent.
-  if (action === 'MARK_READY') return business && process.state === 'IN_PROGRESS';
+   if (action === 'MARK_READY') {
+     if (!business || process.state !== 'IN_PROGRESS') return false;
+     if (!reservationFlow(process)) return true;
+     if (!process.reservationChoice) return false;
+     if (process.reservationChoice.choice === 'NONE') return true;
+     const reservation = process.reservation;
+     if (!reservation) return false;
+     if (reservation.mode === 'FREE' && reservation.continuedWithoutReservationAt) return true;
+     return reservation.effectiveStatus === 'CONFIRMED' &&
+       (reservation.mode !== 'PREPAYMENT' || reservation.paymentReceiptDeclaration !== null);
+   }
   if (action === 'ACK_READY_NOTICE') return !business && process.state === 'READY' && process.readyNoticeAcknowledged !== true;
   if (action === 'CONFIRM_RECEIPT') return !business && process.state === 'READY' && process.readyNoticeAcknowledged === true;
   if (!process.coordination) return false;
@@ -78,7 +90,7 @@ export function coordinationAllowed(process: RequestProcessSummary | null | unde
   return action === 'ANNUL_COORDINATION' ? coordinating : coordinating || process.state === 'IN_PROGRESS' || process.state === 'READY';
 }
 
-export async function sendCoordination(processId: number, orderId: number, action: CoordinationAction, body: CoordinationBody, token: string, key: string, signal?: AbortSignal, expectedProposalId?: number) {
+export async function sendCoordination(processId: number, orderId: number, action: CoordinationAction, body: CoordinationBody, token: string, key: string, signal?: AbortSignal, expectedProposalId?: number,flowContract?:RequestProcessSummary['flowContract']) {
   const cancellation = action === 'CANCEL_PENDING_REQUEST';
   const rejection = action === 'REJECT_PENDING_REQUEST';
   const initialClosure = cancellation || rejection;
@@ -88,7 +100,7 @@ export async function sendCoordination(processId: number, orderId: number, actio
     !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(key)))
     throw new RequestProcessError('No se pudo preparar la operación. Actualiza el pedido.', 400, true);
   const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/actions/${COORDINATION_PATHS[action]}`, {
-    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Idempotency-Key': key, 'Content-Type': 'application/json' },
+    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Idempotency-Key': key, 'Content-Type': 'application/json',...processContractHeaders({flowContract}) },
     body: JSON.stringify(body), signal,
   });
   let payload: unknown; try { payload = await response.json(); } catch { payload = null; }

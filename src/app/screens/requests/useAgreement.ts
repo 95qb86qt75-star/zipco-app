@@ -3,6 +3,7 @@ import type { AgreementReadDto } from './agreement';
 import type { RequestProcessSummary } from './requestProcess';
 import { readAgreement } from './requestProcessApi';
 import { RequestProcessError } from './requestProcessErrors';
+import {availabilityFlow} from './availabilityContract';
 
 export type AgreementState =
   | { status: 'absent' | 'loading' }
@@ -18,7 +19,7 @@ export async function fetchAgreementState(
   if (!token) { update({ status: 'error', message: 'Tu sesión venció. Ingresa nuevamente.' }); return; }
   try {
     const agreement = await readAgreement(process.id, process.agreementPublicId, token, signal);
-    if(process.flowContract==='AVAILABILITY_V1'&&(!agreement.availability||agreement.availability.availabilityConfirmationId!==process.availability?.availabilityConfirmationId))
+    if(availabilityFlow(process)&&(!agreement.availability||agreement.availability.availabilityConfirmationId!==process.availability?.availabilityConfirmationId))
       throw new Error('No se pudo verificar el camino del acuerdo.');
     if (!signal.aborted) update({ status: 'loaded', agreement });
   } catch (error) {

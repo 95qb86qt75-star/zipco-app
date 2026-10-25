@@ -10,6 +10,7 @@ import { safePhoto } from './agreement';
 import { formatDeliverySchedule } from './utils';
 import { isProposalRejected, isAvailabilityClosed } from './requestProcess';
 import ProposalNegotiation from './ProposalNegotiation';
+import ReservationPanel from './ReservationPanel';
 
 export default function ProcessHistoryCard({ order }: { order: MyOrder | BusinessRequest }) {
   const [expanded, setExpanded] = useState(false);
@@ -49,6 +50,6 @@ export default function ProcessHistoryCard({ order }: { order: MyOrder | Busines
       <p>{formatDeliverySchedule(order, 'customerName' in order ? 'business' : 'customer')}</p>
       {order.note && <p className="whitespace-pre-wrap break-words">Nota: {order.note}</p>}
       {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={'customerName' in order} />}
-    </div> : <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={'customerName' in order} history />)}
+    </div> : <><AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={'customerName' in order} history />{order.requestProcess?.reservation&&<ReservationPanel order={order} business={'customerName' in order} refresh={()=>window.dispatchEvent(new CustomEvent('zipco-requests-refresh'))}/>}</>)}
   </article>;
 }
