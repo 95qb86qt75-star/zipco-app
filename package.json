@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "node scripts/build-app.mjs",
     "build:production:verify": "vite build --mode production && node scripts/verify-production-build.mjs",
     "dev": "vite",
     "test": "vitest run"
