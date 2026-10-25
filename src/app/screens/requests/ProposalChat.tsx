@@ -4,6 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { ArrowRight, Calendar, Check, DollarSign, FileText, Hash, Image as ImageIcon, Maximize2, Package, ShoppingBag, Sparkles, StickyNote, X } from 'lucide-react';
 import type { Proposal, ProposalRead } from './proposalContract';
 import OrderReferencePhoto from './OrderReferencePhoto';
+import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const TZ = 'America/Santiago';
@@ -159,7 +160,7 @@ function PedidoSheet({ proposal, label, at, title, pic, dismiss }: { proposal: P
             <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><Calendar aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Disponibilidad</div><div className="zipco-d-tile-v">{whenLong(proposal)}</div></div></div>
             {s.note && <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><StickyNote aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Tu nota</div><div className="zipco-d-tile-v">{s.note}</div></div></div>}
           </div>
-          {pic}
+          {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
           <CloseButton kind="gp" />
         </div>
       </div>
@@ -200,7 +201,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
           : <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
           <div className="zipco-sheet-head"><b>{title}</b><b className="money">{money(proposal.totalPriceClp)}</b></div>
           <div className="zipco-sheet-rows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>
-          {pic}
+          {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
           <CloseButton kind={kind} />
         </Sheet>}
       </Dialog.Root>
@@ -231,7 +232,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
             ? <CompareTable current={proposal} previous={previous} mineBefore={(previous.authorActor === 'BUSINESS') === business} />
             : <div className="zipco-chat-drows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>}
         </div>
-        {pic}
+        {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
         <CloseButton kind={kind} />
       </Sheet>
     </Dialog.Root>

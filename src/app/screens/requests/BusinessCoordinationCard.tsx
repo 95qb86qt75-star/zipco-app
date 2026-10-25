@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import AvailabilityPostActions from './AvailabilityPostActions';
+import { availabilityFlow, CONTACT_COPY } from './availabilityContract';
 import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, LockKeyhole, Trash2 } from 'lucide-react';
 import { CoordinationCardHeader } from './CoordinationCardShell';
 import type { BusinessRequest, MyOrder } from './types';
@@ -188,7 +190,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
                 <span className={business ? 'zipco-co-wi' : 'zipco-contact-consent-icon'}><WhatsAppMark className="h-[22px] w-[22px]" /></span><span>{phase === 'requesting' ? 'Autorizando contacto…' : business ? 'Autorizo comenzar coordinación' : 'Autorizo iniciar coordinación'}</span>
               </button>
             </div>
-            <div className="zipco-co-sm" style={{ marginTop: 6 }}>Autorizas compartir con {client} el teléfono de tu perfil solo para este pedido. El consentimiento {business ? 'del cliente' : 'del negocio'} es independiente.</div>
+            <div className="zipco-co-sm" style={{ marginTop: 6 }}>{availabilityFlow(process) ? CONTACT_COPY : <>Autorizas compartir con {client} el teléfono de tu perfil solo para este pedido. El consentimiento {business ? 'del cliente' : 'del negocio'} es independiente.</>}</div>
             {!business && <button type="button" className="zipco-co-go2 zipco-co-defer" disabled={operation.busy} onClick={() => setDeferred(true)}>Ahora no</button>}
             </>}
             {!allowed('AUTHORIZE_CONTACT') && <button type="button" className="zipco-co-lnk" disabled={operation.busy} onClick={() => void operation.update()}>Actualizar estado</button>}
@@ -224,6 +226,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
         {allowed('ANNUL_COORDINATION') && !recoveryOnly && !pending && <div className="zipco-co-lks">
           <button type="button" className="zipco-co-lk rose" disabled={operation.busy} onClick={() => setSheet('anul')}><Trash2 size={14} strokeWidth={2.3} aria-hidden="true" />Anular solicitud</button>
         </div>}
+        {availabilityFlow(process) && <AvailabilityPostActions order={order} business={business} refresh={refresh}/>}
         <button type="button" className="zipco-co-fold" aria-expanded={true} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
         {operation.busy && phase !== 'loading' && <p role="status" className="zipco-co-co2-p">Actualizando pedido…</p>}
       </section>

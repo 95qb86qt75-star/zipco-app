@@ -1,4 +1,6 @@
 import { ProgressCardHeader } from './ProgressCardShell';
+import AvailabilityPostActions from './AvailabilityPostActions';
+import { availabilityFlow } from './availabilityContract';
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Hourglass, Package, PackageCheck } from 'lucide-react';
 import type { BusinessRequest } from './types';
@@ -75,7 +77,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
   };
 
   const noteId = `ec-note-${order.id}`;
-  const title = ready ? (service ? 'Servicio listo' : 'Pedido notificado') : 'Preparando el pedido';
+  const title = ready ? (service ? 'Servicio listo' : 'Pedido notificado') : process?.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'Preparando el pedido';
   const colTitle = title;
   const colSub = !ready ? 'Falta avisar al cliente · toca para abrir'
     : service ? 'Cliente avisado · toca para abrir'
@@ -142,6 +144,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
           </div>}
         </section>
 
+        {availabilityFlow(process)&&<AvailabilityPostActions order={order} business refresh={refresh}/>}
         <button type="button" className="zipco-co-fold" style={{ marginTop: 12 }} aria-expanded={!folded} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
       </div></div>
 

@@ -4,6 +4,7 @@ import OrderReferencePhoto from './OrderReferencePhoto';
 import { OrderPricePanel } from './OrderCardPanels';
 import { agreementLink } from './agreementNavigation';
 import type { StatusView } from './requestStatusGrouping';
+import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 
 const money = (value: number) => new Intl.NumberFormat('es-CL', {
   style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
@@ -36,6 +37,7 @@ export function AgreementContent({ state, retry, business = false, compact = fal
     <OrderReferencePhoto src={a.subjectSnapshot.referencePhoto} business={business} />
     {a.subjectSnapshot.proposalMessage && <p className="whitespace-pre-wrap break-words">Explicación de la propuesta aceptada: {a.subjectSnapshot.proposalMessage}</p>}
     {a.subjectSnapshot.proposalPhoto && <OrderReferencePhoto src={a.subjectSnapshot.proposalPhoto} business={business} />}
+    {a.availability && <AvailabilityPlanSummary plan={a.availability}/>}
   </div>;
 }
 

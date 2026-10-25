@@ -17,6 +17,11 @@ import ProposalChat, { proposalTitle, whenLong } from './ProposalChat';
 import AcceptAuthorizeCard from './AcceptAuthorizeCard';
 import { announceProposalAccepted } from './proposalAcceptance';
 import { announceAction } from './ActionHologram';
+import {availabilityFlow,BUSINESS_CONTACT_COPY,BUSINESS_CONTACT_VERSION,type FulfillmentChoice} from './availabilityContract';
+import {CUSTOMER_CONTACT_TEXT_VERSION} from '../createOrderApi';
+import {ConfirmAvailabilityDesign} from './availability-design/AvailabilityDesign';
+import {fulfillmentFromChoice} from './availabilityChoice';
+import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -80,6 +85,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [decision, setDecision] = useState<ProposalAction | null>(null);
   const [expired, setExpired] = useState(false);
   const [authCard, setAuthCard] = useState(false);
+  const [fulfillmentOpen,setFulfillmentOpen]=useState(false);
+  const [contactPreference,setContactPreference]=useState(true);
+  const draftAfterFulfillment=useRef<ProposalAction>('PROPOSE_ALTERNATIVE');
+  const chosenFulfillment=useRef<FulfillmentChoice|null>(null);
   const authorizeChoice = useRef(false);
   const lock = useRef(false);
   const mounted = useRef(true);
@@ -103,7 +112,9 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     const controller = new AbortController(); controllers.current.add(controller); lock.current = true; setBusy(true); setError('');
     try { const value = await readProposals(process.id, session!.token, controller.signal); if (active()) { setRead(value); setDecision(null); setExpired(false);
       if (startDraft) {
-        if (proposalAllowed(value.process, business, 'PROPOSE_ALTERNATIVE')) setDraftAction('PROPOSE_ALTERNATIVE');
+        if (proposalAllowed(value.process, business, 'PROPOSE_ALTERNATIVE')) {
+          if(availabilityFlow(value.process)){draftAfterFulfillment.current='PROPOSE_ALTERNATIVE';setFulfillmentOpen(true);}else setDraftAction('PROPOSE_ALTERNATIVE');
+        }
         else { setError('El pedido cambió. Actualiza su estado antes de proponer una alternativa.'); refresh(); }
       } else setOpen(true);
     } }
@@ -126,10 +137,21 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
     if (!active() || lock.current || !read || !choices.includes(action)) throw new ProposalError('Actualiza las condiciones antes de confirmar.', 0);
     const captured = read; const controller = new AbortController(); controllers.current.add(controller);
+    const newFlow=availabilityFlow(captured.process),plan=captured.proposals.at(-1)?.availability??captured.process.availability;
+    const permitsContact=plan?.path==='WHATSAPP'||plan?.allowCustomerWhatsapp===true;
+    const extra:Pick<ProposalBody,'fulfillment'|'customerContactPreference'|'businessContactConsent'>=newFlow?
+      action==='PROPOSE_ALTERNATIVE'||action==='PROPOSE_FINAL'?{fulfillment:chosenFulfillment.current??undefined}
+      :action==='COUNTER_PROPOSAL'||action==='ACCEPT_PROPOSAL'?{customerContactPreference:{allowed:permitsContact?contactPreference:false,textVersion:CUSTOMER_CONTACT_TEXT_VERSION}}
+      :action==='ACCEPT_COUNTER_PROPOSAL'&&permitsContact?{businessContactConsent:{accepted:true,textVersion:BUSINESS_CONTACT_VERSION}}:{}:{};
+    if(newFlow&&['PROPOSE_ALTERNATIVE','PROPOSE_FINAL'].includes(action)&&!extra.fulfillment)throw new ProposalError('Elige cómo seguirá esta propuesta antes de enviarla.',0);
     lock.current = true; setBusy(true); setError('');
     const finish = (receipt: ProposalReceipt) => {
       if (!active()) return;
-      if (isAcceptAction(action)) announceProposalAccepted({ order, receipt, business, authorize, session: session!, proposal: captured.proposals[captured.proposals.length - 1] });
+      if (isAcceptAction(action)) {
+        if(newFlow){announceAction('accepted',{title:'Propuesta aceptada',description:receipt.requestProcess.availability?.path==='LOCAL_PICKUP'?'El pedido quedó en curso, pendiente de retiro en el local.':'Ya puedes revisar el contacto y coordinar el pedido.',key:`availability-proposal:${process.id}:${receipt.requestProcess.version}`});
+          window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination'}}));
+        }else announceProposalAccepted({ order, receipt, business, authorize, session: session!, proposal: captured.proposals[captured.proposals.length - 1] });
+      }
       window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: receipt }));
       announceProposalSent(action, receipt);
       if (action === 'COUNTER_PROPOSAL' && receipt.requestProcess.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE')
@@ -146,13 +168,13 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       if (latest.process.version !== captured.process.version || latest.process.currentProposalId !== captured.process.currentProposalId || !proposalAllowed(latest.process, business, action)) {
         // A lost acceptance response is reconciled by authoritative reads. Never
         // post again or invent a receipt from the old local proposal snapshot.
-        if (isAcceptAction(action) && latest.process.state === 'COORDINATION_PENDING' && latest.process.agreementPublicId &&
+        if (isAcceptAction(action) && ['COORDINATION_PENDING',...(newFlow?['IN_PROGRESS']:[])].includes(latest.process.state) && latest.process.agreementPublicId &&
           latest.process.currentProposalId === captured.process.currentProposalId && latest.process.version >= captured.process.version + 2) {
           const current = await refreshCoordinationOrder(order.id!, business, session!.token, session!.businessId, controller.signal);
           if (!active()) return;
           const p = current?.requestProcess;
           if (current?.recordState === 'available' && current.status === 'accepted' && p?.id === process.id &&
-            p.state === 'COORDINATION_PENDING' && p.currentProposalId === captured.process.currentProposalId &&
+            p.state === latest.process.state && p.currentProposalId === captured.process.currentProposalId &&
             p.agreementPublicId === latest.process.agreementPublicId && p.version >= latest.process.version) {
             finish({ orderId: current.id, orderStatus: current.status, requestProcess: p }); return;
           }
@@ -166,9 +188,9 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       }
       if (!active()) throw new Error('La sesión cambió. No se enviará otra operación.');
       const body: ProposalBody = { ...(review ?? {}), expectedVersion: captured.process.version, proposalId: captured.process.currentProposalId,
-        confirmationAccepted: true, ...(review ? { photo } : {}), ...(past ? { acceptPastSchedule: true } : {}) };
+        confirmationAccepted: true, ...(review ? { photo } : {}), ...extra, ...(past ? { acceptPastSchedule: true } : {}) };
       const receipt = await proposalIntents().run(operationScope(session!, business), process.id, action, body,
-        key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal));
+        key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal,captured.process.flowContract,captured.process.availability?.availabilityConfirmationId));
       // POST is final. A failed subsequent read must never send it again.
       finish(receipt);
     } catch (e) {
@@ -202,12 +224,17 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
               closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
               canCounter={!business && choices.includes('COUNTER_PROPOSAL')} />}
+            {read?.process.availability&&<AvailabilityPlanSummary plan={read.process.availability}/>}
           </div>
           {error && <p role="alert" className="px-5 pt-2 text-sm text-red-700">{error}</p>}
           <div className="zipco-chat-foot shrink-0 space-y-2 px-4 pb-4 pt-1.5">
             {decision ? <>
               <p className="text-sm font-bold">{expired ? 'La fecha y hora propuestas ya pasaron. ¿Quieres aceptar igualmente?' : `${titles[decision]}: ¿confirmas esta propuesta exacta?`}</p>
-              <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
+              <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : availabilityFlow(read?.process) ? 'Aceptar crea el acuerdo de esta propuesta. No representa un pago realizado.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
+              {availabilityFlow(read?.process)&&isAcceptAction(decision)&&<>
+                {business&&read?.process.availability?.allowCustomerWhatsapp&&<p className="text-xs">{BUSINESS_CONTACT_COPY}</p>}
+                {!business&&read?.process.availability?.allowCustomerWhatsapp&&<label className="flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>}
+              </>}
               <div className="grid grid-cols-2 gap-2"><button className="zipco-chat-ctr h-12" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
                 {(() => {
                   const confirm = async () => { try { await execute(decision, undefined, null, expired, isAcceptAction(decision) && authorizeChoice.current); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
@@ -219,8 +246,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             </> : <>
               {(() => {
                 const go = (action: ProposalAction) => {
-                  if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) setDraftAction(action);
-                  else if (isAcceptAction(action)) { setAuthCard(true); setExpired(false); authorizeChoice.current = false; }
+                  if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) {
+                    if(availabilityFlow(read?.process)&&business){draftAfterFulfillment.current=action;setFulfillmentOpen(true);}else setDraftAction(action);
+                  }
+                  else if (isAcceptAction(action)) { if(availabilityFlow(read?.process))setDecision(action);else setAuthCard(true);setExpired(false);authorizeChoice.current = false; }
                   else { setDecision(action); setExpired(false); }
                 };
                 const accepts = choices.filter(isAcceptAction);
@@ -263,6 +292,9 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
       sourceOverride={proposalDraftSource(read)} title={titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
-      close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => execute(draftAction, review, file) : undefined} />}
+      close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => execute(draftAction, review, file) : undefined}
+      extraFields={availabilityFlow(read.process)?business?<div className="my-3 rounded-xl border p-3 text-xs"><p>{chosenFulfillment.current?.path==='LOCAL_PICKUP'?'Retiro en el local':'Coordinar por WhatsApp'}</p>{(chosenFulfillment.current?.path==='WHATSAPP'||chosenFulfillment.current?.allowCustomerWhatsapp)&&<p>{BUSINESS_CONTACT_COPY}</p>}</div>
+        :read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>:undefined} />}
+    <ConfirmAvailabilityDesign open={fulfillmentOpen} onOpenChange={setFulfillmentOpen} purpose="proposal" busy={busy} onChoose={choice=>{chosenFulfillment.current=fulfillmentFromChoice(choice);setFulfillmentOpen(false);setDraftAction(draftAfterFulfillment.current);}}/>
   </div>;
 }

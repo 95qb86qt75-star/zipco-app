@@ -4,6 +4,7 @@ import { OrdersApiError } from './ordersApi';
 export const PAST_SCHEDULE_MESSAGE = 'La fecha y hora seleccionadas ya pasaron. Elige una fecha y hora futuras.';
 export const DST_SCHEDULE_MESSAGE = 'Esta hora no está disponible debido al cambio de horario. Selecciona otra hora.';
 export const REFRESH_CONDITIONS_MESSAGE = 'Este pedido cambió o ya fue actualizado. Actualiza la pantalla y revisa sus condiciones.';
+export const FLOW_UPDATE_MESSAGE = 'Esta solicitud necesita una versión más reciente de ZIPCO. Actualiza la aplicación para continuar.';
 
 export function approvedScheduleMessage(body: unknown): string | null {
   if (!isRecord(body)) return null;
@@ -25,6 +26,9 @@ export function processApiError(status: number, body: unknown, agreement = false
   if (status === 404) return new RequestProcessError(agreement ? 'El acuerdo ya no está disponible. Actualiza el pedido.' : 'El pedido ya no está disponible. Actualiza la pantalla.', status, !agreement);
   if (status === 409) {
     const code = isRecord(body) && typeof body.code === 'string' ? body.code : '';
+    if (code === 'FLOW_CONTRACT_REQUIRED') return new RequestProcessError(FLOW_UPDATE_MESSAGE,status);
+    if (code === 'FLOW_CONTRACT_MISMATCH') return new RequestProcessError('Esta acción no corresponde al flujo de este pedido. Actualiza su estado.',status,true);
+    if (code === 'AVAILABILITY_MISMATCH') return new RequestProcessError('La disponibilidad cambió. Actualiza el pedido y revisa la confirmación vigente.',status,true);
     if (code === 'INVALID_PROFILE_CONTACT') return new RequestProcessError('Revisa el teléfono internacional de tu perfil antes de continuar.', status, true);
     if (code === 'CONTACT_CONSENT_REQUIRED') return new RequestProcessError('La otra parte todavía debe autorizar compartir su teléfono para este pedido.', status, true);
     if (code === 'ACTION_NOT_AVAILABLE_IN_2A') return new RequestProcessError('Disponible en una próxima etapa de prueba.', status, true);

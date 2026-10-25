@@ -60,8 +60,8 @@ export function normalizeCreatedOrder(value: unknown): CreatedOrder {
     ...(Object.prototype.hasOwnProperty.call(value, 'requestProcess') ? normalizeOrderProcess(value.requestProcess) : {}) };
 }
 
-type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; fetchImpl?: typeof fetch };
-export async function createOrder({ url, token, currentUserId, businessUserId, payload, idempotencyKey, fetchImpl = fetch }: Input): Promise<CreatedOrder> {
+type Input = { url: string; token: string; currentUserId: unknown; businessUserId: unknown; payload: CreateOrderPayload; idempotencyKey: string; expectedFlow?: 'AVAILABILITY_V1'; fetchImpl?: typeof fetch };
+export async function createOrder({ url, token, currentUserId, businessUserId, payload, idempotencyKey, expectedFlow, fetchImpl = fetch }: Input): Promise<CreatedOrder> {
   if (isOwnBusiness(businessUserId, currentUserId)) throw new CreateOrderError(OWN_BUSINESS_ORDER_MESSAGE, null, 'not-created');
   if (!idempotencyKey) throw new CreateOrderError('No se pudo preparar el envÃ­o seguro del pedido.', null, 'not-created');
   let response: Response;
@@ -77,6 +77,10 @@ export async function createOrder({ url, token, currentUserId, businessUserId, p
     const outcome = [400, 401, 403, 404, 422].includes(response.status) ? 'not-created' : 'uncertain';
     throw new CreateOrderError(schedule ?? messages[response.status] ?? GENERIC_CREATE_ORDER_MESSAGE, response.status, outcome);
   }
-  try { return normalizeCreatedOrder(await response.json() as unknown); }
+  try {
+    const created=normalizeCreatedOrder(await response.json() as unknown);
+    if(expectedFlow&&created.requestProcess?.flowContract!==expectedFlow)throw new CreateOrderError('No se pudo verificar el flujo de la solicitud. Reintenta el mismo envío.',response.status);
+    return created;
+  }
   catch (error) { if (error instanceof CreateOrderError) throw error; throw new CreateOrderError('La respuesta del pedido no tiene un formato válido.', response.status); }
 }

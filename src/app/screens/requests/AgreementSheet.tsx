@@ -6,6 +6,7 @@ import { readCoordinationSession } from './coordinationSession';
 import { subscribeCoordinationSession } from './coordinationSession';
 import type { AgreementReadDto } from './agreement';
 import OrderReferencePhoto from './OrderReferencePhoto';
+import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 import { buildTimeline, money, whenOf, type Round, type Timeline, type Perspective } from './agreementTimeline';
 
 /**
@@ -125,6 +126,7 @@ export default function AgreementSheet({ open, onOpenChange, processId, client, 
               <span>{item.unitPriceClpSnapshot === null ? 'Precio total de esta línea' : `${money(item.unitPriceClpSnapshot)} por unidad`} · Subtotal {money(item.subtotalClp)}</span></li>)}
           </ul>}
 
+          {accepted.availability&&<AvailabilityPlanSummary plan={accepted.availability}/>}
           {load.status === 'loading' && <p role="status" className="zipco-ag-who2" style={{ margin: '16px 2px 0' }}>Cargando propuestas…</p>}
           {load.status === 'error' && <div className="zipco-ag-err" role="alert">No pudimos cargar el detalle de las propuestas.
             <div><button type="button" onClick={() => setAttempt(value => value + 1)}>Reintentar</button></div></div>}

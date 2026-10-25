@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import AvailabilityPostActions from './AvailabilityPostActions';
+import { availabilityFlow } from './availabilityContract';
 import { Calendar, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Package, PackageCheck } from 'lucide-react';
 import { coordinationAllowed } from './coordinationApi';
 import useCoordination from './useCoordination';
@@ -150,7 +152,7 @@ export default function CustomerProgressCard({ order, businessName, image, price
     requestLock.current = false;
   };
   const title = received ? '¡Pedido recibido!'
-    : !ready ? (service ? 'Preparando tu servicio' : 'Preparando tu pedido')
+    : !ready ? (process?.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : service ? 'Preparando tu servicio' : 'Preparando tu pedido')
       : service ? '¡Tu servicio está listo!' : acked ? 'Aviso confirmado' : '¡Tu pedido está listo!';
   const sub = received ? 'Gracias por confirmar. Tu pedido quedó completado.'
     : !ready ? <><b>{business}</b> te avisará aquí apenas esté listo.</>
@@ -234,6 +236,7 @@ export default function CustomerProgressCard({ order, businessName, image, price
 
         {canContact && !received && <button type="button" className="zipco-cp-wa" disabled={operation.busy || Boolean(recoveryOnly) || Boolean(pending)} onClick={() => void operation.run('OPEN_WHATSAPP')}><span className="w"><WaIcon /></span>Escribir al negocio</button>}
 
+        {availabilityFlow(process)&&<AvailabilityPostActions order={order} business={false} refresh={refresh}/>}
         <button type="button" className="zipco-co-fold" style={{ marginTop: 12 }} aria-expanded={!folded} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
       </div></div>
 

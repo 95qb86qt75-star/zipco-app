@@ -4,6 +4,7 @@ import { normalizeRequestProcess, type RequestProcessSummary } from './requestPr
 import { normalizeAgreement } from './agreement';
 import { processApiError, RequestProcessError } from './requestProcessErrors';
 import { normalizeBusinessOrdersPayload } from './orderNormalization';
+import { AVAILABILITY_QUERY } from './availabilityContract';
 
 export type AcceptFixedOrderResult = { orderId: number; orderStatus: 'accepted'; requestProcess: RequestProcessSummary };
 async function bodyOf(response: Response): Promise<unknown> {
@@ -27,7 +28,7 @@ export async function acceptFixedOrder(process: RequestProcessSummary, orderId: 
 }
 
 export async function readAgreement(processId: number, agreementPublicId: string | null, token: string, signal?: AbortSignal) {
-  const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/agreement`, {
+  const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/agreement${AVAILABILITY_QUERY}`, {
     headers: { Authorization: `Bearer ${token}` }, signal, cache: 'no-store',
   });
   const body = await bodyOf(response);
@@ -39,7 +40,7 @@ export async function readAgreement(processId: number, agreementPublicId: string
 }
 
 export async function readBusinessOrderForRecovery(orderId: number, businessId: number, token: string) {
-  const response = await fetch(`${API_BASE_URL}/orders/business/${businessId}?processContract=alternatives-v1`, {
+  const response = await fetch(`${API_BASE_URL}/orders/business/${businessId}${AVAILABILITY_QUERY}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const body = await bodyOf(response);

@@ -1,4 +1,5 @@
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
+import { FLOW_UPDATE_MESSAGE } from './requests/requestProcessErrors';
 import useReadyTransitions from './requests/useReadyTransitions';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
@@ -92,6 +93,16 @@ export default function RequestsScreen({
     Record<string, "newest" | "oldest">
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
+  useEffect(()=>{
+    const navigate=(event:Event)=>{
+      const detail=(event as CustomEvent).detail;
+      if(!detail||typeof detail.business!=='boolean'||!['waiting','active','coordination','history'].includes(detail.view)||
+        (detail.business?'my-business':'my-orders')!==subTab)return;
+      setStatusViews(current=>({...current,[`${subTab}-orders`]:detail.view}));
+    };
+    window.addEventListener('zipco-availability-view',navigate);
+    return()=>window.removeEventListener('zipco-availability-view',navigate);
+  },[subTab]);
   const [attentionFilter, setAttentionFilter] = useState<
     "responses" | "ready" | "browse" | null
   >(null);
@@ -1317,11 +1328,11 @@ export default function RequestsScreen({
                 <button
                   type="button"
                   onClick={() => {
-                    void loadOrders();
+                    if (loadError === FLOW_UPDATE_MESSAGE) window.location.reload(); else void loadOrders();
                   }}
                   className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-red-700 shadow-sm ring-1 ring-red-200"
                 >
-                  <RefreshCw className="h-4 w-4" /> Intentar nuevamente
+                  <RefreshCw className="h-4 w-4" /> {loadError === FLOW_UPDATE_MESSAGE ? 'Actualizar aplicación' : 'Intentar nuevamente'}
                 </button>
               </div>
             )}

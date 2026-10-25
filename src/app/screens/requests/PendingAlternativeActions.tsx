@@ -41,9 +41,9 @@ export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: F
   </div>;
 }
 
-export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original' }: {
+export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
-  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void>; title?: string; baselineLabel?: string;
+  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode;
 }) {
   const [source] = useState(() => sourceOverride ?? alternativeSource(order));
   const [draft, setDraft] = useState<AlternativeDraft>(() => newAlternativeDraft(source));
@@ -121,6 +121,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
         <div ref={body} data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
           <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
           <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+          {extraFields}
           {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
           <fieldset disabled={!current || sending} className={reviewing ? 'hidden' : ''}>
             {source.items.length > 1 && <label className="mt-3 block text-sm font-bold">Artículo a modificar

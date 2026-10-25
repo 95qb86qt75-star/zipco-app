@@ -17,11 +17,11 @@ window.checkoutCalls=[]; window.checkoutComplete=0;
 localStorage.setItem('zipco-token','browser-test-only');
 localStorage.setItem('zipco-user-id','8');
 window.fetch=async (url,init)=>{
- if(!String(url).endsWith('/orders')) throw Error('Unexpected HTTP');
+ if(!String(url).endsWith('/orders/availability-requests')) throw Error('Unexpected HTTP');
  const body=JSON.parse(init.body);window.checkoutCalls.push({body,key:init.headers['Idempotency-Key']});
  await new Promise(resolve=>setTimeout(resolve,80));
  if(window.checkoutFailure) throw Error('Simulated network failure');
- return new Response(JSON.stringify({id:1,total:12000,items:[{id:1,orderId:1,catalogItemId:7,nameSnapshot:'Producto QA',unitPriceClpSnapshot:12000,quantity:1,subtotalClp:12000}]}),{status:201});
+ return new Response(JSON.stringify({id:1,total:12000,items:[{id:1,orderId:1,catalogItemId:7,nameSnapshot:'Producto QA',unitPriceClpSnapshot:12000,quantity:1,subtotalClp:12000}],requestProcess:{id:7,state:'AWAITING_BUSINESS_RESPONSE',version:1,currentProposalId:123,agreementPublicId:null,flowContract:'AVAILABILITY_V1',allowedActions:['CANCEL_PENDING_REQUEST']}}),{status:201});
 };
 createRoot(document.getElementById('root')).render(<><CheckoutScreen business={{id:5,userId:9,name:'ZIPCO Negocio QA'}} currentUserId={8} selectedProducts={[7]} products={[{id:7,businessId:5,name:'Producto QA',description:'Producto de prueba',kind:'product',pricingMode:'fixed_price',priceClp:12000,isActive:true,imageUrl:''}]} onBack={()=>{}} onOrderComplete={()=>window.checkoutComplete++} onCatalogConflict={()=>{}} onSessionExpired={()=>{}}/><ActionHologramHost/></>);
 `;

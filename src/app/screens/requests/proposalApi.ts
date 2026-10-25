@@ -4,13 +4,15 @@ import { normalizeRequestProcess, type RequestProcessSummary } from './requestPr
 import { normalizeProposals, PROPOSAL_PATHS, type ProposalAction } from './proposalContract';
 import { processApiError, RequestProcessError } from './requestProcessErrors';
 import { getCloudinarySecureImageUrl } from '../profile/business-config/catalogValidation';
+import { AVAILABILITY_QUERY, type FulfillmentChoice, type BusinessContactConsent } from './availabilityContract';
+import type { CustomerContactPreference } from '../createOrderApi';
 
-export const ALTERNATIVES_QUERY = '?processContract=alternatives-v1';
+export const ALTERNATIVES_QUERY = AVAILABILITY_QUERY;
 export class ProposalError extends RequestProcessError {
   constructor(message: string, status: number, readonly code = '', refresh = false) { super(message, status, refresh); }
 }
 export async function readProposals(processId: number, token: string, signal?: AbortSignal) {
-  const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/proposals`, {
+  const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/proposals${AVAILABILITY_QUERY}`, {
     headers: { Authorization: `Bearer ${token}` }, signal, cache: 'no-store',
   });
   const body: unknown = await response.json().catch(() => null);
@@ -29,9 +31,10 @@ export async function uploadProposalPhoto(file: File, signal?: AbortSignal) {
   return url;
 }
 export type ProposalBody = { expectedVersion: number; proposalId: number; confirmationAccepted: true; acceptPastSchedule?: true;
+  fulfillment?: FulfillmentChoice; customerContactPreference?: CustomerContactPreference; businessContactConsent?: BusinessContactConsent;
   totalPriceClp?: number; message?: string; photo?: string | null; lineChanges?: unknown[]; schedule?: unknown };
 export type ProposalReceipt = { orderId: number; orderStatus: 'accepted' | 'rejected' | 'alternative_proposed'; requestProcess: RequestProcessSummary };
-export async function sendProposalAction(processId: number, orderId: number, action: ProposalAction, body: ProposalBody, token: string, key: string, signal?: AbortSignal): Promise<ProposalReceipt> {
+export async function sendProposalAction(processId: number, orderId: number, action: ProposalAction, body: ProposalBody, token: string, key: string, signal?: AbortSignal, flowContract?: RequestProcessSummary['flowContract'], expectedPlanId?: number): Promise<ProposalReceipt> {
   if (!/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/.test(key) || body.confirmationAccepted !== true)
     throw new ProposalError('No se pudo preparar la confirmación.', 0);
   const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/actions/${PROPOSAL_PATHS[action]}`, {
@@ -50,7 +53,10 @@ export async function sendProposalAction(processId: number, orderId: number, act
   const state = accepts ? 'COORDINATION_PENDING' : rejects ? 'CLOSED' : action === 'PROPOSE_ALTERNATIVE' ? 'AWAITING_CUSTOMER_DECISION'
     : action === 'COUNTER_PROPOSAL' ? 'AWAITING_BUSINESS_COUNTER_RESPONSE' : 'AWAITING_CUSTOMER_FINAL_DECISION';
   const status = accepts ? 'accepted' : rejects ? 'rejected' : 'alternative_proposed';
-  if (!isRecord(value) || value.orderId !== orderId || value.orderStatus !== status || !p || p.id !== processId || p.state !== state ||
+  const acceptedState = accepts && p?.flowContract === 'AVAILABILITY_V1' && p.availability?.path === 'LOCAL_PICKUP' ? 'IN_PROGRESS' : state;
+  if(flowContract==='AVAILABILITY_V1'&&(p?.flowContract!=='AVAILABILITY_V1'||(accepts||rejects)&&p.availability?.availabilityConfirmationId!==expectedPlanId))
+    throw new ProposalError('No se pudo verificar el plan de esta propuesta. Actualiza el pedido sin repetir otra acción.',502);
+  if (!isRecord(value) || value.orderId !== orderId || value.orderStatus !== status || !p || p.id !== processId || p.state !== acceptedState ||
     p.version !== body.expectedVersion + (accepts ? 2 : 1) || (accepts ? !p.agreementPublicId : p.agreementPublicId !== null) ||
     p.allowedActions.length !== 0 ||
     (rejects && p.closure?.reasonCode !== (action === 'REJECT_PROPOSAL' ? 'CUSTOMER_REJECTED_PROPOSAL' : 'BUSINESS_REJECTED_COUNTER_PROPOSAL')) ||

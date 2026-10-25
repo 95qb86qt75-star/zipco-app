@@ -59,9 +59,20 @@
 .zipco-av-fine{display:flex;align-items:flex-start;gap:6px;margin:9px 0 0;font-size:11px;line-height:1.4;color:#94a3b8}
 .zipco-av-fine svg{flex:none;width:14px;height:14px;color:#5eead4}
 .zipco-av-secondary-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.zipco-av-secondary-actions button{display:flex;gap:6px;align-items:center;justify-content:center;min-height:42px;padding:8px 6px;border-radius:12px;border:1px solid #22d3ee;background:#22d3ee1a;color:#67e8f9;font-size:12px;font-weight:700;line-height:1.2}
-.zipco-av-secondary-actions button:last-child{border-color:#fb7185;background:#f43f5e1a;color:#fda4af}
+.zipco-av-secondary-actions>button{display:flex;gap:6px;align-items:center;justify-content:center;min-height:42px;padding:8px 6px;border-radius:12px;border:1px solid #22d3ee;background:#22d3ee1a;color:#67e8f9;font-size:12px;font-weight:700;line-height:1.2}
+.zipco-av-secondary-actions>button:last-child{border-color:#fb7185;background:#f43f5e1a;color:#fda4af}
 .zipco-av-secondary-actions svg{flex:none;width:20px;height:20px}
+.zipco-av-live-secondary>div{margin-top:0;min-width:0}
+.zipco-av-live-secondary .zipco-glass-wrap{display:block}
+.zipco-av-live-secondary .zipco-glass-wrap,.zipco-av-live-secondary .zipco-reject-wrap{margin:0;border-radius:12px;animation:none;background:transparent;box-shadow:none}
+.zipco-av-live-secondary .zipco-glass-blob,.zipco-av-live-secondary .zipco-reject-blob{display:none}
+.zipco-av-live-secondary .zipco-glass-btn,.zipco-av-live-secondary .zipco-reject-btn{min-height:44px;width:100%;margin:0;padding:8px 6px;border-radius:12px;font-size:12px;line-height:1.2}
+.zipco-av-live-secondary .zipco-glass-btn{border:1px solid #22d3ee;color:#67e8f9;background:#22d3ee1a;box-shadow:none}
+.zipco-av-live-secondary .zipco-reject-btn{gap:6px;justify-content:center;border:1px solid #fb7185;color:#fda4af;background:#f43f5e1a;box-shadow:none;text-shadow:none}
+.zipco-av-live-secondary .zipco-reject-icon{flex:none;width:22px;height:22px;margin:0;border-radius:50%;background:#fb7185;color:#0f172a;animation:none;box-shadow:none}
+.zipco-av-live-secondary .zipco-reject-label{min-width:0;font-size:12px;font-weight:700;line-height:1.2;letter-spacing:0;overflow-wrap:normal;text-align:center}
+.zipco-av-live-secondary .zipco-glass-btn::before,.zipco-av-live-secondary .zipco-glass-btn::after,.zipco-av-live-secondary .zipco-reject-btn::before,.zipco-av-live-secondary .zipco-reject-btn::after{display:none}
+.zipco-availability-real .zipco-av-error button{display:inline-flex;align-items:center;gap:5px;border:1px solid currentColor;border-radius:9px;padding:6px;margin-top:5px}
 .zipco-av-business .zipco-av-disclosure,.zipco-av-available .zipco-av-disclosure{border-radius:99px;background:#ffffff1f;border:1px solid #ffffff4d;box-shadow:none;color:#fff;min-height:28px;padding:4px 13px}
 .zipco-av-available .zipco-av-ticket-inner{padding:12px}
 .zipco-av-available .zipco-av-ticket-icon{width:32px;height:32px}

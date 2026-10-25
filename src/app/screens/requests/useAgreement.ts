@@ -10,7 +10,7 @@ export type AgreementState =
   | { status: 'loaded'; agreement: AgreementReadDto };
 
 export async function fetchAgreementState(
-  process: Pick<RequestProcessSummary, 'id' | 'agreementPublicId'> | null | undefined,
+  process: Pick<RequestProcessSummary, 'id' | 'agreementPublicId' | 'flowContract' | 'availability'> | null | undefined,
   token: string | null, signal: AbortSignal, update: (state: AgreementState) => void,
 ) {
   if (!process?.id || !process.agreementPublicId) { update({ status: 'absent' }); return; }
@@ -18,6 +18,8 @@ export async function fetchAgreementState(
   if (!token) { update({ status: 'error', message: 'Tu sesión venció. Ingresa nuevamente.' }); return; }
   try {
     const agreement = await readAgreement(process.id, process.agreementPublicId, token, signal);
+    if(process.flowContract==='AVAILABILITY_V1'&&(!agreement.availability||agreement.availability.availabilityConfirmationId!==process.availability?.availabilityConfirmationId))
+      throw new Error('No se pudo verificar el camino del acuerdo.');
     if (!signal.aborted) update({ status: 'loaded', agreement });
   } catch (error) {
     if (!signal.aborted) update({ status: 'error', message: error instanceof RequestProcessError
@@ -35,7 +37,7 @@ export default function useAgreement(process: RequestProcessSummary | null | und
     if (!id || !publicId) return;
     const controller = new AbortController();
     const token = localStorage.getItem('zipco-token');
-    void fetchAgreementState({ id, agreementPublicId: publicId }, token, controller.signal,
+    void fetchAgreementState({ id, agreementPublicId: publicId, flowContract:process?.flowContract, availability:process?.availability }, token, controller.signal,
       (state) => setResult({ key, state }));
     return () => controller.abort();
   }, [id, publicId, key]);

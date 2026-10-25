@@ -1,5 +1,6 @@
 import { RequestProcessError } from './requestProcessErrors';
 import { coordinationBody, type CoordinationAction, type CoordinationBody } from './coordinationApi';
+import { CONTACT_VERSION } from './availabilityContract';
 
 export type CoordinationIntent = { action: CoordinationAction; body: CoordinationBody; key: string };
 export const coordinationStorageWarning = 'La operación quedó resuelta, pero no se pudo limpiar el almacenamiento. No repitas la acción. Actualiza el estado; no se garantiza recuperar esta confirmación si recargas o cierras la aplicación.';
@@ -23,7 +24,8 @@ export function createCoordinationIntents(uuid = () => crypto.randomUUID(), stor
         !intent.body || !Number.isSafeInteger(intent.body.expectedVersion) || intent.body.expectedVersion < 1 ||
         (intent.confirmed !== undefined && typeof intent.confirmed !== 'boolean') ||
         typeof intent.key !== 'string' || !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(intent.key) ||
-        JSON.stringify(intent.body) !== JSON.stringify(coordinationBody(intent.action, intent.body.expectedVersion, intent.body.reasonCode, intent.body.reasonDetail))) throw new Error();
+        JSON.stringify(intent.body) !== JSON.stringify(coordinationBody(intent.action, intent.body.expectedVersion, intent.body.reasonCode, intent.body.reasonDetail,
+          intent.body.consentTextVersion === CONTACT_VERSION ? { flowContract: 'AVAILABILITY_V1' } : undefined))) throw new Error();
       if (intent.confirmed === true || retired.has(`${name}:${intent.key}`)) {
         // Preserve protection against stale controls after storage cleanup. WhatsApp
         // remains repeatable as a new deliberate access, never as a cleaned retry.

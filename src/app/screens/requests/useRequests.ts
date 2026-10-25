@@ -3,11 +3,12 @@ import { createFixedOrderAcceptance } from './fixedOrderAcceptance';
 import { announceAction } from './ActionHologram';
 import { readCoordinationSession } from './coordinationSession';
 import { hasRequestProcess } from './requestProcess';
-import { RequestProcessError, REFRESH_CONDITIONS_MESSAGE } from './requestProcessErrors';
+import { RequestProcessError, REFRESH_CONDITIONS_MESSAGE, FLOW_UPDATE_MESSAGE, processApiError } from './requestProcessErrors';
 import { mergeProcessOrderUpdates } from './processOrderUpdates';
 import { readBusinessOrderForRecovery } from './requestProcessApi';
 import { parsePositiveInteger } from './orderValueParsers';
 import { API_BASE_URL } from "../../api/apiConfig";
+import { AVAILABILITY_QUERY } from './availabilityContract';
 import { showAppToast } from "../Toast";
 import { createOrderOperationGuard } from "./orderActionGuard";
 import { getOrderErrorPolicy } from "./orderErrorPolicy";
@@ -108,9 +109,10 @@ export default function useRequests(onSessionExpired: () => void) {
       if (!silent) setIsLoading(true);
       const execute = async () => {
         try {
-          const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders?processContract=alternatives-v1`, {
+          const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders${AVAILABILITY_QUERY}`, {
             headers: { Authorization: `Bearer ${token}` }, signal:controller.signal,
           }), async (myResponse) => {
+            if (myResponse.status === 409) throw processApiError(409,await myResponse.json().catch(()=>null));
             if (!myResponse.ok)
               throw new OrdersApiError(
                 "No se pudieron cargar tus pedidos.",
@@ -147,11 +149,12 @@ export default function useRequests(onSessionExpired: () => void) {
 
           if (businessId) {
             const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
-              `${API_BASE_URL}/orders/business/${businessId}?processContract=alternatives-v1`,
+              `${API_BASE_URL}/orders/business/${businessId}${AVAILABILITY_QUERY}`,
               {
                 headers: { Authorization: `Bearer ${token}` }, signal:controller.signal,
               },
             ), async (businessResponse) => {
+              if (businessResponse.status === 409) throw processApiError(409,await businessResponse.json().catch(()=>null));
               if (!businessResponse.ok) {
                 throw new OrdersApiError(
                   "No se pudieron cargar los pedidos del negocio.",
@@ -178,11 +181,10 @@ export default function useRequests(onSessionExpired: () => void) {
             );
             onSessionExpired();
           } else {
-            setLoadError(
-              "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.",
-            );
+            setLoadError(error instanceof RequestProcessError && error.message === FLOW_UPDATE_MESSAGE ? FLOW_UPDATE_MESSAGE :
+              "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.");
             showAppToast(
-              "No se pudieron cargar los pedidos. Intenta nuevamente.",
+              error instanceof RequestProcessError && error.message === FLOW_UPDATE_MESSAGE ? FLOW_UPDATE_MESSAGE : "No se pudieron cargar los pedidos. Intenta nuevamente.",
               "error",
             );
           }
@@ -231,15 +233,16 @@ export default function useRequests(onSessionExpired: () => void) {
   useEffect(() => {
     const receive = (event: Event) => {
       const receipt: unknown = (event as CustomEvent).detail;
-      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || !['accepted', 'cancelled', 'ready', 'completed', 'rejected', 'alternative_proposed'].includes(String(receipt.orderStatus))) return;
+      if (!isRecord(receipt) || !Number.isSafeInteger(receipt.orderId) || !['pending', 'accepted', 'cancelled', 'ready', 'completed', 'rejected', 'alternative_proposed'].includes(String(receipt.orderStatus))) return;
       const process = normalizeRequestProcess(receipt.requestProcess);
+      if(receipt.orderStatus==='pending'&&(process?.flowContract!=='AVAILABILITY_V1'||process.state!=='AWAITING_CUSTOMER_CONTINUATION'))return;
       if (!process || (receipt.orderStatus === 'rejected' && !isPendingRequestRejected(process) && !isProposalRejected(process))) return;
       const apply = <T extends BusinessRequest | MyOrder>(items: T[]): T[] => items.map((item) => {
         if (item.id !== receipt.orderId || item.requestProcess?.id !== process.id || item.requestProcess.version > process.version) return item;
         // A historical replay can omit optional fields already learned by GET at
         // this version. Keep those fields, never carry them across versions.
         const requestProcess = item.requestProcess.version === process.version ? { ...item.requestProcess, ...process } : process;
-        return { ...item, status: receipt.orderStatus as 'accepted' | 'cancelled' | 'ready' | 'completed' | 'rejected' | 'alternative_proposed', requestProcess };
+        return { ...item, status: receipt.orderStatus as 'pending' | 'accepted' | 'cancelled' | 'ready' | 'completed' | 'rejected' | 'alternative_proposed', requestProcess };
       });
       setRequests(apply); setMyOrders(apply);
       void loadOrders(true, 'receipt');

@@ -1,5 +1,6 @@
 import { isRecord, parseIsoDate } from './orderValueParsers';
 import { normalizeRequestProcess, positiveInteger, type RequestProcessSummary } from './requestProcess';
+import { normalizeAvailability, type AvailabilityPlan } from './availabilityContract';
 
 export const PROPOSAL_PATHS = {
   PROPOSE_ALTERNATIVE: 'propose-alternative', COUNTER_PROPOSAL: 'counter-proposal', PROPOSE_FINAL: 'propose-final',
@@ -44,6 +45,7 @@ export function normalizeProposalSubject(schema: unknown, value: unknown, total:
     proposalMessage: schema === 2 ? value.proposalMessage as string : '', proposalPhoto: schema === 2 ? value.proposalPhoto as string | null : null };
 }
 export type Proposal = { id: number; sequence: number; type: typeof PROPOSAL_TYPES[number]; authorActor: 'CUSTOMER' | 'BUSINESS';
+  availability?: AvailabilityPlan;
   createdAt: string; subjectSchemaVersion: 1 | 2; subjectSnapshot: ProposalSubject; totalPriceClp: number; scheduledFor: string | null };
 export type ProposalRead = { process: RequestProcessSummary; proposals: Proposal[] };
 export function normalizeProposals(value: unknown, processId: number): ProposalRead | null {
@@ -58,11 +60,14 @@ export function normalizeProposals(value: unknown, processId: number): ProposalR
       p.subjectSchemaVersion !== (i === 0 ? 1 : 2) || p.authorActor !== (i === 0 || i === 2 ? 'CUSTOMER' : 'BUSINESS') ||
       !positiveInteger(p.authorUserId) || !parseIsoDate(p.createdAt) || p.reservationAmountClp !== null) return null;
     const subject = normalizeProposalSubject(p.subjectSchemaVersion, p.subjectSnapshot, p.totalPriceClp, p.scheduledFor);
+    const availability = p.availability === undefined ? undefined : normalizeAvailability(p.availability, p.id);
+    if (availability === null || availability && process.flowContract !== 'AVAILABILITY_V1') return null;
     if (!subject || (i > 0 && (subject.orderType !== proposals[0].subjectSnapshot.orderType || subject.items.length !== proposals[0].subjectSnapshot.items.length))) return null;
     ids.add(p.id);
     proposals.push({ id: p.id, sequence: i, type: PROPOSAL_TYPES[i], authorActor: p.authorActor as Proposal['authorActor'],
       createdAt: p.createdAt as string, subjectSchemaVersion: p.subjectSchemaVersion as 1 | 2, subjectSnapshot: subject,
-      totalPriceClp: p.totalPriceClp as number, scheduledFor: p.scheduledFor as string | null });
+      totalPriceClp: p.totalPriceClp as number, scheduledFor: p.scheduledFor as string | null,
+      ...(availability ? { availability } : {}) });
   }
   const latest = proposals[proposals.length - 1];
   if (process.currentProposalId !== latest.id ||

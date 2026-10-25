@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowLeftRight, CalendarDays, ChevronDown, ChevronRight, Che
 import AcceptGlassButton from '../AcceptGlassButton';
 import WhatsAppMark from '../WhatsAppMark';
 import './availability-design.css';
+import { BUSINESS_CONTACT_COPY } from '../availabilityContract';
 
 // Presentation only. These props are not proposed API fields or server receipts.
 export type RequestDesignData = {
@@ -68,8 +69,8 @@ function ContactIntent({ allowed, business = false }: { allowed: boolean; busine
     : business ? 'Sin autorización de WhatsApp todavía. El cliente podrá darla al confirmar la compra.' : 'Sin autorizar el contacto por WhatsApp. Podrás darlo cuando el negocio confirme disponibilidad.'}</span></p>;
 }
 
-export function PendingRequestDesign({ data, expanded, onToggle, contactIntent, business = false, actions }: {
-  data: RequestDesignData; expanded: boolean; onToggle: () => void; contactIntent?: boolean; business?: boolean; actions?: ReactNode;
+export function PendingRequestDesign({ data, expanded, onToggle, contactIntent, business = false, actions, detail }: {
+  data: RequestDesignData; expanded: boolean; onToggle: () => void; contactIntent?: boolean; business?: boolean; actions?: ReactNode; detail?: ReactNode;
 }) {
   const detailsId = useId();
   return <article className={`zipco-av-ticket ${business ? 'zipco-av-business' : 'zipco-av-waiting'}`} aria-label={`${data.counterpart}: ${business ? 'Nuevo pedido' : 'Pendiente de respuesta'}`}>
@@ -77,7 +78,7 @@ export function PendingRequestDesign({ data, expanded, onToggle, contactIntent, 
       <h2 className="zipco-av-neon">{business ? 'NUEVO PEDIDO' : 'EN ESPERA'}</h2>
       <p className="zipco-av-subtitle">{business ? 'Revisa la solicitud y responde al cliente.' : 'Esperando la primera respuesta del negocio.'}</p>
       <div id={detailsId} hidden={!expanded}>
-        <OriginalDetail data={data} compact={business} /><Perforation />
+        {detail ?? <OriginalDetail data={data} compact={business} />}<Perforation />
         {contactIntent !== undefined && <ContactIntent allowed={contactIntent} business={business} />}
         {business && actions}
       </div>
@@ -143,9 +144,9 @@ export function ConsultationDesignSheet({ open, onOpenChange, data, contact, onC
   </>;
 }
 
-export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error }: {
+export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability' }: {
   open: boolean; onOpenChange: (open: boolean) => void; onChoose: (choice: AvailabilityDesignChoice) => void;
-  initialStep?: 'choice' | 'pickup'; busy?: boolean; error?: string;
+  initialStep?: 'choice' | 'pickup'; busy?: boolean; error?: string; purpose?: 'availability' | 'proposal';
 }) {
   const [step, setStep] = useState(initialStep);
   const [message, setMessage] = useState('');
@@ -155,10 +156,11 @@ export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initia
   const changeOpen = (value: boolean) => { if (!busy) onOpenChange(value); };
   return <Modal open={open} onOpenChange={changeOpen} icon={step === 'choice' ? <CircleCheck /> : <Store />} busy={busy}
     beforeIcon={step === 'pickup' && <button type="button" className="zipco-av-change" disabled={busy} onClick={() => setStep('choice')}><ArrowLeft />Cambiar opción</button>}
-    title={step === 'choice' ? '¿Cómo seguirá este pedido?' : 'Retiro en el local'}
-    description={step === 'choice' ? 'Elige cómo continuar. La disponibilidad se confirma al guardar.' : 'El cliente se acerca al local y paga allí. No hace falta coordinar.'}>
+    title={step === 'choice' ? purpose === 'proposal' ? '¿Cómo seguirá esta propuesta?' : '¿Cómo seguirá este pedido?' : 'Retiro en el local'}
+    description={step === 'choice' ? purpose === 'proposal' ? 'Elige el camino que acompañará las condiciones de tu propuesta.' : 'Elige cómo continuar. La disponibilidad se confirma al guardar.' : 'El cliente se acerca al local y paga allí. No hace falta coordinar.'}>
     <fieldset className="zipco-av-fieldset" disabled={busy}>
     {step === 'choice' ? <>
+      <p className="zipco-av-dialog-hint">{BUSINESS_CONTACT_COPY}</p>
       <button type="button" className="zipco-av-channel zipco-av-channel-whatsapp" onClick={() => onChoose({ channel: 'whatsapp' })}>
         <span className="zipco-av-channel-icon"><WhatsAppMark /></span><span><b>Coordinar por WhatsApp</b><span>Hablas con el cliente para acordar los detalles</span><small><LockKeyhole />Compartes tu teléfono si el cliente continúa con la compra</small></span><ChevronRight />
       </button>
@@ -167,20 +169,21 @@ export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initia
       </button>
     </> : <ol className="zipco-av-timeline">
       <li><span className="zipco-av-step">1</span><div><label htmlFor={messageId}>Mensaje para el cliente</label>
-        <textarea id={messageId} rows={2} maxLength={120} value={message} onChange={event => setMessage(event.target.value)} placeholder={DEFAULT_PICKUP_MESSAGE} aria-describedby={hintId} />
+        <textarea id={messageId} rows={2} value={message} onChange={event => setMessage(Array.from(event.target.value).slice(0,120).join(''))} placeholder={DEFAULT_PICKUP_MESSAGE} aria-describedby={hintId} />
         <small id={hintId}><Pencil />Toca y escribe: el texto gris se borra. Si no escribes nada, se envía este.</small></div></li>
       <li><span className="zipco-av-step">2</span><div><label htmlFor={scheduleId}>Horario o dirección <em>(opcional)</em></label>
-        <div className="zipco-av-input-icon"><Clock /><input id={scheduleId} maxLength={80} value={schedule} onChange={event => setSchedule(event.target.value)} placeholder="Ej.: hasta las 19:00" /></div></div></li>
+        <div className="zipco-av-input-icon"><Clock /><input id={scheduleId} value={schedule} onChange={event => setSchedule(Array.from(event.target.value).slice(0,80).join(''))} placeholder="Ej.: hasta las 19:00" /></div></div></li>
       <li><span className="zipco-av-step">3</span><div><b id={contactId}>¿Quieres que el cliente te escriba por WhatsApp?</b>
         <div className="zipco-av-pickup-contact" role="group" aria-labelledby={contactId}>
           <button type="button" aria-pressed={!contact} onClick={() => setContact(false)}>No</button>
           <button type="button" aria-pressed={contact} onClick={() => setContact(true)}><WhatsAppMark />Sí, permitir</button>
         </div><small>{contact ? 'Tu teléfono se compartirá solo después de que el cliente confirme continuar.' : 'Apagado: el cliente no verá tu teléfono.'}</small></div></li>
     </ol>}
+    {step === 'pickup' && contact && <p className="zipco-av-dialog-hint">{BUSINESS_CONTACT_COPY}</p>}
     </fieldset>
     {error && <p role="alert" className="zipco-av-error">{error}</p>}
     <div className="zipco-av-button-row"><button type="button" className="zipco-av-secondary" disabled={busy} onClick={() => changeOpen(false)}>Volver</button>
-      {step === 'pickup' && <button type="button" className="zipco-av-primary" disabled={busy} onClick={() => onChoose({ channel: 'pickup', instructions: { message: message.trim() || DEFAULT_PICKUP_MESSAGE, scheduleOrAddress: schedule.trim(), allowsContact: contact } })}>{busy ? 'Guardando…' : 'Confirmar disponibilidad'}</button>}
+      {step === 'pickup' && <button type="button" className="zipco-av-primary" disabled={busy} onClick={() => onChoose({ channel: 'pickup', instructions: { message: message.trim() || DEFAULT_PICKUP_MESSAGE, scheduleOrAddress: schedule.trim(), allowsContact: contact } })}>{busy ? 'Guardando…' : purpose === 'proposal' ? 'Usar este camino' : 'Confirmar disponibilidad'}</button>}
     </div>
   </Modal>;
 }
@@ -195,9 +198,9 @@ export function BusinessDesignActions({ data, onConfirm, onAlternative, onReject
   </div>;
 }
 
-export function AvailableRequestDesign({ data, expanded, onToggle, pickup, contact, onContactChange, onContinue, onDecline, busy = false, error }: {
+export function AvailableRequestDesign({ data, expanded, onToggle, pickup, contact, onContactChange, onContinue, onDecline, busy = false, error, extraDetails }: {
   data: RequestDesignData; expanded: boolean; onToggle: () => void; pickup?: PickupDesign;
-  contact: boolean; onContactChange: (checked: boolean) => void; onContinue: () => void; onDecline: () => void; busy?: boolean; error?: string;
+  contact: boolean; onContactChange: (checked: boolean) => void; onContinue: () => void; onDecline: () => void; busy?: boolean; error?: string; extraDetails?: ReactNode;
 }) {
   const detailsId = useId(), unavailableId = useId();
   return <article className="zipco-av-ticket zipco-av-available" aria-label={`${data.counterpart}: disponibilidad confirmada`}>
@@ -205,6 +208,7 @@ export function AvailableRequestDesign({ data, expanded, onToggle, pickup, conta
       <h2 className="zipco-av-neon">DISPONIBLE</h2><p className="zipco-av-subtitle">Confirmaron que lo tienen. ¿Quieres continuar con la compra?</p>
       <div id={detailsId} hidden={!expanded}>
         <Items data={data} showPrice /><Perforation />
+        {extraDetails}
         {pickup ? <section className="zipco-av-channel-summary"><h3><Store />El negocio te espera en el local</h3>
           <blockquote>{pickup.message || DEFAULT_PICKUP_MESSAGE}{pickup.scheduleOrAddress && <span><Clock />{pickup.scheduleOrAddress}</span>}</blockquote>
           <p>No es una reserva: pagas y retiras directamente en el local.</p>
@@ -212,8 +216,10 @@ export function AvailableRequestDesign({ data, expanded, onToggle, pickup, conta
             <small id={unavailableId}>Disponible después de confirmar que continúas y autorizar el contacto.</small></>}
         </section> : <section className="zipco-av-channel-summary"><h3><WhatsAppMark />Coordinarán por WhatsApp</h3>
           <p>El negocio quiere acordar contigo los detalles, el pago y la entrega por WhatsApp.</p>
-          <div className="zipco-av-consent zipco-av-consent-dark"><b>Permitir que el negocio me escriba por WhatsApp</b><ContactSwitch checked={contact} disabled={busy} onChange={() => onContactChange(!contact)} /></div>
-          <small>{contact ? 'El negocio recibirá tu teléfono solo si continúas con la compra.' : 'Sin permiso, el negocio no podrá escribirte por WhatsApp.'}</small>
+        </section>}
+        {(!pickup || pickup.allowsContact) && <section className="zipco-av-channel-summary">
+          <div className="zipco-av-consent zipco-av-consent-dark"><b>Permitir que este negocio me escriba por WhatsApp</b><ContactSwitch checked={contact} disabled={busy} onChange={() => onContactChange(!contact)} /></div>
+          <small>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</small>
         </section>}
         {error && <p role="alert" className="zipco-av-error">{error}</p>}
         <div className="zipco-av-decisions"><AcceptGlassButton label={busy ? 'Guardando…' : 'Sí, continuar con la compra'} size="compact" flush disabled={busy} onClick={onContinue} />

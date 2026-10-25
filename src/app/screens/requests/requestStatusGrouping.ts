@@ -1,4 +1,4 @@
-import { hasRequestProcess, isPendingRequestCancelled, isPendingRequestRejected, isProposalRejected, type RequestProcessSummary } from './requestProcess';
+import { hasRequestProcess, isPendingRequestCancelled, isPendingRequestRejected, isProposalRejected, isAvailabilityClosed, type RequestProcessSummary } from './requestProcess';
 export type RequestKind = "orders" | "quotes";
 export type StatusView = "pending" | "waiting" | "active" | "ready" | "history" | "coordination";
 export type HistoryFilter =
@@ -13,8 +13,8 @@ export function statusViewFor(
   requestProcessInvalid = false,
 ): StatusView | null {
   if (kind === "orders") {
-    if (['AWAITING_CUSTOMER_DECISION', 'AWAITING_BUSINESS_COUNTER_RESPONSE', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
-    if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && isPendingRequestCancelled(requestProcess)) ||
+    if (['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_BUSINESS_COUNTER_RESPONSE', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
+    if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && (isPendingRequestCancelled(requestProcess) || isAvailabilityClosed(requestProcess))) ||
       (status === 'rejected' && (isPendingRequestRejected(requestProcess) || isProposalRejected(requestProcess))) ? 'history' : null;
     if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
     if (requestProcess?.state === 'IN_PROGRESS') return 'active';

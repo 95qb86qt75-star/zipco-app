@@ -3,6 +3,7 @@ import { isRecord } from './orderValueParsers';
 import { isPendingRequestCancelled, isPendingRequestRejected, validPendingRejectionReason, validPendingRejectionDetail, normalizeRequestProcess, type PendingRejectionReason, type RequestProcessSummary } from './requestProcess';
 import { processApiError, RequestProcessError } from './requestProcessErrors';
 import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './orderNormalization';
+import { AVAILABILITY_QUERY, CONTACT_VERSION, availabilityFlow } from './availabilityContract';
 
 export const COORDINATION_PATHS = {
   AUTHORIZE_CONTACT: 'authorize-contact', OPEN_WHATSAPP: 'open-whatsapp',
@@ -18,7 +19,7 @@ export const ANNUL_REASONS = {
 } as const;
 export type AnnulReason = keyof typeof ANNUL_REASONS;
 export type CoordinationReason = AnnulReason | PendingRejectionReason;
-export type CoordinationBody = { expectedVersion: number; consentAccepted?: true; confirmationAccepted?: true; reasonCode?: CoordinationReason; reasonDetail?: string };
+export type CoordinationBody = { expectedVersion: number; consentAccepted?: true; consentTextVersion?: typeof CONTACT_VERSION; confirmationAccepted?: true; reasonCode?: CoordinationReason; reasonDetail?: string };
 export type CoordinationReceipt = { orderId: number; orderStatus: 'accepted' | 'cancelled' | 'ready' | 'completed' | 'rejected'; requestProcess: RequestProcessSummary };
 
 export function coordinationError(status: number, payload: unknown) {
@@ -37,7 +38,7 @@ export function whatsappUrl(value: unknown): string | null {
   } catch { return null; }
 }
 
-export function coordinationBody(action: CoordinationAction, version: number, reason?: CoordinationReason, detail = ''): CoordinationBody {
+export function coordinationBody(action: CoordinationAction, version: number, reason?: CoordinationReason, detail = '', process?: Pick<RequestProcessSummary, 'flowContract'>): CoordinationBody {
   if (action === 'REJECT_PENDING_REQUEST') {
     const trimmed = detail.trim();
     if (!validPendingRejectionReason(reason) || !validPendingRejectionDetail(reason, reason === 'other' ? trimmed : null))
@@ -52,7 +53,8 @@ export function coordinationBody(action: CoordinationAction, version: number, re
       throw new RequestProcessError('Selecciona un motivo. Para Otro motivo escribe una explicación de hasta 1000 caracteres.', 0);
     return { expectedVersion: version, reasonCode: reason, ...(reason === 'OTHER' ? { reasonDetail: trimmed } : {}) };
   }
-  return { expectedVersion: version, ...(['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP'].includes(action) ? { consentAccepted: true as const } : {}) };
+  return { expectedVersion: version, ...(['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP'].includes(action) ? { consentAccepted: true as const,
+    ...(availabilityFlow(process) ? { consentTextVersion: CONTACT_VERSION } : {}) } : {}) };
 }
 
 export function contactAuthorized(process: RequestProcessSummary | null | undefined, business: boolean) {
@@ -70,7 +72,7 @@ export function coordinationAllowed(process: RequestProcessSummary | null | unde
   if (action === 'CONFIRM_RECEIPT') return !business && process.state === 'READY' && process.readyNoticeAcknowledged === true;
   if (!process.coordination) return false;
   const coordinating = ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state);
-  if (action === 'AUTHORIZE_CONTACT') return coordinating;
+  if (action === 'AUTHORIZE_CONTACT') return coordinating || availabilityFlow(process) && ['IN_PROGRESS','READY'].includes(process.state);
   if (action === 'START_WORK') return business && coordinating;
   if (action === 'OPEN_WHATSAPP' && !business && !process.coordination.customerContactAuthorized) return false;
   return action === 'ANNUL_COORDINATION' ? coordinating : coordinating || process.state === 'IN_PROGRESS' || process.state === 'READY';
@@ -102,10 +104,10 @@ export async function sendCoordination(processId: number, orderId: number, actio
   const customerConfirmation = action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT';
   const expectedStatus = rejection ? 'rejected' : action === 'CONFIRM_RECEIPT' ? 'completed'
     : action === 'ANNUL_COORDINATION' || cancellation ? 'cancelled'
-      : action === 'MARK_READY' || action === 'ACK_READY_NOTICE' || (action === 'OPEN_WHATSAPP' && process?.state === 'READY') ? 'ready' : 'accepted';
+      : action === 'MARK_READY' || action === 'ACK_READY_NOTICE' || (['OPEN_WHATSAPP','AUTHORIZE_CONTACT'].includes(action) && process?.state === 'READY') ? 'ready' : 'accepted';
   const states = initialClosure ? ['CLOSED'] : action === 'ANNUL_COORDINATION' ? ['COORDINATION_CANCELLED']
     : action === 'CONFIRM_RECEIPT' ? ['COMPLETED'] : action === 'ACK_READY_NOTICE' || action === 'MARK_READY' ? ['READY'] : action === 'START_WORK' ? ['IN_PROGRESS']
-      : action === 'OPEN_WHATSAPP' ? ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'] : ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS'];
+      : action === 'OPEN_WHATSAPP' || action === 'AUTHORIZE_CONTACT' && availabilityFlow(process) ? ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'] : ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS'];
   if (!isRecord(raw) || raw.orderId !== orderId || raw.orderStatus !== expectedStatus || !process || process.id !== processId ||
     process.version < body.expectedVersion || ((action === 'MARK_READY' || customerConfirmation) && process.version === body.expectedVersion) ||
     (customerConfirmation && process.readyNoticeAcknowledged === false) || !states.includes(process.state) ||
@@ -125,7 +127,7 @@ export async function sendCoordination(processId: number, orderId: number, actio
 export async function refreshCoordinationOrder(orderId: number, business: boolean, token: string,
   businessId = localStorage.getItem('zipco-business-id'), signal?: AbortSignal) {
   if (business && (!businessId || !/^[1-9]\d*$/.test(businessId))) throw new RequestProcessError('No se pudo verificar el negocio. Actualiza la pantalla.', 0);
-  const response = await fetch(`${API_BASE_URL}/orders/${business ? `business/${businessId}` : 'my-orders'}?processContract=alternatives-v1`, { headers: { Authorization: `Bearer ${token}` }, signal });
+  const response = await fetch(`${API_BASE_URL}/orders/${business ? `business/${businessId}` : 'my-orders'}${AVAILABILITY_QUERY}`, { headers: { Authorization: `Bearer ${token}` }, signal });
   if (!response.ok) throw coordinationError(response.status, null);
   const payload: unknown = await response.json();
   const orders = business ? normalizeBusinessOrdersPayload(payload) : normalizeMyOrdersPayload(payload);

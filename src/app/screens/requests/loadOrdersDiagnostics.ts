@@ -6,7 +6,7 @@ const routes: Record<Operation, string> = {
 };
 const publicCodes = new Set(['INVALID_PROFILE_CONTACT', 'CONTACT_CONSENT_REQUIRED', 'STALE_VERSION',
   'INCOMPATIBLE_STATE', 'IDEMPOTENCY_KEY_REUSED', 'INVALID_REQUEST_PROCESS', 'PROPOSAL_MISMATCH',
-  'ACTION_NOT_AVAILABLE_IN_2A']);
+  'ACTION_NOT_AVAILABLE_IN_2A', 'FLOW_CONTRACT_REQUIRED', 'FLOW_CONTRACT_MISMATCH', 'AVAILABILITY_MISMATCH', 'CATALOG_CHANGED', 'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED']);
 export type LoadOrdersDiagnostic = Readonly<{
   operation: Operation; method: 'GET'; route: string; httpStatus: number | null;
   publicCode: string | null; frontendVersion: string;

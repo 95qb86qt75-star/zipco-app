@@ -25,6 +25,8 @@ import CustomerProgressCard from './CustomerProgressCard';
 import ProgressCardShell from './ProgressCardShell';
 import { contactAuthorized } from './coordinationApi';
 import CustomerPendingCard from './CustomerPendingCard';
+import AvailabilityFlowCard from './AvailabilityFlowCard';
+import { availabilityFlow } from './availabilityContract';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -106,6 +108,10 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
 
+  if (availabilityFlow(process) && (business && awaiting || process?.state === 'AWAITING_CUSTOMER_CONTINUATION'))
+    return <AvailabilityFlowCard key={`${business}:${process?.id}:${process?.state}`} order={order} business={business}
+      expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread} />;
+
   if (!business && awaiting) return <CustomerPendingCard order={order} expanded={isExpanded}
     onToggle={toggle} refresh={onRetry} isUnread={isUnread} />;
 
@@ -137,7 +143,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2;
     return <CustomerProgressCard key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
-      statusLabel={process.state === 'READY' ? 'Listo' : 'En curso'} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated}
+      statusLabel={process.state === 'READY' ? 'Listo' : process.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'En curso'} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated}
       notificationOpen={notificationOpen} onInspect={onOpen} isUnread={isUnread} conditionsTitle={title}
       conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
       conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />;

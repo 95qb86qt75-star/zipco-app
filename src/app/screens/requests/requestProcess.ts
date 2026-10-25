@@ -1,6 +1,7 @@
 import { isRecord } from './orderValueParsers';
+import { AVAILABILITY_ACTION_PATHS, AVAILABILITY_CLOSURES, availabilityFlow, normalizeAvailability, type AvailabilityPlan, type AvailabilityClosureReason } from './availabilityContract';
 
-export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL'] as const;
+export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number];
 
 export const PENDING_REJECTION_REASONS = {
@@ -17,6 +18,8 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1';
+  availability?: AvailabilityPlan;
   customerContactPreference?: {
     allowed: boolean;
     textVersion: 'availability-customer-whatsapp-v1';
@@ -34,7 +37,8 @@ export type RequestProcessSummary = {
   readyNoticeAcknowledged?: boolean;
   closure?: { reasonCode: 'CUSTOMER_CANCELLED_BEFORE_RESPONSE'; reasonDetail: null; actor: 'CUSTOMER'; actorUserId: number; closedAt: string }
     | { reasonCode: PendingRejectionReason; reasonDetail: string | null; actor: 'BUSINESS'; actorUserId: number; closedAt: string }
-    | { reasonCode: 'CUSTOMER_REJECTED_PROPOSAL' | 'BUSINESS_REJECTED_COUNTER_PROPOSAL'; reasonDetail: null; actor: 'CUSTOMER' | 'BUSINESS'; actorUserId: number; closedAt: string };
+    | { reasonCode: 'CUSTOMER_REJECTED_PROPOSAL' | 'BUSINESS_REJECTED_COUNTER_PROPOSAL'; reasonDetail: null; actor: 'CUSTOMER' | 'BUSINESS'; actorUserId: number; closedAt: string }
+    | { reasonCode: AvailabilityClosureReason; reasonDetail: string | null; actor: 'CUSTOMER' | 'BUSINESS'; actorUserId: number; closedAt: string };
   coordination?: { customerContactAuthorized: boolean; businessContactAuthorized: boolean };
 };
 
@@ -59,6 +63,12 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
       !Array.isArray(value.allowedActions) ||
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as ProcessAction))) return null;
   if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
+  if (value.flowContract !== undefined && value.flowContract !== 'LEGACY_V1' && value.flowContract !== 'AVAILABILITY_V1') return null;
+  const availability = value.availability === undefined ? undefined : normalizeAvailability(value.availability, value.currentProposalId);
+  if (availability === null || (value.availability !== undefined && value.flowContract !== 'AVAILABILITY_V1') ||
+    (value.flowContract !== 'AVAILABILITY_V1' && (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.allowedActions.some(a => Object.hasOwn(AVAILABILITY_ACTION_PATHS, String(a))))) ||
+    (value.flowContract === 'AVAILABILITY_V1' && (value.allowedActions.includes('ACCEPT_FIXED_ORDER') ||
+      (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.agreementPublicId !== null) && !availability))) return null;
   let customerContactPreference: RequestProcessSummary['customerContactPreference'];
   if (value.customerContactPreference !== undefined) {
     const p = value.customerContactPreference;
@@ -103,11 +113,23 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     closure = { reasonCode: c.reasonCode as 'CUSTOMER_REJECTED_PROPOSAL' | 'BUSINESS_REJECTED_COUNTER_PROPOSAL', reasonDetail: null,
       actor: c.actor as 'CUSTOMER' | 'BUSINESS', actorUserId: c.actorUserId, closedAt: c.closedAt };
   }
+  if (isRecord(value.closure) && AVAILABILITY_CLOSURES.includes(value.closure.reasonCode as AvailabilityClosureReason)) {
+    const c = value.closure, pickup = c.reasonCode === 'PICKUP_CANCELLED';
+    if (value.flowContract !== 'AVAILABILITY_V1' || value.state !== 'CLOSED' || value.allowedActions.length ||
+      !positiveInteger(c.actorUserId) || c.actorUserId > 2147483647 || typeof c.closedAt !== 'string' || !Number.isFinite(Date.parse(c.closedAt)) ||
+      (pickup ? !value.agreementPublicId || availability?.path !== 'LOCAL_PICKUP' || !['CUSTOMER','BUSINESS'].includes(String(c.actor)) ||
+        typeof c.reasonDetail !== 'string' || c.reasonDetail !== c.reasonDetail.trim() || Array.from(c.reasonDetail).length < 3 || Array.from(c.reasonDetail).length > 1000
+        : value.agreementPublicId !== null || c.reasonDetail !== null || c.actor !== (c.reasonCode === 'CUSTOMER_DECLINED_CONTINUATION' ? 'CUSTOMER' : 'BUSINESS'))) return null;
+    closure = { reasonCode: c.reasonCode as AvailabilityClosureReason, reasonDetail: c.reasonDetail as string | null,
+      actor: c.actor as 'CUSTOMER' | 'BUSINESS', actorUserId: c.actorUserId, closedAt: c.closedAt };
+  }
   return {
     id: value.id, state: value.state, version: value.version,
     currentProposalId: value.currentProposalId,
     agreementPublicId: value.agreementPublicId as string | null,
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
+    ...(value.flowContract ? { flowContract: value.flowContract as RequestProcessSummary['flowContract'] } : {}),
+    ...(availability ? { availability } : {}),
     ...(closure ? { closure } : {}),
     ...(customerContactPreference ? { customerContactPreference } : {}),
     ...(proposalSummary ? { proposalSummary } : {}),
@@ -135,6 +157,8 @@ export function canAcceptFixedOrder(order: ProcessOrder): boolean {
 }
 
 export function processStatusLabel(order: ProcessOrder): string {
+  if (order.requestProcess?.state === 'AWAITING_CUSTOMER_CONTINUATION') return 'Disponibilidad por confirmar';
+  if (isAvailabilityClosed(order.requestProcess)) return 'Solicitud finalizada';
   if (order.requestProcess?.state === 'AWAITING_CUSTOMER_DECISION') return 'Alternativa por responder';
   if (order.requestProcess?.state === 'AWAITING_CUSTOMER_FINAL_DECISION') return 'Propuesta final por responder';
   if (order.requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return 'Contrapropuesta por responder';
@@ -144,7 +168,7 @@ export function processStatusLabel(order: ProcessOrder): string {
   if (order.requestProcess?.state === 'AWAITING_BUSINESS_RESPONSE') return 'Pendiente de respuesta';
   if (order.requestProcess?.state === 'COORDINATION_PENDING') return 'Coordinación pendiente';
   if (order.requestProcess?.state === 'COORDINATING') return 'Coordinando';
-  if (order.requestProcess?.state === 'IN_PROGRESS') return 'En curso';
+  if (order.requestProcess?.state === 'IN_PROGRESS') return order.requestProcess.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'En curso';
   if (order.requestProcess?.state === 'READY') return order.requestProcess.readyNoticeAcknowledged === true ? 'Pendiente de retiro' : 'Pedido listo';
   if (order.requestProcess?.state === 'COMPLETED') return 'Completado';
   if (order.requestProcess?.state === 'COORDINATION_CANCELLED') return 'Anulada';
@@ -161,4 +185,8 @@ export function orderNotificationState(order: { status: string } & ProcessOrder)
 
 export function isProposalRejected(process: RequestProcessSummary | null | undefined) {
   return process?.state === 'CLOSED' && ['CUSTOMER_REJECTED_PROPOSAL', 'BUSINESS_REJECTED_COUNTER_PROPOSAL'].includes(process.closure?.reasonCode ?? '');
+}
+
+export function isAvailabilityClosed(process: RequestProcessSummary | null | undefined) {
+  return availabilityFlow(process) && process?.state === 'CLOSED' && AVAILABILITY_CLOSURES.includes(process.closure?.reasonCode as AvailabilityClosureReason);
 }

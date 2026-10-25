@@ -211,7 +211,7 @@ export default function CheckoutScreen({
     setIsSubmitting(true);
     try {
       const created = await creationIntent.current.submit({
-        identity: JSON.stringify([currentUserId, business.id, business.userId]),
+        identity: JSON.stringify([currentUserId, business.id, business.userId, 'AVAILABILITY_V1']),
         selection: { moment: orderMoment, date: selectedDate, time: selectedTime },
         details: {
           businessId: business.id,
@@ -220,7 +220,8 @@ export default function CheckoutScreen({
           customerContactPreference: { allowed: contactAllowed, textVersion: CUSTOMER_CONTACT_TEXT_VERSION },
         },
       }, (payload, idempotencyKey) => createOrder({
-        url: `${API_BASE_URL}/orders`,
+        url: `${API_BASE_URL}/orders/availability-requests`,
+        expectedFlow: 'AVAILABILITY_V1',
         token,
         currentUserId,
         businessUserId: business.userId,
