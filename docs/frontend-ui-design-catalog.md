@@ -4,6 +4,19 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### UI-AVAILABILITY-CONTINUATION-S2-01 — Pantallas reales 3–5
+
+2026-10-25. Frontend + backend: integración del contrato S2 ya publicado en
+Railway QA `41f62ed`. NUEVO PEDIDO, elección WhatsApp/retiro, DISPONIBLE,
+continuación/declinación, cancelación de retiro y negociación completa.
+Pantallas 1/2 previamente aprobadas conservadas; solicitudes nuevas de productos
+usan AVAILABILITY_V1 y pedidos anteriores mantienen legacy. Código `3fb4375`
+publicado por GitHub en qa, Vercel READY, alias y bundle QA comprobados.
+1339 pruebas, build QA/PWA, nueve recorridos de navegador simulados y regresiones
+de pantallas 1/2 aprobados. Revisión física y flujo autenticado real pendientes.
+Sin cambios de backend, main o producción desde frontend.
+[Contrato, archivos y recorrido de prueba](frontend-availability-continuation-s2-qa.md).
+
 ### FIX-CUSTOMER-COORDINATION-AGREEMENT-01 — Acuerdo completo del cliente
 
 2026-10-24. Solo frontend QA. Ver acuerdo completo en Coordinación del cliente

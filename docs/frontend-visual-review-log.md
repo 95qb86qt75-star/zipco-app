@@ -372,3 +372,14 @@ Preview funcional READY y alias QA comprobados por API. Sin acceso anónimo a la
 app por la protección existente de Vercel. Pendiente revisar el resultado
 publicado desde Android/iPhone.
 [Origen, archivos, alcance y publicación](frontend-order-card-aurora-qa.md).
+
+## UI-AVAILABILITY-CONTINUATION-S2-01 — 2026-10-25
+
+Pantallas 3–5 conectadas al contrato S2 publicado; alternativas y contrapropuestas
+incluidas. Las pantallas 1/2 ya cuentan con aprobación previa del usuario.
+Esta entrega no acredita conformidad física de 3–5. Código `3fb4375`, qa,
+Vercel READY y bundle/alias QA comprobados. 1339 pruebas y build QA/PWA aprobados;
+nueve recorridos simulados y regresiones 1/2 en 320/390/430 px. Cero acciones en
+pedidos reales durante la validación. Próxima prueba: crear consulta nueva y
+revisar negocio Pendientes → camino → cliente Por responder → continuar/declinar.
+[Alcance, archivos, contrato y limitaciones](frontend-availability-continuation-s2-qa.md).

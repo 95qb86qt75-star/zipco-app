@@ -128,11 +128,19 @@ No se copian controles de maqueta ni se requiere entrar a una galería de diseñ
 
 ## Publicación y revisión pendiente
 
-Base frontend `6acb167`, rama `qa`. Commit/push de la integración GitHub y estado
-Vercel READY pendientes al preparar este documento. Conservar identidad anterior
-del repositorio; sin cambiar correo global, usar alias de Apple o reescribir
-historial. Alias habitual:
+Base frontend `6acb167`, rama `qa`. Código publicado por integración GitHub:
+`3fb43752f0e948680cb0407dc65d030f0b95bf45`. Estado GitHub success y Vercel READY
+comprobados para `dpl_4wRsb6KXqbvLdpY14aa7zojqg2nu`, Preview de QA.
+Alias habitual comprobado:
 `https://zipco-app-git-qa-zipco-s-projects.vercel.app`.
+
+Lecturas autenticadas del HTML y asset publicados verificaron la versión exacta,
+la ruta de creación S2 y la configuración efectiva
+`https://zipco-backend-qa.up.railway.app`. El literal de fallback producción
+permanece en el bundle compartido, pero la configuración QA tiene prioridad.
+Se conservó la identidad anterior del repositorio, sin cambiar correo global,
+usar alias de Apple ni reescribir historial. Este cierre es documental y su
+propio despliegue se comprobará antes de informar el SHA final al usuario.
 
 Para comprobar pantalla 3, crear una **solicitud nueva** desde el catálogo de
 productos QA. Un pendiente antiguo puede mostrar Aceptar pedido por compatibilidad.
