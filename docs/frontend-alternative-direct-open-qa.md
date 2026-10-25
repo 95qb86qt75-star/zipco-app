@@ -100,3 +100,46 @@ Cierre solo documental: esta ficha y el catálogo. Revisión del diff, commit/pu
 en qa y publicación con idéntico código funcional y build QA. No requiere
 repetir pruebas funcionales ni modificar campos, endpoints, backend, Railway,
 main o producción. Los pendientes generales se conservan.
+
+## Regresión S2 y restauración — 2026-10-25
+
+Clasificación: solo frontend. Base `784440f`, rama qa. El usuario reporta que
+Proponer alternativa muestra «Cómo seguirá…» en vez del formulario aprobado.
+La integración S2 había colocado la elección del camino antes del editor; el
+editor y diseño aprobados seguían presentes en AlternativeDraftDialog.
+
+Se restaura la apertura directa del formulario tras GET autorizado de propuestas.
+Precio, cantidad, disponibilidad, producto, explicación, foto y revisión conservan
+sus componentes y diseño. Para alternativa y propuesta final S2 del negocio,
+WhatsApp/retiro se elige después de Revisar alternativa → Confirmar y enviar.
+Elegir el camino completa el envío del mismo borrador y snapshot de proceso;
+su lectura previa vuelve a comprobar versión/propuesta antes de POST.
+Volver/cerrar la elección conserva el formulario revisado y no envía nada.
+El formulario permanece montado durante esa elección; su cierre solo ocurre
+después de éxito. Cancelar, desmontar o cambiar de sesión resuelve la espera.
+Reintentar conserva el cuerpo y la clave según las protecciones existentes.
+
+Archivos: `ProposalNegotiation.tsx`, `PendingAlternativeActions.tsx`,
+`availability-design/AvailabilityDesign.tsx` (todos en src/app/screens/requests),
+`scripts/check-availability-flow.mjs` y esta ficha. El selector superpuesto se
+muestra por encima de la revisión sin sustituirla. La contrapropuesta del
+cliente mantiene la preferencia propia e hereda el plan según S2.
+
+Contrato sin cambios: GET `/request-processes/:id/proposals` usa ahora
+`?processContract=availability-v1`, tal como quedó publicado con S2; POST
+`/request-processes/:id/actions/propose-alternative` y `propose-final` conservan
+`expectedVersion`, `proposalId`, revisión comercial, `confirmationAccepted` y
+`fulfillment`. No se agregan campos, endpoints, permisos ni transiciones.
+Pedidos legacy conservan su envío anterior y no abren selector S2.
+No requiere cambios ni despliegue de Railway.
+
+Validación: 1339 pruebas/112 archivos y build QA/PWA aprobados, nueve recorridos
+Chrome de S2 con HTTP simulado. Incluyen editor original antes del selector,
+volver sin perder precio revisado ni POST, alternativa para retiro, aceptación
+de contrapropuesta WhatsApp y propuesta final que cambia a retiro. Captura
+inspeccionada: node_modules/.cache/availability-flow/alternative-original-editor.png.
+Sin pedidos reales ni uploads en estas comprobaciones; prueba física pendiente.
+
+Commit/push por integración GitHub en qa y verificación READY del alias habitual
+pendientes al preparar esta ficha. Main y producción intactos. Los cuatro
+documentos locales anteriores sin seguimiento quedan fuera de este commit.

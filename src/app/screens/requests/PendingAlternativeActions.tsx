@@ -43,7 +43,7 @@ export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: F
 
 export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
-  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode;
+  onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void | boolean>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode;
 }) {
   const [source] = useState(() => sourceOverride ?? alternativeSource(order));
   const [draft, setDraft] = useState<AlternativeDraft>(() => newAlternativeDraft(source));
@@ -161,7 +161,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               onClick={onConfirm ? async () => {
                 if (sendLock.current || !current || !validation.review) return;
                 sendLock.current = true; setSending(true); setSendError('');
-                try { await onConfirm(validation.review, file); close(); }
+                try { if(await onConfirm(validation.review, file)!==false)close(); }
                 catch (error) { setSendError(error instanceof Error ? error.message : 'No se pudo confirmar el envío. Reintenta la misma operación.'); }
                 finally { sendLock.current = false; setSending(false); }
               } : undefined} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">{sending ? 'Enviando…' : 'Confirmar y enviar'}</button>

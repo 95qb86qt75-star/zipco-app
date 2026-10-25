@@ -89,12 +89,12 @@ export function PendingRequestDesign({ data, expanded, onToggle, contactIntent, 
   </article>;
 }
 
-function Modal({ open, onOpenChange, title, description, children, sheet = false, icon, beforeIcon, busy = false }: {
-  open: boolean; onOpenChange: (open: boolean) => void; title: ReactNode; description: string; children: ReactNode; sheet?: boolean; icon?: ReactNode; beforeIcon?: ReactNode; busy?: boolean;
+function Modal({ open, onOpenChange, title, description, children, sheet = false, icon, beforeIcon, busy = false, stacked = false }: {
+  open: boolean; onOpenChange: (open: boolean) => void; title: ReactNode; description: string; children: ReactNode; sheet?: boolean; icon?: ReactNode; beforeIcon?: ReactNode; busy?: boolean; stacked?: boolean;
 }) {
   return <Dialog.Root open={open} onOpenChange={onOpenChange}><Dialog.Portal>
-    <Dialog.Overlay className="zipco-av-overlay" />
-    <Dialog.Content className={`zipco-av-dialog${sheet ? ' zipco-av-sheet' : ''}`}>
+    <Dialog.Overlay className="zipco-av-overlay" style={stacked?{zIndex:1100}:undefined} />
+    <Dialog.Content className={`zipco-av-dialog${sheet ? ' zipco-av-sheet' : ''}`} style={stacked?{zIndex:1101}:undefined}>
       <Dialog.Close className="zipco-av-close" aria-label="Cerrar" disabled={busy}><X /></Dialog.Close>
       {beforeIcon}
       {sheet && <div className="zipco-av-grab" aria-hidden="true" />}
@@ -154,7 +154,7 @@ export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initia
   const [contact, setContact] = useState(false);
   const messageId = useId(), scheduleId = useId(), hintId = useId(), contactId = useId();
   const changeOpen = (value: boolean) => { if (!busy) onOpenChange(value); };
-  return <Modal open={open} onOpenChange={changeOpen} icon={step === 'choice' ? <CircleCheck /> : <Store />} busy={busy}
+  return <Modal open={open} onOpenChange={changeOpen} icon={step === 'choice' ? <CircleCheck /> : <Store />} busy={busy} stacked={purpose==='proposal'}
     beforeIcon={step === 'pickup' && <button type="button" className="zipco-av-change" disabled={busy} onClick={() => setStep('choice')}><ArrowLeft />Cambiar opción</button>}
     title={step === 'choice' ? purpose === 'proposal' ? '¿Cómo seguirá esta propuesta?' : '¿Cómo seguirá este pedido?' : 'Retiro en el local'}
     description={step === 'choice' ? purpose === 'proposal' ? 'Elige el camino que acompañará las condiciones de tu propuesta.' : 'Elige cómo continuar. La disponibilidad se confirma al guardar.' : 'El cliente se acerca al local y paga allí. No hace falta coordinar.'}>

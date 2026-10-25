@@ -87,7 +87,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [authCard, setAuthCard] = useState(false);
   const [fulfillmentOpen,setFulfillmentOpen]=useState(false);
   const [contactPreference,setContactPreference]=useState(true);
-  const draftAfterFulfillment=useRef<ProposalAction>('PROPOSE_ALTERNATIVE');
+  const pendingFulfillment=useRef<{send:()=>Promise<void>;resolve:(value:boolean)=>void;reject:(error:unknown)=>void}|null>(null);
   const chosenFulfillment=useRef<FulfillmentChoice|null>(null);
   const authorizeChoice = useRef(false);
   const lock = useRef(false);
@@ -104,8 +104,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   useEffect(() => {
     mounted.current = true;
     const abort = () => controllers.current.forEach(c => c.abort());
-    const unsub = subscribeCoordinationSession(() => { if (!active()) { abort(); setRead(null); setOpen(false); setDraftAction(null); setAuthCard(false); authorizeChoice.current = false; } });
-    return () => { mounted.current = false; unsub(); abort(); };
+    const unsub = subscribeCoordinationSession(() => { if (!active()) { abort(); setRead(null); setOpen(false); setDraftAction(null); setAuthCard(false); setFulfillmentOpen(false);pendingFulfillment.current?.resolve(false);pendingFulfillment.current=null;authorizeChoice.current = false; } });
+    return () => { mounted.current = false; unsub(); abort(); pendingFulfillment.current?.resolve(false);pendingFulfillment.current=null; };
   }, []);
   const load = async (startDraft = false) => {
     if (!process || !active() || lock.current) return;
@@ -113,7 +113,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     try { const value = await readProposals(process.id, session!.token, controller.signal); if (active()) { setRead(value); setDecision(null); setExpired(false);
       if (startDraft) {
         if (proposalAllowed(value.process, business, 'PROPOSE_ALTERNATIVE')) {
-          if(availabilityFlow(value.process)){draftAfterFulfillment.current='PROPOSE_ALTERNATIVE';setFulfillmentOpen(true);}else setDraftAction('PROPOSE_ALTERNATIVE');
+          chosenFulfillment.current=null;setDraftAction('PROPOSE_ALTERNATIVE');
         }
         else { setError('El pedido cambió. Actualiza su estado antes de proponer una alternativa.'); refresh(); }
       } else setOpen(true);
@@ -247,7 +247,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               {(() => {
                 const go = (action: ProposalAction) => {
                   if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) {
-                    if(availabilityFlow(read?.process)&&business){draftAfterFulfillment.current=action;setFulfillmentOpen(true);}else setDraftAction(action);
+                    chosenFulfillment.current=null;setDraftAction(action);
                   }
                   else if (isAcceptAction(action)) { if(availabilityFlow(read?.process))setDecision(action);else setAuthCard(true);setExpired(false);authorizeChoice.current = false; }
                   else { setDecision(action); setExpired(false); }
@@ -292,9 +292,21 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
       sourceOverride={proposalDraftSource(read)} title={titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
-      close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => execute(draftAction, review, file) : undefined}
-      extraFields={availabilityFlow(read.process)?business?<div className="my-3 rounded-xl border p-3 text-xs"><p>{chosenFulfillment.current?.path==='LOCAL_PICKUP'?'Retiro en el local':'Coordinar por WhatsApp'}</p>{(chosenFulfillment.current?.path==='WHATSAPP'||chosenFulfillment.current?.allowCustomerWhatsapp)&&<p>{BUSINESS_CONTACT_COPY}</p>}</div>
-        :read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>:undefined} />}
-    <ConfirmAvailabilityDesign open={fulfillmentOpen} onOpenChange={setFulfillmentOpen} purpose="proposal" busy={busy} onChoose={choice=>{chosenFulfillment.current=fulfillmentFromChoice(choice);setFulfillmentOpen(false);setDraftAction(draftAfterFulfillment.current);}}/>
+      close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => {
+        if(availabilityFlow(read.process)&&business&&!chosenFulfillment.current)return new Promise<boolean>((resolve,reject)=>{
+          pendingFulfillment.current={send:()=>execute(draftAction,review,file),resolve,reject};setFulfillmentOpen(true);
+        });
+        return execute(draftAction,review,file);
+      } : undefined}
+      extraFields={availabilityFlow(read.process)&&!business?read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>:undefined} />}
+    <ConfirmAvailabilityDesign open={fulfillmentOpen} onOpenChange={value=>{
+      if(!value&&!busy){setFulfillmentOpen(false);const pending=pendingFulfillment.current;pendingFulfillment.current=null;pending?.resolve(false);}
+    }} purpose="proposal" busy={busy} onChoose={async choice=>{
+      const pending=pendingFulfillment.current;if(!pending||lock.current)return;
+      chosenFulfillment.current=fulfillmentFromChoice(choice);
+      try{await pending.send();setFulfillmentOpen(false);pending.resolve(true);}
+      catch(error){setFulfillmentOpen(false);if(active())setError(error instanceof Error?error.message:'No se pudo confirmar el envío.');pending.reject(error);}
+      finally{pendingFulfillment.current=null;}
+    }}/>
   </div>;
 }
