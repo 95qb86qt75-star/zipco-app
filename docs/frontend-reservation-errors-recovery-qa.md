@@ -90,3 +90,10 @@ sigue acreditando solo disponibilidad entre celulares, no pago/apartado/Listo.
 
 Preparado para GitHub ramaqa con identidad anterior. Main/prod intactos. Publicar
 frontend y comprobar Vercel READY antes de pedir nueva prueba en teléfonos.
+
+Publicado GitHub `qa`: `63a3d7e87e54ff79747efccf3ca233ecfce2bc00`.
+Vercel READY `dpl_EfhrctvFhKETQk6BNgnXFx8FX64J`, alias QA habitual verificado.
+Bundle servido comprobado: SHA exacto, dos códigos nuevos, explicación sin jerga,
+botón Comprobar pedido y API QA. GET raíz Railway200; no lectura JWT propia ni
+acciones contra pedidos reales. Cierre documental respaldado aparte con código
+idéntico. Main conserva8295ab8c6024ab20851ebd371308d2f299b4668f y producción intacta.
