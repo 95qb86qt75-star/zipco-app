@@ -48,8 +48,8 @@ export function groupSchedule(
   days.forEach((day) => {
     const current = schedule[day.id];
     if (!current?.enabled) return;
-    const open = current.open || DEFAULT_OPEN;
-    const close = current.close || DEFAULT_CLOSE;
+    const open = current.open ?? "";
+    const close = current.close ?? "";
     const key = `${open}|${close}`;
     const group = groups.get(key);
     if (group) group.dayIds.push(day.id);
@@ -59,6 +59,7 @@ export function groupSchedule(
 }
 
 function parseTime(value: string) {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) return "Sin configurar";
   const [rawHour = 0, rawMinute = 0] = value.split(":").map(Number);
   const period = rawHour >= 12 ? "PM" : "AM";
   const hour12 = rawHour % 12 === 0 ? 12 : rawHour % 12;
@@ -106,7 +107,7 @@ function TimeField({
           {label}
         </span>
         <span className="block whitespace-nowrap text-base font-bold text-[#10172F] dark:text-white">
-          {value}
+          {value || `Completar ${kind === "open" ? "apertura" : "cierre"}`}
         </span>
       </span>
       <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
@@ -410,6 +411,7 @@ export default function ScheduleCard({
         <p className="mb-3 mt-0.5 text-xs leading-5 text-[#667085] dark:text-slate-300">
           Aquí se muestran los días y horarios que ya agregaste.
         </p>
+        {scheduleGroups.some(group => !/^([01]\d|2[0-3]):[0-5]\d$/.test(group.open) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(group.close)) && <p role="alert" className="mb-3 text-xs font-semibold text-amber-800 dark:text-amber-200">Hay horarios incompletos. Edita esos días y completa apertura y cierre. Después guarda los horarios y los cambios de Configuración.</p>}
         <div className="space-y-2.5">
           {scheduleGroups.map((group) => (
             <div

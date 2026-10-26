@@ -14,6 +14,7 @@ function dayName(days: BusinessDay[], dayId: ScheduleDayId) {
 }
 
 function shortTime(value: string) {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) return "Sin configurar";
   const [hour = "0", minute = "00"] = value.split(":");
   return `${Number(hour)}:${minute}`;
 }

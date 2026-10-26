@@ -5,7 +5,17 @@ export const PAST_SCHEDULE_MESSAGE = 'La fecha y hora seleccionadas ya pasaron. 
 export const DST_SCHEDULE_MESSAGE = 'Esta hora no está disponible debido al cambio de horario. Selecciona otra hora.';
 export const REFRESH_CONDITIONS_MESSAGE = 'Este pedido cambió o ya fue actualizado. Actualiza la pantalla y revisa sus condiciones.';
 export const FLOW_UPDATE_MESSAGE = 'Esta solicitud necesita una versión más reciente de ZIPCO. Actualiza la aplicación para continuar.';
+export const RESERVATION_PROFILE_HOURS_MESSAGE = 'Completa y guarda la apertura y el cierre en Mi Negocio → Configuración → Horario. Después actualiza este pedido y vuelve a confirmar. El campo «Horario o dirección» del pedido no reemplaza ese horario.';
 
+function reservationTermsMessage(body: unknown): string | null {
+  if (!isRecord(body) || body.code !== 'INVALID_RESERVATION_TERMS') return null;
+  const messages = Array.isArray(body.message) ? body.message : [body.message];
+  const hours = ['Completa un horario válido del negocio para ofrecer reservas', 'Completa el horario del negocio', 'Revisa las horas de apertura y cierre del negocio'];
+  if (messages.some(message => hours.includes(message))) return RESERVATION_PROFILE_HOURS_MESSAGE;
+  if (messages.includes('Revisa el horario por el cambio de hora')) return 'El horario del negocio coincide con un cambio de hora. Revisa la apertura y el cierre en Mi Negocio → Configuración → Horario.';
+  if (messages.includes('Revisa el monto para reservar')) return 'Revisa el monto para reservar: debe ser un número entero entre $1 y el total del pedido.';
+  return 'No se pudieron validar las condiciones de reserva. Revisa la modalidad, el monto y el horario de atención del negocio.';
+}
 export function approvedScheduleMessage(body: unknown): string | null {
   if (!isRecord(body)) return null;
   const messages = Array.isArray(body.message) ? body.message : [body.message];
@@ -19,6 +29,8 @@ export class RequestProcessError extends OrdersApiError {
 }
 
 export function processApiError(status: number, body: unknown, agreement = false): RequestProcessError {
+  const reservationTerms = status === 400 ? reservationTermsMessage(body) : null;
+  if (reservationTerms) return new RequestProcessError(reservationTerms, status, true);
   const schedule = [400, 422].includes(status) ? approvedScheduleMessage(body) : null;
   if (schedule) return new RequestProcessError(schedule, status);
   if (status === 401) return new RequestProcessError('Tu sesión venció. Ingresa nuevamente.', status);

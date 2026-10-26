@@ -7,6 +7,21 @@ import ScheduleEditorScreen from "./ScheduleEditorScreen";
 import ScheduleSummaryCard from "./ScheduleSummaryCard";
 
 describe("ScheduleCard grouping", () => {
+  it("keeps an enabled day with missing hours distinct from a configured default", () => {
+    const schedule = structuredClone(emptySchedule);
+    schedule.monday = { enabled: true, open: "", close: "20:00" };
+    schedule.tuesday = { enabled: true, open: "08:00", close: "20:00" };
+    expect(groupSchedule(businessDays, schedule)).toEqual([
+      {dayIds:["monday"],open:"",close:"20:00"},
+      {dayIds:["tuesday"],open:"08:00",close:"20:00"},
+    ]);
+    const summary = renderToStaticMarkup(createElement(ScheduleSummaryCard,{days:businessDays,schedule,onEdit:vi.fn()}));
+    expect(summary).toContain("Sin configurar–20:00");
+    const editor = renderToStaticMarkup(createElement(ScheduleCard,{days:businessDays,schedule,setSchedule:vi.fn()}));
+    expect(editor).toContain("Hay horarios incompletos");
+    expect(editor).toContain("Sin configurar");
+    expect(schedule.monday.open).toBe("");
+  });
   it("groups days that share opening and closing times", () => {
     const schedule = structuredClone(emptySchedule);
     schedule.monday = { enabled: true, open: "08:00", close: "20:00" };
