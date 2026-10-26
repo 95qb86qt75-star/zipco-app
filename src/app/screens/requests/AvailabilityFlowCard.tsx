@@ -34,7 +34,7 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
   const reference=order.referencePhoto&&safePhoto(order.referencePhoto)?<OrderReferencePhoto src={order.referencePhoto} business={business}/>:null;
   const originalDetail=<div className="zipco-av-original"><div className="zipco-av-items">{data.items.map((i,index)=><div key={index} className="zipco-av-item"><span className="zipco-av-quantity">{i.quantity}×</span><span className="zipco-av-item-name">{i.name}</span><b>${(i.quantity*i.unitPrice).toLocaleString('es-CL')}</b></div>)}</div>
     <p className="zipco-av-schedule">{data.schedule}</p>{order.note&&<p className="zipco-av-note">Nota: {order.note}</p>}{reference}</div>;
-  const error=operation.error&&<div role="alert" className="zipco-av-error"><p>{operation.error}</p><button type="button" disabled={operation.busy} onClick={()=>void operation.update()}><RefreshCw/>Actualizar estado</button></div>;
+  const error=operation.error&&<div role="alert" className="zipco-av-error"><p>{operation.error}</p><button type="button" disabled={operation.busy} onClick={()=>void operation.update()}><RefreshCw/>{operation.checking?'Comprobando pedido…':'Comprobar pedido'}</button></div>;
   const confirm=async(choice:AvailabilityDesignChoice)=>{
     if(await operation.run('CONFIRM_AVAILABILITY',{proposalId:process.currentProposalId,fulfillment:fulfillmentFromChoice(choice)}))setSheet(false);
   };
@@ -54,12 +54,12 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
     {business&&process.state==='AWAITING_BUSINESS_RESPONSE'?<>
       <PendingRequestDesign data={data} expanded={expanded} onToggle={onToggle} business detail={originalDetail}
         contactIntent={process.customerContactPreference?.requiresReconfirmation?undefined:process.customerContactPreference?.allowed} actions={<div className="zipco-av-business-actions">
-          {availabilityAllowed(process,true,'CONFIRM_AVAILABILITY')&&<AcceptGlassButton label={operation.busy?'Guardando…':'Confirmar disponibilidad'} price={data.total} disabled={operation.busy} onClick={()=>setSheet(true)}/>}
+          {availabilityAllowed(process,true,'CONFIRM_AVAILABILITY')&&<AcceptGlassButton label={operation.checking?'Comprobando…':operation.busy?'Guardando…':'Confirmar disponibilidad'} price={data.total} disabled={operation.busy} onClick={()=>setSheet(true)}/>}
           <p className="zipco-av-fine"><LockKeyhole/>En el siguiente paso eliges cómo continuar y si compartes tu teléfono.</p>
           <div className="zipco-av-secondary-actions zipco-av-live-secondary"><ProposalNegotiation order={order} business refresh={refresh} variant="aurora"/><PendingRejectionActions order={order} refresh={refresh}/></div>
           {error}
         </div>}/>
-      <ConfirmAvailabilityDesign open={sheet} onOpenChange={setSheet} onChoose={confirm} busy={operation.busy} error={operation.error||undefined} reservationContract={reservationFlow(process)} reservationTotal={data.total} simplified={simplifiedReservationFlow(process)}/>
+      <ConfirmAvailabilityDesign open={sheet} onOpenChange={setSheet} onChoose={confirm} busy={operation.busy} error={operation.error||undefined} reservationContract={reservationFlow(process)} reservationTotal={data.total} simplified={simplifiedReservationFlow(process)} checking={operation.checking} recovery={<>{operation.message&&<p role="status" className="zipco-av-dialog-hint">{operation.message}</p>}{(operation.error||operation.checking)&&<button type="button" className="zipco-av-secondary w-full" disabled={operation.busy} onClick={()=>void operation.update()}>{operation.checking?'Comprobando pedido…':'Comprobar pedido'}</button>}</>}/>
     </>:!business&&plan?<>
       <AvailableRequestDesign data={data} expanded={expanded} onToggle={onToggle} contact={contact} onContactChange={setContact} simplified={simplifiedReservationFlow(process)&&plan.path==='LOCAL_PICKUP'}
         pickup={plan.path==='LOCAL_PICKUP'?{message:plan.customerMessage??'',scheduleOrAddress:plan.scheduleOrAddress??'',allowsContact:plan.allowCustomerWhatsapp,...(plan.reservationOffer?{reservationOffer:plan.reservationOffer}:{})}:undefined}

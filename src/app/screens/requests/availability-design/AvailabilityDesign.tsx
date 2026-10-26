@@ -148,10 +148,10 @@ export function ConsultationDesignSheet({ open, onOpenChange, data, contact, onC
   </>;
 }
 
-export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability',reservationContract=false,reservationTotal=0,simplified=false }: {
+export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability',reservationContract=false,reservationTotal=0,simplified=false,recovery,checking=false }: {
   open: boolean; onOpenChange: (open: boolean) => void; onChoose: (choice: AvailabilityDesignChoice) => void;
   initialStep?: 'choice' | 'pickup'; busy?: boolean; error?: string; purpose?: 'availability' | 'proposal';
-  reservationContract?:boolean;reservationTotal?:number;simplified?:boolean;
+  reservationContract?:boolean;reservationTotal?:number;simplified?:boolean;recovery?:ReactNode;checking?:boolean;
 }) {
   const [step, setStep] = useState(initialStep);
   const [message, setMessage] = useState('');
@@ -190,8 +190,9 @@ export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initia
     {step === 'pickup' && contact && <p className="zipco-av-dialog-hint">{BUSINESS_CONTACT_COPY}</p>}
     </fieldset>
     {error && <p role="alert" className="zipco-av-error">{error}</p>}
+    {recovery}
     <div className="zipco-av-button-row"><button type="button" className="zipco-av-secondary" disabled={busy} onClick={() => changeOpen(false)}>Volver</button>
-      {step === 'pickup' && <button type="button" className="zipco-av-primary" disabled={busy||reservationContract&&(!offer||offer.mode==='PREPAYMENT'&&!contact)} onClick={() => onChoose({ channel: 'pickup', instructions: { message: message.trim() || DEFAULT_PICKUP_MESSAGE, scheduleOrAddress: schedule.trim(), allowsContact: contact,...(reservationContract&&offer?{reservationOffer:offer}:{}) } })}>{busy ? 'Guardando…' : purpose === 'proposal' ? 'Usar este camino' : 'Confirmar disponibilidad'}</button>}
+      {step === 'pickup' && <button type="button" className="zipco-av-primary" disabled={busy||reservationContract&&(!offer||offer.mode==='PREPAYMENT'&&!contact)} onClick={() => onChoose({ channel: 'pickup', instructions: { message: message.trim() || DEFAULT_PICKUP_MESSAGE, scheduleOrAddress: schedule.trim(), allowsContact: contact,...(reservationContract&&offer?{reservationOffer:offer}:{}) } })}>{checking?'Comprobando…':busy ? 'Guardando…' : purpose === 'proposal' ? 'Usar este camino' : 'Confirmar disponibilidad'}</button>}
     </div>
   </Modal>;
 }

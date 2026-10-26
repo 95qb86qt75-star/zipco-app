@@ -8,7 +8,7 @@ export type ReservationOptions={serverNow:string;version:number;reservationOffer
 export class ReservationOptionsError extends Error{
   constructor(message:string,readonly code:string,readonly status:number){super(message);}
 }
-export const canChooseWithoutPreview=(error:unknown)=>error instanceof ReservationOptionsError&&error.status===409&&['OFFER_EXPIRED','RESERVATION_PAYMENT_WINDOW_UNAVAILABLE','RESERVATION_SCHEDULE_EXPIRED','RESERVATION_HOURS_UNAVAILABLE'].includes(error.code);
+export const canChooseWithoutPreview=(error:unknown)=>error instanceof ReservationOptionsError&&error.status===409&&['OFFER_EXPIRED','RESERVATION_PAYMENT_WINDOW_UNAVAILABLE','RESERVATION_SCHEDULE_EXPIRED','RESERVATION_HOURS_UNAVAILABLE','RESERVATION_OUTSIDE_SERVICE_WINDOW','RESERVATION_AMBIGUOUS_SERVICE_WINDOW'].includes(error.code);
 export async function readReservationOptions(processId:number,version:number,token:string,business:boolean,offerId?:number,signal?:AbortSignal):Promise<ReservationOptions>{
   const response=await fetch(`${API_BASE_URL}/request-processes/${processId}/reservation-options?processContract=availability-v3`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store',signal});
   const raw:unknown=await response.json().catch(()=>null);

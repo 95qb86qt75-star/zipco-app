@@ -139,7 +139,7 @@ export async function sendCoordination(processId: number, orderId: number, actio
 export async function refreshCoordinationOrder(orderId: number, business: boolean, token: string,
   businessId = localStorage.getItem('zipco-business-id'), signal?: AbortSignal) {
   if (business && (!businessId || !/^[1-9]\d*$/.test(businessId))) throw new RequestProcessError('No se pudo verificar el negocio. Actualiza la pantalla.', 0);
-  const response = await fetch(`${API_BASE_URL}/orders/${business ? `business/${businessId}` : 'my-orders'}${AVAILABILITY_QUERY}`, { headers: { Authorization: `Bearer ${token}` }, signal });
+  const response = await fetch(`${API_BASE_URL}/orders/${business ? `business/${businessId}` : 'my-orders'}${AVAILABILITY_QUERY}`, { headers: { Authorization: `Bearer ${token}` }, cache:'no-store', signal });
   if (!response.ok) throw coordinationError(response.status, null);
   const payload: unknown = await response.json();
   const orders = business ? normalizeBusinessOrdersPayload(payload) : normalizeMyOrdersPayload(payload);

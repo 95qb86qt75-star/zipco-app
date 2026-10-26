@@ -81,7 +81,7 @@ describe('S2 action receipts, actors and exact retries',()=>{
     const receipt={orderId:20,orderStatus:'pending' as const,requestProcess:{...availabilityWaiting,allowedActions:[]}};
     const send=vi.fn().mockRejectedValueOnce(new TypeError('network')).mockResolvedValue(receipt);
     await expect(intents.run('test:business',7,'CONFIRM_AVAILABILITY',body,send)).rejects.toThrow();
-    await expect(intents.run('test:business',7,'CONFIRM_AVAILABILITY',{...body,proposalId:999},send)).rejects.toThrow('operación pendiente');
+    await expect(intents.run('test:business',7,'CONFIRM_AVAILABILITY',{...body,proposalId:999},send)).rejects.toThrow('Comprobar pedido');
     await expect(intents.run('test:business',7,'CONFIRM_AVAILABILITY',body,send)).resolves.toEqual(receipt);
     await intents.run('test:business',7,'CONFIRM_AVAILABILITY',body,send);
     expect(send).toHaveBeenCalledTimes(2);expect(send.mock.calls[0][0]).toBe(key);expect(send.mock.calls[1][0]).toBe(key);
@@ -102,7 +102,7 @@ describe('S2 action receipts, actors and exact retries',()=>{
     const restored=createAvailabilityIntents(storage,()=>key);
     await expect(restored.run('test:business',7,'CONFIRM_AVAILABILITY',body,async()=>{throw new AvailabilityError('Invalid',400);})).rejects.toThrow();
     expect(store.size).toBe(1);
-    await expect(restored.run('test:business',7,'CONFIRM_AVAILABILITY',{...body,proposalId:999},vi.fn())).rejects.toThrow('operación pendiente');
+    await expect(restored.run('test:business',7,'CONFIRM_AVAILABILITY',{...body,proposalId:999},vi.fn())).rejects.toThrow('Comprobar pedido');
   });
   it('requires no mutation when persistence cannot protect the key',async()=>{
     const intents=createAvailabilityIntents({getItem:()=>null,setItem:()=>{throw Error('storage');},removeItem:()=>undefined},()=>key),send=vi.fn();
