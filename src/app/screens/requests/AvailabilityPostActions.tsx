@@ -23,7 +23,7 @@ export default function AvailabilityPostActions({order,business,refresh}:{order:
   };
   return <section className="mt-3 space-y-2 text-xs" aria-label="Opciones de esta solicitud">
     {process?.reservation&&<ReservationPanel order={order} business={business} refresh={refresh}/>}
-    {process?.availability?.path==='LOCAL_PICKUP'&&<div className="rounded-xl border border-teal-300/40 p-3"><p className="font-bold">Retiro en el local</p><p>{process.availability.customerMessage}</p>{process.availability.scheduleOrAddress&&<p>{process.availability.scheduleOrAddress}</p>}<p className="mt-1">{process.reservation?'Los pagos y el apartado se muestran en el seguimiento de reserva. ZIPCO no verifica transferencias.':'No es una reserva ni un pago verificado.'}</p></div>}
+    {process?.availability?.path==='LOCAL_PICKUP'&&<div className="rounded-xl border border-teal-300/40 p-3"><p className="font-bold">Retiro en el local</p><p>{process.availability.customerMessage}</p>{process.availability.scheduleOrAddress&&<p>{process.availability.scheduleOrAddress}</p>}{!process.reservation&&<p className="mt-1">No es una reserva ni un pago verificado.</p>}</div>}
     {showContactControls&&<>
     {hasContact&&<p>{CONTACT_COPY}</p>}
     {canAuthorize&&<button type="button" className="w-full rounded-xl border p-3 font-bold" disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>Autorizo compartir mi teléfono para este pedido</button>}

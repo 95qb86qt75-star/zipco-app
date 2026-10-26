@@ -36,6 +36,17 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
   };
   const blocked=operation.busy||dialog==='CONFIRM_PICKUP_RESERVATION'&&(!held||paid&&!received)||['DECLINE_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','CANCEL_PICKUP_RESERVATION'].includes(dialog??'')&&(Array.from(reason.trim()).length<3||Array.from(reason.trim()).length>1000);
   const statusText=r.continuedWithoutReservationAt?'Continuarás sin reserva, sujeto a disponibilidad al llegar.':status==='CONFIRMED'?'Reserva confirmada · Pendiente de retiro':status==='REQUESTED'?'Reserva solicitada · Esperando confirmación del negocio':status==='AWAITING_BUSINESS_CONFIRMATION'?'Reserva pendiente de confirmación del negocio':status==='NEEDS_CLARIFICATION'?'Pendiente de aclaración entre cliente y negocio':status==='FULFILLED'?'Pedido recibido':status==='EXPIRED'?'La reserva venció':status==='DECLINED'?'El negocio no pudo apartar el pedido':'Reserva cancelada';
+  const compactCustomer=simple&&!business&&['IN_PROGRESS','READY'].includes(p.state)&&!r.pickupCancellation&&!['EXPIRED','DECLINED','CANCELLED','FULFILLED'].includes(status);
+  if(compactCustomer)return <section data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
+    <p className="font-bold">{statusText}</p>
+    <p>{offer.mode==='PREPAYMENT'?`Reserva con pago previo de $${offer.requiredAmountClp.toLocaleString('es-CL')}`:'Reserva sin pago previo'}</p>
+    {r.timing&&<>
+      <p>{status==='CONFIRMED'?'Reservado hasta':'Retiro acordado hasta'}: {reservationWhen(r.timing.pickupBy)}.</p>
+      {r.timing.paymentDueAt&&!r.confirmedAt&&<p>Plazo para coordinar el pago: {reservationWhen(r.timing.paymentDueAt)}.</p>}
+    </>}
+    {p.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
+    {operation.error&&<div role="alert"><p className="text-rose-400">{operation.error}</p><button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.update()}>Reintentar actualización</button></div>}
+  </section>;
   return <section data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
     <p className="font-bold">{statusText}</p>{simple&&r.timing?<><p>{status==='CONFIRMED'?'Reservado hasta':'Retiro acordado hasta'}: {reservationWhen(r.timing.pickupBy)}.</p>{r.timing.paymentDueAt&&!r.confirmedAt&&<p>Plazo para coordinar el pago: {reservationWhen(r.timing.paymentDueAt)}. Si ya transferiste, acláralo con el negocio por WhatsApp.</p>}</>:<ReservationOfferSummary offer={offer}/>}
     {p?.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
