@@ -46,7 +46,11 @@ con API QA fijada únicamente para el proceso. Advertencia habitual de bundle
 mayor500kB. No comando separado tsc/lint configurado en este repositorio.
 Pruebas locales/SSR y API simulada; sin crear pedidos ni modificar datos reales.
 
-Preparado para publicación por GitHub en `qa`. Se conservará identidad Git previa,
+Publicado por GitHub en `qa`: `b98b05f41b5c207f7948e666beb7140a8d509f9a`.
+Vercel READY `dpl_6et2k6YfjN2FvuzVqf3qiuZRaHvy`, alias habitual QA verificado.
+Bundle servido comprobado: SHA exacto, mensaje corregido, aviso de horario
+incompleto y API QA. Cierre documental respaldado aparte con código idéntico.
+Se conservó identidad Git previa,
 sin Vercel CLI deploy ni reescritura. Main y producción permanecen intactos.
 Railway no requiere cambios por esta entrega. Pendiente guardar horario real por
 el usuario, actualizar pedido y reintentar reserva con pago en Android/iPhone.
