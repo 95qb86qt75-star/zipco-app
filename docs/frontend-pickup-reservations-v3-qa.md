@@ -137,7 +137,15 @@ y protección, no lectura autenticada del valor del flag ni recorrido real.
 
 ## Publicación y siguiente paso
 
-Preparado para GitHub en `qa`; registrar SHA y Vercel READY después de publicar.
+Publicado por GitHub en `qa`: `f27f8d8cd87f0369c28402968843d136399bdbad`.
+Vercel READY `dpl_23RDF4ZHc8KkkYkDFN9eXvzd2hCh`, estado GitHub success y alias
+habitual `https://zipco-app-git-qa-zipco-s-projects.vercel.app` verificados.
+HTML/bundle servido comprobado: SHA exacto, API QA efectiva, creación y opciones
+V3, capacidad separada, recordatorio y botón permanente. El fallback producción
+permanece en el código previo, pero la configuración QA tiene prioridad.
+El límite de uso interrumpió la primera consulta de Vercel; no ejecutó la acción.
+Tras la indicación de continuar del usuario se completaron estas comprobaciones.
+Este cierre documental se respalda aparte en la misma rama, con código idéntico.
 Identidad Git anterior conservada; sin Vercel CLI deploy ni reescritura histórica.
 Main conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`; producción intacta.
 
