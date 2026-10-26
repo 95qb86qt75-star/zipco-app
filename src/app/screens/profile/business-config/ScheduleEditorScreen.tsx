@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeft, CalendarClock, Save, X } from "lucide-react";
-import ScheduleCard from "./ScheduleCard";
+import ScheduleCard, { applyScheduleEdit, type PendingScheduleEdit } from "./ScheduleCard";
 import type { BusinessDay, BusinessSchedule } from "./types";
 
 type Props = {
@@ -20,9 +20,15 @@ export default function ScheduleEditorScreen({
     structuredClone(initialSchedule),
   );
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const [pendingEdit, setPendingEdit] = useState<PendingScheduleEdit | null>(null);
+  const [saveError, setSaveError] = useState(false);
+  const scheduleToApply = useMemo(
+    () => pendingEdit ? applyScheduleEdit(draft, pendingEdit) : draft,
+    [draft, pendingEdit],
+  );
   const hasChanges = useMemo(
-    () => JSON.stringify(draft) !== JSON.stringify(initialSchedule),
-    [draft, initialSchedule],
+    () => Boolean(pendingEdit && !pendingEdit.dayIds.length) || JSON.stringify(scheduleToApply) !== JSON.stringify(initialSchedule),
+    [scheduleToApply, initialSchedule, pendingEdit],
   );
 
   const handleBack = () => {
@@ -60,16 +66,27 @@ export default function ScheduleEditorScreen({
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-60">
-        <ScheduleCard days={days} schedule={draft} setSchedule={setDraft} />
+        <ScheduleCard days={days} schedule={draft} setSchedule={setDraft} onPendingEditChange={setPendingEdit} />
       </main>
 
       <footer
         className="absolute bottom-20 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
+        {saveError && pendingEdit && !pendingEdit.dayIds.length && (
+          <p role="alert" className="mb-2 text-sm font-semibold text-red-600">
+            Selecciona los días a los que quieres aplicar esta hora.
+          </p>
+        )}
         <button
           type="button"
-          onClick={() => onApply(draft)}
+          onClick={() => {
+            if (pendingEdit && !pendingEdit.dayIds.length) {
+              setSaveError(true);
+              return;
+            }
+            onApply(scheduleToApply);
+          }}
           className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-500 px-5 font-black text-white shadow-lg shadow-teal-500/20 transition active:scale-[0.98]"
         >
           <Save className="h-5 w-5" />

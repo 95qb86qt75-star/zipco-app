@@ -24,7 +24,22 @@ type ScheduleCardProps = {
   days: BusinessDay[];
   schedule: BusinessSchedule;
   setSchedule: Dispatch<SetStateAction<BusinessSchedule>>;
+  onPendingEditChange?: (edit: PendingScheduleEdit | null) => void;
 };
+
+export type PendingScheduleEdit = {
+  dayIds: ScheduleDayId[];
+  open: string;
+  close: string;
+};
+
+export function applyScheduleEdit(schedule: BusinessSchedule, edit: PendingScheduleEdit): BusinessSchedule {
+  const next = { ...schedule };
+  edit.dayIds.forEach(dayId => {
+    next[dayId] = { enabled: true, open: edit.open, close: edit.close };
+  });
+  return next;
+}
 
 type ScheduleGroup = { dayIds: ScheduleDayId[]; open: string; close: string };
 
@@ -281,10 +296,17 @@ export default function ScheduleCard({
   days,
   schedule,
   setSchedule,
+  onPendingEditChange,
 }: ScheduleCardProps) {
   const [selectedDayIds, setSelectedDayIds] = useState<ScheduleDayId[]>([]);
   const [draftOpen, setDraftOpen] = useState(DEFAULT_OPEN);
   const [draftClose, setDraftClose] = useState(DEFAULT_CLOSE);
+  const [hasTimeChanges, setHasTimeChanges] = useState(false);
+  useEffect(() => {
+    onPendingEditChange?.(selectedDayIds.length || hasTimeChanges
+      ? { dayIds: selectedDayIds, open: draftOpen, close: draftClose }
+      : null);
+  }, [selectedDayIds, draftOpen, draftClose, hasTimeChanges, onPendingEditChange]);
   const [activeTimePicker, setActiveTimePicker] = useState<
     "open" | "close" | null
   >(null);
@@ -305,13 +327,8 @@ export default function ScheduleCard({
 
   const applySchedule = () => {
     if (selectedDayIds.length === 0) return setSelectionError(true);
-    setSchedule((current) => {
-      const next = { ...current };
-      selectedDayIds.forEach((dayId) => {
-        next[dayId] = { enabled: true, open: draftOpen, close: draftClose };
-      });
-      return next;
-    });
+    setSchedule(current => applyScheduleEdit(current, { dayIds: selectedDayIds, open: draftOpen, close: draftClose }));
+    setHasTimeChanges(false);
     setSelectedDayIds([]);
     setSelectionError(false);
   };
@@ -321,9 +338,11 @@ export default function ScheduleCard({
     setDraftOpen(group.open);
     setDraftClose(group.close);
     setSelectionError(false);
+    setHasTimeChanges(false);
   };
 
   const deleteGroup = (group: ScheduleGroup) => {
+    setHasTimeChanges(false);
     setSchedule((current) => {
       const next = { ...current };
       group.dayIds.forEach((dayId) => {
@@ -483,6 +502,7 @@ export default function ScheduleCard({
           onConfirm={(nextValue) => {
             if (activeTimePicker === "open") setDraftOpen(nextValue);
             else setDraftClose(nextValue);
+            setHasTimeChanges(true);
             setActiveTimePicker(null);
           }}
         />
