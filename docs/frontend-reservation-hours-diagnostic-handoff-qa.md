@@ -87,3 +87,10 @@ incluidos los dos errores con todos los campos conservados. No acciones sobre
 pedidos reales ni comprobación de pagos físicos. Sin tsc/lint independiente
 configurado en frontend. Publicación por integración GitHub en ramaqa; registrar
 el despliegue verificado al cierre. Railway no necesita cambios para este texto.
+
+Publicado por GitHub `qa`: `8c3086d564d6518c9d08666c1ab6bc6c6b40cb74`.
+Vercel READY `dpl_3CG5icfhRGpkBKH4JTDsstL3TYve`, alias habitual QA y bundle
+servido verificados: SHA exacto, orientación neutral, margen30min y API QA.
+El cierre documental se respalda aparte con código idéntico. Identidad Git
+anterior conservada, sin Vercel CLI deploy ni reescrituras. Main conserva
+8295ab8c6024ab20851ebd371308d2f299b4668f; producción sin cambios.
