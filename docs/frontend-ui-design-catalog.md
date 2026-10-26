@@ -4,6 +4,17 @@ Este catálogo vincula nombres de diseño, código y commits para recuperar lo
 revisado en QA y comprobar un futuro pase a producción. Es un registro inicial;
 no declara que todas las pantallas estén inventariadas ni finalmente aprobadas.
 
+### PICKUP-RESERVATIONS-V3-01 — Reserva simplificada
+
+2026-10-26. Frontend + backend sobre Railway QA `2e67444`. Negocio conserva los
+tres campos anteriores y agrega modalidad y solo monto si exige pago. Cliente ve
+condiciones antes de continuar y elige en una ventana corta con advertencia sin
+reserva. Gratuita automática30min, plazos de servidor, WhatsApp contextual,
+confirmación permanente y recordatorio holográfico con lectura vigente.
+1.395 pruebas y 38 escenarios sintéticos aprobados; activación V3 y revisión
+física pendientes. V2 y pedidos anteriores conservados.
+[Archivos, contrato y cierre](frontend-pickup-reservations-v3-qa.md).
+
 ### PICKUP-RESERVATIONS-V2-01 — Reserva como variante de retiro
 
 2026-10-25. Frontend + backend: integración del contrato V2 publicado en Railway

@@ -20,12 +20,12 @@ export default function useReservation(order:BusinessRequest|MyOrder,business:bo
     await reservationIntents().reconcile(operationScope(session!,business),p.id,p.version);
     window.dispatchEvent(new CustomEvent('zipco-process-receipt',{detail:{orderId:latest.id,orderStatus:latest.status,requestProcess:p}}));window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));refresh();return latest;
   };
-  const update=async()=>{if(!active()||lock.current||order.id===null)return;lock.current=true;setBusy(true);setError('');const c=new AbortController();controllers.current.add(c);try{await read(c.signal);}catch(e){if(active())setError(e instanceof Error?e.message:'No se pudo actualizar la reserva.');}finally{controllers.current.delete(c);lock.current=false;if(active())setBusy(false);}};
+  const update=async()=>{if(!active()||lock.current||order.id===null)return null;lock.current=true;setBusy(true);setError('');const c=new AbortController();controllers.current.add(c);try{return await read(c.signal);}catch(e){if(active())setError(e instanceof Error?e.message:'No se pudo actualizar la reserva.');return null;}finally{controllers.current.delete(c);lock.current=false;if(active())setBusy(false);}};
   const run=async(action:ReservationAction,details:Omit<ReservationBody,'expectedVersion'|'reservationId'>={})=>{
     const p=order.requestProcess;if(!active()||lock.current||order.id===null||!p?.reservation||!reservationAllowed(p,business,action))return false;
     lock.current=true;setBusy(true);setError('');const c=new AbortController();controllers.current.add(c);
     try{const body:ReservationBody={expectedVersion:p.version,reservationId:p.reservation.id,...details};let navigation:string|null=null;
-      const receipt=await reservationIntents().run(operationScope(session!,business),p.id,action,body,async key=>{const response=await sendReservationAction(p,order.id!,business,action,body,session!.token,key,c.signal);navigation=response.navigation;return response.receipt;});
+      const receipt=await reservationIntents().run(operationScope(session!,business),p.id,action,body,async key=>{if(!active()||c.signal.aborted)throw Error('La sesión cambió. Actualiza el pedido.');const response=await sendReservationAction(p,order.id!,business,action,body,session!.token,key,c.signal);navigation=response.navigation;return response.receipt;});
       if(!active())return false;
       const latest=await read(c.signal,receipt.requestProcess.version);if(!active()||!latest)return false;
       if(action==='OPEN_RESERVATION_WHATSAPP'){

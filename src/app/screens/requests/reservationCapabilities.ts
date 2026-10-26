@@ -7,5 +7,6 @@ export async function readReservationCapabilities(token:string,signal?:AbortSign
   const raw:unknown=await response.json().catch(()=>null);
   if(!response.ok)throw new CreateOrderError(processApiError(response.status,raw).message,response.status,'not-created');
   if(!isRecord(raw)||!Array.isArray(raw.supportedContracts)||raw.supportedContracts.some(c=>typeof c!=='string')||typeof raw.reservationCreationEnabled!=='boolean')throw Error('No se pudo verificar la disponibilidad del flujo de pedidos. Intenta nuevamente.');
-  return {reservationCreationEnabled:raw.reservationCreationEnabled&&raw.supportedContracts.includes('availability-v2')};
+  if(raw.simplifiedReservationCreationEnabled!==undefined&&typeof raw.simplifiedReservationCreationEnabled!=='boolean')throw Error('No se pudo verificar la disponibilidad de reservas. Intenta nuevamente.');
+  return {reservationCreationEnabled:raw.reservationCreationEnabled&&raw.supportedContracts.includes('availability-v2'),simplifiedReservationCreationEnabled:raw.simplifiedReservationCreationEnabled===true&&raw.supportedContracts.includes('availability-v3')};
 }

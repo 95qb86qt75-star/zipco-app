@@ -1,5 +1,5 @@
 import { isRecord, parseIsoDate } from './orderValueParsers';
-import {RESERVATION_QUERY,normalizeReservationOffer,type ReservationOffer} from './reservationContract';
+import {RESERVATION_QUERY,normalizeReservationOffer,type ReservationOffer,type ReservationOfferInput} from './reservationContract';
 
 export const AVAILABILITY_QUERY = RESERVATION_QUERY;
 export const AVAILABILITY_FLOW = 'AVAILABILITY_V1' as const;
@@ -15,7 +15,7 @@ export const AVAILABILITY_ACTION_PATHS = {
 export type AvailabilityAction = keyof typeof AVAILABILITY_ACTION_PATHS;
 export type BusinessContactConsent = { accepted: true; textVersion: typeof BUSINESS_CONTACT_VERSION };
 export type FulfillmentChoice = { path: 'WHATSAPP'; businessContactConsent: BusinessContactConsent }
-  | { path: 'LOCAL_PICKUP'; customerMessage?: string; scheduleOrAddress?: string; allowCustomerWhatsapp: boolean; businessContactConsent?: BusinessContactConsent; reservationOffer?:ReservationOffer };
+  | { path: 'LOCAL_PICKUP'; customerMessage?: string; scheduleOrAddress?: string; allowCustomerWhatsapp: boolean; businessContactConsent?: BusinessContactConsent; reservationOffer?:ReservationOfferInput };
 export type AvailabilityPlan = {
   availabilityConfirmationId: number; proposalId: number; path: 'WHATSAPP' | 'LOCAL_PICKUP';
   customerMessage: string | null; scheduleOrAddress: string | null; allowCustomerWhatsapp: boolean; confirmedAt: string;
@@ -36,4 +36,4 @@ export function normalizeAvailability(value: unknown, proposalId: number): Avail
 }
 export const AVAILABILITY_CLOSURES = ['CUSTOMER_DECLINED_CONTINUATION', 'BUSINESS_WITHDREW_AVAILABILITY', 'PICKUP_CANCELLED'] as const;
 export type AvailabilityClosureReason = typeof AVAILABILITY_CLOSURES[number];
-export const availabilityFlow = (process: { flowContract?: unknown } | null | undefined) => process?.flowContract === AVAILABILITY_FLOW||process?.flowContract==='AVAILABILITY_V2';
+export const availabilityFlow = (process: { flowContract?: unknown } | null | undefined) => process?.flowContract === AVAILABILITY_FLOW||process?.flowContract==='AVAILABILITY_V2'||process?.flowContract==='AVAILABILITY_V3';

@@ -6,6 +6,8 @@ import {availabilityIntents} from './availabilityIntent';
 import {operationScope,readCoordinationSession,subscribeCoordinationSession} from './coordinationSession';
 import {refreshCoordinationOrder} from './coordinationApi';
 import {announceAction} from './ActionHologram';
+import {simplifiedReservationFlow} from './simplifiedReservationContract';
+import {startReservationPayment} from './startReservationPayment';
 
 export default function useAvailability(order:BusinessRequest|MyOrder,business:boolean,refresh:()=>void){
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[expired,setExpired]=useState(false);
@@ -39,7 +41,14 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
       const receipt=await availabilityIntents().run(operationScope(session!,business),process.id,action,body,
         key=>sendAvailabilityAction(process,order.id!,business,action,body,session!.token,key,controller.signal));
       if(!active())return false;
-      publish(receipt);setExpired(false);
+      let navigation:string|null=null;
+      let finalReceipt=receipt;
+      if(action==='CONTINUE_REQUEST'&&!business&&simplifiedReservationFlow(process)&&details.reservationChoice?.choice==='REQUEST_RESERVATION'&&process.availability?.reservationOffer?.mode==='PREPAYMENT'){
+        try{const payment=await startReservationPayment(order.id!,session!,controller.signal);if(!active())return false;if(payment.latest?.requestProcess)finalReceipt={orderId:payment.latest.id!,orderStatus:payment.latest.status,requestProcess:payment.latest.requestProcess};navigation=payment.navigation;}
+        catch{if(active())setError('La reserva fue registrada. Abre su tarjeta para coordinar el pago por WhatsApp.');}
+      }
+      if(!active())return false;
+      publish(finalReceipt);setExpired(false);
       if(action!=='REVOKE_CONTACT_CONSENT')window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,
         view:action==='CONFIRM_AVAILABILITY'?'waiting':action==='CONTINUE_REQUEST'?receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination':'history'}}));
       const text=action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
@@ -47,7 +56,7 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
         :action==='REVOKE_CONTACT_CONSENT'?{title:'Permiso de contacto retirado',description:'Se retiró tu propio permiso para futuras entregas de contacto.'}
         :{title:action==='DECLINE_REQUEST'?'Solicitud finalizada':action==='WITHDRAW_AVAILABILITY'?'Disponibilidad retirada':'Retiro cancelado',description:'La solicitud quedó en Historial.'};
       announceAction(action==='CONTINUE_REQUEST'?'accepted':action==='CONFIRM_AVAILABILITY'?'requestSent':action==='REVOKE_CONTACT_CONSENT'?'annulled':'annulled',{
-        ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});return true;
+        ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});if(navigation)window.location.assign(navigation);return true;
     }catch(e){if(active()){setError(e instanceof Error?e.message:'No se pudo confirmar el resultado. Reintenta la misma operación.');
       if(e instanceof AvailabilityError&&e.code==='EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED')setExpired(true);
       if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}

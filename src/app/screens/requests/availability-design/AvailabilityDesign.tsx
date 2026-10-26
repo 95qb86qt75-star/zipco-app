@@ -6,7 +6,8 @@ import AcceptGlassButton from '../AcceptGlassButton';
 import WhatsAppMark from '../WhatsAppMark';
 import './availability-design.css';
 import { BUSINESS_CONTACT_COPY } from '../availabilityContract';
-import type {ReservationOffer} from '../reservationContract';
+import type {ReservationOffer,ReservationOfferInput} from '../reservationContract';
+import SimpleReservationOfferFields from '../SimpleReservationOfferFields';
 import ReservationOfferFields from '../ReservationOfferFields';
 import ReservationOfferSummary from '../ReservationOfferSummary';
 
@@ -20,7 +21,7 @@ export type RequestDesignData = {
   note?: string;
   referencePhoto?: string;
 };
-export type PickupDesign = { message: string; scheduleOrAddress: string; allowsContact: boolean;reservationOffer?:ReservationOffer };
+export type PickupDesign = { message: string; scheduleOrAddress: string; allowsContact: boolean;reservationOffer?:ReservationOfferInput };
 export type AvailabilityDesignChoice = { channel: 'whatsapp' } | { channel: 'pickup'; instructions: PickupDesign };
 export const DEFAULT_PICKUP_MESSAGE = 'Acércate al local a pagar y retirar.';
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
@@ -147,16 +148,16 @@ export function ConsultationDesignSheet({ open, onOpenChange, data, contact, onC
   </>;
 }
 
-export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability',reservationContract=false,reservationTotal=0 }: {
+export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability',reservationContract=false,reservationTotal=0,simplified=false }: {
   open: boolean; onOpenChange: (open: boolean) => void; onChoose: (choice: AvailabilityDesignChoice) => void;
   initialStep?: 'choice' | 'pickup'; busy?: boolean; error?: string; purpose?: 'availability' | 'proposal';
-  reservationContract?:boolean;reservationTotal?:number;
+  reservationContract?:boolean;reservationTotal?:number;simplified?:boolean;
 }) {
   const [step, setStep] = useState(initialStep);
   const [message, setMessage] = useState('');
   const [schedule, setSchedule] = useState('');
   const [contact, setContact] = useState(false);
-  const [offer,setOffer]=useState<ReservationOffer|null>({mode:'NONE'});
+  const [offer,setOffer]=useState<ReservationOfferInput|null>({mode:'NONE'});
   const messageId = useId(), scheduleId = useId(), hintId = useId(), contactId = useId();
   const changeOpen = (value: boolean) => { if (!busy) onOpenChange(value); };
   return <Modal open={open} onOpenChange={changeOpen} icon={step === 'choice' ? <CircleCheck /> : <Store />} busy={busy} stacked={purpose==='proposal'}
@@ -184,7 +185,7 @@ export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initia
           <button type="button" aria-pressed={contact} onClick={() => setContact(true)}><WhatsAppMark />Sí, permitir</button>
         </div><small>{contact ? 'Tu teléfono se compartirá solo después de que el cliente confirme continuar.' : 'Apagado: el cliente no verá tu teléfono.'}</small></div></li>
     </ol>}
-    {step==='pickup'&&reservationContract&&<ReservationOfferFields total={reservationTotal} onChange={setOffer} disabled={busy}/>}
+    {step==='pickup'&&reservationContract&&(simplified?<SimpleReservationOfferFields total={reservationTotal} onChange={setOffer} disabled={busy}/>:<ReservationOfferFields total={reservationTotal} onChange={setOffer} disabled={busy}/> )}
     {step==='pickup'&&reservationContract&&offer?.mode==='PREPAYMENT'&&!contact&&<p role="alert" className="mt-2 text-xs text-rose-800">Para ofrecer reserva con pago, activa «Sí, permitir» para autorizar compartir tu propio teléfono.</p>}
     {step === 'pickup' && contact && <p className="zipco-av-dialog-hint">{BUSINESS_CONTACT_COPY}</p>}
     </fieldset>
@@ -205,34 +206,35 @@ export function BusinessDesignActions({ data, onConfirm, onAlternative, onReject
   </div>;
 }
 
-export function AvailableRequestDesign({ data, expanded, onToggle, pickup, contact, onContactChange, onContinue, onDecline, busy = false, error, extraDetails,reservationNote,onReservationNote,onReserve }: {
-  data: RequestDesignData; expanded: boolean; onToggle: () => void; pickup?: PickupDesign;
+export function AvailableRequestDesign({ data, expanded, onToggle, pickup, contact, onContactChange, onContinue, onDecline, busy = false, error, extraDetails,reservationNote,onReservationNote,onReserve,simplified=false }: {
+  data: RequestDesignData; expanded: boolean; onToggle: () => void; pickup?: Omit<PickupDesign,'reservationOffer'> & {reservationOffer?:ReservationOffer};
   contact: boolean; onContactChange: (checked: boolean) => void; onContinue: () => void; onDecline: () => void; busy?: boolean; error?: string; extraDetails?: ReactNode;
-  reservationNote?:string;onReservationNote?:(v:string)=>void;onReserve?:()=>void;
+  reservationNote?:string;onReservationNote?:(v:string)=>void;onReserve?:()=>void;simplified?:boolean;
 }) {
   const detailsId = useId(), unavailableId = useId();
   return <article className="zipco-av-ticket zipco-av-available" aria-label={`${data.counterpart}: disponibilidad confirmada`}>
     <div className="zipco-av-ticket-inner"><TicketHeader data={data} kind="available" />
       <h2 className="zipco-av-neon">DISPONIBLE</h2><p className="zipco-av-subtitle">Confirmaron que lo tienen. ¿Quieres continuar con la compra?</p>
+      {simplified&&pickup?.reservationOffer&&<ReservationOfferSummary offer={pickup.reservationOffer}/>}
       <div id={detailsId} hidden={!expanded}>
         <Items data={data} showPrice /><Perforation />
         {extraDetails}
         {pickup ? <section className="zipco-av-channel-summary"><h3><Store />El negocio te espera en el local</h3>
           <blockquote>{pickup.message || DEFAULT_PICKUP_MESSAGE}{pickup.scheduleOrAddress && <span><Clock />{pickup.scheduleOrAddress}</span>}</blockquote>
           <p>{pickup.reservationOffer&&pickup.reservationOffer.mode!=='NONE'?'Puedes solicitar que guarden todo el pedido o ir sin reserva.':'No es una reserva: pagas y retiras directamente en el local.'}</p>
-          {pickup.reservationOffer&&<ReservationOfferSummary offer={pickup.reservationOffer}/>}
-          {pickup.reservationOffer&&pickup.reservationOffer.mode!=='NONE'&&onReservationNote&&<label className="mt-2 block text-xs">Nota opcional para la reserva<textarea aria-label="Nota para la reserva" className="mt-1 w-full rounded-xl border bg-white p-2 text-slate-950" disabled={busy} value={reservationNote??''} onChange={e=>onReservationNote(Array.from(e.target.value).slice(0,300).join(''))}/></label>}
+          {!simplified&&pickup.reservationOffer&&<ReservationOfferSummary offer={pickup.reservationOffer}/>}
+          {!simplified&&pickup.reservationOffer&&pickup.reservationOffer.mode!=='NONE'&&onReservationNote&&<label className="mt-2 block text-xs">Nota opcional para la reserva<textarea aria-label="Nota para la reserva" className="mt-1 w-full rounded-xl border bg-white p-2 text-slate-950" disabled={busy} value={reservationNote??''} onChange={e=>onReservationNote(Array.from(e.target.value).slice(0,300).join(''))}/></label>}
           {pickup.allowsContact && <><button type="button" className="zipco-av-contact-button" disabled aria-describedby={unavailableId}><WhatsAppMark />Escribir por WhatsApp</button>
             <small id={unavailableId}>Disponible después de confirmar que continúas y autorizar el contacto.</small></>}
         </section> : <section className="zipco-av-channel-summary"><h3><WhatsAppMark />Coordinarán por WhatsApp</h3>
           <p>El negocio quiere acordar contigo los detalles, el pago y la entrega por WhatsApp.</p>
         </section>}
-        {(!pickup || pickup.allowsContact) && <section className="zipco-av-channel-summary">
+        {!simplified&&(!pickup || pickup.allowsContact) && <section className="zipco-av-channel-summary">
           <div className="zipco-av-consent zipco-av-consent-dark"><b>Permitir que este negocio me escriba por WhatsApp</b><ContactSwitch checked={contact} disabled={busy} onChange={() => onContactChange(!contact)} /></div>
           <small>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</small>
         </section>}
         {error && <p role="alert" className="zipco-av-error">{error}</p>}
-        {onReserve&&<AcceptGlassButton label={busy?'Guardando…':pickup?.reservationOffer?.mode==='PREPAYMENT'?'Solicitar reserva con pago previo':'Solicitar reserva'} flush disabled={busy} onClick={onReserve}/>}
+        {!simplified&&onReserve&&<AcceptGlassButton label={busy?'Guardando…':pickup?.reservationOffer?.mode==='PREPAYMENT'?'Solicitar reserva con pago previo':'Solicitar reserva'} flush disabled={busy} onClick={onReserve}/>}
         <div className="zipco-av-decisions"><AcceptGlassButton label={busy ? 'Guardando…' : onReserve?'Iré sin reserva':'Sí, continuar con la compra'} size="compact" flush disabled={busy} onClick={onContinue} />
           <button type="button" className="zipco-av-decline" disabled={busy} onClick={onDecline}><X />No, gracias</button></div>
         <p className="zipco-av-fine zipco-av-centered"><ShieldCheck />Esto no representa un pago realizado.</p>

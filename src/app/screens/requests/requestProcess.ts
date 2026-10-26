@@ -1,5 +1,6 @@
 import { isRecord,parseIsoDate } from './orderValueParsers';
 import { AVAILABILITY_ACTION_PATHS, AVAILABILITY_CLOSURES, availabilityFlow, normalizeAvailability, type AvailabilityPlan, type AvailabilityClosureReason } from './availabilityContract';
+import {simplifiedReservationFlow,isSimpleOffer} from './simplifiedReservationContract';
 import {RESERVATION_PATHS,reservationFlow,normalizeReservationChoice,normalizeReservation,normalizeReservationFollowUp,type Reservation,type ReservationChoice,type ReservationFollowUp} from './reservationContract';
 
 export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
@@ -19,7 +20,7 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
-  flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1'|'AVAILABILITY_V2';
+  flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1'|'AVAILABILITY_V2'|'AVAILABILITY_V3';
   serverNow?:string;reservationChoice?:ReservationChoice;reservation?:Reservation;reservationFollowUp?:ReservationFollowUp;
   availability?: AvailabilityPlan;
   customerContactPreference?: {
@@ -65,13 +66,13 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
       !Array.isArray(value.allowedActions) ||
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as typeof PROCESS_ACTIONS[number])||Object.hasOwn(RESERVATION_PATHS,String(action)))) return null;
   if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
-  if (value.flowContract !== undefined && !['LEGACY_V1','AVAILABILITY_V1','AVAILABILITY_V2'].includes(String(value.flowContract))) return null;
+  if (value.flowContract !== undefined && !['LEGACY_V1','AVAILABILITY_V1','AVAILABILITY_V2','AVAILABILITY_V3'].includes(String(value.flowContract))) return null;
   const availability = value.availability === undefined ? undefined : normalizeAvailability(value.availability, value.currentProposalId);
   if (availability === null || (value.availability !== undefined && !availabilityFlow(value)) ||
     (!availabilityFlow(value) && (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.allowedActions.some(a => Object.hasOwn(AVAILABILITY_ACTION_PATHS, String(a))))) ||
     (availabilityFlow(value) && (value.allowedActions.includes('ACCEPT_FIXED_ORDER') ||
       (value.state === 'AWAITING_CUSTOMER_CONTINUATION' || value.agreementPublicId !== null) && !availability))) return null;
-  const choice=value.reservationChoice===undefined?undefined:normalizeReservationChoice(value.reservationChoice),reservation=value.reservation===undefined?undefined:normalizeReservation(value.reservation),followUp=value.reservationFollowUp===undefined?undefined:normalizeReservationFollowUp(value.reservationFollowUp);
+  const choice=value.reservationChoice===undefined?undefined:normalizeReservationChoice(value.reservationChoice),reservation=value.reservation===undefined?undefined:normalizeReservation(value.reservation,simplifiedReservationFlow(value)),followUp=value.reservationFollowUp===undefined?undefined:normalizeReservationFollowUp(value.reservationFollowUp);
   if(choice===null||reservation===null||followUp===null||value.serverNow!==undefined&&!parseIsoDate(value.serverNow)||
     (!reservationFlow(value)&&(availability?.reservationOffer||choice||reservation||followUp||value.allowedActions.some(a=>Object.hasOwn(RESERVATION_PATHS,String(a)))))||
     reservationFlow(value)&&availability?.path==='LOCAL_PICKUP'&&!availability.reservationOffer||
@@ -79,7 +80,12 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     followUp&&reservation?.mode!=='PREPAYMENT'||choice&&availability&&choice.offerId!==availability.availabilityConfirmationId||
     choice?.choice==='REQUEST_RESERVATION'&&!reservation||reservation&&(!value.serverNow||!value.agreementPublicId)||
     reservation?.mode==='PREPAYMENT'&&(!followUp||reservation.paymentReceiptDeclaration&&availability?.reservationOffer?.mode==='PREPAYMENT'&&reservation.paymentReceiptDeclaration.amountClp!==availability.reservationOffer.requiredAmountClp))return null;
-  let customerContactPreference: RequestProcessSummary['customerContactPreference'];
+   const simple=simplifiedReservationFlow(value),offer=availability?.reservationOffer;
+   if(offer&&offer.mode!=='NONE'&&(simple!==isSimpleOffer(offer))||!simple&&(choice?.termsVersion||choice?.noReservationAcknowledged||followUp?.paymentConfirmationReminder||value.allowedActions.includes('CANCEL_PICKUP_RESERVATION'))||
+     simple&&choice&&availability?.path==='LOCAL_PICKUP'&&(choice.choice==='NONE'&&choice.noReservationAcknowledged!==true||offer&&isSimpleOffer(offer)&&choice.termsVersion!==offer.simplified.termsVersion)||
+     simple&&followUp&&(!followUp.paymentConfirmationReminder||followUp.paymentConfirmationReminder.reservationId!==reservation?.id||followUp.paymentConfirmationReminder.expectedVersion!==value.version||followUp.paymentConfirmationReminder.eligible!==followUp.allowedActions.includes('CONFIRM_PICKUP_RESERVATION'))||
+     simple&&reservation?.mode==='FREE'&&value.allowedActions.some(a=>['CONFIRM_PICKUP_RESERVATION','DECLINE_PICKUP_RESERVATION'].includes(String(a))))return null;
+   let customerContactPreference: RequestProcessSummary['customerContactPreference'];
   if (value.customerContactPreference !== undefined) {
     const p = value.customerContactPreference;
     if (!isRecord(p) || typeof p.allowed !== 'boolean' || p.textVersion !== 'availability-customer-whatsapp-v1' ||

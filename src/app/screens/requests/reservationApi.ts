@@ -5,6 +5,7 @@ import {AvailabilityError} from './availabilityApi';
 import {processApiError} from './requestProcessErrors';
 import {whatsappUrl} from './coordinationApi';
 import {RESERVATION_PATHS,reservationFlow,processContractHeaders,type ReservationAction} from './reservationContract';
+import {simplifiedReservationFlow} from './simplifiedReservationContract';
 export type ReservationBody={expectedVersion:number;reservationId:number;entireOrderHeldDeclared?:true;requiredPaymentReceivedDeclared?:true;
   reasonDetail?:string;confirmationAccepted?:true;consentAccepted?:true;consentTextVersion?:'availability-contact-v1';purpose?:'RECEIPT'|'CLARIFICATION'};
 export type ReservationReceipt={orderId:number;orderStatus:string;requestProcess:RequestProcessSummary};
@@ -12,7 +13,8 @@ export function reservationAllowed(p:RequestProcessSummary|null|undefined,busine
   if(!p||!reservationFlow(p)||!p.reservation||!p.agreementPublicId)return false;
   const actions=p.reservation.mode==='PREPAYMENT'?p.reservationFollowUp?.allowedActions:p.allowedActions;
   if(!actions?.includes(action as never))return false;
-  if(['CONFIRM_PICKUP_RESERVATION','DECLINE_PICKUP_RESERVATION'].includes(action)&&!business)return false;
+  if(['CONFIRM_PICKUP_RESERVATION','DECLINE_PICKUP_RESERVATION','CANCEL_PICKUP_RESERVATION'].includes(action)&&!business)return false;
+  if(action==='CANCEL_PICKUP_RESERVATION'&&!simplifiedReservationFlow(p)||simplifiedReservationFlow(p)&&p.reservation.mode==='FREE'&&['CONFIRM_PICKUP_RESERVATION','DECLINE_PICKUP_RESERVATION'].includes(action))return false;
   if(action==='CONTINUE_WITHOUT_RESERVATION'&&business)return false;
   return true;
 }

@@ -192,12 +192,12 @@ export default function BusinessNotificationMonitor({
         ] = await Promise.all([
           businessId
             ? loadJson(
-                `/orders/business/${businessId}?processContract=availability-v2`,
+                `/orders/business/${businessId}?processContract=availability-v3`,
                 token,
                 onSessionExpired,
               )
             : Promise.resolve([]),
-          loadJson("/orders/my-orders?processContract=availability-v2", token, onSessionExpired),
+          loadJson("/orders/my-orders?processContract=availability-v3", token, onSessionExpired),
           businessId
             ? loadJson(
                 `/quotes/business/${businessId}`,

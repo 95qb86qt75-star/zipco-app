@@ -86,6 +86,11 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
   };
 
   if (kind === 'product') {
+    it('selects V3 only with its own flag and never falls back after an uncertain creation',async()=>{
+      state.capabilities.mockResolvedValue({reservationCreationEnabled:true,simplifiedReservationCreationEnabled:true});state.create.mockRejectedValueOnce(new TypeError('network'));
+      button('Ahora').props.onClick!();await submit();const first=state.create.mock.calls[0][0];expect(first.expectedFlow).toBe('AVAILABILITY_V3');expect(first.url).toMatch(/availability-reservation-v3-requests$/);
+      state.capabilities.mockResolvedValue({reservationCreationEnabled:true,simplifiedReservationCreationEnabled:false});await submit();expect(state.capabilities).toHaveBeenCalledOnce();expect(state.create.mock.calls[1][0].url).toBe(first.url);expect(state.create.mock.calls[1][0].idempotencyKey).toBe(first.idempotencyKey);
+    });
     it('creates V2 only when the authenticated capability is enabled and freezes the route on retry',async()=>{
       state.capabilities.mockResolvedValue({reservationCreationEnabled:true});state.create.mockRejectedValueOnce(new TypeError('network'));
       button('Ahora').props.onClick!();await submit();

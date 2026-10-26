@@ -48,7 +48,7 @@ window.fetch=async (url,init)=>{
   return json({...orderFor(false),items:[{id:1,orderId:20,catalogItemId:5,nameSnapshot:'Producto QA',unitPriceClpSnapshot:12000,quantity:1,subtotalClp:12000}]},201);
  }
  if((init?.method??'GET')==='GET'){
-  if(!String(url).includes('processContract=availability-v2'))throw Error('Missing S2 read opt-in');
+  if(!String(url).includes('processContract=availability-v3'))throw Error('Missing S2 read opt-in');
   if(String(url).includes('/orders/'))return json([orderFor(business)]);
   if(String(url).includes('/agreement')){const latest=proposals.at(-1);return json({...agreementFixture,totalPriceClp:latest.totalPriceClp,acceptedProposalId:latest.id,subjectSchemaVersion:latest.subjectSchemaVersion,scheduledFor:null,subjectSnapshot:latest.subjectSnapshot,availability:plan});}
   if(String(url).includes('/proposals'))return json({process:processFor(business),proposals});

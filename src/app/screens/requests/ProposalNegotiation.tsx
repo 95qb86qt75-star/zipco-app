@@ -22,7 +22,11 @@ import {CUSTOMER_CONTACT_TEXT_VERSION} from '../createOrderApi';
 import {ConfirmAvailabilityDesign} from './availability-design/AvailabilityDesign';
 import {fulfillmentFromChoice,fulfillmentFromPlan} from './availabilityChoice';
 import AvailabilityPlanSummary from './AvailabilityPlanSummary';
-import {reservationFlow,type ReservationChoice,type ReservationOffer} from './reservationContract';
+import {reservationFlow,type ReservationChoice,type ReservationOfferInput} from './reservationContract';
+import {simplifiedReservationFlow,isSimpleOffer} from './simplifiedReservationContract';
+import SimpleReservationOfferFields from './SimpleReservationOfferFields';
+import {readReservationOptions} from './reservationOptions';
+import {startReservationPayment} from './startReservationPayment';
 import ReservationChoiceFields from './ReservationChoiceFields';
 import ReservationOfferFields from './ReservationOfferFields';
 
@@ -92,7 +96,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [contactPreference,setContactPreference]=useState(true);
   const pendingFulfillment=useRef<{send:()=>Promise<void>;total:number;resolve:(value:boolean)=>void;reject:(error:unknown)=>void}|null>(null);
   const [reservationSelection,setReservationSelection]=useState<ReservationChoice['choice']>('NONE'),[reservationNote,setReservationNote]=useState('');
-  const [finalOffer,setFinalOffer]=useState<ReservationOffer|null|undefined>(undefined);
+  const [finalOffer,setFinalOffer]=useState<ReservationOfferInput|null|undefined>(undefined);
   const chosenFulfillment=useRef<FulfillmentChoice|null>(null);
   const authorizeChoice = useRef(false);
   const lock = useRef(false);
@@ -153,7 +157,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       :action==='COUNTER_PROPOSAL'||action==='ACCEPT_PROPOSAL'?{customerContactPreference:{allowed:permitsContact?contactPreference:false,textVersion:CUSTOMER_CONTACT_TEXT_VERSION}}
       :action==='ACCEPT_COUNTER_PROPOSAL'&&permitsContact?{businessContactConsent:{accepted:true,textVersion:BUSINESS_CONTACT_VERSION}}:{}:{};
     if(newFlow&&['PROPOSE_ALTERNATIVE','PROPOSE_FINAL'].includes(action)&&!extra.fulfillment)throw new ProposalError('Actualiza el camino de esta propuesta antes de enviarla.',0);
-    const reservationExtra=v2&&!business&&plan?.path==='LOCAL_PICKUP'&&['COUNTER_PROPOSAL','ACCEPT_PROPOSAL'].includes(action)?{reservationChoice:{offerId:plan.availabilityConfirmationId,choice:reservationSelection,...(reservationSelection==='REQUEST_RESERVATION'?{note:reservationNote.trim()}:{})}}:{};
+    const reservationExtra=v2&&!business&&plan?.path==='LOCAL_PICKUP'&&['COUNTER_PROPOSAL','ACCEPT_PROPOSAL'].includes(action)?{reservationChoice:{offerId:plan.availabilityConfirmationId,choice:reservationSelection,...(reservationSelection==='REQUEST_RESERVATION'?{note:reservationNote.trim()}:{}),...(simplifiedReservationFlow(captured.process)?{...(isSimpleOffer(plan.reservationOffer)?{termsVersion:plan.reservationOffer.simplified.termsVersion}:{}),...(reservationSelection==='NONE'?{noReservationAcknowledged:true as const}:{})}:{})}}:{};
     lock.current = true; setBusy(true); setError('');
     const finish = (receipt: ProposalReceipt) => {
       if (!active()) return;
@@ -191,6 +195,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         }
         setRead(latest); setDraftAction(null); setOpen(true); refresh(); throw new ProposalError('El pedido cambió. Revisa su estado actualizado antes de responder.', 409, 'STALE_VERSION', true);
       }
+      if(simplifiedReservationFlow(captured.process)&&!business&&plan?.path==='LOCAL_PICKUP'&&['COUNTER_PROPOSAL','ACCEPT_PROPOSAL'].includes(action))await readReservationOptions(process.id,captured.process.version,session!.token,false,plan.availabilityConfirmationId,controller.signal);
       let photo: string | null = null;
       if (file) {
         photo = uploaded.current.get(file) ?? await uploadProposalPhoto(file, controller.signal);
@@ -202,7 +207,12 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       const receipt = await proposalIntents().run(operationScope(session!, business), process.id, action, body,
         key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal,captured.process.flowContract,captured.process.availability?.availabilityConfirmationId));
       // POST is final. A failed subsequent read must never send it again.
-      finish(receipt);
+      let navigation:string|null=null;
+      if(action==='ACCEPT_PROPOSAL'&&!business&&simplifiedReservationFlow(captured.process)&&reservationSelection==='REQUEST_RESERVATION'&&plan?.reservationOffer?.mode==='PREPAYMENT'){
+        try{const payment=await startReservationPayment(order.id!,session!,controller.signal);navigation=payment.navigation;}catch{/* Acceptance is final; the reservation card offers recovery. */}
+      }
+      if(!active())return;
+      finish(receipt);if(navigation)window.location.assign(navigation);
     } catch (e) {
       if (active() && e instanceof ProposalError && e.code === 'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED') { setExpired(true); setAuthCard(false); setDecision(action); }
       if (active() && e instanceof ProposalError && e.status === 401) window.dispatchEvent(new Event('zipco-coordination-session-expired'));
@@ -311,14 +321,14 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       } : undefined}
       reviewFields={review=><>
         {availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_FINAL'&&<div className="my-3 rounded-xl border p-3 text-xs">
-          {read.process.availability?<><p className="mb-2 font-bold">Se conserva la opción de la propuesta anterior</p><AvailabilityPlanSummary plan={read.process.availability}/>{reservationFlow(read.process)&&read.process.availability.reservationOffer&&<ReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>}{read.process.availability.allowCustomerWhatsapp&&<p className="mt-2">{BUSINESS_CONTACT_COPY}</p>}</>:<p role="alert">No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p>}
+          {read.process.availability?<><p className="mb-2 font-bold">Se conserva la opción de la propuesta anterior</p><AvailabilityPlanSummary plan={read.process.availability}/>{reservationFlow(read.process)&&read.process.availability.reservationOffer&&(simplifiedReservationFlow(read.process)?<SimpleReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>:<ReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>)}{read.process.availability.allowCustomerWhatsapp&&<p className="mt-2">{BUSINESS_CONTACT_COPY}</p>}</>:<p role="alert">No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p>}
         </div>}
         {!business&&reservationFlow(read.process)&&read.process.availability?.reservationOffer&&<ReservationChoiceFields offer={read.process.availability.reservationOffer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy}/>}
         {availabilityFlow(read.process)&&!business&&(read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>)}
       </>} />}
     <ConfirmAvailabilityDesign open={fulfillmentOpen} onOpenChange={value=>{
       if(!value&&!busy){setFulfillmentOpen(false);const pending=pendingFulfillment.current;pendingFulfillment.current=null;pending?.resolve(false);}
-    }} purpose="proposal" busy={busy} reservationContract={reservationFlow(read?.process??process)} reservationTotal={pendingFulfillment.current?.total??order.total??0} onChoose={async choice=>{
+    }} purpose="proposal" busy={busy} reservationContract={reservationFlow(read?.process??process)} simplified={simplifiedReservationFlow(read?.process??process)} reservationTotal={pendingFulfillment.current?.total??order.total??0} onChoose={async choice=>{
       const pending=pendingFulfillment.current;if(!pending||lock.current)return;
       chosenFulfillment.current=fulfillmentFromChoice(choice);
       try{await pending.send();setFulfillmentOpen(false);pending.resolve(true);}

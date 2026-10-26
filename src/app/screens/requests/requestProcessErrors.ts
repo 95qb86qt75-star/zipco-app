@@ -30,6 +30,10 @@ export function processApiError(status: number, body: unknown, agreement = false
     if(code==='RESERVATION_CREATION_DISABLED')return new RequestProcessError('Las nuevas reservas todavía no están habilitadas. Conserva los datos y vuelve a intentarlo cuando se active QA.',status);
     if(code==='OFFER_EXPIRED')return new RequestProcessError('El plazo de la oferta de reserva venció. Actualiza sus condiciones; también puedes elegir ir sin reserva.',status,true);
     if(code==='RESERVATION_MISMATCH')return new RequestProcessError('La reserva cambió. Actualiza el pedido antes de responder.',status,true);
+    if(code==='RESERVATION_HOURS_UNAVAILABLE')return new RequestProcessError('No se pudo determinar un horario válido de atención para reservar. Revisa el horario del negocio o elige retiro sin reserva.',status,true);
+    if(code==='RESERVATION_PAYMENT_WINDOW_UNAVAILABLE')return new RequestProcessError('Quedan menos de 30 minutos antes del cierre. Revisa las condiciones con el negocio o elige ir sin reserva.',status,true);
+    if(code==='RESERVATION_SCHEDULE_EXPIRED')return new RequestProcessError('La fecha y hora para reservar ya pasaron. El negocio debe revisar la fecha; una nota no la modifica.',status,true);
+    if(code==='RESERVATION_TERMS_CHANGED'||code==='RESERVATION_SCHEDULE_CHANGED')return new RequestProcessError('Cambió el horario o la fecha de reserva. Actualiza el pedido y pide al negocio revisar las condiciones.',status,true);
     if(code==='RESERVATION_NOT_CONFIRMED')return new RequestProcessError('Confirma el apartado y, si corresponde, el monto recibido antes de marcar Listo.',status,true);
     if (code === 'FLOW_CONTRACT_MISMATCH') return new RequestProcessError('Esta acción no corresponde al flujo de este pedido. Actualiza su estado.',status,true);
     if (code === 'AVAILABILITY_MISMATCH') return new RequestProcessError('La disponibilidad cambió. Actualiza el pedido y revisa la confirmación vigente.',status,true);

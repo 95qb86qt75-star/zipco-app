@@ -71,7 +71,7 @@ export default function CheckoutScreen({
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
   const [photoZoom, setPhotoZoom] = useState(1);
   const creationIntent = useRef(createOrderCreationIntent());
-  const creationFlow=useRef<'AVAILABILITY_V1'|'AVAILABILITY_V2'|null>(null);
+  const creationFlow=useRef<'AVAILABILITY_V1'|'AVAILABILITY_V2'|'AVAILABILITY_V3'|null>(null);
   const checkoutAlive=useRef(true);
   useEffect(()=>{checkoutAlive.current=true;return()=>{checkoutAlive.current=false;};},[]);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
@@ -214,7 +214,7 @@ export default function CheckoutScreen({
     setSubmissionError(undefined);
     setIsSubmitting(true);
     try {
-      if(!creationFlow.current){const capability=await readReservationCapabilities(token);if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)throw new Error('La sesión cambió. Vuelve a abrir la solicitud.');creationFlow.current=capability.reservationCreationEnabled?'AVAILABILITY_V2':'AVAILABILITY_V1';}
+      if(!creationFlow.current){const capability=await readReservationCapabilities(token);if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)throw new Error('La sesión cambió. Vuelve a abrir la solicitud.');creationFlow.current=capability.simplifiedReservationCreationEnabled?'AVAILABILITY_V3':capability.reservationCreationEnabled?'AVAILABILITY_V2':'AVAILABILITY_V1';}
       const flow=creationFlow.current;
       const created = await creationIntent.current.submit({
         identity: JSON.stringify([currentUserId, business.id, business.userId, flow]),
@@ -226,7 +226,7 @@ export default function CheckoutScreen({
           customerContactPreference: { allowed: contactAllowed, textVersion: CUSTOMER_CONTACT_TEXT_VERSION },
         },
       }, (payload, idempotencyKey) => createOrder({
-        url: `${API_BASE_URL}/orders/${flow==='AVAILABILITY_V2'?'availability-reservation-requests':'availability-requests'}`,
+        url: `${API_BASE_URL}/orders/${flow==='AVAILABILITY_V3'?'availability-reservation-v3-requests':flow==='AVAILABILITY_V2'?'availability-reservation-requests':'availability-requests'}`,
         expectedFlow: flow,
         token,
         currentUserId,

@@ -111,7 +111,7 @@ describe('fixed order acceptance transport and intention', () => {
   it('reads agreement using process.id, validating identity and public ID', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(agreementFixture))); vi.stubGlobal('fetch', fetch);
     expect(await readAgreement(7, 'agreement-test', 'test')).toEqual(agreementFixture);
-    expect(fetch.mock.calls[0][0]).toMatch(/\/request-processes\/7\/agreement\?processContract=availability-v2$/);
+    expect(fetch.mock.calls[0][0]).toMatch(/\/request-processes\/7\/agreement\?processContract=availability-v3$/);
     await expect(readAgreement(8, 'agreement-test', 'test')).rejects.toThrow('verificar');
   });
 });
