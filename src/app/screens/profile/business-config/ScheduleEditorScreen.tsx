@@ -59,12 +59,12 @@ export default function ScheduleEditorScreen({
         </div>
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-8">
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-60">
         <ScheduleCard days={days} schedule={draft} setSchedule={setDraft} />
       </main>
 
       <footer
-        className="border-t border-slate-200 bg-white/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
+        className="absolute bottom-20 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
         <button
