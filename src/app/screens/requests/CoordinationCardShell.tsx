@@ -1,11 +1,12 @@
 import { ChevronDown, User } from 'lucide-react';
+import ProductPreviewControl from './ProductPreviewControl';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 export function CoordinationCardHeader({ name, image, price, statusLabel, isUnread = false }: {
   name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
 }) {
   return <div style={{ display:'flex',alignItems:'center',gap:12 }}>
-    <span className="zipco-co-av">{image ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" /> : <User size={24} strokeWidth={2} aria-hidden="true" />}</span>
+    <ProductPreviewControl fallback={<span className="zipco-co-av">{image ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" /> : <User size={24} strokeWidth={2} aria-hidden="true" />}</span>}/>
     <div style={{ minWidth:0,flex:1 }}>
       <div style={{ fontSize:17,lineHeight:1.15,fontWeight:800,display:'flex',alignItems:'center',gap:6 }}>
         <span className="zipco-co-client-name">{name}</span>{isUnread && <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">Nueva</span>}

@@ -1,4 +1,5 @@
 import { isRecord,parseIsoDate } from './orderValueParsers';
+import {normalizeProductPreview,type ProductPreview} from './productPreview';
 import { AVAILABILITY_ACTION_PATHS, AVAILABILITY_CLOSURES, availabilityFlow, normalizeAvailability, type AvailabilityPlan, type AvailabilityClosureReason } from './availabilityContract';
 import {simplifiedReservationFlow,isSimpleOffer} from './simplifiedReservationContract';
 import {LATE_INITIAL_PATHS,normalizeLateInitial,type LateInitialView} from './lateInitialContract';
@@ -21,6 +22,7 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  productPreview?:ProductPreview;requestedProductPreview?:ProductPreview;
   flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1'|'AVAILABILITY_V2'|'AVAILABILITY_V3';
   serverNow?:string;reservationChoice?:ReservationChoice;reservation?:Reservation;reservationFollowUp?:ReservationFollowUp;
   availability?: AvailabilityPlan;
@@ -148,11 +150,16 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
      late.status==='NO_LONGER_NEEDED'&&closure?.reasonCode!=='CUSTOMER_CANCELLED_BEFORE_RESPONSE'||
      late.status==='BUSINESS_UNAVAILABLE'&&closure?.reasonCode!=='cannot_meet_schedule')||
      value.allowedActions.some(a=>Object.hasOwn(LATE_INITIAL_PATHS,String(a)))&&!late)return null;
+   const visual=normalizeProductPreview(value.productPreview,value.currentProposalId);
+   const productPreview=visual&&(!proposalSummary||visual.items.reduce((sum,item)=>sum+item.subtotalClp,0)===proposalSummary.totalPriceClp)?visual:undefined;
+   const requestedProductPreview=normalizeProductPreview(value.requestedProductPreview);
    return {
     id: value.id, state: value.state, version: value.version,
     currentProposalId: value.currentProposalId,
     agreementPublicId: value.agreementPublicId as string | null,
     allowedActions: [...value.allowedActions] as RequestProcessSummary['allowedActions'],
+    ...(productPreview?{productPreview}:{}),
+    ...(requestedProductPreview&&requestedProductPreview.proposalId!==value.currentProposalId?{requestedProductPreview}:{}),
     ...(value.flowContract ? { flowContract: value.flowContract as RequestProcessSummary['flowContract'] } : {}),
     ...(availability ? { availability } : {}),
     ...(late?{lateInitialResponse:late}:{}),

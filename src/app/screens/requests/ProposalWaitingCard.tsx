@@ -5,6 +5,7 @@ import { safePhoto } from './agreement';
 import { formatDeliverySchedule } from './utils';
 import ProposalNegotiation from './ProposalNegotiation';
 import './proposal-waiting.css';
+import ProductPreviewControl from './ProductPreviewControl';
 
 const TZ = 'America/Santiago';
 const valid = (iso?: string | null): iso is string => !!iso && Number.isFinite(Date.parse(iso));
@@ -37,7 +38,7 @@ export default function ProposalWaitingCard({ order, business = true, expanded, 
   return <article id={`order-${order.id}`} tabIndex={0} data-proposal-waiting={p.state} data-unread={isUnread}
     className="zipco-wait-card scroll-mb-36" data-proposal-role={business?'business':'customer'} aria-label={`${name}: ${business?'esperando la respuesta del cliente':'propuesta por responder'}`}>
     <header className="zipco-wait-header">
-      <span className="zipco-wait-avatar"><UserRound size={20} /></span>
+      <ProductPreviewControl fallback={<span className="zipco-wait-avatar"><UserRound size={20} /></span>}/>
       <div><p>{business?'SOLICITUD DE CLIENTE':'PROPUESTA DEL NEGOCIO'}</p><h3>{name}</h3></div>
       {price !== null && <div className="zipco-wait-price"><strong>${price.toLocaleString('es-CL')}</strong><small>PROPUESTO</small></div>}
     </header>

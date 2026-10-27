@@ -6,6 +6,7 @@ import { readCoordinationSession } from './coordinationSession';
 import { subscribeCoordinationSession } from './coordinationSession';
 import type { AgreementReadDto } from './agreement';
 import OrderReferencePhoto from './OrderReferencePhoto';
+import ProductPreviewControl from './ProductPreviewControl';
 import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 import { buildTimeline, money, whenOf, type Round, type Timeline, type Perspective } from './agreementTimeline';
 
@@ -121,6 +122,7 @@ export default function AgreementSheet({ open, onOpenChange, processId, client, 
             </div>
           </div>
 
+          {accepted.subjectSnapshot.orderType==='product'&&<ProductPreviewControl preview={accepted.productPreview??null} caption="PRODUCTO ACORDADO"/>}
           {(accepted.subjectSnapshot.items.length > 1 || accepted.subjectSnapshot.items.some(item => item.unitPriceClpSnapshot === null)) && <ul className="zipco-ag-items">
             {accepted.subjectSnapshot.items.map((item, i) => <li key={i}><b>{item.quantity}× {item.nameSnapshot}</b><p>{item.descriptionSnapshot}</p>
               <span>{item.unitPriceClpSnapshot === null ? 'Precio total de esta línea' : `${money(item.unitPriceClpSnapshot)} por unidad`} · Subtotal {money(item.subtotalClp)}</span></li>)}

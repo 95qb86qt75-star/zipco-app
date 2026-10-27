@@ -5,6 +5,7 @@ import { OrderPricePanel } from './OrderCardPanels';
 import { agreementLink } from './agreementNavigation';
 import type { StatusView } from './requestStatusGrouping';
 import AvailabilityPlanSummary from './AvailabilityPlanSummary';
+import ProductPreviewControl from './ProductPreviewControl';
 
 const money = (value: number) => new Intl.NumberFormat('es-CL', {
   style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
@@ -21,6 +22,7 @@ export function AgreementContent({ state, retry, business = false, compact = fal
   const { agreement: a } = state;
   return <div className={compact ? 'space-y-1.5 text-[11px] leading-4' : 'space-y-3'}>
     <p className="font-bold">{a.subjectSnapshot.orderType === 'service' ? 'Servicio' : 'Productos'}</p>
+    {a.subjectSnapshot.orderType==='product'&&<ProductPreviewControl preview={a.productPreview??null} caption="PRODUCTO ACORDADO"/>}
     <ul className={compact ? 'space-y-1.5' : 'space-y-2'}>
       {a.subjectSnapshot.items.map((item, index) => <li key={`${item.catalogItemId}-${index}`}>
         <p><strong>{item.quantity} × {item.nameSnapshot}</strong></p>

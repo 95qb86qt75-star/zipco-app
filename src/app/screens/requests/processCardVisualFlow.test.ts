@@ -20,10 +20,12 @@ vi.mock('./useAgreement', () => ({ default: () => ({ state: hooks.agreement, ret
 vi.mock('../../notifications/unreadInteractions', async original => ({
   ...await original<typeof import('../../notifications/unreadInteractions')>(), markInteractionRead: vi.fn(),
 }));
-import ProcessOrderCard from './ProcessOrderCard';
+// These shallow interaction tests inspect the existing card body; the new
+// visual scope and actual portal interactions are covered by browser checks.
+import {ProcessOrderCardContent as ProcessOrderCard} from './ProcessOrderCard';
 import CustomerPendingCard from './CustomerPendingCard';
 import AcceptGlassButton from './AcceptGlassButton';
-import ProcessHistoryCard from './ProcessHistoryCard';
+import {ProcessHistoryCardContent as ProcessHistoryCard} from './ProcessHistoryCard';
 import CoordinationActions from './CoordinationActions';
 import BusinessCoordinationCard from './BusinessCoordinationCard';
 import AgreementSheet from './AgreementSheet';

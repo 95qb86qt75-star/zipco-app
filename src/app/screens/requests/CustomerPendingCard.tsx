@@ -6,6 +6,7 @@ import OrderReferencePhoto from './OrderReferencePhoto';
 import { safePhoto } from './agreement';
 import { formatDeliverySchedule } from './utils';
 import './availability-design/availability-design.css';
+import ProductPreviewControl from './ProductPreviewControl';
 
 export default function CustomerPendingCard({ order, expanded, onToggle, refresh, isUnread = false }: {
   order: MyOrder | BusinessRequest; expanded: boolean; onToggle: () => void; refresh: () => void; isUnread?: boolean;
@@ -30,7 +31,7 @@ export default function CustomerPendingCard({ order, expanded, onToggle, refresh
     <div className="zipco-av-ticket-inner">
       {isUnread && <span className="sr-only">Solicitud nueva sin leer</span>}
       <header className="zipco-av-ticket-header">
-        <span className="zipco-av-ticket-icon"><Hourglass aria-hidden="true" /></span>
+        <ProductPreviewControl fallback={<span className="zipco-av-ticket-icon"><Hourglass aria-hidden="true" /></span>}/>
         <div className="zipco-av-identity"><small>ENTRADA DE SOLICITUD</small><b>{name || 'Negocio'}</b></div>
         <div className="zipco-av-price"><b>{order.total === null ? 'No disponible' : money(order.total)}</b><small>SOLICITADO</small></div>
       </header>

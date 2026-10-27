@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Calendar, ChevronRight, Clock, ExternalLink, FileCheck, FileText, PencilLine, ShoppingBag, Trash2, UserX, X, Check } from 'lucide-react';
 import type { AgreementReadDto } from './agreement';
+import ProductPreviewControl from './ProductPreviewControl';
 import WhatsAppMark from './WhatsAppMark';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
@@ -46,6 +47,7 @@ export function ConditionsSheet({ open, onOpenChange, accepted, title, subtitle,
         <b className="zipco-d-ped-price">{money(accepted.totalPriceClp)}</b>
       </div>
       <ul className="zipco-co-condition-items">
+        {accepted.subjectSnapshot.orderType==='product'&&<li><ProductPreviewControl preview={accepted.productPreview??null} caption="PRODUCTO ACORDADO"/></li>}
         {accepted.subjectSnapshot.items.map((item, index) => <li key={index}>
           {accepted.subjectSnapshot.items.length > 1 && <strong>{item.quantity}× {item.nameSnapshot}</strong>}
           <span>{item.unitPriceClpSnapshot === null ? 'Precio total de esta línea' : `${money(item.unitPriceClpSnapshot)} por unidad`} · Subtotal {money(item.subtotalClp)}</span>

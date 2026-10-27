@@ -1,4 +1,5 @@
 import { Package, Store, User } from 'lucide-react';
+import ProductPreviewControl from './ProductPreviewControl';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 export function ProgressCardHeader({ business, name, image, price, statusLabel, isUnread = false, ready = false }: {
@@ -6,9 +7,9 @@ export function ProgressCardHeader({ business, name, image, price, statusLabel, 
 }) {
   const Icon = business ? User : Store;
   return <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
-    <span className={business ? 'zipco-co-av' : 'zipco-cp-av'}>{image
+    <ProductPreviewControl fallback={<span className={business ? 'zipco-co-av' : 'zipco-cp-av'}>{image
       ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" />
-      : <Icon size={24} aria-hidden="true" />}</span>
+      : <Icon size={24} aria-hidden="true" />}</span>}/>
     <div style={{ minWidth: 0, flex: 1 }}>
       <div className="flex items-center gap-1.5" style={{ fontSize: 17, lineHeight: 1.15, fontWeight: 800 }}><span className="truncate">{name}</span>
         {isUnread && <span className="rounded-full bg-sky-500 px-1.5 py-0.5 text-[9px] font-black text-white">Nueva</span>}</div>

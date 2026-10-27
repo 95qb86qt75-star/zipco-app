@@ -1,4 +1,5 @@
 import { User } from 'lucide-react';
+import ProductPreviewControl from './ProductPreviewControl';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 // Cabecera "Aurora nocturna" compartida por todos los estados del pedido.
@@ -9,9 +10,9 @@ export function AuroraProposalHeader({ name, image, price, statusLabel, summaryT
 }) {
   return <div>
     <div className="zipco-aurora-header">
-      <span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>
+      <ProductPreviewControl fallback={<span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>
         {image ? <ImageWithFallback src={image} alt={name || 'Pedido'} className="h-full w-full object-cover" /> : <User className="h-[23px] w-[23px]" strokeWidth={1.8} />}
-      </span>
+      </span>}/>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <h4 className="line-clamp-2 break-words text-[17px] font-black leading-tight tracking-[-0.01em] text-white">{name || 'Pedido'}</h4>

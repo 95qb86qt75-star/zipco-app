@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowLeftRight, CalendarDays, ChevronDown, ChevronRight, Che
 import AcceptGlassButton from '../AcceptGlassButton';
 import WhatsAppMark from '../WhatsAppMark';
 import './availability-design.css';
+import ProductPreviewControl from '../ProductPreviewControl';
 import { BUSINESS_CONTACT_COPY } from '../availabilityContract';
 import type {ReservationOffer,ReservationOfferInput} from '../reservationContract';
 import SimpleReservationOfferFields from '../SimpleReservationOfferFields';
@@ -42,7 +43,7 @@ function Disclosure({ open, onToggle, controls }: { open: boolean; onToggle: () 
 function TicketHeader({ data, kind }: { data: RequestDesignData; kind: 'waiting' | 'business' | 'available' }) {
   const Icon = kind === 'waiting' ? Hourglass : kind === 'business' ? UserRound : Store;
   return <header className="zipco-av-ticket-header">
-    <span className="zipco-av-ticket-icon"><Icon aria-hidden="true" /></span>
+    <ProductPreviewControl fallback={<span className="zipco-av-ticket-icon"><Icon aria-hidden="true" /></span>}/>
     <div className="zipco-av-identity"><small>{kind === 'waiting' ? 'ENTRADA DE SOLICITUD' : kind === 'business' ? 'SOLICITUD DE CLIENTE' : 'RESPUESTA DEL NEGOCIO'}</small><b>{data.counterpart}</b></div>
     <div className="zipco-av-price"><b>{money(data.total)}</b><small>SOLICITADO</small></div>
   </header>;

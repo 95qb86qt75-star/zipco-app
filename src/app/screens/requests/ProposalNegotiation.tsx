@@ -30,6 +30,7 @@ import {startReservationPayment} from './startReservationPayment';
 import ReservationChoiceFields from './ReservationChoiceFields';
 import ReservationOfferFields from './ReservationOfferFields';
 import {RequestProcessError} from './requestProcessErrors';
+import ProductPreviewControl from './ProductPreviewControl';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -53,6 +54,7 @@ export function ProposalSnapshotCard({ proposal }: { proposal: Proposal }) {
   const s = proposal.subjectSnapshot;
   return <section className="space-y-2 rounded-2xl border border-violet-200 bg-violet-50/40 p-3 text-sm dark:bg-violet-950/20">
     <h4 className="font-black">{labels[proposal.sequence]}</h4>
+    {s.orderType==='product'&&<ProductPreviewControl preview={proposal.productPreview??null} caption={proposal.sequence===0?'PRODUCTO SOLICITADO':'PRODUCTO DE ESTA PROPUESTA'}/>}
     <p className="text-xs text-slate-500">{new Date(proposal.createdAt).toLocaleString('es-CL', { timeZone: 'America/Santiago' })}</p>
     <p className="font-bold">{s.orderType === 'service' ? 'Servicio' : 'Productos'}</p>
     {s.items.map((item, index) => <div key={index} className="border-t border-violet-100 pt-2">

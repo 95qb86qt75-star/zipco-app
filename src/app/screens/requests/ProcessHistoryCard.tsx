@@ -11,8 +11,9 @@ import { formatDeliverySchedule } from './utils';
 import { isProposalRejected, isAvailabilityClosed } from './requestProcess';
 import ProposalNegotiation from './ProposalNegotiation';
 import ReservationPanel from './ReservationPanel';
+import {ProductPreviewScope} from './ProductPreviewControl';
 
-export default function ProcessHistoryCard({ order }: { order: MyOrder | BusinessRequest }) {
+export function ProcessHistoryCardContent({ order }: { order: MyOrder | BusinessRequest }) {
   const [expanded, setExpanded] = useState(false);
   const pendingCancelled = isPendingRequestCancelled(order.requestProcess);
   const pendingRejected = isPendingRequestRejected(order.requestProcess);
@@ -53,4 +54,10 @@ export default function ProcessHistoryCard({ order }: { order: MyOrder | Busines
       {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={'customerName' in order} />}
     </div> : <><AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={'customerName' in order} history />{order.requestProcess?.reservation&&<ReservationPanel order={order} business={'customerName' in order} refresh={()=>window.dispatchEvent(new CustomEvent('zipco-requests-refresh'))}/>}</>)}
   </article>;
+}
+
+export default function ProcessHistoryCard(props:{order:MyOrder|BusinessRequest}){
+  const process=props.order.requestProcess;
+  if(!process)return <ProcessHistoryCardContent {...props}/>;
+  return <ProductPreviewScope preview={props.order.orderType==='service'?undefined:process.productPreview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}><ProcessHistoryCardContent {...props}/></ProductPreviewScope>;
 }

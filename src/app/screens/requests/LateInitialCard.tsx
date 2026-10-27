@@ -10,6 +10,7 @@ const reservationWhen=(iso:string)=>new Intl.DateTimeFormat('es-CL',{timeZone:'A
 import OrderReferencePhoto from './OrderReferencePhoto';
 import {safePhoto} from './agreement';
 import './late-initial.css';
+import ProductPreviewControl from './ProductPreviewControl';
 
 const santiagoDay=(d:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago'}).format(d);
 const requestedFor=(iso:string,serverNow:string)=>{const d=new Date(iso);return santiagoDay(d)===santiagoDay(new Date(serverNow))?`Solicitado para las ${new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(d)}`:`Solicitado para el ${reservationWhen(iso)}`;};
@@ -26,7 +27,7 @@ export default function LateInitialCard({order,business,expanded,onToggle,refres
   const pending=operation.pending(),can=(a:LateInitialAction)=>lateInitialAllowed(p,business,a),blocked=(a:LateInitialAction)=>operation.busy||!!pending&&(pending.action!==a||pending.confirmed);
   const ask=can('ASK_LATE_REQUEST_NEED'),answer=can('CONFIRM_LATE_REQUEST_NEED'),waiting=late.status==='AWAITING_CUSTOMER';
   return <article id={`order-${order.id}`} tabIndex={0} data-late-initial={late.status} data-unread={isUnread} className={`zipco-late-card scroll-mb-36${business?' zipco-late-card--business':''}`} aria-label={`${name}: ${business?'Fuera de hora':'Consulta del negocio'}`}>
-    <header className="zipco-late-header"><span className="zipco-late-avatar"><UserRound size={21}/></span><div><p>{business?'SOLICITUD DE CLIENTE':'RESPUESTA DEL NEGOCIO'}</p><h3>{name|| (business?'Cliente':'Negocio')}</h3></div>{order.total!==null&&<div className="zipco-late-price"><strong>${order.total.toLocaleString('es-CL')}</strong><small>SOLICITADO</small></div>}</header>
+    <header className="zipco-late-header"><ProductPreviewControl fallback={<span className="zipco-late-avatar"><UserRound size={21}/></span>}/><div><p>{business?'SOLICITUD DE CLIENTE':'RESPUESTA DEL NEGOCIO'}</p><h3>{name|| (business?'Cliente':'Negocio')}</h3></div>{order.total!==null&&<div className="zipco-late-price"><strong>${order.total.toLocaleString('es-CL')}</strong><small>SOLICITADO</small></div>}</header>
     {business?<div className="zipco-late-clock-panel"><span className="zipco-late-clock"><LateClock/></span><div className="zipco-late-info"><p className="zipco-late-delay" aria-label={delay.text}>{delay.parts.map((x,i)=><span key={i} aria-hidden="true"><b>{x.v}</b>{x.u&&<em>{x.u}</em>}</span>)}{delay.tail&&<em className="zipco-late-tail" aria-hidden="true">{delay.tail}</em>}</p><strong className="zipco-late-badge">FUERA DE HORA</strong><p className="zipco-late-time">{requestedFor(late.scheduledFor,late.serverNow)}</p></div></div>:<div className="zipco-late-customer"><Send aria-hidden="true"/><h4>{waiting?'¿Todavía necesitas este pedido?':'Avisamos al negocio'}</h4><p>{waiting?`${name||'El negocio'} pregunta si todavía necesitas este pedido.`:'Falta acordar una nueva hora. Tu respuesta no confirma disponibilidad ni reserva.'}</p></div>}
     {business&&waiting&&<p className="zipco-late-status" role="status">Consulta enviada. Esperando la respuesta del cliente.</p>}
     {business&&late.status==='STILL_NEEDED'&&<p className="zipco-late-status">El cliente aún lo necesita. Propón una nueva hora para que la revise.</p>}

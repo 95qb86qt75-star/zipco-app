@@ -1,4 +1,5 @@
 import { isRecord, parseIsoDate } from './orderValueParsers';
+import {normalizeProductPreview,previewMatchesSnapshot,type ProductPreview} from './productPreview';
 import { positiveInteger } from './requestProcess';
 import { normalizeProposalSubject } from './proposalContract';
 import { normalizeAvailability, type AvailabilityPlan } from './availabilityContract';
@@ -10,6 +11,7 @@ export type AgreementItem = {
   source?: 'CATALOG' | 'CUSTOM';
 };
 export type AgreementReadDto = {
+  productPreview?:ProductPreview;
   availability?: AvailabilityPlan;
   reservationChoice?:ReservationChoice;
   agreementPublicId: string; requestProcessId: number; acceptedProposalId: number;
@@ -57,6 +59,7 @@ export function normalizeAgreement(value: unknown): AgreementReadDto | null {
   if(choice===null||availability?.reservationOffer&&!normalizeReservationOffer(availability.reservationOffer,value.totalPriceClp as number)||
     choice&&availability&&choice.offerId!==availability.availabilityConfirmationId)return null;
   // Whitelist fields: contacts and other extra response data never enter the model.
+  const productPreview=normalizeProductPreview(value.productPreview,value.acceptedProposalId);
   return {
     agreementPublicId: value.agreementPublicId, requestProcessId: value.requestProcessId,
     acceptedProposalId: value.acceptedProposalId, subjectSchemaVersion: value.subjectSchemaVersion as 1 | 2,
@@ -67,6 +70,7 @@ export function normalizeAgreement(value: unknown): AgreementReadDto | null {
     scheduledFor: value.scheduledFor as string | null, customerAcceptedAt: value.customerAcceptedAt as string,
     businessAcceptedAt: value.businessAcceptedAt as string, confirmedAt: value.confirmedAt as string,
     createdAt: value.createdAt as string,
+    ...(s.orderType==='product'&&previewMatchesSnapshot(productPreview,items as AgreementItem[],value.totalPriceClp as number)?{productPreview}:{}),
     ...(availability ? { availability } : {}),
     ...(choice?{reservationChoice:choice}:{}),
   };

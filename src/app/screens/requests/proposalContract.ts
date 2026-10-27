@@ -1,4 +1,5 @@
 import { isRecord, parseIsoDate } from './orderValueParsers';
+import {normalizeProductPreview,previewMatchesSnapshot,type ProductPreview} from './productPreview';
 import { normalizeRequestProcess, positiveInteger, type RequestProcessSummary } from './requestProcess';
 import { normalizeAvailability,availabilityFlow, type AvailabilityPlan } from './availabilityContract';
 import {reservationFlow,normalizeReservationOffer} from './reservationContract';
@@ -46,6 +47,7 @@ export function normalizeProposalSubject(schema: unknown, value: unknown, total:
     proposalMessage: schema === 2 ? value.proposalMessage as string : '', proposalPhoto: schema === 2 ? value.proposalPhoto as string | null : null };
 }
 export type Proposal = { id: number; sequence: number; type: typeof PROPOSAL_TYPES[number]; authorActor: 'CUSTOMER' | 'BUSINESS';
+  productPreview?:ProductPreview;
   availability?: AvailabilityPlan;
   createdAt: string; subjectSchemaVersion: 1 | 2; subjectSnapshot: ProposalSubject; totalPriceClp: number; scheduledFor: string | null };
 export type ProposalRead = { process: RequestProcessSummary; proposals: Proposal[] };
@@ -67,10 +69,12 @@ export function normalizeProposals(value: unknown, processId: number): ProposalR
       availability?.reservationOffer&&!normalizeReservationOffer(availability.reservationOffer,p.totalPriceClp as number)) return null;
     if (!subject || (i > 0 && (subject.orderType !== proposals[0].subjectSnapshot.orderType || subject.items.length !== proposals[0].subjectSnapshot.items.length))) return null;
     ids.add(p.id);
+    const preview=normalizeProductPreview(p.productPreview,p.id);
     proposals.push({ id: p.id, sequence: i, type: PROPOSAL_TYPES[i], authorActor: p.authorActor as Proposal['authorActor'],
       createdAt: p.createdAt as string, subjectSchemaVersion: p.subjectSchemaVersion as 1 | 2, subjectSnapshot: subject,
       totalPriceClp: p.totalPriceClp as number, scheduledFor: p.scheduledFor as string | null,
       ...(availability ? { availability } : {}) });
+    if(subject.orderType==='product'&&previewMatchesSnapshot(preview,subject.items,p.totalPriceClp as number))proposals.at(-1)!.productPreview=preview;
   }
   const latest = proposals[proposals.length - 1];
   if (process.currentProposalId !== latest.id ||

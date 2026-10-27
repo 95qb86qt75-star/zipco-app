@@ -29,9 +29,10 @@ import AvailabilityFlowCard from './AvailabilityFlowCard';
 import { availabilityFlow } from './availabilityContract';
 import LateInitialCard from './LateInitialCard';
 import ProposalWaitingCard from './ProposalWaitingCard';
+import {ProductPreviewScope} from './ProductPreviewControl';
 import useLateInitialDeadline from './useLateInitialDeadline';
 
-export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
+export function ProcessOrderCardContent({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
   order: BusinessRequest | MyOrder; business?: boolean; isUpdating: boolean;
   onAccept?: () => void; onRetry: () => void; onOpen?: () => void;
@@ -228,4 +229,11 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     {(!process || (!awaiting && !coordination && !negotiating) || (coordination && !process.agreementPublicId)) && <button type="button"
       onClick={(event) => { event.stopPropagation(); onRetry(); }} className="mt-3 min-h-11 rounded-xl border px-3 py-2">Actualizar pedido</button>}
   </article>;
+}
+
+export default function ProcessOrderCard(props:Parameters<typeof ProcessOrderCardContent>[0]){
+  const process=props.order.requestProcess;
+  if(!process)return <ProcessOrderCardContent {...props}/>;
+  const preview=props.order.orderType==='service'?undefined:process.productPreview;
+  return <ProductPreviewScope preview={preview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}><ProcessOrderCardContent {...props}/></ProductPreviewScope>;
 }

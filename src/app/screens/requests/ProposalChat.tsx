@@ -4,6 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { ArrowRight, Calendar, Check, DollarSign, FileText, Hash, Image as ImageIcon, Maximize2, Package, ShoppingBag, Sparkles, StickyNote, X } from 'lucide-react';
 import type { Proposal, ProposalRead } from './proposalContract';
 import OrderReferencePhoto from './OrderReferencePhoto';
+import ProductPreviewControl from './ProductPreviewControl';
 import AvailabilityPlanSummary from './AvailabilityPlanSummary';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
@@ -148,6 +149,7 @@ function PedidoSheet({ proposal, label, at, title, pic, dismiss }: { proposal: P
             <div className="zipco-d-ped-ttl"><b>{title}</b>{sub && <span>{sub}</span>}</div>
             <b className="zipco-d-ped-price">{money(proposal.totalPriceClp)}</b>
           </div>
+           {s.orderType==='product'&&<ProductPreviewControl preview={proposal.productPreview??null} caption={proposal.sequence===0?'PRODUCTO SOLICITADO':'PRODUCTO DE ESTA PROPUESTA'}/>}
           <div className="zipco-d-ped-tiles">
             {s.items.map((item, index) => <div key={index} className="zipco-d-tile" data-original-order-line>
               <span className="zipco-d-tile-ic"><Package aria-hidden="true" /></span>
@@ -183,6 +185,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
   const at = time(proposal.createdAt);
   const who = <p className="zipco-chat-who"><span>{label}</span><time dateTime={proposal.createdAt}>{at}</time></p>;
   const pic = photo && <PhotoBox src={photo} proposal={proposal} own={own} business={business} />;
+  const product=s.orderType==='product'&&<ProductPreviewControl preview={proposal.productPreview??null} caption={proposal.sequence===0?'PRODUCTO SOLICITADO':'PRODUCTO DE ESTA PROPUESTA'}/>;
 
   if (mine) {
     const rows = detailRows(proposal, isOrder ? 'Tu nota' : 'Tu mensaje');
@@ -190,6 +193,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <div className="zipco-chat-mine">
           {who}
+          {product}
           <div className="zipco-chat-headrow">
             <b className="zipco-chat-title">{title}</b><b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>
             {photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}
@@ -200,6 +204,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
           ? <PedidoSheet proposal={proposal} label={label} at={at} title={title} pic={pic} dismiss={() => setOpen(false)} />
           : <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
           <div className="zipco-sheet-head"><b>{title}</b><b className="money">{money(proposal.totalPriceClp)}</b></div>
+          {product}
           <div className="zipco-sheet-rows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>
           {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
           <CloseButton kind={kind} />
@@ -214,6 +219,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <div className="zipco-chat-theirs">
         {who}
+        {product}
         {message && <p className="zipco-chat-quote">“{message}”</p>}
         <div className="zipco-chat-offer">
           <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
@@ -225,6 +231,7 @@ function Bubble({ proposal, previous, business }: { proposal: Proposal; previous
         <DetailButton kind={kind} label={btnLabel} />
       </div>
       <Sheet tone="theirs" label={label} time={at} dismiss={() => setOpen(false)}>
+        {product}
         {message && <p className="zipco-chat-quote big">“{message}”</p>}
         <div className="zipco-chat-offer big">
           <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
