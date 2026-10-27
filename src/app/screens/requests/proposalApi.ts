@@ -14,7 +14,7 @@ export class ProposalError extends RequestProcessError {
 }
 export async function readProposals(processId: number, token: string, signal?: AbortSignal) {
   const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/proposals${AVAILABILITY_QUERY}`, {
-    headers: { Authorization: `Bearer ${token}` }, signal, cache: 'no-store',
+    headers: { Authorization: `Bearer ${token}`, ...processContractHeaders({flowContract:'AVAILABILITY_V3'}) }, signal, cache: 'no-store',
   });
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) throw processApiError(response.status, body);

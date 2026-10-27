@@ -11,8 +11,10 @@ export function statusViewFor(
   status: string,
   requestProcess?: RequestProcessSummary | null,
   requestProcessInvalid = false,
+  business = false,
 ): StatusView | null {
   if (kind === "orders") {
+    if(requestProcess?.state==='AWAITING_BUSINESS_RESPONSE'&&requestProcess.lateInitialResponse?.status==='AWAITING_CUSTOMER')return business?'pending':'waiting';
     if (['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_BUSINESS_COUNTER_RESPONSE', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
     if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && (isPendingRequestCancelled(requestProcess) || isAvailabilityClosed(requestProcess))) ||
       (status === 'rejected' && (isPendingRequestRejected(requestProcess) || isProposalRejected(requestProcess))) ? 'history' : null;
@@ -44,10 +46,10 @@ export function statusViewFor(
   return null;
 }
 
-export function countStatusViews(records: StatusRecord[], kind: RequestKind) {
+export function countStatusViews(records: StatusRecord[], kind: RequestKind, business=false) {
   return records.reduce(
     (counts, record) => {
-      const view = statusViewFor(kind, record.status, record.requestProcess, record.requestProcessInvalid);
+      const view = statusViewFor(kind, record.status, record.requestProcess, record.requestProcessInvalid,business);
       if (view) counts[view] += 1;
       return counts;
     },
@@ -61,9 +63,10 @@ export function filterByStatusView<T extends StatusRecord>(
   view: StatusView,
   historyFilter: HistoryFilter = "all",
   isArchived: (record: T) => boolean = (record) => Boolean(record.archivedAt),
+  business=false,
 ) {
   return records.filter((record) => {
-    if (statusViewFor(kind, record.status, record.requestProcess, record.requestProcessInvalid) !== view) return false;
+    if (statusViewFor(kind, record.status, record.requestProcess, record.requestProcessInvalid,business) !== view) return false;
     if (view !== "history") return true;
     const archived = isArchived(record);
     if (historyFilter === "deleted") return archived;

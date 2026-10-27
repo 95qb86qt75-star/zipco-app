@@ -96,7 +96,7 @@ export default function RequestsScreen({
   useEffect(()=>{
     const navigate=(event:Event)=>{
       const detail=(event as CustomEvent).detail;
-      if(!detail||typeof detail.business!=='boolean'||!['waiting','active','coordination','history'].includes(detail.view)||
+      if(!detail||typeof detail.business!=='boolean'||!['pending','waiting','active','coordination','history'].includes(detail.view)||
         (detail.business?'my-business':'my-orders')!==subTab)return;
       setStatusViews(current=>({...current,[`${subTab}-orders`]:detail.view}));
     };
@@ -172,12 +172,14 @@ export default function RequestsScreen({
   const statusCounts = countStatusViews(
     requestType === "orders" ? orderRecords : quoteRecords,
     requestType,
+    subTab==='my-business',
   );
   const statusCountState = (requestType === 'orders' ? isLoading : quotes.loading)
     ? 'loading' : (requestType === 'orders' ? loadError : quotes.error) ? 'unavailable' : undefined;
   const businessOrderStatusCounts = countStatusViews(
     requests.filter((record) => record.recordState === "available"),
     "orders",
+    true,
   );
   const businessQuoteStatusCounts = countStatusViews(
     quotes.businessQuotes,
@@ -278,7 +280,7 @@ export default function RequestsScreen({
     filterByStatusView(myOrders, "orders", statusView, historyFilter),
   );
   const filteredBusinessOrders = sortRecords(
-    filterByStatusView(requests, "orders", statusView, historyFilter),
+    filterByStatusView(requests, "orders", statusView, historyFilter,undefined,true),
   );
   let filteredQuotes = sortRecords(
     filterByStatusView(
@@ -614,7 +616,7 @@ export default function RequestsScreen({
     if (!target) return;
     const targetKind =
       Number.isInteger(quoteId) && quoteId > 0 ? "quotes" : "orders";
-    const targetView = statusViewFor(targetKind, target.status, 'requestProcess' in target ? target.requestProcess : undefined, 'requestProcessInvalid' in target ? target.requestProcessInvalid : false);
+    const targetView = statusViewFor(targetKind, target.status, 'requestProcess' in target ? target.requestProcess : undefined, 'requestProcessInvalid' in target ? target.requestProcessInvalid : false,subTab==='my-business');
     if (!targetView) return;
     setRequestType(targetKind);
     if (targetView === 'coordination') setAttentionFilter('browse');

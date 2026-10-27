@@ -93,7 +93,7 @@ describe('corrupt acceptance record recovery', () => {
     const accept = createFixedOrderAcceptance(uuid, storage, 'test');
     await expect(accept.accept(20, pendingProcess, 'session', refresh)).resolves.toEqual(result);
     expect(fetch).toHaveBeenCalledOnce();
-    expect(fetch.mock.calls[0][0]).toMatch(/\/orders\/business\/50\?processContract=availability-v3$/);
+    expect(fetch.mock.calls[0][0]).toMatch(/\/orders\/business\/50\?processContract=availability-v3&initialResponseContract=late-initial-v1$/);
     expect(fetch.mock.calls[0][1].method).toBeUndefined();
     expect(uuid).not.toHaveBeenCalled(); expect(storage.getItem(storageKey)).toBeNull();
   });

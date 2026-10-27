@@ -30,12 +30,12 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
       if(!latest?.requestProcess||latest.id!==identity.id||latest.requestProcess.id!==identity.process||latest.requestProcess.version<(visible.current.requestProcess?.version??0))throw Error();
       await availabilityIntents().reconcile(operationScope(session!,business),latest.requestProcess.id,latest.requestProcess.version);
       if(!active())return;
-      if(business&&latest.status==='pending'&&latest.requestProcess.state==='AWAITING_BUSINESS_RESPONSE'){
+      if(business&&latest.status==='pending'&&latest.requestProcess.state==='AWAITING_BUSINESS_RESPONSE'&&!latest.requestProcess.lateInitialResponse){
         await availabilityIntents().recoverConfirmation(operationScope(session!,true),latest.requestProcess.id,latest.requestProcess);
         if(availabilityIntents().hasPending(operationScope(session!,true),latest.requestProcess.id))throw Error('The current read cannot settle the recorded response');
       }
       if(!active())return;
-      const text=business&&latest.requestProcess.state==='AWAITING_BUSINESS_RESPONSE'?'El pedido sigue esperando tu respuesta. Revisa los datos y pulsa «Confirmar disponibilidad» cuando quieras enviarlos.':business&&latest.requestProcess.availability?'Tu respuesta ya está registrada. Comprobamos el estado del pedido sin reenviarla.':'Comprobamos el estado actual del pedido. No reenviamos ninguna respuesta.';
+      const text=latest.requestProcess.lateInitialResponse?'La hora solicitada ya pasó. Revisa la tarjeta Fuera de hora para continuar.':business&&latest.requestProcess.state==='AWAITING_BUSINESS_RESPONSE'?'El pedido sigue esperando tu respuesta. Revisa los datos y pulsa «Confirmar disponibilidad» cuando quieras enviarlos.':business&&latest.requestProcess.availability?'Tu respuesta ya está registrada. Comprobamos el estado del pedido sin reenviarla.':'Comprobamos el estado actual del pedido. No reenviamos ninguna respuesta.';
       setMessage(text);showAppToast(text,'info');
       publish({orderId:latest.id!,orderStatus:latest.status,requestProcess:latest.requestProcess});
     }catch{if(active())setError('No pudimos comprobar el pedido. Conservamos lo que escribiste y no reenviamos tu respuesta. Intenta «Comprobar pedido» nuevamente.');}

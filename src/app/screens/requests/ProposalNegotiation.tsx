@@ -83,7 +83,7 @@ export function ProposalComparison({ read }: { read: ProposalRead }) {
   </div>;
 }
 
-export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default' }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora' }) {
+export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa' }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<ProposalRead | null>(null);
   const [busy, setBusy] = useState(false);
@@ -221,7 +221,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   };
   return <div className="mt-3" onClick={event => event.stopPropagation()}>
     {(() => {
-      const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? 'Proponer alternativa' : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder';
+      const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? initialLabel : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder';
       const openProposals = async () => { await load(initial); };
       return variant === 'aurora'
         ? <ProposalDraftButton label={label} busy={busy} onClick={openProposals} />
@@ -314,6 +314,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       sourceOverride={proposalDraftSource(read)} title={draftAction==='COUNTER_PROPOSAL'?'Contraponer · 1 vez':titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
       close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => {
+        if(read.process.lateInitialResponse?.requiresNewSchedule&&draftAction==='PROPOSE_ALTERNATIVE'&&review.schedule?.mode!=='SCHEDULED')return Promise.reject(new ProposalError('Propón una nueva fecha y hora programadas. La hora original ya pasó; el cliente debe aceptar la nueva.',0));
         if(availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_ALTERNATIVE'&&!chosenFulfillment.current)return new Promise<boolean>((resolve,reject)=>{
           pendingFulfillment.current={send:()=>execute(draftAction,review,file),total:review.totalPriceClp,resolve,reject};setFulfillmentOpen(true);
         });

@@ -2,9 +2,9 @@ import {isRecord,parseIsoDate} from './orderValueParsers';
 import {simplifiedReservationFlow,normalizeSimpleOffer,normalizeReservationTiming,type SimpleReservationOffer,type SimpleReservationInput,type ReservationTiming} from './simplifiedReservationContract';
 
 export const RESERVATION_FLOW='AVAILABILITY_V2' as const;
-export const RESERVATION_QUERY='?processContract=availability-v3';
+export const RESERVATION_QUERY='?processContract=availability-v3&initialResponseContract=late-initial-v1';
 export const reservationFlow=(p:{flowContract?:unknown}|null|undefined)=>p?.flowContract===RESERVATION_FLOW||simplifiedReservationFlow(p);
-export const processContractHeaders=(p:{flowContract?:unknown}|null|undefined):Record<string,string>=>simplifiedReservationFlow(p)?{'X-Process-Contract':'availability-v3'}:reservationFlow(p)?{'X-Process-Contract':'availability-v2'}:{};
+export const processContractHeaders=(p:{flowContract?:unknown}|null|undefined):Record<string,string>=>simplifiedReservationFlow(p)?{'X-Process-Contract':'availability-v3','X-Late-Initial-Contract':'late-initial-v1'}:reservationFlow(p)?{'X-Process-Contract':'availability-v2'}:{};
 export const RESERVATION_PATHS={CONFIRM_PICKUP_RESERVATION:'confirm-pickup-reservation',DECLINE_PICKUP_RESERVATION:'decline-pickup-reservation',
   CONTINUE_WITHOUT_RESERVATION:'continue-without-reservation',REPORT_RESERVATION_ISSUE:'report-reservation-issue',
   FINISH_OWN_RESERVATION_FOLLOW_UP:'finish-own-reservation-follow-up',OPEN_RESERVATION_WHATSAPP:'open-reservation-whatsapp',

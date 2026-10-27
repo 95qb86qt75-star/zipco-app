@@ -27,6 +27,8 @@ import { contactAuthorized } from './coordinationApi';
 import CustomerPendingCard from './CustomerPendingCard';
 import AvailabilityFlowCard from './AvailabilityFlowCard';
 import { availabilityFlow } from './availabilityContract';
+import LateInitialCard from './LateInitialCard';
+import useLateInitialDeadline from './useLateInitialDeadline';
 
 export default function ProcessOrderCard({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
   isUnread = false, expanded, onToggle }: {
@@ -46,6 +48,7 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
     return () => window.removeEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
   }, [order.id, onToggle]);
   const process = order.requestProcess;
+  useLateInitialDeadline(order,onRetry);
   const awaiting = process?.state === 'AWAITING_BUSINESS_RESPONSE';
   const negotiating = NEGOTIATION_STATES.includes(process?.state ?? '');
   const coordination = process && ['COORDINATION_PENDING', 'COORDINATING', 'IN_PROGRESS', 'READY'].includes(process.state);
@@ -107,6 +110,9 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
       <AcceptedConditionsPanel state={agreement.state} retry={agreement.retry} business={business} embedded
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
+
+  if(awaiting&&process?.lateInitialResponse&&(business||['AWAITING_CUSTOMER','STILL_NEEDED'].includes(process.lateInitialResponse.status)))
+    return <LateInitialCard key={`${business}:${process.id}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread}/>;
 
   if (availabilityFlow(process) && (business && awaiting || process?.state === 'AWAITING_CUSTOMER_CONTINUATION'))
     return <AvailabilityFlowCard key={`${business}:${process?.id}:${process?.state}`} order={order} business={business}

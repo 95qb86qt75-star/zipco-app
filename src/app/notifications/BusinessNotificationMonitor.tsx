@@ -3,6 +3,7 @@ import { traceNotificationClick } from './notificationClickTrace';
 import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
 import { createCustomerOrderNotices } from './orderNotice';
 import { proposalNotice } from './proposalNotice';
+import {lateInitialNotice} from './lateInitialNotice';
 import { createNotificationRefreshQueue } from './notificationRefreshQueue';
 import { presentationKey, readSystemPresentations, rememberOpenedPresentation } from './notificationDelivery';
 import { API_BASE_URL } from "../api/apiConfig";
@@ -192,12 +193,12 @@ export default function BusinessNotificationMonitor({
         ] = await Promise.all([
           businessId
             ? loadJson(
-                `/orders/business/${businessId}?processContract=availability-v3`,
+                `/orders/business/${businessId}?processContract=availability-v3&initialResponseContract=late-initial-v1`,
                 token,
                 onSessionExpired,
               )
             : Promise.resolve([]),
-          loadJson("/orders/my-orders?processContract=availability-v3", token, onSessionExpired),
+          loadJson("/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1", token, onSessionExpired),
           businessId
             ? loadJson(
                 `/quotes/business/${businessId}`,
@@ -263,6 +264,11 @@ export default function BusinessNotificationMonitor({
             );
         if (hasBusinessBaseline.current) {
           orders.forEach((order) => {
+            if(order.requestProcess?.lateInitialResponse){
+              const event=lateInitialNotice(order,true);
+              if(event&&orderStatuses.current.get(order.id)!==orderNotificationState(order))announce(event.key,event.notice[0],event.notice[1],{kind:'order',id:order.id},`/?open=requests-business&orderId=${order.id}`);
+              return;
+            }
             if (order.requestProcess?.proposalSummary) {
               const event = proposalNotice(order, true);
               if (event && orderStatuses.current.get(order.id) !== orderNotificationState(order))

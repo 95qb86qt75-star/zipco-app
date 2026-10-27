@@ -20,7 +20,7 @@ it('preserves manual V2 reservations and rejects mixed contracts',()=>{
   expect(normalizeRequestProcess(paidRequested)).toEqual(paidRequested);
   expect(normalizeRequestProcess({...simpleWaiting,flowContract:'AVAILABILITY_V2'})).toBeNull();
   expect(normalizeRequestProcess({...reservationRequested,flowContract:'AVAILABILITY_V3'})).toBeNull();
-  expect(processContractHeaders(simpleInitial)).toEqual({'X-Process-Contract':'availability-v3'});
+  expect(processContractHeaders(simpleInitial)).toEqual({'X-Process-Contract':'availability-v3','X-Late-Initial-Contract':'late-initial-v1'});
 });
 it('does not accept invented dates, old absolute deadlines, duration chips or wrong totals',()=>{
   expect(normalizeReservationOffer({...simpleFree,pickupBy:'2099-10-25T15:00:00Z'})).toBeNull();

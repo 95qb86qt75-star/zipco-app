@@ -62,6 +62,20 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it.each(['ASK_LATE_REQUEST_NEED','CONFIRM_LATE_REQUEST_NEED','DECLINE_LATE_REQUEST_NEED','CLOSE_LATE_REQUEST_UNAVAILABLE'])('opens and deduplicates late initial event %s using actual outbox tags', async eventType => {
+    const business=eventType==='CONFIRM_LATE_REQUEST_NEED'||eventType==='DECLINE_LATE_REQUEST_NEED';
+    const view=business?'requests-business':'requests-customer',url='/?open='+view+'&orderId=91';
+    const sw=worker('iPhone');
+    await sw.fire('push',{data:{json:()=>({type:'order-late-initial-event',eventType,orderId:91,tag:'reservation-event-42-user-1',url})}});
+    const options=sw.registration.showNotification.mock.calls[0][1];
+    const key='order-91-late-'+eventType.toLowerCase().replaceAll('_','-');
+    expect(options.data.eventKey).toBe(view+':'+key);
+    vi.stubGlobal('window',{location:{origin,search:''}});vi.stubGlobal('caches',sw.cache);
+    const deliver=vi.fn();await deliverUnpresentedNotice({dedupeKey:key,actionUrl:url},deliver);expect(deliver).not.toHaveBeenCalled();
+    await sw.fire('notificationclick',{notification:{tag:options.tag,data:options.data,close(){}}});
+    const target=parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0],origin)!;
+    expect(target.eventKey).toBe(view+':'+key);expect(target.url).toContain('orderId=91');
+  });
   it('requests expansion only for the card explicitly focused by notification navigation',()=>{
     const dom=domHarness(),dispatchEvent=vi.fn();Object.assign(dom.element,{dispatchEvent});
     const complete=vi.fn();const stop=waitForNotificationCard('order-20',complete,dom.environment);
@@ -93,7 +107,7 @@ describe('system presentation and explicit notification navigation', () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'alternatives-v1-click-v6', build: null, traceEnabled: false });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'late-initial-v1-click-v7', build: null, traceEnabled: false });
   });
 
   it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {

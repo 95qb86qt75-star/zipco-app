@@ -28,6 +28,7 @@ export default function ProcessHistoryCard({ order }: { order: MyOrder | Busines
   const label = pendingRejected ? 'Rechazada' : pendingCancelled ? 'Anulada por el cliente' : order.requestProcess?.state === 'COORDINATION_CANCELLED' ? 'Anulada' : order.requestProcess?.state === 'COMPLETED' || order.status === 'completed' ? 'Completado'
     : order.status === 'cancelled' ? 'Cancelado' : order.status === 'rejected' ? 'Rechazado' : 'Estado no disponible';
   return <article id={`order-${order.id}`} data-aurora-state={order.requestProcess?.state ?? 'history'} className="zipco-aurora-card scroll-mb-36 rounded-[24px] p-4">
+    {order.requestProcess?.lateInitialResponse&&<p className="mb-3 text-sm font-bold">{order.requestProcess.lateInitialResponse.status==='NO_LONGER_NEEDED'?'El cliente indicó que ya no necesita este pedido.':'El negocio avisó que no podrá atender esta solicitud.'}</p>}
     <AuroraProposalHeader name={'businessName' in order ? order.businessName : order.customerName}
       image={'businessImage' in order ? order.businessImage : order.customerImage} price={price} statusLabel={label}
       priceLabel={originalRequest ? 'Solicitado' : proposalRejected ? 'Última propuesta' : 'Acordado'}

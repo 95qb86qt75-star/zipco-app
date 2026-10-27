@@ -38,6 +38,15 @@ export function processApiError(status: number, body: unknown, agreement = false
   if (status === 404) return new RequestProcessError(agreement ? 'El acuerdo ya no está disponible. Actualiza el pedido.' : 'El pedido ya no está disponible. Actualiza la pantalla.', status, !agreement);
   if (status === 409) {
     const code = isRecord(body) && typeof body.code === 'string' ? body.code : '';
+    const lateMessages:Record<string,string>={
+      LATE_INITIAL_CONTRACT_REQUIRED:'Actualiza ZIPCO para responder solicitudes fuera de hora.',
+      LATE_INITIAL_DISABLED:'La consulta de solicitudes fuera de hora aún no está habilitada.',
+      LATE_INITIAL_NOT_APPLICABLE:'Esta solicitud cambió o ya no espera su primera respuesta. Comprueba el pedido.',
+      LATE_INITIAL_QUERY_ALREADY_SENT:'La consulta ya fue enviada. Comprueba el pedido para ver la respuesta del cliente.',
+      LATE_INITIAL_QUERY_MISMATCH:'Esta consulta ya no espera esa respuesta. Comprueba el pedido.',
+      LATE_INITIAL_RESPONSE_REQUIRED:'La hora solicitada ya pasó. Comprueba el pedido para consultar si el cliente aún lo necesita y acordar una nueva hora.',
+    };
+    if(Object.hasOwn(lateMessages,code))return new RequestProcessError(lateMessages[code],status,true);
     if (code === 'FLOW_CONTRACT_REQUIRED') return new RequestProcessError(FLOW_UPDATE_MESSAGE,status);
     if(code==='RESERVATION_CREATION_DISABLED')return new RequestProcessError('Las nuevas reservas todavía no están habilitadas. Conserva los datos y vuelve a intentarlo cuando se active QA.',status);
     if(code==='OFFER_EXPIRED')return new RequestProcessError('El plazo de la oferta de reserva venció. Actualiza sus condiciones; también puedes elegir ir sin reserva.',status,true);

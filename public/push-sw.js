@@ -1,5 +1,5 @@
-// Click revision: alternatives-v1-click-v6. Navigation behavior from direct-v3 retained.
-const notificationWorkerRevision = 'alternatives-v1-click-v6';
+// Click revision: late-initial-v1-click-v7. Navigation behavior from direct-v3 retained.
+const notificationWorkerRevision = 'late-initial-v1-click-v7';
 const traceClick = (stage, flags) => {
   try { void self.zipcoQaClickTrace?.record(stage, flags); } catch { /* QA only, best effort. */ }
 };
@@ -14,7 +14,9 @@ const systemEventKey = (data) => {
     const view = url.searchParams.get('open');
     const fallbackKey = data.type === 'order-contact-authorized' && /^[1-9]\d*$/.test(String(data.orderId || ''))
       ? `order-${data.orderId}-contact-authorized` : '';
-    const key = String(data.tag || fallbackKey).replace('-coordination-ready', '-ready')
+    const lateKey=data.type==='order-late-initial-event'&&/^[1-9]\d*$/.test(String(data.orderId||''))&&['ASK_LATE_REQUEST_NEED','CONFIRM_LATE_REQUEST_NEED','DECLINE_LATE_REQUEST_NEED','CLOSE_LATE_REQUEST_UNAVAILABLE'].includes(data.eventType)
+      ?`order-${data.orderId}-late-${data.eventType.toLowerCase().replaceAll('_','-')}`:'';
+    const key = String(lateKey || data.tag || fallbackKey).replace('-coordination-ready', '-ready')
       .replace('-coordination-contact-authorized', '-contact-authorized')
       .replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
     if (url.origin !== self.location.origin || !/^requests-(customer|business)(-quotes)?$/.test(view || '') ||
@@ -61,7 +63,8 @@ self.addEventListener("push", (event) => {
       orderId: data.orderId,
       quoteId: data.quoteId,
       eventKey: systemEventKey(data),
-      type: data.type === 'order-contact-authorized' ? data.type : undefined,
+      type: ['order-contact-authorized','order-late-initial-event'].includes(data.type) ? data.type : undefined,
+      eventType: data.type==='order-late-initial-event'?data.eventType:undefined,
     },
   };
   event.waitUntil(
