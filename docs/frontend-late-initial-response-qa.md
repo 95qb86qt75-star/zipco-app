@@ -39,9 +39,9 @@ Conexiones: `requestProcess.ts`, `reservationContract.ts`, `proposalApi.ts`, `re
 - Build QA/PWA aprobado; permanece el aviso conocido de bundle mayor de 500 kB. Este repositorio no tiene comando independiente de TypeScript/lint; no se presentan como ejecutados.
 - Railway QA: raíz HTTP 200 y capacidades HTTP 401 sin sesión, consultas solo de lectura. No acreditan el flag privado ni un recorrido autenticado real nuevo.
 
-## Publicación y activación pendientes
+## Publicación y activación pendiente
 
-Publicar exclusivamente `qa` por GitHub → Vercel y comprobar READY y alias habitual. No usar despliegue CLI ni cambiar identidad Git.
+Código publicado: `e77e0cea0f0b8f2b7584b4fd5203d66246634621`, rama `qa`, push mediante la integración GitHub → Vercel. Vercel confirmó READY para `dpl_7NLXdVFR6jsRQJAU5dNwsNcrgpG4` y el alias `https://zipco-app-git-qa-zipco-s-projects.vercel.app`. Identidad Git anterior conservada, sin configuración global ni reescritura. El cierre documental posterior conserva el mismo código funcional.
 
 No se activa `LATE_INITIAL_RESPONSE_ENABLED`; no se cambia Railway ni se presupone el valor privado actual. Con creación apagada y sin consulta previa se mantiene la tarjeta actual; las consultas ya registradas siguen siendo respondibles según el servidor.
 
