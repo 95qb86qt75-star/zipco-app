@@ -13,7 +13,9 @@ vi.mock('react', async (original) => ({ ...await original<typeof import('react')
 }));
 vi.mock('motion/react', async (original) => ({ ...await original<typeof import('motion/react')>(), useReducedMotion: () => false }));
 vi.mock('./requests/useRequests', () => ({ default: () => ({ myOrders: hooks.orders, requests: hooks.businessOrders, hasBusiness: hooks.hasBusiness,
-  isLoading: hooks.loading, loadError: hooks.error, updatingOrderIds: new Set(), loadOrders: hooks.load, performAction: hooks.action }) }));
+  readStatus: { customer: { loaded: !hooks.loading && !hooks.error, loading: hooks.loading, error: hooks.error },
+    business: { loaded: !hooks.loading && !hooks.error, loading: hooks.loading, error: hooks.error } },
+  updatingOrderIds: new Set(), loadOrders: hooks.load, performAction: hooks.action }) }));
 vi.mock('./quotes/useQuotes', () => ({ default: () => ({ myQuotes: [], businessQuotes: [], isLoading: false,
   loadError: '', updatingIds: new Set(), load: hooks.load }) }));
 vi.mock('../notifications/unreadInteractions', () => ({ useUnreadInteractions: () => ({ unread: hooks.unread }),

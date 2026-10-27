@@ -8,7 +8,8 @@ import { coordinationProcess, rawOrder } from './requestProcessFixtures';
 const state = vi.hoisted(() => ({ requests: [] as unknown[] }));
 vi.mock('./useRequests', () => ({ default: () => ({
   requests: state.requests, myOrders: state.requests, hasBusiness: true,
-  isLoading: false, loadError: '', updatingOrderIds: new Set(), loadOrders: vi.fn(),
+  readStatus: { customer: { loaded: true, loading: false, error: '' }, business: { loaded: true, loading: false, error: '' } },
+  updatingOrderIds: new Set(), loadOrders: vi.fn(),
   performAction: vi.fn(), proposeAlternative: vi.fn(), setArchived: vi.fn(), deletePermanently: vi.fn(),
 }) }));
 vi.mock('../quotes/useQuotes', () => ({ default: () => ({

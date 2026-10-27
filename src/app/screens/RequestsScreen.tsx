@@ -128,8 +128,7 @@ export default function RequestsScreen({
   const { unread } = useUnreadInteractions();
   const {
     hasBusiness,
-    isLoading,
-    loadError,
+    readStatus,
     myOrders,
     requests,
     updatingOrderIds,
@@ -139,6 +138,10 @@ export default function RequestsScreen({
     setArchived: setOrderArchived,
     deletePermanently: deleteOrderPermanently,
   } = useRequests(onSessionExpired);
+  const selectedRead = subTab === 'my-orders' ? readStatus.customer : readStatus.business;
+  const isLoading = selectedRead.loading && !selectedRead.loaded;
+  const loadError = selectedRead.loaded ? '' : selectedRead.error;
+  const refreshError = selectedRead.loaded ? selectedRead.error : '';
   const quotes = useQuotes(onSessionExpired);
   const viewKey = `${subTab}-${requestType}`;
   const statusView = statusViews[viewKey] ?? "pending";
@@ -1311,6 +1314,15 @@ export default function RequestsScreen({
               emptyText={emptyCopy.description}
             />
           )}
+        {requestType === 'orders' && refreshError && (
+          <div role="status" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p>No pudimos actualizar. Mostramos la última información disponible.</p>
+            <button type="button" disabled={selectedRead.loading} onClick={() => void loadOrders(true)}
+              className="mt-2 inline-flex items-center gap-2 font-bold disabled:opacity-50">
+              <RefreshCw className="h-4 w-4" /> {selectedRead.loading ? 'Actualizando…' : 'Intentar nuevamente'}
+            </button>
+          </div>
+        )}
         {requestType === "orders" && !suppressAttentionResults && (
           <>
             {isLoading && (

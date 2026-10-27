@@ -140,8 +140,8 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
     render();const effect=hooks.effects.find(effect=>effect.toString().includes('visibilitychange'))!;
     const cleanup=effect() as ()=>void;
     doc.dispatchEvent(new Event('visibilitychange'));page.dispatchEvent(new Event('pageshow'));
-    await vi.advanceTimersByTimeAsync(150);expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(fetcher.mock.calls.every(([url,init])=>url.endsWith('/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1')&&init?.signal&&!init?.method)).toBe(true);
+    await vi.advanceTimersByTimeAsync(150);expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls.every(([url,init])=>url.includes('/orders/')&&init?.signal&&!init?.method)).toBe(true);
     cleanup();vi.useRealTimers();
   });
   it('retains confirmed rejection and original data in both lists after failed and stale reads', async () => {
@@ -200,7 +200,7 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
     expect(render().myOrders[0].requestProcess?.readyNoticeAcknowledged).toBe(true);
     deliver('COMPLETED', 4, 'completed', true);
     deliver('READY', 3, 'ready', true);
-    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(4));
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(8));
     fetcher.mockImplementation(() => Promise.resolve(reply([input]))); await render().loadOrders(true);
     for (const list of [render().requests, render().myOrders]) {
       expect(list[0]).toMatchObject({ status: 'completed', requestProcess: { state: 'COMPLETED', version: 4,
@@ -230,7 +230,7 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
       expect(list[0]).toMatchObject({ status: 'ready', requestProcess: { state: 'READY', version: 8, agreementPublicId: coordinationProcess.agreementPublicId } });
     }
     deliver('IN_PROGRESS', 7, 'accepted');
-    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(4));
     // A late list read from before MARK_READY also cannot undo its confirmed receipt.
     fetcher.mockImplementation(() => Promise.resolve(reply([input])));
     await render().loadOrders(true);
@@ -240,7 +240,7 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
   it.each(['customer', 'business', 'businessName'] as const)('identifies the failing %s GET without any POST', async (operation) => {
     vi.stubEnv('QA_LOAD_DIAGNOSTICS', true);
     vi.stubEnv('QA_LOAD_DIAGNOSTICS_VERSION', 'local-test');
-    const fetcher = vi.fn(async (url: string) => {
+    const fetcher = vi.fn(async (url: string, _init?: RequestInit) => {
       if ((operation === 'customer' && url.endsWith('/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1')) ||
         (operation === 'business' && url.endsWith('/orders/business/1?processContract=availability-v3&initialResponseContract=late-initial-v1')) ||
         (operation === 'businessName' && url.includes('/businesses/'))) return new Response('{}', { status: 500 });
@@ -251,9 +251,11 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
     expect(result).toBe(operation === 'businessName');
     await vi.waitFor(() => expect(diagnosticSnapshot()).toHaveLength(1));
     expect(diagnosticSnapshot()[0]).toMatchObject({ operation: `loadOrders.${operation}`, httpStatus: 500 });
-    expect(fetcher.mock.calls.map(([url]) => new URL(url).pathname + new URL(url).search)).toEqual(operation === 'customer'
-      ? ['/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1'] : operation === 'business'
-        ? ['/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1', '/orders/business/1?processContract=availability-v3&initialResponseContract=late-initial-v1'] : ['/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1', '/businesses/9', '/orders/business/1?processContract=availability-v3&initialResponseContract=late-initial-v1']);
+    expect(fetcher.mock.calls.map(([url]) => new URL(url).pathname + new URL(url).search)).toEqual([
+      '/orders/my-orders?processContract=availability-v3&initialResponseContract=late-initial-v1',
+      '/orders/business/1?processContract=availability-v3&initialResponseContract=late-initial-v1',
+      ...(operation === 'businessName' ? ['/businesses/9'] : []),
+    ]);
   });
   it('does not collect failures when disabled', async () => {
     // Custom Vite env stubs stringify booleans; an empty value represents the
@@ -262,7 +264,90 @@ describe('loadOrders temporary diagnostics preserve the existing reads', () => {
     const fetcher = vi.fn().mockResolvedValue(new Response('{}', { status: 500 }));
     vi.stubGlobal('fetch', fetcher);
     expect(await render().loadOrders(true)).toBe(false);
-    expect(fetcher).toHaveBeenCalledOnce(); expect(diagnosticSnapshot()).toEqual([]);
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(diagnosticSnapshot()).toEqual([]);
+  });
+});
+
+describe('independent refresh snapshots', () => {
+  it.each(['customer', 'business'] as const)('retains %s cards and counts while the other side updates, then recovers', async role => {
+    let failure = false;
+    let recovered = false;
+    const fetcher = vi.fn(async (url: string, _init?: RequestInit) => {
+      const side = url.includes('/my-orders') ? 'customer' : 'business';
+      if (failure && side === role) throw new TypeError('synthetic network failure');
+      return reply([{ ...rawOrder, id: recovered ? 33 : failure ? 22 : 20, businessName: 'Business' }]);
+    });
+    vi.stubGlobal('fetch', fetcher);
+    expect(await render().loadOrders()).toBe(true);
+    failure = true;
+    const refreshing = render().loadOrders(false, 'refresh-event');
+    expect(render().readStatus[role]).toMatchObject({ loaded: true, loading: true });
+    expect(await refreshing).toBe(false);
+    const current = render();
+    const retained = role === 'customer' ? current.myOrders : current.requests;
+    const updated = role === 'customer' ? current.requests : current.myOrders;
+    expect(retained.map(o => o.id)).toEqual([20]);
+    expect(updated.map(o => o.id)).toEqual([22]);
+    expect(countStatusViews(retained, 'orders').pending).toBe(1);
+    expect(current.readStatus[role]).toMatchObject({ loaded: true, loading: false });
+    expect(current.readStatus[role].error).not.toBe('');
+    expect(hooks.toast).not.toHaveBeenCalled();
+    failure = false; recovered = true;
+    expect(await render().loadOrders(true)).toBe(true);
+    expect(render().readStatus[role].error).toBe('');
+    expect(render().myOrders[0].id).toBe(33);
+    expect(render().requests[0].id).toBe(33);
+    expect(fetcher.mock.calls.every(([, init]) => !init?.method)).toBe(true);
+  });
+  it('keeps a successfully loaded empty list distinct from a failed initial load', async () => {
+    let fail = false;
+    vi.stubGlobal('fetch', vi.fn(async () => { if (fail) throw new TypeError('synthetic'); return reply([]); }));
+    await render().loadOrders(); fail = true; await render().loadOrders(true);
+    expect(render().readStatus.customer.loaded).toBe(true);
+    expect(render().readStatus.business.loaded).toBe(true);
+    expect(render().myOrders).toEqual([]); expect(hooks.toast).not.toHaveBeenCalled();
+  });
+  it('does not repeat first-load error toasts on each background refresh', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('synthetic'); }));
+    await render().loadOrders(false, 'initial');
+    expect(hooks.toast).toHaveBeenCalledTimes(1);
+    await render().loadOrders(true, 'refresh-event');
+    await render().loadOrders(true, 'resume');
+    expect(hooks.toast).toHaveBeenCalledTimes(1);
+    expect(render().readStatus.customer).toMatchObject({ loaded: false, loading: false });
+    expect(render().readStatus.customer.error).not.toBe('');
+  });
+  it('accepts a fresh empty response instead of retaining removed cards', async () => {
+    let empty = false;
+    vi.stubGlobal('fetch', vi.fn(async () => reply(empty ? [] : [{ ...rawOrder, businessName: 'Business' }])));
+    await render().loadOrders(); empty = true; await render().loadOrders(true);
+    expect(render().requests).toEqual([]); expect(render().myOrders).toEqual([]);
+    expect(render().readStatus.business).toEqual({ loaded: true, loading: false, error: '' });
+  });
+  it('updates business even before an unresolved customer request finishes', async () => {
+    let finish!: (response: Response) => void;
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.includes('/my-orders')
+      ? new Promise<Response>(resolve => { finish = resolve; }) : reply([{ ...rawOrder, businessName: 'Business' }])));
+    const reading = render().loadOrders();
+    await vi.waitFor(() => expect(render().readStatus.business.loaded).toBe(true));
+    expect(render().requests).toHaveLength(1); expect(render().readStatus.customer.loaded).toBe(false);
+    finish(reply([])); expect(await reading).toBe(true);
+  });
+  it.each(['logout', 'session', 'business', '401', '403'] as const)('clears inaccessible snapshots on %s', async mode => {
+    const storage = new Map([['zipco-token', 'before'], ['zipco-business-id', '1']]);
+    vi.stubGlobal('localStorage', { getItem: (key: string) => storage.get(key) ?? null });
+    let failure = false;
+    vi.stubGlobal('fetch', vi.fn(async () => failure
+      ? mode === '401' || mode === '403' ? new Response(null, { status: Number(mode) }) : Promise.reject(new TypeError('synthetic'))
+      : reply([{ ...rawOrder, businessName: 'Business' }])));
+    await render().loadOrders(); failure = true;
+    if (mode === 'logout') storage.delete('zipco-token');
+    if (mode === 'session') storage.set('zipco-token', 'after');
+    if (mode === 'business') storage.set('zipco-business-id', '2');
+    await render().loadOrders(true);
+    expect(render().requests).toEqual([]); expect(render().myOrders).toEqual([]);
+    expect(render().readStatus.customer.loaded).toBe(false);
+    expect(render().readStatus.business.loaded).toBe(false);
   });
 });
 

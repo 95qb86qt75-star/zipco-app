@@ -57,6 +57,23 @@ export default function useRequests(onSessionExpired: () => void) {
   const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [readStatus, setReadStatus] = useState({
+    customer: { loaded: false, loading: true, error: '' },
+    business: { loaded: false, loading: true, error: '' },
+  });
+  const readStatusRef = useRef(readStatus);
+  const sessionRef = useRef<string | null>(localStorage.getItem('zipco-token')
+    ? JSON.stringify([localStorage.getItem('zipco-token'), localStorage.getItem('zipco-business-id')]) : null);
+  const updateRead = (role: 'customer' | 'business', patch: Partial<typeof readStatus.customer>) => {
+    const next = { ...readStatusRef.current, [role]: { ...readStatusRef.current[role], ...patch } };
+    readStatusRef.current = next;
+    setReadStatus(next);
+    setLoadError(next.customer.error || next.business.error);
+  };
+  const clearSnapshots = () => {
+    setMyOrders([]); setRequests([]); businessNameCache.current.clear();
+    for (const role of ['customer', 'business'] as const) updateRead(role, { loaded: false, loading: false, error: '' });
+  };
   const [updatingOrderIds, setUpdatingOrderIds] = useState<Set<number>>(
     () => new Set(),
   );
@@ -69,7 +86,10 @@ export default function useRequests(onSessionExpired: () => void) {
   const cancelLoad = useCallback((reason: LoadCancellation) => {
     const flight = loader.current.flight;
     if (flight) { flight.cancelReason = reason; loader.current.flight = null; flight.controller.abort(); }
-    if (loader.current.mounted) setIsLoading(false);
+    if (loader.current.mounted) {
+      setIsLoading(false);
+      for (const role of ['customer', 'business'] as const) updateRead(role, { loading: false });
+    }
   }, []);
   const hasBusiness =
     typeof window !== "undefined" &&
@@ -92,7 +112,14 @@ export default function useRequests(onSessionExpired: () => void) {
       const token = localStorage.getItem("zipco-token");
       const businessId = localStorage.getItem("zipco-business-id");
       if (!loader.current.mounted) return false;
+      const sessionKey = token ? JSON.stringify([token, businessId]) : null;
+      if (sessionRef.current !== sessionKey) {
+        cancelLoad('superseded');
+        clearSnapshots();
+        sessionRef.current = sessionKey;
+      }
       if (!token) {
+        clearSnapshots();
         cancelLoad('superseded');
         setIsLoading(false);
         return false;
@@ -108,47 +135,89 @@ export default function useRequests(onSessionExpired: () => void) {
       const active = () => loader.current.mounted && loader.current.flight === flight && !controller.signal.aborted &&
         localStorage.getItem('zipco-token') === token && localStorage.getItem('zipco-business-id') === businessId;
       if (!silent) setIsLoading(true);
+      updateRead('customer', { loading: true });
+      updateRead('business', { loading: !!businessId });
       const execute = async () => {
+        let expired = false;
+        let notified = false;
+        const readRole = async (role: 'customer' | 'business', read: () => Promise<boolean>) => {
+          try { return await read(); }
+          catch (error) {
+            // Only current, same-session failures belong to this screen.
+            if (!active()) return false;
+            if (error instanceof OrdersApiError && error.status === 401) {
+              expired = true;
+              clearSnapshots();
+              cancelLoad('superseded');
+              showAppToast('Tu sesión venció. Ingresa nuevamente por SMS.', 'error');
+              onSessionExpired();
+              return false;
+            }
+            const flowUpdate = error instanceof RequestProcessError && error.message === FLOW_UPDATE_MESSAGE;
+            const forbidden = error instanceof OrdersApiError && error.status === 403;
+            const hadSnapshot = readStatusRef.current[role].loaded;
+            const previousError = readStatusRef.current[role].error;
+            if (flowUpdate || forbidden) {
+              if (role === 'customer') setMyOrders([]); else setRequests([]);
+            }
+            updateRead(role, {
+              loading: false, loaded: hadSnapshot && !flowUpdate && !forbidden,
+              error: flowUpdate ? FLOW_UPDATE_MESSAGE : forbidden ? 'No tienes permiso para consultar estos pedidos.' :
+                'No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.',
+            });
+            // Background refresh failures remain visible inline; avoid a toast on every poll.
+            if (!hadSnapshot && !notified && (!previousError || trigger === 'manual')) {
+              notified = true;
+              showAppToast(flowUpdate ? FLOW_UPDATE_MESSAGE : forbidden ? 'No tienes permiso para consultar estos pedidos.' :
+                'No se pudieron cargar los pedidos. Intenta nuevamente.', 'error');
+            }
+            return false;
+          }
+        };
         try {
-          const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders${AVAILABILITY_QUERY}`, {
-            headers: { Authorization: `Bearer ${token}` }, signal:controller.signal,
-          }), async (myResponse) => {
-            if (myResponse.status === 409) throw processApiError(409,await myResponse.json().catch(()=>null));
-            if (!myResponse.ok)
-              throw new OrdersApiError(
-                "No se pudieron cargar tus pedidos.",
-                myResponse.status,
-              );
-            return myResponse.json();
-          }, flight.context);
-          if (!active()) return false;
-          const normalized = normalizeMyOrdersPayload(myPayload);
-          const customerOrders = await Promise.all(
-              normalized.map(async (order) => {
-                if (order.businessName)
+          const customerRead = readRole('customer', async () => {
+            const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders${AVAILABILITY_QUERY}`, {
+              headers: { Authorization: `Bearer ${token}` }, signal:controller.signal,
+            }), async (myResponse) => {
+              if (myResponse.status === 409) throw processApiError(409,await myResponse.json().catch(()=>null));
+              if (!myResponse.ok)
+                throw new OrdersApiError(
+                  "No se pudieron cargar tus pedidos.",
+                  myResponse.status,
+                );
+              return myResponse.json();
+            }, flight.context);
+            if (!active()) return false;
+            const normalized = normalizeMyOrdersPayload(myPayload);
+            const customerOrders = await Promise.all(
+                normalized.map(async (order) => {
+                  if (order.businessName)
+                    return {
+                      ...order,
+                      businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
+                    };
+                  const resolvedName =
+                    order.businessId === null
+                      ? ""
+                      : await getBusinessName(order.businessId, flight.context);
                   return {
                     ...order,
+                    businessName:
+                      resolvedName ||
+                      (order.businessId === null
+                        ? "Negocio no disponible"
+                        : `Negocio #${order.businessId}`),
                     businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
                   };
-                const resolvedName =
-                  order.businessId === null
-                    ? ""
-                    : await getBusinessName(order.businessId, flight.context);
-                return {
-                  ...order,
-                  businessName:
-                    resolvedName ||
-                    (order.businessId === null
-                      ? "Negocio no disponible"
-                      : `Negocio #${order.businessId}`),
-                  businessImage: order.businessImage || FALLBACK_BUSINESS_IMAGE,
-                };
-              }),
-            );
-          if (!active()) return false;
-          setMyOrders((current) => mergeProcessOrderUpdates(customerOrders, current));
+                }),
+              );
+            if (!active()) return false;
+            setMyOrders((current) => mergeProcessOrderUpdates(customerOrders, current));
 
-          if (businessId) {
+            updateRead('customer', { loaded: true, loading: false, error: '' });
+            return true;
+          });
+          const businessRead = businessId ? readRole('business', async () => {
             const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
               `${API_BASE_URL}/orders/business/${businessId}${AVAILABILITY_QUERY}`,
               {
@@ -166,30 +235,12 @@ export default function useRequests(onSessionExpired: () => void) {
             }, flight.context);
             if (!active()) return false;
             setRequests((current) => mergeProcessOrderUpdates(normalizeBusinessOrdersPayload(businessPayload), current));
-          } else {
-            setRequests([]);
-          }
-          setLoadError('');
-          return true;
-        } catch (error) {
-          // Suppress only a controlled cancellation or an obsolete/session-bound
-          // result. An unexpected AbortError/TypeError from a current read is real.
-          if (!active()) return false;
-          if (error instanceof OrdersApiError && error.status === 401) {
-            showAppToast(
-              "Tu sesión venció. Ingresa nuevamente por SMS.",
-              "error",
-            );
-            onSessionExpired();
-          } else {
-            setLoadError(error instanceof RequestProcessError && error.message === FLOW_UPDATE_MESSAGE ? FLOW_UPDATE_MESSAGE :
-              "No se pudieron cargar los pedidos. Revisa tu conexión e intenta nuevamente.");
-            showAppToast(
-              error instanceof RequestProcessError && error.message === FLOW_UPDATE_MESSAGE ? FLOW_UPDATE_MESSAGE : "No se pudieron cargar los pedidos. Intenta nuevamente.",
-              "error",
-            );
-          }
-          return false;
+            updateRead('business', { loaded: true, loading: false, error: '' });
+            return true;
+          }) : Promise.resolve(true);
+          if (!businessId && active()) { setRequests([]); updateRead('business', { loaded: true, loading: false, error: '' }); }
+          const results = await Promise.all([customerRead, businessRead]);
+          return !expired && active() && results.every(Boolean);
         } finally {
           if (loader.current.flight === flight) {
             loader.current.flight = null;
@@ -210,7 +261,8 @@ export default function useRequests(onSessionExpired: () => void) {
   }, [loadOrders, cancelLoad]);
 
   useEffect(() => {
-    const expire = () => onSessionExpired();
+    const expire = () => { cancelLoad('superseded'); clearSnapshots(); onSessionExpired(); };
+    const sessionChanged = () => { void loadOrders(true, 'refresh-event'); };
     let timer: ReturnType<typeof setTimeout> | undefined;
     const resume = () => {
       clearTimeout(timer);
@@ -219,11 +271,13 @@ export default function useRequests(onSessionExpired: () => void) {
     };
     const hide = () => { clearTimeout(timer); cancelLoad('pagehide'); };
     window.addEventListener('zipco-coordination-session-expired', expire);
+    window.addEventListener('zipco-session-changed', sessionChanged);
     document.addEventListener('visibilitychange', resume);
     window.addEventListener('pageshow', resume);
     window.addEventListener('pagehide', hide);
     return () => {
       window.removeEventListener('zipco-coordination-session-expired', expire);
+      window.removeEventListener('zipco-session-changed', sessionChanged);
       document.removeEventListener('visibilitychange', resume);
       window.removeEventListener('pageshow', resume);
       window.removeEventListener('pagehide', hide);
@@ -437,6 +491,7 @@ export default function useRequests(onSessionExpired: () => void) {
     hasBusiness,
     isLoading,
     loadError,
+    readStatus,
     myOrders,
     requests,
     updatingOrderIds,
