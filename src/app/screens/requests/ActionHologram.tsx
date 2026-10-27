@@ -116,7 +116,7 @@ export function ActionHologram({ kind, title, description }: { kind: ActionKind;
   const v = VARIANTS[kind];
   const style = { ['--c1' as string]: v.colors[0], ['--c2' as string]: v.colors[1], ['--c3' as string]: v.colors[2], ['--g1' as string]: v.glow[0], ['--g2' as string]: v.glow[1] };
   return createPortal(
-    <div className="zipco-ah" role="status" aria-live="polite" aria-label={title ?? v.title} style={style}>
+    <div className={`zipco-ah${kind === 'lateQuerySent' ? ' zipco-ah--late-query' : ''}`} role="status" aria-live="polite" aria-label={title ?? v.title} style={style}>
       <div className="zipco-ah-in">
         <div className="zipco-ah-st" aria-hidden="true">
           <span className="zipco-ah-rays" /><span className="zipco-ah-rg" /><span className="zipco-ah-rg b" />
