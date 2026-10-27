@@ -182,6 +182,8 @@ export default function App() {
     useState<FavoriteEntry[]>(getStoredFavorites);
   const [toast, setToast] = useState<ToastNotification | null>(null);
   const [requestsNavigationKey, setRequestsNavigationKey] = useState(0);
+  const requestsRoute = useRef(activeTab === 'requests');
+  requestsRoute.current = activeTab === 'requests';
   const notificationNavigation = useRef<ReturnType<typeof createNotificationNavigation> | null>(null);
   if (!notificationNavigation.current) {
     notificationNavigation.current = createNotificationNavigation(window.location.origin);
@@ -199,7 +201,12 @@ export default function App() {
       rememberOpenedPresentation(opened.eventKey);
       setToast((current) => noticeMatchesPresentation(current, opened.eventKey) ? null : current);
     }
-    const target = notificationNavigation.current!.receive(targetValue);
+    let target = notificationNavigation.current!.receive(targetValue);
+    // A suspended route may resume at Inicio while the same target is pending.
+    // Reapply that route without treating worker retries as another click.
+    if (!target && !requestsRoute.current && opened?.identity === notificationNavigation.current!.pending?.identity) {
+      target = notificationNavigation.current!.pending;
+    }
     if (!target) {
       if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('app-target-ignored', { hasTarget: !!notificationNavigation.current?.pending });
       const completed = notificationNavigation.current!.completedTarget(targetValue);
@@ -210,6 +217,7 @@ export default function App() {
     // Notification launches can use a dedicated pathname on iOS to force
     // WebKit to leave the suspended home route. Once React receives it, keep a
     // canonical root URL while preserving the request destination parameters.
+    requestsRoute.current = true;
     window.history.replaceState({}, "", target.url);
     setCurrentScreen("home");
     setActiveTab("requests");
@@ -427,11 +435,15 @@ export default function App() {
     };
     const handleResume = () => {
       if (document.visibilityState !== "visible") return;
+      // iOS can update the launch URL while retaining the mounted React app.
+      // Recover it on resume as well as on a cold document load.
+      if (parseNotificationTarget(window.location.href, window.location.origin)) openNotificationTarget(window.location.href);
+      else if (notificationNavigation.current?.pending && !requestsRoute.current) openNotificationTarget(notificationNavigation.current.pending.url);
 
       // On iOS the app can become visible before notificationclick finishes
       // persisting its destination. Retry briefly so a resumed PWA never loses
       // the deep link and remains on Inicio.
-      [0, 200, 700, 1_500, 3_000, 5_000, 8_000].forEach((delay) => {
+      [0, 200, 700, 1_500, 3_000, 5_000, 8_000, 12_000, 20_000, 30_000].forEach((delay) => {
         const timer = window.setTimeout(() => {
           resumeTimers.delete(timer);
           void consumeStoredNotificationTarget();
@@ -448,14 +460,16 @@ export default function App() {
     document.addEventListener("visibilitychange", handleResume);
     window.addEventListener("pageshow", handleResume);
     window.addEventListener("focus", handleResume);
+    window.addEventListener("zipco-requests-refresh", consumeStoredNotificationTarget);
     return () => {
       resumeTimers.forEach((timer) => window.clearTimeout(timer));
       resumeTimers.clear();
       document.removeEventListener("visibilitychange", handleResume);
       window.removeEventListener("pageshow", handleResume);
       window.removeEventListener("focus", handleResume);
+      window.removeEventListener("zipco-requests-refresh", consumeStoredNotificationTarget);
     };
-  }, [openNotificationTarget]);
+  }, [openNotificationTarget,isRegistrationComplete]);
 
   useEffect(() => {
     localStorage.setItem("zipco-theme", isDarkMode ? "dark" : "light");

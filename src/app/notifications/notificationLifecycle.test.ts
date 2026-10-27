@@ -107,7 +107,7 @@ describe('system presentation and explicit notification navigation', () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'late-initial-v1-click-v7', build: null, traceEnabled: false });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v8', build: null, traceEnabled: false });
   });
 
   it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {
@@ -294,11 +294,18 @@ describe('system presentation and explicit notification navigation', () => {
     expect(acknowledge).toHaveBeenCalledOnce();
     expect(navigation.receive(opened)).toBeNull();
     expect(navigation.completedTarget(opened)?.url).toBe(target.url);
-    // Another click/retry of the consumed event is acknowledged without a
-    // second mount or focus, so it cannot leave a stale target in the worker.
+    // Another physical click must reopen the destination even when its notice
+    // was presented before. Repeated delivery of that click still coalesces.
     await sw.fire('notificationclick', { notification });
-    expect(navigation.receive(opened)).toBeNull();
-    await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_NAVIGATED', url: navigation.completedTarget(opened)!.url } });
+    const reopened = navigation.receive(sw.clients.openWindow.mock.calls[1][0])!;
+    expect(reopened).not.toBeNull();expect(reopened.eventKey).toBe(target.eventKey);
+    expect(reopened.identity).not.toBe(target.identity);
+    expect(navigation.receive(reopened.url)).toBeNull();
+    // A late ACK for click one cannot consume click two from the worker cache.
+    await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_NAVIGATED', url: target.url } });
+    expect(await navigationCache.match(cachedTarget)).toBeTruthy();
+    navigation.complete(reopened.url);
+    await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_NAVIGATED', url: reopened.url } });
     expect(await navigationCache.match(cachedTarget)).toBeUndefined();
     expect(dom.element.focus).toHaveBeenCalledOnce();
     stop();

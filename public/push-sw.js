@@ -1,5 +1,5 @@
-// Click revision: late-initial-v1-click-v7. Navigation behavior from direct-v3 retained.
-const notificationWorkerRevision = 'late-initial-v1-click-v7';
+// Click revision: notification-click-attempt-v8. Navigation behavior from direct-v3 retained.
+const notificationWorkerRevision = 'notification-click-attempt-v8';
 const traceClick = (stage, flags) => {
   try { void self.zipcoQaClickTrace?.record(stage, flags); } catch { /* QA only, best effort. */ }
 };
@@ -95,6 +95,7 @@ self.addEventListener("push", (event) => {
 });
 
 let pendingNavigationTarget = null;
+let clickSequence = 0;
 let navigationWrites = Promise.resolve();
 const updateNavigation = (operation) => {
   navigationWrites = navigationWrites.catch(() => {}).then(operation);
@@ -195,6 +196,10 @@ self.addEventListener("notificationclick", (event) => {
   traceClick('click-received', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey });
   event.notification.close();
   const targetUrl = normalizeNotificationTarget(event.notification.data);
+  // One local navigation attempt per physical click, independent of notice
+  // presentation deduplication. Retried messages/cache/launch share this ID.
+  const clickId = self.crypto?.randomUUID?.() || String(Date.now()) + '-' + String(++clickSequence);
+  targetUrl.searchParams.set('notificationClick', clickId);
   // Recompute from the notification tag too: an older worker may have stored
   // the coordination-prefixed identity before this event was recognized.
   const eventKey = systemEventKey({ ...event.notification.data,

@@ -14,7 +14,7 @@ export default function QaNotificationClickTracePanel() {
   };
   return <details className="my-3 rounded border border-amber-300 p-2">
     <summary className="min-h-11 font-bold">Recorrido del clic externo QA</summary>
-    <p>Temporal: hasta 50 etapas por origen de registro durante una hora, solo en este dispositivo. Sin datos de pedidos. Los puntos 1 y 4 siguen pendientes.</p>
+    <p>Temporal: hasta 50 etapas por origen de registro durante una hora, solo en este dispositivo. Sin datos de pedidos. Comprueba las versiones del worker después de tocar la notificación.</p>
     <div className="flex flex-wrap gap-2">
       <button type="button" className="min-h-11 rounded border px-3" onClick={() => void read()}>Leer recorrido</button>
       <button type="button" className="min-h-11 rounded border px-3" onClick={() => void read(true)}>Copiar recorrido</button>

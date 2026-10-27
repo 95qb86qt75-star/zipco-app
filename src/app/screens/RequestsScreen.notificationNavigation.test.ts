@@ -46,6 +46,7 @@ import { cancelPendingOrder, cancelledPendingOrder, cancelledPendingReceipt } fr
 import { rejectPendingOrder, rejectedPendingOrder, rejectedPendingReceipt } from './requests/pendingRejectionFixtures';
 import { announceProposalSent } from './requests/proposalSentFeedback';
 import { proposalsFixture } from './requests/proposalFixtures';
+import {lateProcess} from './requests/lateInitialFixtures';
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
   return React.Children.toArray(root).flatMap((child) => React.isValidElement(child)
@@ -324,4 +325,15 @@ describe('coordination bell scroll for both roles, independent of notification n
     expect(scroller.scrollTop).toBe(498);
     expect(hooks.load).not.toHaveBeenCalled(); expect(hooks.action).not.toHaveBeenCalled();
   });
+});
+
+it('opens a late pending query in Por responder and does not suppress its card while awaiting focus',()=>{
+  window.location.search='?open=requests-customer&orderId=20&notificationClick=click-00000001';
+  hooks.loading=true;session=true;render();expect(hooks.focused).not.toHaveBeenCalled();
+  hooks.orders=normalizeMyOrdersPayload([{...rawOrder,status:'pending',requestProcess:lateProcess('AWAITING_CUSTOMER',false)}]);render();expect(hooks.focused).not.toHaveBeenCalled();
+  hooks.loading=false;const result=render();
+  expect(nodes(result).find(n=>n.type===RequestStatusTab&&n.props.selected)?.props.item.key).toBe('waiting');
+  expect(nodes(result).find(n=>n.type===MyOrdersTab)?.props.myOrders.map((o:any)=>o.id)).toEqual([20]);
+  doc.getElementById.mockReturnValue(card);mutate();expect(hooks.focused).toHaveBeenCalledExactlyOnceWith(window.location.href);
+  expect(hooks.action).not.toHaveBeenCalled();expect(hooks.load).not.toHaveBeenCalled();
 });

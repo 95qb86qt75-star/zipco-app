@@ -10,13 +10,15 @@ export function parseNotificationTarget(value: string, origin: string): Notifica
     const kind = view?.endsWith('-quotes') ? 'quoteId' : 'orderId';
     if (!/^[1-9]\d*$/.test(url.searchParams.get(kind) ?? '')) return null;
     url.searchParams.delete('notificationLaunch');
+    const clickId = url.searchParams.get('notificationClick');
+    if (clickId !== null && !/^[a-zA-Z0-9-]{8,80}$/.test(clickId)) return null;
     const rawEvent = url.searchParams.get('notificationEvent');
     const eventKey = rawEvent ? canonicalPresentationKey(rawEvent) : null;
     if (rawEvent && !eventKey) return null;
     if (eventKey) url.searchParams.set('notificationEvent', eventKey);
     if (eventKey && !eventKey.startsWith(`${view}:${kind === 'quoteId' ? 'quote' : 'order'}-${url.searchParams.get(kind)}-`)) return null;
     const target = `/${url.search}`;
-    return { url: target, identity: eventKey || target, eventKey };
+    return { url: target, identity: clickId && eventKey ? `${eventKey}:click:${clickId}` : eventKey || target, eventKey };
   } catch { return null; }
 }
 

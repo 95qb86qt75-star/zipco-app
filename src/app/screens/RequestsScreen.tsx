@@ -619,15 +619,15 @@ export default function RequestsScreen({
     const targetView = statusViewFor(targetKind, target.status, 'requestProcess' in target ? target.requestProcess : undefined, 'requestProcessInvalid' in target ? target.requestProcessInvalid : false,subTab==='my-business');
     if (!targetView) return;
     setRequestType(targetKind);
-    if (targetView === 'coordination') setAttentionFilter('browse');
-    if (
-      subTab === "my-orders" &&
-      (target.status === "quoted" || target.status === "alternative_proposed")
-    ) {
-      setAttentionFilter("responses");
-    } else if (subTab === "my-orders" && target.status === "ready") {
-      setAttentionFilter("ready");
-    }
+    if (subTab === 'my-orders') {
+      const attention = targetKind === 'orders' ? customerOrderAttention : customerQuoteAttention;
+      // A pending late query has status "pending", not alternative_proposed.
+      // Choose the visible response filter using the same read model as the
+      // category summary; otherwise its cards remain suppressed indefinitely.
+      if (targetView === 'waiting' && attention.responses.some(item => item.id === target.id)) setAttentionFilter('responses');
+      else if (targetView === 'ready') setAttentionFilter('ready');
+      else setAttentionFilter('browse');
+    } else if (targetView === 'coordination') setAttentionFilter('browse');
     setStatusViews((current) => ({
       ...current,
       [`${subTab}-${targetKind}`]: targetView,
