@@ -115,8 +115,8 @@ export default function ProcessOrderCard({ order, business = false, isUpdating, 
   if(awaiting&&process?.lateInitialResponse&&(business||['AWAITING_CUSTOMER','STILL_NEEDED'].includes(process.lateInitialResponse.status)))
     return <LateInitialCard key={`${business}:${process.id}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread}/>;
 
-  if (business && process && ['AWAITING_CUSTOMER_DECISION', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(process.state))
-    return <ProposalWaitingCard key={`${process.id}:${process.currentProposalId}`} order={order} expanded={isExpanded} onToggle={toggle} isUnread={isUnread} refresh={onRetry}/>;
+  if (process && ['AWAITING_CUSTOMER_DECISION', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(process.state))
+    return <ProposalWaitingCard key={`${business}:${process.id}:${process.currentProposalId}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} isUnread={isUnread} refresh={onRetry}/>;
 
   if (availabilityFlow(process) && (business && awaiting || process?.state === 'AWAITING_CUSTOMER_CONTINUATION'))
     return <AvailabilityFlowCard key={`${business}:${process?.id}:${process?.state}`} order={order} business={business}

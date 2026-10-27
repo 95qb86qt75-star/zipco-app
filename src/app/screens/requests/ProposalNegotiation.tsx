@@ -84,7 +84,7 @@ export function ProposalComparison({ read }: { read: ProposalRead }) {
   </div>;
 }
 
-export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string }) {
+export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel, customerEntryActions = false }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string; customerEntryActions?:boolean }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<ProposalRead | null>(null);
   const [busy, setBusy] = useState(false);
@@ -117,7 +117,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     const unsub = subscribeCoordinationSession(() => { if (!active()) { abort(); setRead(null); setOpen(false); setDraftAction(null); setAuthCard(false); setFulfillmentOpen(false);pendingFulfillment.current?.resolve(false);pendingFulfillment.current=null;authorizeChoice.current = false; } });
     return () => { mounted.current = false; unsub(); abort(); pendingFulfillment.current?.resolve(false);pendingFulfillment.current=null; };
   }, []);
-  const load = async (startDraft = false) => {
+  const load = async (startDraft = false, acceptProposal = false) => {
     if (!process || !active() || lock.current) return;
     const controller = new AbortController(); controllers.current.add(controller); lock.current = true; setBusy(true); setError('');
     try { const value = await readProposals(process.id, session!.token, controller.signal); if (active()) { setRead(value); setDecision(null); setExpired(false);
@@ -126,7 +126,16 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
           chosenFulfillment.current=null;setDraftAction('PROPOSE_ALTERNATIVE');
         }
         else { setError('El pedido cambió. Actualiza su estado antes de proponer una alternativa.'); refresh(); }
-      } else setOpen(true);
+      } else {
+        setOpen(true);
+        if (acceptProposal && !business) {
+          authorizeChoice.current = false;
+          if (proposalAllowed(value.process, false, 'ACCEPT_PROPOSAL')) {
+            if (availabilityFlow(value.process)) setDecision('ACCEPT_PROPOSAL');
+            else setAuthCard(true);
+          } else { setError('La propuesta cambió. Revisa el estado actual antes de responder.'); refresh(); }
+        }
+      }
     } }
     catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudieron cargar las propuestas.'); }
     finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
@@ -248,9 +257,13 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {(() => {
       const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? initialLabel : isProposalRejected(process) ? 'Ver propuestas e historial' : reviewLabel ?? 'Revisar propuesta y responder';
       const openProposals = async () => { await load(initial); };
-      return variant === 'aurora'
+      const reviewButton = variant === 'aurora'
         ? <ProposalDraftButton label={label} busy={busy} onClick={openProposals} />
         : <button type="button" className={`${button} w-full`} disabled={busy} aria-busy={busy} onClick={openProposals}>{label}</button>;
+      return customerEntryActions && !business ? <div className="zipco-proposal-entry-actions">
+        {proposalAllowed(process, false, 'ACCEPT_PROPOSAL') && <AcceptGlassButton size="compact" flush label="Aceptar" disabled={busy} onClick={() => void load(false, true)}/>}
+        {reviewButton}
+      </div> : reviewButton;
     })()}
     {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); } }}>

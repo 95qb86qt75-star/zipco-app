@@ -92,6 +92,18 @@ try {
  }
  await visit('');await wait('!!document.querySelector("[data-proposal-waiting]")');await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await check('getComputedStyle(document.querySelector(".zipco-wait-ring svg")).animationName==="none"','hourglass respects reduced motion');await send('Emulation.setEmulatedMedia',{features:[]});results.push('reduced-motion');
  await visit('counter=1');await wait('!!document.querySelector("[data-aurora-state]")');await check('!document.querySelector("[data-proposal-waiting]")&&document.body.textContent.includes("Revisar propuesta y responder")','business counter response keeps actionable old UI');results.push('counter-preserved');
- await visit('customer=1');await wait('!!document.querySelector("[data-aurora-state]")');await check('!document.querySelector("[data-proposal-waiting]")&&document.body.textContent.includes("Revisar propuesta y responder")','customer UI is unchanged');results.push('customer-preserved');
+ for(const width of [320,390,430])for(const kind of ['','final=1','now=1','final=1&now=1']){
+  await visit('customer=1&'+kind,width);await wait('!!document.querySelector("[data-proposal-role=customer]")');
+  await check('document.body.textContent.includes("Revisar historial y responder")&&!document.body.textContent.includes("ESPERANDO AL CLIENTE")','customer has correct perspective and history button');
+  await check('(()=>{const card=document.querySelector(".zipco-wait-card");return card.scrollWidth<=card.clientWidth+1})()','customer has no horizontal overflow');
+  await shot('customer-waiting-'+width+'-'+(kind||'scheduled').replaceAll('&','-').replaceAll('=','-'));
+  await button('Aceptar');await wait('!!document.querySelector("[data-accept-authorize]")');await check('window.calls.length===1&&window.calls.every(c=>c.method==="GET")','accept entry only reads fresh proposal and opens existing consent confirmation');
+  await click('[aria-label=Volver]');await click('[aria-label="Cerrar propuestas"]');
+  await button('Revisar historial y responder');await wait('!!document.querySelector(".zipco-chat-panel")');
+  await check('document.querySelectorAll("[data-proposal-sequence]").length==='+(kind.includes('final')?'4':'2'),'customer history preserves all turns');
+  await check('document.body.textContent.includes("Aceptar propuesta")&&document.body.textContent.includes("Rechazar")','existing response actions remain in history');
+  await check('window.calls.every(c=>c.method==="GET")','opening customer actions never sends an acceptance');
+  results.push('customer-'+width+'-'+(kind||'scheduled'));
+ }
  assert.equal(exceptions.length,0,JSON.stringify(exceptions));console.log(JSON.stringify({passed:true,results,realMutations:0,screenshots:directory}));
 }finally{socket?.close();browser.kill();await server.close();}

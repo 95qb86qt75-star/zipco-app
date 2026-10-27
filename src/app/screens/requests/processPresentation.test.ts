@@ -25,7 +25,7 @@ describe('2A presentation and legacy compatibility', () => {
     const html = business ? render(React.createElement(BusinessOrderCard, { request: normalizeBusinessOrdersPayload([raw])[0], ...callbacks }))
       : render(React.createElement(MyOrderCard, { order: normalizeMyOrdersPayload([raw])[0], ...callbacks }));
     expect(html).toContain('$3.000'); expect(html).not.toContain('$2.000');
-    expect(html).toContain(business ? 'ESPERANDO AL CLIENTE' : 'Revisar propuesta y responder');
+    expect(html).toContain(business ? 'ESPERANDO AL CLIENTE' : 'Revisar historial y responder');
     if (business) { expect(html).toContain('Ver detalle'); expect(html).not.toContain('Revisar propuesta y responder'); }
     expect(html).not.toContain('Estado del proceso no disponible');
     expect(html).not.toContain('Actualiza el pedido para consultar su estado');
