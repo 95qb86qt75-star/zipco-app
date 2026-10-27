@@ -2,6 +2,11 @@ import { expect, it, vi } from 'vitest';
 import { createClickTraceStore, sanitizeClickTrace, CLICK_TRACE_LIMIT, CLICK_TRACE_TTL } from './qaNotificationClickTraceStore.js';
 
 const build = 'a'.repeat(40), origin = 'https://zipco.test';
+it('retains only a random QA correlation UUID, not a semantic order key',()=>{
+  const base={at:Date.now(),source:'worker',stage:'system-shown',build};
+  expect(sanitizeClickTrace({...base,correlationId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'}).correlationId).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+  expect(sanitizeClickTrace({...base,correlationId:'order-91-availability-17'})).not.toHaveProperty('correlationId');
+});
 function cache() {
   const rows = new Map<string, Response>();
   return { open: async () => ({ match: async (key: string) => rows.get(key)?.clone(),

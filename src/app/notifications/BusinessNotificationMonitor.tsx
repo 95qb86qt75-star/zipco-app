@@ -168,6 +168,11 @@ export default function BusinessNotificationMonitor({
         if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: true });
         return;
       }
+      if(actionUrl&&presentedKey&&/-availability-\d+$/.test(presentedKey)){
+        const target=new URL(actionUrl,window.location.origin);
+        target.searchParams.set('notificationEvent',presentedKey);
+        actionUrl=target.pathname+target.search;
+      }
       showAppToast("", "info", {
         title,
         description,

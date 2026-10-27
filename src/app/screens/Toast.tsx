@@ -14,6 +14,7 @@ export type ToastOptions = {
 };
 
 export type ToastNotification = {
+  qaTraceId?: string;
   message: string;
   type: ToastType;
   title?: string;
@@ -30,6 +31,7 @@ export function createToastNotification(
   options: ToastOptions = {},
 ): ToastNotification {
   return {
+    ...(import.meta.env.QA_NOTIFICATION_TRACE&&options.actionUrl?{qaTraceId:crypto.randomUUID()}:{}),
     message,
     type,
     title: options.title,

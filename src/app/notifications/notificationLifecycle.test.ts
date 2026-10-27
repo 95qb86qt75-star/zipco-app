@@ -62,6 +62,31 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it.each(['customer','business'])('recognizes real availability payload and opens the exact %s destination',async view=>{
+    const url=`/?open=requests-${view}&orderId=91`,tag='order-91-availability-42',key=`requests-${view}:${tag}`;
+    const sw=worker('iPhone');
+    await sw.fire('push',{data:{json:()=>({type:'order-availability-event',orderId:91,processId:777,processVersion:42,tag,url})}});
+    const options=sw.registration.showNotification.mock.calls[0][1];
+    expect(options.data.eventKey).toBe(key);
+    vi.stubGlobal('window',{location:{origin,search:''}});vi.stubGlobal('caches',sw.cache);
+    const deliver=vi.fn();await deliverUnpresentedNotice({dedupeKey:tag,actionUrl:url},deliver);expect(deliver).not.toHaveBeenCalled();
+    await deliverUnpresentedNotice({dedupeKey:'order-91-availability-43',actionUrl:url},deliver);expect(deliver).toHaveBeenCalledOnce();
+    await sw.fire('notificationclick',{notification:{tag,data:options.data,close(){}}});
+    const target=parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0],origin)!;
+    expect(target.eventKey).toBe(key);expect(new URL(target.url,origin).searchParams.get('orderId')).toBe('91');
+    expect(new URL(target.url,origin).searchParams.get('processId')).toBeNull();
+  });
+  it('correlates one displayed availability notification with its click and navigation without recording payload',async()=>{
+    const trace={record:vi.fn(),build:'a'.repeat(40)},sw=worker('iPhone',[],memoryCaches(),trace);
+    await sw.fire('push',{data:{json:()=>({type:'order-availability-event',orderId:91,processId:777,processVersion:17,tag:'order-91-availability-17',url:'/?open=requests-customer&orderId=91'})}});
+    const options=sw.registration.showNotification.mock.calls[0][1],token=options.data.qaTraceId;
+    expect(token).toMatch(/^[a-f0-9-]{36}$/);
+    await sw.fire('notificationclick',{notification:{tag:options.tag,data:options.data,close(){}}});
+    for(const stage of ['push-received','system-shown','click-received','target-normalized','target-saved','launch-requested']){
+      expect(trace.record.mock.calls.find(([name])=>name===stage)?.[1]).toMatchObject({correlationId:token});
+    }
+    expect(JSON.stringify(trace.record.mock.calls)).not.toMatch(/orderId|processId|order-91/);
+  });
   it.each(['ASK_LATE_REQUEST_NEED','CONFIRM_LATE_REQUEST_NEED','DECLINE_LATE_REQUEST_NEED','CLOSE_LATE_REQUEST_UNAVAILABLE'])('opens and deduplicates late initial event %s using actual outbox tags', async eventType => {
     const business=eventType==='CONFIRM_LATE_REQUEST_NEED'||eventType==='DECLINE_LATE_REQUEST_NEED';
     const view=business?'requests-business':'requests-customer',url='/?open='+view+'&orderId=91';
@@ -107,7 +132,7 @@ describe('system presentation and explicit notification navigation', () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v8', build: null, traceEnabled: false });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v9', build: null, traceEnabled: false });
   });
 
   it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {

@@ -8,6 +8,7 @@ import { cancelledPendingOrder } from '../screens/requests/pendingCancellationFi
 import { proposalsFixture } from '../screens/requests/proposalFixtures';
 import { normalizeRequestProcess } from '../screens/requests/requestProcess';
 import { rememberOpenedPresentation } from './notificationDelivery';
+import {availabilityWaiting} from '../screens/requests/availabilityFixtures';
 
 const runtime = vi.hoisted(() => ({ cleanup: undefined as undefined | (() => void) }));
 // Exercise the monitor's real effect, event listeners and timers without adding a DOM dependency.
@@ -92,6 +93,19 @@ function businessServer(initial: Array<{ id: number; status: string }>) {
 }
 
 describe('monitor acceptance flow across service worker and polling', () => {
+  it('announces actual availability with versioned destination once, while status remains pending',async()=>{
+    await mount();
+    serverOrder={...pending,requestProcess:{...availabilityWaiting,version:17}};
+    push({type:'order-availability-event',orderId:20,processId:7,processVersion:17,tag:'order-20-availability-17',url:'/?open=requests-customer&orderId=20'});
+    await tick();
+    expect(showAppToast).toHaveBeenCalledOnce();
+    const options=vi.mocked(showAppToast).mock.calls[0][2]!;
+    expect(options.title).toBe('El negocio confirmó disponibilidad');
+    const target=new URL(options.actionUrl!,'https://zipco.test');
+    expect(target.searchParams.get('orderId')).toBe('20');
+    expect(target.searchParams.get('notificationEvent')).toBe('requests-customer:order-20-availability-17');
+    push({type:'order-availability-event',orderId:20});await tick();expect(showAppToast).toHaveBeenCalledOnce();
+  });
   it('suppresses an opened proposal while updating counts, then announces a distinct final proposal and READY', async () => {
     await mount({ id: 20, status: 'pending', requestProcess: pendingProcess });
     serverOrder = { id: 20, status: 'alternative_proposed', requestProcess: normalizeRequestProcess(proposalsFixture(1, false).process)! };

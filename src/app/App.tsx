@@ -565,7 +565,14 @@ export default function App() {
           key={toast.dedupeKey}
           notification={toast}
           onClose={closeToast}
-          onAction={openNotificationTarget}
+          onAction={(value)=>{
+            const target=parseNotificationTarget(value,window.location.origin);
+            if(import.meta.env.QA_NOTIFICATION_TRACE)traceNotificationClick('toast-click',{hasTarget:!!target,hasEvent:!!target?.eventKey},toast.qaTraceId);
+            if(!target)return;
+            const url=new URL(target.url,window.location.origin);
+            url.searchParams.set('notificationClick',crypto.randomUUID());
+            openNotificationTarget(url.pathname+url.search);
+          }}
         />
       )}
       {hasStoredSession() && (

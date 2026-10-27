@@ -4,7 +4,7 @@ import { parseNotificationTarget } from './notificationNavigation';
 
 const build = import.meta.env.QA_LOAD_DIAGNOSTICS_VERSION;
 const app = createClickTraceStore('app', build, window.location.origin, globalThis.caches);
-export const recordClickTrace = (stage: string, flags: Record<string, boolean> = {}) => { void app.record(stage, flags); };
+export const recordClickTrace = (stage: string, flags: Record<string, boolean> = {}, correlationId?: string) => { void app.record(stage, {...flags,...(correlationId?{correlationId}:{})}); };
 
 async function workerRequest(type: string, worker = navigator.serviceWorker?.controller): Promise<any> {
   if (!worker) return null;
@@ -21,7 +21,7 @@ export function startClickTrace() {
   const probe = () => {
     void readNotificationWorkerIdentity().then((identity) => recordClickTrace('worker-probe', {
       hasController: !!navigator.serviceWorker?.controller,
-      revisionMatches: identity.revision === 'notification-click-attempt-v8', buildMatches: identity.build === build,
+      revisionMatches: identity.revision === 'notification-click-attempt-v9', buildMatches: identity.build === build,
     }));
   };
   const flags = () => ({ hasTarget: !!parseNotificationTarget(window.location.href, window.location.origin),

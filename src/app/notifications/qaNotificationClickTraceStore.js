@@ -11,7 +11,7 @@ export const CLICK_TRACE_STAGES = new Set([
   'app-system-presented', 'app-worker-target', 'app-target-received',
   'app-target-accepted', 'app-target-ignored', 'app-target-ack',
   'app-cache-start', 'app-cache-read', 'app-cache-failed', 'screen-mounted', 'screen-target', 'card-focused',
-  'notice-suppressed', 'notice-delivered',
+  'notice-suppressed', 'notice-delivered', 'toast-click',
 ]);
 const flagKeys = ['hasTarget', 'hasEvent', 'hasSession', 'visible', 'hasClient',
   'hasCard', 'loading', 'hasError', 'hasController', 'revisionMatches', 'buildMatches', 'requestsVisible', 'sessionReady', 'currentContext'];
@@ -23,6 +23,7 @@ export function sanitizeClickTrace(row) {
       !Number.isFinite(row.at) || row.at > Date.now() || Date.now() - row.at > CLICK_TRACE_TTL) return null;
   const safe = { at: row.at, source: row.source, stage: row.stage,
     build: /^[a-f0-9]{40}(-local)?$/.test(row.build || '') ? row.build : 'unknown' };
+  if(typeof row.correlationId==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(row.correlationId))safe.correlationId=row.correlationId;
   for (const key of flagKeys) if (typeof row[key] === 'boolean') safe[key] = row[key];
   return safe;
 }

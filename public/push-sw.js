@@ -1,7 +1,7 @@
-// Click revision: notification-click-attempt-v8. Navigation behavior from direct-v3 retained.
-const notificationWorkerRevision = 'notification-click-attempt-v8';
-const traceClick = (stage, flags) => {
-  try { void self.zipcoQaClickTrace?.record(stage, flags); } catch { /* QA only, best effort. */ }
+// Click revision: notification-click-attempt-v9. Navigation behavior from direct-v3 retained.
+const notificationWorkerRevision = 'notification-click-attempt-v9';
+const traceClick = (stage, flags, correlationId) => {
+  try { void self.zipcoQaClickTrace?.record(stage, { ...flags, ...(correlationId ? { correlationId } : {}) }); } catch { /* QA only, best effort. */ }
 };
 // Same semantic-key mapping/schema as notificationDelivery.ts. Existing backend
 // tags distinguish acceptance from ready and later events on the same order.
@@ -19,11 +19,19 @@ const systemEventKey = (data) => {
     const key = String(lateKey || data.tag || fallbackKey).replace('-coordination-ready', '-ready')
       .replace('-coordination-contact-authorized', '-contact-authorized')
       .replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
+    const availability=key.match(/^order-([1-9]\d*)-availability-([1-9]\d*)$/);
+    if(availability){
+      if(url.origin!==self.location.origin||!/^requests-(customer|business)$/.test(view||'')||url.searchParams.get('orderId')!==availability[1]||![availability[1],availability[2]].every(v=>Number.isInteger(Number(v))&&Number(v)<=2147483647))return null;
+      return view+':'+key;
+    }
+    if(/^order-[1-9]\d*-availability-/.test(key))return null;
     if (url.origin !== self.location.origin || !/^requests-(customer|business)(-quotes)?$/.test(view || '') ||
         !/^(order|quote)-[1-9]\d*-(?:[a-z-]+|proposal-[1-9]\d*-(?:propose-alternative|counter-proposal|propose-final|accept-proposal|reject-proposal|accept-counter-proposal|reject-counter-proposal))$/.test(key)) return null;
     return `${view}:${key}`;
   } catch { return null; }
 };
+const qaToken = () => self.zipcoQaClickTrace ? self.crypto?.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {const n=Math.floor(Math.random()*16);return (c==='x'?n:(n&3)|8).toString(16);}) : null;
+const safeQaToken = value => typeof value==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value)?value:null;
 const rememberSystemPresentation = (key) => {
   if (!key) return Promise.resolve();
   presentationWrites = presentationWrites.catch(() => {}).then(async () => {
@@ -44,7 +52,8 @@ const rememberSystemPresentation = (key) => {
 };
 
 self.addEventListener("push", (event) => {
-  traceClick('push-received');
+  const correlationId=qaToken();
+  traceClick('push-received', {}, correlationId);
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
@@ -60,6 +69,7 @@ self.addEventListener("push", (event) => {
     renotify: false,
     data: {
       url: data.url || "/",
+      ...(correlationId?{qaTraceId:correlationId}:{}),
       orderId: data.orderId,
       quoteId: data.quoteId,
       eventKey: systemEventKey(data),
@@ -87,7 +97,7 @@ self.addEventListener("push", (event) => {
         return;
       }
       await self.registration.showNotification(title, options);
-      traceClick('system-shown', { hasEvent: !!options.data.eventKey });
+      traceClick('system-shown', { hasEvent: !!options.data.eventKey }, correlationId);
       await rememberSystemPresentation(options.data.eventKey);
       clients.forEach((client) => client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: options.data.eventKey }));
     })(),
@@ -193,7 +203,8 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("notificationclick", (event) => {
-  traceClick('click-received', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey });
+  const correlationId=self.zipcoQaClickTrace?safeQaToken(event.notification.data?.qaTraceId):null;
+  traceClick('click-received', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey }, correlationId);
   event.notification.close();
   const targetUrl = normalizeNotificationTarget(event.notification.data);
   // One local navigation attempt per physical click, independent of notice
@@ -208,7 +219,7 @@ self.addEventListener("notificationclick", (event) => {
   if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
-  traceClick('target-normalized', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey });
+  traceClick('target-normalized', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey }, correlationId);
   const isAppleMobile = /iPhone|iPad|iPod/i.test(self.navigator?.userAgent || '');
   let appleLaunchTarget = null;
   let appleLaunch = null;
@@ -219,11 +230,11 @@ self.addEventListener("notificationclick", (event) => {
     appleLaunchTarget = launchUrl.href;
     // Invoke during notificationclick itself. Cache I/O must not consume the
     // click's activation before WebKit receives the explicit launch URL.
-    traceClick('launch-requested');
+    traceClick('launch-requested', {}, correlationId);
     try { appleLaunch = Promise.resolve(self.clients.openWindow(appleLaunchTarget)).then((client) => {
-      traceClick('launch-returned', { hasClient: !!client }); return client;
-    }).catch(() => { traceClick('launch-failed'); return null; }); }
-    catch { traceClick('launch-failed'); appleLaunch = Promise.resolve(null); }
+      traceClick('launch-returned', { hasClient: !!client }, correlationId); return client;
+    }).catch(() => { traceClick('launch-failed', {}, correlationId); return null; }); }
+    catch { traceClick('launch-failed', {}, correlationId); appleLaunch = Promise.resolve(null); }
   }
   const persistTarget = updateNavigation(async () => {
     try {
@@ -234,8 +245,8 @@ self.addEventListener("notificationclick", (event) => {
           headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
         }),
       );
-      traceClick('target-saved');
-    } catch { traceClick('target-save-failed'); /* Direct launch/messages remain available without Cache API. */ }
+      traceClick('target-saved', {}, correlationId);
+    } catch { traceClick('target-save-failed', {}, correlationId); /* Direct launch/messages remain available without Cache API. */ }
   });
   event.waitUntil(Promise.all([
     rememberSystemPresentation(eventKey),
@@ -245,7 +256,7 @@ self.addEventListener("notificationclick", (event) => {
         type: "window",
         includeUncontrolled: true,
       });
-      traceClick('windows-found', { hasClient: clients.length > 0 });
+      traceClick('windows-found', { hasClient: clients.length > 0 }, correlationId);
       const navigationMessage = {
         type: "ZIPCO_NOTIFICATION_NAVIGATE",
         url: targetUrl.pathname + targetUrl.search,
@@ -257,7 +268,7 @@ self.addEventListener("notificationclick", (event) => {
         .forEach((client) => {
           if (eventKey) client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey });
           client.postMessage(navigationMessage);
-          traceClick('navigation-posted');
+          traceClick('navigation-posted', {}, correlationId);
         });
       // WebKit can report a successful navigate() while merely resuming the
       // suspended standalone window at its previous route. Asking iOS to open

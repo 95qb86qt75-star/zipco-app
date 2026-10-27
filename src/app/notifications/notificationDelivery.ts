@@ -11,6 +11,9 @@ const openedPresentations = new Map<string, number>();
 export function canonicalPresentationKey(key: string): string | null {
   const canonical = key.replace('-coordination-contact-authorized', '-contact-authorized')
     .replace('-coordination-ready', '-ready').replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
+  const availability=canonical.match(/^requests-(customer|business):order-([1-9]\d*)-availability-([1-9]\d*)$/);
+  if(availability)return [availability[2],availability[3]].every(v=>Number.isInteger(Number(v))&&Number(v)<=2147483647)?canonical:null;
+  if(/:order-[1-9]\d*-availability-/.test(canonical))return null;
   return /^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-(?:[a-z-]+|proposal-[1-9]\d*-(?:propose-alternative|counter-proposal|propose-final|accept-proposal|reject-proposal|accept-counter-proposal|reject-counter-proposal))$/.test(canonical) ? canonical : null;
 }
 export function rememberOpenedPresentation(key: string | null) {
@@ -34,11 +37,13 @@ export function presentationKey(key: string, actionUrl: string, origin = window.
     const canonical = key.replace('-process:COORDINATION_PENDING', '-accepted')
       .replace('-process:READY', '-ready').replace('-coordination-ready', '-ready')
       .replace(/-alternative_proposed$/, '-alternative');
-    return canonicalPresentationKey(`${view}:${canonical}`);
+    const result=canonicalPresentationKey(`${view}:${canonical}`);
+    if(result&&/-availability-\d+$/.test(result)&&!result.startsWith(`${view}:order-${url.searchParams.get('orderId')}-`))return null;
+    return result;
   } catch { return null; }
 }
 
-type PresentationNotice = { dedupeKey: string; actionUrl?: string };
+type PresentationNotice = { dedupeKey: string; actionUrl?: string; qaTraceId?: string };
 export function noticePresentationKey(notice: PresentationNotice): string | null {
   return notice.actionUrl ? presentationKey(notice.dedupeKey, notice.actionUrl) : null;
 }
@@ -59,12 +64,12 @@ export async function deliverUnpresentedNotice<T extends PresentationNotice>(
   if (key) {
     const presented = await readSystemPresentations();
     if (presented.has(key) || noticeWasPresented(notice)) {
-      if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: !!key });
+      if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: !!key }, notice.qaTraceId);
       return;
     }
   }
   if (isActive()) {
-    if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-delivered', { hasEvent: !!key });
+    if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-delivered', { hasEvent: !!key }, notice.qaTraceId);
     deliver(notice);
   }
 }

@@ -1,12 +1,28 @@
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import Toast, {
   createToastNotification,
   mergeToastNotification,
 } from "./Toast";
 
 describe("Toast", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("correlates each actionable QA notice without using its order identity", () => {
+    vi.stubEnv('QA_NOTIFICATION_TRACE', true);
+    const options = { actionUrl: '/?open=requests-customer&orderId=42' };
+    const first = createToastNotification('', 'info', options);
+    const second = createToastNotification('', 'info', options);
+    expect(first.qaTraceId).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+    expect(second.qaTraceId).not.toBe(first.qaTraceId);
+    expect(createToastNotification('Guardado')).not.toHaveProperty('qaTraceId');
+  });
+
+  it("does not create correlation metadata outside QA tracing", () => {
+    vi.stubEnv('QA_NOTIFICATION_TRACE', undefined);
+    expect(createToastNotification('', 'info', { actionUrl: '/?open=requests-customer&orderId=42' })).not.toHaveProperty('qaTraceId');
+  });
   it("keeps legacy message notifications compatible", () => {
     const notification = createToastNotification("Cambios guardados");
     const markup = renderToStaticMarkup(
