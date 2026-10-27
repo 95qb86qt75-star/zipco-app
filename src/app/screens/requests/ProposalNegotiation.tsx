@@ -29,6 +29,7 @@ import {readReservationOptions} from './reservationOptions';
 import {startReservationPayment} from './startReservationPayment';
 import ReservationChoiceFields from './ReservationChoiceFields';
 import ReservationOfferFields from './ReservationOfferFields';
+import {RequestProcessError} from './requestProcessErrors';
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const titles: Record<ProposalAction, string> = { PROPOSE_ALTERNATIVE: 'Proponer alternativa', COUNTER_PROPOSAL: 'Hacer mi única contrapropuesta',
@@ -129,6 +130,30 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     } }
     catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudieron cargar las propuestas.'); }
     finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
+  };
+  const checkLateAlternative = async () => {
+    if (!process || !read || !active() || lock.current) throw new ProposalError('Espera a que termine la comprobación del pedido.', 0);
+    const captured = read;
+    const controller = new AbortController(); controllers.current.add(controller); lock.current = true; setBusy(true);
+    try {
+      const latest = await readProposals(process.id, session!.token, controller.signal);
+      if (!active()) throw new ProposalError('La sesión cambió. Vuelve a abrir el pedido.', 0);
+      if (latest.process.version < captured.process.version) throw new ProposalError('No pudimos comprobar el estado actual. Conservamos tu propuesta; vuelve a comprobar el pedido.', 0);
+      if (latest.process.version !== captured.process.version || latest.process.currentProposalId !== captured.process.currentProposalId || !proposalAllowed(latest.process, business, 'PROPOSE_ALTERNATIVE')) {
+        setRead(latest); setDraftAction(null); setOpen(true); setError('El pedido cambió. Revisa las propuestas actuales; no enviamos otra propuesta.'); refresh();
+        return 'El pedido cambió. Revisa las propuestas actuales; no enviamos otra propuesta.';
+      }
+      if (latest.proposals.length !== 1 || latest.proposals[0].sequence !== 0 || latest.process.lateInitialResponse?.status !== 'STILL_NEEDED')
+        throw new ProposalError('El pedido necesita una revisión antes de continuar. Conservamos tu propuesta y no la enviamos.', 0);
+      const recovered = proposalIntents().recoverLateAlternative(operationScope(session!, business), process.id, latest.process);
+      setError('');
+      return recovered
+        ? 'El pedido aún espera tu nueva propuesta. Conservamos lo que escribiste. Revisa los datos y pulsa «Confirmar y enviar» cuando quieras enviarla.'
+        : 'Pedido comprobado. Conservamos lo que escribiste; no enviamos ninguna propuesta.';
+    } catch (e) {
+      if (e instanceof RequestProcessError && e.status === 401) window.dispatchEvent(new Event('zipco-coordination-session-expired'));
+      throw e instanceof RequestProcessError ? e : new ProposalError('No pudimos comprobar el pedido. Conservamos lo que escribiste y no enviamos ninguna propuesta. Vuelve a comprobarlo.', 0);
+    } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
   useEffect(() => { if (open || draftAction) void load(); }, [process?.version]);
   useEffect(() => {
@@ -313,6 +338,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
       sourceOverride={proposalDraftSource(read)} title={draftAction==='COUNTER_PROPOSAL'?'Contraponer · 1 vez':titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
+      onCheck={business && draftAction === 'PROPOSE_ALTERNATIVE' && read.process.lateInitialResponse?.status === 'STILL_NEEDED' ? checkLateAlternative : undefined}
       close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => {
         if(read.process.lateInitialResponse?.requiresNewSchedule&&draftAction==='PROPOSE_ALTERNATIVE'&&review.schedule?.mode!=='SCHEDULED')return Promise.reject(new ProposalError('Propón una nueva fecha y hora programadas. La hora original ya pasó; el cliente debe aceptar la nueva.',0));
         if(availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_ALTERNATIVE'&&!chosenFulfillment.current)return new Promise<boolean>((resolve,reject)=>{

@@ -41,8 +41,9 @@ export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: F
   </div>;
 }
 
-export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields }: {
+export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, onCheck, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
+  onCheck?: () => Promise<string>;
   onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void | boolean>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode; reviewFields?: import('react').ReactNode|((review:AlternativeReview)=>import('react').ReactNode);
 }) {
   const [source] = useState(() => sourceOverride ?? alternativeSource(order));
@@ -58,6 +59,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const [preview, setPreview] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
+  const [checkMessage, setCheckMessage] = useState('');
   const sendLock = useRef(false);
   const current = sourceOverride ? order.requestProcess?.id === source.processId && order.requestProcess.version <= source.expectedVersion
     : alternativeSourceCurrent(source, order, true);
@@ -155,13 +157,21 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
           {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}
           {showErrors && validation.error && <p role="alert" className="mb-2 text-sm text-red-700">{validation.error}</p>}
           {sendError && <p role="alert" className="mb-2 text-sm text-red-700">{sendError}</p>}
+          {checkMessage && <p role="status" className="mb-2 text-sm text-slate-700 dark:text-slate-200">{checkMessage}</p>}
+          {sendError && onCheck && <button type="button" disabled={sending} className="mb-2 min-h-12 w-full rounded-xl border border-violet-300 px-3 font-bold text-violet-800 dark:text-violet-200" onClick={async () => {
+            if (sendLock.current) return;
+            sendLock.current = true; setSending(true); setCheckMessage('');
+            try { const message = await onCheck(); setSendError(''); setCheckMessage(message); }
+            catch (error) { setSendError(error instanceof Error ? error.message : 'No pudimos comprobar el pedido. Conservamos lo que escribiste; vuelve a intentarlo.'); }
+            finally { sendLock.current = false; setSending(false); }
+          }}>Comprobar pedido</button>}
           <div className={reviewing ? 'grid grid-cols-2 gap-2' : 'flex gap-2.5'}>
             {reviewing ? <button type="button" disabled={sending} onClick={() => setReviewing(false)} className="min-h-12 rounded-xl border py-3 font-bold">Volver al formulario</button>
               : <Dialog.Close asChild><button type="button" className="zipco-alt-back">Volver</button></Dialog.Close>}
             {reviewing ? <button type="button" disabled={sending || !current || !validation.review || !canSubmitAlternative(Boolean(sourceOverride && onConfirm))}
               onClick={onConfirm ? async () => {
                 if (sendLock.current || !current || !validation.review) return;
-                sendLock.current = true; setSending(true); setSendError('');
+                sendLock.current = true; setSending(true); setSendError(''); setCheckMessage('');
                 try { if(await onConfirm(validation.review, file)!==false)close(); }
                 catch (error) { setSendError(error instanceof Error ? error.message : 'No se pudo confirmar el envío. Reintenta la misma operación.'); }
                 finally { sendLock.current = false; setSending(false); }
