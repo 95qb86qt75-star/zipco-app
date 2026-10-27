@@ -84,7 +84,7 @@ export function ProposalComparison({ read }: { read: ProposalRead }) {
   </div>;
 }
 
-export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa' }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string }) {
+export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<ProposalRead | null>(null);
   const [busy, setBusy] = useState(false);
@@ -246,7 +246,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   };
   return <div className="mt-3" onClick={event => event.stopPropagation()}>
     {(() => {
-      const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? initialLabel : isProposalRejected(process) ? 'Ver propuestas e historial' : 'Revisar propuesta y responder';
+      const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? initialLabel : isProposalRejected(process) ? 'Ver propuestas e historial' : reviewLabel ?? 'Revisar propuesta y responder';
       const openProposals = async () => { await load(initial); };
       return variant === 'aurora'
         ? <ProposalDraftButton label={label} busy={busy} onClick={openProposals} />
@@ -261,7 +261,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             <Dialog.Close asChild><button type="button" disabled={busy} aria-label="Cerrar propuestas" className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><X className="h-[17px] w-[17px]" /></button></Dialog.Close>
           </div>
           <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
-            <Dialog.Title className="text-[22px] font-extrabold leading-tight">{initial ? 'Proponer alternativa' : 'Revisar propuesta'}</Dialog.Title>
+            <Dialog.Title className="text-[22px] font-extrabold leading-tight">{initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
             <Dialog.Description className="mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300">Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
           </div>
           <div className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
