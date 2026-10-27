@@ -1,3 +1,4 @@
+import BusinessResponseHoursNotice from '../BusinessResponseHoursNotice';
 import { useId, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
@@ -149,10 +150,10 @@ export function ConsultationDesignSheet({ open, onOpenChange, data, contact, onC
   </>;
 }
 
-export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability',reservationContract=false,reservationTotal=0,simplified=false,recovery,checking=false }: {
+export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initialStep = 'choice', busy = false, error, purpose = 'availability',reservationContract=false,reservationTotal=0,simplified=false,recovery,checking=false,responseSchedule }: {
   open: boolean; onOpenChange: (open: boolean) => void; onChoose: (choice: AvailabilityDesignChoice) => void;
   initialStep?: 'choice' | 'pickup'; busy?: boolean; error?: string; purpose?: 'availability' | 'proposal';
-  reservationContract?:boolean;reservationTotal?:number;simplified?:boolean;recovery?:ReactNode;checking?:boolean;
+  reservationContract?:boolean;reservationTotal?:number;simplified?:boolean;recovery?:ReactNode;checking?:boolean;responseSchedule?:{businessId?:number|null;date?:string|null;time?:string|null};
 }) {
   const [step, setStep] = useState(initialStep);
   const [message, setMessage] = useState('');
@@ -165,6 +166,7 @@ export function ConfirmAvailabilityDesign({ open, onOpenChange, onChoose, initia
     beforeIcon={step === 'pickup' && <button type="button" className="zipco-av-change" disabled={busy} onClick={() => setStep('choice')}><ArrowLeft />Cambiar opción</button>}
     title={step === 'choice' ? purpose === 'proposal' ? '¿Cómo seguirá esta propuesta?' : '¿Cómo seguirá este pedido?' : 'Retiro en el local'}
     description={step === 'choice' ? purpose === 'proposal' ? 'Elige el camino que acompañará las condiciones de tu propuesta.' : 'Elige cómo continuar. La disponibilidad se confirma al guardar.' : 'El cliente se acerca al local y paga allí. No hace falta coordinar.'}>
+    {responseSchedule&&<BusinessResponseHoursNotice {...responseSchedule} active={open}/>}
     <fieldset className="zipco-av-fieldset" disabled={busy}>
     {step === 'choice' ? <>
       <p className="zipco-av-dialog-hint">{BUSINESS_CONTACT_COPY}</p>

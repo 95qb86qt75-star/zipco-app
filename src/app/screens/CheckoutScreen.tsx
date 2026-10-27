@@ -1,3 +1,4 @@
+import useSubmissionHoursAdvisory,{hoursDraftKey,readHoursDraft,saveHoursDraft,clearHoursDraft} from './requests/useSubmissionHoursAdvisory';
 import { type ChangeEvent, useEffect,useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -37,6 +38,7 @@ export default function CheckoutScreen({
   selectedProducts,
   products,
   onBack,
+  onFindAlternative,
   onOrderComplete,
   onCatalogConflict,
   onSessionExpired,
@@ -46,24 +48,27 @@ export default function CheckoutScreen({
   selectedProducts: number[];
   products: CatalogItem[];
   onBack: () => void;
+  onFindAlternative?: () => void;
   onOrderComplete: () => void;
   onCatalogConflict: () => void;
   onSessionExpired: () => void;
 }) {
+  const draftKey=hoursDraftKey('order',business.id);
+  const savedDraft=readHoursDraft<{quantities:Record<number,number>;note:string;date:string;time:string;moment:OrderMoment;photo:string|null;contact:boolean}>(draftKey);
   const [quantities, setQuantities] = useState<Record<number, number>>(
-    selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {}),
+    savedDraft?.quantities??selectedProducts.reduce((acc, id) => ({ ...acc, [id]: 1 }), {}),
   );
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(savedDraft?.note??"");
   const [consultationOpen, setConsultationOpen] = useState(false);
-  const [contactAllowed, setContactAllowed] = useState(true);
+  const [contactAllowed, setContactAllowed] = useState(savedDraft?.contact??true);
   const [submissionError, setSubmissionError] = useState<string | undefined>();
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [selectedHour, setSelectedHour] = useState("");
-  const [selectedMinute, setSelectedMinute] = useState("");
-  const [orderMoment, setOrderMoment] = useState<OrderMoment>('schedule');
+  const [selectedDate, setSelectedDate] = useState(savedDraft?.date??"");
+  const [selectedTime, setSelectedTime] = useState(savedDraft?.time??"");
+  const [selectedHour, setSelectedHour] = useState(savedDraft?.time?.slice(0,2)??"");
+  const [selectedMinute, setSelectedMinute] = useState(savedDraft?.time?.slice(3,5)??"");
+  const [orderMoment, setOrderMoment] = useState<OrderMoment>(savedDraft?.moment??'schedule');
   const needNow = orderMoment === 'now';
-  const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
+  const [referencePhoto, setReferencePhoto] = useState<string | null>(savedDraft?.photo??null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNoteOpen, setIsNoteOpen] = useState(false);
@@ -76,6 +81,10 @@ export default function CheckoutScreen({
   useEffect(()=>{checkoutAlive.current=true;return()=>{checkoutAlive.current=false;};},[]);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
 
+  const submissionLock=useRef(false);
+  const submissionHours=useSubmissionHoursAdvisory(()=>{
+    saveHoursDraft(draftKey,{quantities,note,date:selectedDate,time:selectedTime,moment:orderMoment,photo:referencePhoto,contact:contactAllowed});(onFindAlternative??onBack)();
+  },onSessionExpired);
   const availableHours = Array.from({ length: 14 }, (_, index) =>
     String(index + 9).padStart(2, "0"),
   );
@@ -204,16 +213,19 @@ export default function CheckoutScreen({
   };
 
   const handleSubmitOrder = async () => {
-    if (!checkoutAlive.current||creationIntent.current.isBlocked()) return;
+    if (!checkoutAlive.current||submissionLock.current||creationIntent.current.isBlocked()) return;
     const token = localStorage.getItem("zipco-token");
     if (!token || selectedItems.length === 0) {
       showAppToast("No se pudo enviar el pedido", "error");
       return;
     }
 
+    submissionLock.current=true;
     setSubmissionError(undefined);
     setIsSubmitting(true);
     try {
+      if(!creationIntent.current.pendingPayload()&&!await submissionHours.check(business.id,token))return;
+      if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)return;
       if(!creationFlow.current){const capability=await readReservationCapabilities(token);if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)throw new Error('La sesión cambió. Vuelve a abrir la solicitud.');creationFlow.current=capability.simplifiedReservationCreationEnabled?'AVAILABILITY_V3':capability.reservationCreationEnabled?'AVAILABILITY_V2':'AVAILABILITY_V1';}
       const flow=creationFlow.current;
       const created = await creationIntent.current.submit({
@@ -234,6 +246,7 @@ export default function CheckoutScreen({
         idempotencyKey, payload,
       }), (message) => showAppToast(message, 'warning'));
       if (!created) return;
+      clearHoursDraft(draftKey);
       setConsultationOpen(false);
       announceAction('requestSent');
       onOrderComplete();
@@ -249,6 +262,7 @@ export default function CheckoutScreen({
       if (error instanceof CreateOrderError && error.status === 401)
         onSessionExpired();
     } finally {
+      submissionLock.current=false;
       setIsSubmitting(false);
     }
   };
@@ -261,6 +275,7 @@ export default function CheckoutScreen({
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+      {submissionHours.dialog}
       {/* Header */}
       <div className="zipco-safe-header border-b border-slate-200/60 px-4 pb-3">
         <div className="flex items-center gap-3 mb-3">

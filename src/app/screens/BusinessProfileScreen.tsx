@@ -947,6 +947,7 @@ export default function BusinessProfileScreen({
           businessId={parseBusinessId(business.id) as number}
           item={quoteItem}
           onClose={() => setQuoteItem(null)}
+          onFindAlternative={()=>{setQuoteItem(null);onBack();}}
           onCreated={() => onQuoteCreated?.()}
           onSessionExpired={onSessionExpired}
         />

@@ -1,7 +1,7 @@
 import { isRecord,parseIsoDate } from './orderValueParsers';
 import {normalizeProductPreview,type ProductPreview} from './productPreview';
 import { AVAILABILITY_ACTION_PATHS, AVAILABILITY_CLOSURES, availabilityFlow, normalizeAvailability, type AvailabilityPlan, type AvailabilityClosureReason } from './availabilityContract';
-import {simplifiedReservationFlow,isSimpleOffer} from './simplifiedReservationContract';
+import {simplifiedReservationFlow,isSimpleOffer,isAdvisoryOffer} from './simplifiedReservationContract';
 import {LATE_INITIAL_PATHS,normalizeLateInitial,type LateInitialView} from './lateInitialContract';
 import {RESERVATION_PATHS,reservationFlow,normalizeReservationChoice,normalizeReservation,normalizeReservationFollowUp,type Reservation,type ReservationChoice,type ReservationFollowUp} from './reservationContract';
 
@@ -85,6 +85,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     choice?.choice==='REQUEST_RESERVATION'&&!reservation||reservation&&(!value.serverNow||!value.agreementPublicId)||
     reservation?.mode==='PREPAYMENT'&&(!followUp||reservation.paymentReceiptDeclaration&&availability?.reservationOffer?.mode==='PREPAYMENT'&&reservation.paymentReceiptDeclaration.amountClp!==availability.reservationOffer.requiredAmountClp))return null;
    const simple=simplifiedReservationFlow(value),offer=availability?.reservationOffer;
+   if(simple&&reservation?.timing&&(isAdvisoryOffer(offer)?reservation.timing.pickupBy!==null||reservation.timing.paymentDueAt!==null:reservation.timing.pickupBy===null))return null;
    if(offer&&offer.mode!=='NONE'&&(simple!==isSimpleOffer(offer))||!simple&&(choice?.termsVersion||choice?.noReservationAcknowledged||followUp?.paymentConfirmationReminder||value.allowedActions.includes('CANCEL_PICKUP_RESERVATION'))||
      simple&&choice&&availability?.path==='LOCAL_PICKUP'&&(choice.choice==='NONE'&&choice.noReservationAcknowledged!==true||offer&&isSimpleOffer(offer)&&choice.termsVersion!==offer.simplified.termsVersion)||
      simple&&followUp&&(!followUp.paymentConfirmationReminder||followUp.paymentConfirmationReminder.reservationId!==reservation?.id||followUp.paymentConfirmationReminder.expectedVersion!==value.version||followUp.paymentConfirmationReminder.eligible!==followUp.allowedActions.includes('CONFIRM_PICKUP_RESERVATION'))||

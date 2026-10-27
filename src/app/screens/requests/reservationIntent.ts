@@ -1,3 +1,4 @@
+import {definitiveHoursRejection} from './serviceHoursPolicy';
 import {AvailabilityError} from './availabilityApi';
 import {RESERVATION_PATHS,type ReservationAction} from './reservationContract';
 import type {ReservationBody,ReservationReceipt} from './reservationApi';
@@ -18,7 +19,7 @@ export function createReservationIntents(storage?:Pick<Storage,'getItem'|'setIte
       if(!current){current={key:uuid(),action,version:body.expectedVersion,fingerprint,confirmed:false};try{persist(name,current);}catch{throw new AvailabilityError('No se pudo proteger el reintento. No enviamos la operación.',0);}}
       const intent=current;memory.set(name,intent);
       intent.running=send(intent.key).then(receipt=>{intent.receipt=receipt;intent.confirmed=true;try{persist(name,intent);}catch{/* Memory receipt is final. */}return receipt;}).catch(error=>{
-        if(error instanceof AvailabilityError&&error.status===400&&!intent.uncertain){try{storage?.removeItem(name);memory.delete(name);}catch{/* Keep protected key. */}}else intent.uncertain=true;throw error;
+        if(error instanceof AvailabilityError&&(error.status===400||definitiveHoursRejection(error.status,error.code))&&!intent.uncertain){try{storage?.removeItem(name);memory.delete(name);}catch{/* Keep protected key. */}}else intent.uncertain=true;throw error;
       }).finally(()=>{intent.running=undefined;});return intent.running;
     },
   };

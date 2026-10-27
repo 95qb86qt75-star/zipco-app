@@ -23,7 +23,7 @@ export function approvedScheduleMessage(body: unknown): string | null {
 }
 
 export class RequestProcessError extends OrdersApiError {
-  constructor(message: string, status: number, readonly refreshConditions = false) {
+  constructor(message: string, status: number, readonly refreshConditions = false, readonly definitiveRejection = false) {
     super(message, status);
   }
 }
@@ -48,6 +48,8 @@ export function processApiError(status: number, body: unknown, agreement = false
     };
     if(Object.hasOwn(lateMessages,code))return new RequestProcessError(lateMessages[code],status,true);
     if (code === 'FLOW_CONTRACT_REQUIRED') return new RequestProcessError(FLOW_UPDATE_MESSAGE,status);
+    if(code==='SERVICE_HOURS_CONTRACT_REQUIRED')return new RequestProcessError('Actualiza ZIPCO para revisar las condiciones de horario informativo.',status,false,true);
+    if(code==='ADVISORY_RESERVATION_HOURS_DISABLED')return new RequestProcessError('La modalidad de horario informativo todavía no está habilitada. Conservamos lo que escribiste.',status,false,true);
     if(code==='RESERVATION_CREATION_DISABLED')return new RequestProcessError('Las nuevas reservas todavía no están habilitadas. Conserva los datos y vuelve a intentarlo cuando se active QA.',status);
     if(code==='OFFER_EXPIRED')return new RequestProcessError('El plazo de la oferta de reserva venció. Actualiza sus condiciones; también puedes elegir ir sin reserva.',status,true);
     if(code==='RESERVATION_MISMATCH')return new RequestProcessError('La reserva cambió. Actualiza el pedido antes de responder.',status,true);

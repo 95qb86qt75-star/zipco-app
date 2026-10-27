@@ -12,6 +12,7 @@ export function createCoordinationIntents(uuid = () => crypto.randomUUID(), stor
   const retired = new Set<string>();
   const warnings = new Map<string, string>();
   const restored = new Set<string>();
+  const uncertain = new Set<string>();
   const slot = (scope: string, id: number) => `zipco-coordination:${scope}:${id}`;
   const read = (scope: string, id: number): CoordinationIntent | null => {
     const name = slot(scope, id);
@@ -32,13 +33,14 @@ export function createCoordinationIntents(uuid = () => crypto.randomUUID(), stor
         if (intent.action !== 'OPEN_WHATSAPP') confirmed.add(`${name}:${intent.action}:${JSON.stringify(intent.body)}`);
         retired.add(`${name}:${intent.key}`); warnings.set(name, coordinationStorageWarning); return null;
       }
-      restored.add(name); pending.set(name, intent); return intent;
+      restored.add(name); uncertain.add(name); pending.set(name, intent); return intent;
     } catch { throw new RequestProcessError('No se pudo recuperar la operación pendiente. Actualiza el pedido antes de continuar.', 409, true); }
   };
   const retire = (name: string, intent: CoordinationIntent | null) => {
     if (intent) retired.add(`${name}:${intent.key}`);
     pending.delete(name);
     restored.delete(name);
+    uncertain.delete(name);
     // A durable tombstone protects a confirmed record if removal fails. No result or URL is stored.
     try { if (intent) storage?.setItem(name, JSON.stringify({ ...intent, confirmed: true })); } catch { /* Removal can still succeed. */ }
     try { storage?.removeItem(name); warnings.delete(name); }
@@ -92,6 +94,10 @@ export function createCoordinationIntents(uuid = () => crypto.randomUUID(), stor
           retire(name, intent);
           return result;
         } catch (error) {
+          if(error instanceof RequestProcessError&&error.definitiveRejection&&!uncertain.has(name)&&canCommit()){
+            try{storage?.removeItem(name);pending.delete(name);restored.delete(name);}
+            catch{uncertain.add(name);}
+          }else uncertain.add(name);
           // Conflicts require authoritative refresh; callers explicitly clear only after that refresh.
           if (error instanceof RequestProcessError && error.status === 409 && error.refreshConditions)
             throw error;

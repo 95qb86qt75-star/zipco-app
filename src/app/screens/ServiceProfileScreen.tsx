@@ -165,7 +165,7 @@ export default function ServiceProfileScreen({ service, isFavorite, onToggleFavo
       </div>
 
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-      {quoteItem && <QuoteRequestModal businessId={Number(service.id)} item={quoteItem} onClose={() => setQuoteItem(null)} onCreated={() => undefined} onSessionExpired={onSessionExpired} />}
+      {quoteItem && <QuoteRequestModal businessId={Number(service.id)} item={quoteItem} onFindAlternative={()=>{setQuoteItem(null);onBack();}} onClose={() => setQuoteItem(null)} onCreated={() => undefined} onSessionExpired={onSessionExpired} />}
     </div>
   );
 }

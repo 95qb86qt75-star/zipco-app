@@ -1,3 +1,5 @@
+import BusinessResponseHoursNotice from './BusinessResponseHoursNotice';
+import {chileSchedule} from './serviceHoursAdvisory';
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { ArrowRight, MessageCircle, RefreshCw, X } from 'lucide-react';
@@ -97,7 +99,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [authCard, setAuthCard] = useState(false);
   const [fulfillmentOpen,setFulfillmentOpen]=useState(false);
   const [contactPreference,setContactPreference]=useState(true);
-  const pendingFulfillment=useRef<{send:()=>Promise<void>;total:number;resolve:(value:boolean)=>void;reject:(error:unknown)=>void}|null>(null);
+  const pendingFulfillment=useRef<{send:()=>Promise<void>;total:number;schedule?:{date:string;time:string};resolve:(value:boolean)=>void;reject:(error:unknown)=>void}|null>(null);
   const [reservationSelection,setReservationSelection]=useState<ReservationChoice['choice']>('NONE'),[reservationNote,setReservationNote]=useState('');
   const [finalOffer,setFinalOffer]=useState<ReservationOfferInput|null|undefined>(undefined);
   const chosenFulfillment=useRef<FulfillmentChoice|null>(null);
@@ -357,18 +359,19 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       close={() => setDraftAction(null)} onConfirm={choices.includes(draftAction) ? (review, file) => {
         if(read.process.lateInitialResponse?.requiresNewSchedule&&draftAction==='PROPOSE_ALTERNATIVE'&&review.schedule?.mode!=='SCHEDULED')return Promise.reject(new ProposalError('Propón una nueva fecha y hora programadas. La hora original ya pasó; el cliente debe aceptar la nueva.',0));
         if(availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_ALTERNATIVE'&&!chosenFulfillment.current)return new Promise<boolean>((resolve,reject)=>{
-          pendingFulfillment.current={send:()=>execute(draftAction,review,file),total:review.totalPriceClp,resolve,reject};setFulfillmentOpen(true);
+          pendingFulfillment.current={send:()=>execute(draftAction,review,file),total:review.totalPriceClp,schedule:review.schedule?.mode==='SCHEDULED'?{date:review.schedule.date,time:review.schedule.time}:review.schedule?.mode==='IMMEDIATE'?undefined:chileSchedule(read.proposals.at(-1)?.scheduledFor),resolve,reject};setFulfillmentOpen(true);
         });
         return execute(draftAction,review,file);
       } : undefined}
       reviewFields={review=><>
+        {business&&<BusinessResponseHoursNotice businessId={Number(session?.businessId)} {...(review.schedule?.mode==='SCHEDULED'?{date:review.schedule.date,time:review.schedule.time}:review.schedule?.mode==='IMMEDIATE'?undefined:chileSchedule(read.proposals.at(-1)?.scheduledFor))}/>}
         {availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_FINAL'&&<div className="my-3 rounded-xl border p-3 text-xs">
           {read.process.availability?<><p className="mb-2 font-bold">Se conserva la opción de la propuesta anterior</p><AvailabilityPlanSummary plan={read.process.availability}/>{reservationFlow(read.process)&&read.process.availability.reservationOffer&&(simplifiedReservationFlow(read.process)?<SimpleReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>:<ReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>)}{read.process.availability.allowCustomerWhatsapp&&<p className="mt-2">{BUSINESS_CONTACT_COPY}</p>}</>:<p role="alert">No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p>}
         </div>}
         {!business&&reservationFlow(read.process)&&read.process.availability?.reservationOffer&&<ReservationChoiceFields offer={read.process.availability.reservationOffer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy}/>}
         {availabilityFlow(read.process)&&!business&&(read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>)}
       </>} />}
-    <ConfirmAvailabilityDesign open={fulfillmentOpen} onOpenChange={value=>{
+    <ConfirmAvailabilityDesign responseSchedule={{businessId:Number(session?.businessId),...pendingFulfillment.current?.schedule}} open={fulfillmentOpen} onOpenChange={value=>{
       if(!value&&!busy){setFulfillmentOpen(false);const pending=pendingFulfillment.current;pendingFulfillment.current=null;pending?.resolve(false);}
     }} purpose="proposal" busy={busy} reservationContract={reservationFlow(read?.process??process)} simplified={simplifiedReservationFlow(read?.process??process)} reservationTotal={pendingFulfillment.current?.total??order.total??0} onChoose={async choice=>{
       const pending=pendingFulfillment.current;if(!pending||lock.current)return;

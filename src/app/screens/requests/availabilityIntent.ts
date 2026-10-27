@@ -1,3 +1,4 @@
+import {definitiveHoursRejection} from './serviceHoursPolicy';
 import { AvailabilityError, type AvailabilityBody, type AvailabilityReceipt } from './availabilityApi';
 import { AVAILABILITY_ACTION_PATHS, type AvailabilityAction } from './availabilityContract';
 import type {RequestProcessSummary} from './requestProcess';
@@ -42,7 +43,7 @@ export function createAvailabilityIntents(storage?:Pick<Storage,'getItem'|'setIt
       if(!current){current={key:uuid(),action,version:body.expectedVersion,fingerprint,confirmed:false};try{persist(name,current);}catch{throw new AvailabilityError('No se pudo proteger el reintento. No enviamos la operación.',0);}}
       const intent=current;memory.set(name,intent);
       intent.running=send(intent.key).then(receipt=>{intent.receipt=receipt;intent.confirmed=true;try{persist(name,intent);}catch{/* Receipt remains final in memory. */}return receipt;})
-        .catch(error=>{if(error instanceof AvailabilityError&&!intent.uncertain&&(error.status===400||error.code==='EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED'||action==='CONFIRM_AVAILABILITY'&&error.status===409&&rejectedAvailabilityCodes.has(error.code))){
+        .catch(error=>{if(error instanceof AvailabilityError&&!intent.uncertain&&(error.status===400||definitiveHoursRejection(error.status,error.code)||error.code==='EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED'||action==='CONFIRM_AVAILABILITY'&&error.status===409&&rejectedAvailabilityCodes.has(error.code))){
           try{storage?.removeItem(name);memory.delete(name);}catch{/* Keep the original intent if cleanup is unavailable. */}
         }else intent.uncertain=true;throw error;}).finally(()=>{intent.running=undefined;});
       return intent.running;

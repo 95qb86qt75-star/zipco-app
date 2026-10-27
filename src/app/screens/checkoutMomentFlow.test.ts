@@ -25,6 +25,10 @@ vi.mock('./createOrderApi', async (importOriginal) => ({
 vi.mock('./Toast', () => ({ showAppToast: state.toast }));
 vi.mock('./requests/ActionHologram', () => ({ announceAction: vi.fn() }));
 vi.mock('./requests/reservationCapabilities',()=>({readReservationCapabilities:state.capabilities}));
+vi.mock('./requests/useSubmissionHoursAdvisory',async importOriginal=>({
+  ...await importOriginal<typeof import('./requests/useSubmissionHoursAdvisory')>(),
+  default:()=>({check:()=>Promise.resolve(true),dialog:null}),
+}));
 import { ConsultationDesignSheet } from './requests/availability-design/AvailabilityDesign';
 import CheckoutScreen from './CheckoutScreen';
 import ServiceCheckoutScreen from './ServiceCheckoutScreen';
@@ -219,7 +223,7 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
     const savedSubmit = kind === 'product' ? sheet().onSend : button('Solicitar Servicio').props.onClick!;
     const first = savedSubmit();
     await savedSubmit();
-    expect(state.create).toHaveBeenCalledOnce();
+    await vi.waitFor(()=>expect(state.create).toHaveBeenCalledOnce());
     finish({ id: 1, total: 1000 }); await first;
     await savedSubmit();
     expect(state.create).toHaveBeenCalledOnce();

@@ -917,6 +917,7 @@ export default function App() {
             selectedProducts={checkoutData.selectedProducts}
             products={checkoutData.products}
             onBack={() => setCurrentScreen("profile")}
+            onFindAlternative={()=>{if(previousScreen==='favorites'){setCurrentScreen('home');setActiveTab('favorites');}else setCurrentScreen(previousScreen);}}
             onOrderComplete={() => {
               setCheckoutData(null);
               setCurrentScreen("profile");
@@ -1084,6 +1085,7 @@ export default function App() {
             service={selectedServiceItem}
             provider={selectedService}
             onBack={() => setCurrentScreen("service-profile")}
+            onFindAlternative={()=>{if(previousServiceScreen==='favorites'){setCurrentScreen('home');setActiveTab('favorites');}else setCurrentScreen(previousServiceScreen);}}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onSessionExpired={handleLogout}

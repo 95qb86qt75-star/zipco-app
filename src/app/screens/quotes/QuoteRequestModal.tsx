@@ -1,3 +1,4 @@
+import useSubmissionHoursAdvisory,{hoursDraftKey,readHoursDraft,saveHoursDraft,clearHoursDraft} from '../requests/useSubmissionHoursAdvisory';
 import { type ChangeEvent, useRef, useState } from "react";
 import { Calendar, Camera, Check, Clock, Send, Trash2, X } from "lucide-react";
 import type { CatalogItem } from "../profile/business-config/types";
@@ -9,24 +10,30 @@ export default function QuoteRequestModal({
   businessId,
   item,
   onClose,
+  onFindAlternative,
   onCreated,
   onSessionExpired,
 }: {
   businessId: number;
   item: CatalogItem;
   onClose: () => void;
+  onFindAlternative?: () => void;
   onCreated: () => void;
   onSessionExpired?: () => void;
 }) {
-  const [message, setMessage] = useState("");
-  const [needNow, setNeedNow] = useState(true);
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [photo, setPhoto] = useState("");
+  const draftKey=hoursDraftKey('quote-'+item.id,businessId);
+  const savedDraft=readHoursDraft<{message:string;needNow:boolean;date:string;time:string;photo:string}>(draftKey);
+  const [message, setMessage] = useState(savedDraft?.message??"");
+  const [needNow, setNeedNow] = useState(savedDraft?.needNow??true);
+  const [date, setDate] = useState(savedDraft?.date??"");
+  const [time, setTime] = useState(savedDraft?.time??"");
+  const [photo, setPhoto] = useState(savedDraft?.photo??"");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const submitLock=useRef(false);
+  const submissionHours=useSubmissionHoursAdvisory(()=>{saveHoursDraft(draftKey,{message,needNow,date,time,photo});(onFindAlternative??onClose)();},()=>onSessionExpired?.());
   const key = useRef(crypto.randomUUID());
 
   const uploadPhoto = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -80,10 +87,12 @@ export default function QuoteRequestModal({
       setError("Selecciona fecha y hora.");
       return;
     }
-    if (submitting) return;
+    if (submitting||submitLock.current) return;
+    submitLock.current=true;
     setSubmitting(true);
     setError("");
     try {
+      if(!await submissionHours.check(businessId,token)||localStorage.getItem('zipco-token')!==token)return;
       const created = await createQuote(
         {
           businessId,
@@ -97,6 +106,7 @@ export default function QuoteRequestModal({
         token,
         key.current,
       );
+      clearHoursDraft(draftKey);
       setSent(true);
       await new Promise((resolve) => window.setTimeout(resolve, 2800));
       showAppToast("", "success", {
@@ -113,12 +123,14 @@ export default function QuoteRequestModal({
         cause?.message || "No se pudo enviar la solicitud de cotización.",
       );
     } finally {
+      submitLock.current=false;
       setSubmitting(false);
     }
   };
 
   return (
     <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3 sm:items-center">
+      {submissionHours.dialog}
       <div
         role="dialog"
         aria-modal="true"

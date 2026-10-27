@@ -1,3 +1,4 @@
+import useSubmissionHoursAdvisory,{hoursDraftKey,readHoursDraft,saveHoursDraft,clearHoursDraft} from './requests/useSubmissionHoursAdvisory';
 import React, { useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -21,6 +22,7 @@ import { createOrderCreationIntent, OrderSelectionError } from './orderCreationI
 
 export default function ServiceCheckoutScreen({
   onBack,
+  onFindAlternative,
   service,
   provider,
   activeTab,
@@ -28,22 +30,27 @@ export default function ServiceCheckoutScreen({
   onSessionExpired,
 }: {
   onBack: () => void;
+  onFindAlternative?: () => void;
   service: any;
   provider: any;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onSessionExpired?: () => void;
 }) {
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("");
-  const [scheduleOption, setScheduleOption] = useState<OrderMoment | null>(null);
-  const [message, setMessage] = useState("");
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const draftKey=hoursDraftKey('service-'+service.id,Number(provider.id));
+  const savedDraft=readHoursDraft<{date:string;time:string;moment:OrderMoment|null;message:string;photo:string|null}>(draftKey);
+  const [deliveryDate, setDeliveryDate] = useState(savedDraft?.date??"");
+  const [deliveryTime, setDeliveryTime] = useState(savedDraft?.time??"");
+  const [scheduleOption, setScheduleOption] = useState<OrderMoment | null>(savedDraft?.moment??null);
+  const [message, setMessage] = useState(savedDraft?.message??"");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(savedDraft?.photo??null);
   const [showNotification, setShowNotification] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const creationIntent = useRef(createOrderCreationIntent());
 
+  const submitLock=useRef(false);
+  const submissionHours=useSubmissionHoursAdvisory(()=>{saveHoursDraft(draftKey,{date:deliveryDate,time:deliveryTime,moment:scheduleOption,message,photo:uploadedImage});(onFindAlternative??onBack)();},()=>onSessionExpired?.());
   const handleMomentSelection = (moment: OrderMoment) => {
     if (moment === scheduleOption) return;
     const selection = selectOrderMoment(moment);
@@ -82,11 +89,14 @@ export default function ServiceCheckoutScreen({
   };
 
   const handleSubmit = async () => {
-    if (creationIntent.current.isBlocked()) return;
+    if (submitLock.current||creationIntent.current.isBlocked()) return;
     const token = localStorage.getItem("zipco-token");
     if (!token || isSubmitting || isUploading) return;
+    submitLock.current=true;
     setIsSubmitting(true);
     try {
+      if(!creationIntent.current.pendingPayload()&&!await submissionHours.check(Number(provider.id),token))return;
+      if(localStorage.getItem('zipco-token')!==token)return;
       const created = await creationIntent.current.submit({
         identity: JSON.stringify([localStorage.getItem('zipco-user-id'), provider.id, provider.userId]),
         selection: { moment: scheduleOption, date: deliveryDate, time: deliveryTime },
@@ -100,6 +110,7 @@ export default function ServiceCheckoutScreen({
         idempotencyKey, payload,
       }), (message) => showAppToast(message, 'warning'));
       if (!created) return;
+      clearHoursDraft(draftKey);
       setShowNotification(true);
       setTimeout(() => {
         setShowNotification(false);
@@ -115,12 +126,14 @@ export default function ServiceCheckoutScreen({
       if (error instanceof CreateOrderError && error.status === 401)
         onSessionExpired?.();
     } finally {
+      submitLock.current=false;
       setIsSubmitting(false);
     }
   };
 
   return (
     <div className="zipco-theme-surface size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+      {submissionHours.dialog}
       {/* Header */}
       <div
         className="px-4 pb-4 border-b border-white/50"

@@ -1,3 +1,4 @@
+import {definitiveHoursRejection} from './serviceHoursPolicy';
 import { ProposalError, type ProposalBody, type ProposalReceipt } from './proposalApi';
 import { PROPOSAL_PATHS, type ProposalAction } from './proposalContract';
 import type { RequestProcessSummary } from './requestProcess';
@@ -64,7 +65,7 @@ export function createProposalIntents(storage?: Pick<Storage, 'getItem' | 'setIt
         return receipt;
       }).catch(error => {
         // Definitive DTO validation failures did not commit; corrected data are a new intention.
-        if (error instanceof ProposalError && error.status === 400 && !current.uncertain) {
+        if (error instanceof ProposalError && (error.status === 400 || definitiveHoursRejection(error.status,error.code)) && !current.uncertain) {
           try { const saved = rows(); delete saved[id]; storage?.setItem(storageName, JSON.stringify(saved)); memory.delete(id); }
           catch { current.uncertain = true; }
         } else current.uncertain = true;

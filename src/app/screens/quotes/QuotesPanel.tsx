@@ -1,3 +1,4 @@
+import BusinessResponseHoursNotice from '../requests/BusinessResponseHoursNotice';
 import { Fragment, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -567,6 +568,7 @@ export function BusinessQuotes({
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
           <div className="relative mx-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 dark:bg-slate-900">
             <h3 className="text-lg font-black">Responder cotización</h3>
+            <BusinessResponseHoursNotice businessId={selected.businessId} date={selected.needNow?undefined:selected.requestedDate} time={selected.needNow?undefined:selected.requestedTime}/>
             <p className="mt-1 text-sm text-slate-500">
               {selected.itemNameSnapshot} · {selected.customerName}
             </p>
@@ -617,6 +619,7 @@ export function BusinessQuotes({
         <div className="absolute inset-0 z-50 flex items-end bg-slate-950/45 p-3">
           <div className="relative mx-auto max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 dark:bg-slate-900">
             <h3 className="text-lg font-black">Responder solicitud</h3>
+            <BusinessResponseHoursNotice businessId={alternative.businessId} date={alternativeDate||(!alternative.needNow?alternative.requestedDate:undefined)} time={alternativeTime||(!alternative.needNow?alternative.requestedTime:undefined)}/>
             <p className="mt-1 text-sm text-slate-500">
               Define el precio final y selecciona solo lo que necesitas ajustar.
               Lo demás se mantendrá como lo solicitó el cliente.

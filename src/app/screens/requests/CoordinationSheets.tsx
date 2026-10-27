@@ -71,13 +71,13 @@ export function ConditionsSheet({ open, onOpenChange, accepted, title, subtitle,
 }
 
 const REASON_ICON: Record<string, typeof UserX> = { OTHER: PencilLine };
-export function PaymentConfirmationSheet({open,busy,amount,until,error,onClose,onConfirm}:{open:boolean;busy:boolean;amount:number;until:string;error?:string;onClose:()=>void;onConfirm:()=>void}){
+export function PaymentConfirmationSheet({open,busy,amount,until,error,onClose,onConfirm}:{open:boolean;busy:boolean;amount:number;until:string|null;error?:string;onClose:()=>void;onConfirm:()=>void}){
   return <Dialog.Root open={open} onOpenChange={v=>{if(!v&&!busy)onClose();}}><Shell busy={busy} onDismiss={()=>{if(!busy)onClose();}}
     style={{background:'radial-gradient(120% 70% at 92% 0%,rgba(167,243,208,.8),transparent 60%),linear-gradient(165deg,#ffffff,#f3fffb 60%,#f6f2ff)'}}>
     <div className="zipco-d-top"><span className="zipco-d-who" style={{color:'#047857'}}>Reserva con pago</span><XButton label="Cerrar" busy={busy}/></div>
     <div className="zipco-co-start-orb"><span className="zipco-co-co2-orb"><WhatsAppMark className="h-6 w-6"/><span className="tick"><Check size={11}/></span></span></div>
     <Dialog.Title className="zipco-co-start-title">¿Recibiste el pago y apartaste el pedido?</Dialog.Title>
-    <Dialog.Description className="zipco-co-start-description">Al confirmar declaras que recibiste <b>${amount.toLocaleString('es-CL')}</b> y apartaste todo el pedido hasta <b>{until}</b>. ZIPCO no verifica la transferencia.</Dialog.Description>
+    <Dialog.Description className="zipco-co-start-description">Al confirmar declaras que recibiste <b>${amount.toLocaleString('es-CL')}</b> y apartaste todo el pedido{until?<> hasta <b>{until}</b></>:<>. Esta reserva no tiene vencimiento automático</>}. ZIPCO no verifica la transferencia.</Dialog.Description>
     {error&&<p role="alert" className="mt-3 text-sm text-rose-700">{error}</p>}
     <div className="zipco-co-yn"><button type="button" className="zipco-co-go" disabled={busy} onClick={onConfirm}><Check size={17}/>{busy?'Guardando…':'Sí, confirmar'}</button><button type="button" className="zipco-co-no" disabled={busy} onClick={onClose}>Aún no</button></div>
   </Shell></Dialog.Root>;

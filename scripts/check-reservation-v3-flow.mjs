@@ -66,9 +66,13 @@ function requestReservation(choice,pref){
  }
 }
 window.fetch=async (url,init)=>{
+ const advice=(status='IN_SERVICE_HOURS',checkedAt=new Date().toISOString())=>({contract:'request-submission-advisory-v1',businessId:5,businessName:'ZIPCO Negocio QA',checkedAt,timeZone:'America/Santiago',localDate:'2026-10-27',status,reason:status==='UNKNOWN'?'INVALID_SCHEDULE':status==='IN_SERVICE_HOURS'?'WITHIN_WINDOW':'AFTER_CLOSING',requiresConfirmation:status==='OUTSIDE_SERVICE_HOURS',todayWindow:{opensAt:'2026-10-27T11:00:00Z',closesAt:'2026-10-27T20:30:00Z'},activeWindow:null,nextWindow:null});
+ if(String(url).includes('/submission-advisory')){window.advisoryReads=(window.advisoryReads??0)+1;const mode=window.submissionMode??'IN_SERVICE_HOURS';if(mode==='network')throw new TypeError('Synthetic advisory failure');if(mode==='404')return new Response('{}',{status:404});return new Response(JSON.stringify(advice(mode)));}
+ if(String(url).includes('/response-advisory')){const params=new URL(String(url)).searchParams;const requestedFor=params.has('requestedDate')?'2099-10-25T20:35:00Z':null;return new Response(JSON.stringify({contract:'business-response-hours-advisory-v1',current:advice(window.currentHours??'IN_SERVICE_HOURS'),requested:requestedFor?{requestedFor,advisory:advice('OUTSIDE_SERVICE_HOURS',requestedFor)}:null,canContinue:true}));}
+
  if(String(url).endsWith('/request-process-capabilities'))return new Response(JSON.stringify({supportedContracts:['availability-v1','availability-v2','availability-v3'],reservationCreationEnabled:true,simplifiedReservationCreationEnabled:v3}));
  const body=init?.body?JSON.parse(init.body):null,business=String(init?.headers?.Authorization).includes('business-test-only');
- window.flowCalls.push({url:String(url),method:init?.method??'GET',body});
+ window.flowCalls.push({url:String(url),method:init?.method??'GET',body,headers:init?.headers});
  const json=(v,status=200)=>new Response(JSON.stringify(v),{status});
  if((init?.method??'GET')==='POST'&&v2&&init.headers['X-Process-Contract']!==(v3?'availability-v3':'availability-v2'))throw Error('Missing V2 write contract');
  if(String(url).endsWith(v3?'/orders/availability-reservation-v3-requests':'/orders/availability-reservation-requests')){
