@@ -6,14 +6,18 @@ import {lateInitialAllowed,lateDelayLabel,type LateInitialAction} from './lateIn
 import useLateInitial from './useLateInitial';
 import ProposalNegotiation from './ProposalNegotiation';
 import PendingCancellationActions from './PendingCancellationActions';
-const reservationWhen=(iso:string)=>new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'medium',timeStyle:'short',hourCycle:'h23'}).format(new Date(iso));
+const reservationFormat=new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'medium',timeStyle:'short',hourCycle:'h23'});
+const reservationWhen=(iso:string)=>reservationFormat.format(new Date(iso));
 import OrderReferencePhoto from './OrderReferencePhoto';
 import {safePhoto} from './agreement';
 import './late-initial.css';
 import ProductPreviewControl from './ProductPreviewControl';
 
-const santiagoDay=(d:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago'}).format(d);
-const requestedFor=(iso:string,serverNow:string)=>{const d=new Date(iso);return santiagoDay(d)===santiagoDay(new Date(serverNow))?`Solicitado para las ${new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(d)}`:`Solicitado para el ${reservationWhen(iso)}`;};
+// Share immutable formatters across cards instead of constructing three per render.
+const dayFormat=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago'});
+const hourFormat=new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+const santiagoDay=(d:Date)=>dayFormat.format(d);
+const requestedFor=(iso:string,serverNow:string)=>{const d=new Date(iso);return santiagoDay(d)===santiagoDay(new Date(serverNow))?`Solicitado para las ${hourFormat.format(d)}`:`Solicitado para el ${reservationWhen(iso)}`;};
 // <60 min: «57 min»; desde 60 min: «1 h 5 min»; desde 24 h: «1 d 3 h». Si el dato no es numérico, usa el texto del contrato.
 const delayParts=(seconds:unknown,fallback:string)=>{const s=typeof seconds==='number'&&Number.isFinite(seconds)&&seconds>=0?Math.floor(seconds):null;if(s===null)return{parts:[{v:fallback,u:''}],tail:'',text:fallback};const m=Math.floor(s/60),d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mi=m%60;const parts=d>0?[{v:String(d),u:'d'},...(h?[{v:String(h),u:'h'}]:[])]:m>=60?[{v:String(h),u:'h'},...(mi?[{v:String(mi),u:'min'}]:[])]:[{v:String(m),u:'min'}];return{parts,tail:'de retraso',text:`${parts.map(x=>`${x.v} ${x.u}`).join(' ')} de retraso`};};
 function LateClock(){return <svg className="zipco-late-clock-svg" viewBox="0 0 80 80" aria-hidden="true" focusable="false"><circle cx="40" cy="40" r="34" fill="#fbbf2414" stroke="#fbbf24" strokeWidth="3"/><path d="M40 10v5M40 65v5M10 40h5M65 40h5" stroke="#fde68a" strokeWidth="2" strokeLinecap="round"/><path className="zipco-late-arc" d="M40 40 L40 12 A28 28 0 0 1 61 21 Z"/><line className="zipco-late-min" x1="40" y1="40" x2="40" y2="16" stroke="#fff" strokeWidth="3" strokeLinecap="round"/><line className="zipco-late-hr" x1="40" y1="40" x2="40" y2="26" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round"/><circle cx="40" cy="40" r="3.5" fill="#fbbf24"/></svg>;}

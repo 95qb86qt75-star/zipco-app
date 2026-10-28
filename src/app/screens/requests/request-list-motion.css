@@ -1,0 +1,13 @@
+/* Keep decorative frames still while moving and outside the list viewport.
+   No layout containment: dialogs, focus, card height and scroll targets stay intact.
+   Status spinners and action feedback are deliberately outside these selectors. */
+:is([data-request-motion="idle"], [data-request-list-scrolling] [id^="order-"])
+  :is(.zipco-late-clock, .zipco-late-clock *, .zipco-late-badge, .zipco-aurora-dot, .zipco-av-neon, .zipco-wait-ring svg),
+:is([data-request-motion="idle"], [data-request-list-scrolling] [id^="order-"])
+  :is(.zipco-late-clock, .zipco-wait-ring)::before,
+:is([data-request-motion="idle"], [data-request-list-scrolling] [id^="order-"])
+  :is(.zipco-late-clock, .zipco-wait-ring)::after,
+:is([data-request-motion="idle"], [data-request-list-scrolling] [id^="order-"]).zipco-aurora-card::before,
+:is([data-request-motion="idle"], [data-request-list-scrolling] [id^="order-"]).zipco-aurora-card::after {
+  animation-play-state: paused !important;
+}

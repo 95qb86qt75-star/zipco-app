@@ -4,6 +4,7 @@ const state = vi.hoisted(() => ({ index: 0, selection: null as unknown }));
 vi.mock('react', async (original) => ({
   ...await original<typeof import('react')>(),
   useEffect: vi.fn(),
+  useRef: (initial: unknown) => ({ current: initial }),
   useState: (initial: unknown) => [state.index++ === 0 ? state.selection : typeof initial === 'function' ? initial() : initial, vi.fn()],
 }));
 vi.mock('../../notifications/unreadInteractions', async (original) => ({
