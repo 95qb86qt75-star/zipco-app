@@ -12,6 +12,7 @@ export const CLICK_TRACE_STAGES = new Set([
   'app-target-accepted', 'app-target-ignored', 'app-target-ack',
   'app-cache-start', 'app-cache-read', 'app-cache-failed', 'screen-mounted', 'screen-target', 'card-focused',
   'notice-suppressed', 'notice-delivered', 'toast-click',
+  'push-failed', 'click-failed', 'worker-message-failed',
 ]);
 const flagKeys = ['hasTarget', 'hasEvent', 'hasSession', 'visible', 'hasClient',
   'hasCard', 'loading', 'hasError', 'hasController', 'revisionMatches', 'buildMatches', 'requestsVisible', 'sessionReady', 'currentContext'];

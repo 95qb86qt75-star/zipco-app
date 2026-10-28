@@ -6,6 +6,7 @@ import { presentationKey, readSystemPresentations, PRESENTATION_CACHE, PRESENTAT
   deliverUnpresentedNotice, rememberOpenedPresentation, noticeMatchesPresentation } from './notificationDelivery';
 import { customerOrderNotice } from './orderNotice';
 import { coordinationProcess } from '../screens/requests/requestProcessFixtures';
+import { createClickTraceStore } from './qaNotificationClickTraceStore.js';
 import { statusViewFor } from '../screens/requests/requestStatusGrouping';
 
 const origin = 'https://zipco.test';
@@ -20,6 +21,7 @@ function memoryCaches() {
       match: async (request: Request | string) => store.get(key(request))?.clone(),
       put: async (request: Request | string, response: Response) => { store.set(key(request), response.clone()); },
       delete: async (request: Request | string) => store.delete(key(request)),
+      keys: async () => [...store.keys()].map(value => new Request(value)),
     };
   } };
 }
@@ -62,6 +64,42 @@ function domHarness() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('system presentation and explicit notification navigation', () => {
+  it('keeps push diagnostics alive until stored and reads them after a worker restart',async()=>{
+    const cache=memoryCaches();
+    let release!:()=>void; const gate=new Promise<void>(resolve=>release=resolve);
+    const store=createClickTraceStore('worker','a'.repeat(40),origin,cache);
+    const trace={...store,record:(...args:any[])=>gate.then(()=>store.record(...args))};
+    const sw=worker('iPhone',[],cache,trace);
+    let settled=false;
+    const work=sw.fire('push',{data:{json:()=>({orderId:91,tag:'order-91-availability-17',url:'/?open=requests-customer&orderId=91',title:'Synthetic confirmation'})}}).then(()=>{settled=true;});
+    await vi.waitFor(()=>expect(sw.registration.showNotification).toHaveBeenCalledOnce());
+    expect(settled).toBe(false);
+    const [title,options]=sw.registration.showNotification.mock.calls[0];
+    expect(title).toBe(`QA ${options.data.qaTraceId.slice(0,8)} · Synthetic confirmation`);
+    expect(options.data.qaRevision).toBe('notification-click-attempt-v10');
+    release();await work;
+    const report=await createClickTraceStore('worker','b'.repeat(40),origin,cache).read();
+    expect(report.storageAvailable).toBe(true);
+    expect(report.entries.map((r:any)=>r.stage)).toEqual(['push-received','system-shown']);
+    expect(report.entries.every((r:any)=>r.correlationId===options.data.qaTraceId)).toBe(true);
+  });
+  it.each(['close','normalize'])('persists early click failure at %s before completing the event',async where=>{
+    const cache=memoryCaches(),trace=createClickTraceStore('worker','a'.repeat(40),origin,cache),sw=worker('iPhone',[],cache,trace);
+    const token='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const work=sw.fire('notificationclick',{notification:{data:{qaTraceId:token,url:where==='normalize'?'http://[':'/?open=requests-customer&orderId=91'},close(){if(where==='close')throw Error('private-details');}}});
+    await expect(work).rejects.toThrow();
+    const report=await createClickTraceStore('worker','b'.repeat(40),origin,cache).read();
+    expect(report.entries.map((r:any)=>r.stage)).toEqual(['click-received','click-failed']);
+    expect(report.entries.every((r:any)=>r.correlationId===token)).toBe(true);
+    expect(JSON.stringify(report)).not.toMatch(/private-details|orderId|order-91|http:\/\/\[/);
+  });
+  it('does not add a QA banner marker or metadata when tracing is disabled',async()=>{
+    const sw=worker('iPhone');
+    await sw.fire('push',{data:{json:()=>({title:'Synthetic confirmation',url:'/?open=requests-customer&orderId=91'})}});
+    const [title,options]=sw.registration.showNotification.mock.calls[0];
+    expect(title).toBe('Synthetic confirmation');
+    expect(options.data).not.toHaveProperty('qaTraceId');expect(options.data).not.toHaveProperty('qaBuild');
+  });
   it.each(['customer','business'])('recognizes real availability payload and opens the exact %s destination',async view=>{
     const url=`/?open=requests-${view}&orderId=91`,tag='order-91-availability-42',key=`requests-${view}:${tag}`;
     const sw=worker('iPhone');
@@ -132,7 +170,7 @@ describe('system presentation and explicit notification navigation', () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v9', build: null, traceEnabled: false });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v10', build: null, traceEnabled: false });
   });
 
   it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {

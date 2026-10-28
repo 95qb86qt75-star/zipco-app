@@ -1,7 +1,26 @@
-// Click revision: notification-click-attempt-v9. Navigation behavior from direct-v3 retained.
-const notificationWorkerRevision = 'notification-click-attempt-v9';
+// Click revision: notification-click-attempt-v10. Existing navigation retained.
+const notificationWorkerRevision = 'notification-click-attempt-v10';
+let traceWrites = Promise.resolve();
+const eventCorrelations = new WeakMap();
 const traceClick = (stage, flags, correlationId) => {
-  try { void self.zipcoQaClickTrace?.record(stage, { ...flags, ...(correlationId ? { correlationId } : {}) }); } catch { /* QA only, best effort. */ }
+  try {
+    const write = Promise.resolve(self.zipcoQaClickTrace?.record(stage, { ...flags, ...(correlationId ? { correlationId } : {}) })).catch(() => {});
+    traceWrites = Promise.all([traceWrites, write]).then(() => {});
+    return write;
+  } catch { return Promise.resolve(); }
+};
+// Invoke the handler synchronously (including Apple's user-activated openWindow).
+// Both early throws and late failures keep diagnostic writes in the event lifetime.
+const tracedEvent = (failureStage, handler) => event => {
+  let work;
+  try { work = handler(event); } catch (error) { work = Promise.reject(error); }
+  event.waitUntil(Promise.resolve(work).catch(error => {
+    traceClick(failureStage, { hasError: true }, eventCorrelations.get(event) || safeQaToken(event.notification?.data?.qaTraceId));
+    throw error;
+  }).finally(async () => {
+    await traceWrites;
+    try { await self.zipcoQaClickTrace?.flush?.(); } catch { /* Never change navigation for diagnostic storage. */ }
+  }));
 };
 // Same semantic-key mapping/schema as notificationDelivery.ts. Existing backend
 // tags distinguish acceptance from ready and later events on the same order.
@@ -51,8 +70,9 @@ const rememberSystemPresentation = (key) => {
   return presentationWrites.catch(() => {});
 };
 
-self.addEventListener("push", (event) => {
+self.addEventListener("push", tracedEvent('push-failed', (event) => {
   const correlationId=qaToken();
+  if(correlationId)eventCorrelations.set(event,correlationId);
   traceClick('push-received', {}, correlationId);
   let data = {};
   try {
@@ -60,7 +80,7 @@ self.addEventListener("push", (event) => {
   } catch {
     data = {};
   }
-  const title = data.title || "ZIPCO";
+  const title = (correlationId ? `QA ${correlationId.slice(0,8)} · ` : '') + (data.title || "ZIPCO");
   const options = {
     body: data.body || "Tienes una nueva notificacion.",
     icon: "/icon-192.png",
@@ -69,7 +89,7 @@ self.addEventListener("push", (event) => {
     renotify: false,
     data: {
       url: data.url || "/",
-      ...(correlationId?{qaTraceId:correlationId}:{}),
+      ...(correlationId?{qaTraceId:correlationId,qaBuild:self.zipcoQaClickTrace.build,qaRevision:notificationWorkerRevision}:{}),
       orderId: data.orderId,
       quoteId: data.quoteId,
       eventKey: systemEventKey(data),
@@ -77,8 +97,7 @@ self.addEventListener("push", (event) => {
       eventType: data.type==='order-late-initial-event'?data.eventType:undefined,
     },
   };
-  event.waitUntil(
-    (async () => {
+  return (async () => {
       const clients = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
@@ -100,9 +119,8 @@ self.addEventListener("push", (event) => {
       traceClick('system-shown', { hasEvent: !!options.data.eventKey }, correlationId);
       await rememberSystemPresentation(options.data.eventKey);
       clients.forEach((client) => client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: options.data.eventKey }));
-    })(),
-  );
-});
+    })();
+}));
 
 let pendingNavigationTarget = null;
 let clickSequence = 0;
@@ -149,26 +167,23 @@ const normalizeNotificationTarget = (notificationData = {}) => {
   return targetUrl;
 };
 
-self.addEventListener("message", (event) => {
+self.addEventListener("message", tracedEvent('worker-message-failed', (event) => {
   if (event.data?.type === 'ZIPCO_NOTIFICATION_WORKER_VERSION') {
     event.ports?.[0]?.postMessage({ revision: notificationWorkerRevision,
       build: self.zipcoQaClickTrace?.build ?? null, traceEnabled: !!self.zipcoQaClickTrace });
     return;
   }
   if (event.data?.type === 'ZIPCO_QA_CLICK_TRACE_READ' && self.zipcoQaClickTrace) {
-    event.waitUntil(self.zipcoQaClickTrace.read().then((result) => event.ports?.[0]?.postMessage(result)));
-    return;
+    return traceWrites.then(() => self.zipcoQaClickTrace.read()).then((result) => event.ports?.[0]?.postMessage(result));
   }
   if (event.data?.type === 'ZIPCO_QA_CLICK_TRACE_CLEAR' && self.zipcoQaClickTrace) {
-    event.waitUntil(self.zipcoQaClickTrace.clear().then((cleared) => event.ports?.[0]?.postMessage({ cleared })));
-    return;
+    return self.zipcoQaClickTrace.clear().then((cleared) => event.ports?.[0]?.postMessage({ cleared }));
   }
   if (event.data?.type === "ZIPCO_NOTIFICATION_NAVIGATED") {
     const acknowledgedUrl = event.data.url;
     if (typeof acknowledgedUrl !== 'string') return;
     traceClick('ack-received', { hasTarget: !!pendingNavigationTarget });
-    event.waitUntil(
-      updateNavigation(async () => {
+    return updateNavigation(async () => {
         try {
           const navigationCache = await caches.open(
             "zipco-notification-navigation-v1",
@@ -189,20 +204,18 @@ self.addEventListener("message", (event) => {
         } catch {
           // Keep the destination pending if acknowledgement cannot be persisted.
         }
-      }),
-    );
-    return;
+      });
   }
   if (
     event.data?.type === "ZIPCO_REQUEST_NOTIFICATION_TARGET" &&
     event.source
   ) {
     traceClick('worker-target-request', { hasTarget: !!pendingNavigationTarget });
-    event.waitUntil(sendPendingNavigation(event.source));
+    return sendPendingNavigation(event.source);
   }
-});
+}));
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", tracedEvent('click-failed', (event) => {
   const correlationId=self.zipcoQaClickTrace?safeQaToken(event.notification.data?.qaTraceId):null;
   traceClick('click-received', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey }, correlationId);
   event.notification.close();
@@ -248,7 +261,7 @@ self.addEventListener("notificationclick", (event) => {
       traceClick('target-saved', {}, correlationId);
     } catch { traceClick('target-save-failed', {}, correlationId); /* Direct launch/messages remain available without Cache API. */ }
   });
-  event.waitUntil(Promise.all([
+  return Promise.all([
     rememberSystemPresentation(eventKey),
     persistTarget,
     (async () => {
@@ -356,5 +369,5 @@ self.addEventListener("notificationclick", (event) => {
       }
       return self.clients.openWindow(appleLaunchTarget || target);
     })(),
-  ]));
-});
+  ]);
+}));
