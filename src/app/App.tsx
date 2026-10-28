@@ -66,6 +66,7 @@ import type { CatalogItem } from "./screens/profile/business-config/types";
 import BusinessNotificationMonitor from "./notifications/BusinessNotificationMonitor";
 import { createNotificationNavigation, parseNotificationTarget } from './notifications/notificationNavigation';
 import { traceNotificationClick } from './notifications/notificationClickTrace';
+import { createQaPushObservationAcks } from './notifications/qaPushObservationAcks';
 import { rememberOpenedPresentation, noticeMatchesPresentation, noticeWasPresented, deliverUnpresentedNotice } from './notifications/notificationDelivery';
 import {
   disablePushNotifications,
@@ -185,6 +186,8 @@ export default function App() {
   const requestsRoute = useRef(activeTab === 'requests');
   requestsRoute.current = activeTab === 'requests';
   const notificationNavigation = useRef<ReturnType<typeof createNotificationNavigation> | null>(null);
+  const observationAcks = useRef<ReturnType<typeof createQaPushObservationAcks> | null>(null);
+  if (import.meta.env.QA_NOTIFICATION_TRACE && !observationAcks.current) observationAcks.current = createQaPushObservationAcks(window.location.origin);
   if (!notificationNavigation.current) {
     notificationNavigation.current = createNotificationNavigation(window.location.origin);
     notificationNavigation.current.receive(window.location.href);
@@ -223,6 +226,7 @@ export default function App() {
     setActiveTab("requests");
     setRequestsNavigationKey((current) => current + 1);
     if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('app-target-accepted');
+    if (import.meta.env.QA_NOTIFICATION_TRACE) observationAcks.current?.accepted(target.url);
   }, []);
 
   const completeNotificationTarget = useCallback((value: string) => {
@@ -230,6 +234,7 @@ export default function App() {
     const target = notificationNavigation.current!.complete(value);
     if (!target) return;
     if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('app-target-ack');
+    if (import.meta.env.QA_NOTIFICATION_TRACE) observationAcks.current?.focused(target.url);
     acknowledgeNotificationTarget(target.url);
     const current = parseNotificationTarget(window.location.href, window.location.origin);
     if (current?.identity === target.identity) window.history.replaceState({}, '', '/');
@@ -256,6 +261,7 @@ export default function App() {
     if (isRegistrationComplete && hasStoredSession() && notificationNavigation.current?.pending) {
       setCurrentScreen('home');
       setActiveTab('requests');
+      if (import.meta.env.QA_NOTIFICATION_TRACE) observationAcks.current?.accepted(notificationNavigation.current.pending.url);
     }
   }, [isRegistrationComplete]);
 
@@ -336,6 +342,7 @@ export default function App() {
   }, [currentLocation]);
 
   const handleLogout = useCallback(() => {
+    if (import.meta.env.QA_NOTIFICATION_TRACE) observationAcks.current?.clear();
     const token = localStorage.getItem("zipco-token");
     if (token) void disablePushNotifications(token).catch(() => undefined);
     localStorage.removeItem("zipco-token");
@@ -354,7 +361,7 @@ export default function App() {
 
   useEffect(() => {
     const handleNotificationNavigation = (event: MessageEvent) => {
-      const data = event.data as { type?: string; url?: string; eventKey?: string } | null;
+      const data = event.data as { type?: string; url?: string; eventKey?: string; qaObservationAck?: unknown } | null;
       if (data?.type === 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED' && typeof data.eventKey === 'string') {
         if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('app-system-presented', { hasEvent: true });
         rememberOpenedPresentation(data.eventKey);
@@ -367,6 +374,7 @@ export default function App() {
       )
         return;
       if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('app-worker-target');
+      if (import.meta.env.QA_NOTIFICATION_TRACE) observationAcks.current?.receive(data.url, data.qaObservationAck, event.source);
       openNotificationTarget(data.url);
     };
     navigator.serviceWorker?.addEventListener(

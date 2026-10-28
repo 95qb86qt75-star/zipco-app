@@ -23,7 +23,7 @@ export function startClickTrace() {
   const probe = () => {
     void readNotificationWorkerIdentity().then((identity) => recordClickTrace('worker-probe', {
       hasController: !!navigator.serviceWorker?.controller,
-      revisionMatches: identity.revision === 'notification-click-attempt-v10', buildMatches: identity.build === build,
+      revisionMatches: identity.revision === 'notification-click-attempt-v11', buildMatches: identity.build === build,
     }));
   };
   const flags = () => ({ hasTarget: !!parseNotificationTarget(window.location.href, window.location.origin),

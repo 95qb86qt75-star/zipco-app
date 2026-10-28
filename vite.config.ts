@@ -47,6 +47,9 @@ export default defineConfig(({ mode }) => {
         const shared = readFileSync(path.resolve(__dirname, 'src/app/notifications/qaNotificationClickTraceStore.js'), 'utf8').replace(/^export /gm, '');
         this.emitFile({ type: 'asset', fileName: 'qa-notification-click-trace.js', source:
           `(() => {\n${shared}\nself.zipcoQaClickTrace = createClickTraceStore('worker', ${JSON.stringify(diagnosticVersion)}, self.location.origin, caches);\n})();` });
+        const observation = readFileSync(path.resolve(__dirname, 'src/app/notifications/qaPushObservationWorker.js'), 'utf8').replace(/^export /gm, '');
+        this.emitFile({ type: 'asset', fileName: 'qa-push-observation.js', source:
+          `(() => {\n${observation}\nself.zipcoQaPushObservation = createQaPushObservationWorker({ workerBuild: ${JSON.stringify(diagnosticVersion)}, workerRevision: 'notification-click-attempt-v11', fetch: (...args) => self.fetch(...args), crypto: self.crypto });\n})();` });
       },
     }] : []),
     figmaAssetResolver(),
@@ -63,7 +66,7 @@ export default defineConfig(({ mode }) => {
         skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,png,svg}'],
-        importScripts: [...(clickTrace ? ['qa-notification-click-trace.js'] : []), 'push-sw.js'],
+        importScripts: [...(clickTrace ? ['qa-notification-click-trace.js', 'qa-push-observation.js'] : []), 'push-sw.js'],
       },
     }),
   ],

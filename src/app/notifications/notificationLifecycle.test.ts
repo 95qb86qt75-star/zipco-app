@@ -76,7 +76,7 @@ describe('system presentation and explicit notification navigation', () => {
     expect(settled).toBe(false);
     const [title,options]=sw.registration.showNotification.mock.calls[0];
     expect(title).toBe(`QA ${options.data.qaTraceId.slice(0,8)} · Synthetic confirmation`);
-    expect(options.data.qaRevision).toBe('notification-click-attempt-v10');
+    expect(options.data.qaRevision).toBe('notification-click-attempt-v11');
     release();await work;
     const report=await createClickTraceStore('worker','b'.repeat(40),origin,cache).read();
     expect(report.storageAvailable).toBe(true);
@@ -170,7 +170,7 @@ describe('system presentation and explicit notification navigation', () => {
     const sw = worker('iPhone');
     const reply = vi.fn();
     await sw.fire('message', { data: { type: 'ZIPCO_NOTIFICATION_WORKER_VERSION' }, ports: [{ postMessage: reply }] });
-    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v10', build: null, traceEnabled: false });
+    expect(reply).toHaveBeenCalledExactlyOnceWith({ revision: 'notification-click-attempt-v11', build: null, traceEnabled: false });
   });
 
   it('records worker click checkpoints without passing identifiers or notification bodies to the trace', async () => {
