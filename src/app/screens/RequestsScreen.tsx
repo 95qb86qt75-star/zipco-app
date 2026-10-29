@@ -4,7 +4,7 @@ import useReadyTransitions from './requests/useReadyTransitions';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
 import DealSuccessHost from './requests/DealSuccess';
-import { ActionHologram } from './requests/ActionHologram';
+import { ActionHologram, announceAction } from './requests/ActionHologram';
 import { WhatsappReturnTracker } from './requests/whatsappReturn';
 import AcceptedProposalHost from './requests/AcceptedProposalHost';
 import { useEffect, useState } from "react";
@@ -98,6 +98,7 @@ export default function RequestsScreen({
       const detail=(event as CustomEvent).detail;
       if(!detail||typeof detail.business!=='boolean'||!['pending','waiting','active','coordination','history'].includes(detail.view)||
         (detail.business?'my-business':'my-orders')!==subTab)return;
+      if (!detail.business && detail.view === 'history') return;
       setStatusViews(current=>({...current,[`${subTab}-orders`]:detail.view}));
     };
     window.addEventListener('zipco-availability-view',navigate);
@@ -432,7 +433,7 @@ export default function RequestsScreen({
     if (status === "declined") {
       setActiveTransfer({
         title: "Propuesta rechazada",
-        description: "Avisamos al negocio sobre tu decisión.",
+        description: "La solicitud se conservará en Historial.",
       });
       const [changed] = await Promise.all([
         quotes.changeStatus(quote, status, reason, detail),
@@ -441,14 +442,14 @@ export default function RequestsScreen({
         ),
       ]);
       setActiveTransfer(null);
-      if (changed)
+      if (changed && subTab === 'my-business')
         setStatusViews((current) => ({ ...current, [viewKey]: "history" }));
       return;
     }
     const changed = await quotes.changeStatus(quote, status, reason, detail);
     if (!changed) return;
     const nextView = statusViewFor("quotes", status);
-    if (nextView)
+    if (nextView && !(subTab === 'my-orders' && nextView === 'history'))
       setStatusViews((current) => ({ ...current, [viewKey]: nextView }));
   };
   const completeCustomerOrder = async (
@@ -523,6 +524,13 @@ export default function RequestsScreen({
       const terminal = receipt.orderStatus === 'rejected' ? isPendingRequestRejected(process) : subTab === 'my-orders' && isPendingRequestCancelled(process);
       if (!process || !terminal || !orderRecords.some(order =>
         order.id === receipt.orderId && order.requestProcess?.id === process.id && order.requestProcess.version <= process.version)) return;
+      if (subTab === 'my-orders') {
+        if (receipt.orderStatus === 'cancelled') announceAction('annulled', {
+          title: 'Solicitud anulada', description: 'La solicitud quedó en Historial.',
+          key: `customer-cancel:${process.id}:${process.version}`,
+        });
+        return;
+      }
       setAttentionFilter('browse');
       setStatusViews(current => ({ ...current, [`${subTab}-orders`]: 'history' }));
       setHistoryFilters(current => ({ ...current, [`${subTab}-orders`]: 'all' }));
@@ -1412,7 +1420,7 @@ export default function RequestsScreen({
                           : action === "reject-alternative"
                             ? {
                                 title: "Propuesta rechazada",
-                                description: `Avisamos a ${order.businessName} sobre tu decisión.`,
+                                description: 'La solicitud se conservará en Historial.',
                               }
                             : null;
                       if (transfer) setActiveTransfer(transfer);
@@ -1434,10 +1442,10 @@ export default function RequestsScreen({
                           : Promise.resolve(),
                       ]);
                       if (transfer) setActiveTransfer(null);
-                      const next = action === "cancel" ? "history" : "active";
+                      if (action === 'cancel' || action === 'reject-alternative') return;
                       setStatusViews((current) => ({
                         ...current,
-                        [viewKey]: next,
+                        [viewKey]: 'active',
                       }));
                     }}
                     emptyTitle={emptyCopy.title}

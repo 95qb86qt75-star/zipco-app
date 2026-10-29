@@ -384,6 +384,11 @@ export default function useRequests(onSessionExpired: () => void) {
               description: "Lo guardamos en tu Historial.",
               durationMs: 7000,
             });
+          } else if (actor === 'customer' && ['cancel', 'reject-alternative'].includes(action)) {
+            showAppToast('', 'success', {
+              title: action === 'cancel' ? 'Solicitud anulada' : 'Propuesta rechazada',
+              description: 'La solicitud quedó en Historial.',
+            });
           } else if (!ownBusinessFeedback) {
             showAppToast("Pedido actualizado correctamente.");
           }

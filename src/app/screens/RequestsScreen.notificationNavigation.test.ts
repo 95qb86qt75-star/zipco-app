@@ -132,28 +132,55 @@ it('keeps the existing success hologram visible when a sent alternative leaves t
 });
 
 describe('confirmed pending cancellation destination', () => {
-  it.each(['customer', 'business'])('keeps confirmed rejection in %s history after failed read', view => {
+  it.each(['customer', 'business'])('preserves the %s category policy after confirmed rejection and a failed read', view => {
     hooks.loading = false; window.location.search = `?open=requests-${view}`;
     hooks.orders = normalizeMyOrdersPayload([rejectPendingOrder]); render();
     window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: rejectedPendingReceipt }));
     hooks.orders = normalizeMyOrdersPayload([rejectedPendingOrder]); hooks.error = 'Read failed';
     const result = render();
-    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('history');
+    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe(view === 'customer' ? 'pending' : 'history');
+    if (view === 'customer') {
+      nodes(result).find(node => node.type === RequestStatusTab && node.props.item.key === 'history')!.props.onSelect();
+      const history = render();
+      expect(nodes(history).find(node => node.type === OrderHistoryList)?.props.orders[0].status).toBe('rejected');
+      return;
+    }
     expect(nodes(result).find(node => node.type === OrderHistoryList)?.props.orders[0].status).toBe('rejected');
     expect(nodes(result).some(node => typeof node.props.children === 'string' && node.props.children.includes('El rechazo está confirmado.'))).toBe(true);
     expect(hooks.action).not.toHaveBeenCalled();
   });
-  it('selects Historial after the confirmed receipt and keeps it visible if the following read fails', () => {
+  it.each(['pending','waiting','active'])('keeps the customer in %s after confirmed cancellation and permits manual Historial even if refresh fails', (view) => {
+    window.location.search=`?open=requests-customer&view=${view}`;
     hooks.loading = false; hooks.orders = normalizeMyOrdersPayload([cancelPendingOrder]);
+    const announced=vi.fn();window.addEventListener('zipco-action-hologram',announced);
     render();
     window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: cancelledPendingReceipt }));
     // useRequests applies this same confirmed receipt even when the subsequent GET fails.
     hooks.orders = normalizeMyOrdersPayload([cancelledPendingOrder]); hooks.error = 'Read failed';
     const result = render();
-    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('history');
-    expect(nodes(result).find(node => node.type === OrderHistoryList)?.props.orders[0].status).toBe('cancelled');
-    expect(nodes(result).some(node => typeof node.props.children === 'string' && node.props.children.includes('La anulación está confirmada.'))).toBe(true);
+    expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe(view);
+    expect(announced).toHaveBeenCalledWith(expect.objectContaining({detail:expect.objectContaining({description:'La solicitud quedó en Historial.'})}));
+    nodes(result).find(node => node.type === RequestStatusTab && node.props.item.key === 'history')!.props.onSelect();
+    const history=render();
+    expect(nodes(history).find(node => node.type === OrderHistoryList)?.props.orders[0].status).toBe('cancelled');
+    expect(nodes(history).some(node => typeof node.props.children === 'string' && node.props.children.includes('La anulación está confirmada.'))).toBe(true);
     expect(hooks.action).not.toHaveBeenCalled();
+  });
+
+  it.each(['pending','waiting','active'])('keeps %s when a customer availability/late closure requests Historial', view=>{
+    window.location.search=`?open=requests-customer&view=${view}`;hooks.loading=false;render();
+    window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business:false,view:'history'}}));
+    expect(nodes(render()).find(node=>node.type===RequestStatusTab&&node.props.selected)?.props.item.key).toBe(view);
+    // Continuing a request still follows its existing positive path.
+    window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business:false,view:'active'}}));
+    expect(nodes(render()).find(node=>node.type===RequestStatusTab&&node.props.selected)?.props.item.key).toBe('active');
+  });
+  it('keeps the selected category after a legacy customer cancellation',async()=>{
+    hooks.loading=false;hooks.orders=normalizeMyOrdersPayload([{...rawOrder}]);
+    const result=render();const tab=nodes(result).find(node=>node.type===MyOrdersTab)!;
+    await tab.props.onAction(hooks.orders[0],'cancel');
+    expect(nodes(render()).find(node=>node.type===RequestStatusTab&&node.props.selected)?.props.item.key).toBe('pending');
+    expect(hooks.action).toHaveBeenCalledOnce();
   });
 
   it('does not navigate for a mismatched receipt or in the business view', () => {
