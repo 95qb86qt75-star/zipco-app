@@ -83,15 +83,36 @@ describe('system presentation and explicit notification navigation', () => {
     expect(report.entries.map((r:any)=>r.stage)).toEqual(['push-received','system-shown']);
     expect(report.entries.every((r:any)=>r.correlationId===options.data.qaTraceId)).toBe(true);
   });
-  it.each(['close','normalize'])('persists early click failure at %s before completing the event',async where=>{
+  it('persists entry and a normalization failure before completing the event',async()=>{
     const cache=memoryCaches(),trace=createClickTraceStore('worker','a'.repeat(40),origin,cache),sw=worker('iPhone',[],cache,trace);
     const token='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-    const work=sw.fire('notificationclick',{notification:{data:{qaTraceId:token,url:where==='normalize'?'http://[':'/?open=requests-customer&orderId=91'},close(){if(where==='close')throw Error('private-details');}}});
+    const work=sw.fire('notificationclick',{notification:{data:{qaTraceId:token,url:'http://['},close(){}}});
     await expect(work).rejects.toThrow();
     const report=await createClickTraceStore('worker','b'.repeat(40),origin,cache).read();
-    expect(report.entries.map((r:any)=>r.stage)).toEqual(['click-received','click-failed']);
-    expect(report.entries.every((r:any)=>r.correlationId===token)).toBe(true);
+    expect(report.entries.map((r:any)=>r.stage)).toEqual(['click-entered','click-received','click-failed']);
+    expect(report.entries.filter((r:any)=>r.stage!=='click-entered').every((r:any)=>r.correlationId===token)).toBe(true);
     expect(JSON.stringify(report)).not.toMatch(/private-details|orderId|order-91|http:\/\/\[/);
+  });
+  it.each(['clears','throws'])('opens the captured destination when closing the notification %s',async mode=>{
+    const sw=worker('iPhone');
+    let reads=0;
+    const notification={tag:'order-91-availability-17',get data(){reads++;return {url:'/?open=requests-customer&orderId=91'};},close(){
+      if(mode==='throws')throw Error('private-close');
+      Object.defineProperty(notification,'data',{get(){throw Error('data-after-close');}});
+    }};
+    await sw.fire('notificationclick',{notification});
+    expect(reads).toBe(1);
+    const target=parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0],origin)!;
+    expect(new URL(target.url,origin).searchParams.get('orderId')).toBe('91');
+    expect(target.eventKey).toBe('requests-customer:order-91-availability-17');
+  });
+  it('records handler entry when Notification.data cannot be read, without attributing a destination',async()=>{
+    const trace={record:vi.fn()},sw=worker('iPhone',[],memoryCaches(),trace);
+    await sw.fire('notificationclick',{notification:{get data(){throw Error('private-data');},close(){}}});
+    expect(trace.record.mock.calls[0][0]).toBe('click-entered');
+    expect(trace.record.mock.calls.find(([stage])=>stage==='click-received')?.[1]).toMatchObject({hasTarget:false,hasError:true});
+    expect(parseNotificationTarget(sw.clients.openWindow.mock.calls[0][0],origin)).toBeNull();
+    expect(JSON.stringify(trace.record.mock.calls)).not.toContain('private-data');
   });
   it('does not add a QA banner marker or metadata when tracing is disabled',async()=>{
     const sw=worker('iPhone');

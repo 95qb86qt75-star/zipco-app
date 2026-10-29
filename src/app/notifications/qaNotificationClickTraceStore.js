@@ -3,7 +3,7 @@ export const CLICK_TRACE_CACHE = 'zipco-qa-click-trace-v2';
 export const CLICK_TRACE_LIMIT = 50;
 export const CLICK_TRACE_TTL = 60 * 60 * 1000;
 export const CLICK_TRACE_STAGES = new Set([
-  'push-received', 'system-shown', 'click-received', 'target-normalized',
+  'push-received', 'system-shown', 'click-entered', 'click-received', 'target-normalized',
   'launch-requested', 'launch-returned', 'launch-failed', 'windows-found',
   'navigation-posted', 'target-saved', 'target-save-failed', 'worker-target-request',
   'worker-target-sent', 'ack-received', 'ack-consumed', 'ack-mismatch',

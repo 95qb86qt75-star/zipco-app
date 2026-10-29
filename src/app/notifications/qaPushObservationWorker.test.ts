@@ -84,8 +84,16 @@ describe('worker v11 integration without storage dependency',()=>{
     const work=sw.fire('notificationclick',{notification:{data:{url,qaObservation:block()},tag:'order-91-availability-17',close(){}}});
     expect(sw.launches).toHaveLength(1);await vi.advanceTimersByTimeAsync(1501);await work;expect(send).toHaveBeenCalled();
     const successful=create(),broken=worker(successful.remote);
-    await expect(broken.fire('notificationclick',{notification:{data:{url,qaObservation:block()},close(){throw Error('private');}}})).rejects.toThrow();
+    await expect(broken.fire('notificationclick',{notification:{data:{url:'http://[',qaObservation:block()},close(){}}})).rejects.toThrow();
     expect(successful.send.mock.calls.map(([,r])=>JSON.parse(r.body).stage)).toEqual(['CLICK_RECEIVED','CLICK_FAILED']);
+  });
+  it.each(['begin','report','bind','metadata','posted','flush'])('continues navigation if the optional %s helper throws synchronously',async method=>{
+    const sw=worker({[method](){throw Error('private-diagnostic');}},true);
+    await expect(sw.fire('notificationclick',{notification:{data:{url,qaObservation:block()},tag:'order-91-availability-17',close(){}}})).resolves.toBeDefined();
+    expect(sw.launches).toHaveLength(1);
+    expect(new URL(sw.launches[0]).searchParams.get('orderId')).toBe('91');
+    expect(sw.posted.some(p=>p.type==='ZIPCO_NOTIFICATION_NAVIGATE')).toBe(true);
+    expect(JSON.stringify(sw.posted)).not.toContain(receipt);
   });
   it('removes the entire private block when forwarding a foreground push',async()=>{
     // The non-Apple branch forwards data; run that source with a synthetic UA.

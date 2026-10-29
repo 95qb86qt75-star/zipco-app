@@ -1,5 +1,10 @@
 // Click revision: notification-click-attempt-v11. Existing navigation retained.
 const notificationWorkerRevision = 'notification-click-attempt-v11';
+// Optional diagnostics must never prevent delivery of a commercial destination.
+const observe = (method, ...args) => {
+  try { return self.zipcoQaPushObservation?.[method]?.(...args); }
+  catch { return undefined; }
+};
 let traceWrites = Promise.resolve();
 const eventCorrelations = new WeakMap();
 const traceClick = (stage, flags, correlationId) => {
@@ -15,11 +20,11 @@ const tracedEvent = (failureStage, handler) => event => {
   let work;
   try { work = handler(event); } catch (error) { work = Promise.reject(error); }
   event.waitUntil(Promise.resolve(work).catch(error => {
-    self.zipcoQaPushObservation?.failed(event);
-    traceClick(failureStage, { hasError: true }, eventCorrelations.get(event) || safeQaToken(event.notification?.data?.qaTraceId));
+    observe('failed', event);
+    traceClick(failureStage, { hasError: true }, eventCorrelations.get(event));
     throw error;
   }).finally(async () => {
-    const remoteWrites = self.zipcoQaPushObservation?.flush(event);
+    const remoteWrites = observe('flush', event);
     await traceWrites;
     try { await self.zipcoQaClickTrace?.flush?.(); } catch { /* Never change navigation for diagnostic storage. */ }
     try { await remoteWrites; } catch { /* Remote diagnostics never fail navigation. */ }
@@ -80,11 +85,11 @@ self.addEventListener("push", tracedEvent('push-failed', (event) => {
   } catch {
     data = {};
   }
-  const observation = self.zipcoQaPushObservation?.begin(event, data?.qaObservation, 'push');
+  const observation = observe('begin', event, data?.qaObservation, 'push');
   const correlationId = observation?.block.traceId || qaToken();
   if(correlationId)eventCorrelations.set(event,correlationId);
   traceClick('push-received', {}, correlationId);
-  self.zipcoQaPushObservation?.report(event, observation, 'PUSH_RECEIVED', { hasTarget: !!data?.url, hasEvent: !!systemEventKey(data) });
+  observe('report', event, observation, 'PUSH_RECEIVED', { hasTarget: !!data?.url, hasEvent: !!systemEventKey(data) });
   // Even malformed/disabled diagnostic blocks must never reach the page.
   const { qaObservation: privateObservation, ...commercialData } = data || {};
   const title = (correlationId ? `QA ${correlationId.slice(0,8)} · ` : '') + (data.title || "ZIPCO");
@@ -125,7 +130,7 @@ self.addEventListener("push", tracedEvent('push-failed', (event) => {
       }
       await self.registration.showNotification(title, options);
       traceClick('system-shown', { hasEvent: !!options.data.eventKey }, correlationId);
-      self.zipcoQaPushObservation?.report(event, observation, 'SYSTEM_SHOWN', { hasEvent: !!options.data.eventKey, ok: true });
+      observe('report', event, observation, 'SYSTEM_SHOWN', { hasEvent: !!options.data.eventKey, ok: true });
       await rememberSystemPresentation(options.data.eventKey);
       clients.forEach((client) => client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: options.data.eventKey }));
     })();
@@ -163,8 +168,8 @@ const sendPendingNavigation = async (client, event) => {
   }
   traceClick('worker-target-sent', { hasTarget: !!url });
   if (url) {
-    client.postMessage({ type: "ZIPCO_NOTIFICATION_NAVIGATE", url, ...self.zipcoQaPushObservation?.metadata(url, client) });
-    if (event) self.zipcoQaPushObservation?.posted(event, url);
+    client.postMessage({ type: "ZIPCO_NOTIFICATION_NAVIGATE", url, ...observe('metadata', url, client) });
+    if (event) observe('posted', event, url);
   }
 };
 
@@ -181,7 +186,7 @@ const normalizeNotificationTarget = (notificationData = {}) => {
 
 self.addEventListener("message", tracedEvent('worker-message-failed', (event) => {
   if (event.data?.type === 'ZIPCO_QA_OBSERVATION_ACK') {
-    self.zipcoQaPushObservation?.acknowledge(event);
+    observe('acknowledge', event);
     return;
   }
   if (event.data?.type === 'ZIPCO_NOTIFICATION_WORKER_VERSION') {
@@ -232,26 +237,36 @@ self.addEventListener("message", tracedEvent('worker-message-failed', (event) =>
 }));
 
 self.addEventListener("notificationclick", tracedEvent('click-failed', (event) => {
-  const observation = self.zipcoQaPushObservation?.begin(event, event.notification.data?.qaObservation, 'click');
-  self.zipcoQaPushObservation?.report(event, observation, 'CLICK_RECEIVED', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey });
-  const correlationId=self.zipcoQaClickTrace?safeQaToken(event.notification.data?.qaTraceId):null;
-  traceClick('click-received', { hasTarget: !!event.notification.data?.url, hasEvent: !!event.notification.data?.eventKey }, correlationId);
-  event.notification.close();
-  const targetUrl = normalizeNotificationTarget(event.notification.data);
+  // Record entry before reading Notification.data or invoking remote helpers.
+  traceClick('click-entered');
+  let notificationData = {}, notificationTag = '', readFailed = false;
+  try {
+    const value = event.notification?.data;
+    if (value && typeof value === 'object') notificationData = { ...value };
+    notificationTag = event.notification?.tag || '';
+  } catch { readFailed = true; }
+  const correlationId=self.zipcoQaClickTrace?safeQaToken(notificationData.qaTraceId):null;
+  if (correlationId) eventCorrelations.set(event, correlationId);
+  traceClick('click-received', { hasTarget: !!notificationData.url, hasEvent: !!notificationData.eventKey, ...(readFailed ? { hasError: true } : {}) }, correlationId);
+  const observation = observe('begin', event, notificationData.qaObservation, 'click');
+  observe('report', event, observation, 'CLICK_RECEIVED', { hasTarget: !!notificationData.url, hasEvent: !!notificationData.eventKey });
+  // Closing the OS banner is best effort. Route from the captured snapshot.
+  try { event.notification?.close(); } catch { /* Continue to the associated destination. */ }
+  const targetUrl = normalizeNotificationTarget(notificationData);
   // One local navigation attempt per physical click, independent of notice
   // presentation deduplication. Retried messages/cache/launch share this ID.
   const clickId = self.crypto?.randomUUID?.() || String(Date.now()) + '-' + String(++clickSequence);
   targetUrl.searchParams.set('notificationClick', clickId);
   // Recompute from the notification tag too: an older worker may have stored
   // the coordination-prefixed identity before this event was recognized.
-  const eventKey = systemEventKey({ ...event.notification.data,
-    tag: event.notification.tag, url: targetUrl.href,
-  }) || event.notification.data?.eventKey;
+  const eventKey = systemEventKey({ ...notificationData,
+    tag: notificationTag, url: targetUrl.href,
+  }) || notificationData.eventKey;
   if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
-  self.zipcoQaPushObservation?.bind(observation, pendingNavigationTarget);
-  self.zipcoQaPushObservation?.report(event, observation, 'TARGET_NORMALIZED', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey });
+  observe('bind', observation, pendingNavigationTarget);
+  observe('report', event, observation, 'TARGET_NORMALIZED', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey });
   traceClick('target-normalized', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey }, correlationId);
   const isAppleMobile = /iPhone|iPad|iPod/i.test(self.navigator?.userAgent || '');
   let appleLaunchTarget = null;
@@ -264,7 +279,7 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
     // Invoke during notificationclick itself. Cache I/O must not consume the
     // click's activation before WebKit receives the explicit launch URL.
     traceClick('launch-requested', {}, correlationId);
-    self.zipcoQaPushObservation?.report(event, observation, 'LAUNCH_REQUESTED');
+    observe('report', event, observation, 'LAUNCH_REQUESTED');
     try { appleLaunch = Promise.resolve(self.clients.openWindow(appleLaunchTarget)).then((client) => {
       traceClick('launch-returned', { hasClient: !!client }, correlationId); return client;
     }).catch(() => { traceClick('launch-failed', {}, correlationId); return null; }); }
@@ -301,8 +316,8 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
       clients.filter((client) => new URL(client.url).origin === self.location.origin)
         .forEach((client) => {
           if (eventKey) client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey });
-          client.postMessage({ ...navigationMessage, ...self.zipcoQaPushObservation?.metadata(targetUrl.pathname + targetUrl.search, client) });
-          self.zipcoQaPushObservation?.posted(event, targetUrl.pathname + targetUrl.search);
+          client.postMessage({ ...navigationMessage, ...observe('metadata', targetUrl.pathname + targetUrl.search, client) });
+          observe('posted', event, targetUrl.pathname + targetUrl.search);
           traceClick('navigation-posted', {}, correlationId);
         });
       // WebKit can report a successful navigate() while merely resuming the
@@ -317,8 +332,8 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
           // reads the same `open`, `orderId` and `quoteId` parameters.
           const launchedClient = await appleLaunch;
           if (launchedClient) {
-            launchedClient.postMessage({ ...navigationMessage, ...self.zipcoQaPushObservation?.metadata(targetUrl.pathname + targetUrl.search, launchedClient) });
-            self.zipcoQaPushObservation?.posted(event, targetUrl.pathname + targetUrl.search);
+            launchedClient.postMessage({ ...navigationMessage, ...observe('metadata', targetUrl.pathname + targetUrl.search, launchedClient) });
+            observe('posted', event, targetUrl.pathname + targetUrl.search);
             await launchedClient.focus();
             // A freshly resumed iOS Home Screen client can be inert for a few
             // seconds. Keep notificationclick alive and retry after WebKit has
@@ -390,7 +405,7 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
         await sendPendingNavigation(client, event);
         return;
       }
-      self.zipcoQaPushObservation?.report(event, observation, 'LAUNCH_REQUESTED');
+      observe('report', event, observation, 'LAUNCH_REQUESTED');
       return self.clients.openWindow(appleLaunchTarget || target);
     })(),
   ]);

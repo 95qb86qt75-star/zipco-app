@@ -1,0 +1,958 @@
+{
+  "frontendVersion": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+  "copiedAt": 1793241775139,
+  "pageFlushCompleted": true,
+  "controllingWorker": {
+    "revision": "notification-click-attempt-v11",
+    "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+    "traceEnabled": true
+  },
+  "activeWorker": {
+    "revision": "notification-click-attempt-v11",
+    "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+    "traceEnabled": true
+  },
+  "pageContext": {
+    "standalone": true,
+    "expectedQaAlias": true
+  },
+  "registrationEnumerationAvailable": true,
+  "registrationCount": 1,
+  "registrationReports": [
+    {
+      "registrationIndex": 1,
+      "sameOrigin": true,
+      "rootScope": true,
+      "activeIsController": true,
+      "expectedActiveScript": true,
+      "notificationsAvailable": true,
+      "notificationCount": 10,
+      "notifications": [
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        }
+      ],
+      "worker": {
+        "revision": "notification-click-attempt-v11",
+        "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+        "traceEnabled": true
+      },
+      "traceReadFromController": true,
+      "additionalWorkerEntries": []
+    }
+  ],
+  "pageStorageAvailable": true,
+  "workerTraceAvailable": true,
+  "workerStorageAvailable": true,
+  "entries": [
+    {
+      "at": 1793240574038,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793241141779,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241141783,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241153774,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241153775,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241171775,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241171780,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241313622,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241313640,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241325594,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241325596,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241347629,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241347634,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241359732,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241359734,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241426998,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241427003,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241468596,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241468645,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241476053,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241476054,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241476054,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241476055,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241480580,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241480583,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241496205,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241496207,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241501159,
+      "source": "app",
+      "stage": "app-route",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241503431,
+      "source": "app",
+      "stage": "app-route",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241508208,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241508208,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241508209,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241508210,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241508482,
+      "source": "app",
+      "stage": "app-route",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241509999,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241513638,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241513646,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241515587,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241518701,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241518701,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241537574,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241537587,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241537589,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241537591,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241537594,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241537773,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241538111,
+      "source": "app",
+      "stage": "notice-delivered",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "correlationId": "d2446ddf-ead8-4fff-a6cb-01805b227e29",
+      "hasEvent": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241549574,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241549574,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241549575,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241549575,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241550932,
+      "source": "app",
+      "stage": "screen-mounted",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241550932,
+      "source": "app",
+      "stage": "app-route",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241567574,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241567574,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241567575,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241567575,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241568489,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241573224,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241573247,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241578220,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241578220,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241578221,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241578222,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241581311,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241613619,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241613622,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241613623,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241613642,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241613645,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241613651,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241625623,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241625623,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241625624,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241625624,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241643623,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241643623,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241643624,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241643625,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241659110,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241659115,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241674090,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241674094,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241680810,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241725155,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241725157,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241725159,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241725173,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241725176,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241725186,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793241737152,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241737153,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241737153,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241737157,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241755153,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241755153,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241755154,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241755155,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793241770580,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "currentContext": true
+    },
+    {
+      "at": 1793241770586,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "03f0e8b8204a4661902f74e2f45238f3ca3d3fe8",
+      "hasTarget": false,
+      "currentContext": true
+    }
+  ]
+}
