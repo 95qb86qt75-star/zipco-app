@@ -176,17 +176,17 @@ try {
     await click('.zipco-product-done');
     const folded=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');
     await tap('.zipco-avw-name');
-    const opening=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(350);
+    const opening=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(700);
     const opened=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');
     if(width===390){
       assert(opening>folded&&opening<opened,'detail opens through intermediate heights');
       await tap('.zipco-avw-name');
       await wait('!!document.querySelector(".zipco-avw[data-expanded=false]")');
       await check('[...document.querySelectorAll(".zipco-avw-reveal")].every(node=>node.inert)','exiting controls cannot receive focus or taps');
-      const closing=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(300);
+      const closing=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(700);
       assert(closing>folded&&closing<opened,'detail closes through intermediate heights');
-      await check('document.querySelectorAll(".zipco-avw-reveal").length===0','closed content unmounts');
-      await tap('.zipco-avw-name');await delay(350);
+      await check('[...document.querySelectorAll(".zipco-avw-reveal")].every(node=>node.getBoundingClientRect().height<1&&node.inert&&getComputedStyle(node).visibility==="hidden")','closed content is collapsed, hidden and inert');
+      await tap('.zipco-avw-name');await delay(700);
     }
     if(width===430){assert(Math.abs(opening-opened)<1,'reduced motion opens without animation');await send('Emulation.setEmulatedMedia',{features:[]});}
     await wait('!!document.querySelector(".zipco-avw[data-expanded=true]")');

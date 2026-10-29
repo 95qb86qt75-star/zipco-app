@@ -1,21 +1,18 @@
 import {useEffect,useRef,type ReactNode} from 'react';
-import {AnimatePresence,motion,useIsPresent,useReducedMotion} from 'motion/react';
 import {Check,Clock3,MessageCircle,ShoppingBag,Store,X} from 'lucide-react';
 import ProductPreviewControl from './ProductPreviewControl';
 import './availability-waiting.css';
 
 type Item={name:string;quantity:number;unitPrice:number};
 
-function DetailReveal({children}:{children:ReactNode}){
-  const present=useIsPresent(),reduced=useReducedMotion();
+function DetailReveal({children,expanded}:{children:ReactNode;expanded:boolean}){
   const element=useRef<HTMLDivElement>(null);
-  useEffect(()=>{if(element.current)element.current.inert=!present;},[present]);
-  return <motion.div className="zipco-avw-reveal" aria-hidden={!present}
-    ref={element}
-    initial={{height:0,opacity:0,y:reduced?0:-4}}
-    animate={{height:'auto',opacity:1,y:0}}
-    exit={{height:0,opacity:0,y:reduced?0:-4}}
-    transition={{duration:reduced ? 0 : present ? .32 : .22,ease:[.22,1,.36,1]}}>{children}</motion.div>;
+  useEffect(()=>{if(element.current)element.current.inert=!expanded;},[expanded]);
+  // Reuse the exact fold from the WhatsApp coordination card, including its
+  // reduced-motion rule. Keep closed controls hidden and inert during the fold.
+  return <div className="zipco-co-fb zipco-avw-reveal" data-folded={!expanded} aria-hidden={!expanded} ref={element}>
+    <div className="zipco-co-fb-in">{children}</div>
+  </div>;
 }
 
 /**
@@ -63,15 +60,15 @@ export default function AvailabilityWaitingCard({name,price,items,schedule,note,
           <g transform="translate(0,5)"><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></g>
         </svg>{expanded?'Ocultar detalle':'Ver detalle'}
       </span>
-      <AnimatePresence initial={false}>{expanded&&<DetailReveal key="summary"><div className="zipco-avw-detail">
+      <DetailReveal expanded={expanded}><div className="zipco-avw-detail">
         <p className="zipco-avw-summary">Confirmaste disponibilidad. El cliente debe decidir si continúa.</p>
         <div className="zipco-avw-chips">
           <span><PathIcon size={13} strokeWidth={2.4}/>{pathLabel}</span>
         </div>
         {items.map((item,index)=><p className="zipco-avw-line" key={index}><span className="q">{item.quantity}×</span><span className="n">{item.name}</span><b>${(item.quantity*item.unitPrice).toLocaleString('es-CL')}</b></p>)}
-      </div></DetailReveal>}</AnimatePresence>
+      </div></DetailReveal>
       </div>
-      <AnimatePresence initial={false}>{expanded&&<DetailReveal key="conditions">
+      <DetailReveal expanded={expanded}>
         <div className="zipco-avw-perf" aria-hidden="true"/>
         <div className="zipco-avw-bottom">
         <dl className="zipco-avw-rows">
@@ -85,7 +82,7 @@ export default function AvailabilityWaitingCard({name,price,items,schedule,note,
         {canRetire&&<p className="zipco-avw-fine">Mientras el cliente decide, puedes retirar la disponibilidad.</p>}
         {canRetire&&<button type="button" className="zipco-avw-withdraw" disabled={busy} onClick={onRetire}><X size={14} strokeWidth={2.6}/>Retirar disponibilidad</button>}
         <div className="zipco-avw-error">{error}</div>
-      </div></DetailReveal>}</AnimatePresence>
+      </div></DetailReveal>
     </div>
   </article>;
 }

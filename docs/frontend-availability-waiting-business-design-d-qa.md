@@ -37,3 +37,11 @@ Pendiente: revisión visual en los celulares actualizados con solicitudes existe
 Validación de este ajuste: 37 pruebas focalizadas de contrato/recuperación de disponibilidad y diez escenarios de navegador aprobados. Las nuevas comprobaciones miden alturas intermedias al abrir/cerrar, controles inertes durante la salida, desmontaje final y apertura inmediata con movimiento reducido a 430 px. El build QA/PWA se comprueba antes de publicar; la suite general de 1.629 pertenece al rediseño anterior, no se repite para este ajuste visual. No se afirma prueba física en teléfonos.
 
 Archivos: componente, CSS, `scripts/check-availability-flow.mjs` y esta ficha. Sin campos/endpoints nuevos ni Railway. Se entrega por rama qa y Vercel QA con SHA/Ready en el informe final; main/producción intactos y diagnóstico externo pausado.
+
+## Adaptación solicitada: mismo despliegue de Por coordinar
+
+2026-10-29. Solo frontend QA. Sustituye la transición Motion anterior por las clases existentes `zipco-co-fb` / `zipco-co-fb-in` que usa BusinessCoordinationCard al desplegar «Iniciar coordinación por WhatsApp». Así se comparte exactamente la altura por CSS Grid de 650 ms, cubic-bezier(.65,0,.25,1), desvanecimiento de 350 ms, desplazamiento de -10 px y escala .97, así como su regla reduced-motion. No se modifica la tarjeta de coordinación ni sus estilos globales.
+
+El detalle permanece montado como en la referencia; cerrado ocupa altura cero, queda oculto, aria-hidden e inert, sin aceptar foco o toques. La miniatura y el encabezado permanecen fuera del pliegue y conservan sus funciones. Sin cambios de acciones, datos, campos, endpoints o backend.
+
+Archivos actuales: `AvailabilityWaitingCard.tsx`, `scripts/check-availability-flow.mjs` y esta ficha. Diez escenarios de navegador aprobados, incluyendo alturas intermedias al abrir/cerrar, cierre oculto/inactivo y reduced-motion. Se comprueba build QA/PWA antes de publicar en rama qa/Vercel QA; no se repite la suite general para esta sustitución visual ni se afirma prueba física. Railway no es necesario; main/producción y la pausa del diagnóstico de notificaciones permanecen intactos. SHA y Ready se entregan tras verificar el despliegue.
