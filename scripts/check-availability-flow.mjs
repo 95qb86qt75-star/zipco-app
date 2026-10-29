@@ -22,7 +22,7 @@ window.flowCalls=[]; window.testDriverReady=false;
 localStorage.setItem('zipco-token','customer-test-only');
 localStorage.setItem('zipco-user-id','1');
 sessionStorage.clear();
-let state={...availabilityInitial,allowedActions:[],coordination:{customerContactAuthorized:false,businessContactAuthorized:false}};
+let state={...availabilityInitial,productPreview:{contract:'order-product-preview-v1',proposalId:123,items:[{lineIndex:0,catalogItemId:5,source:'CATALOG',name:'Producto QA',description:'Producto de prueba',quantity:1,unitPriceClp:12000,subtotalClp:12000,imageUrl:null}]},allowedActions:[],coordination:{customerContactAuthorized:false,businessContactAuthorized:false}};
 let status='pending',plan=null,proposals=[];
 let raw={id:20,businessId:5,customerName:'Cliente QA',businessName:'ZIPCO Negocio QA',products:[{name:'Producto QA',quantity:1,price:12000}],total:12000,createdAt:'2026-10-25T05:00:00.000Z',needNow:true,note:'Hola necesito esto de prueba',referencePhoto:null,deliveryDate:null,deliveryTime:null};
 function processFor(business,receipt=false){
@@ -83,11 +83,11 @@ window.fetch=async (url,init)=>{
  }else throw Error('Unexpected action '+action);
  return json({orderId:20,orderStatus:status,requestProcess:processFor(business,true)});
 };
-function Harness(){const [actor,setActor]=useState('checkout'),[revision,setRevision]=useState(0);
+function Harness(){const [actor,setActor]=useState('checkout'),[revision,setRevision]=useState(0),[expanded,setExpanded]=useState(false);
  useEffect(()=>{window.switchRole=role=>{dismissAction();localStorage.setItem('zipco-token',role==='business'?'business-test-only':'customer-test-only');localStorage.setItem('zipco-user-id',role==='business'?'2':'1');if(role==='business')localStorage.setItem('zipco-business-id','5');else localStorage.removeItem('zipco-business-id');window.dispatchEvent(new Event('zipco-session-changed'));setActor(role);};window.testDriverReady=true;},[]);
  const business=actor==='business',order=business?normalizeBusinessOrdersPayload([orderFor(true)])[0]:normalizeMyOrdersPayload([orderFor(false)])[0];
  const refresh=()=>setRevision(r=>r+1);
- return <><main style={{padding:16,paddingTop:70,minHeight:'100dvh',background:'#f1f3fa'}}>{actor==='checkout'?<div style={{height:'100dvh'}}><CheckoutScreen business={{id:5,userId:2,name:'ZIPCO Negocio QA'}} currentUserId={1} selectedProducts={[5]} products={[{id:5,businessId:5,name:'Producto QA',description:'Producto de prueba',kind:'product',pricingMode:'fixed_price',priceClp:12000,isActive:true,imageUrl:''}]} onBack={()=>{}} onOrderComplete={()=>{dismissAction();setActor('customer');}} onCatalogConflict={()=>{}} onSessionExpired={()=>{}}/></div>:state.state==='CLOSED'?<ProcessHistoryCard key={actor+'history'} order={order}/>:<ProcessOrderCard key={actor} order={order} business={business} expanded={true} onToggle={()=>{}} isUpdating={false} onRetry={refresh}/>}</main><ActionHologramHost/></>;
+ return <><main style={{padding:16,paddingTop:70,minHeight:'100dvh',background:'#f1f3fa'}}>{actor==='checkout'?<div style={{height:'100dvh'}}><CheckoutScreen business={{id:5,userId:2,name:'ZIPCO Negocio QA'}} currentUserId={1} selectedProducts={[5]} products={[{id:5,businessId:5,name:'Producto QA',description:'Producto de prueba',kind:'product',pricingMode:'fixed_price',priceClp:12000,isActive:true,imageUrl:''}]} onBack={()=>{}} onOrderComplete={()=>{dismissAction();setActor('customer');}} onCatalogConflict={()=>{}} onSessionExpired={()=>{}}/></div>:state.state==='CLOSED'?<ProcessHistoryCard key={actor+'history'} order={order}/>:<ProcessOrderCard key={actor} order={order} business={business} expanded={business&&state.state==='AWAITING_CUSTOMER_CONTINUATION'?expanded:true} onToggle={()=>setExpanded(v=>!v)} isUpdating={false} onRetry={refresh}/>}</main><ActionHologramHost/></>;
 }
 createRoot(document.getElementById('root')).render(<Harness/>);
 `;
@@ -136,7 +136,7 @@ try {
   };
   const wait = async expression => {
     for (let i = 0; i < 200; i++) { if (await evaluate(expression)) return; await delay(50); }
-    throw Error(`Timeout: ${expression}\n${JSON.stringify(exceptions)}`);
+    throw Error(`Timeout: ${expression}\n${JSON.stringify(exceptions)}\n${await evaluate('document.body.textContent')}`);
   };
   const click = async selector => { await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`); await delay(100); };
   const button = async label => { await evaluate(`(()=>{const root=document.querySelector('[role=alertdialog]')??[...document.querySelectorAll('[role=dialog]')].at(-1)??document;const b=[...root.querySelectorAll('button')].find(b=>(b.querySelector(".zipco-accept-label")?.textContent??b.textContent).trim()===${JSON.stringify(label)});if(!b)throw Error('Missing button '+${JSON.stringify(label)});b.click()})()`); await delay(100); };
@@ -155,13 +155,31 @@ try {
   await send('Runtime.enable'); await send('Network.enable');
   await send('Network.setBlockedURLs', { urls: ['https://*'] });
   const role=async value=>{await evaluate(`window.switchRole(${JSON.stringify(value)})`);await delay(250);};
-  const create=async width=>{await visit('',width);await button('Ahora');await button('Requiero este producto');await button('Enviar solicitud');await wait('document.body.textContent.includes("EN ESPERA")');await role('business');await wait('document.body.textContent.includes("NUEVO PEDIDO")');};
+  const create=async width=>{await visit('',width);await button('Ahora');await button('Requiero este producto');await button('Enviar solicitud');await wait('document.body.textContent.includes("EN ESPERA")||document.body.textContent.includes("Enviar sin verificar el horario")');if(await evaluate('document.body.textContent.includes("Enviar sin verificar el horario")'))await button('Enviar sin verificar el horario');await wait('document.body.textContent.includes("EN ESPERA")');await role('business');await wait('document.body.textContent.includes("NUEVO PEDIDO")');};
   const confirmButton=async()=>{await evaluate(`document.querySelector('.zipco-av-business-actions .zipco-accept-btn').click()`);await wait('!!document.querySelector("[role=dialog]")');};
+  const tap=async selector=>{const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);await send('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});await delay(100);};
   const results=[];
   for(const width of [320,390,430]){
     await create(width);await shot(`p3-${width}`);await confirmButton();await shot(`p4-choice-${width}`);
-    await click('.zipco-av-channel-pickup');await shot(`p4-pickup-${width}`);await button('Confirmar disponibilidad');
-    await wait('document.body.textContent.includes("Esperando respuesta del cliente")');await role('customer');await wait('document.body.textContent.includes("DISPONIBLE")');
+    await click('.zipco-av-channel-pickup');await shot(`p4-pickup-${width}`);
+    if(width!==320){await evaluate(`(()=>{const input=document.querySelector('input[placeholder="Ej.: hasta las 19:00"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(width===390?'Av. QA 123, hasta las 19:00':'Hasta las 19:00')});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);await delay(80);}
+    await button('Confirmar disponibilidad');
+    await wait('document.body.textContent.includes("Esperando al cliente")');
+    await evaluate('window.dispatchEvent(new CustomEvent("zipco-action-hologram",{detail:null}))');await delay(300);
+    await check('!!document.querySelector(".zipco-avw[data-expanded=false]")','compact business card initially collapsed');
+    await check('document.querySelector(".zipco-avw").getBoundingClientRect().height<=135','compact card height');
+    const calls=await evaluate('window.flowCalls.length');
+    await tap('.zipco-avw .zipco-product-thumb');await wait('!!document.querySelector(".zipco-product-sheet")');
+    await check('!!document.querySelector(".zipco-avw[data-expanded=false]")','product tap does not toggle card');
+    await check('document.querySelector(".zipco-product-prices").textContent.includes("Precio unitario")','unit price in existing product sheet');
+    await click('.zipco-product-done');await tap('.zipco-avw-name');
+    await wait('!!document.querySelector(".zipco-avw[data-expanded=true]")');
+    await check('document.querySelector(".zipco-avw-rows").textContent.includes("Retiro en el local")','pickup detail uses server path');
+    await check('document.querySelector(".zipco-avw-rows").textContent.includes("Dónde y cuándo")==='+(width!==320),'optional schedule/address row uses honest label');
+    await check('!document.querySelector(".zipco-avw-chips").textContent.includes("19:00")','free-form address is not advertised as a time chip');
+    await check('window.flowCalls.length==='+calls,'opening UI does not call or mutate backend');
+    await shot(`availability-waiting-pickup-${width}`);
+    await role('customer');await wait('document.body.textContent.includes("DISPONIBLE")');
     await check('![...document.querySelectorAll("a")].some(a=>a.href.includes("wa.me"))','no contact URL before agreement');await shot(`p5-pickup-${width}`);
     await check('document.documentElement.scrollWidth<=innerWidth','mobile layout');
     await button('Sí, continuar con la compra');await wait('document.body.textContent.includes("Pendiente de retiro en el local")');
@@ -176,15 +194,18 @@ try {
     await check('window.flowCalls.filter(c=>c.method==="POST").length===4','create, confirm, continue, cancel only');
     results.push(`pickup-${width}`);
   }
-  await create(390);await confirmButton();await click('.zipco-av-channel-whatsapp');await wait('document.body.textContent.includes("Esperando respuesta del cliente")');await role('customer');await wait('document.body.textContent.includes("DISPONIBLE")');await shot('p5-whatsapp');
+  await create(390);await confirmButton();await click('.zipco-av-channel-whatsapp');await wait('document.body.textContent.includes("Esperando al cliente")');
+  await evaluate('window.dispatchEvent(new CustomEvent("zipco-action-hologram",{detail:null}))');await delay(300);await tap('.zipco-avw-name');
+  await check('[...document.querySelectorAll(".zipco-avw-rows dt")].map(n=>n.textContent).join("|")==="Pedido para|Cómo continúan"','WhatsApp has no pickup-only message or schedule');await shot('availability-waiting-whatsapp');
+  await role('customer');await wait('document.body.textContent.includes("DISPONIBLE")');await shot('p5-whatsapp');
   await click('[role=switch]');await button('Sí, continuar con la compra');await wait('document.querySelector("[data-aurora-state=COORDINATION_PENDING]")!==null');
   await check('window.flowCalls.find(c=>c.url.includes("continue-request")).body.customerContactPreference.allowed===false','final consent independent');
   results.push('whatsapp-without-customer-consent');
-  await create(390);await confirmButton();await click('.zipco-av-channel-whatsapp');await wait('document.body.textContent.includes("Esperando respuesta del cliente")');await role('customer');await wait('document.body.textContent.includes("DISPONIBLE")');
+  await create(390);await confirmButton();await click('.zipco-av-channel-whatsapp');await wait('document.body.textContent.includes("Esperando al cliente")');await role('customer');await wait('document.body.textContent.includes("DISPONIBLE")');
   await button('No, gracias');await wait('!!document.querySelector("[role=alertdialog]")');await button('No, gracias');await wait('document.body.textContent.includes("El cliente decidió no continuar")');
   results.push('decline-without-agreement');
-  await create(390);await confirmButton();await click('.zipco-av-channel-whatsapp');await wait('document.body.textContent.includes("Esperando respuesta del cliente")');
-  await button('Retirar disponibilidad');await wait('!!document.querySelector("[role=alertdialog]")');await button('Retirar disponibilidad');await wait('document.body.textContent.includes("El negocio retiró la disponibilidad")');results.push('business-withdrawal');
+  await create(390);await confirmButton();await click('.zipco-av-channel-whatsapp');await wait('document.body.textContent.includes("Esperando al cliente")');
+  await click('.zipco-avw-toggle');await button('Retirar disponibilidad');await wait('!!document.querySelector("[role=alertdialog]")');await button('Retirar disponibilidad');await wait('document.body.textContent.includes("El negocio retiró la disponibilidad")');results.push('business-withdrawal');
   const fill=async(selector,value)=>{await evaluate(`(()=>{const input=document.querySelector(${JSON.stringify(selector)});if(!input)throw Error('Missing field');const setter=Object.getOwnPropertyDescriptor(input.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set;setter.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event('input',{bubbles:true}))})()`);await delay(80);};
   const draft=async(price,channel,allowsContact=false)=>{
     await wait('!!document.querySelector("[aria-label=Precio]")');await click('[aria-label=Precio]');await fill('[aria-label="Nuevo precio por unidad"]',String(price));await button('Guardar');

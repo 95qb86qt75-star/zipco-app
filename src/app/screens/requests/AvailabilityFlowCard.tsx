@@ -12,7 +12,7 @@ import OrderReferencePhoto from './OrderReferencePhoto';
 import {safePhoto} from './agreement';
 import {formatDeliverySchedule} from './utils';
 import {CUSTOMER_CONTACT_TEXT_VERSION} from '../createOrderApi';
-import {AuroraProposalHeader} from './OrderCardAurora';
+import AvailabilityWaitingCard from './AvailabilityWaitingCard';
 import {reservationFlow} from './reservationContract';
 import {simplifiedReservationFlow,isSimpleOffer} from './simplifiedReservationContract';
 import ReservationDecisionDialog from './ReservationDecisionDialog';
@@ -69,12 +69,10 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
         reservationNote={reservationNote} onReservationNote={setReservationNote}
         extraDetails={<>{order.note&&<p className="zipco-av-note">Nota: {order.note}</p>}<p className="zipco-av-schedule">{data.schedule}</p>{reference}</>}/>
       {operation.error&&<button className="mt-2 rounded-xl border p-2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>}
-    </>:<article className="zipco-aurora-card rounded-[24px] p-4">
-      <AuroraProposalHeader name={name} image={'customerImage'in order?order.customerImage:undefined} price={data.total} priceLabel="Solicitado" statusLabel="Esperando respuesta del cliente" summaryText="Confirmaste disponibilidad. El cliente debe decidir si continúa."/>
-      <button type="button" className="zipco-hide-order-detail" aria-expanded={expanded} onClick={onToggle}>{expanded?'Ocultar detalle':'Ver detalle'}</button>
-      {expanded&&<>{originalDetail}<p className="mt-3 text-sm">{plan?.path==='LOCAL_PICKUP'?'Retiro en el local':'Coordinar por WhatsApp'}</p>{plan?.customerMessage&&<p>{plan.customerMessage}</p>}{plan?.scheduleOrAddress&&<p>{plan.scheduleOrAddress}</p>}
-        {availabilityAllowed(process,true,'WITHDRAW_AVAILABILITY')&&<button type="button" className="mt-3 rounded-xl border p-2 text-sm" disabled={operation.busy} onClick={()=>setDecline(true)}>Retirar disponibilidad</button>}</>}{error}
-    </article>}
+    </>:business&&plan?<AvailabilityWaitingCard name={name} price={data.total} items={data.items} schedule={data.schedule} note={order.note} reference={reference}
+      path={plan.path} customerMessage={plan.customerMessage} scheduleOrAddress={plan.scheduleOrAddress} expanded={expanded} onToggle={onToggle} isUnread={isUnread}
+      busy={operation.busy} canRetire={availabilityAllowed(process,true,'WITHDRAW_AVAILABILITY')} onRetire={()=>setDecline(true)} error={error}/>
+      :<article className="zipco-aurora-card rounded-[24px] p-4"><p>No pudimos comprobar las condiciones de disponibilidad.</p><button type="button" onClick={refresh}>Actualizar pedido</button></article>}
     {simplifiedReservationFlow(process)&&plan?.path==='LOCAL_PICKUP'&&<ReservationDecisionDialog open={reservationDecision} onClose={()=>setReservationDecision(false)} process={process} name={name} onRefresh={()=>void operation.update()} contact={contact} onContact={setContact} busy={operation.busy} error={choiceError||operation.error||undefined} onConfirm={(reserve,note)=>{setReservationNote(note);void continueRequest(false,reserve,note);}}/>}
     <DesignConfirmation open={decline} onOpenChange={setDecline} title={business?'¿Retirar la disponibilidad?':'¿No quieres continuar con la compra?'} description="La solicitud se conservará en Historial."
       confirmLabel={business?'Retirar disponibilidad':'No, gracias'} onConfirm={()=>void closeRequest()}/>
