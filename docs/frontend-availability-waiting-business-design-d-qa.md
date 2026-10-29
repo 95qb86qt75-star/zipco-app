@@ -29,3 +29,11 @@ Campos existentes: customerName, total, products.items (name/quantity/price), ne
 - Railway no fue necesario y no se modifica. `main` conserva 8295ab8c6024ab20851ebd371308d2f299b4668f; producción intacta y documentos locales ajenos excluidos. El diagnóstico del clic externo permanece pausado, sin cambios de código de notificaciones.
 
 Pendiente: revisión visual en los celulares actualizados con solicitudes existentes y sus datos disponibles; no se requiere activación o migración backend.
+
+## Ajuste posterior: apertura y cierre suaves
+
+2026-10-29. Solo frontend QA. `AvailabilityWaitingCard.tsx` usa AnimatePresence/motion existentes para desplegar altura automática y desvanecer el detalle: apertura de 320 ms y cierre de 220 ms, sin modificar el estado expandido o las acciones. Cada sección se desmonta al terminar el cierre; mientras sale queda aria-hidden e inert para no recibir foco o clics. Con reduced-motion la duración es cero. `availability-waiting.css` recorta el contenido durante la transición; encabezado y miniatura conservan su comportamiento.
+
+Validación de este ajuste: 37 pruebas focalizadas de contrato/recuperación de disponibilidad y diez escenarios de navegador aprobados. Las nuevas comprobaciones miden alturas intermedias al abrir/cerrar, controles inertes durante la salida, desmontaje final y apertura inmediata con movimiento reducido a 430 px. El build QA/PWA se comprueba antes de publicar; la suite general de 1.629 pertenece al rediseño anterior, no se repite para este ajuste visual. No se afirma prueba física en teléfonos.
+
+Archivos: componente, CSS, `scripts/check-availability-flow.mjs` y esta ficha. Sin campos/endpoints nuevos ni Railway. Se entrega por rama qa y Vercel QA con SHA/Ready en el informe final; main/producción intactos y diagnóstico externo pausado.

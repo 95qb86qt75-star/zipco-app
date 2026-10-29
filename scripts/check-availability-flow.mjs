@@ -160,6 +160,7 @@ try {
   const tap=async selector=>{const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`);await send('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1});await delay(100);};
   const results=[];
   for(const width of [320,390,430]){
+    if(width===430)await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
     await create(width);await shot(`p3-${width}`);await confirmButton();await shot(`p4-choice-${width}`);
     await click('.zipco-av-channel-pickup');await shot(`p4-pickup-${width}`);
     if(width!==320){await evaluate(`(()=>{const input=document.querySelector('input[placeholder="Ej.: hasta las 19:00"]');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(width===390?'Av. QA 123, hasta las 19:00':'Hasta las 19:00')});input.dispatchEvent(new Event('input',{bubbles:true}));})()`);await delay(80);}
@@ -172,7 +173,22 @@ try {
     await tap('.zipco-avw .zipco-product-thumb');await wait('!!document.querySelector(".zipco-product-sheet")');
     await check('!!document.querySelector(".zipco-avw[data-expanded=false]")','product tap does not toggle card');
     await check('document.querySelector(".zipco-product-prices").textContent.includes("Precio unitario")','unit price in existing product sheet');
-    await click('.zipco-product-done');await tap('.zipco-avw-name');
+    await click('.zipco-product-done');
+    const folded=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');
+    await tap('.zipco-avw-name');
+    const opening=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(350);
+    const opened=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');
+    if(width===390){
+      assert(opening>folded&&opening<opened,'detail opens through intermediate heights');
+      await tap('.zipco-avw-name');
+      await wait('!!document.querySelector(".zipco-avw[data-expanded=false]")');
+      await check('[...document.querySelectorAll(".zipco-avw-reveal")].every(node=>node.inert)','exiting controls cannot receive focus or taps');
+      const closing=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(300);
+      assert(closing>folded&&closing<opened,'detail closes through intermediate heights');
+      await check('document.querySelectorAll(".zipco-avw-reveal").length===0','closed content unmounts');
+      await tap('.zipco-avw-name');await delay(350);
+    }
+    if(width===430){assert(Math.abs(opening-opened)<1,'reduced motion opens without animation');await send('Emulation.setEmulatedMedia',{features:[]});}
     await wait('!!document.querySelector(".zipco-avw[data-expanded=true]")');
     await check('document.querySelector(".zipco-avw-rows").textContent.includes("Retiro en el local")','pickup detail uses server path');
     await check('document.querySelector(".zipco-avw-rows").textContent.includes("Dónde y cuándo")==='+(width!==320),'optional schedule/address row uses honest label');

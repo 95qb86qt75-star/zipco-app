@@ -47,6 +47,7 @@
 @keyframes zipco-avw-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.12)}85%{transform:translateY(1px) scale(.92)}}
 @keyframes zipco-avw-wave{0%,45%{opacity:0}60%{opacity:1}100%{opacity:0}}
 /* Detalle */
+.zipco-avw-reveal{overflow:hidden;pointer-events:none}
 .zipco-avw-detail{pointer-events:none}
 .zipco-avw-summary{margin:10px 0 0;font-size:12.5px;line-height:1.35;color:#cbd5e1}
 .zipco-avw-chips{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
