@@ -8,10 +8,9 @@ type Item={name:string;quantity:number;unitPrice:number};
 function DetailReveal({children,expanded}:{children:ReactNode;expanded:boolean}){
   const element=useRef<HTMLDivElement>(null);
   useEffect(()=>{if(element.current)element.current.inert=!expanded;},[expanded]);
-  // Reuse the exact fold from the WhatsApp coordination card, including its
-  // reduced-motion rule. Keep closed controls hidden and inert during the fold.
-  return <div className="zipco-co-fb zipco-avw-reveal" data-folded={!expanded} aria-hidden={!expanded} ref={element}>
-    <div className="zipco-co-fb-in">{children}</div>
+  // One fold clips a fixed-size body: no parallel layout animations or scaled text.
+  return <div className="zipco-avw-reveal" data-folded={!expanded} aria-hidden={!expanded} ref={element}>
+    <div className="zipco-avw-reveal-inner">{children}</div>
   </div>;
 }
 
@@ -60,15 +59,14 @@ export default function AvailabilityWaitingCard({name,price,items,schedule,note,
           <g transform="translate(0,5)"><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></g>
         </svg>{expanded?'Ocultar detalle':'Ver detalle'}
       </span>
-      <DetailReveal expanded={expanded}><div className="zipco-avw-detail">
+      </div>
+      <DetailReveal expanded={expanded}><div className="zipco-avw-detail zipco-avw-detail-top">
         <p className="zipco-avw-summary">Confirmaste disponibilidad. El cliente debe decidir si continúa.</p>
         <div className="zipco-avw-chips">
           <span><PathIcon size={13} strokeWidth={2.4}/>{pathLabel}</span>
         </div>
         {items.map((item,index)=><p className="zipco-avw-line" key={index}><span className="q">{item.quantity}×</span><span className="n">{item.name}</span><b>${(item.quantity*item.unitPrice).toLocaleString('es-CL')}</b></p>)}
-      </div></DetailReveal>
       </div>
-      <DetailReveal expanded={expanded}>
         <div className="zipco-avw-perf" aria-hidden="true"/>
         <div className="zipco-avw-bottom">
         <dl className="zipco-avw-rows">

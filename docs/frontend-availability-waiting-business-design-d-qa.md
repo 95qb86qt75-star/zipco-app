@@ -45,3 +45,13 @@ Archivos: componente, CSS, `scripts/check-availability-flow.mjs` y esta ficha. S
 El detalle permanece montado como en la referencia; cerrado ocupa altura cero, queda oculto, aria-hidden e inert, sin aceptar foco o toques. La miniatura y el encabezado permanecen fuera del pliegue y conservan sus funciones. Sin cambios de acciones, datos, campos, endpoints o backend.
 
 Archivos actuales: `AvailabilityWaitingCard.tsx`, `scripts/check-availability-flow.mjs` y esta ficha. Diez escenarios de navegador aprobados, incluyendo alturas intermedias al abrir/cerrar, cierre oculto/inactivo y reduced-motion. Se comprueba build QA/PWA antes de publicar en rama qa/Vercel QA; no se repite la suite general para esta sustitución visual ni se afirma prueba física. Railway no es necesario; main/producción y la pausa del diagnóstico de notificaciones permanecen intactos. SHA y Ready se entregan tras verificar el despliegue.
+
+## Optimización posterior por animación entrecortada en el teléfono
+
+2026-10-29. Solo frontend QA. El usuario reporta que el pliegue compartido se ve pegado. La revisión encuentra dos pliegues de altura simultáneos, transformaciones del texto y máscaras sobre una sección que también contiene fondos desenfocados animados. Es una combinación costosa; no se afirma una causa de rendimiento medida ni FPS del dispositivo.
+
+Se agrupa todo el detalle en **un solo pliegue**, independiente del encabezado de altura fija. La transición local queda en 420 ms con una curva que responde desde el inicio y opacidad de 180 ms, sin transformar/escalar el texto. Los fondos conservan la paleta mediante gradientes estáticos en lugar de capas grandes con blur animado. Las muescas quedan en el contenido interior de tamaño natural que el pliegue recorta; ya no se redimensiona la cabecera con su máscara durante cada fotograma. Se evita el colapso del margen de la primera descripción para no dejar una franja de fondo visible al separar las secciones.
+
+Se conservan controles ocultos/inert, reduced-motion, miniatura independiente, permisos y acciones. Diez escenarios de navegador aprobados, incluyendo una única sección animada, ausencia de capa blur en la cabecera, texto sin transformación, alturas intermedias y cierre accesible. Build QA/PWA verificado antes de publicar. No se repite la suite general ni se declara fluidez física comprobada; queda revisión en el teléfono actualizado.
+
+Archivos: `AvailabilityWaitingCard.tsx`, `availability-waiting.css`, `scripts/check-availability-flow.mjs` y esta ficha. Sin cambios de campos/endpoints, Railway, main, producción o diagnóstico de notificaciones. Publicación únicamente qa → Vercel QA, SHA/Ready comprobados en el informe final.

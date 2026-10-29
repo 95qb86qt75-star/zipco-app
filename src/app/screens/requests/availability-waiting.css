@@ -2,12 +2,7 @@
 .zipco-avw{position:relative;isolation:isolate;overflow:hidden;border-radius:24px;color:#fff;
   background:transparent;
   box-shadow:0 14px 30px rgba(30,27,75,.35),inset 0 1px 0 rgba(255,255,255,.18),0 0 0 1px rgba(255,255,255,.1)}
-.zipco-avw-top{position:relative;isolation:isolate;overflow:hidden;padding:12px 12px 11px;background:linear-gradient(160deg,#1c1650,#101434)}
-.zipco-avw-top:before,.zipco-avw-top:after{content:"";position:absolute;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(34px)}
-.zipco-avw-top:before{right:-50px;top:-60px;width:210px;height:160px;background:rgba(139,92,246,.6);animation:zipco-avw-a1 9s ease-in-out infinite}
-.zipco-avw-top:after{left:-60px;bottom:-50px;width:190px;height:140px;background:rgba(20,184,166,.42);animation:zipco-avw-a2 11s ease-in-out infinite}
-@keyframes zipco-avw-a1{50%{transform:translate(-40px,22px) scale(1.2)}}
-@keyframes zipco-avw-a2{50%{transform:translate(40px,-18px) scale(1.15)}}
+.zipco-avw-top{position:relative;isolation:isolate;overflow:hidden;padding:12px 12px 11px;background:radial-gradient(ellipse at 100% 0,rgba(139,92,246,.6),transparent 75%),radial-gradient(ellipse at 0 100%,rgba(20,184,166,.3),transparent 65%),linear-gradient(160deg,#1c1650,#101434)}
 .zipco-avw-toggle{position:absolute;inset:0;z-index:0;width:100%;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .zipco-avw-toggle:focus-visible{outline:2px solid #c4b5fd;outline-offset:-3px;border-radius:24px}
 .zipco-avw-body{position:relative;z-index:1;pointer-events:none}
@@ -47,8 +42,12 @@
 @keyframes zipco-avw-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.12)}85%{transform:translateY(1px) scale(.92)}}
 @keyframes zipco-avw-wave{0%,45%{opacity:0}60%{opacity:1}100%{opacity:0}}
 /* Detalle */
-.zipco-avw-reveal{overflow:hidden;pointer-events:none}
+.zipco-avw-reveal{display:grid;grid-template-rows:1fr;opacity:1;visibility:visible;overflow:hidden;pointer-events:none;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1),opacity .18s ease,visibility 0s}
+.zipco-avw-reveal[data-folded=true]{grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1),opacity .18s ease,visibility 0s .42s}
+.zipco-avw-reveal-inner{min-height:0;overflow:hidden}
+.zipco-avw-reveal[data-folded=true] *{animation-play-state:paused!important}
 .zipco-avw-detail{pointer-events:none}
+.zipco-avw-detail-top{display:flow-root;padding:0 12px 11px;background:#101434}
 .zipco-avw-summary{margin:10px 0 0;font-size:12.5px;line-height:1.35;color:#cbd5e1}
 .zipco-avw-chips{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
 .zipco-avw-chips span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:800;color:#e0e7ff;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
@@ -57,7 +56,7 @@
 .zipco-avw-line .q{min-width:30px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:900;color:#67e8f9;background:rgba(34,211,238,.14)}
 .zipco-avw-line .n{flex:1;min-width:0;overflow-wrap:anywhere}
 /* Real transparent cutouts reveal the list's gradient/dark surface, with no guessed color. */
-.zipco-avw[data-expanded=true] .zipco-avw-top{mask-image:radial-gradient(circle 11px at left bottom,transparent 98%,#000 100%),radial-gradient(circle 11px at right bottom,transparent 98%,#000 100%);mask-composite:intersect;-webkit-mask-composite:source-in}
+.zipco-avw-detail-top{mask-image:radial-gradient(circle 11px at left bottom,transparent 98%,#000 100%),radial-gradient(circle 11px at right bottom,transparent 98%,#000 100%);mask-composite:intersect;-webkit-mask-composite:source-in}
 .zipco-avw-bottom{padding:14px 12px;background:linear-gradient(165deg,#101434,#0c1a2e);mask-image:radial-gradient(circle 11px at left top,transparent 98%,#000 100%),radial-gradient(circle 11px at right top,transparent 98%,#000 100%);mask-composite:intersect;-webkit-mask-composite:source-in}
 .zipco-avw-perf{position:relative;margin:0 11px;height:0;border-top:2px dashed rgba(255,255,255,.22);background:#101434}
 .zipco-avw-error,.zipco-avw-error button{pointer-events:auto}
@@ -71,8 +70,7 @@
   background:linear-gradient(110deg,rgba(244,63,94,.16),rgba(139,92,246,.1));color:#fecdd3;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
 .zipco-avw-withdraw:disabled{opacity:.55;cursor:not-allowed}
 @media (max-width:350px){.zipco-avw-price b{font-size:18px}.zipco-avw-name h4{font-size:14.5px}.zipco-avw-rows>div{flex-wrap:wrap}}
-@media (prefers-reduced-motion:reduce){.zipco-avw-top:before,.zipco-avw-top:after,.zipco-avw-ring,.zipco-avw-ring>*:first-child,.zipco-avw-quantity,.zipco-avw-check,.zipco-avw-dot,.zipco-avw-hint svg{animation:none}.zipco-avw-wave1,.zipco-avw-wave2{animation:none;opacity:.9}}
+@media (prefers-reduced-motion:reduce){.zipco-avw-ring,.zipco-avw-ring>*:first-child,.zipco-avw-quantity,.zipco-avw-check,.zipco-avw-dot,.zipco-avw-hint svg{animation:none}.zipco-avw-wave1,.zipco-avw-wave2{animation:none;opacity:.9}}
+@media (prefers-reduced-motion:reduce){.zipco-avw-reveal,.zipco-avw-reveal[data-folded=true]{transition:none}}
 /* Reuse the list's existing motion gates; the diagnostic incident remains paused. */
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"]) .zipco-avw *,
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"]) .zipco-avw-top::before,
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"]) .zipco-avw-top::after{animation-play-state:paused!important}
+:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"]) .zipco-avw *{animation-play-state:paused!important}

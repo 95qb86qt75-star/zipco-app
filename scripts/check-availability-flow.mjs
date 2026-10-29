@@ -168,6 +168,8 @@ try {
     await wait('document.body.textContent.includes("Esperando al cliente")');
     await evaluate('window.dispatchEvent(new CustomEvent("zipco-action-hologram",{detail:null}))');await delay(300);
     await check('!!document.querySelector(".zipco-avw[data-expanded=false]")','compact business card initially collapsed');
+    await check('document.querySelectorAll(".zipco-avw-reveal").length===1','one fold animates the entire detail');
+    await check('getComputedStyle(document.querySelector(".zipco-avw-top"),"::before").filter==="none"','header has no blurred animated layer');
     await check('document.querySelector(".zipco-avw").getBoundingClientRect().height<=135','compact card height');
     const calls=await evaluate('window.flowCalls.length');
     await tap('.zipco-avw .zipco-product-thumb');await wait('!!document.querySelector(".zipco-product-sheet")');
@@ -178,6 +180,7 @@ try {
     await tap('.zipco-avw-name');
     const opening=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');await delay(700);
     const opened=await evaluate('document.querySelector(".zipco-avw").getBoundingClientRect().height');
+    await check('getComputedStyle(document.querySelector(".zipco-avw-reveal")).transform==="none"','detail text is not scaled during the fold');
     if(width===390){
       assert(opening>folded&&opening<opened,'detail opens through intermediate heights');
       await tap('.zipco-avw-name');
