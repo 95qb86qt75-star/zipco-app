@@ -39,3 +39,7 @@ it('allows only one owner to hold a question and cannot release another card cla
  const first={},second={};expect(api.claimWhatsappAsk('first',first)).toBe(true);expect(api.claimWhatsappAsk('second',second)).toBe(false);
  api.releaseWhatsappAsk(second);expect(api.claimWhatsappAsk('second',second)).toBe(false);api.releaseWhatsappAsk(first);expect(api.claimWhatsappAsk('second',second)).toBe(true);
 });
+
+it('tracks a customer return without requiring a business identity and isolates the participant',()=>{
+ values.delete('zipco-business-id');const customer=normalizeMyOrdersPayload([{...rawOrder,status:'accepted',requestProcess:coordinationProcess}])[0];const key=api.whatsappReturnKey(customer,false)!;expect(key).toContain('customer:12:');expect(api.hasWhatsappReturn(key)).toBe(false);api.markWhatsappOpened(key);expect(api.shouldAskWhatsappReturn(key)).toBe(false);api.recordWhatsappDeparture();expect(api.shouldAskWhatsappReturn(key)).toBe(true);values.set('zipco-user-id','99');expect(api.whatsappReturnKey(customer,false)).not.toBe(key);
+});

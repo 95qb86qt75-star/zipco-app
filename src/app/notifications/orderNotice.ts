@@ -2,6 +2,7 @@ import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, isPendingRequestRejec
 import { proposalNotice } from './proposalNotice';
 import {lateInitialNotice} from './lateInitialNotice';
 import {availabilityNotice} from './availabilityNotice';
+import {whatsappCoordinationNotice} from './whatsappCoordinationNotice';
 
 export function customerOrderNotice(order: { status: string } & ProcessOrder): readonly [string, string] | null {
   if (hasRequestProcess(order)) {
@@ -31,6 +32,9 @@ export function createCustomerOrderNotices(
       const state = orderNotificationState(order);
       const changed = hasBaseline && previous.has(order.id) && previous.get(order.id) !== state;
       if (!changed && !pushedOrderIds.has(order.id)) continue;
+      const coordination=whatsappCoordinationNotice(order,false);
+      if(coordination){if(!announced.has(coordination.key)){announced.add(coordination.key);emit(coordination.key,coordination.notice,order.id);firstNotifiedId??=order.id;}continue;}
+      if(order.requestProcess?.whatsappCoordination&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))continue;
       const proposal = lateInitialNotice(order,false)??proposalNotice(order, false);
       const available = availabilityNotice(order);
       const ready = order.requestProcess?.state === 'READY';

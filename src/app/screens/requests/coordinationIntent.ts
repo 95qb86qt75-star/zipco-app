@@ -21,12 +21,12 @@ export function createCoordinationIntents(uuid = () => crypto.randomUUID(), stor
     if (!saved) return null;
     try {
       const intent = JSON.parse(saved) as CoordinationIntent & { confirmed?: boolean };
-      if (!intent || !['AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(intent.action) ||
+      if (!intent || !['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(intent.action) ||
         !intent.body || !Number.isSafeInteger(intent.body.expectedVersion) || intent.body.expectedVersion < 1 ||
         (intent.confirmed !== undefined && typeof intent.confirmed !== 'boolean') ||
         typeof intent.key !== 'string' || !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(intent.key) ||
         JSON.stringify(intent.body) !== JSON.stringify(coordinationBody(intent.action, intent.body.expectedVersion, intent.body.reasonCode, intent.body.reasonDetail,
-          intent.body.consentTextVersion === CONTACT_VERSION ? { flowContract: 'AVAILABILITY_V1' } : undefined))) throw new Error();
+          { ...(intent.body.consentTextVersion === CONTACT_VERSION ? { flowContract: 'AVAILABILITY_V1' as const } : {}),...(intent.action==='RESPOND_WHATSAPP_COORDINATION'?{whatsappCoordination:{confirmationId:intent.body.confirmationId} as import('./whatsappCoordinationContract').WhatsappCoordination}:{}) },intent.body.coordinationAccepted))) throw new Error();
       if (intent.confirmed === true || retired.has(`${name}:${intent.key}`)) {
         // Preserve protection against stale controls after storage cleanup. WhatsApp
         // remains repeatable as a new deliberate access, never as a cleaned retry.

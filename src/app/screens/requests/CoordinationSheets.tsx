@@ -84,9 +84,9 @@ export function PaymentConfirmationSheet({open,busy,amount,until,error,onClose,o
 }
 const FALLBACK_ICONS = [UserX, Clock];
 
-export function StartWorkSheet({ open,onOpenChange,busy,client,service=false,error,recovery,onConfirm }: {
+export function StartWorkSheet({ open,onOpenChange,busy,client,service=false,error,recovery,onConfirm,mode='start',onReject }: {
   open:boolean;onOpenChange:(value:boolean)=>void;busy:boolean;client:string;service?:boolean;
-  error?:string;recovery?:ReactNode;onConfirm:()=>void;
+  error?:string;recovery?:ReactNode;onConfirm:()=>void;mode?:'start'|'confirm'|'respond';onReject?:()=>void;
 }) {
   return <Dialog.Root open={open} onOpenChange={value=>{if(!busy)onOpenChange(value);}}>
     <Shell busy={busy} onDismiss={()=>{if(!busy)onOpenChange(false);}}
@@ -94,11 +94,11 @@ export function StartWorkSheet({ open,onOpenChange,busy,client,service=false,err
       <div className="zipco-d-top"><span className="zipco-d-who" style={{color:'#047857'}}>Coordinación</span><XButton label="Cerrar" busy={busy}/></div>
       <div className="zipco-co-start-orb"><span className="zipco-co-co2-orb"><WhatsAppMark className="h-6 w-6"/><span className="tick"><Check size={11} aria-hidden="true"/></span></span></div>
       <Dialog.Title className="zipco-co-start-title">¿Coordinación lista<br/>por WhatsApp?</Dialog.Title>
-      <p className="zipco-co-start-description">Confirma que ya acordaron el pago y {service?'la realización del servicio':'la entrega'} con <b>{client}</b>. Pasarás a preparar el pedido.</p>
+      <p className="zipco-co-start-description">{mode==='respond'?<><b>{client}</b> indicó que ya coordinaron. ¿Es correcto? Sí mantiene el pedido En curso; No lo devuelve a Por coordinar.</>:<>Confirma que ya acordaron el pago y {service?'la realización del servicio':'la entrega'} con <b>{client}</b>. {mode==='start'?'Pasarás a preparar el pedido.':'El pedido pasará a En curso y la otra parte podrá responder.'}</>}{mode!=='start'&&<> ZIPCO no recibe ni verifica pagos.</>}</p>
       {error&&<p role="alert" className="mt-3 text-sm text-rose-700">{error}</p>}
       {recovery||<div className="zipco-co-yn">
-        <button type="button" className="zipco-co-go" disabled={busy} onClick={onConfirm}><Check size={17} aria-hidden="true"/>{busy?'Guardando…':'Sí, comenzar'}</button>
-        <Dialog.Close asChild><button type="button" className="zipco-co-no" disabled={busy}>No, aún no</button></Dialog.Close>
+        <button type="button" className="zipco-co-go" disabled={busy} onClick={onConfirm}><Check size={17} aria-hidden="true"/>{busy?'Guardando…':mode==='respond'?'Sí, es correcto':mode==='confirm'?'Sí, ya coordinamos':'Sí, comenzar'}</button>
+        {mode==='respond'?<button type="button" className="zipco-co-no" disabled={busy} onClick={onReject}>No, falta coordinar</button>:<Dialog.Close asChild><button type="button" className="zipco-co-no" disabled={busy}>No, aún no</button></Dialog.Close>}
       </div>}
       {recovery&&<Dialog.Close asChild><button type="button" className="zipco-co-lnk" disabled={busy}>No, aún no</button></Dialog.Close>}
     </Shell>

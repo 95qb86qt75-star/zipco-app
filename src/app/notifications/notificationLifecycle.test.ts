@@ -562,3 +562,11 @@ describe('system presentation and explicit notification navigation', () => {
     expect(await cache.match(`${origin}${PRESENTATION_PATH}`)).toBeUndefined();
   });
 });
+
+it.each(['confirmed','accepted','declined'])('preserves the new WhatsApp %s type and concrete destination through the existing worker',async kind=>{
+ const sw=worker(),tag='order-91-coordination-coordination-'+kind+'-42',url='/?open=requests-customer&orderId=91';
+ await sw.fire('push',{data:{json:()=>({type:'order-whatsapp-coordination-'+kind,orderId:91,requestProcessId:7,tag,url,title:'Synthetic coordination event'})}});
+ const options=sw.registration.showNotification.mock.calls[0][1] as any;
+ expect(options.data.type).toBe('order-whatsapp-coordination-'+kind);expect(options.data.eventKey).toBe('requests-customer:'+tag);
+ expect(presentationKey(tag,url,origin)).toBe(options.data.eventKey);
+});

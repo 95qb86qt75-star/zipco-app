@@ -13,13 +13,14 @@ const MAX_AGE_MS = 12 * 60 * 60 * 1000;
 let asking: { key: string; owner: object } | null = null;
 const changed = () => window.dispatchEvent(new Event(CHANGE));
 
-function accountPrefix() {
+function accountPrefix(business=true) {
   const session = readCoordinationSession();
+  if(!business)return session?`${PREFIX}customer:${encodeURIComponent(session.userId)}:`:null;
   return session?.businessId ? `${PREFIX}${encodeURIComponent(session.userId)}:${encodeURIComponent(session.businessId)}:` : null;
 }
-export function whatsappReturnKey(order: BusinessRequest | MyOrder) {
-  const prefix = accountPrefix(), process = order.requestProcess;
-  return prefix && order.recordState==='available' && 'customerName' in order && order.id && process?.id && process.agreementPublicId
+export function whatsappReturnKey(order: BusinessRequest | MyOrder,business=true) {
+  const prefix = accountPrefix(business), process = order.requestProcess;
+  return prefix && order.recordState==='available' && (business?'customerName' in order:'businessName' in order) && order.id && process?.id && process.agreementPublicId
     ? `${prefix}${order.id}:${process.id}:${encodeURIComponent(process.agreementPublicId)}` : null;
 }
 function read(key: string): Mark | null {
@@ -45,6 +46,7 @@ export function shouldAskWhatsappReturn(key:string) {
   // A stored navigation attempt from another page lifetime cannot block recovery forever.
   return !mark || (mark.state!=='dismissed' && (mark.state!=='opened' || mark.page!==PAGE));
 }
+export function hasWhatsappReturn(key:string){const mark=read(key);return !!mark&&mark.state!=='dismissed';}
 export function claimWhatsappAsk(key:string,owner:object) {
   if(asking && asking.owner!==owner) return false;
   asking={key,owner};return true;
@@ -52,9 +54,10 @@ export function claimWhatsappAsk(key:string,owner:object) {
 export function releaseWhatsappAsk(owner:object) { if(asking?.owner===owner){asking=null;changed();} }
 export function subscribeWhatsappReturn(callback:()=>void) { window.addEventListener(CHANGE,callback); return ()=>window.removeEventListener(CHANGE,callback); }
 export function recordWhatsappDeparture() {
-  const prefix=accountPrefix(); if(!prefix) return;
-  const keys=new Set([...memory.keys()].filter(key=>key.startsWith(prefix)));
-  try { for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix)) keys.add(key);} } catch { /* Memory-only tracking still works. */ }
+  const prefixes=[accountPrefix(),accountPrefix(false)].filter((p):p is string=>!!p); if(!prefixes.length) return;
+  const matches=(key:string)=>prefixes.some(prefix=>key.startsWith(prefix));
+  const keys=new Set([...memory.keys()].filter(matches));
+  try { for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key&&matches(key)) keys.add(key);} } catch { /* Memory-only tracking still works. */ }
   keys.forEach(key=>{if(read(key)?.state==='opened') write(key,'left');});
 }
 /** One tracker survives card filtering while WhatsApp takes focus. No URL, contact or token is stored. */

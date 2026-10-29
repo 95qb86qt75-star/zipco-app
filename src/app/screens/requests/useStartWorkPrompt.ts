@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
-import { ASK_DELAY_MS, claimWhatsappAsk, releaseWhatsappAsk, shouldAskWhatsappReturn, subscribeWhatsappReturn } from './whatsappReturn';
+import { ASK_DELAY_MS, claimWhatsappAsk, releaseWhatsappAsk, shouldAskWhatsappReturn, hasWhatsappReturn, subscribeWhatsappReturn } from './whatsappReturn';
 
-export default function useStartWorkPrompt({key,enabled,blocked,onOpen,onInvalidate}:{key:string|null;enabled:boolean;blocked:boolean;onOpen:()=>void;onInvalidate?:()=>void}) {
+export default function useStartWorkPrompt({key,enabled,blocked,onOpen,onInvalidate,requireOpened=false}:{key:string|null;enabled:boolean;blocked:boolean;requireOpened?:boolean;onOpen:()=>void;onInvalidate?:()=>void}) {
   const owner=useRef({});
   const current=useRef({enabled,blocked,onOpen,onInvalidate}); current.current={enabled,blocked,onOpen,onInvalidate};
   useEffect(()=>{
@@ -16,7 +16,7 @@ export default function useStartWorkPrompt({key,enabled,blocked,onOpen,onInvalid
     let timer:ReturnType<typeof setTimeout>|undefined;
     const session=readCoordinationSession();
     const cancel=()=>{clearTimeout(timer);timer=undefined;};
-    const eligible=()=>readCoordinationSession()===session&&!document.hidden&&current.current.enabled&&!current.current.blocked&&shouldAskWhatsappReturn(key);
+    const eligible=()=>readCoordinationSession()===session&&!document.hidden&&current.current.enabled&&!current.current.blocked&&shouldAskWhatsappReturn(key)&&(!requireOpened||hasWhatsappReturn(key));
     const schedule=()=>{
       if(!eligible()){cancel();return;}
       if(timer!==undefined)return;
@@ -30,6 +30,6 @@ export default function useStartWorkPrompt({key,enabled,blocked,onOpen,onInvalid
     document.addEventListener('visibilitychange',schedule);window.addEventListener('focus',schedule);
     schedule();
     return ()=>{cancel();unmark();unsession();document.removeEventListener('visibilitychange',schedule);window.removeEventListener('focus',schedule);};
-  },[key,enabled,blocked]);
+  },[key,enabled,blocked,requireOpened]);
   return ()=>releaseWhatsappAsk(owner.current);
 }

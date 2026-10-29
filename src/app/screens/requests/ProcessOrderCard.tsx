@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import WhatsappCoordinationPanel from './WhatsappCoordinationPanel';
 import { NOTIFICATION_CARD_OPEN_EVENT } from '../../notifications/notificationNavigation';
 import { AnimatePresence, motion } from 'motion/react';
 import { Calendar, ChevronUp, Sparkles, Zap } from 'lucide-react';
@@ -235,5 +236,5 @@ export default function ProcessOrderCard(props:Parameters<typeof ProcessOrderCar
   const process=props.order.requestProcess;
   if(!process)return <ProcessOrderCardContent {...props}/>;
   const preview=props.order.orderType==='service'?undefined:process.productPreview;
-  return <ProductPreviewScope preview={preview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}><ProcessOrderCardContent {...props}/></ProductPreviewScope>;
+  return <ProductPreviewScope preview={preview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}>{props.order.orderType==='product'&&(process.allowedActions.some(a=>a==='CONFIRM_WHATSAPP_COORDINATION'||a==='RESPOND_WHATSAPP_COORDINATION')||process.whatsappCoordination)&&<WhatsappCoordinationPanel key={`${props.business}:${process.id}:${process.agreementPublicId}`} order={props.order} business={props.business===true} refresh={props.onRetry}/>}<ProcessOrderCardContent {...props}/></ProductPreviewScope>;
 }

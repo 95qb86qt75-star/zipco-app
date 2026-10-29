@@ -34,3 +34,7 @@ it('invalidates an open question when the account changes',()=>{
  const open=vi.fn(),invalidate=vi.fn();useStartWorkPrompt({key:'timer-session-open',enabled:true,blocked:false,onOpen:open,onInvalidate:invalidate});vi.advanceTimersByTime(4000);expect(open).toHaveBeenCalledOnce();
  values.set('zipco-user-id','other-account');window.dispatchEvent(new Event('zipco-session-changed'));expect(invalidate).toHaveBeenCalledOnce();
 });
+
+it('can require a real return marker while still listening for a later departure',()=>{
+ const key='zipco-wa-return:v1:customer:12:20:7:agreement-test',open=vi.fn();useStartWorkPrompt({key,enabled:true,blocked:false,requireOpened:true,onOpen:open});vi.advanceTimersByTime(5000);expect(open).not.toHaveBeenCalled();markWhatsappOpened(key);vi.advanceTimersByTime(5000);expect(open).not.toHaveBeenCalled();recordWhatsappDeparture();vi.advanceTimersByTime(4000);expect(open).toHaveBeenCalledOnce();
+});

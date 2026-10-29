@@ -81,6 +81,8 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
           : intent.action === 'REJECT_PENDING_REQUEST' ? isPendingRequestRejected(current)
           : intent.action === 'MARK_READY' ? current.state === 'READY'
           : intent.action === 'START_WORK' ? current.state === 'IN_PROGRESS'
+          : intent.action === 'CONFIRM_WHATSAPP_COORDINATION' ? current.whatsappCoordination?.initiatedBy===(business?'BUSINESS':'CUSTOMER')&&current.version>intent.body.expectedVersion
+          : intent.action === 'RESPOND_WHATSAPP_COORDINATION' ? current.whatsappCoordination?.confirmationId===intent.body.confirmationId&&current.whatsappCoordination.status===(intent.body.coordinationAccepted?'CONFIRMED':'DECLINED')
             : intent.action === 'ANNUL_COORDINATION' ? current.state === 'COORDINATION_CANCELLED'
               : current.coordination?.[business ? 'businessContactAuthorized' : 'customerContactAuthorized'] === true;
         // A read can settle an obsolete intention or confirm its desired state. It does
@@ -100,7 +102,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     } catch { announce('No se pudo actualizar el estado del pedido. Intenta nuevamente; no se repetirá la operación confirmada.'); }
     finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
-  const run = async (action: CoordinationAction, reason?: CoordinationReason, detail?: string, retry = false) => {
+  const run = async (action: CoordinationAction, reason?: CoordinationReason, detail?: string, retry = false, decision?:boolean) => {
     if (!active() || lock.current || recovery.current || order.recordState !== 'available' || !order.requestProcess) return false;
     const process = order.requestProcess;
     if (!retry && !coordinationAllowed(process, business, action)) return false;
@@ -112,7 +114,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     lastRead.current = null;
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.
-      const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail, process),
+      const response = await intents().run(scope, process.id, action, coordinationBody(action, process.version, reason, detail, process, decision??(retry?pending()?.body.coordinationAccepted:undefined)),
         (intent) => sendCoordination(process.id, order.id, intent.action, intent.body, session!.token, intent.key, controller.signal, process.currentProposalId,process.flowContract), retry, active);
       if (!response || !active()) return false;
       if(business&&['START_WORK','ANNUL_COORDINATION'].includes(action)){
@@ -124,7 +126,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         const current = latest?.requestProcess;
         // Confirmation/consent replays may predate newer server state. Prefer
         // the authoritative read, including phone-revision consent changes.
-        const detail = (action === 'AUTHORIZE_CONTACT' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT') && latest && current &&
+        const detail = (action === 'AUTHORIZE_CONTACT' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT'||action==='CONFIRM_WHATSAPP_COORDINATION'||action==='RESPOND_WHATSAPP_COORDINATION') && latest && current &&
           current.id === response.result.requestProcess.id && current.version >= response.result.requestProcess.version
           ? { orderId: order.id, orderStatus: latest.status, requestProcess: current } : response.result;
         window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail }));
@@ -134,9 +136,15 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if (!active()) return false;
         recovery.current = true; setNeedsUpdate(true);
         announce(storageWarning() || 'La operación fue confirmada. No se pudo actualizar el pedido. Pulsa Actualizar estado; no se repetirá la operación.');
-        emitReceipt(); return true;
+        if(!['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action))emitReceipt(); return true;
       }
       if (!active()) return false;
+      if(['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action)){
+        if(!latest?.requestProcess||latest.requestProcess.id!==process.id||latest.requestProcess.version<response.result.requestProcess.version){recovery.current=true;setNeedsUpdate(true);setMessage('La decisión fue recibida. Actualiza el estado antes de continuar.');return true;}
+        const key=whatsappReturnKey(order,business);if(key)clearWhatsappReturn(key);
+        const state=latest.requestProcess.state;
+        window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:state==='IN_PROGRESS'?'active':state==='COORDINATING'?'coordination':state==='READY'?'ready':undefined}}));
+      }
       // Presentation waits only after the durable action and authoritative read.
       const readyNotice = beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
         latest?.requestProcess?.agreementPublicId === process.agreementPublicId
@@ -167,7 +175,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       else if (action === 'OPEN_WHATSAPP') {
         if (response.navigation && latest?.requestProcess && latest.requestProcess.version >= response.result.requestProcess.version &&
           latest.requestProcess.id === process.id && coordinationAllowed(latest.requestProcess, business, 'OPEN_WHATSAPP')) {
-          const returnKey = business && latest ? whatsappReturnKey(latest) : null;
+          const returnKey = latest ? whatsappReturnKey(latest,business) : null;
           const feedbackId = feedback ? announceAction('redirecting') : undefined;
           const ready = !feedback || await waitForWhatsappPreview(controller.signal);
           const visible = visibleOrder.current;

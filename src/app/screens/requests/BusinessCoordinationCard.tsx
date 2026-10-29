@@ -81,7 +81,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
   const canOpen = allowed('OPEN_WHATSAPP');
   const client = name || (business ? 'el cliente' : 'el negocio');
   const returnKey = business ? whatsappReturnKey(current) : null;
-  const canStart = business && readCoordinationSession()===cardSession.current && process?.state === 'COORDINATING' && allowed('START_WORK');
+  const canStart = business && !process?.allowedActions.includes('CONFIRM_WHATSAPP_COORDINATION') && !process?.whatsappCoordination && readCoordinationSession()===cardSession.current && process?.state === 'COORDINATING' && allowed('START_WORK');
   const releaseStart = useStartWorkPrompt({key:returnKey,enabled:canStart,
     blocked:sheet!==null||operation.busy||Boolean(recoveryOnly)||Boolean(pending)||phase==='loading'||phase==='requesting',
     onOpen:()=>setSheet(value=>value??'start'),onInvalidate:()=>setSheet(value=>value==='start'?null:value)});

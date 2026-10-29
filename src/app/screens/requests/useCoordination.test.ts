@@ -635,3 +635,40 @@ describe('coordination hook with mocked server and external navigation', () => {
     expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual(body);
   });
 });
+
+describe('bilateral WhatsApp coordination contract',()=>{
+ const contract='whatsapp-coordination-v1';
+ const claim={contract,confirmationId:345,initiatedBy:'CUSTOMER',initiatedAt:'2026-10-29T18:00:00Z',status:'PENDING',respondedBy:null,respondedAt:null};
+ it.each([false,true])('first participant explicitly confirms and publishes authoritative En curso (business=%s)',async business=>{
+   const initial={...raw,requestProcess:{...process,state:'COORDINATING',version:7,allowedActions:['CONFIRM_WHATSAPP_COORDINATION']}};
+   const latest={...raw,requestProcess:{...process,state:'IN_PROGRESS',version:8,allowedActions:business?['MARK_READY']:[],whatsappCoordination:{...claim,initiatedBy:business?'BUSINESS':'CUSTOMER'}}};
+   const fetcher=vi.fn().mockResolvedValueOnce(response({orderId:20,orderStatus:'accepted',requestProcess:latest.requestProcess})).mockResolvedValueOnce(response([latest]));vi.stubGlobal('fetch',fetcher);
+   const dispatch=vi.spyOn(window,'dispatchEvent');const {default:hook}=await import('./useCoordination');const source=(business?normalizeBusinessOrdersPayload:normalizeMyOrdersPayload)([initial])[0];
+   expect(await hook(source,business,vi.fn()).run('CONFIRM_WHATSAPP_COORDINATION')).toBe(true);
+   expect(dispatch.mock.calls.find(([e])=>e.type==='zipco-availability-view')?.[0]).toMatchObject({detail:{business,view:'active'}});
+   expect(dispatch.mock.calls.find(([e])=>e.type==='zipco-process-receipt')?.[0]).toMatchObject({detail:{requestProcess:{state:'IN_PROGRESS',version:8}}});
+   expect(fetcher.mock.calls.filter(([,o])=>o?.method==='POST')).toHaveLength(1);
+ });
+ it.each([true,false])('counterpart explicitly answers %s and reads the current state',async decision=>{
+   const initial={...raw,requestProcess:{...process,state:'IN_PROGRESS',version:8,allowedActions:['RESPOND_WHATSAPP_COORDINATION'],whatsappCoordination:claim}};
+   const latest={...raw,requestProcess:{...initial.requestProcess,state:decision?'IN_PROGRESS':'COORDINATING',version:9,allowedActions:[],whatsappCoordination:{...claim,status:decision?'CONFIRMED':'DECLINED',respondedBy:'BUSINESS',respondedAt:'2026-10-29T18:02:00Z'}}};
+   const fetcher=vi.fn().mockResolvedValueOnce(response({orderId:20,orderStatus:'accepted',requestProcess:latest.requestProcess})).mockResolvedValueOnce(response([latest]));vi.stubGlobal('fetch',fetcher);
+   const dispatch=vi.spyOn(window,'dispatchEvent');const {default:hook}=await import('./useCoordination');expect(await hook(normalizeBusinessOrdersPayload([initial])[0],true,vi.fn()).run('RESPOND_WHATSAPP_COORDINATION',undefined,undefined,false,decision)).toBe(true);
+   expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({expectedVersion:8,confirmationId:345,coordinationAccepted:decision});
+   expect(dispatch.mock.calls.find(([e])=>e.type==='zipco-availability-view')?.[0]).toMatchObject({detail:{view:decision?'active':'coordination'}});
+ });
+ it.each(['ready','read-failed'])('does not apply a historical No over a newer server state (%s)',async scenario=>{
+   const initial={...raw,requestProcess:{...process,state:'IN_PROGRESS',version:8,allowedActions:['RESPOND_WHATSAPP_COORDINATION'],whatsappCoordination:claim}};
+   const historical={...initial.requestProcess,state:'COORDINATING',version:9,whatsappCoordination:{...claim,status:'DECLINED',respondedBy:'BUSINESS',respondedAt:'2026-10-29T18:02:00Z'}};
+   const fetcher=vi.fn().mockResolvedValueOnce(response({orderId:20,orderStatus:'accepted',requestProcess:historical}));
+   if(scenario==='read-failed')fetcher.mockRejectedValueOnce(Error('offline'));else fetcher.mockResolvedValueOnce(response([{...raw,status:'ready',requestProcess:{...historical,state:'READY',version:10,allowedActions:['MARK_READY']}}]));vi.stubGlobal('fetch',fetcher);
+   const dispatch=vi.spyOn(window,'dispatchEvent');const {default:hook}=await import('./useCoordination');expect(await hook(normalizeBusinessOrdersPayload([initial])[0],true,vi.fn()).run('RESPOND_WHATSAPP_COORDINATION',undefined,undefined,false,false)).toBe(true);
+   const events=dispatch.mock.calls.map(([e])=>e);expect(events.some(e=>e.type==='zipco-availability-view'&&(e as CustomEvent).detail.view==='coordination')).toBe(false);
+   if(scenario==='read-failed')expect(events.some(e=>e.type==='zipco-process-receipt')).toBe(false);else expect(events.find(e=>e.type==='zipco-process-receipt')).toMatchObject({detail:{requestProcess:{state:'READY',version:10}}});
+ });
+ it('refreshes a version conflict without retrying either decision automatically',async()=>{
+   const initial={...raw,requestProcess:{...process,state:'IN_PROGRESS',version:8,allowedActions:['RESPOND_WHATSAPP_COORDINATION'],whatsappCoordination:claim}};
+   const fetcher=vi.fn().mockResolvedValueOnce(response({code:'STALE_VERSION'},409)).mockResolvedValueOnce(response([{...initial,requestProcess:{...initial.requestProcess,version:9,allowedActions:[]}}]));vi.stubGlobal('fetch',fetcher);
+   const {default:hook}=await import('./useCoordination');expect(await hook(normalizeBusinessOrdersPayload([initial])[0],true,vi.fn()).run('RESPOND_WHATSAPP_COORDINATION',undefined,undefined,false,false)).toBe(false);expect(fetcher).toHaveBeenCalledTimes(2);expect(fetcher.mock.calls.filter(([,o])=>o?.method==='POST')).toHaveLength(1);
+ });
+});

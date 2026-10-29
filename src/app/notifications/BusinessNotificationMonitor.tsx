@@ -4,6 +4,7 @@ import { normalizeOrderProcess, orderNotificationState, type RequestProcessSumma
 import { createCustomerOrderNotices } from './orderNotice';
 import { proposalNotice } from './proposalNotice';
 import {lateInitialNotice} from './lateInitialNotice';
+import {whatsappCoordinationNotice} from './whatsappCoordinationNotice';
 import { createNotificationRefreshQueue } from './notificationRefreshQueue';
 import { presentationKey, readSystemPresentations, rememberOpenedPresentation } from './notificationDelivery';
 import { API_BASE_URL } from "../api/apiConfig";
@@ -168,7 +169,7 @@ export default function BusinessNotificationMonitor({
         if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: true });
         return;
       }
-      if(actionUrl&&presentedKey&&/-availability-\d+$/.test(presentedKey)){
+      if(actionUrl&&presentedKey&&/-(?:availability|coordination-coordination-(?:confirmed|accepted|declined))-\d+$/.test(presentedKey)){
         const target=new URL(actionUrl,window.location.origin);
         target.searchParams.set('notificationEvent',presentedKey);
         actionUrl=target.pathname+target.search;
@@ -269,6 +270,9 @@ export default function BusinessNotificationMonitor({
             );
         if (hasBusinessBaseline.current) {
           orders.forEach((order) => {
+            const coordination=whatsappCoordinationNotice(order,true);
+            if(coordination){if(orderStatuses.current.get(order.id)!==orderNotificationState(order))announce(coordination.key,coordination.notice[0],coordination.notice[1],{kind:'order',id:order.id},'/?open=requests-business&orderId='+order.id);return;}
+            if(order.requestProcess?.whatsappCoordination&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))return;
             if(order.requestProcess?.lateInitialResponse){
               const event=lateInitialNotice(order,true);
               if(event&&orderStatuses.current.get(order.id)!==orderNotificationState(order))announce(event.key,event.notice[0],event.notice[1],{kind:'order',id:order.id},`/?open=requests-business&orderId=${order.id}`);

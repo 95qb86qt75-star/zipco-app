@@ -119,3 +119,7 @@ it.each([false,true])('starts collapsed for normal navigation for actor business
  click(view,'Mostrar coordinación');expect(nodes(render(business?order():customer(),business)).find(n=>n.props.className==='zipco-co-fb')!.props['data-folded']).toBe(false);
  expect(state.run).not.toHaveBeenCalled();
 });
+
+it('uses the bilateral prompt instead of legacy start when the new action is offered',()=>{
+ const input=order(true,['OPEN_WHATSAPP','START_WORK','CONFIRM_WHATSAPP_COORDINATION']);input.requestProcess!.state='COORDINATING';render(input);expect(state.prompt.enabled).toBe(false);
+});
