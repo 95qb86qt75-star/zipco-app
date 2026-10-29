@@ -235,7 +235,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
         style={{ ['--att' as string]: phase === 'loading' ? 0 : 1 }}>
         <span className="nd" aria-hidden="true">{phase === 'idle' ? '2' : '3'}</span>
         <span className="tx">
-          <b>{phase === 'idle' ? 'Autorizar contacto' : phase === 'loading' ? 'Preparando WhatsApp…' : waLabel}</b>
+          <b>{phase === 'idle' ? 'Autorizar contacto' : phase === 'loading' ? 'Preparando WhatsApp…' : 'Ya puedes coordinar por WhatsApp'}</b>
           <small>{phase === 'idle' ? 'Falta tu acción · toca para abrir' : phase === 'loading' ? 'Paso 3 de 3 · un momento' : 'Paso 3 de 3 · listo para iniciar'}</small>
         </span>
         <span className="chev"><ChevronDown size={15} strokeWidth={2.8} aria-hidden="true" /><span className="sr-only">Mostrar coordinación</span></span>

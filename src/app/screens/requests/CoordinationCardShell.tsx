@@ -35,7 +35,7 @@ export default function CoordinationCardShell({ id, name, image, statusLabel, is
       <CoordinationCardHeader name={name} image={image} price={null} statusLabel={statusLabel} isUnread={isUnread}/>
       <button type="button" className="zipco-co-colrow" data-folded="true" disabled={!error} onClick={retry} aria-expanded={false}>
         <span className="nd" aria-hidden="true">{authorized ? '3' : '2'}</span>
-        <span className="tx"><b>{error ? 'Reintentar carga de condiciones' : authorized ? 'Iniciar coordinación por WhatsApp' : 'Autorizar contacto'}</b>
+        <span className="tx"><b>{error ? 'Reintentar carga de condiciones' : authorized ? 'Ya puedes coordinar por WhatsApp' : 'Autorizar contacto'}</b>
           <small>{error ? 'Toca para actualizar' : 'Verificando condiciones…'}</small></span>
         <span className="chev" aria-hidden="true"><ChevronDown size={15} strokeWidth={2.8}/></span>
       </button>
