@@ -144,7 +144,8 @@ const updateNavigation = (operation) => {
   return navigationWrites;
 };
 
-const sendPendingNavigation = async (client, event) => {
+const sendPendingNavigation = async (client, event, expectedTarget) => {
+  if (expectedTarget && pendingNavigationTarget !== expectedTarget) return;
   let url = pendingNavigationTarget;
   if (!url) {
     try {
@@ -167,7 +168,7 @@ const sendPendingNavigation = async (client, event) => {
     }
   }
   traceClick('worker-target-sent', { hasTarget: !!url });
-  if (url) {
+  if (url && (!expectedTarget || pendingNavigationTarget === expectedTarget)) {
     client.postMessage({ type: "ZIPCO_NOTIFICATION_NAVIGATE", url, ...observe('metadata', url, client) });
     if (event) observe('posted', event, url);
   }
@@ -265,6 +266,7 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
   if (eventKey) targetUrl.searchParams.set('notificationEvent', eventKey);
   const target = targetUrl.href;
   pendingNavigationTarget = targetUrl.pathname + targetUrl.search;
+  const clickedTarget = pendingNavigationTarget;
   observe('bind', observation, pendingNavigationTarget);
   observe('report', event, observation, 'TARGET_NORMALIZED', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey });
   traceClick('target-normalized', { hasTarget: !!targetUrl.searchParams.get('orderId') || !!targetUrl.searchParams.get('quoteId'), hasEvent: !!eventKey }, correlationId);
@@ -305,6 +307,7 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
         type: "window",
         includeUncontrolled: true,
       });
+      const existingWindows = clients.filter((client) => new URL(client.url).origin === self.location.origin);
       traceClick('windows-found', { hasClient: clients.length > 0 }, correlationId);
       const navigationMessage = {
         type: "ZIPCO_NOTIFICATION_NAVIGATE",
@@ -313,100 +316,130 @@ self.addEventListener("notificationclick", tracedEvent('click-failed', (event) =
       // The window returned by openWindow is not necessarily the suspended
       // window iOS surfaces. Reach every same-origin client on this path too,
       // before awaiting launch/focus, and mark only the opened event presented.
-      clients.filter((client) => new URL(client.url).origin === self.location.origin)
+      existingWindows
         .forEach((client) => {
-          if (eventKey) client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey });
-          client.postMessage({ ...navigationMessage, ...observe('metadata', targetUrl.pathname + targetUrl.search, client) });
-          observe('posted', event, targetUrl.pathname + targetUrl.search);
-          traceClick('navigation-posted', {}, correlationId);
-        });
-      // WebKit can report a successful navigate() while merely resuming the
-      // suspended standalone window at its previous route. Asking iOS to open
-      // the deep link first makes the launch URL authoritative; it normally
-      // reuses the installed PWA instead of creating a second window.
-      if (isAppleMobile) {
-        try {
-          // A distinct pathname is intentional. iOS may treat `/?open=...` as
-          // the already-open home URL and resume it without applying the query.
-          // Changing the pathname forces a real navigation while the SPA still
-          // reads the same `open`, `orderId` and `quoteId` parameters.
-          const launchedClient = await appleLaunch;
-          if (launchedClient) {
-            launchedClient.postMessage({ ...navigationMessage, ...observe('metadata', targetUrl.pathname + targetUrl.search, launchedClient) });
-            observe('posted', event, targetUrl.pathname + targetUrl.search);
-            await launchedClient.focus();
-            // A freshly resumed iOS Home Screen client can be inert for a few
-            // seconds. Keep notificationclick alive and retry after WebKit has
-            // attached the page's service-worker message listener.
-            await Promise.all(
-              [500, 1_500, 3_000, 5_000].map(
-                (delay) =>
-                  new Promise((resolve) =>
-                    setTimeout(async () => {
-                      try {
-                        await sendPendingNavigation(launchedClient, event);
-                      } finally {
-                        resolve();
-                      }
-                    }, delay),
-                  ),
-              ),
-            );
-            return;
-          }
-        } catch {
-          // Continue with the cross-browser existing-window fallback below.
-        }
-      }
-      const client =
-        clients.find(
-          (candidate) =>
-            candidate.url.startsWith(self.location.origin) &&
-            candidate.visibilityState === "visible",
-        ) ||
-        clients.find((candidate) =>
-          candidate.url.startsWith(self.location.origin),
-        ) ||
-        clients[0];
-      if (client) {
-        // iOS can resume the PWA after this worker posts the message, causing the
-        // message to be lost before React attaches its listener. Navigating the
-        // existing window preserves the target in the URL and works on resume.
-        if ("navigate" in client) {
           try {
-            // If openWindow only resumed the existing iOS PWA and returned no
-            // client, navigating to the root query repeats the WebKit failure
-            // that leaves ZIPCO on Inicio. Use the distinct launch pathname in
-            // this fallback too, so every Apple path performs a real document
-            // navigation before React canonicalizes the URL.
-            const navigatedClient = await client.navigate(
-              appleLaunchTarget || target,
-            );
-            const focusedClient = navigatedClient || client;
-            await focusedClient.focus();
-            // WebKit can resume the installed PWA after the first message was
-            // dispatched. Send the route once more to the client it surfaced.
-            await sendPendingNavigation(focusedClient, event);
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            await sendPendingNavigation(focusedClient, event);
-            await new Promise((resolve) => setTimeout(resolve, 2_700));
-            await sendPendingNavigation(focusedClient, event);
-            return;
+            if (eventKey) client.postMessage({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey });
+            client.postMessage({ ...navigationMessage, ...observe('metadata', targetUrl.pathname + targetUrl.search, client) });
+            observe('posted', event, targetUrl.pathname + targetUrl.search);
+            traceClick('navigation-posted', {}, correlationId);
+          } catch { /* A suspended client may reject messages; retry independently. */ }
+        });
+      // A suspended window can discard the first message while openWindow is
+      // still pending (or resolves to another client). Reacquire actual windows
+      // independently of that promise, and never replay a consumed/older click.
+      const warmRetries = isAppleMobile && existingWindows.length > 0
+        ? Promise.all([500, 1_500, 3_000, 5_000].map(delay => new Promise(resolve => {
+          setTimeout(async () => {
+            try {
+              if (pendingNavigationTarget !== clickedTarget) return;
+              const resumed = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+              await Promise.allSettled(resumed.filter(client => new URL(client.url).origin === self.location.origin)
+                .map(client => sendPendingNavigation(client, event, clickedTarget)));
+            } catch { /* URL/cache recovery remains available. */ }
+            finally { resolve(); }
+          }, delay);
+        }))) : Promise.resolve();
+      const navigate = async () => {
+        // WebKit can report a successful navigate() while merely resuming the
+        // suspended standalone window at its previous route. Asking iOS to open
+        // the deep link first makes the launch URL authoritative; it normally
+        // reuses the installed PWA instead of creating a second window.
+        if (isAppleMobile) {
+          try {
+            // A distinct pathname is intentional. iOS may treat `/?open=...` as
+            // the already-open home URL and resume it without applying the query.
+            // Changing the pathname forces a real navigation while the SPA still
+            // reads the same `open`, `orderId` and `quoteId` parameters.
+            let launchedClient;
+            if (existingWindows.length > 0) {
+              let launchTimer;
+              try {
+                launchedClient = await Promise.race([appleLaunch, new Promise(resolve => {
+                  launchTimer = setTimeout(() => resolve(null), 1500);
+                })]);
+              } finally { clearTimeout(launchTimer); }
+            } else launchedClient = await appleLaunch;
+            if (pendingNavigationTarget !== clickedTarget) return;
+            if (launchedClient) {
+              launchedClient.postMessage({ ...navigationMessage, ...observe('metadata', targetUrl.pathname + targetUrl.search, launchedClient) });
+              observe('posted', event, targetUrl.pathname + targetUrl.search);
+              await launchedClient.focus();
+              // A freshly resumed iOS Home Screen client can be inert for a few
+              // seconds. Keep notificationclick alive and retry after WebKit has
+              // attached the page's service-worker message listener.
+              if (existingWindows.length === 0) await Promise.all(
+                [500, 1_500, 3_000, 5_000].map(
+                  (delay) =>
+                    new Promise((resolve) =>
+                      setTimeout(async () => {
+                        try {
+                          await sendPendingNavigation(launchedClient, event, clickedTarget);
+                        } finally {
+                          resolve();
+                        }
+                      }, delay),
+                    ),
+                ),
+              );
+              return;
+            }
           } catch {
-            // Older browsers can reject WindowClient.navigate; retain the
-            // message-based behavior as a compatible fallback.
+            // Continue with the cross-browser existing-window fallback below.
           }
         }
-        await sendPendingNavigation(client, event);
-        await client.focus();
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        await sendPendingNavigation(client, event);
-        await new Promise((resolve) => setTimeout(resolve, 2_700));
-        await sendPendingNavigation(client, event);
-        return;
-      }
-      observe('report', event, observation, 'LAUNCH_REQUESTED');
-      return self.clients.openWindow(appleLaunchTarget || target);
+        const client =
+          clients.find(
+            (candidate) =>
+              candidate.url.startsWith(self.location.origin) &&
+              candidate.visibilityState === "visible",
+          ) ||
+          clients.find((candidate) =>
+            candidate.url.startsWith(self.location.origin),
+          ) ||
+          clients[0];
+        if (client) {
+          if (pendingNavigationTarget !== clickedTarget) return;
+          // iOS can resume the PWA after this worker posts the message, causing the
+          // message to be lost before React attaches its listener. Navigating the
+          // existing window preserves the target in the URL and works on resume.
+          if ("navigate" in client) {
+            try {
+              // If openWindow only resumed the existing iOS PWA and returned no
+              // client, navigating to the root query repeats the WebKit failure
+              // that leaves ZIPCO on Inicio. Use the distinct launch pathname in
+              // this fallback too, so every Apple path performs a real document
+              // navigation before React canonicalizes the URL.
+              const navigatedClient = await client.navigate(
+                appleLaunchTarget || target,
+              );
+              const focusedClient = navigatedClient || client;
+              await focusedClient.focus();
+              // WebKit can resume the installed PWA after the first message was
+              // dispatched. Send the route once more to the client it surfaced.
+              await sendPendingNavigation(focusedClient, event, clickedTarget);
+              await new Promise((resolve) => setTimeout(resolve, 300));
+              await sendPendingNavigation(focusedClient, event, clickedTarget);
+              await new Promise((resolve) => setTimeout(resolve, 2_700));
+              await sendPendingNavigation(focusedClient, event, clickedTarget);
+              return;
+            } catch {
+              // Older browsers can reject WindowClient.navigate; retain the
+              // message-based behavior as a compatible fallback.
+            }
+          }
+          await sendPendingNavigation(client, event, clickedTarget);
+          await client.focus();
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          await sendPendingNavigation(client, event, clickedTarget);
+          await new Promise((resolve) => setTimeout(resolve, 2_700));
+          await sendPendingNavigation(client, event, clickedTarget);
+          return;
+        }
+        observe('report', event, observation, 'LAUNCH_REQUESTED');
+        return self.clients.openWindow(appleLaunchTarget || target);
+      };
+      await Promise.all([navigate(), warmRetries]);
     })(),
   ]);
 }));

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { runInNewContext } from 'node:vm';
 import { createServer } from 'vite';
 
 const directory = path.resolve('node_modules/.cache/whatsapp-click-app');
@@ -45,7 +46,10 @@ try {
     value.error ? reject(Error(value.error.message)) : resolve(value.result);
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => {
-    const id = ++serial; pending.set(id, { resolve, reject }); socket.send(JSON.stringify({ id, method, params }));
+    const id = ++serial;
+    const timer=setTimeout(()=>{pending.delete(id);reject(Error('Browser command timed out: '+method));},20000);
+    pending.set(id, { resolve:value=>{clearTimeout(timer);resolve(value);}, reject:error=>{clearTimeout(timer);reject(error);} });
+    socket.send(JSON.stringify({ id, method, params }));
   });
   const evaluate = async expression => {
     const result = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
@@ -77,6 +81,33 @@ try {
  const results=[];
  const home=async()=>{await evaluate('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Inicio").click()');await wait('!document.querySelector("#order-20")');};
  const assertFocused=async(id=20)=>{await wait('document.activeElement?.id==="order-'+id+'"');await check('[...document.querySelectorAll(".zipco-status-tab[aria-pressed=true]")].some(b=>b.textContent.includes("Por responder"))','correct response category selected');await check('!document.querySelector("#order-'+id+' button[aria-expanded=false]")','target card opens its detail');await check('window.calls.filter(c=>c.path.includes("/actions/")).length===0','navigation never sends an order action');};
+ // Actual worker source + actual mounted App; only transport/platform are mocked.
+ for(const launch of ['different-client','pending']){
+   console.log('Checking real worker warm path:',launch);
+   await visit('');await evaluate('window.hidden()');
+   let listening=false,finished=false,task;const queued=[],handlers={};
+   const resumed={id:'resumed',url:origin+'/',visibilityState:'hidden',postMessage(message){if(listening&&message.type==='ZIPCO_NOTIFICATION_NAVIGATE')queued.push(message.url);},async focus(){return resumed;},async navigate(){return resumed;}};
+   const returned={id:'different',url:origin+'/',postMessage(){},async focus(){return returned;}};
+   runInNewContext(fs.readFileSync('public/push-sw.js','utf8'),{
+     self:{location:{origin},navigator:{userAgent:'iPhone'},crypto:globalThis.crypto,
+       clients:{matchAll:async()=>[resumed],openWindow:()=>launch==='pending'?new Promise(()=>{}):Promise.resolve(returned)},
+       addEventListener:(type,handler)=>handlers[type]=handler},
+     caches:{open:async()=>{throw Error('Synthetic cache unavailable');}},URL,Request,Response,Date,setTimeout,clearTimeout,
+   });
+   handlers.notificationclick({notification:{tag:'order-21-availability-17',data:{url:'/?open=requests-customer&orderId=21'},close(){}},waitUntil(p){task=p;}});
+   await delay(100);await evaluate('window.visible()');listening=true;
+   await check('!document.querySelector("#order-21")','resume without a click destination does not navigate');
+   let failure;void task.then(()=>{finished=true;},error=>{failure=error;finished=true;});
+   const deadline=Date.now()+8000;
+   while(!finished&&Date.now()<deadline){
+     while(queued.length)await evaluate('window.workerDeliver('+JSON.stringify(queued.shift())+')');
+     await delay(50);
+   }
+   while(queued.length)await evaluate('window.workerDeliver('+JSON.stringify(queued.shift())+')');
+   assert(finished,'worker must finish its bounded warm path');if(failure)throw failure;
+   await assertFocused(21);results.push('real-worker-warm-'+launch);
+   console.log('Passed real worker warm path:',launch);
+ }
  // Start at Inicio in the background; the first delivered target must change tab.
  await visit('');await evaluate('window.hidden()');await evaluate('window.visible()');await evaluate('window.seedTarget(window.targetUrl())');await assertFocused();await wait('window.acks.length>0');await shot('customer-query-focused');results.push('home-background-first-click');
  const first=await evaluate('window.acks.length');await evaluate('window.workerDeliver(window.targetUrl())');await delay(200);await check('document.activeElement?.id==="order-20"','same delivery does not remount or lose focus');await home();await evaluate('window.seedTarget(window.targetUrl("click-00000002"))');await assertFocused();results.push('new-click-same-notice-after-home');

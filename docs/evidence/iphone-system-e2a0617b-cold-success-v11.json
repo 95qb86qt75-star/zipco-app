@@ -1,0 +1,1005 @@
+{
+  "frontendVersion": "655efcc08298bde859359fbd45b4a274363938a1",
+  "copiedAt": 1793249937667,
+  "pageFlushCompleted": true,
+  "controllingWorker": {
+    "revision": "notification-click-attempt-v11",
+    "build": "655efcc08298bde859359fbd45b4a274363938a1",
+    "traceEnabled": true
+  },
+  "activeWorker": {
+    "revision": "notification-click-attempt-v11",
+    "build": "655efcc08298bde859359fbd45b4a274363938a1",
+    "traceEnabled": true
+  },
+  "pageContext": {
+    "standalone": true,
+    "expectedQaAlias": true
+  },
+  "registrationEnumerationAvailable": true,
+  "registrationCount": 1,
+  "registrationReports": [
+    {
+      "registrationIndex": 1,
+      "sameOrigin": true,
+      "rootScope": true,
+      "activeIsController": true,
+      "expectedActiveScript": true,
+      "notificationsAvailable": true,
+      "notificationCount": 10,
+      "notifications": [
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        }
+      ],
+      "worker": {
+        "revision": "notification-click-attempt-v11",
+        "build": "655efcc08298bde859359fbd45b4a274363938a1",
+        "traceEnabled": true
+      },
+      "traceReadFromController": true,
+      "additionalWorkerEntries": []
+    }
+  ],
+  "pageStorageAvailable": true,
+  "workerTraceAvailable": true,
+  "workerStorageAvailable": true,
+  "entries": [
+    {
+      "at": 1793248664482,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248708465,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248708471,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248720478,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248720479,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248738477,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248738478,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248770260,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248770266,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248933469,
+      "source": "worker",
+      "stage": "push-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "de4c365a-fc81-43b2-bf8d-21d1ed6be8d0",
+      "currentContext": false
+    },
+    {
+      "at": 1793248933714,
+      "source": "worker",
+      "stage": "system-shown",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "de4c365a-fc81-43b2-bf8d-21d1ed6be8d0",
+      "hasEvent": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793248949059,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248949077,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248961068,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248961070,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248979067,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793248979067,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249084075,
+      "source": "worker",
+      "stage": "push-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "5242671f-3564-43ac-84d4-cbfa98282a90",
+      "currentContext": false
+    },
+    {
+      "at": 1793249084100,
+      "source": "worker",
+      "stage": "system-shown",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "5242671f-3564-43ac-84d4-cbfa98282a90",
+      "hasEvent": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249097290,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249097294,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249109271,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249109272,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249127271,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249127273,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249455006,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249455011,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249467002,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249467002,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249485002,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249485004,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249515918,
+      "source": "app",
+      "stage": "app-route",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249518004,
+      "source": "app",
+      "stage": "app-route",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249518893,
+      "source": "app",
+      "stage": "app-route",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249520398,
+      "source": "app",
+      "stage": "app-route",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249529396,
+      "source": "app",
+      "stage": "app-route",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249530395,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": false
+    },
+    {
+      "at": 1793249530396,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": false
+    },
+    {
+      "at": 1793249533997,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249544043,
+      "source": "worker",
+      "stage": "push-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "currentContext": false
+    },
+    {
+      "at": 1793249544068,
+      "source": "worker",
+      "stage": "system-shown",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "hasEvent": true,
+      "currentContext": false
+    },
+    {
+      "at": 1793249561912,
+      "source": "worker",
+      "stage": "click-entered",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249561913,
+      "source": "worker",
+      "stage": "click-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "hasTarget": true,
+      "hasEvent": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249561913,
+      "source": "worker",
+      "stage": "target-normalized",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "hasTarget": true,
+      "hasEvent": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249561913,
+      "source": "worker",
+      "stage": "launch-requested",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "currentContext": true
+    },
+    {
+      "at": 1793249561920,
+      "source": "worker",
+      "stage": "windows-found",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "hasClient": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562024,
+      "source": "worker",
+      "stage": "target-saved",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "currentContext": true
+    },
+    {
+      "at": 1793249562482,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562482,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562487,
+      "source": "app",
+      "stage": "screen-mounted",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562487,
+      "source": "app",
+      "stage": "screen-target",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "loading": true,
+      "hasError": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562488,
+      "source": "app",
+      "stage": "app-start",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562488,
+      "source": "app",
+      "stage": "app-route",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasSession": true,
+      "requestsVisible": true,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562488,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562489,
+      "source": "app",
+      "stage": "app-target-ignored",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562489,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249562489,
+      "source": "app",
+      "stage": "app-worker-target",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249562489,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562490,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562490,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562492,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562493,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562679,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562679,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562679,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562849,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562850,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562854,
+      "source": "worker",
+      "stage": "launch-returned",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "correlationId": "e2a0617b-b27e-4e79-a168-1d390673582d",
+      "hasClient": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562855,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562856,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562856,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562857,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249562982,
+      "source": "app",
+      "stage": "screen-target",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "loading": true,
+      "hasError": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563061,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563070,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563070,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563085,
+      "source": "app",
+      "stage": "notice-suppressed",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasEvent": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563087,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563178,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563178,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563179,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563360,
+      "source": "app",
+      "stage": "app-target-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "hasEvent": true,
+      "hasSession": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563390,
+      "source": "app",
+      "stage": "screen-target",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "loading": true,
+      "hasError": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563444,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563445,
+      "source": "app",
+      "stage": "screen-target",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "loading": false,
+      "hasError": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563445,
+      "source": "app",
+      "stage": "card-focused",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249563445,
+      "source": "app",
+      "stage": "app-target-ack",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249563445,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563447,
+      "source": "worker",
+      "stage": "ack-consumed",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249563447,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249563460,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563550,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249563556,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249569314,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249932864,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "currentContext": true
+    },
+    {
+      "at": 1793249932879,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249932893,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249932915,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793249932926,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793249932927,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "655efcc08298bde859359fbd45b4a274363938a1",
+      "hasTarget": false,
+      "currentContext": true
+    }
+  ]
+}

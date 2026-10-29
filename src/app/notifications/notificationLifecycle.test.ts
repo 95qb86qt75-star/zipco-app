@@ -25,7 +25,7 @@ function memoryCaches() {
     };
   } };
 }
-function worker(userAgent = 'Android', existingClients: any[] = [], cache = memoryCaches(), trace?: any) {
+function worker(userAgent = 'Android', existingClients: any[] = [], cache = memoryCaches(), trace?: any, timers?: any) {
   const listeners = new Map<string, (event: any) => void>();
   const client = { postMessage: vi.fn(), focus: vi.fn(async () => client) };
   const registration = { showNotification: vi.fn(async () => {}) };
@@ -33,7 +33,8 @@ function worker(userAgent = 'Android', existingClients: any[] = [], cache = memo
   runInNewContext(workerSource, {
     self: { location: { origin }, navigator: { userAgent }, registration, clients, zipcoQaClickTrace: trace,
       addEventListener: (type: string, callback: (event: any) => void) => listeners.set(type, callback) },
-    caches: cache, URL, Request, Response, Date, setTimeout: (fn: () => void) => { queueMicrotask(fn); },
+    caches: cache, URL, Request, Response, Date,
+    ...(timers ?? {setTimeout: (fn: () => void) => { queueMicrotask(fn); }, clearTimeout: () => {}}),
   });
   return { cache, client, clients, registration,
     async fire(type: string, payload: Record<string, unknown>) {
@@ -61,7 +62,7 @@ function domHarness() {
   return { doc, element, environment: { document: doc, MutationObserver: Observer } as any,
     render() { doc.getElementById.mockReturnValue(element); mutation(); }, mutation: () => mutation() };
 }
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('system presentation and explicit notification navigation', () => {
   it('keeps push diagnostics alive until stored and reads them after a worker restart',async()=>{
@@ -264,6 +265,58 @@ describe('system presentation and explicit notification navigation', () => {
       data: { url: '/?open=requests-customer&orderId=72' }, close() {} } });
     expect(resumed.postMessage).toHaveBeenCalledWith({ type: 'ZIPCO_SYSTEM_NOTIFICATION_PRESENTED', eventKey: 'requests-customer:order-72-accepted' });
     expect(resumed.postMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'ZIPCO_NOTIFICATION_NAVIGATE', url: expect.stringContaining('orderId=72') }));
+  });
+  it('retries the resumed window independently when openWindow returns a different client',async()=>{
+    vi.useFakeTimers();
+    let listening=false;
+    const delivered:string[]=[];
+    const oldWindow={url:origin+'/',postMessage:vi.fn((message:any)=>{if(listening&&message.type==='ZIPCO_NOTIFICATION_NAVIGATE')delivered.push(message.url);})};
+    const windows=[oldWindow];
+    const sw=worker('iPhone',windows,memoryCaches(),undefined,{setTimeout,clearTimeout});
+    const click=sw.fire('notificationclick',{notification:{tag:'order-91-availability-17',data:{url:'/?open=requests-customer&orderId=91'},close(){}}});
+    await vi.advanceTimersByTimeAsync(100);
+    expect(delivered).toEqual([]);
+    // The revived window is a new WindowClient object; refresh matchAll.
+    const revived={...oldWindow,postMessage:vi.fn((message:any)=>{if(message.type==='ZIPCO_NOTIFICATION_NAVIGATE')delivered.push(message.url);})};
+    windows.splice(0,1,revived);listening=true;
+    await vi.advanceTimersByTimeAsync(5000);await click;
+    expect(revived.postMessage).toHaveBeenCalled();
+    expect(delivered.length).toBeGreaterThan(0);
+    expect(delivered.every(url=>new URL(url,origin).searchParams.get('orderId')==='91')).toBe(true);
+    expect(sw.clients.matchAll.mock.calls.length).toBeGreaterThan(1);
+  });
+  it('bounds a hanging warm openWindow, then navigates the existing window to the same click',async()=>{
+    vi.useFakeTimers();
+    const existing:any={url:origin+'/',postMessage:vi.fn(),focus:vi.fn(async()=>existing),navigate:vi.fn(async()=>existing)};
+    const sw=worker('iPhone',[existing],memoryCaches(),undefined,{setTimeout,clearTimeout});
+    sw.clients.openWindow.mockImplementation(()=>new Promise(()=>{}));
+    let finished=false;
+    const click=sw.fire('notificationclick',{notification:{tag:'order-92-availability-18',data:{url:'/?open=requests-customer&orderId=92'},close(){}}}).then(()=>{finished=true;});
+    await vi.advanceTimersByTimeAsync(500);
+    expect(existing.postMessage.mock.calls.filter(([m])=>m.type==='ZIPCO_NOTIFICATION_NAVIGATE').length).toBeGreaterThan(1);
+    expect(existing.navigate).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(5000);await click;
+    expect(finished).toBe(true);expect(existing.navigate).toHaveBeenCalledOnce();
+    const target=new URL(existing.navigate.mock.calls[0][0]);
+    expect(target.pathname).toBe('/__zipco_notification_open__');expect(target.searchParams.get('orderId')).toBe('92');
+    expect(target.searchParams.get('notificationClick')).toBeTruthy();
+  });
+  it.each(['ack','new-click'])('does not replay an older click after %s during warm retries',async action=>{
+    vi.useFakeTimers();
+    const existing={url:origin+'/',postMessage:vi.fn()};
+    const sw=worker('iPhone',[existing],memoryCaches(),undefined,{setTimeout,clearTimeout});
+    const click=(id:number)=>sw.fire('notificationclick',{notification:{tag:`order-${id}-accepted`,data:{url:`/?open=requests-customer&orderId=${id}`},close(){}}});
+    const first=click(91);await vi.advanceTimersByTimeAsync(100);
+    const firstUrl=existing.postMessage.mock.calls.find(([m])=>m.type==='ZIPCO_NOTIFICATION_NAVIGATE')![0].url;
+    let second:Promise<void>|undefined;
+    if(action==='ack')await sw.fire('message',{data:{type:'ZIPCO_NOTIFICATION_NAVIGATED',url:firstUrl}});
+    else {second=click(92);await vi.advanceTimersByTimeAsync(100);}
+    existing.postMessage.mockClear();sw.client.postMessage.mockClear();
+    await vi.advanceTimersByTimeAsync(6000);await first;await second;
+    const messages=[...existing.postMessage.mock.calls,...sw.client.postMessage.mock.calls].map(([m])=>m).filter(m=>m.type==='ZIPCO_NOTIFICATION_NAVIGATE');
+    expect(messages.every(m=>m.url!==firstUrl)).toBe(true);
+    if(action==='ack')expect(messages).toEqual([]);
+    else expect(messages.some(m=>m.url.includes('orderId=92'))).toBe(true);
   });
 
   it('opens Android contact authorization without replaying its toast and keeps later READY independent', async () => {
