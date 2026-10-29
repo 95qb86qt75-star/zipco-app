@@ -1,6 +1,7 @@
 // Shared by the QA page and a QA-only classic worker import. No payload logging.
 export const CLICK_TRACE_CACHE = 'zipco-qa-click-trace-v2';
 export const CLICK_TRACE_LIMIT = 50;
+export const CLICK_TRACE_CONTEXT_LIMIT = 10;
 export const CLICK_TRACE_TTL = 60 * 60 * 1000;
 export const CLICK_TRACE_STAGES = new Set([
   'push-received', 'system-shown', 'click-entered', 'click-received', 'target-normalized',
@@ -18,6 +19,10 @@ const flagKeys = ['hasTarget', 'hasEvent', 'hasSession', 'visible', 'hasClient',
   'hasCard', 'loading', 'hasError', 'hasController', 'revisionMatches', 'buildMatches', 'requestsVisible', 'sessionReady', 'currentContext'];
 const repeatedReadStages = new Set(['app-cache-start', 'app-cache-read', 'worker-target-request',
   'worker-target-sent', 'worker-probe', 'app-target-ignored', 'app-worker-target']);
+// Recovery polling is context, not evidence that a push/click did or did not run.
+// Cap it independently, including across worker lifetimes sharing this cache.
+const contextStages = new Set([...repeatedReadStages, 'app-resume', 'app-route',
+  'ack-received', 'ack-mismatch', 'screen-mounted', 'notice-suppressed']);
 
 export function sanitizeClickTrace(row) {
   if (!row || !CLICK_TRACE_STAGES.has(row.stage) || !['app', 'worker'].includes(row.source) ||
@@ -47,9 +52,14 @@ export function createClickTraceStore(source, build, origin, cacheStorage) {
       } catch { return { key, entry: null }; }
     }));
   };
-  const latest = (items) => [...new Map(items.map((item) => [item.key, item])).values()]
-    .map((item) => ({ ...item, entry: sanitizeClickTrace(item.entry) }))
-    .filter((item) => item.entry).sort((a, b) => a.entry.at - b.entry.at).slice(-CLICK_TRACE_LIMIT);
+  const latest = (items) => {
+    const ordered = [...new Map(items.map((item) => [item.key, item])).values()]
+      .map((item) => ({ ...item, entry: sanitizeClickTrace(item.entry) }))
+      .filter((item) => item.entry).sort((a, b) => a.entry.at - b.entry.at);
+    const context = ordered.filter(item => contextStages.has(item.entry.stage)).slice(-CLICK_TRACE_CONTEXT_LIMIT);
+    const causal = ordered.filter(item => !contextStages.has(item.entry.stage)).slice(-(CLICK_TRACE_LIMIT - context.length));
+    return [...causal, ...context].sort((a, b) => a.entry.at - b.entry.at);
+  };
   const memoryRows = () => rows(memory.map((item) => item.entry));
   const bounded = async (work, fallback) => {
     let timer;
@@ -60,14 +70,14 @@ export function createClickTraceStore(source, build, origin, cacheStorage) {
     } finally { clearTimeout(timer); }
   };
   const read = async () => {
-    const fallback = () => ({ entries: memoryRows().map((entry) => ({ ...entry, currentContext: true })), storageAvailable: false });
+    const fallback = () => ({ entries: memoryRows().map((entry) => ({ ...entry, currentContext: true })), storageAvailable: false, retentionPolicy: 'causal-first-v1' });
     return bounded((async () => {
       await writes;
       try {
         const cache = await cacheStorage.open(CLICK_TRACE_CACHE);
         const stored = await records(cache);
         return { entries: latest([...stored, ...memory]).map((item) => ({ ...item.entry,
-          currentContext: item.key.startsWith(`${prefix}${instance}-`) })), storageAvailable: true };
+          currentContext: item.key.startsWith(`${prefix}${instance}-`) })), storageAvailable: true, retentionPolicy: 'causal-first-v1' };
       } catch { return fallback(); }
     })(), fallback);
   };

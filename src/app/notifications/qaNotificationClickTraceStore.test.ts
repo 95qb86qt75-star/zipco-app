@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { createClickTraceStore, sanitizeClickTrace, CLICK_TRACE_LIMIT, CLICK_TRACE_TTL } from './qaNotificationClickTraceStore.js';
+import { createClickTraceStore, sanitizeClickTrace, CLICK_TRACE_LIMIT, CLICK_TRACE_CONTEXT_LIMIT, CLICK_TRACE_TTL } from './qaNotificationClickTraceStore.js';
 
 const build = 'a'.repeat(40), origin = 'https://zipco.test';
 it('retains only a random QA correlation UUID, not a semantic order key',()=>{
@@ -90,4 +90,55 @@ it('does not restore expired in-memory records when merging persisted evidence',
     vi.setSystemTime(Date.now() + CLICK_TRACE_TTL + 1);
     expect((await trace.read()).entries).toHaveLength(0);
   } finally { vi.useRealTimers(); }
+});
+
+it.each(['worker','app'])('preserves correlated %s action evidence across a flood of recovery reads and restarts',async source=>{
+  const storage=cache(),trace=createClickTraceStore(source,build,origin,storage);
+  const external='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',internal='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const causal=source==='worker'?['push-received','system-shown','click-entered','click-received','target-normalized','ack-consumed']
+    :['notice-delivered','toast-click','app-target-accepted','card-focused'];
+  for(const stage of causal)await trace.record(stage,{correlationId:source==='worker'?external:internal,hasTarget:true,receiptToken:'private'});
+  // New instances bypass the old per-instance ten-second coalescing rule.
+  for(let i=0;i<80;i++){
+    const resumed=createClickTraceStore(source,build,origin,storage);
+    await resumed.record(source==='worker'?'worker-target-request':'app-cache-start',{hasTarget:false});
+    await resumed.record(source==='worker'?'worker-target-sent':'app-cache-read',{hasTarget:false});
+  }
+  const report=await createClickTraceStore(source,'b'.repeat(40),origin,storage).read();
+  expect(report.entries.filter(row=>causal.includes(row.stage)).map(row=>row.stage)).toEqual(causal);
+  expect(report.entries.filter(row=>causal.includes(row.stage)).every(row=>row.correlationId===(source==='worker'?external:internal))).toBe(true);
+  expect(report.entries).toHaveLength(causal.length+CLICK_TRACE_CONTEXT_LIMIT);
+  expect(report.entries.filter(row=>causal.includes(row.stage)).every(row=>row.currentContext===false)).toBe(true);
+  expect((await (await storage.open()).keys()).length).toBeLessThanOrEqual(CLICK_TRACE_LIMIT);
+  expect(JSON.stringify(report)).not.toMatch(/receiptToken|private|https:|orderId/);
+});
+
+it('bounds causal and context storage together without extending the one-hour lifetime',async()=>{
+  vi.useFakeTimers();
+  try{
+    const storage=cache(),trace=createClickTraceStore('worker',build,origin,storage);
+    for(let i=0;i<65;i++){
+      await trace.record('click-received',{hasTarget:true});vi.setSystemTime(Date.now()+1);
+    }
+    for(let i=0;i<20;i++){
+      await createClickTraceStore('worker',build,origin,storage).record('ack-mismatch',{hasTarget:false});vi.setSystemTime(Date.now()+1);
+    }
+    const reader=createClickTraceStore('worker',build,origin,storage),report=await reader.read();
+    expect(report.entries).toHaveLength(CLICK_TRACE_LIMIT);
+    expect(report.entries.filter(row=>row.stage==='click-received')).toHaveLength(CLICK_TRACE_LIMIT-CLICK_TRACE_CONTEXT_LIMIT);
+    expect(report.entries.filter(row=>row.stage==='ack-mismatch')).toHaveLength(CLICK_TRACE_CONTEXT_LIMIT);
+    expect(report.entries.map(row=>row.at)).toEqual(report.entries.map(row=>row.at).sort((a,b)=>a-b));
+    vi.setSystemTime(Date.now()+CLICK_TRACE_TTL+1);
+    expect((await reader.read()).entries).toEqual([]);
+  }finally{vi.useRealTimers();}
+});
+
+it('applies the same retention policy in memory when storage is unavailable',async()=>{
+  const trace=createClickTraceStore('app',build,origin,{open:async()=>{throw Error('unavailable');}});
+  await trace.record('toast-click',{correlationId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'});
+  for(let i=0;i<100;i++)await trace.record('app-route',{requestsVisible:i%2===0});
+  const result=await trace.read();
+  expect(result.storageAvailable).toBe(false);
+  expect(result.entries[0].stage).toBe('toast-click');
+  expect(result.entries).toHaveLength(CLICK_TRACE_CONTEXT_LIMIT+1);
 });

@@ -34,6 +34,7 @@ describe('QA copy of click trace',()=>{
     vi.stubGlobal('caches', { open: async () => ({ match: async () => undefined }) });
     const result = await (await import('./qaNotificationClickTrace')).readClickTrace();
     expect(result.frontendVersion).toBe(pageBuild);
+    expect(result.localRetention).toEqual({policy:'causal-first-v1',maxEntriesPerSource:50,maxContextEntriesPerSource:10,ttlMs:3600000,controllerPolicyConfirmed:false,missingStagesAreInconclusive:true});
     expect(result.controllingWorker.build).toBe(oldBuild);
     expect(result.activeWorker.build).toBe(pageBuild);
     expect(result.entries).toHaveLength(1);

@@ -1,4 +1,4 @@
-import { createClickTraceStore, sanitizeClickTrace, CLICK_TRACE_LIMIT } from './qaNotificationClickTraceStore.js';
+import { createClickTraceStore, sanitizeClickTrace, CLICK_TRACE_LIMIT, CLICK_TRACE_CONTEXT_LIMIT, CLICK_TRACE_TTL } from './qaNotificationClickTraceStore.js';
 import { readNotificationWorkerIdentity } from './notificationWorkerVersion';
 import { parseNotificationTarget } from './notificationNavigation';
 import { flushNotificationClickTrace } from './notificationClickTraceQueue';
@@ -68,6 +68,9 @@ export async function readClickTrace() {
   ]);
   const workerEntries = Array.isArray(worker?.entries) ? worker.entries.map(sanitizeClickTrace).filter(Boolean).slice(-CLICK_TRACE_LIMIT) : [];
   return { frontendVersion: build, copiedAt: Date.now(), pageFlushCompleted, controllingWorker, activeWorker,
+    localRetention: { policy: 'causal-first-v1', maxEntriesPerSource: CLICK_TRACE_LIMIT,
+      maxContextEntriesPerSource: CLICK_TRACE_CONTEXT_LIMIT, ttlMs: CLICK_TRACE_TTL,
+      controllerPolicyConfirmed: worker?.retentionPolicy === 'causal-first-v1', missingStagesAreInconclusive: true },
     pageContext: { standalone: (navigator as Navigator & { standalone?: boolean }).standalone === true || window.matchMedia?.('(display-mode: standalone)').matches === true,
       expectedQaAlias: window.location.hostname === 'zipco-app-git-qa-zipco-s-projects.vercel.app' },
     registrationEnumerationAvailable: !!enumerated, registrationCount: registrations.length, registrationReports,

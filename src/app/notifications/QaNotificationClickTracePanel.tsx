@@ -31,7 +31,7 @@ export default function QaNotificationClickTracePanel() {
   };
   return <details ref={details} className="my-3 rounded border border-amber-300 p-2">
     <summary className="min-h-11 font-bold">Recorrido del clic externo QA</summary>
-    <p>Temporal QA: espera las escrituras antes de copiar y consulta los avisos pendientes de los registros de esta instalación. Los próximos banners muestran «QA» y un código aleatorio que coincide con bannerCode; no contiene datos del pedido. Un aviso ya cerrado puede desaparecer del inventario. Hasta 50 etapas por origen durante una hora.</p>
+    <p>Temporal QA: espera las escrituras antes de copiar y consulta los avisos pendientes de esta instalación. El código «QA» del banner coincide con bannerCode. Conservamos hasta 50 etapas por fuente (app y worker) durante una hora; las consultas repetidas y el contexto ocupan como máximo 10, para priorizar presentación, clic y enfoque. El clic del aviso interno es distinto del clic del sistema. Un aviso cerrado puede desaparecer del inventario y el historial puede estar recortado: una etapa ausente no demuestra que no ocurrió.</p>
     <div className="flex flex-wrap gap-2">
       <button type="button" className="min-h-11 rounded border px-3" onClick={() => void read()}>Leer recorrido</button>
       <button type="button" className="min-h-11 rounded border px-3" onClick={() => void read(true)}>Copiar recorrido</button>
