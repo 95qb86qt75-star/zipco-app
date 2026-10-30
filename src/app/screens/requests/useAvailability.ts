@@ -62,15 +62,14 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
       if(!active())return false;
       if(flow){verified=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return false;if(!verified?.requestProcess||verified.id!==order.id||verified.requestProcess.id!==process.id||verified.requestProcess.version<finalReceipt.requestProcess.version)throw Error('read pending');finalReceipt={orderId:verified.id!,orderStatus:verified.status,requestProcess:verified.requestProcess};}
       publish(finalReceipt);setExpired(false);
-      if(flow){completeStatusChange(flow,verified);if(navigation)window.location.assign(navigation);return true;}
-      if(action!=='REVOKE_CONTACT_CONSENT')window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,
+      if(!flow&&action!=='REVOKE_CONTACT_CONSENT')window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,
         view:action==='CONFIRM_AVAILABILITY'?'waiting':action==='CONTINUE_REQUEST'?receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination':'history'}}));
       const text=action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
         :action==='CONTINUE_REQUEST'?{title:'Solicitud confirmada',description:receipt.requestProcess.availability?.path==='LOCAL_PICKUP'?'El pedido quedó en curso, pendiente de retiro en el local.':'Ya puedes revisar el contacto e iniciar la coordinación.'}
         :action==='REVOKE_CONTACT_CONSENT'?{title:'Permiso de contacto retirado',description:'Se retiró tu propio permiso para futuras entregas de contacto.'}
         :{title:action==='DECLINE_REQUEST'?'Solicitud finalizada':action==='WITHDRAW_AVAILABILITY'?'Disponibilidad retirada':'Retiro cancelado',description:'La solicitud quedó en Historial.'};
       announceAction(action==='CONTINUE_REQUEST'?'accepted':action==='CONFIRM_AVAILABILITY'?'requestSent':action==='REVOKE_CONTACT_CONSENT'?'annulled':'annulled',{
-        ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});if(navigation)window.location.assign(navigation);return true;
+        ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});if(flow)completeStatusChange(flow,verified);if(navigation)window.location.assign(navigation);return true;
     }catch(e){if(active()){setError(confirmed?'Tu respuesta se guard\u00f3; falta actualizar el pedido. Pulsa Comprobar pedido antes de continuar.':e instanceof AvailabilityError?e.message:CHECK_AVAILABILITY_MESSAGE);
       if(e instanceof AvailabilityError&&e.code==='EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED')setExpired(true);
       if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}

@@ -47,7 +47,12 @@ export default function useLateInitial(order:BusinessRequest|MyOrder,business:bo
       });
       if(!active())return false;
       committed=true;
-      if(flow){const latest=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return false;if(!latest?.requestProcess||latest.requestProcess.id!==p.id||latest.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');lateInitialIntents().claimFeedback(operationScope(session!,business),p.id,receipt,action);publish({orderId:latest.id!,orderStatus:latest.status,requestProcess:latest.requestProcess});completeStatusChange(flow,latest);return true;}
+      if(flow){const latest=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return false;if(!latest?.requestProcess||latest.requestProcess.id!==p.id||latest.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');if(latest.requestProcess.version===receipt.requestProcess.version){      if(lateInitialIntents().claimFeedback(operationScope(session!,business),p.id,receipt,action))announceAction(action==='ASK_LATE_REQUEST_NEED'?'lateQuerySent':action==='CONFIRM_LATE_REQUEST_NEED'?'accepted':'annulled',{
+        title:action==='ASK_LATE_REQUEST_NEED'?'Consulta enviada':action==='CONFIRM_LATE_REQUEST_NEED'?'Avisamos al negocio':'Solicitud finalizada',
+        description:action==='ASK_LATE_REQUEST_NEED'?'Le preguntamos al cliente si aún lo requiere. Quedó esperando su respuesta.':action==='CONFIRM_LATE_REQUEST_NEED'?'Falta acordar una nueva hora. Tu respuesta no confirma disponibilidad ni reserva.':'La solicitud quedó en el historial de ambos.',
+        key:`late:${p.id}:${receipt.requestProcess.lateInitialResponse?.queryId??'none'}:${receipt.requestProcess.version}:${action}`,
+      });
+}publish({orderId:latest.id!,orderStatus:latest.status,requestProcess:latest.requestProcess});completeStatusChange(flow,latest);return true;}
       if(lateInitialIntents().claimFeedback(operationScope(session!,business),p.id,receipt,action))announceAction(action==='ASK_LATE_REQUEST_NEED'?'lateQuerySent':action==='CONFIRM_LATE_REQUEST_NEED'?'accepted':'annulled',{
         title:action==='ASK_LATE_REQUEST_NEED'?'Consulta enviada':action==='CONFIRM_LATE_REQUEST_NEED'?'Avisamos al negocio':'Solicitud finalizada',
         description:action==='ASK_LATE_REQUEST_NEED'?'Le preguntamos al cliente si aún lo requiere. Quedó esperando su respuesta.':action==='CONFIRM_LATE_REQUEST_NEED'?'Falta acordar una nueva hora. Tu respuesta no confirma disponibilidad ni reserva.':'La solicitud quedó en el historial de ambos.',

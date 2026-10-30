@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
+import {useStatusOverlay} from './statusOverlay';
 
 /** Evento global: cualquiera de las dos partes aceptó y el trato quedó cerrado. */
 export const DEAL_CLOSED_EVENT = 'zipco-deal-closed';
@@ -30,6 +31,7 @@ const REDUCED_MS = 2200; // prefers-reduced-motion: sin animación, solo el mens
  *  y se muestra con announceDealClosed(), así funciona aunque el componente que aceptó ya se haya desmontado. */
 export default function DealSuccessHost() {
   const [shown, setShown] = useState(0); // clave: reinicia la animación si se dispara de nuevo
+  useStatusOverlay(!!shown);
   useEffect(() => {
     const seen = new Set<string>();
     let session = readCoordinationSession();

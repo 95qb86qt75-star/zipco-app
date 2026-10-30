@@ -116,7 +116,7 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
 
-  const wrapCoordination=(detail:ReactNode)=>coordinationView&&accepted?<CoordinationWaitingCard id={order.id!} name={name} price={price} quantity={accepted.subjectSnapshot.items.reduce((sum,item)=>sum+item.quantity,0)} model={coordinationView}>{detail}</CoordinationWaitingCard>:detail;
+  const wrapCoordination=(detail:ReactNode)=>coordinationView&&accepted?<CoordinationWaitingCard business={business} items={accepted.subjectSnapshot.items.map(item=>({name:item.nameSnapshot,quantity:item.quantity}))} id={order.id!} name={name} price={price} quantity={accepted.subjectSnapshot.items.reduce((sum,item)=>sum+item.quantity,0)} model={coordinationView}>{detail}</CoordinationWaitingCard>:detail;
 
   if(awaiting&&process?.lateInitialResponse&&(business||['AWAITING_CUSTOMER','STILL_NEEDED'].includes(process.lateInitialResponse.status)))
     return <LateInitialCard key={`${business}:${process.id}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread}/>;

@@ -1,3 +1,4 @@
+import {announceDealClosed} from './DealSuccess';
 import BusinessResponseHoursNotice from './BusinessResponseHoursNotice';
 import {chileSchedule} from './serviceHoursAdvisory';
 import { useEffect, useRef, useState } from 'react';
@@ -201,7 +202,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     const flow=beginStatusChange(order,business);let committed=false;
     const finish = (receipt: ProposalReceipt,verified?:StatusOrder) => {
       if (!active()) return;
-      if(flow&&verified){window.dispatchEvent(new CustomEvent('zipco-process-receipt',{detail:{orderId:verified.id,orderStatus:verified.status,requestProcess:verified.requestProcess}}));window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));completeStatusChange(flow,verified);setDecision(null);setAuthCard(false);setOpen(false);setDraftAction(null);refresh();return;}
+      if(flow&&verified){window.dispatchEvent(new CustomEvent('zipco-process-receipt',{detail:{orderId:verified.id,orderStatus:verified.status,requestProcess:verified.requestProcess}}));window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));if(verified.requestProcess?.version===receipt.requestProcess.version){if(isAcceptAction(action)){if(business&&!newFlow)announceDealClosed('accepted:'+process.id+':'+receipt.requestProcess.version);else announceAction('accepted',{title:'Propuesta aceptada',key:'accepted:'+process.id+':'+receipt.requestProcess.version});}else if(['PROPOSE_ALTERNATIVE','PROPOSE_FINAL'].includes(action))announceProposalSent(action,receipt);else announceAction(action==='COUNTER_PROPOSAL'?'counter':'rejected',{key:'proposal:'+process.id+':'+receipt.requestProcess.version});}completeStatusChange(flow,verified);setDecision(null);setAuthCard(false);setOpen(false);setDraftAction(null);refresh();return;}
       if (isAcceptAction(action)) {
         if(newFlow){announceAction('accepted',{title:'Propuesta aceptada',description:receipt.requestProcess.availability?.path==='LOCAL_PICKUP'?'El pedido quedó en curso, pendiente de retiro en el local.':'Ya puedes revisar el contacto y coordinar el pedido.',key:`availability-proposal:${process.id}:${receipt.requestProcess.version}`});
           window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination'}}));

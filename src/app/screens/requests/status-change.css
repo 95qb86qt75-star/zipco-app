@@ -15,3 +15,8 @@
 @media(prefers-reduced-motion:reduce){.zipco-status-flow{transition:none}.zipco-flow-spinner,.zipco-count-change *{animation:none!important}.zipco-count-sparks{display:none}}
 @media(max-width:350px){.zipco-status-result{gap:8px;padding:11px}.zipco-status-result h4{font-size:13px}.zipco-status-toast{gap:8px}.zipco-status-toast p{font-size:10px}}.zipco-status-product{display:grid;place-items:center;min-width:58px;min-height:58px;border:3px solid #34d399;border-radius:50%;box-shadow:0 0 16px #34d39944}
 .zipco-status-result[data-amber=true] .zipco-status-product{border-color:#fbbf24;box-shadow:0 0 16px #fbbf2444}
+.zipco-status-flow{position:relative;transition:grid-template-rows .5s ease,opacity .4s ease,transform .5s ease;transform-origin:top center}
+.zipco-status-flow[data-stage=exiting]{transform:translateY(-28px) scale(.96)}
+.zipco-status-flow[data-arrival=true]{outline:2px solid #34d399;border-radius:24px;animation:zipco-status-arrive 2.4s ease-out both}
+@keyframes zipco-status-arrive{0%,35%{box-shadow:0 0 0 6px #34d39944,0 0 24px #34d39966}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.zipco-status-flow{transition:none;transform:none!important;animation:none!important}}

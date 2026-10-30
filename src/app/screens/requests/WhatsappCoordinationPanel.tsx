@@ -17,7 +17,7 @@ export default function WhatsappCoordinationPanel({order,business,refresh,childr
   const confirm=coordinationAllowed(process,business,'CONFIRM_WHATSAPP_COORDINATION'),respond=coordinationAllowed(process,business,'RESPOND_WHATSAPP_COORDINATION'),decline=coordinationAllowed(process,business,'DECLINE_WHATSAPP_COORDINATION');
   const context=[process?.id,process?.agreementPublicId,process?.version,round?.confirmationId,negative?.id,respond?'respond':'confirm'].join(':');
   const sameSession=!!session&&session===binding.current,ownPending=round?.status==='PENDING'&&round.initiatedBy===(business?'BUSINESS':'CUSTOMER')&&process?.state==='IN_PROGRESS';
-  const closed=negative?.active===true&&process?.state==='COORDINATING';
+  const closed=process?.state==='COORDINATING'&&(negative?.active===true||round?.status==='DECLINED');
   const relevant=order.recordState==='available'&&order.orderType==='product'&&['COORDINATING','IN_PROGRESS'].includes(process?.state??'')&&(confirm||respond||decline||ownPending||closed);
   const key=whatsappReturnKey(order,business),promptKey=respond&&key?`${key}:confirmation:${round?.confirmationId}`:key;
   const pending=operation.pending(),recovery=operation.needsUpdate||operation.restored()||!!operation.storageWarning(),blocked=operation.busy||!!pending||!!recovery;

@@ -149,10 +149,10 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if(!flow)window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:state==='IN_PROGRESS'?'active':state==='COORDINATING'?'coordination':state==='READY'?'ready':undefined}}));
       }
       // Presentation waits only after the durable action and authoritative read.
-      const readyNotice = !flow && beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
+      const readyNotice = beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
         latest?.requestProcess?.agreementPublicId === process.agreementPublicId
         ? coordinationFeedback(action, response.result, latest, business) : null;
-      const clientNotice = (!flow||action==='ACK_READY_NOTICE') && beforeCustomerPublish && !business && !storageWarning() && latest?.requestProcess &&
+      const clientNotice = beforeCustomerPublish && !business && !storageWarning() && latest?.requestProcess &&
         latest.requestProcess.agreementPublicId === process.agreementPublicId && latest.requestProcess.id === process.id &&
         latest.requestProcess.version >= response.result.requestProcess.version &&
         ((action === 'ACK_READY_NOTICE' && latest.requestProcess.state === 'READY' && latest.requestProcess.readyNoticeAcknowledged === true) ||
@@ -174,7 +174,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         detail: { orderId: order.id, agreementPublicId: process.agreementPublicId },
       }));
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
-      if(flow){completeStatusChange(flow,latest);if(active())refresh();return true;}
+      if(flow){if(!readyNotice&&!clientNotice&&feedback&&!storageWarning()){const notice=coordinationFeedback(action,response.result,latest,business);if(notice)announceAction(notice.kind,{key:notice.key});}completeStatusChange(flow,latest);if(active())refresh();return true;}
       if (storageWarning()) announce(storageWarning());
       else if (action === 'OPEN_WHATSAPP') {
         if (response.navigation && latest?.requestProcess && latest.requestProcess.version >= response.result.requestProcess.version &&

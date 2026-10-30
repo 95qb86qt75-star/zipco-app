@@ -15,6 +15,7 @@ import { readCoordinationSession } from './coordinationSession';
 import { clearWhatsappReturn,dismissWhatsappReturn,whatsappReturnKey } from './whatsappReturn';
 import useStartWorkPrompt from './useStartWorkPrompt';
 import AgreementSheet from './AgreementSheet';
+import CustomerCoordinationDetail from './CustomerCoordinationDetail';
 
 /**
  * Shared design O for both participants in COORDINATION_PENDING / COORDINATING.
@@ -143,6 +144,35 @@ export default function BusinessCoordinationCard({ order, business = true, name,
     if (await run('ANNUL_COORDINATION') && mounted.current) { setSheet(null); setDetail(''); }
   };
 
+  const dialogs=<>
+    <ConditionsSheet open={sheet === 'cond'} onOpenChange={value => setSheet(value ? 'cond' : null)} accepted={accepted}
+      title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation}
+      explanationLabel={negotiated ? 'Explicación de la propuesta aceptada' : 'Nota del cliente'}
+      fullAgreement={business} onOpenAgreement={() => setSheet('agree')} />
+    <AgreementSheet open={sheet === 'agree'} onOpenChange={value => setSheet(value ? 'agree' : null)} processId={process?.id}
+      perspective={business ? 'business' : 'customer'} client={client} accepted={accepted} acceptedAt={acceptedAt} />
+    <AnnulSheet open={sheet === 'anul'} onOpenChange={value => setSheet(value ? 'anul' : null)} busy={operation.busy}
+      reasons={Object.entries(ANNUL_REASONS) as Array<[string, string]>} reason={reason} onReason={value => { setReason(value as AnnulReason); setDetail(''); }}
+      detail={detail} onDetail={setDetail} onConfirm={() => void annul()} />
+    {business&&<StartWorkSheet open={sheet==='start'&&canStart} onOpenChange={value=>{if(!value)closeStart();}}
+      busy={operation.busy} client={client} service={accepted.subjectSnapshot.orderType==='service'} error={operation.message}
+      recovery={recoveryOnly?<button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>
+        :pending?<button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={()=>void operation.retry()}>Reintentar operación pendiente</button>:undefined}
+      onConfirm={()=>void start()}/>}
+  </>;
+  if(!business&&embedded)return <>
+    <CustomerCoordinationDetail motionRef={motionRef} accepted={accepted} name={client} acceptedAt={acceptedAt} authorized={authorized} phase={phase}
+      canOpen={canOpen} canAuthorize={allowed('AUTHORIZE_CONTACT')} busy={operation.busy} error={operation.message} onUpdate={()=>void operation.update()} onAuthorize={()=>void unlock()} onOpen={()=>void go()} onConditions={()=>{onInspect?.();setSheet('cond');}}
+      recovery={recoveryOnly?<div><p role="alert">{operation.storageWarning()||'Actualiza el estado antes de continuar.'}</p>
+        <button className="zipco-customer-coordination-open" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button></div>
+        :pending?<div><p>Hay una operación pendiente de confirmación.</p><button className="zipco-customer-coordination-open" disabled={operation.busy} onClick={()=>void operation.retry()}>Reintentar operación pendiente</button></div>:undefined}
+      options={<>
+        {!authorized&&<p>{availabilityFlow(process)?CONTACT_COPY:<>Autorizas compartir con {client} el teléfono de tu perfil solo para este pedido. El consentimiento del negocio es independiente.</>}</p>}
+        {allowed('ANNUL_COORDINATION')&&!recoveryOnly&&!pending&&<button type="button" className="zipco-co-lk rose" disabled={operation.busy} onClick={()=>setSheet('anul')}><Trash2 size={14}/>Anular solicitud</button>}
+        {availabilityFlow(process)&&<AvailabilityPostActions order={order} business={false} refresh={refresh}/>}
+      </>}/>
+    {dialogs}
+  </>;
   const step2Done = authorized;
   const waLabel = 'Iniciar coordinación por WhatsApp';
   return <article ref={motionRef} data-coordination-motion="idle" id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state} data-coordination-role={business ? 'business' : 'customer'}
@@ -243,19 +273,6 @@ export default function BusinessCoordinationCard({ order, business = true, name,
       </button>
     </div>
 
-    <ConditionsSheet open={sheet === 'cond'} onOpenChange={value => setSheet(value ? 'cond' : null)} accepted={accepted}
-      title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation}
-      explanationLabel={negotiated ? 'Explicación de la propuesta aceptada' : 'Nota del cliente'}
-      fullAgreement={business} onOpenAgreement={() => setSheet('agree')} />
-    <AgreementSheet open={sheet === 'agree'} onOpenChange={value => setSheet(value ? 'agree' : null)} processId={process?.id}
-      perspective={business ? 'business' : 'customer'} client={client} accepted={accepted} acceptedAt={acceptedAt} />
-    <AnnulSheet open={sheet === 'anul'} onOpenChange={value => setSheet(value ? 'anul' : null)} busy={operation.busy}
-      reasons={Object.entries(ANNUL_REASONS) as Array<[string, string]>} reason={reason} onReason={value => { setReason(value as AnnulReason); setDetail(''); }}
-      detail={detail} onDetail={setDetail} onConfirm={() => void annul()} />
-    {business&&<StartWorkSheet open={sheet==='start'&&canStart} onOpenChange={value=>{if(!value)closeStart();}}
-      busy={operation.busy} client={client} service={accepted.subjectSnapshot.orderType==='service'} error={operation.message}
-      recovery={recoveryOnly?<button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>
-        :pending?<button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={()=>void operation.retry()}>Reintentar operación pendiente</button>:undefined}
-      onConfirm={()=>void start()}/>}
+    {dialogs}
   </article>;
 }

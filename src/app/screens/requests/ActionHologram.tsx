@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { readCoordinationSession, subscribeCoordinationSession } from './coordinationSession';
+import {useStatusOverlay} from './statusOverlay';
 
 /**
  * Holograma TRANSVERSAL de acción (diseño Q). Una sola pieza para todos los avisos tipo "Alternativa enviada",
@@ -112,6 +113,7 @@ export default function ActionHologramHost() {
 }
 
 export function ActionHologram({ kind, title, description }: { kind: ActionKind; title?: string; description?: string }) {
+  useStatusOverlay();
   if (typeof document === 'undefined') return null;
   const v = VARIANTS[kind];
   const style = { ['--c1' as string]: v.colors[0], ['--c2' as string]: v.colors[1], ['--c3' as string]: v.colors[2], ['--g1' as string]: v.glow[0], ['--g2' as string]: v.glow[1] };
