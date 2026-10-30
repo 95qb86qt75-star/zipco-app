@@ -241,6 +241,8 @@ export default function ProcessOrderCard(props:Parameters<typeof ProcessOrderCar
   if(!process)return <ProcessOrderCardContent {...props}/>;
   const preview=props.order.orderType==='service'?undefined:process.productPreview;
   const business=props.business===true;
-  const candidate=props.order.orderType==='product'&&(process.allowedActions.some(a=>['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(a))||process.whatsappCoordination||process.whatsappCoordinationInitialDecline);
+  // Mount the controller before the first OPEN. Adding it only when CONFIRM
+  // arrives would unmount the card that is still preparing the WhatsApp redirect.
+  const candidate=props.order.orderType==='product'&&(['COORDINATION_PENDING','COORDINATING'].includes(process.state)||process.allowedActions.some(a=>['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(a))||process.whatsappCoordination||process.whatsappCoordinationInitialDecline);
   return <ProductPreviewScope preview={preview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}><StatusChangeFlow order={props.order} business={business}>{candidate?<WhatsappCoordinationPanel key={business+':'+process.id+':'+process.agreementPublicId} order={props.order} business={business} refresh={props.onRetry}>{model=><ProcessOrderCardContent {...props} coordinationView={model}/>}</WhatsappCoordinationPanel>:<ProcessOrderCardContent {...props}/>}</StatusChangeFlow></ProductPreviewScope>;
 }

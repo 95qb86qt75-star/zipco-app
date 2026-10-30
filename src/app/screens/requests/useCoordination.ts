@@ -9,7 +9,7 @@ import { showAppToast } from '../Toast';
 import { isPendingRequestCancelled, isPendingRequestRejected } from './requestProcess';
 import { announceAction, dismissAction, WHATSAPP_REDIRECT_MS } from './ActionHologram';
 import { coordinationFeedback } from './coordinationFeedback';
-import { clearWhatsappReturn, markWhatsappOpened, whatsappReturnKey } from './whatsappReturn';
+import { clearWhatsappReturn, holdWhatsappPresentation, markWhatsappOpened, whatsappReturnKey } from './whatsappReturn';
 import type { CustomerReceiptAction } from './CustomerReceiptDialog';
 
 let shared: ReturnType<typeof createCoordinationIntents> | undefined;
@@ -112,6 +112,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       (['START_WORK', 'MARK_READY', 'REJECT_PENDING_REQUEST'].includes(action) && !business) || (['ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'CANCEL_PENDING_REQUEST'].includes(action) && business))) return false;
     if (!retry && action === 'AUTHORIZE_CONTACT' && contactAuthorized(process, business)) return false;
     const controller = new AbortController(); controllers.current.add(controller);
+    const releaseWhatsappPresentation=action==='OPEN_WHATSAPP'?holdWhatsappPresentation(whatsappReturnKey(order,business)):()=>{};
     lock.current = true; setBusy(true); setMessage('');
     const flow=['AUTHORIZE_CONTACT','OPEN_WHATSAPP','ACK_READY_NOTICE'].includes(action)?null:beginStatusChange(order,business,['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(action));
     lastRead.current = null;
@@ -224,7 +225,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if (['CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(action)) announce(text); else setMessage(text);
       }
       return false;
-    } finally { if(flow?.stage==='saving')failStatusChange(flow);controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
+    } finally { if(flow?.stage==='saving')failStatusChange(flow);controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false);releaseWhatsappPresentation(); }
   };
   return { busy, message, needsUpdate, restored, storageWarning, update, pending, run,
     currentOrder: () => active() && (lastRead.current?.requestProcess?.version ?? -1) >= confirmedVersion.current ? lastRead.current : null, retry: () => {

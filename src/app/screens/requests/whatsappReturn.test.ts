@@ -43,3 +43,26 @@ it('allows only one owner to hold a question and cannot release another card cla
 it('tracks a customer return without requiring a business identity and isolates the participant',()=>{
  values.delete('zipco-business-id');const customer=normalizeMyOrdersPayload([{...rawOrder,status:'accepted',requestProcess:coordinationProcess}])[0];const key=api.whatsappReturnKey(customer,false)!;expect(key).toContain('customer:12:');expect(api.hasWhatsappReturn(key)).toBe(false);api.markWhatsappOpened(key);expect(api.shouldAskWhatsappReturn(key)).toBe(false);api.recordWhatsappDeparture();expect(api.shouldAskWhatsappReturn(key)).toBe(true);values.set('zipco-user-id','99');expect(api.whatsappReturnKey(customer,false)).not.toBe(key);
 });
+
+it('holds only the initiating card during verification, without storing an access or broadcasting a business event',()=>{
+ const key=api.whatsappReturnKey(order())!,changed=vi.fn(),event=vi.spyOn(window,'dispatchEvent');
+ const unsubscribe=api.subscribeWhatsappPresentation(changed),release=api.holdWhatsappPresentation(key);
+ expect(api.isWhatsappPresentationHeld(key)).toBe(true);expect(api.isWhatsappPresentationHeld(key+'-other')).toBe(false);
+ expect(values.has(key)).toBe(false);expect(event).not.toHaveBeenCalled();
+ release();expect(api.isWhatsappPresentationHeld(key)).toBe(false);expect(changed).toHaveBeenCalledTimes(2);
+ unsubscribe();
+});
+
+it('keeps a verified navigation attempt held until departure, but never requires a local marker for the counterpart',()=>{
+ const key=api.whatsappReturnKey(order())!,release=api.holdWhatsappPresentation(key);
+ api.markWhatsappOpened(key);release();expect(api.isWhatsappPresentationHeld(key)).toBe(true);
+ api.recordWhatsappDeparture();expect(api.isWhatsappPresentationHeld(key)).toBe(false);
+ expect(api.isWhatsappPresentationHeld(key+'-counterpart')).toBe(false);
+ values.set(key,JSON.stringify({state:'opened',at:Date.now(),page:'old-page'}));expect(api.isWhatsappPresentationHeld(key)).toBe(false);
+});
+
+it('does not let an obsolete cleanup release a newer launch and clears a failed navigation',()=>{
+ const key=api.whatsappReturnKey(order())!,old=api.holdWhatsappPresentation(key),current=api.holdWhatsappPresentation(key);
+ old();expect(api.isWhatsappPresentationHeld(key)).toBe(true);
+ api.markWhatsappOpened(key);api.clearWhatsappReturn(key);current();expect(api.isWhatsappPresentationHeld(key)).toBe(false);
+});

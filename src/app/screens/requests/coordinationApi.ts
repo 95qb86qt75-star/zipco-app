@@ -127,7 +127,7 @@ export async function sendCoordination(processId: number, orderId: number, actio
       throw new RequestProcessError('El pedido cambió o el negocio ya respondió. Actualiza su estado; no se anulará automáticamente.', 409, true);
     if (rejection && response.status === 409 && isRecord(payload) && ['STALE_VERSION', 'INCOMPATIBLE_STATE'].includes(String(payload.code)))
       throw new RequestProcessError('La solicitud cambió o ya fue respondida. Actualiza su estado; no se rechazará automáticamente.', 409, true);
-    if(whatsappAction&&response.status===409&&isRecord(payload)&&payload.code==='COORDINATION_CONTACT_REQUIRED')throw new RequestProcessError('Abre el contacto autorizado de este pedido antes de confirmar la coordinación.',409,true);
+    if(whatsappAction&&response.status===409&&isRecord(payload)&&payload.code==='COORDINATION_CONTACT_REQUIRED')throw new RequestProcessError('Se necesita un acceso autorizado de alguno de los participantes y el consentimiento vigente de ambos para confirmar la coordinación.',409,true);
     throw coordinationError(response.status, payload);
   }
   const raw = action === 'OPEN_WHATSAPP' && isRecord(payload) ? payload.result : payload;

@@ -6,12 +6,17 @@ type Mark = { state: 'opened' | 'left' | 'dismissed'; at: number; page: string }
 const PREFIX = 'zipco-wa-return:v1:';
 const PAGE = `${Date.now()}:${Math.random()}`;
 const memory = new Map<string, Mark>();
+// Transient presentation only: keep the initiating card mounted while OPEN verifies
+// its receipt and prepares navigation. Never used as shared server evidence.
+const launches = new Map<string, symbol>();
+const presentationListeners = new Set<()=>void>();
 const CHANGE = 'zipco-whatsapp-return';
 export const ASK_DELAY_MS = 4000;
 const DISMISS_MS = 30 * 60 * 1000;
 const MAX_AGE_MS = 12 * 60 * 60 * 1000;
 let asking: { key: string; owner: object } | null = null;
-const changed = () => window.dispatchEvent(new Event(CHANGE));
+const presentationChanged = () => presentationListeners.forEach(callback=>callback());
+const changed = () => {window.dispatchEvent(new Event(CHANGE));presentationChanged();};
 
 function accountPrefix(business=true) {
   const session = readCoordinationSession();
@@ -47,6 +52,16 @@ export function shouldAskWhatsappReturn(key:string) {
   return !mark || (mark.state!=='dismissed' && (mark.state!=='opened' || mark.page!==PAGE));
 }
 export function hasWhatsappReturn(key:string){const mark=read(key);return !!mark&&mark.state!=='dismissed';}
+export function holdWhatsappPresentation(key:string|null) {
+  if(!key)return ()=>{};
+  const owner=Symbol();launches.set(key,owner);presentationChanged();
+  return ()=>{if(launches.get(key)===owner){launches.delete(key);presentationChanged();}};
+}
+export function subscribeWhatsappPresentation(callback:()=>void) {presentationListeners.add(callback);return ()=>{presentationListeners.delete(callback);};}
+export function isWhatsappPresentationHeld(key:string) {
+  const mark=read(key);
+  return launches.has(key)||mark?.state==='opened'&&mark.page===PAGE;
+}
 export function claimWhatsappAsk(key:string,owner:object) {
   if(asking && asking.owner!==owner) return false;
   asking={key,owner};return true;
