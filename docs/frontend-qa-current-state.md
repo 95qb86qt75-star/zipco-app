@@ -13,13 +13,14 @@ ni convierte pruebas sintéticas en aprobación física.
   está aceptado como orientación; no es una medición del rendimiento de ZIPCO.
 - El [bloque de estabilización](frontend-qa-tools-stabilization-proposal.md)
   fue propuesto y sigue pendiente de aprobación. Guardarlo no autoriza ejecutar.
-- El cierre actual solo guarda documentación. Sin cambios de app, herramientas,
-  configuración, contratos, backend o despliegues; sin push que active Vercel.
+- El cierre documental 14823df guardó la memoria sin push ni despliegue.
+  El siguiente pedido del usuario autoriza el ajuste frontend de scroll al abrir
+  Detalle del cliente y su publicación QA; no autoriza el bloque de herramientas.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
 
-Última versión de aplicación verificada:
+Última versión de aplicación verificada antes del ajuste de Detalle:
 
 - Frontend e367ab6809a203462350beb8f60c60ba66d55f85, rama qa.
 - Vercel dpl_9kccSSNGodiPZ1MfwhENtZLuAKFC, READY.
@@ -29,9 +30,11 @@ ni convierte pruebas sintéticas en aprobación física.
 - Backend de acceso compartido: Railway QA dd00391, confirmado por el usuario
   y contrato local. Esta memoria no ejecuta una nueva verificación autenticada.
 
-El commit que guarda esta memoria es local y exclusivamente documental.
-Su SHA no representa una nueva versión publicada de ZIPCO. No hay respaldo
-remoto nuevo sin push; esa limitación debe indicarse al entregar.
+14823df es exclusivamente documental y no representa otra versión de la app.
+Se incorpora como antecedente del siguiente ajuste funcional, sin publicación
+documental separada. El SHA de la nueva entrega se identifica por el commit que
+introduce [el informe del scroll de Detalle](frontend-customer-coordination-detail-reveal-scroll-qa.md);
+su cierre comprueba la publicación QA y entrega el SHA exacto.
 
 ## Flujo WhatsApp acordado y aplicado
 
@@ -71,6 +74,7 @@ whatsapp-shared-access-contract-qa.md. Frontend no los modifica en este cierre.
 | 12c3b97 | Una regla CSS permite toques en el detalle expandido; cerrado conserva inert y disabled. QA READY. Cinco recorridos táctiles del cliente y build aprobados. | [Informe](frontend-coordination-detail-touch-fix-qa.md). |
 | Sin commit adicional | Comprobación del negocio en 12c3b97: Condiciones abre/cierra, Anular abre y cancela, Iniciar conserva redirección. Tres estados: consulta, negativa y antes del primer acceso; todo simulado. No se confirmó una anulación real ni una prueba física en Android. | Resultado adicional comunicado al usuario; 2:41 y sin build/despliegue nuevo. |
 | e367ab6 | Secuencia fotografiada del cliente: tarjeta original visible/bloqueada y estado compacto; aceptación positiva; Ver enfoca cabecera completa dentro de la lista. Holograma conservado. 35 unitarias focalizadas, 13 recorridos y build aprobados. QA READY. | [Informe](frontend-acceptance-transition-presentation-qa.md). |
+| Commit de esta actualización | Al abrir Detalle explícitamente, acomoda suavemente la tarjeta del cliente si el contenido sale de vista. Tres casos táctiles y build aprobados; prueba física posterior pendiente. | [Informe](frontend-customer-coordination-detail-reveal-scroll-qa.md). |
 
 Las fuentes de los diseños del cliente siguen siendo CustomerCoordinationCard.tsx,
 CustomerCoordinationDetail.tsx, coordination-v2.css y AvailabilityWaitingCard.tsx.
@@ -92,6 +96,10 @@ la revisión vigente, no solo documentos de diseño o copias de Downloads.
   Las correcciones están en e367ab6; su prueba física posterior sigue pendiente.
 - La prueba manual del flujo completo continúa. No hay aprobación global de
   todas las pantallas ni de un pase a producción.
+- El usuario confirmó posteriormente Iniciar coordinación del cliente, el
+  holograma, la salida a WhatsApp y el regreso a la consulta dentro de la tarjeta.
+  Después señaló falta de scroll automático al abrir Detalle en Devolver/Cancelar.
+  Ese ajuste se documenta en la nueva entrega; no se declara probado físicamente.
 
 ## Incidente del clic externo iPhone: pausado, no resuelto
 
@@ -164,8 +172,9 @@ Las expresiones «actual», «pendiente» o «sin commit» son del momento descr
 
 ## Próximo trabajo autorizado y lo que requiere decisión
 
-La instrucción actual autoriza este respaldo documental local.
-Aplicar la política de validación/medición a futuros ajustes autorizados.
+El respaldo documental 14823df quedó guardado localmente y pasa a incluirse
+en el siguiente ajuste funcional de Detalle. Aplicar la política de validación/
+medición a los ajustes autorizados.
 Esperar aprobación explícita del bloque de herramientas antes de refactorizar
 fixtures/runners/verificador. La publicación de e367ab6 no se repite por guardar
 estos archivos. Las pruebas físicas pendientes requieren al usuario y sus teléfonos.
