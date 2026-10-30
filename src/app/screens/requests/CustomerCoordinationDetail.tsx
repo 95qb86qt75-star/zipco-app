@@ -1,5 +1,5 @@
 import {useState,type ReactNode,type RefObject} from 'react';
-import {Check,ChevronRight,MoreHorizontal,LockKeyhole} from 'lucide-react';
+import {Check,CircleCheck,ChevronRight,MoreHorizontal,LockKeyhole} from 'lucide-react';
 import WhatsAppMark from './WhatsAppMark';
 import type {AcceptedSummary} from './CoordinationSheets';
 const day=(iso:string)=>new Date(iso).toLocaleDateString('es-CL',{timeZone:'America/Santiago',day:'numeric',month:'short'}).replace('.','');
@@ -19,7 +19,7 @@ export default function CustomerCoordinationDetail({motionRef,accepted,name,acce
     <ol className="zipco-customer-coordination-steps" aria-label="Pasos de coordinación">
       <li data-done="true"><span><Check size={13} strokeWidth={3.4}/></span><b>Aceptado</b>{accepted_day&&<small>{accepted_day}</small>}</li>
       <li data-done={authorized}><span>{authorized?<Check size={13} strokeWidth={3.4}/>:<LockKeyhole size={12}/>}</span><b>{authorized?'Autorizada':'Autorizar'}</b><small>{authorized?'Confirmada':'Pendiente'}</small></li>
-      <li data-current={authorized}><span><WhatsAppMark className="h-3.5 w-3.5"/></span><b>WhatsApp</b><small>{canOpen?'Ahora':'Pendiente'}</small></li>
+      <li data-current={authorized} data-live={canOpen&&phase==='ready'&&!busy&&!recovery}><span><WhatsAppMark className="h-3.5 w-3.5"/></span><b>WhatsApp</b><small>{canOpen?'Ahora':'Pendiente'}</small></li>
     </ol>
     <p>Acuerda pago y entrega con {name}. <b>ZIPCO no recibe ni verifica pagos.</b></p>
     {error&&<p role="alert">{error}</p>}
@@ -27,7 +27,7 @@ export default function CustomerCoordinationDetail({motionRef,accepted,name,acce
       onClick={authorized?onOpen:onAuthorize}><WhatsAppMark className="h-5 w-5"/>{phase==='loading'?'Preparando WhatsApp…':phase==='requesting'?'Autorizando contacto…':authorized?'Iniciar coordinación por WhatsApp':'Autorizo iniciar coordinación'}</button>}
     {!recovery&&(authorized&&!canOpen||!authorized&&!canAuthorize)&&<button type="button" className="zipco-customer-coordination-open" disabled={busy} onClick={onUpdate}>Actualizar estado del contacto</button>}
     <div className="zipco-customer-coordination-controls">
-      <button type="button" aria-haspopup="dialog" onClick={onConditions}><Check size={14}/>Condiciones aceptadas<ChevronRight size={13}/></button>
+      <button type="button" className="zipco-customer-conditions" aria-haspopup="dialog" onClick={onConditions}><CircleCheck size={15} aria-hidden="true"/>Condiciones aceptadas<ChevronRight size={13} aria-hidden="true"/></button>
       <button type="button" aria-expanded={more} aria-controls={'zipco-customer-options-'+accepted.requestProcessId} onClick={()=>setMore(v=>!v)}><MoreHorizontal size={16}/>Más opciones</button>
     </div>
     {/* Plegado animado (mismo patrón que DetailReveal); inert cuando está cerrado. */}
