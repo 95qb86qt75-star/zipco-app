@@ -1,5 +1,6 @@
 import useChipBump from './useChipBump';
 import './status-change.css';
+import './status-toast.css';
 import { motion } from 'motion/react';
 import type { StatusView } from './requestStatusGrouping';
 import ReadyArrivalTip from './ReadyArrivalTip';
@@ -23,9 +24,9 @@ export default function RequestStatusTab({ item, selected, reducedMotion, onSele
     whileTap={reducedMotion ? undefined : { scale: 0.96 }} onClick={onSelect}>
     <span className={`zipco-status-tab-surface shadow-sm transition-all ${color}`}>
       <span>{item.label}</span>
-      {item.count !== null && <span className="zipco-count-change" data-bump={bump}><span className="zipco-status-tab-count bg-black/15"
+      {item.count !== null && <span className="zipco-count-change zipco-chip-count" data-bump={bump} style={bump?{animationName:bump}:undefined}><span className="zipco-status-tab-count bg-black/15"
         aria-label={countState === 'loading' ? 'Cantidad pendiente de carga' : countState === 'unavailable' ? 'Cantidad no disponible' : undefined}
-      >{countState === 'loading' ? '…' : countState === 'unavailable' ? '—' : item.count}</span>{bump>0&&<span className="zipco-count-sparks" aria-hidden="true">{[0,1,2,3].map(i=><i key={bump+':'+i}>{'\u2726'}</i>)}</span>}</span>}
+      >{countState === 'loading' ? '…' : countState === 'unavailable' ? '—' : item.count}</span>{bump&&<i key={bump} className="zipco-spark" aria-hidden="true"/>}</span>}
     </span>
     {arrival?.tip && <ReadyArrivalTip />}
   </motion.button>;

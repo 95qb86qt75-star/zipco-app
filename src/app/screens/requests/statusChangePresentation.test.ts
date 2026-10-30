@@ -23,11 +23,11 @@ it('waits for existing holograms and pauses a visible notice until they end',asy
  gate.setStatusOverlay(owner,true);vi.advanceTimersByTime(10000);expect(api.getStatusNotice()).toBeNull();
  gate.setStatusOverlay(owner,false);expect(api.getStatusNotice()?.orderId).toBe(20);vi.advanceTimersByTime(4500);expect(api.getStatusNotice()).toBeNull();
 });
-it('queues simultaneous results without replacing the first order notice',()=>{
+it('replaces the prior notice with the most recent verified result',()=>{
  api.registerStatusPage({},true,'coordination',true);const a=source(),b={...source(),id:21,requestProcess:{...source().requestProcess!,id:8}};
  api.completeStatusChange(api.beginStatusChange(a,true),advance());
  api.completeStatusChange(api.beginStatusChange(b,true),{...b,requestProcess:{...b.requestProcess,state:'IN_PROGRESS',version:8}});
- vi.advanceTimersByTime(2000);expect(api.getStatusNotice()?.orderId).toBe(20);api.closeStatusNotice();expect(api.getStatusNotice()?.orderId).toBe(21);api.closeStatusNotice();expect(api.getStatusNotice()).toBeNull();
+ vi.advanceTimersByTime(2000);expect(api.getStatusNotice()?.orderId).toBe(21);api.closeStatusNotice();expect(api.getStatusNotice()).toBeNull();
 });
 it('highlights only the explicit destination order in the same session and role',()=>{
  api.registerStatusPage({},true,'coordination',true);api.markStatusArrival(20,true);

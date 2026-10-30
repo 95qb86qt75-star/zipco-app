@@ -46,6 +46,7 @@ import BottomNav from "./screens/BottomNav";
 import RegistrationFlow from "./screens/RegistrationFlow";
 import RequestsScreen from "./screens/RequestsScreen";
 import ActionHologramHost from './screens/requests/ActionHologram';
+import StatusToast from './screens/requests/StatusToast.tsx';
 import { notifyCoordinationSessionChange } from './screens/requests/coordinationSession';
 import CheckoutScreen from "./screens/CheckoutScreen";
 import BusinessProfileScreen from "./screens/BusinessProfileScreen";
@@ -568,6 +569,7 @@ export default function App() {
   const renderWithToast = (content: any) => (
     <div className="zipco-theme-surface contents">
       <ActionHologramHost />
+      <StatusToast />
       {toast && !noticeWasPresented(toast) && (
         <Toast
           key={toast.dedupeKey}

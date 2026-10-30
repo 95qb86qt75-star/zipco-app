@@ -1,6 +1,12 @@
 import {useEffect,useRef,useState} from 'react';
 export default function useChipBump(value:number|null){
-  const previous=useRef(value),[bump,setBump]=useState(0);
-  useEffect(()=>{const before=previous.current;previous.current=value;if(before===null||value===null||value===before)return;setBump(v=>v===1?2:1);const timer=setTimeout(()=>setBump(0),800);return()=>clearTimeout(timer);},[value]);
-  return bump;
+  const prev=useRef(value),flip=useRef(false),[name,setName]=useState<string>();
+  useEffect(()=>{
+    const before=prev.current;prev.current=value;
+    if(before===null||value===null){setName(undefined);return;}
+    if(before===value)return;
+    flip.current=!flip.current;setName(flip.current?'zipco-bump-a':'zipco-bump-b');
+    const t=window.setTimeout(()=>setName(undefined),900);return()=>window.clearTimeout(t);
+  },[value]);
+  return name;
 }

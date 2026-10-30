@@ -88,7 +88,7 @@ export default function AvailabilityWaitingCard({name,price,items,schedule,note,
   </article>;
 }
 
-export type CoordinationCardModel={mode:'question'|'confirm'|'ownPending'|'declined';expanded:boolean;attention:boolean;busy:boolean;canYes:boolean;canNo:boolean;error:string;recovery?:ReactNode;onToggle:()=>void;onYes:()=>void;onNo:()=>void;onCancel:()=>void;onReturn:()=>void};
+export type CoordinationCardModel={mode:'question'|'confirm'|'ownPending'|'declined';declinedBySelf?:boolean;expanded:boolean;attention:boolean;busy:boolean;canYes:boolean;canNo:boolean;error:string;recovery?:ReactNode;onToggle:()=>void;onYes:()=>void;onNo:()=>void;onCancel:()=>void;onReturn:()=>void};
 export function CoordinationWaitingCard({id,name,price,quantity,model,children,business=true,items=[]}:{id:number;name:string;price:number|null;quantity:number;model:CoordinationCardModel;children:ReactNode;business?:boolean;items?:{name:string;quantity:number}[]}){
   const {mode,busy}=model,confirm=mode==='confirm',closed=mode==='declined',own=mode==='ownPending';
   const description=own?'Indicaste que ya coordinaron. El pedido está En curso; falta que la otra parte responda.':closed?'Se indicó que todavía falta coordinar. El pedido sigue en Por coordinar.':confirm?'Solo Devolver guarda tu respuesta y avisa a la otra parte.':'Confirma si ya acordaron el pago y la entrega de este pedido por WhatsApp.';
@@ -108,7 +108,7 @@ export function CoordinationWaitingCard({id,name,price,quantity,model,children,b
       </div>
     </div>
     {(model.error||model.recovery)&&<div className="zipco-avw-query-recovery">{model.error&&<p role="alert">{model.error}</p>}{model.recovery}</div>}
-    <DetailReveal expanded={model.expanded}><div id={`coordination-detail-${id}`} className="zipco-avw-query-body">
+    <DetailReveal expanded={model.expanded}><div id={`coordination-detail-${id}`} className="zipco-avw-query-body" {...(busy?{inert:''}:{})}>
       <p className="zipco-avw-query-description">{description}</p><p className="zipco-avw-query-legal">ZIPCO no recibe ni verifica pagos.</p>
       {closed&&model.canYes&&!model.recovery&&<button className="zipco-avw-query-reconfirm" type="button" disabled={busy} onClick={model.onYes}>Ya coordinamos: confirmar</button>}
       {children}

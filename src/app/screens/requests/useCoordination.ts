@@ -113,7 +113,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     if (!retry && action === 'AUTHORIZE_CONTACT' && contactAuthorized(process, business)) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setMessage('');
-    const flow=['AUTHORIZE_CONTACT','OPEN_WHATSAPP','ACK_READY_NOTICE'].includes(action)?null:beginStatusChange(order,business);
+    const flow=['AUTHORIZE_CONTACT','OPEN_WHATSAPP','ACK_READY_NOTICE'].includes(action)?null:beginStatusChange(order,business,['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(action));
     lastRead.current = null;
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.

@@ -3,18 +3,16 @@ import {readCoordinationSession,type CoordinationSession} from './coordinationSe
 import {statusViewFor,type StatusView} from './requestStatusGrouping';
 import {statusOverlayVisible,subscribeStatusOverlay} from './statusOverlay';
 export type StatusOrder=BusinessRequest|MyOrder;
-export type StatusChange={key:string;source:StatusOrder;business:boolean;session:CoordinationSession;stage:'saving'|'success'|'exiting';result?:StatusOrder;destination?:StatusView;timer?:ReturnType<typeof setTimeout>;releaseOverlay?:()=>void;height?:number};
+export type StatusChange={key:string;source:StatusOrder;business:boolean;session:CoordinationSession;stage:'saving'|'success'|'exiting';result?:StatusOrder;destination?:StatusView;timer?:ReturnType<typeof setTimeout>;releaseOverlay?:()=>void;height?:number;inlineSaving?:boolean};
 export type StatusNotice={id:number;orderId:number;business:boolean;view:StatusView;title:string;description:string;amber:boolean};
 const changes=new Map<string,StatusChange>(),listeners=new Set<()=>void>();
 let page:{owner:object;session:CoordinationSession;business:boolean;view:StatusView;orders:boolean}|null=null;
 let notice:StatusNotice|null=null,noticeTimer:ReturnType<typeof setTimeout>|undefined,serial=0;
-const notices:StatusNotice[]=[];
 let arrival:{orderId:number;business:boolean;session:CoordinationSession}|null=null,arrivalTimer:ReturnType<typeof setTimeout>|undefined;
 const notify=()=>listeners.forEach(callback=>callback());
 function pumpNotices(){
   clearTimeout(noticeTimer);
   if(statusOverlayVisible()){notify();return;}
-  if(!notice)notice=notices.shift()??null;
   if(notice)noticeTimer=setTimeout(()=>{notice=null;pumpNotices();},4500);
   notify();
 }
@@ -30,16 +28,16 @@ export const statusChangeKey=(order:StatusOrder,business:boolean)=>`${business}:
 export function registerStatusPage(owner:object,business:boolean,view:StatusView,orders:boolean){
   const session=readCoordinationSession();
   if(!session)return()=>{};
-  if(page&&(page.session!==session||page.business!==business||page.view!==view||page.orders!==orders)){changes.forEach(c=>{clearTimeout(c.timer);c.releaseOverlay?.();});changes.clear();notice=null;notices.length=0;clearTimeout(noticeTimer);}
+  if(page&&(page.session!==session||page.business!==business||page.view!==view||page.orders!==orders)){changes.forEach(c=>{clearTimeout(c.timer);c.releaseOverlay?.();});changes.clear();notice=null;clearTimeout(noticeTimer);}
   page={owner,session,business,view,orders};
-  return()=>{if(page?.owner===owner){page=null;changes.forEach(c=>{clearTimeout(c.timer);c.releaseOverlay?.();});changes.clear();notice=null;notices.length=0;clearTimeout(noticeTimer);notify();}};
+  return()=>{if(page?.owner===owner){page=null;changes.forEach(c=>{clearTimeout(c.timer);c.releaseOverlay?.();});changes.clear();notice=null;clearTimeout(noticeTimer);notify();}};
 }
-export function beginStatusChange(order:StatusOrder,business:boolean):StatusChange|null{
+export function beginStatusChange(order:StatusOrder,business:boolean,inlineSaving=false):StatusChange|null{
   const session=readCoordinationSession();
   if(!page?.orders||!session||page.session!==session||page.business!==business||order.recordState!=='available'||!order.requestProcess||statusViewFor('orders',order.status,order.requestProcess,false,business)!==page.view)return null;
   const key=statusChangeKey(order,business);if(changes.has(key))return null;
   const root=typeof document!=='undefined'?document.querySelector('[data-status-order="'+key+'"]'):null;
-  const change:StatusChange={key,source:order,business,session,stage:'saving',height:root?.getBoundingClientRect().height};changes.set(key,change);notify();return change;
+  const change:StatusChange={key,source:order,business,session,stage:'saving',inlineSaving,height:root?.getBoundingClientRect().height};changes.set(key,change);notify();return change;
 }
 export function getStatusChange(order:StatusOrder,business:boolean){const change=changes.get(statusChangeKey(order,business));return change?.session===readCoordinationSession()?change:undefined;}
 export function failStatusChange(change:StatusChange|null){if(change&&changes.get(change.key)===change){clearTimeout(change.timer);change.releaseOverlay?.();changes.delete(change.key);notify();}}
@@ -81,7 +79,7 @@ export function completeStatusChange(change:StatusChange|null,latest:StatusOrder
       if(!change.business)next.description='Avisamos al negocio que aún falta coordinar.';
     }
     if(target==='active'){next.title='Pedido en curso';next.description=change.business?'Ya lo encuentras en la pestaña En curso.':current.requestProcess?.whatsappCoordination?.status==='PENDING'?'Avisamos al negocio. Falta que confirme.':'El pedido está En curso.';}
-    notices.push(next);if(!notice)pumpNotices();else notify();
+    notice=next;pumpNotices();
     if(moveFocus&&list){if(!list.hasAttribute('tabindex'))list.setAttribute('tabindex','-1');list.focus({preventScroll:true});}
   };
   const advance=()=>{

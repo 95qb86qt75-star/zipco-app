@@ -1,0 +1,35 @@
+/* Aviso inferior + chispeo de contadores + destello de llegada. Estilo Aurora. */
+.zipco-toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;display:flex;align-items:center;gap:10px;padding:10px 10px 12px 12px;border-radius:18px;overflow:hidden;color:#fff;
+  background:linear-gradient(160deg,#1c1650,#101434 62%,#0c1a2e);border:1px solid #5eead466;box-shadow:0 12px 32px #0009;animation:zipco-toast-in .45s cubic-bezier(.2,1.2,.4,1) both}
+.zipco-toast[data-tone=amber]{border-color:#fbbf2466}.zipco-toast[data-tone=rose]{border-color:#fb718566}
+.zipco-toast-icon{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#6ee7b7,#10b981);color:#064e3b}
+.zipco-toast[data-tone=amber] .zipco-toast-icon{background:linear-gradient(145deg,#fde68a,#f59e0b);color:#78350f}.zipco-toast[data-tone=rose] .zipco-toast-icon{background:linear-gradient(145deg,#fb7185,#e11d48);color:#fff}
+.zipco-toast-text{flex:1;min-width:0}.zipco-toast-text b{display:block;font-size:13.5px;font-weight:900;line-height:1.2}.zipco-toast-text small{display:block;font-size:11.5px;color:#cbd5e1;line-height:1.3;margin-top:2px}
+.zipco-toast-action{flex:none;min-height:44px;padding:0 16px;border-radius:22px;font-weight:900;font-size:13px;color:#064e3b;background:linear-gradient(145deg,#a7f3d0,#34d399)}
+.zipco-toast-close{flex:none;width:32px;height:32px;display:grid;place-items:center;color:#94a3b8}
+.zipco-toast-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:linear-gradient(90deg,#6ee7b7,#a78bfa);transform-origin:left;animation:zipco-toast-bar linear forwards}
+.zipco-toast button:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+@keyframes zipco-toast-in{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes zipco-toast-bar{to{transform:scaleX(0)}}
+/* Contador de pestaña: 1 → 1,7 → 1 + 4 destellos */
+.zipco-chip-count{position:relative;display:inline-block}
+.zipco-spark{position:absolute;inset:-6px;pointer-events:none;opacity:0}
+.zipco-chip-count[data-bump] .zipco-spark{opacity:1;background:
+  radial-gradient(circle,#fde68a 0 2px,transparent 3px) 50% 0/100% 100% no-repeat,
+  radial-gradient(circle,#6ee7b7 0 2px,transparent 3px) 100% 50%/100% 100% no-repeat,
+  radial-gradient(circle,#f9a8d4 0 2px,transparent 3px) 50% 100%/100% 100% no-repeat,
+  radial-gradient(circle,#a78bfa 0 2px,transparent 3px) 0 50%/100% 100% no-repeat;animation:zipco-spark .8s ease-out both}
+.zipco-chip-count[data-bump]{animation-duration:.7s;animation-timing-function:cubic-bezier(.2,1.6,.4,1)}
+@keyframes zipco-bump-a{0%,100%{transform:scale(1)}40%{transform:scale(1.7)}}
+@keyframes zipco-bump-b{0%,100%{transform:scale(1)}40%{transform:scale(1.7)}}
+@keyframes zipco-spark{0%{transform:scale(.4);opacity:0}30%{opacity:1}100%{transform:scale(1.7);opacity:0}}
+/* Destello verde de 2,4 s en la tarjeta que llega a su pestaña: añadir data-arrived="true" al <article id="order-ID"> */
+[data-arrived=true]{animation:zipco-arrive 2.4s ease-out}
+@keyframes zipco-arrive{0%,100%{box-shadow:0 0 0 0 #34d39900}25%{box-shadow:0 0 0 4px #34d399aa,0 0 28px #34d39988}}
+@media(prefers-reduced-motion:reduce){.zipco-toast,.zipco-toast-bar,.zipco-chip-count[data-bump],.zipco-chip-count[data-bump] .zipco-spark,[data-arrived=true]{animation:none!important}}
+
+/* Keep the supplied design within the app navigation/safe area and touch targets. */
+.zipco-toast{left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 24px);max-width:480px;z-index:85;bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+.zipco-toast-close{width:44px;min-height:44px}
+@keyframes zipco-toast-in{from{opacity:0;transform:translate(-50%,24px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
+[data-request-list-scrolling=true] .zipco-chip-count,[data-request-list-scrolling=true] .zipco-spark{animation:none!important}

@@ -17,6 +17,6 @@
 .zipco-status-result[data-amber=true] .zipco-status-product{border-color:#fbbf24;box-shadow:0 0 16px #fbbf2444}
 .zipco-status-flow{position:relative;transition:grid-template-rows .5s ease,opacity .4s ease,transform .5s ease;transform-origin:top center}
 .zipco-status-flow[data-stage=exiting]{transform:translateY(-28px) scale(.96)}
-.zipco-status-flow[data-arrival=true]{outline:2px solid #34d399;border-radius:24px;animation:zipco-status-arrive 2.4s ease-out both}
+/* Arrival is now drawn on the actual order article by status-toast.css. */
 @keyframes zipco-status-arrive{0%,35%{box-shadow:0 0 0 6px #34d39944,0 0 24px #34d39966}100%{box-shadow:0 0 0 0 transparent}}
 @media(prefers-reduced-motion:reduce){.zipco-status-flow{transition:none;transform:none!important;animation:none!important}}
