@@ -1,69 +1,46 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import type {BusinessRequest,MyOrder} from './types';
-import {StartWorkSheet} from './CoordinationSheets';
+import type {CoordinationCardModel} from './AvailabilityWaitingCard';
 import useCoordination from './useCoordination';
 import {coordinationAllowed} from './coordinationApi';
 import {readCoordinationSession,subscribeCoordinationSession} from './coordinationSession';
-import {readWhatsappCoordinationCapability} from './whatsappCoordinationCapability';
+import {readWhatsappCoordinationCapabilities,type WhatsappCapabilities} from './whatsappCoordinationCapability';
 import useStartWorkPrompt from './useStartWorkPrompt';
-import {dismissWhatsappReturn,whatsappReturnKey} from './whatsappReturn';
-
-// Shared capability request per authenticated session; no credentials are persisted.
-const capabilities=new WeakMap<object,Promise<boolean>>();
-export default function WhatsappCoordinationPanel({order,business,refresh}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void}){
-  const session=readCoordinationSession();
-  const binding=useRef(session);
-  const [,sessionChanged]=useState(0);
-  const [cap,setCap]=useState<boolean|null>(null),[capError,setCapError]=useState(''),[attempt,setAttempt]=useState(0);
-  const [open,setOpen]=useState(false);
-  const openedContext=useRef<string|null>(null);
-  const operation=useCoordination(order,business,refresh);
-  const process=order.requestProcess,round=process?.whatsappCoordination;
-  const confirm=coordinationAllowed(process,business,'CONFIRM_WHATSAPP_COORDINATION');
-  const respond=coordinationAllowed(process,business,'RESPOND_WHATSAPP_COORDINATION');
-  const context=[process?.id,process?.agreementPublicId,process?.version,round?.confirmationId,respond?'respond':'confirm'].join(':');
-  const show=()=>{openedContext.current=context;setOpen(true);};
-  const sameSession=!!session&&session===binding.current;
-  const eligible=sameSession&&order.recordState==='available'&&order.orderType==='product'&&cap===true&&(confirm||respond);
-  const key=whatsappReturnKey(order,business);
-  const promptKey=respond&&key?`${key}:confirmation:${round?.confirmationId}`:key;
-  const pending=operation.pending();
-  const recovery=operation.needsUpdate||operation.restored()||!!operation.storageWarning();
-  const blocked=operation.busy||!!pending||!!recovery;
-  useEffect(()=>subscribeCoordinationSession(()=>{if(readCoordinationSession()!==binding.current){sessionChanged(v=>v+1);setOpen(false);}}),[]);
-  useEffect(()=>{
-    let active=true;setCap(null);setCapError('');
-    if(!sameSession||!session||(!confirm&&!respond&&!round))return;
-    let request=capabilities.get(session);
-    if(!request){request=readWhatsappCoordinationCapability(session.token);capabilities.set(session,request);request.catch(()=>capabilities.delete(session));}
-    request.then(value=>{if(active&&readCoordinationSession()===session)setCap(value);}).catch(error=>{if(active&&readCoordinationSession()===session)setCapError(error.message);});
-    return()=>{active=false;};
-  },[session,sameSession,confirm,respond,!!round,attempt]);
-  const release=useStartWorkPrompt({key:promptKey,enabled:eligible,requireOpened:!respond,blocked:blocked||open,
-    onOpen:show,onInvalidate:()=>setOpen(false)});
-  useEffect(()=>{if(!eligible&&!operation.busy){setOpen(false);release();}},[eligible,operation.busy]);
-  useEffect(()=>{setOpen(false);release();},[context]);
-  const close=()=>{if(operation.busy)return;if(promptKey)dismissWhatsappReturn(promptKey);setOpen(false);release();};
-  const send=async(decision:boolean)=>{
-    if(!eligible||blocked||openedContext.current!==context)return;
-    const applied=await operation.run(respond?'RESPOND_WHATSAPP_COORDINATION':'CONFIRM_WHATSAPP_COORDINATION',undefined,undefined,false,respond?decision:undefined);
-    if(applied)close();
-  };
+import {whatsappReturnKey} from './whatsappReturn';
+import {NOTIFICATION_CARD_OPEN_EVENT} from '../../notifications/notificationNavigation';
+const capabilities=new WeakMap<object,Promise<WhatsappCapabilities>>();
+export default function WhatsappCoordinationPanel({order,business,refresh,children}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void;children:(model:CoordinationCardModel|null)=>ReactNode}){
+  const session=readCoordinationSession(),binding=useRef(session);
+  const[,sessionChanged]=useState(0),[cap,setCap]=useState<WhatsappCapabilities|null>(null),[capError,setCapError]=useState(''),[attempt,setAttempt]=useState(0);
+  const[confirming,setConfirming]=useState<string|null>(null),[expanded,setExpanded]=useState(false),[attention,setAttention]=useState(false);
+  const operation=useCoordination(order,business,refresh),process=order.requestProcess,round=process?.whatsappCoordination,negative=process?.whatsappCoordinationInitialDecline;
+  const confirm=coordinationAllowed(process,business,'CONFIRM_WHATSAPP_COORDINATION'),respond=coordinationAllowed(process,business,'RESPOND_WHATSAPP_COORDINATION'),decline=coordinationAllowed(process,business,'DECLINE_WHATSAPP_COORDINATION');
+  const context=[process?.id,process?.agreementPublicId,process?.version,round?.confirmationId,negative?.id,respond?'respond':'confirm'].join(':');
+  const sameSession=!!session&&session===binding.current,ownPending=round?.status==='PENDING'&&round.initiatedBy===(business?'BUSINESS':'CUSTOMER')&&process?.state==='IN_PROGRESS';
+  const closed=negative?.active===true&&process?.state==='COORDINATING';
+  const relevant=order.recordState==='available'&&order.orderType==='product'&&['COORDINATING','IN_PROGRESS'].includes(process?.state??'')&&(confirm||respond||decline||ownPending||closed);
+  const key=whatsappReturnKey(order,business),promptKey=respond&&key?`${key}:confirmation:${round?.confirmationId}`:key;
+  const pending=operation.pending(),recovery=operation.needsUpdate||operation.restored()||!!operation.storageWarning(),blocked=operation.busy||!!pending||!!recovery;
+  useEffect(()=>subscribeCoordinationSession(()=>{if(readCoordinationSession()!==binding.current){sessionChanged(v=>v+1);setConfirming(null);}}),[]);
+  useEffect(()=>{let active=true;setCapError('');if(!sameSession||!session||!relevant)return;
+    let request=capabilities.get(session);if(!request){request=readWhatsappCoordinationCapabilities(session.token);capabilities.set(session,request);request.catch(()=>capabilities.delete(session));}
+    request.then(value=>{if(active&&readCoordinationSession()===session)setCap(value);}).catch(error=>{if(active&&readCoordinationSession()===session)setCapError(error.message);});return()=>{active=false;};
+  },[session,sameSession,relevant,attempt]);
+  const release=useStartWorkPrompt({key:promptKey,enabled:sameSession&&cap?.enabled===true&&relevant&&!closed&&!ownPending,requireOpened:!respond,blocked:blocked||attention,
+    onOpen:()=>setAttention(true),onInvalidate:()=>setAttention(false)});
+  useEffect(()=>{setConfirming(null);setAttention(false);release();},[context]);
+  useEffect(()=>{const show=(event:Event)=>{if((event as CustomEvent).detail?.id===`order-${order.id}`)setExpanded(true);};window.addEventListener(NOTIFICATION_CARD_OPEN_EVENT,show);return()=>window.removeEventListener(NOTIFICATION_CARD_OPEN_EVENT,show);},[order.id]);
   const update=async()=>{if(session)capabilities.delete(session);setAttempt(v=>v+1);await operation.update();};
-  // Once answered, keep the authoritative round visible without presenting an obsolete question.
-  const ownPending=round?.status==='PENDING'&&round.initiatedBy===(business?'BUSINESS':'CUSTOMER')&&process?.state==='IN_PROGRESS';
-  if(!sameSession||order.orderType!=='product'||(!confirm&&!respond&&!ownPending&&!recovery&&!pending&&!operation.message))return null;
-  if(cap===false&&!recovery&&!pending)return null;
-  const counterpart=business?'El cliente':'El negocio';
-  const recoveryControls=blocked&&!operation.busy?<div className="mt-3 flex flex-wrap gap-2">
-    <button type="button" className="zipco-co-no" onClick={()=>void update()}>Actualizar estado</button>
-    {pending&&!recovery&&<button type="button" className="zipco-co-no" disabled={cap!==true} onClick={()=>void operation.retry()}>Reintentar el mismo envío</button>}
-  </div>:undefined;
-  return <aside aria-label="Coordinación por WhatsApp" className="mb-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-slate-800" onClick={event=>event.stopPropagation()}>
-    <p>{ownPending?'Indicaste que ya coordinaron. El pedido está En curso; falta que la otra parte responda.':respond?`${counterpart} indicó que ya coordinaron. ¿Es correcto?`:'¿Coordinación lista por WhatsApp?'}</p>
-    {(capError||operation.message)&&<p role="alert" className="mt-2 text-rose-700">{capError||operation.message}</p>}
-    {capError?<button type="button" className="mt-2 min-h-11 underline" onClick={()=>void update()}>Comprobar coordinación</button>:eligible&&!ownPending&&<button type="button" className="mt-2 min-h-11 font-semibold text-emerald-800 underline" disabled={blocked} onClick={show}>{respond?'Revisar y responder':'Confirmar coordinación'}</button>}
-    {recoveryControls}
-    <StartWorkSheet open={open&&eligible&&openedContext.current===context} onOpenChange={value=>{if(!value)close();}} busy={operation.busy} client={business?'El cliente':'El negocio'} mode={respond?'respond':'confirm'} error={operation.message} recovery={recoveryControls} onConfirm={()=>void send(true)} onReject={()=>void send(false)}/>
-  </aside>;
+  const canYes=sameSession&&cap?.enabled===true&&(confirm||respond)&&!blocked;
+  const canNo=sameSession&&cap?.enabled===true&&(respond||cap.initialDecline&&decline)&&!blocked;
+  const send=async(accepted:boolean)=>{
+    if(!sameSession||blocked||(accepted?!canYes:!canNo))return;
+    if(!accepted&&confirming!==context)return;
+    const action=respond?'RESPOND_WHATSAPP_COORDINATION':accepted?'CONFIRM_WHATSAPP_COORDINATION':'DECLINE_WHATSAPP_COORDINATION';
+    if(await operation.run(action,undefined,undefined,false,respond?accepted:undefined))setConfirming(null);
+  };
+  const recoveryControls=blocked&&!operation.busy?<div className="zipco-avw-query-recovery-actions"><button type="button" onClick={()=>void update()}>Actualizar estado</button>{pending&&!recovery&&<button type="button" disabled={cap?.enabled!==true||pending.action==='DECLINE_WHATSAPP_COORDINATION'&&!cap?.initialDecline} onClick={()=>void operation.retry()}>Reintentar el mismo envío</button>}</div>:capError?<button type="button" onClick={()=>void update()}>Comprobar coordinación</button>:undefined;
+  if(!sameSession||!relevant||cap?.enabled===false)return <>{children(null)}</>;
+  const model:CoordinationCardModel={mode:ownPending?'ownPending':closed?'declined':confirming===context?'confirm':'question',expanded,attention,busy:operation.busy,canYes:confirming===context?canNo:canYes,canNo,error:capError||operation.message,recovery:recoveryControls,onToggle:()=>setExpanded(v=>!v),onYes:()=>void send(true),onNo:()=>{if(canNo)setConfirming(context);},onCancel:()=>setConfirming(null),onReturn:()=>void send(false)};
+  return <>{children(model)}</>;
 }

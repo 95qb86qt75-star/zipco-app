@@ -1,3 +1,4 @@
+import useRequestListMotion from './useRequestListMotion';
 import { CalendarDays, Package } from "lucide-react";
 import { Fragment, useState } from "react";
 import EmptyRequestsState from "./EmptyRequestsState";
@@ -31,6 +32,7 @@ export default function MyOrdersTab({
   emptyTitle,
   emptyDescription,
 }: Props) {
+  const listRef=useRequestListMotion(myOrders);
   const { unread, markRead } = useUnreadInteractions();
   const [selection, setSelection] = useState<{
     order: MyOrder;
@@ -55,7 +57,7 @@ export default function MyOrdersTab({
   return (
     <>
       {displayed.length > 0 ? (
-        <div className="space-y-3">
+        <div ref={listRef} className="space-y-3">
           {displayed.map((order) => (
             <Fragment key={order.clientKey}>
               <div className="flex items-center gap-2 pt-1 text-xs font-bold text-slate-500">

@@ -22,11 +22,11 @@ import useCoordinationMotion from './useCoordinationMotion';
 const FOLD_AFTER_MOUNT_MS = 3200;
 
 export default function BusinessProgressCard({ order, name, image, price, statusLabel, isUnread = false, accepted, acceptedAt,
-  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, negotiated, refresh, notificationOpen = 0, onInspect }: {
+  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, negotiated, refresh, notificationOpen = 0, onInspect,embedded=false }: {
   order: BusinessRequest; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
   accepted: AcceptedSummary & { scheduledFor?: string | null }; acceptedAt?: string | null;
   conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
-  negotiated: boolean; refresh: () => void; notificationOpen?: number; onInspect?: () => void;
+  embedded?:boolean;negotiated: boolean; refresh: () => void; notificationOpen?: number; onInspect?: () => void;
 
 }) {
   const process = order.requestProcess;
@@ -46,7 +46,8 @@ export default function BusinessProgressCard({ order, name, image, price, status
   const [sheet, setSheet] = useState<'cond' | 'agree' | null>(null);
   const [phase, setPhase] = useState<SlidePhase>('work');
   const fresh = useRef(ready && wasJustNotified(order.id, accepted.agreementPublicId)).current;
-  const [folded, setFolded] = useState(!fresh && notificationOpen === 0);
+  const [storedFolded, setFolded] = useState(!fresh && notificationOpen === 0);
+  const folded=embedded?false:storedFolded;
   useEffect(() => { if (notificationOpen > 0) setFolded(false); }, [notificationOpen]);
   const motionRef = useCoordinationMotion(folded || sheet !== null);
   useEffect(() => {
@@ -83,7 +84,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
     : service ? 'Cliente avisado · toca para abrir'
       : ack === true ? 'Cliente confirmó · pendiente de retiro' : ack === false ? 'Esperando confirmación · toca para abrir' : 'Actualiza el estado del aviso · toca para abrir';
 
-  return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} aria-label={`${client}: ${ready ? 'pedido notificado' : 'pedido en curso'}`} className="zipco-co-dk zipco-ec-dk scroll-mb-36" onClick={event => event.stopPropagation()}>
+  return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} aria-label={`${client}: ${ready ? 'pedido notificado' : 'pedido en curso'}`} className="zipco-co-dk zipco-ec-dk scroll-mb-36" onClick={event => event.stopPropagation()}>
     <span className="zipco-co-a1" aria-hidden="true" /><span className="zipco-co-a2" aria-hidden="true" />
     <div style={{ position: 'relative' }}>
       <ProgressCardHeader business name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread} ready={ready} />

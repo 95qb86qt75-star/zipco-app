@@ -84,3 +84,30 @@ export default function AvailabilityWaitingCard({name,price,items,schedule,note,
     </div>
   </article>;
 }
+
+export type CoordinationCardModel={mode:'question'|'confirm'|'ownPending'|'declined';expanded:boolean;attention:boolean;busy:boolean;canYes:boolean;canNo:boolean;error:string;recovery?:ReactNode;onToggle:()=>void;onYes:()=>void;onNo:()=>void;onCancel:()=>void;onReturn:()=>void};
+export function CoordinationWaitingCard({id,name,price,quantity,model,children}:{id:number;name:string;price:number|null;quantity:number;model:CoordinationCardModel;children:ReactNode}){
+  const {mode,busy}=model,confirm=mode==='confirm',closed=mode==='declined',own=mode==='ownPending';
+  const description=own?'Indicaste que ya coordinaron. El pedido está En curso; falta que la otra parte responda.':closed?'Se indicó que todavía falta coordinar. El pedido sigue en Por coordinar.':confirm?'Solo Devolver guarda tu respuesta y avisa a la otra parte.':'Confirma si ya acordaron el pago y la entrega de este pedido por WhatsApp.';
+  return <article id={`order-${id}`} tabIndex={-1} className="zipco-avw zipco-avw-query scroll-mb-36" data-expanded={model.expanded} data-attention={model.attention} data-mode={mode}>
+    <div className="zipco-avw-query-head">
+      <span className="zipco-avw-ring"><ProductPreviewControl fallback={<span className="zipco-avw-thumb"><ShoppingBag size={24}/></span>}/><i className="zipco-avw-quantity">{quantity}×</i><span className="zipco-avw-query-badge" aria-hidden="true">{closed?<Clock3 size={13}/>:<MessageCircle size={13}/>}</span></span>
+      <div className="zipco-avw-query-copy"><div className="zipco-avw-query-top"><small>COORDINACIÓN</small><button type="button" className="zipco-avw-query-detail" aria-expanded={model.expanded} aria-controls={`coordination-detail-${id}`} onClick={model.onToggle}>{model.expanded?'Ocultar':'Detalle'} <span aria-hidden="true">☝</span></button></div>
+        <h4>{busy?'Guardando respuesta…':confirm?'¿Devolver a Por coordinar?':closed?'Falta coordinar':own?'Esperando a la otra parte':<>¿Coordinación lista por <em>WhatsApp</em>?</>}</h4>
+        <p>{name} · {price===null?'Total por comprobar':`$${price.toLocaleString('es-CL')}`}</p>
+      </div>
+      <div className="zipco-avw-query-actions">
+        {busy?<span className="zipco-avw-query-saving" role="status"><span className="zipco-flow-spinner">◌</span><small>Guardando</small></span>:own?null:closed?<button type="button" className="zipco-avw-query-resume" onClick={model.onToggle}>Coordinar después</button>:<>
+          <button type="button" className="zipco-avw-query-yes" data-amber={confirm} aria-label={`${confirm?'Devolver a Por coordinar':'Sí, ya coordinamos'}: ${name}, pedido ${id}`} disabled={!model.canYes||!!model.recovery} onClick={confirm?model.onReturn:model.onYes}><span><Check size={24}/></span><small>{confirm?'Devolver':'Sí'}</small></button>
+          <button type="button" className="zipco-avw-query-no" aria-label={`${confirm?'Cancelar sin responder':'Falta coordinar'}: ${name}, pedido ${id}`} disabled={!!model.recovery||!confirm&&!model.canNo} onClick={confirm?model.onCancel:model.onNo}><span><X size={23}/></span><small>{confirm?'Cancelar':'Falta'}</small></button>
+        </>}
+      </div>
+    </div>
+    {(model.error||model.recovery)&&<div className="zipco-avw-query-recovery">{model.error&&<p role="alert">{model.error}</p>}{model.recovery}</div>}
+    <DetailReveal expanded={model.expanded}><div id={`coordination-detail-${id}`} className="zipco-avw-query-body">
+      <p className="zipco-avw-query-description">{description}</p><p className="zipco-avw-query-legal">ZIPCO no recibe ni verifica pagos.</p>
+      {closed&&model.canYes&&!model.recovery&&<button className="zipco-avw-query-reconfirm" type="button" disabled={busy} onClick={model.onYes}>Ya coordinamos: confirmar</button>}
+      {children}
+    </div></DetailReveal>
+  </article>;
+}

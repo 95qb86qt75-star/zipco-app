@@ -47,6 +47,7 @@ export function processApiError(status: number, body: unknown, agreement = false
       LATE_INITIAL_RESPONSE_REQUIRED:'La hora solicitada ya pasó. Comprueba el pedido para consultar si el cliente aún lo necesita y acordar una nueva hora.',
     };
     if(Object.hasOwn(lateMessages,code))return new RequestProcessError(lateMessages[code],status,true);
+    if(code==='COORDINATION_ALREADY_DECLINED')return new RequestProcessError('Ya se indic\u00f3 que falta coordinar en este intento. Actualiza el pedido antes de continuar.',status,true);
     if (code === 'FLOW_CONTRACT_REQUIRED') return new RequestProcessError(FLOW_UPDATE_MESSAGE,status);
     if(code==='SERVICE_HOURS_CONTRACT_REQUIRED')return new RequestProcessError('Actualiza ZIPCO para revisar las condiciones de horario informativo.',status,false,true);
     if(code==='ADVISORY_RESERVATION_HOURS_DISABLED')return new RequestProcessError('La modalidad de horario informativo todavía no está habilitada. Conservamos lo que escribiste.',status,false,true);

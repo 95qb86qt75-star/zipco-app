@@ -16,7 +16,9 @@ describe('shared compact category presentation', () => {
   });
   it('preserves only the deliberate selection handler and selected indicator', () => {
     const onSelect = vi.fn();
-    const view = RequestStatusTab({ item: { key: 'coordination', label: 'Coordinación', count: 1 }, selected: true, reducedMotion: true, onSelect });
+    let view!:ReturnType<typeof RequestStatusTab>;
+    function Harness(){view=RequestStatusTab({ item: { key: 'coordination', label: 'Coordinación', count: 1 }, selected: true, reducedMotion: true, onSelect });return view;}
+    renderToStaticMarkup(React.createElement(Harness));
     expect(onSelect).not.toHaveBeenCalled(); expect(view.props['aria-pressed']).toBe(true);
     view.props.onClick(); expect(onSelect).toHaveBeenCalledOnce();
   });

@@ -570,3 +570,7 @@ it.each(['confirmed','accepted','declined'])('preserves the new WhatsApp %s type
  expect(options.data.type).toBe('order-whatsapp-coordination-'+kind);expect(options.data.eventKey).toBe('requests-customer:'+tag);
  expect(presentationKey(tag,url,origin)).toBe(options.data.eventKey);
 });
+
+it('preserves the initial-negative type and its distinct event identity in the existing worker',async()=>{
+ const sw=worker(),tag='order-91-coordination-initial-declined-42',url='/?open=requests-business&orderId=91';await sw.fire('push',{data:{json:()=>({type:'order-whatsapp-coordination-initial-declined',orderId:91,requestProcessId:7,tag,url,title:'Synthetic initial negative'})}});const options=sw.registration.showNotification.mock.calls[0][1] as any;expect(options.data.type).toBe('order-whatsapp-coordination-initial-declined');expect(options.data.eventKey).toBe('requests-business:'+tag);expect(presentationKey(tag,url,origin)).toBe(options.data.eventKey);
+});

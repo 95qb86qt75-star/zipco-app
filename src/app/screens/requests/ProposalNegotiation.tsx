@@ -18,6 +18,7 @@ import AcceptGlassButton from './AcceptGlassButton';
 import ProposalChat, { proposalTitle, whenLong } from './ProposalChat';
 import AcceptAuthorizeCard from './AcceptAuthorizeCard';
 import { announceProposalAccepted } from './proposalAcceptance';
+import {beginStatusChange,completeStatusChange,failStatusChange,type StatusOrder} from './statusChangePresentation';
 import { announceAction } from './ActionHologram';
 import {availabilityFlow,BUSINESS_CONTACT_COPY,BUSINESS_CONTACT_VERSION,type FulfillmentChoice} from './availabilityContract';
 import {CUSTOMER_CONTACT_TEXT_VERSION} from '../createOrderApi';
@@ -197,8 +198,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     if(newFlow&&['PROPOSE_ALTERNATIVE','PROPOSE_FINAL'].includes(action)&&!extra.fulfillment)throw new ProposalError('Actualiza el camino de esta propuesta antes de enviarla.',0);
     const reservationExtra=v2&&!business&&plan?.path==='LOCAL_PICKUP'&&['COUNTER_PROPOSAL','ACCEPT_PROPOSAL'].includes(action)?{reservationChoice:{offerId:plan.availabilityConfirmationId,choice:reservationSelection,...(reservationSelection==='REQUEST_RESERVATION'?{note:reservationNote.trim()}:{}),...(simplifiedReservationFlow(captured.process)?{...(isSimpleOffer(plan.reservationOffer)?{termsVersion:plan.reservationOffer.simplified.termsVersion}:{}),...(reservationSelection==='NONE'?{noReservationAcknowledged:true as const}:{})}:{})}}:{};
     lock.current = true; setBusy(true); setError('');
-    const finish = (receipt: ProposalReceipt) => {
+    const flow=beginStatusChange(order,business);let committed=false;
+    const finish = (receipt: ProposalReceipt,verified?:StatusOrder) => {
       if (!active()) return;
+      if(flow&&verified){window.dispatchEvent(new CustomEvent('zipco-process-receipt',{detail:{orderId:verified.id,orderStatus:verified.status,requestProcess:verified.requestProcess}}));window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));completeStatusChange(flow,verified);setDecision(null);setAuthCard(false);setOpen(false);setDraftAction(null);refresh();return;}
       if (isAcceptAction(action)) {
         if(newFlow){announceAction('accepted',{title:'Propuesta aceptada',description:receipt.requestProcess.availability?.path==='LOCAL_PICKUP'?'El pedido quedó en curso, pendiente de retiro en el local.':'Ya puedes revisar el contacto y coordinar el pedido.',key:`availability-proposal:${process.id}:${receipt.requestProcess.version}`});
           window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination'}}));
@@ -228,7 +231,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
           if (current?.recordState === 'available' && current.status === 'accepted' && p?.id === process.id &&
             p.state === latest.process.state && p.currentProposalId === captured.process.currentProposalId &&
             p.agreementPublicId === latest.process.agreementPublicId && p.version >= latest.process.version) {
-            finish({ orderId: current.id, orderStatus: current.status, requestProcess: p }); return;
+            finish({ orderId: current.id, orderStatus: current.status, requestProcess: p },current); return;
           }
         }
         setRead(latest); setDraftAction(null); setOpen(true); refresh(); throw new ProposalError('El pedido cambió. Revisa su estado actualizado antes de responder.', 409, 'STALE_VERSION', true);
@@ -244,18 +247,21 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         confirmationAccepted: true, ...(review ? { photo } : {}), ...extra,...reservationExtra, ...(past ? { acceptPastSchedule: true } : {}) };
       const receipt = await proposalIntents().run(operationScope(session!, business), process.id, action, body,
         key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal,captured.process.flowContract,captured.process.availability?.availabilityConfirmationId));
+      committed=true;
       // POST is final. A failed subsequent read must never send it again.
       let navigation:string|null=null;
       if(action==='ACCEPT_PROPOSAL'&&!business&&simplifiedReservationFlow(captured.process)&&reservationSelection==='REQUEST_RESERVATION'&&plan?.reservationOffer?.mode==='PREPAYMENT'){
         try{const payment=await startReservationPayment(order.id!,session!,controller.signal);navigation=payment.navigation;}catch{/* Acceptance is final; the reservation card offers recovery. */}
       }
       if(!active())return;
-      finish(receipt);if(navigation)window.location.assign(navigation);
+      if(flow){const current=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return;if(!current?.requestProcess||current.requestProcess.id!==process.id||current.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');finish(receipt,current);}else finish(receipt);if(navigation)window.location.assign(navigation);
     } catch (e) {
+      if(committed&&active()){setError('Tu respuesta se guard\u00f3; falta actualizar el pedido. Comprueba el estado antes de continuar.');refresh();}
       if (active() && e instanceof ProposalError && e.code === 'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED') { setExpired(true); setAuthCard(false); setDecision(action); }
       if (active() && e instanceof ProposalError && e.status === 401) window.dispatchEvent(new Event('zipco-coordination-session-expired'));
+      if(committed)throw new ProposalError('Tu respuesta se guard\u00f3; falta actualizar el pedido. Comprueba el estado antes de continuar.',0,'CONFIRMED_READ_PENDING',true);
       throw e;
-    } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
+    } finally {if(flow?.stage==='saving')failStatusChange(flow); controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
   return <div className="mt-3" onClick={event => event.stopPropagation()}>
     {(() => {

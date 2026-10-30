@@ -672,3 +672,20 @@ describe('bilateral WhatsApp coordination contract',()=>{
    const {default:hook}=await import('./useCoordination');expect(await hook(normalizeBusinessOrdersPayload([initial])[0],true,vi.fn()).run('RESPOND_WHATSAPP_COORDINATION',undefined,undefined,false,false)).toBe(false);expect(fetcher).toHaveBeenCalledTimes(2);expect(fetcher.mock.calls.filter(([,o])=>o?.method==='POST')).toHaveLength(1);
  });
 });
+
+describe('initial coordination negative recovery',()=>{
+ const negative={contract:'whatsapp-coordination-initial-decline-v1',id:99,declinedBy:'BUSINESS',declinedAt:'2026-10-30T18:00:00Z',recordedVersion:8,active:true};
+ const source={...raw,requestProcess:{...process,state:'COORDINATING',version:7,allowedActions:['DECLINE_WHATSAPP_COORDINATION']}};
+ const declined={...raw,requestProcess:{...source.requestProcess,version:8,allowedActions:['OPEN_WHATSAPP','CONFIRM_WHATSAPP_COORDINATION'],whatsappCoordinationInitialDecline:negative}};
+ it('settles a lost initial-negative response by GET without sending it again',async()=>{
+  const fetcher=vi.fn().mockRejectedValueOnce(Error('lost response')).mockResolvedValueOnce(response([declined]));vi.stubGlobal('fetch',fetcher);
+  const {default:hook}=await import('./useCoordination');const operation=hook(normalizeBusinessOrdersPayload([source])[0],true,vi.fn());expect(await operation.run('DECLINE_WHATSAPP_COORDINATION')).toBe(false);expect(operation.pending()?.body).toEqual({expectedVersion:7,coordinationAccepted:false});await operation.update();expect(operation.pending()).toBeNull();expect(operation.currentOrder()?.requestProcess?.whatsappCoordinationInitialDecline?.active).toBe(true);expect(fetcher.mock.calls.filter(([,options])=>options?.method==='POST')).toHaveLength(1);
+ });
+ it('does not substitute an old negative receipt for a current Ready read',async()=>{
+  const result={orderId:20,orderStatus:'accepted',requestProcess:declined.requestProcess};const latest={...raw,status:'ready',requestProcess:{...declined.requestProcess,state:'READY',version:10,allowedActions:[],whatsappCoordinationInitialDecline:{...negative,active:false}}};
+  const fetcher=vi.fn().mockResolvedValueOnce(response(result)).mockResolvedValueOnce(response([latest]));vi.stubGlobal('fetch',fetcher);const dispatch=vi.spyOn(window,'dispatchEvent');const {default:hook}=await import('./useCoordination');expect(await hook(normalizeBusinessOrdersPayload([source])[0],true,vi.fn()).run('DECLINE_WHATSAPP_COORDINATION')).toBe(true);expect(dispatch.mock.calls.find(([e])=>e.type==='zipco-process-receipt')?.[0]).toMatchObject({detail:{requestProcess:{state:'READY',version:10}}});expect(dispatch.mock.calls.some(([e])=>e.type==='zipco-availability-view'&&(e as CustomEvent).detail.view==='coordination')).toBe(false);
+ });
+ it('refreshes an initial-negative conflict without converting it into a response',async()=>{
+  const fetcher=vi.fn().mockResolvedValueOnce(response({code:'STALE_VERSION'},409)).mockResolvedValueOnce(response([declined]));vi.stubGlobal('fetch',fetcher);const {default:hook}=await import('./useCoordination');expect(await hook(normalizeBusinessOrdersPayload([source])[0],true,vi.fn()).run('DECLINE_WHATSAPP_COORDINATION')).toBe(false);expect(fetcher.mock.calls.filter(([,options])=>options?.method==='POST')).toHaveLength(1);expect(fetcher.mock.calls[0][0]).toContain('/decline-whatsapp-coordination');
+ });
+});

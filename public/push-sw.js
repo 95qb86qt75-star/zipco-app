@@ -46,7 +46,7 @@ const systemEventKey = (data) => {
     const key = String(lateKey || data.tag || fallbackKey).replace('-coordination-ready', '-ready')
       .replace('-coordination-contact-authorized', '-contact-authorized')
       .replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
-    const availability=key.match(/^order-([1-9]\d*)-(?:availability|coordination-coordination-(?:confirmed|accepted|declined))-([1-9]\d*)$/);
+    const availability=key.match(/^order-([1-9]\d*)-(?:availability|coordination-initial-declined|coordination-coordination-(?:confirmed|accepted|declined))-([1-9]\d*)$/);
     if(availability){
       if(url.origin!==self.location.origin||!/^requests-(customer|business)$/.test(view||'')||url.searchParams.get('orderId')!==availability[1]||![availability[1],availability[2]].every(v=>Number.isInteger(Number(v))&&Number(v)<=2147483647))return null;
       return view+':'+key;
@@ -106,7 +106,7 @@ self.addEventListener("push", tracedEvent('push-failed', (event) => {
       orderId: data.orderId,
       quoteId: data.quoteId,
       eventKey: systemEventKey(data),
-      type: ['order-contact-authorized','order-late-initial-event','order-whatsapp-coordination-confirmed','order-whatsapp-coordination-accepted','order-whatsapp-coordination-declined'].includes(data.type) ? data.type : undefined,
+      type: ['order-contact-authorized','order-late-initial-event','order-whatsapp-coordination-confirmed','order-whatsapp-coordination-accepted','order-whatsapp-coordination-declined','order-whatsapp-coordination-initial-declined'].includes(data.type) ? data.type : undefined,
       eventType: data.type==='order-late-initial-event'?data.eventType:undefined,
     },
   };

@@ -1,3 +1,4 @@
+import {normalizeWhatsappInitialDecline,type WhatsappInitialDecline} from './whatsappInitialDeclineContract';
 import { isRecord,parseIsoDate } from './orderValueParsers';
 import {normalizeWhatsappCoordination,type WhatsappCoordination} from './whatsappCoordinationContract';
 import {normalizeProductPreview,type ProductPreview} from './productPreview';
@@ -6,7 +7,7 @@ import {simplifiedReservationFlow,isSimpleOffer,isAdvisoryOffer} from './simplif
 import {LATE_INITIAL_PATHS,normalizeLateInitial,type LateInitialView} from './lateInitialContract';
 import {RESERVATION_PATHS,reservationFlow,normalizeReservationChoice,normalizeReservation,normalizeReservationFollowUp,type Reservation,type ReservationChoice,type ReservationFollowUp} from './reservationContract';
 
-export const PROCESS_ACTIONS = ['ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
+export const PROCESS_ACTIONS = ['DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number]|keyof typeof RESERVATION_PATHS|keyof typeof LATE_INITIAL_PATHS|'CONFIRM_WHATSAPP_COORDINATION'|'RESPOND_WHATSAPP_COORDINATION';
 
 export const PENDING_REJECTION_REASONS = {
@@ -23,6 +24,7 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  whatsappCoordinationInitialDecline?:WhatsappInitialDecline;
   whatsappCoordination?:WhatsappCoordination;
   productPreview?:ProductPreview;requestedProductPreview?:ProductPreview;
   flowContract?: 'LEGACY_V1' | 'AVAILABILITY_V1'|'AVAILABILITY_V2'|'AVAILABILITY_V3';
@@ -73,6 +75,8 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as typeof PROCESS_ACTIONS[number])||Object.hasOwn(RESERVATION_PATHS,String(action))||Object.hasOwn(LATE_INITIAL_PATHS,String(action))||['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(String(action)))) return null;
   const whatsappCoordination=value.whatsappCoordination===undefined?undefined:normalizeWhatsappCoordination(value.whatsappCoordination);
   if(whatsappCoordination===null)return null;
+  const initialDecline=value.whatsappCoordinationInitialDecline===undefined?undefined:normalizeWhatsappInitialDecline(value.whatsappCoordinationInitialDecline,value.version);
+  if(initialDecline===null||initialDecline?.active&&value.state!=='COORDINATING')return null;
   if (value.readyNoticeAcknowledged !== undefined && typeof value.readyNoticeAcknowledged !== 'boolean') return null;
   if (value.flowContract !== undefined && !['LEGACY_V1','AVAILABILITY_V1','AVAILABILITY_V2','AVAILABILITY_V3'].includes(String(value.flowContract))) return null;
   const availability = value.availability === undefined ? undefined : normalizeAvailability(value.availability, value.currentProposalId);
@@ -169,6 +173,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     ...(availability ? { availability } : {}),
     ...(late?{lateInitialResponse:late}:{}),
     ...(whatsappCoordination?{whatsappCoordination}:{}),
+    ...(initialDecline?{whatsappCoordinationInitialDecline:initialDecline}:{}),
     ...(value.serverNow?{serverNow:value.serverNow as string}:{}),...(choice?{reservationChoice:choice}:{}),...(reservation?{reservation}:{}),...(followUp?{reservationFollowUp:followUp}:{}),
     ...(closure ? { closure } : {}),
     ...(customerContactPreference ? { customerContactPreference } : {}),
@@ -221,6 +226,8 @@ export const COORDINATION_ACCEPTED_MESSAGE =
   'El negocio aceptó tu pedido. Falta coordinar los siguientes pasos.';
 
 export function orderNotificationState(order: { status: string } & ProcessOrder): string {
+  const initialDecline=order.requestProcess?.whatsappCoordinationInitialDecline;
+  if(initialDecline?.active)return `whatsapp-initial-decline:${initialDecline.id}:${initialDecline.recordedVersion}`;
   const coordination=order.requestProcess?.whatsappCoordination;
   if(coordination)return `whatsapp:${coordination.confirmationId}:${coordination.status}:${order.requestProcess?.state}`;
   const late=order.requestProcess?.lateInitialResponse;

@@ -34,7 +34,7 @@ export function createCustomerOrderNotices(
       if (!changed && !pushedOrderIds.has(order.id)) continue;
       const coordination=whatsappCoordinationNotice(order,false);
       if(coordination){if(!announced.has(coordination.key)){announced.add(coordination.key);emit(coordination.key,coordination.notice,order.id);firstNotifiedId??=order.id;}continue;}
-      if(order.requestProcess?.whatsappCoordination&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))continue;
+      if((order.requestProcess?.whatsappCoordination||order.requestProcess?.whatsappCoordinationInitialDecline)&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))continue;
       const proposal = lateInitialNotice(order,false)??proposalNotice(order, false);
       const available = availabilityNotice(order);
       const ready = order.requestProcess?.state === 'READY';

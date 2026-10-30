@@ -21,7 +21,7 @@ export function createCoordinationIntents(uuid = () => crypto.randomUUID(), stor
     if (!saved) return null;
     try {
       const intent = JSON.parse(saved) as CoordinationIntent & { confirmed?: boolean };
-      if (!intent || !['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(intent.action) ||
+      if (!intent || !['DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(intent.action) ||
         !intent.body || !Number.isSafeInteger(intent.body.expectedVersion) || intent.body.expectedVersion < 1 ||
         (intent.confirmed !== undefined && typeof intent.confirmed !== 'boolean') ||
         typeof intent.key !== 'string' || !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(intent.key) ||

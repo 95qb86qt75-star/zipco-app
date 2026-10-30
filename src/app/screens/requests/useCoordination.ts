@@ -1,3 +1,4 @@
+import {beginStatusChange,completeStatusChange,failStatusChange} from './statusChangePresentation';
 import { useEffect, useRef, useState } from 'react';
 import type { BusinessRequest, MyOrder } from './types';
 import { createCoordinationIntents, uncertainCoordinationMessage } from './coordinationIntent';
@@ -70,9 +71,9 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     try {
       const latest = await reconcile(controller.signal);
       if (!active()) return;
-      if (!latest?.requestProcess || latest.requestProcess.id !== original.processId) throw new Error();
+      if (!latest?.requestProcess || latest.requestProcess.id !== original.processId||latest.requestProcess.version<(visibleOrder.current.requestProcess?.version??0)) throw new Error();
       const intent = pending();
-      if (intent && (restored() || ['CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(intent.action))) {
+      if (intent && (restored() || ['CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST','DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(intent.action))) {
         const current = latest.requestProcess;
         const applied = intent.action === 'AUTHORIZE_CONTACT' ? contactAuthorized(current, business)
           : intent.action === 'ACK_READY_NOTICE' ? current.readyNoticeAcknowledged === true
@@ -81,6 +82,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
           : intent.action === 'REJECT_PENDING_REQUEST' ? isPendingRequestRejected(current)
           : intent.action === 'MARK_READY' ? current.state === 'READY'
           : intent.action === 'START_WORK' ? current.state === 'IN_PROGRESS'
+          : intent.action === 'DECLINE_WHATSAPP_COORDINATION' ? current.whatsappCoordinationInitialDecline?.declinedBy===(business?'BUSINESS':'CUSTOMER')&&current.whatsappCoordinationInitialDecline.recordedVersion===intent.body.expectedVersion+1
           : intent.action === 'CONFIRM_WHATSAPP_COORDINATION' ? current.whatsappCoordination?.initiatedBy===(business?'BUSINESS':'CUSTOMER')&&current.version>intent.body.expectedVersion
           : intent.action === 'RESPOND_WHATSAPP_COORDINATION' ? current.whatsappCoordination?.confirmationId===intent.body.confirmationId&&current.whatsappCoordination.status===(intent.body.coordinationAccepted?'CONFIRMED':'DECLINED')
             : intent.action === 'ANNUL_COORDINATION' ? current.state === 'COORDINATION_CANCELLED'
@@ -94,7 +96,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       intents().retryCleanup(scope, original.processId);
       recovery.current = false; setNeedsUpdate(false); setMessage(storageWarning());
       if ((intent?.action === 'CANCEL_PENDING_REQUEST' && isPendingRequestCancelled(latest.requestProcess)) ||
-          (intent?.action === 'REJECT_PENDING_REQUEST' && isPendingRequestRejected(latest.requestProcess)))
+          (intent?.action === 'REJECT_PENDING_REQUEST' && isPendingRequestRejected(latest.requestProcess))||intent&&['DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(intent.action))
         window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail: {
           orderId: latest.id, orderStatus: latest.status, requestProcess: latest.requestProcess,
         } }));
@@ -111,6 +113,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     if (!retry && action === 'AUTHORIZE_CONTACT' && contactAuthorized(process, business)) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     lock.current = true; setBusy(true); setMessage('');
+    const flow=['AUTHORIZE_CONTACT','OPEN_WHATSAPP','ACK_READY_NOTICE'].includes(action)?null:beginStatusChange(order,business);
     lastRead.current = null;
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.
@@ -126,7 +129,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         const current = latest?.requestProcess;
         // Confirmation/consent replays may predate newer server state. Prefer
         // the authoritative read, including phone-revision consent changes.
-        const detail = (action === 'AUTHORIZE_CONTACT' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT'||action==='CONFIRM_WHATSAPP_COORDINATION'||action==='RESPOND_WHATSAPP_COORDINATION') && latest && current &&
+        const detail = (flow || action === 'OPEN_WHATSAPP' || action === 'AUTHORIZE_CONTACT' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT'||action==='CONFIRM_WHATSAPP_COORDINATION'||action==='RESPOND_WHATSAPP_COORDINATION'||action==='DECLINE_WHATSAPP_COORDINATION') && latest && current &&
           current.id === response.result.requestProcess.id && current.version >= response.result.requestProcess.version
           ? { orderId: order.id, orderStatus: latest.status, requestProcess: current } : response.result;
         window.dispatchEvent(new CustomEvent('zipco-process-receipt', { detail }));
@@ -136,20 +139,20 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if (!active()) return false;
         recovery.current = true; setNeedsUpdate(true);
         announce(storageWarning() || 'La operación fue confirmada. No se pudo actualizar el pedido. Pulsa Actualizar estado; no se repetirá la operación.');
-        if(!['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action))emitReceipt(); return true;
+        if(!flow&&!['DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action))emitReceipt(); return true;
       }
       if (!active()) return false;
-      if(['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action)){
+      if(flow||['DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action)){
         if(!latest?.requestProcess||latest.requestProcess.id!==process.id||latest.requestProcess.version<response.result.requestProcess.version){recovery.current=true;setNeedsUpdate(true);setMessage('La decisión fue recibida. Actualiza el estado antes de continuar.');return true;}
         const key=whatsappReturnKey(order,business);if(key)clearWhatsappReturn(key);
         const state=latest.requestProcess.state;
-        window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:state==='IN_PROGRESS'?'active':state==='COORDINATING'?'coordination':state==='READY'?'ready':undefined}}));
+        if(!flow)window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:state==='IN_PROGRESS'?'active':state==='COORDINATING'?'coordination':state==='READY'?'ready':undefined}}));
       }
       // Presentation waits only after the durable action and authoritative read.
-      const readyNotice = beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
+      const readyNotice = !flow && beforeReadyPublish && !storageWarning() && business && action === 'MARK_READY' &&
         latest?.requestProcess?.agreementPublicId === process.agreementPublicId
         ? coordinationFeedback(action, response.result, latest, business) : null;
-      const clientNotice = beforeCustomerPublish && !business && !storageWarning() && latest?.requestProcess &&
+      const clientNotice = (!flow||action==='ACK_READY_NOTICE') && beforeCustomerPublish && !business && !storageWarning() && latest?.requestProcess &&
         latest.requestProcess.agreementPublicId === process.agreementPublicId && latest.requestProcess.id === process.id &&
         latest.requestProcess.version >= response.result.requestProcess.version &&
         ((action === 'ACK_READY_NOTICE' && latest.requestProcess.state === 'READY' && latest.requestProcess.readyNoticeAcknowledged === true) ||
@@ -171,6 +174,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         detail: { orderId: order.id, agreementPublicId: process.agreementPublicId },
       }));
       window.dispatchEvent(new CustomEvent('zipco-requests-refresh'));
+      if(flow){completeStatusChange(flow,latest);if(active())refresh();return true;}
       if (storageWarning()) announce(storageWarning());
       else if (action === 'OPEN_WHATSAPP') {
         if (response.navigation && latest?.requestProcess && latest.requestProcess.version >= response.result.requestProcess.version &&
@@ -220,7 +224,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if (['CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST'].includes(action)) announce(text); else setMessage(text);
       }
       return false;
-    } finally { controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
+    } finally { if(flow?.stage==='saving')failStatusChange(flow);controllers.current.delete(controller); lock.current = false; if (active()) setBusy(false); }
   };
   return { busy, message, needsUpdate, restored, storageWarning, update, pending, run,
     currentOrder: () => active() && (lastRead.current?.requestProcess?.version ?? -1) >= confirmedVersion.current ? lastRead.current : null, retry: () => {

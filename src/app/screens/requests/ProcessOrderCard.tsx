@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import {CoordinationWaitingCard,type CoordinationCardModel} from './AvailabilityWaitingCard';
+import StatusChangeFlow from './StatusChangeFlow';
+import { useEffect, useState,type ReactNode } from 'react';
 import WhatsappCoordinationPanel from './WhatsappCoordinationPanel';
 import { NOTIFICATION_CARD_OPEN_EVENT } from '../../notifications/notificationNavigation';
 import { AnimatePresence, motion } from 'motion/react';
@@ -34,10 +36,10 @@ import {ProductPreviewScope} from './ProductPreviewControl';
 import useLateInitialDeadline from './useLateInitialDeadline';
 
 export function ProcessOrderCardContent({ order, business = false, isUpdating, onAccept, onRetry, onOpen,
-  isUnread = false, expanded, onToggle }: {
+  isUnread = false, expanded, onToggle,coordinationView=null }: {
   order: BusinessRequest | MyOrder; business?: boolean; isUpdating: boolean;
   onAccept?: () => void; onRetry: () => void; onOpen?: () => void;
-  isUnread?: boolean; expanded?: boolean; onToggle?: () => void;
+  isUnread?: boolean; expanded?: boolean; onToggle?: () => void;coordinationView?:CoordinationCardModel|null;
 }) {
   const [localExpanded, setLocalExpanded] = useState(expanded ?? false);
   const [notificationOpen, setNotificationOpen] = useState(0);
@@ -114,6 +116,8 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
 
+  const wrapCoordination=(detail:ReactNode)=>coordinationView&&accepted?<CoordinationWaitingCard id={order.id!} name={name} price={price} quantity={accepted.subjectSnapshot.items.reduce((sum,item)=>sum+item.quantity,0)} model={coordinationView}>{detail}</CoordinationWaitingCard>:detail;
+
   if(awaiting&&process?.lateInitialResponse&&(business||['AWAITING_CUSTOMER','STILL_NEEDED'].includes(process.lateInitialResponse.status)))
     return <LateInitialCard key={`${business}:${process.id}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread}/>;
 
@@ -136,11 +140,11 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     const title = single ? `${subject.orderType === 'service' ? '' : `${subject.items[0].quantity}× `}${subject.items[0].nameSnapshot}` : `${subject.items.length} ${subject.orderType === 'service' ? 'servicios' : 'productos'}`;
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2 && process.proposalSummary?.type !== 'ORIGINAL_REQUEST';
-    return <BusinessCoordinationCard key={`${business}:${process.id}:${accepted.agreementPublicId}`} order={order} business={business} name={name} image={image} price={price}
+    return wrapCoordination(<BusinessCoordinationCard embedded={!!coordinationView} key={`${business}:${process.id}:${accepted.agreementPublicId}`} order={order} business={business} name={name} image={image} price={price}
       statusLabel={stateLabel} isUnread={isUnread} negotiated={negotiated} acceptedAt={accepted.confirmedAt} accepted={accepted} onInspect={onOpen} notificationOpen={notificationOpen}
       conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
       conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenLong}`} explanation={negotiated ? subject.proposalMessage : subject.note}
-      refresh={onRetry} />;
+      refresh={onRetry} />);
   }
 
   if (process && ['IN_PROGRESS', 'READY'].includes(process.state) && !accepted && order.recordState === 'available')
@@ -154,11 +158,11 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2;
-    return <CustomerProgressCard key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
+    return wrapCoordination(<CustomerProgressCard embedded={!!coordinationView} key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
       statusLabel={process.state === 'READY' ? 'Listo' : process.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'En curso'} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated}
       notificationOpen={notificationOpen} onInspect={onOpen} isUnread={isUnread} conditionsTitle={title}
       conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
-      conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />;
+      conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />);
   }
 
   if (business && accepted && process && ['IN_PROGRESS', 'READY'].includes(process.state) && 'customerName' in order) {
@@ -168,10 +172,10 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2;
-    return <BusinessProgressCard key={`${process.id}:${accepted.agreementPublicId}`} order={order} name={name} image={image} price={price} statusLabel={stateLabel}
+    return wrapCoordination(<BusinessProgressCard embedded={!!coordinationView} key={`${process.id}:${accepted.agreementPublicId}`} order={order} name={name} image={image} price={price} statusLabel={stateLabel}
       isUnread={isUnread} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated} notificationOpen={notificationOpen} onInspect={onOpen}
       conditionsTitle={title} conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}
-      conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />;
+      conditionsWhen={whenLong} conditionsSummary={`${title} · ${whenShort}`} explanation={negotiated ? subject.proposalMessage : subject.note} refresh={onRetry} />);
   }
 
   return <article id={`order-${order.id}`} tabIndex={0}
@@ -236,5 +240,7 @@ export default function ProcessOrderCard(props:Parameters<typeof ProcessOrderCar
   const process=props.order.requestProcess;
   if(!process)return <ProcessOrderCardContent {...props}/>;
   const preview=props.order.orderType==='service'?undefined:process.productPreview;
-  return <ProductPreviewScope preview={preview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}>{props.order.orderType==='product'&&(process.allowedActions.some(a=>a==='CONFIRM_WHATSAPP_COORDINATION'||a==='RESPOND_WHATSAPP_COORDINATION')||process.whatsappCoordination)&&<WhatsappCoordinationPanel key={`${props.business}:${process.id}:${process.agreementPublicId}`} order={props.order} business={props.business===true} refresh={props.onRetry}/>}<ProcessOrderCardContent {...props}/></ProductPreviewScope>;
+  const business=props.business===true;
+  const candidate=props.order.orderType==='product'&&(process.allowedActions.some(a=>['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(a))||process.whatsappCoordination||process.whatsappCoordinationInitialDecline);
+  return <ProductPreviewScope preview={preview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}><StatusChangeFlow order={props.order} business={business}>{candidate?<WhatsappCoordinationPanel key={business+':'+process.id+':'+process.agreementPublicId} order={props.order} business={business} refresh={props.onRetry}>{model=><ProcessOrderCardContent {...props} coordinationView={model}/>}</WhatsappCoordinationPanel>:<ProcessOrderCardContent {...props}/>}</StatusChangeFlow></ProductPreviewScope>;
 }

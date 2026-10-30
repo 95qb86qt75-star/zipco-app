@@ -11,7 +11,7 @@ const openedPresentations = new Map<string, number>();
 export function canonicalPresentationKey(key: string): string | null {
   const canonical = key.replace('-coordination-contact-authorized', '-contact-authorized')
     .replace('-coordination-ready', '-ready').replace(/-proposal-(\d+)-([A-Z_]+)$/, (_, id, action) => `-proposal-${id}-${action.toLowerCase().replaceAll('_', '-')}`);
-  const availability=canonical.match(/^requests-(customer|business):order-([1-9]\d*)-(?:availability|coordination-coordination-(?:confirmed|accepted|declined))-([1-9]\d*)$/);
+  const availability=canonical.match(/^requests-(customer|business):order-([1-9]\d*)-(?:availability|coordination-initial-declined|coordination-coordination-(?:confirmed|accepted|declined))-([1-9]\d*)$/);
   if(availability)return [availability[2],availability[3]].every(v=>Number.isInteger(Number(v))&&Number(v)<=2147483647)?canonical:null;
   if(/:order-[1-9]\d*-availability-/.test(canonical))return null;
   return /^requests-(customer|business)(-quotes)?:(order|quote)-[1-9]\d*-(?:[a-z-]+|proposal-[1-9]\d*-(?:propose-alternative|counter-proposal|propose-final|accept-proposal|reject-proposal|accept-counter-proposal|reject-counter-proposal))$/.test(canonical) ? canonical : null;
@@ -38,7 +38,7 @@ export function presentationKey(key: string, actionUrl: string, origin = window.
       .replace('-process:READY', '-ready').replace('-coordination-ready', '-ready')
       .replace(/-alternative_proposed$/, '-alternative');
     const result=canonicalPresentationKey(`${view}:${canonical}`);
-    if(result&&/-(?:availability|coordination-coordination-(?:confirmed|accepted|declined))-\d+$/.test(result)&&!result.startsWith(`${view}:order-${url.searchParams.get('orderId')}-`))return null;
+    if(result&&/-(?:availability|coordination-initial-declined|coordination-coordination-(?:confirmed|accepted|declined))-\d+$/.test(result)&&!result.startsWith(`${view}:order-${url.searchParams.get('orderId')}-`))return null;
     return result;
   } catch { return null; }
 }

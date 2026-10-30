@@ -1,5 +1,6 @@
 import ReadyOrdersSummary from './requests/ReadyOrdersSummary';
 import { FLOW_UPDATE_MESSAGE } from './requests/requestProcessErrors';
+import {StatusChangeHost,useStatusChangeRecords} from './requests/StatusChangeFlow';
 import useReadyTransitions from './requests/useReadyTransitions';
 import CoordinationOrdersSummary from './requests/CoordinationOrdersSummary';
 import { useProposalSentFeedback } from './requests/proposalSentFeedback';
@@ -96,9 +97,10 @@ export default function RequestsScreen({
   useEffect(()=>{
     const navigate=(event:Event)=>{
       const detail=(event as CustomEvent).detail;
-      if(!detail||typeof detail.business!=='boolean'||!['pending','waiting','active','coordination','history'].includes(detail.view)||
+      if(!detail||typeof detail.business!=='boolean'||!['pending','waiting','active','coordination','history','ready'].includes(detail.view)||
         (detail.business?'my-business':'my-orders')!==subTab)return;
-      if (!detail.business && detail.view === 'history') return;
+      if (!detail.business && detail.view === 'history' && !detail.explicit) return;
+      if(detail.explicit){setRequestType('orders');setAttentionFilter('browse');}
       setStatusViews(current=>({...current,[`${subTab}-orders`]:detail.view}));
     };
     window.addEventListener('zipco-availability-view',navigate);
@@ -280,11 +282,12 @@ export default function RequestsScreen({
         ? rightTime - leftTime
         : leftTime - rightTime;
     });
+  const visualMyOrders=useStatusChangeRecords(myOrders,false),visualBusinessOrders=useStatusChangeRecords(requests,true);
   let filteredMyOrders = sortRecords(
-    filterByStatusView(myOrders, "orders", statusView, historyFilter),
+    filterByStatusView(visualMyOrders, "orders", statusView, historyFilter),
   );
   const filteredBusinessOrders = sortRecords(
-    filterByStatusView(requests, "orders", statusView, historyFilter,undefined,true),
+    filterByStatusView(visualBusinessOrders, "orders", statusView, historyFilter,undefined,true),
   );
   let filteredQuotes = sortRecords(
     filterByStatusView(
@@ -661,6 +664,7 @@ export default function RequestsScreen({
 
   return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
+      <StatusChangeHost business={subTab==='my-business'} view={statusView} orders={requestType==='orders'}/>
       <DealSuccessHost />
       <WhatsappReturnTracker />
       <AcceptedProposalHost refresh={() => void loadOrders(true)} onAccepted={business => {

@@ -37,13 +37,13 @@ const Step = ({ className = '', node, children }: { className?: string; node: Re
   <div className={`zipco-co-st ${className}`.trim()}>{node}<div className="zipco-co-sb">{children}</div></div>;
 
 export default function BusinessCoordinationCard({ order, business = true, name, image, price, statusLabel, isUnread = false, negotiated, acceptedAt, accepted,
-  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onInspect, refresh, notificationOpen = 0 }: {
+  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, onInspect, refresh, notificationOpen = 0,embedded=false }: {
   order: BusinessRequest | MyOrder; business?: boolean; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
   /** true for a negotiated agreement; false for the accepted original order. */
   negotiated: boolean; acceptedAt?: string | null; accepted: AcceptedSummary;
   conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
   onInspect?: () => void; refresh: () => void;
-  notificationOpen?: number;
+  embedded?:boolean;notificationOpen?: number;
 }) {
   const [latest, setLatest] = useState<BusinessRequest | MyOrder | null>(null);
   const current = latest?.requestProcess && latest.requestProcess.id === order.requestProcess?.id &&
@@ -56,7 +56,8 @@ export default function BusinessCoordinationCard({ order, business = true, name,
   const operation = useCoordination(current, business, refresh, 'coordination-steps');
   const [sheet, setSheet] = useState<'cond' | 'anul' | 'start' | 'agree' | null>(null);
   const motionRef = useCoordinationMotion(sheet !== null);
-  const [folded, setFolded] = useState(notificationOpen === 0);
+  const [storedFolded, setFolded] = useState(notificationOpen === 0);
+  const folded=embedded?false:storedFolded;
   useEffect(() => { if (notificationOpen > 0) setFolded(false); }, [notificationOpen]);
   const [deferred, setDeferred] = useState(false);
   const [reason, setReason] = useState<AnnulReason>('COORDINATION_NOT_REACHED');
@@ -81,7 +82,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
   const canOpen = allowed('OPEN_WHATSAPP');
   const client = name || (business ? 'el cliente' : 'el negocio');
   const returnKey = business ? whatsappReturnKey(current) : null;
-  const canStart = business && !process?.allowedActions.includes('CONFIRM_WHATSAPP_COORDINATION') && !process?.whatsappCoordination && readCoordinationSession()===cardSession.current && process?.state === 'COORDINATING' && allowed('START_WORK');
+  const canStart = business && !embedded && !process?.allowedActions.includes('DECLINE_WHATSAPP_COORDINATION') && !process?.allowedActions.includes('CONFIRM_WHATSAPP_COORDINATION') && !process?.whatsappCoordination && readCoordinationSession()===cardSession.current && process?.state === 'COORDINATING' && allowed('START_WORK');
   const releaseStart = useStartWorkPrompt({key:returnKey,enabled:canStart,
     blocked:sheet!==null||operation.busy||Boolean(recoveryOnly)||Boolean(pending)||phase==='loading'||phase==='requesting',
     onOpen:()=>setSheet(value=>value??'start'),onInvalidate:()=>setSheet(value=>value==='start'?null:value)});
@@ -144,7 +145,7 @@ export default function BusinessCoordinationCard({ order, business = true, name,
 
   const step2Done = authorized;
   const waLabel = 'Iniciar coordinación por WhatsApp';
-  return <article ref={motionRef} data-coordination-motion="idle" id={`order-${order.id}`} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state} data-coordination-role={business ? 'business' : 'customer'}
+  return <article ref={motionRef} data-coordination-motion="idle" id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state} data-coordination-role={business ? 'business' : 'customer'}
     aria-label={`${client}: coordinación pendiente`} className="zipco-co-dk scroll-mb-36"
     onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); event.currentTarget.classList.remove('zipco-notification-target'); onInspect?.(); setFolded(value => !value); } }}
     onClick={event => { event.currentTarget.classList.remove('zipco-notification-target'); event.stopPropagation(); }}>

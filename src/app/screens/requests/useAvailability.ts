@@ -1,3 +1,4 @@
+import {beginStatusChange,completeStatusChange,failStatusChange,type StatusOrder} from './statusChangePresentation';
 import {useEffect,useRef,useState} from 'react';
 import type {BusinessRequest,MyOrder} from './types';
 import {availabilityAllowed,AvailabilityError,sendAvailabilityAction,type AvailabilityBody} from './availabilityApi';
@@ -45,20 +46,23 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
     const process=order.requestProcess;
     if(!active()||lock.current||order.id===null||!process||!availabilityAllowed(process,business,action))return false;
     lock.current=true;setBusy(true);setError('');setMessage('');const controller=new AbortController();controllers.current.add(controller);
+    const flow=action==='REVOKE_CONTACT_CONSENT'?null:beginStatusChange(order,business);let confirmed=false;let verified:StatusOrder|null=null;
     try{
       const body:AvailabilityBody={expectedVersion:process.version,...details};
       await availabilityIntents().reconcile(operationScope(session!,business),process.id,process.version);
       const receipt=await availabilityIntents().run(operationScope(session!,business),process.id,action,body,
         key=>{if(!active()||controller.signal.aborted)throw Error('session changed');return sendAvailabilityAction(process,order.id!,business,action,body,session!.token,key,controller.signal);});
       if(!active())return false;
-      let navigation:string|null=null;
+      confirmed=true;let navigation:string|null=null;
       let finalReceipt=receipt;
       if(action==='CONTINUE_REQUEST'&&!business&&simplifiedReservationFlow(process)&&details.reservationChoice?.choice==='REQUEST_RESERVATION'&&process.availability?.reservationOffer?.mode==='PREPAYMENT'){
         try{const payment=await startReservationPayment(order.id!,session!,controller.signal);if(!active())return false;if(payment.latest?.requestProcess)finalReceipt={orderId:payment.latest.id!,orderStatus:payment.latest.status,requestProcess:payment.latest.requestProcess};navigation=payment.navigation;}
         catch{if(active())setError('La reserva fue registrada. Abre su tarjeta para coordinar el pago por WhatsApp.');}
       }
       if(!active())return false;
+      if(flow){verified=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return false;if(!verified?.requestProcess||verified.id!==order.id||verified.requestProcess.id!==process.id||verified.requestProcess.version<finalReceipt.requestProcess.version)throw Error('read pending');finalReceipt={orderId:verified.id!,orderStatus:verified.status,requestProcess:verified.requestProcess};}
       publish(finalReceipt);setExpired(false);
+      if(flow){completeStatusChange(flow,verified);if(navigation)window.location.assign(navigation);return true;}
       if(action!=='REVOKE_CONTACT_CONSENT')window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,
         view:action==='CONFIRM_AVAILABILITY'?'waiting':action==='CONTINUE_REQUEST'?receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination':'history'}}));
       const text=action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
@@ -67,10 +71,10 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
         :{title:action==='DECLINE_REQUEST'?'Solicitud finalizada':action==='WITHDRAW_AVAILABILITY'?'Disponibilidad retirada':'Retiro cancelado',description:'La solicitud quedó en Historial.'};
       announceAction(action==='CONTINUE_REQUEST'?'accepted':action==='CONFIRM_AVAILABILITY'?'requestSent':action==='REVOKE_CONTACT_CONSENT'?'annulled':'annulled',{
         ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});if(navigation)window.location.assign(navigation);return true;
-    }catch(e){if(active()){setError(e instanceof AvailabilityError?e.message:CHECK_AVAILABILITY_MESSAGE);
+    }catch(e){if(active()){setError(confirmed?'Tu respuesta se guard\u00f3; falta actualizar el pedido. Pulsa Comprobar pedido antes de continuar.':e instanceof AvailabilityError?e.message:CHECK_AVAILABILITY_MESSAGE);
       if(e instanceof AvailabilityError&&e.code==='EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED')setExpired(true);
       if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}
-    finally{controllers.current.delete(controller);lock.current=false;if(active())setBusy(false);}
+    finally{if(flow?.stage==='saving')failStatusChange(flow);controllers.current.delete(controller);lock.current=false;if(active())setBusy(false);}
   };
   return{busy,checking,error,message,expired,run,update};
 }

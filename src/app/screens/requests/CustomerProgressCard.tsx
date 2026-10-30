@@ -66,12 +66,12 @@ const whenLabel = (iso: string) => {
 type OrderProp = Parameters<typeof useCoordination>[0];
 
 export default function CustomerProgressCard({ order, businessName, image, price, statusLabel, accepted, acceptedAt,
-  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, negotiated, refresh, notificationOpen = 0, onInspect, isUnread = false }: {
+  conditionsTitle, conditionsSubtitle, conditionsWhen, conditionsSummary, explanation, negotiated, refresh, notificationOpen = 0, onInspect, isUnread = false,embedded=false }: {
   order: OrderProp; businessName: string; image?: string; price: number | null; statusLabel: string;
   accepted: AcceptedSummary & { scheduledFor?: string | null }; acceptedAt?: string | null;
   conditionsTitle: string; conditionsSubtitle: string; conditionsWhen: string; conditionsSummary: string; explanation?: string | null;
   negotiated: boolean; refresh: () => void;
-  notificationOpen?: number; onInspect?: () => void; isUnread?: boolean;
+  embedded?:boolean;notificationOpen?: number; onInspect?: () => void; isUnread?: boolean;
 
 }) {
 
@@ -91,7 +91,8 @@ export default function CustomerProgressCard({ order, businessName, image, price
   const [confirm, setConfirm] = useState<CustomerReceiptAction | null>(null);
   const [phase, setPhase] = useState<'idle' | 'acking' | 'receiving' | 'received'>('idle');
   const [arrivalDelay, setArrivalDelay] = useState<number | null>(null);
-  const [folded, setFolded] = useState(notificationOpen === 0);
+  const [storedFolded, setFolded] = useState(notificationOpen === 0);
+  const folded=embedded?false:storedFolded;
   const foldTimer = useRef<number | null>(null);
   const motionRef = useCoordinationMotion(folded || sheet !== null || confirm !== null);
   useEffect(() => { if (notificationOpen > 0) {
@@ -167,7 +168,7 @@ export default function CustomerProgressCard({ order, businessName, image, price
   const showAckBtn = ready && !service && ackKnown && !acked && !received && phase !== 'receiving' && !recoveryOnly && !pending;
   const showReceiptBtn = ready && !service && ackKnown && !received && phase === 'idle' && !recoveryOnly && !pending;
 
-  return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} aria-label={`${business}: ${received ? 'pedido recibido' : ready ? 'pedido listo' : 'pedido en curso'}`} className="zipco-cp scroll-mb-36" data-arrive={arrivalDelay !== null} style={arrivalDelay !== null ? { animationDelay: `${arrivalDelay}ms` } : undefined} onClick={event => event.stopPropagation()}>
+  return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} aria-label={`${business}: ${received ? 'pedido recibido' : ready ? 'pedido listo' : 'pedido en curso'}`} className="zipco-cp scroll-mb-36" data-arrive={arrivalDelay !== null} style={arrivalDelay !== null ? { animationDelay: `${arrivalDelay}ms` } : undefined} onClick={event => event.stopPropagation()}>
     <div style={{ position: 'relative' }}>
       <ProgressCardHeader business={false} name={business} image={image} price={price} statusLabel={pillLabel} isUnread={isUnread} ready={done} />
 

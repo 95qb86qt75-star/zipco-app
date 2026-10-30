@@ -1,3 +1,4 @@
+import {beginStatusChange,completeStatusChange,failStatusChange} from './statusChangePresentation';
 import {useEffect,useRef,useState} from 'react';
 import type {BusinessRequest,MyOrder} from './types';
 import {readCoordinationSession,operationScope,subscribeCoordinationSession} from './coordinationSession';
@@ -37,6 +38,7 @@ export default function useLateInitial(order:BusinessRequest|MyOrder,business:bo
     const p=current.current.requestProcess;
     if(!active()||lock.current||order.id===null||!p||!lateInitialAllowed(p,business,action))return false;
     lock.current=true;setBusy(true);setError('');setMessage('');const controller=new AbortController();controllers.current.add(controller);
+    const flow=beginStatusChange(order,business);let committed=false;
     try{
       const body={expectedVersion:p.version,proposalId:p.currentProposalId,confirmationAccepted:true as const,...(['CONFIRM_LATE_REQUEST_NEED','DECLINE_LATE_REQUEST_NEED'].includes(action)?{queryId:p.lateInitialResponse!.queryId!}:{})};
       const receipt=await lateInitialIntents().run(operationScope(session!,business),p.id,action,body,key=>{
@@ -44,14 +46,16 @@ export default function useLateInitial(order:BusinessRequest|MyOrder,business:bo
         return sendLateInitialAction(p,order.id!,business,action,body,session!.token,key,controller.signal);
       });
       if(!active())return false;
+      committed=true;
+      if(flow){const latest=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return false;if(!latest?.requestProcess||latest.requestProcess.id!==p.id||latest.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');lateInitialIntents().claimFeedback(operationScope(session!,business),p.id,receipt,action);publish({orderId:latest.id!,orderStatus:latest.status,requestProcess:latest.requestProcess});completeStatusChange(flow,latest);return true;}
       if(lateInitialIntents().claimFeedback(operationScope(session!,business),p.id,receipt,action))announceAction(action==='ASK_LATE_REQUEST_NEED'?'lateQuerySent':action==='CONFIRM_LATE_REQUEST_NEED'?'accepted':'annulled',{
         title:action==='ASK_LATE_REQUEST_NEED'?'Consulta enviada':action==='CONFIRM_LATE_REQUEST_NEED'?'Avisamos al negocio':'Solicitud finalizada',
         description:action==='ASK_LATE_REQUEST_NEED'?'Le preguntamos al cliente si aún lo requiere. Quedó esperando su respuesta.':action==='CONFIRM_LATE_REQUEST_NEED'?'Falta acordar una nueva hora. Tu respuesta no confirma disponibilidad ni reserva.':'La solicitud quedó en el historial de ambos.',
         key:`late:${p.id}:${receipt.requestProcess.lateInitialResponse?.queryId??'none'}:${receipt.requestProcess.version}:${action}`,
       });
       publish(receipt);window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,view:receipt.orderStatus==='pending'?'pending':'history'}}));return true;
-    }catch(e){if(active()){setError(e instanceof LateInitialError?e.message:'No pudimos comprobar si tu respuesta se envió. Pulsa «Comprobar pedido» antes de reintentar.');if(e instanceof LateInitialError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}
-    finally{controllers.current.delete(controller);lock.current=false;if(active())setBusy(false);}
+    }catch(e){if(active()){setError(committed?'Tu respuesta se guard\u00f3; falta actualizar. Pulsa Comprobar pedido.':e instanceof LateInitialError?e.message:'No pudimos comprobar si tu respuesta se envió. Pulsa «Comprobar pedido» antes de reintentar.');if(e instanceof LateInitialError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}
+    finally{if(flow?.stage==='saving')failStatusChange(flow);controllers.current.delete(controller);lock.current=false;if(active())setBusy(false);}
   };
   return {busy,error,message,pending,update,run};
 }

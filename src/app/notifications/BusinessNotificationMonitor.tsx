@@ -1,3 +1,4 @@
+import {INITIAL_DECLINE_HEADERS} from '../screens/requests/whatsappInitialDeclineContract';
 import { useEffect, useRef } from "react";
 import { traceNotificationClick } from './notificationClickTrace';
 import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
@@ -100,7 +101,7 @@ async function loadJson(
   onSessionExpired: () => void,
 ) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS },
   });
   if (response.status === 401) {
     onSessionExpired();
@@ -169,7 +170,7 @@ export default function BusinessNotificationMonitor({
         if (import.meta.env.QA_NOTIFICATION_TRACE) traceNotificationClick('notice-suppressed', { hasEvent: true });
         return;
       }
-      if(actionUrl&&presentedKey&&/-(?:availability|coordination-coordination-(?:confirmed|accepted|declined))-\d+$/.test(presentedKey)){
+      if(actionUrl&&presentedKey&&/-(?:availability|coordination-initial-declined|coordination-coordination-(?:confirmed|accepted|declined))-\d+$/.test(presentedKey)){
         const target=new URL(actionUrl,window.location.origin);
         target.searchParams.set('notificationEvent',presentedKey);
         actionUrl=target.pathname+target.search;
@@ -272,7 +273,7 @@ export default function BusinessNotificationMonitor({
           orders.forEach((order) => {
             const coordination=whatsappCoordinationNotice(order,true);
             if(coordination){if(orderStatuses.current.get(order.id)!==orderNotificationState(order))announce(coordination.key,coordination.notice[0],coordination.notice[1],{kind:'order',id:order.id},'/?open=requests-business&orderId='+order.id);return;}
-            if(order.requestProcess?.whatsappCoordination&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))return;
+            if((order.requestProcess?.whatsappCoordination||order.requestProcess?.whatsappCoordinationInitialDecline)&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))return;
             if(order.requestProcess?.lateInitialResponse){
               const event=lateInitialNotice(order,true);
               if(event&&orderStatuses.current.get(order.id)!==orderNotificationState(order))announce(event.key,event.notice[0],event.notice[1],{kind:'order',id:order.id},`/?open=requests-business&orderId=${order.id}`);

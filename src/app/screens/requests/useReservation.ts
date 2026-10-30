@@ -1,3 +1,4 @@
+import {beginStatusChange,completeStatusChange,failStatusChange} from './statusChangePresentation';
 import {useEffect,useRef,useState} from 'react';
 import type {BusinessRequest,MyOrder} from './types';
 import {readCoordinationSession,subscribeCoordinationSession,operationScope} from './coordinationSession';
@@ -24,10 +25,12 @@ export default function useReservation(order:BusinessRequest|MyOrder,business:bo
   const run=async(action:ReservationAction,details:Omit<ReservationBody,'expectedVersion'|'reservationId'>={})=>{
     const p=order.requestProcess;if(!active()||lock.current||order.id===null||!p?.reservation||!reservationAllowed(p,business,action))return false;
     lock.current=true;setBusy(true);setError('');const c=new AbortController();controllers.current.add(c);
+    const flow=action==='CANCEL_PICKUP_RESERVATION'?beginStatusChange(order,business):null;
     try{const body:ReservationBody={expectedVersion:p.version,reservationId:p.reservation.id,...details};let navigation:string|null=null;
       const receipt=await reservationIntents().run(operationScope(session!,business),p.id,action,body,async key=>{if(!active()||c.signal.aborted)throw Error('La sesión cambió. Actualiza el pedido.');const response=await sendReservationAction(p,order.id!,business,action,body,session!.token,key,c.signal);navigation=response.navigation;return response.receipt;});
       if(!active())return false;
       const latest=await read(c.signal,receipt.requestProcess.version);if(!active()||!latest)return false;
+      if(flow)completeStatusChange(flow,latest);
       if(action==='OPEN_RESERVATION_WHATSAPP'){
         const allowed=reservationAllowed(latest.requestProcess,business,action),validPurpose=body.purpose!=='RECEIPT'||!business&&latest.requestProcess?.state==='IN_PROGRESS';
         if(!navigation||!allowed||!validPurpose){setError('El acceso a WhatsApp ya no está disponible. Revisa los permisos de contacto.');return false;}
@@ -35,7 +38,7 @@ export default function useReservation(order:BusinessRequest|MyOrder,business:bo
       }
       return true;
     }catch(e){if(active()){setError(e instanceof Error?e.message:'No se pudo confirmar el resultado. Reintenta los mismos datos.');if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}
-    finally{controllers.current.delete(c);lock.current=false;if(active())setBusy(false);}
+    finally{if(flow?.stage==='saving')failStatusChange(flow);controllers.current.delete(c);lock.current=false;if(active())setBusy(false);}
   };
   return {busy,error,run,update};
 }

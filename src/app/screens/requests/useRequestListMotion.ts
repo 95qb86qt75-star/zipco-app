@@ -8,7 +8,7 @@ export default function useRequestListMotion(items: unknown) {
     const list = ref.current;
     const scroller = list?.closest<HTMLElement>('[data-requests-scroll]');
     if (!list || !scroller) return;
-    const cards = Array.from(list.querySelectorAll<HTMLElement>('[id^="order-"]'));
+    const cards = Array.from(list.querySelectorAll<HTMLElement>('[id^="order-"],[data-status-order]'));
     let timer: ReturnType<typeof setTimeout> | undefined;
     let scrolling = false;
     const update = () => {
