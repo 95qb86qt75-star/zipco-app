@@ -53,6 +53,7 @@ export function statusResultCopy(result:StatusOrder,source?:StatusOrder){
   if(p?.lateInitialResponse?.status==='AWAITING_CUSTOMER')return {title:'Consulta enviada',description:'El cliente debe responder si a\u00fan lo necesita.',amber:false};
   if(p?.lateInitialResponse?.status==='STILL_NEEDED')return {title:'Respuesta enviada',description:'Falta acordar una nueva hora.',amber:true};
   if(p?.whatsappCoordinationInitialDecline?.active)return {title:'Falta coordinar',description:'Sigue en Por coordinar.',amber:true};
+  if(p?.state==='COORDINATION_PENDING')return {title:'Solicitud confirmada',description:'Ya puedes revisar el contacto e iniciar la coordinación.',amber:false};
   if(view==='coordination')return {title:'Falta coordinar',description:statusViewFor('orders',source?.status??'',source?.requestProcess)==='active'?'Volvió a Por coordinar.':'Ya puedes coordinar el pedido.',amber:true};
   if(view==='active')return {title:p?.whatsappCoordination?'Coordinación lista':'Pedido en curso',description:'El pedido está En curso.',amber:false};
   if(view==='ready')return {title:'Pedido listo y notificado',description:'Ya lo encuentras en Listo y notificado.',amber:false};
@@ -74,7 +75,7 @@ export function completeStatusChange(change:StatusChange|null,latest:StatusOrder
     const current=change.result??latest,target=change.destination??destination;
     const copy=statusResultCopy(current,change.source);
     const next:StatusNotice={id:++serial,orderId:current.id!,business:change.business,view:target,...copy};
-    if(target==='coordination'){
+    if(target==='coordination'&&(current.requestProcess?.whatsappCoordinationInitialDecline?.active===true||current.requestProcess?.whatsappCoordination?.status==='DECLINED')){
       next.title=statusViewFor('orders',change.source.status,previous,false,change.business)==='active'?'Volvió a Por coordinar':'Sigue en Por coordinar';
       if(!change.business)next.description='Avisamos al negocio que aún falta coordinar.';
     }

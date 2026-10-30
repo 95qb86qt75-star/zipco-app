@@ -4,6 +4,7 @@ import {Check,Clock3,LoaderCircle} from 'lucide-react';
 import {readCoordinationSession,subscribeCoordinationSession} from './coordinationSession';
 import {getStatusChange,getStatusNotice,closeStatusNotice,projectStatusOrders,registerStatusPage,subscribeStatusChanges,statusResultCopy,isStatusArrival,markStatusArrival,type StatusOrder} from './statusChangePresentation';
 import type {StatusView} from './requestStatusGrouping';
+import {scrollToRequestOrder} from './requestSummaryScroll';
 import ProductPreviewControl from './ProductPreviewControl';
 import './status-change.css';
 function useStatusRevision(){const[,setRevision]=useState(0);useEffect(()=>subscribeStatusChanges(()=>setRevision(v=>v+1)),[]);}
@@ -18,21 +19,23 @@ export default function StatusChangeFlow({order,business,children}:{order:Status
     const container=root.current;let previous:HTMLElement|null=null;
     const focus=()=>{
       const target=container.querySelector<HTMLElement>('[id^="order-"]');
-      if(!target||target===previous||previous&&document.activeElement!==document.body)return;
+      if(!target||previous&&document.activeElement!==previous&&document.activeElement!==document.body)return;
       if(!target.hasAttribute("tabindex"))target.tabIndex=-1;
-      previous?.removeAttribute("data-arrived");target.dataset.arrived="true";
-      target.scrollIntoView({block:"center",behavior:window.matchMedia?.("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});target.focus({preventScroll:true});previous=target;
+      if(target!==previous){previous?.removeAttribute("data-arrived");target.dataset.arrived="true";target.focus({preventScroll:true});previous=target;}
+      scrollToRequestOrder(target,window.matchMedia?.("(prefers-reduced-motion: reduce)").matches===true);
     };
-    focus();const observer=new MutationObserver(focus);observer.observe(container,{childList:true,subtree:true});return()=>{observer.disconnect();previous?.removeAttribute("data-arrived");};
+    focus();const observer=new MutationObserver(focus);observer.observe(container,{childList:true,subtree:true});
+    const resize=typeof ResizeObserver==='undefined'?null:new ResizeObserver(focus);resize?.observe(container);
+    return()=>{observer.disconnect();resize?.disconnect();previous?.removeAttribute("data-arrived");};
   },[arriving]);
-  return <div ref={root} data-arrival={arriving||undefined} className="zipco-status-flow" data-status-order={`${business}:${order.id}:${order.requestProcess?.id}`} data-stage={change?.stage}>
+  return <div ref={root} data-arrival={arriving||undefined} className="zipco-status-flow" data-presenting={!!presentation} data-status-order={`${business}:${order.id}:${order.requestProcess?.id}`} data-stage={change?.stage}>
     <div className="zipco-status-flow-inner">
-      {presentation&&change&&<article role="status" aria-label={copy?.title??'Guardando respuesta'} className="zipco-status-result" data-amber={copy?.amber} style={change.height?{minHeight:change.height}:undefined}>
+      <div className="zipco-status-source" aria-hidden={presentation?true:undefined} style={presentation&&change?.height?{height:change.height}:undefined} {...(presentation?{inert:''}:{})}>{children}</div>
+      {presentation&&change&&<div className="zipco-status-overlay"><article role="status" aria-label={copy?.title??'Guardando respuesta'} className="zipco-status-result" data-amber={copy?.amber}>
         <span className="zipco-status-product"><ProductPreviewControl/></span>
         <div><small>ESTADO DEL PEDIDO</small><h4>{copy?.title??'Guardando respuesta…'}</h4><p>{copy?.description??'Espera mientras comprobamos el resultado.'}</p></div>
         <span className="zipco-status-result-icon">{change.stage==='saving'?<LoaderCircle className="zipco-flow-spinner"/>:copy?.amber?<Clock3/>:<Check/>}<small>{change.stage==='saving'?'Guardando':copy?.amber?'Pendiente':'Listo'}</small></span>
-      </article>}
-      <div hidden={!!presentation} {...(presentation?{inert:''}:{})}>{children}</div>
+      </article></div>}
     </div>
   </div>;
 }

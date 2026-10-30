@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { scrollToRequestResults } from './requestSummaryScroll';
+import { scrollToRequestOrder,scrollToRequestResults } from './requestSummaryScroll';
 
 describe('scroll range for a short filtered request list', () => {
   function layout(naturalMaximum: number) {
@@ -50,5 +50,15 @@ describe('scroll range for a short filtered request list', () => {
     expect(dom.scroller.scrollTo).toHaveBeenCalledWith({ top: 688, behavior: 'instant' });
     expect(dom.results.getBoundingClientRect().top).toBe(162);
     expect(dom.spacer.style.height).toBe('388px');
+  });
+  it('positions an explicit Ver inside the list instead of centering its scroll-margin box under the app header',()=>{
+    const dom=layout(300);Object.assign(dom.scroller,{querySelector:()=>dom.spacer});
+    const target={...dom.results,scrollIntoView:vi.fn()};scrollToRequestOrder(target as any,true);
+    expect(target.scrollIntoView).not.toHaveBeenCalled();expect(target.getBoundingClientRect().top).toBe(162);
+    expect(dom.scroller.scrollTo).toHaveBeenCalledWith({top:688,behavior:'instant'});
+  });
+  it('uses the card start for an isolated view without the requests spacer',()=>{
+    const target={closest:()=>null,scrollIntoView:vi.fn()};scrollToRequestOrder(target as any,true);
+    expect(target.scrollIntoView).toHaveBeenCalledWith({block:'start',behavior:'auto'});
   });
 });

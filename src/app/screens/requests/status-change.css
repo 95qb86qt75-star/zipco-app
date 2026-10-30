@@ -1,5 +1,8 @@
 .zipco-status-flow{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .5s ease,opacity .4s ease;min-width:0}
-.zipco-status-flow-inner{min-height:0;min-width:0}
+.zipco-status-flow-inner{position:relative;min-height:0;min-width:0}
+.zipco-status-flow[data-presenting=true] .zipco-status-source{opacity:.25;overflow:hidden;pointer-events:none}
+.zipco-status-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;border-radius:24px;background:#0f172a33}
+.zipco-status-overlay>.zipco-status-result{width:100%}
 .zipco-status-flow[data-stage=exiting]{grid-template-rows:0fr;opacity:0}
 .zipco-status-flow[data-stage=exiting]>.zipco-status-flow-inner{overflow:hidden}
 .zipco-status-result{min-height:108px;display:flex;gap:12px;align-items:center;border-radius:24px;padding:14px;background:radial-gradient(ellipse at 100% 0,#6541b1,transparent 85%),linear-gradient(135deg,#104b56,#17153b);color:#f8fafc;box-shadow:0 10px 22px #1e1b4b35}
