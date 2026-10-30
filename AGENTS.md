@@ -2,6 +2,30 @@
 
 Estas instrucciones aplican al workspace frontend QA `C:\dev\zipco-app-qa`.
 
+## Memoria documental y forma de trabajo vigente
+
+Al retomar trabajo, leer [estado actual](docs/frontend-qa-current-state.md) y
+[política de trabajo](docs/frontend-qa-working-policy.md). Los informes fechados
+describen su versión; no sustituyen el contrato o el estado actual.
+
+- Seleccionar pruebas por dependencias y riesgo. Distinguir presentación,
+  interacción/navegación local y cambios de comportamiento o contrato.
+- Reutilizar escenarios aprobados. Repetirlos solo si nuevos cambios, fallos o
+  dependencias afectadas lo justifican; registrar el motivo.
+- Medir por separado análisis, implementación, preparación de pruebas, ejecución,
+  documentación, build y publicación/verificación. Registrar esperas y
+  paralelismo sin sumar dos veces el tiempo. No inventar mediciones ausentes.
+- Conservar todos los controles de este archivo. Las pruebas visuales/táctiles,
+  de permisos/recuperación y las regresiones se adaptan al riesgo real.
+- No confundir demora de desarrollo con rendimiento de la app; no atribuir
+  tiempos a gráficos o animaciones sin mediciones.
+- Cambiar herramientas requiere un bloque definido y aprobado. La
+  [propuesta de estabilización](docs/frontend-qa-tools-stabilization-proposal.md)
+  está pendiente de aprobación; guardar su documentación no autoriza ejecutarla.
+- Guardar memoria no autoriza despliegues. Un push a qa puede activar Vercel:
+  los cierres exclusivamente documentales y el bloque propuesto no hacen push
+  ni despliegue sin alcance aprobado.
+
 ## Clasificación obligatoria
 
 Antes de implementar una modificación, clasificarla como:

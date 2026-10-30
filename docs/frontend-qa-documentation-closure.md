@@ -1,5 +1,11 @@
 # QA-DOC-CLOSURE-01 — Respaldo documental y cierre de avances QA
 
+**Nota vigente, 2026-10-30:** este cierre conserva la etapa del 19 de octubre.
+Consultar [estado actual](frontend-qa-current-state.md) y
+[política de trabajo](frontend-qa-working-policy.md). La autorización histórica
+de push/despliegue de este documento no se extiende al cierre documental actual
+ni al bloque de herramientas pendiente: guardar memoria no autoriza un push QA.
+
 Fecha: 2026-10-19. Clasificación: documentación frontend QA, sin cambios de aplicación ni contratos.
 
 ## Regla de entrega vigente
