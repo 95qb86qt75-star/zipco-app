@@ -15,7 +15,7 @@ export default function CustomerCoordinationCard({id,name,price,quantity,model,d
   const title=confirm?<>¿Devolver a <em className="zipco-avw-customer-am">Por coordinar</em>?</>:closed?'Falta coordinar':<>¿Coordinación lista por <em>WhatsApp</em>?</>;
   const status=busy?'Guardando respuesta…':confirm?'Solo Devolver guarda':closed?(model.declinedBySelf?'Negocio avisado':'Falta coordinar'):'';
   const detail=<button type="button" className="zipco-avw-query-detail" aria-expanded={model.expanded}
-    aria-controls={'coordination-detail-'+id} onClick={model.onToggle}><span className="zipco-avw-detail-hand" aria-hidden="true">☝</span>{model.expanded?'Ocultar':'Detalle'}</button>;
+    aria-controls={'coordination-detail-'+id} onClick={model.onToggle}><svg className="zipco-avw-detail-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>{model.expanded?'Ocultar':'Detalle'}</button>;
   return <article id={'order-'+id} tabIndex={-1} className="zipco-avw zipco-avw-query zipco-avw-customer scroll-mb-36" data-expanded={model.expanded} data-mode={mode} data-busy={busy} aria-busy={busy} data-attention={model.attention}>
     {!own&&<div className="zipco-avw-customer-band"><small>COORDINACIÓN</small><div className="zipco-avw-customer-bandrow"><h4>{title}</h4>{detail}</div></div>}
     <div className="zipco-avw-query-head">
