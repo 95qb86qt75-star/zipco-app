@@ -45,6 +45,8 @@
 .zipco-avw-reveal{display:grid;grid-template-rows:1fr;opacity:1;visibility:visible;overflow:hidden;pointer-events:none;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1),opacity .18s ease,visibility 0s}
 .zipco-avw-reveal[data-folded=true]{grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1),opacity .18s ease,visibility 0s .42s}
 .zipco-avw-reveal-inner{min-height:0;overflow:hidden}
+/* The expanded coordination detail receives real taps; folded/inert content stays blocked. */
+.zipco-avw-query>.zipco-avw-reveal[data-folded=false]>.zipco-avw-reveal-inner>.zipco-avw-query-body{pointer-events:auto}
 .zipco-avw-reveal[data-folded=true] *{animation-play-state:paused!important}
 .zipco-avw-detail{pointer-events:none}
 .zipco-avw-detail-top{display:flow-root;padding:0 12px 11px;background:#101434}
