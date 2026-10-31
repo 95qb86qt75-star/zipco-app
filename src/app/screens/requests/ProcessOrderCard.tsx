@@ -117,7 +117,7 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
         returnView={statusViewFor('orders', order.status, process, order.requestProcessInvalid) ?? 'pending'} />
     </div>;
 
-  const wrapCoordination=(detail:ReactNode)=>coordinationView&&accepted?<CoordinationWaitingCard business={business} items={accepted.subjectSnapshot.items.map(item=>({name:item.nameSnapshot,quantity:item.quantity}))} id={order.id!} name={name} price={price} quantity={accepted.subjectSnapshot.items.reduce((sum,item)=>sum+item.quantity,0)} model={coordinationView}>{detail}</CoordinationWaitingCard>:detail;
+  const wrapCoordination=(detail:ReactNode)=>coordinationView&&accepted&&(business||coordinationView.mode!=='ownPending'||accepted.subjectSnapshot.orderType!=='product')?<CoordinationWaitingCard business={business} items={accepted.subjectSnapshot.items.map(item=>({name:item.nameSnapshot,quantity:item.quantity}))} id={order.id!} name={name} price={price} quantity={accepted.subjectSnapshot.items.reduce((sum,item)=>sum+item.quantity,0)} model={coordinationView}>{detail}</CoordinationWaitingCard>:detail;
 
   if(awaiting&&process?.lateInitialResponse&&(business||['AWAITING_CUSTOMER','STILL_NEEDED'].includes(process.lateInitialResponse.status)))
     return <LateInitialCard key={`${business}:${process.id}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread}/>;
@@ -159,8 +159,8 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2;
-    const ClientProgress=!coordinationView&&subject.orderType==='product'&&(process.customerReceipt||process.state==='IN_PROGRESS')?CustomerReceiptFlowCard:CustomerProgressCard;
-    return wrapCoordination(<ClientProgress embedded={!!coordinationView} key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
+    const ClientProgress=(!coordinationView||coordinationView.mode==='ownPending')&&subject.orderType==='product'?CustomerReceiptFlowCard:CustomerProgressCard;
+    return wrapCoordination(<ClientProgress coordinationPending={coordinationView?.mode==='ownPending'} embedded={!!coordinationView} key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
       statusLabel={process.state === 'READY' ? 'Listo' : process.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'En curso'} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated}
       notificationOpen={notificationOpen} onInspect={onOpen} isUnread={isUnread} conditionsTitle={title}
       conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}

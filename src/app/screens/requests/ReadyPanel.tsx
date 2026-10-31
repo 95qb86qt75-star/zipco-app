@@ -14,6 +14,8 @@ export type ReadyModel={
   disabled?:boolean;
   /** Mensaje de error de la acción (bajo el botón, role="alert"). */
   error?:string;
+  /** Legacy actions keep their real meaning while sharing the new presentation. */
+  title?:string;subtitle?:string;confirmLabel?:string;
   onConfirmReceipt:()=>void;
   onFinish:()=>void;
   /** Termina la animación de salida (stage==='finishing'): el padre refresca la lista y actualiza contadores. */
@@ -44,10 +46,10 @@ export default function ReadyPanel({model,tone='dark',kind='whatsapp'}:{model?:R
       {model&&<>
         <div className="zipco-own-msg" role="status">
           <span className="zipco-own-tile" data-tone={received?'ok':'bell'} aria-hidden="true">{received?<Check size={20} strokeWidth={3.2}/>:<Bell size={18} strokeWidth={2.3}/>}</span>
-          <div><b>{received?READY_COPY.receivedTitle:READY_COPY.title}</b><small>{received?READY_COPY.receivedSub:READY_COPY.subtitle[kind]}</small></div>
+          <div><b>{model.title??(received?READY_COPY.receivedTitle:READY_COPY.title)}</b><small>{model.subtitle??(received?READY_COPY.receivedSub:READY_COPY.subtitle[kind])}</small></div>
         </div>
         {!received
-          ?<button type="button" className="zipco-own-cta" disabled={disabled} onClick={model.onConfirmReceipt}>{busy?saving:<span className="zipco-own-ctarow"><Check size={18} strokeWidth={3}/>{READY_COPY.confirm}</span>}</button>
+          ?<button type="button" className="zipco-own-cta" disabled={disabled} onClick={model.onConfirmReceipt}>{busy?saving:<span className="zipco-own-ctarow"><Check size={18} strokeWidth={3}/>{model.confirmLabel??READY_COPY.confirm}</span>}</button>
           :<button ref={final} type="button" className="zipco-own-cta" data-final="true" disabled={disabled} onClick={model.onFinish}>{busy?saving:<><span>{READY_COPY.finishTitle}</span><small>{READY_COPY.finishSub}</small></>}</button>}
         {model.error&&<p className="zipco-own-error" role="alert">{model.error}</p>}
       </>}

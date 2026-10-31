@@ -1,7 +1,10 @@
 // Development-only design sandbox. No orders, authentication, storage or API calls.
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {ChevronDown,Package} from 'lucide-react';
+import CustomerPickupCard from '/src/app/screens/requests/CustomerPickupCard';
+import CustomerReceiptDetails from '/src/app/screens/requests/CustomerReceiptDetails';
+import {ConditionsSheet} from '/src/app/screens/requests/CoordinationSheets';
+import {agreementFixture} from '/src/app/screens/requests/requestProcessFixtures';
 import '/src/styles/index.css';
 
 import './preview.css';
@@ -19,22 +22,15 @@ function PickupPreview(){
  const ready:ReadyModel|undefined=['waiting','history'].includes(stage)?undefined:{stage:stage as ReadyStage,busy,onConfirmReceipt:()=>simulate('received'),onFinish:()=>simulate('finishing')};
  return <section data-pickup-preview>
   <h2 className="course-preview-label">Opción 2 · Retiro en el local</h2>
-  {stage!=='history'?<article className="zipco-pickup-c" data-ready={!!ready} data-leaving={stage==='finishing'}>
-   <div>
-    <button className="zipco-pickup-c-head" type="button" aria-expanded={open} aria-controls="pickup-demo-detail" onClick={()=>setOpen(v=>!v)}>
-     <span className="zipco-pickup-c-tile"><Package size={22}/></span>
-     <span className="course-preview-pickup-identity"><b className="zipco-pickup-c-name">Retiro en el local</b><span className="zipco-pickup-c-state">1× Producto de demostración · <b>Pendiente de retiro</b></span></span>
-     <span className="zipco-pickup-c-total"><b>$5.000</b><small>ACORDADO</small></span><ChevronDown size={16}/>
-    </button>
-    <StatusRail theme="light" stage={stage==='waiting'?'wait':stage==='ready'?'ready':'received'} copy={{you:{label:'TÚ',text:'Aceptaste'},business:{label:'NEGOCIO',waiting:'Preparando',ready:'Listo'},third:{label:'RETIRO',waiting:'Pendiente',ready:'¡Listo!',received:'Recibido'}}}/>
-    {open&&<div id="pickup-demo-detail" className="course-preview-pickup-detail">Detalle ilustrativo del retiro. Los datos y acciones del pedido real no están conectados en esta vista.</div>}
-   </div>
-   {ready&&<ReadyPanel model={ready} tone="light"/>}
-  </article>:<p role="status" className="course-preview-history">Retiro de demostración finalizado.</p>}
+  {stage!=='history'?<CustomerPickupCard id={900002} name="Negocio de demostración" product="1× Producto de demostración" price={5000} expanded={open} onToggle={()=>setOpen(v=>!v)} ready={ready} busy={busy}><PreviewDetails/></CustomerPickupCard>:<p role="status" className="course-preview-history">Retiro de demostración finalizado.</p>}
   <div className="course-preview-controls"><button data-pickup-reset onClick={()=>{clearTimeout(timer.current);locked.current=false;setBusy(false);setStage('waiting');setOpen(false);}}>Reiniciar retiro</button><button data-pickup-ready disabled={stage!=='waiting'} onClick={()=>{setOpen(false);setStage('ready');}}>Simular retiro listo</button></div>
  </section>;
 }
 
+function PreviewDetails(){
+ const [open,setOpen]=useState(false);
+ return <><CustomerReceiptDetails summary="1× Producto de demostración · Lo antes posible" onConditions={()=>setOpen(true)}/><ConditionsSheet fullAgreement open={open} onOpenChange={setOpen} accepted={agreementFixture} title="Producto de demostración" subtitle="Datos ficticios de la vista local" when="Lo antes posible"/></>;
+}
 function Preview(){
  const [stage,setStage]=useState<'waiting'|ReadyStage|'history'>('waiting');
  const [expanded,setExpanded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[fail,setFail]=useState(false),[toast,setToast]=useState(false);
@@ -60,7 +56,7 @@ function Preview(){
   <div data-requests-scroll>
    {stage!=='history'?<ProductPreviewScope preview={preview} processId={1} proposalId={1} enabled>
     <CustomerCoordinationCard id={900001} name="Negocio de demostración" price={5000} quantity={1} items={[{name:'Producto de demostración',quantity:1}]} description="Indicaste que ya coordinaron. El pedido está En curso; falta que la otra parte responda." ready={ready}
-     model={{mode:'ownPending',busy:false,expanded,attention:false,canYes:false,canNo:false,error:'',onToggle:()=>setExpanded(v=>!v),onYes:()=>{},onNo:()=>{},onCancel:()=>{},onReturn:()=>{}}}><p>Detalle visual del pedido de demostración.</p></CustomerCoordinationCard>
+     model={{mode:'ownPending',busy:false,expanded,attention:false,canYes:false,canNo:false,error:'',onToggle:()=>setExpanded(v=>!v),onYes:()=>{},onNo:()=>{},onCancel:()=>{},onReturn:()=>{}}}><PreviewDetails/></CustomerCoordinationCard>
    </ProductPreviewScope>:<p role="status" className="course-preview-history">Solicitud de demostración finalizada.</p>}
   </div>
   <PickupPreview/>

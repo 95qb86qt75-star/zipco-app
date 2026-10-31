@@ -7,11 +7,11 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
-- Nueva [vista aislada del diseño En curso del cliente](frontend-customer-course-design-preview-qa.md):
-  diseño de Claude en scripts/qa/previews/customer-course, con recepción y cierre
-  exclusivamente simulados. Tres tamaños y controles aprobados en Chrome local.
-  No sustituye tarjetas reales ni conecta acciones nuevas. Sin despliegue;
-  pendiente contrato backend para separar recepción de finalización.
+- La [vista aislada inicial](frontend-customer-course-design-preview-qa.md) queda
+  como antecedente: el contrato backend ya está publicado y se integró en 2c29b27.
+  La corrección de [mezcla CliU15](frontend-cliu15-mixed-design-diagnosis-qa.md)
+  comparte ahora el retiro y el detalle entre app y vista local. Esta última sigue
+  siendo una simulación sin pedidos reales; no sustituye las pruebas de la app.
 
 - Aplicar [política de trabajo](frontend-qa-working-policy.md): alcance acotado,
   pruebas por dependencias/riesgo, reutilización y medición separada.
@@ -26,6 +26,11 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Corrección autorizada de mezcla visual en 2c29b27: se elimina la tarjeta antigua
+anidada en ownPending y el fallback visual de productos READY sin resumen v2.
+Compatibilidad de acciones conservada. Seis escenarios únicos aprobados; ver
+[diagnóstico y corrección](frontend-cliu15-mixed-design-diagnosis-qa.md).
 
 Publicado QA 2c29b27: [CliU15 y recepción/finalización v2](frontend-customer-receipt-finalization-cliu15-qa.md),
 backend QA 5d09106. Panel y carril en WhatsApp/retiro, recepción abierta y cierre
