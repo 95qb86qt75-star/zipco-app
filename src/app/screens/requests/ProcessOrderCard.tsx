@@ -25,6 +25,7 @@ import BusinessCoordinationCard from './BusinessCoordinationCard';
 import CoordinationCardShell from './CoordinationCardShell';
 import BusinessProgressCard from './BusinessProgressCard';
 import CustomerProgressCard from './CustomerProgressCard';
+import CustomerReceiptFlowCard from './CustomerReceiptFlowCard';
 import ProgressCardShell from './ProgressCardShell';
 import { contactAuthorized } from './coordinationApi';
 import CustomerPendingCard from './CustomerPendingCard';
@@ -158,7 +159,8 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     const whenLong = accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(accepted.scheduledFor)) : subject.needNow ? 'Lo antes posible' : 'Sin horario acordado';
     const whenShort = subject.needNow ? 'Ahora' : accepted.scheduledFor ? new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', day: 'numeric', month: 'short' }).format(new Date(accepted.scheduledFor)) : 'Sin horario acordado';
     const negotiated = accepted.subjectSchemaVersion === 2;
-    return wrapCoordination(<CustomerProgressCard embedded={!!coordinationView} key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
+    const ClientProgress=!coordinationView&&subject.orderType==='product'&&(process.customerReceipt||process.state==='IN_PROGRESS')?CustomerReceiptFlowCard:CustomerProgressCard;
+    return wrapCoordination(<ClientProgress embedded={!!coordinationView} key={`${process.id}:${accepted.agreementPublicId}`} order={order} businessName={name} image={image} price={price}
       statusLabel={process.state === 'READY' ? 'Listo' : process.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'En curso'} accepted={accepted} acceptedAt={accepted.confirmedAt} negotiated={negotiated}
       notificationOpen={notificationOpen} onInspect={onOpen} isUnread={isUnread} conditionsTitle={title}
       conditionsSubtitle={single ? subject.items[0].descriptionSnapshot : subject.items.map(item => `${item.quantity}× ${item.nameSnapshot}`).join(' · ')}

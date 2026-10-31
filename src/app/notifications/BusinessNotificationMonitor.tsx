@@ -1,3 +1,4 @@
+import {customerReceiptHeaders} from '../screens/requests/customerReceiptContract';
 import {INITIAL_DECLINE_HEADERS} from '../screens/requests/whatsappInitialDeclineContract';
 import { useEffect, useRef } from "react";
 import { traceNotificationClick } from './notificationClickTrace';
@@ -101,7 +102,7 @@ async function loadJson(
   onSessionExpired: () => void,
 ) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS },
+    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...(path.startsWith('/orders/')?await customerReceiptHeaders(token,true):{}) },
   });
   if (response.status === 401) {
     onSessionExpired();
@@ -271,6 +272,11 @@ export default function BusinessNotificationMonitor({
             );
         if (hasBusinessBaseline.current) {
           orders.forEach((order) => {
+            const receipt=order.requestProcess?.customerReceipt;
+            if(receipt&&receipt.status!=='AWAITING_RECEIPT'){
+              if(orderStatuses.current.get(order.id)!==orderNotificationState(order))announce('order-'+order.id+'-coordination-'+(receipt.status==='FINALIZED'?'request-finalized':'receipt-declared')+'-'+order.requestProcess!.version,receipt.status==='FINALIZED'?'Solicitud finalizada':'Producto recibido',receipt.status==='FINALIZED'?'El cliente finalizó la solicitud. Puedes revisarla en Historial.':'El cliente indicó que recibió el producto. Falta finalizar la solicitud.',{kind:'order',id:order.id},'/?open=requests-business&orderId='+order.id);
+              return;
+            }
             const coordination=whatsappCoordinationNotice(order,true);
             if(coordination){if(orderStatuses.current.get(order.id)!==orderNotificationState(order))announce(coordination.key,coordination.notice[0],coordination.notice[1],{kind:'order',id:order.id},'/?open=requests-business&orderId='+order.id);return;}
             if((order.requestProcess?.whatsappCoordination||order.requestProcess?.whatsappCoordinationInitialDecline)&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))return;

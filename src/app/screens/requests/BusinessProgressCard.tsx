@@ -1,6 +1,7 @@
 import { ProgressCardHeader } from './ProgressCardShell';
 import AvailabilityPostActions from './AvailabilityPostActions';
 import { availabilityFlow } from './availabilityContract';
+import {receiptPending} from './customerReceiptContract';
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Hourglass, Package, PackageCheck } from 'lucide-react';
 import type { BusinessRequest } from './types';
@@ -31,6 +32,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
 }) {
   const process = order.requestProcess;
   const ready = process?.state === 'READY';
+  const received=receiptPending(process);
   const service = accepted.subjectSnapshot.orderType === 'service';
   const client = name || 'el cliente';
 
@@ -78,9 +80,9 @@ export default function BusinessProgressCard({ order, name, image, price, status
   };
 
   const noteId = `ec-note-${order.id}`;
-  const title = ready ? (service ? 'Servicio listo' : 'Pedido notificado') : process?.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'Preparando el pedido';
+  const title = received?'Producto recibido · Pendiente de finalizar':ready ? (service ? 'Servicio listo' : 'Pedido notificado') : process?.availability?.path === 'LOCAL_PICKUP' ? 'Pendiente de retiro en el local' : 'Preparando el pedido';
   const colTitle = title;
-  const colSub = !ready ? 'Falta avisar al cliente · toca para abrir'
+  const colSub = received?'El cliente debe finalizar la solicitud.':!ready ? 'Falta avisar al cliente · toca para abrir'
     : service ? 'Cliente avisado · toca para abrir'
       : ack === true ? 'Cliente confirmó · pendiente de retiro' : ack === false ? 'Esperando confirmación · toca para abrir' : 'Actualiza el estado del aviso · toca para abrir';
 
@@ -106,7 +108,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
             </div>
             <div style={{ minWidth: 0 }}>
               <div className="zipco-ec-t">{title}</div>
-              <div className="zipco-ec-s">{ready ? <>Aviso enviado a <b>{client}</b>.</> : <>Cuando esté listo, avísale a <b>{client}</b>.</>}</div>
+              <div className="zipco-ec-s">{received?'El cliente indicó que recibió el producto. Solo falta finalizar.':ready ? <>Aviso enviado a <b>{client}</b>.</> : <>Cuando esté listo, avísale a <b>{client}</b>.</>}</div>
             </div>
           </div>
 
@@ -136,7 +138,7 @@ export default function BusinessProgressCard({ order, name, image, price, status
               ? <span className="zipco-ec-st-ic ok"><Check size={17} strokeWidth={3.2} aria-hidden="true" /></span>
               : <span className="zipco-ec-st-ic w"><Hourglass size={17} strokeWidth={2.3} aria-hidden="true" /></span>}
             <div style={{ flex: 1, minWidth: 0 }}>
-              {service ? <><div className="zipco-ec-st-t">Cliente avisado</div><div className="zipco-ec-st-s">Verá el servicio como listo.</div></>
+              {received?<><div className="zipco-ec-st-t">Producto recibido</div><div className="zipco-ec-st-s">Pendiente de finalizar por el cliente.</div></>:service ? <><div className="zipco-ec-st-t">Cliente avisado</div><div className="zipco-ec-st-s">Verá el servicio como listo.</div></>
                 : ack === true ? <><div className="zipco-ec-st-t">El cliente confirmó el aviso</div><div className="zipco-ec-st-s">Pendiente de retiro.</div></>
                   : ack === false ? <div className="zipco-ec-st-t">Esperando confirmación del cliente<span className="zipco-ec-dots" aria-hidden="true"><i /><i /><i /></span></div>
                     : <><div className="zipco-ec-st-t">No pudimos leer el estado del aviso</div>

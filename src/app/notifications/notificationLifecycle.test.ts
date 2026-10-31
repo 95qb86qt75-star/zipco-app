@@ -63,6 +63,12 @@ function domHarness() {
     render() { doc.getElementById.mockReturnValue(element); mutation(); }, mutation: () => mutation() };
 }
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+it.each([['receipt-declared','order-product-receipt-declared'],['request-finalized','order-request-finalized']])('preserves the exact destination and identity for %s',async(event,type)=>{
+ const sw=worker(),tag=`order-91-coordination-${event}-42`,url='/?open=requests-business&orderId=91';
+ await sw.fire('push',{data:{json:()=>({type,orderId:91,requestProcessId:7,tag,url,title:'Synthetic receipt event'})}});
+ const options=sw.registration.showNotification.mock.calls[0][1] as any;
+ expect(options.data.type).toBe(type);expect(options.data.eventKey).toBe('requests-business:'+tag);expect(presentationKey(tag,url,origin)).toBe(options.data.eventKey);
+});
 
 describe('system presentation and explicit notification navigation', () => {
   it('keeps push diagnostics alive until stored and reads them after a worker restart',async()=>{

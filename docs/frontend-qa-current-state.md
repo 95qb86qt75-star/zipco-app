@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Nueva [vista aislada del diseño En curso del cliente](frontend-customer-course-design-preview-qa.md):
+  diseño de Claude en scripts/qa/previews/customer-course, con recepción y cierre
+  exclusivamente simulados. Tres tamaños y controles aprobados en Chrome local.
+  No sustituye tarjetas reales ni conecta acciones nuevas. Sin despliegue;
+  pendiente contrato backend para separar recepción de finalización.
+
 - Aplicar [política de trabajo](frontend-qa-working-policy.md): alcance acotado,
   pruebas por dependencias/riesgo, reutilización y medición separada.
 - El [diagnóstico de tiempos](frontend-qa-development-time-diagnosis-2026-10-30.md)
@@ -20,6 +26,11 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Integración en curso: [CliU15 y recepción/finalización v2](frontend-customer-receipt-finalization-cliu15-qa.md),
+backend QA 5d09106. Panel y carril en WhatsApp/retiro, recepción abierta y cierre
+separados, agrupación de ambos roles, idempotencia y recuperación. Trece escenarios
+locales aprobados; publicación y validación física se registran al cierre.
 
 QA b230cf4: ajuste acotado de [carga de miniatura del cliente](frontend-customer-coordination-thumbnail-loading-qa.md):
 el usuario confirma foto visible en el detalle pero no en el círculo. Primera

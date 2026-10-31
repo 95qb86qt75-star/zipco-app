@@ -38,6 +38,8 @@ export function processApiError(status: number, body: unknown, agreement = false
   if (status === 404) return new RequestProcessError(agreement ? 'El acuerdo ya no está disponible. Actualiza el pedido.' : 'El pedido ya no está disponible. Actualiza la pantalla.', status, !agreement);
   if (status === 409) {
     const code = isRecord(body) && typeof body.code === 'string' ? body.code : '';
+    if(code==='PRODUCT_RECEIPT_REQUIRED')return new RequestProcessError('Confirma que recibiste el producto antes de finalizar la solicitud.',status,true);
+    if(code==='PRODUCT_RECEIPT_ALREADY_DECLARED')return new RequestProcessError('La recepción de este producto ya fue declarada. Actualiza el pedido antes de continuar.',status,true);
     const lateMessages:Record<string,string>={
       LATE_INITIAL_CONTRACT_REQUIRED:'Actualiza ZIPCO para responder solicitudes fuera de hora.',
       LATE_INITIAL_DISABLED:'La consulta de solicitudes fuera de hora aún no está habilitada.',

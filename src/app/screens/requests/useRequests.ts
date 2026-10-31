@@ -1,3 +1,4 @@
+import {customerReceiptHeaders} from './customerReceiptContract';
 import {INITIAL_DECLINE_HEADERS} from './whatsappInitialDeclineContract';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFixedOrderAcceptance } from './fixedOrderAcceptance';
@@ -99,7 +100,7 @@ export default function useRequests(onSessionExpired: () => void) {
   const getBusinessName = useCallback(async (id: number, context: LoadReadContext) => {
     if (businessNameCache.current.has(id))
       return businessNameCache.current.get(id) ?? "";
-    return readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.businessName' : null, () => fetch(`${API_BASE_URL}/businesses/${id}`, {signal:context.signal}), async (response) => {
+    return readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.businessName' : null, async () => fetch(`${API_BASE_URL}/businesses/${id}`, {signal:context.signal}), async (response) => {
       if (!response.ok) return "";
       const payload: unknown = await response.json();
       const name = isRecord(payload) && typeof payload.name === "string" ? payload.name : "";
@@ -177,8 +178,8 @@ export default function useRequests(onSessionExpired: () => void) {
         };
         try {
           const customerRead = readRole('customer', async () => {
-            const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, () => fetch(`${API_BASE_URL}/orders/my-orders${AVAILABILITY_QUERY}`, {
-              headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS }, cache:'no-store', signal:controller.signal,
+            const myPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.customer' : null, async () => fetch(`${API_BASE_URL}/orders/my-orders${AVAILABILITY_QUERY}`, {
+              headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...await customerReceiptHeaders(token,true) }, cache:'no-store', signal:controller.signal,
             }), async (myResponse) => {
               if (myResponse.status === 409) throw processApiError(409,await myResponse.json().catch(()=>null));
               if (!myResponse.ok)
@@ -219,10 +220,10 @@ export default function useRequests(onSessionExpired: () => void) {
             return true;
           });
           const businessRead = businessId ? readRole('business', async () => {
-            const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, () => fetch(
+            const businessPayload: unknown = await readOrdersResponse(import.meta.env.QA_LOAD_DIAGNOSTICS ? 'loadOrders.business' : null, async () => fetch(
               `${API_BASE_URL}/orders/business/${businessId}${AVAILABILITY_QUERY}`,
               {
-                headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS }, cache:'no-store', signal:controller.signal,
+                headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...await customerReceiptHeaders(token,true) }, cache:'no-store', signal:controller.signal,
               },
             ), async (businessResponse) => {
               if (businessResponse.status === 409) throw processApiError(409,await businessResponse.json().catch(()=>null));

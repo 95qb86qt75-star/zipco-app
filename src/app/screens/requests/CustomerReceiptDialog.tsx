@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { BellRing, PackageCheck } from 'lucide-react';
 
-export type CustomerReceiptAction = 'ACK_READY_NOTICE' | 'CONFIRM_RECEIPT';
+export type CustomerReceiptAction = 'ACK_READY_NOTICE' | 'CONFIRM_RECEIPT' | 'DECLARE_PRODUCT_RECEIVED' | 'FINALIZE_REQUEST';
 
 export default function CustomerReceiptDialog({ action, busy, message, onClose, onConfirm }: {
   action: CustomerReceiptAction; busy: boolean; message: string; onClose: () => void; onConfirm: () => void;

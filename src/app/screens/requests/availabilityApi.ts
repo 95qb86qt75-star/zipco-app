@@ -1,3 +1,4 @@
+import {knownCustomerReceiptHeaders} from './customerReceiptContract';
 import { API_BASE_URL } from '../../api/apiConfig';
 import { isRecord } from './orderValueParsers';
 import { normalizeRequestProcess, type RequestProcessSummary } from './requestProcess';
@@ -27,7 +28,7 @@ export async function sendAvailabilityAction(process: RequestProcessSummary, ord
   if (!availabilityAllowed(process,business,action) || body.expectedVersion !== process.version ||
     !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(key)) throw new AvailabilityError('Actualiza el pedido antes de confirmar.',0);
   const response = await fetch(`${API_BASE_URL}/request-processes/${process.id}/actions/${AVAILABILITY_ACTION_PATHS[action]}`, {
-    method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(process)},body:JSON.stringify(body),signal,
+    method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(process),...knownCustomerReceiptHeaders(token)},body:JSON.stringify(body),signal,
   });
   const raw: unknown = await response.json().catch(()=>null);
   if (!response.ok) {

@@ -1,3 +1,4 @@
+import {receiptPending} from './customerReceiptContract';
 import { hasRequestProcess, isPendingRequestCancelled, isPendingRequestRejected, isProposalRejected, isAvailabilityClosed, type RequestProcessSummary } from './requestProcess';
 export type RequestKind = "orders" | "quotes";
 export type StatusView = "pending" | "waiting" | "active" | "ready" | "history" | "coordination";
@@ -19,6 +20,7 @@ export function statusViewFor(
     if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && (isPendingRequestCancelled(requestProcess) || isAvailabilityClosed(requestProcess))) ||
       (status === 'rejected' && (isPendingRequestRejected(requestProcess) || isProposalRejected(requestProcess))) ? 'history' : null;
     if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
+    if (receiptPending(requestProcess)) return 'active';
     if (requestProcess?.state === 'IN_PROGRESS') return 'active';
     if (requestProcess?.state === 'READY') return 'ready';
     if (hasRequestProcess({ requestProcess, requestProcessInvalid }) && !['completed', 'rejected', 'cancelled'].includes(status)) {

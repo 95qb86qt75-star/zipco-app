@@ -73,10 +73,12 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
       if (!active()) return;
       if (!latest?.requestProcess || latest.requestProcess.id !== original.processId||latest.requestProcess.version<(visibleOrder.current.requestProcess?.version??0)) throw new Error();
       const intent = pending();
-      if (intent && (restored() || ['CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST','DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(intent.action))) {
+      if (intent && (restored() || ['DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST','DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(intent.action))) {
         const current = latest.requestProcess;
         const applied = intent.action === 'AUTHORIZE_CONTACT' ? contactAuthorized(current, business)
           : intent.action === 'ACK_READY_NOTICE' ? current.readyNoticeAcknowledged === true
+          : intent.action==='DECLARE_PRODUCT_RECEIVED' ? ['RECEIVED_PENDING_FINALIZATION','FINALIZED'].includes(current.customerReceipt?.status??'')
+          : intent.action==='FINALIZE_REQUEST' ? current.state==='COMPLETED'&&current.customerReceipt?.status==='FINALIZED'
           : intent.action === 'CONFIRM_RECEIPT' ? current.state === 'COMPLETED'
           : intent.action === 'CANCEL_PENDING_REQUEST' ? isPendingRequestCancelled(current)
           : intent.action === 'REJECT_PENDING_REQUEST' ? isPendingRequestRejected(current)
@@ -109,12 +111,12 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
     const process = order.requestProcess;
     if (!retry && !coordinationAllowed(process, business, action)) return false;
     if (retry && (!pending() || pending()?.action !== action ||
-      (['START_WORK', 'MARK_READY', 'REJECT_PENDING_REQUEST'].includes(action) && !business) || (['ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'CANCEL_PENDING_REQUEST'].includes(action) && business))) return false;
+      (['START_WORK', 'MARK_READY', 'REJECT_PENDING_REQUEST'].includes(action) && !business) || (['ACK_READY_NOTICE', 'CONFIRM_RECEIPT','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST', 'CANCEL_PENDING_REQUEST'].includes(action) && business))) return false;
     if (!retry && action === 'AUTHORIZE_CONTACT' && contactAuthorized(process, business)) return false;
     const controller = new AbortController(); controllers.current.add(controller);
     const releaseWhatsappPresentation=action==='OPEN_WHATSAPP'?holdWhatsappPresentation(whatsappReturnKey(order,business)):()=>{};
     lock.current = true; setBusy(true); setMessage('');
-    const flow=['AUTHORIZE_CONTACT','OPEN_WHATSAPP','ACK_READY_NOTICE'].includes(action)?null:beginStatusChange(order,business,['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(action));
+    const flow=(beforeCustomerPublish&&['DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST'].includes(action)||['AUTHORIZE_CONTACT','OPEN_WHATSAPP','ACK_READY_NOTICE'].includes(action))?null:beginStatusChange(order,business,['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION','DECLINE_WHATSAPP_COORDINATION'].includes(action));
     lastRead.current = null;
     try {
       // Only POST confirmation belongs to the intention. GET/navigation never change its outcome.
@@ -140,9 +142,12 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         if (!active()) return false;
         recovery.current = true; setNeedsUpdate(true);
         announce(storageWarning() || 'La operación fue confirmada. No se pudo actualizar el pedido. Pulsa Actualizar estado; no se repetirá la operación.');
-        if(!flow&&!['DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action))emitReceipt(); return true;
+        if(!flow&&!['DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action))emitReceipt(); return true;
       }
       if (!active()) return false;
+      if(['DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST'].includes(action)&&(!latest?.requestProcess||latest.requestProcess.id!==process.id||latest.requestProcess.agreementPublicId!==process.agreementPublicId||latest.requestProcess.version<response.result.requestProcess.version)){
+        recovery.current=true;setNeedsUpdate(true);setMessage('La operación fue confirmada. Actualiza el estado antes de continuar.');return true;
+      }
       if(flow||['DECLINE_WHATSAPP_COORDINATION','CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(action)){
         if(!latest?.requestProcess||latest.requestProcess.id!==process.id||latest.requestProcess.version<response.result.requestProcess.version){recovery.current=true;setNeedsUpdate(true);setMessage('La decisión fue recibida. Actualiza el estado antes de continuar.');return true;}
         const key=whatsappReturnKey(order,business);if(key)clearWhatsappReturn(key);
@@ -157,7 +162,9 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         latest.requestProcess.agreementPublicId === process.agreementPublicId && latest.requestProcess.id === process.id &&
         latest.requestProcess.version >= response.result.requestProcess.version &&
         ((action === 'ACK_READY_NOTICE' && latest.requestProcess.state === 'READY' && latest.requestProcess.readyNoticeAcknowledged === true) ||
-          (action === 'CONFIRM_RECEIPT' && latest.requestProcess.state === 'COMPLETED'));
+          (action === 'CONFIRM_RECEIPT' && latest.requestProcess.state === 'COMPLETED')||
+          (action==='DECLARE_PRODUCT_RECEIVED'&&latest.requestProcess.customerReceipt?.status==='RECEIVED_PENDING_FINALIZATION')||
+          (action==='FINALIZE_REQUEST'&&latest.requestProcess.state==='COMPLETED'&&latest.requestProcess.customerReceipt?.status==='FINALIZED'));
       if (readyNotice) {
         try { await beforeReadyPublish!(readyNotice.key); } catch { /* Presentation cannot reverse a confirmed operation. */ }
         if (!active()) return true;
@@ -213,6 +220,7 @@ export default function useCoordination(order: BusinessRequest | MyOrder, busine
         window.dispatchEvent(new Event('zipco-coordination-session-expired'));
       if (!active()) return false;
       if (error instanceof RequestProcessError && (error.refreshConditions || [403, 404].includes(error.status))) {
+        if(['DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST'].includes(action)){recovery.current=true;setNeedsUpdate(true);}
         try {
           const latest = await reconcile(controller.signal);
           if (!active()) return false;

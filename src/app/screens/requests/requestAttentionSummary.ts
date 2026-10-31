@@ -48,7 +48,7 @@ export function getCustomerAttentionItems(
     .map((record) => ({ kind, id: record.id, status: record.status,
       ...(hasRequestProcess(record) ? { requestProcess: record.requestProcess } : {}) }));
   const ready: AttentionItem[] = available
-    .filter((record) => hasRequestProcess(record) ? record.requestProcess?.state === 'READY' : record.status === "ready")
+    .filter((record) => statusViewFor(kind,record.status,record.requestProcess,record.requestProcessInvalid)==='ready')
     .map((record) => ({ kind, id: record.id, status: record.status,
       ...(hasRequestProcess(record) ? { requestProcess: record.requestProcess } : {}) }));
 

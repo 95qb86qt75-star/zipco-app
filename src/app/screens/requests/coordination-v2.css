@@ -98,3 +98,121 @@
 [data-request-motion=idle] .zipco-avw-query-orbit,[data-request-motion=idle] .zipco-avw-query-badge,[data-request-motion=idle] .zipco-avw-query-actions span,[data-request-motion=idle] .zipco-avw-query-actions span::before,[data-request-motion=idle] .zipco-avw-query-actions svg,[data-request-motion=idle] .zipco-avw-customer-band em,[data-request-list-scrolling=true] .zipco-avw-query *{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-avw-customer-band{padding:5px 8px}.zipco-avw-customer-bandrow h4{font-size:12px}.zipco-avw-customer-band .zipco-avw-query-detail{font-size:10px;padding:0 7px}.zipco-avw-customer .zipco-avw-query-head{gap:8px;padding:12px 10px}.zipco-avw-query.zipco-avw-customer .zipco-avw-ring{width:52px;height:52px}.zipco-avw-customer-identity h3{font-size:14px}.zipco-avw-customer-price{font-size:15px}.zipco-avw-customer-total{font-size:14px}.zipco-customer-coordination-controls button{font-size:10px}.zipco-avw-customer-product{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.zipco-avw-query *,.zipco-avw-query *::before{animation:none!important;transition:none!important}.zipco-avw-customer-band em{-webkit-text-fill-color:currentColor;background:none}.zipco-customer-coordination-fold{transition:none}}
+
+/* =====================================================================================================
+   ZIPCO · Cliente «En curso» · diseño CliU15 (carril de progreso + bloque «Tu pedido se encuentra listo» dentro de la tarjeta)
+   Todo lo de abajo es NUEVO (líneas 102 en adelante). No se modificó ninguna regla anterior: se sobrescribe por especificidad.
+   ===================================================================================================== */
+
+/* ---------- Tarjeta del cliente en modo ownPending ---------- */
+.zipco-avw.zipco-avw-customer[data-mode=ownPending]{position:relative;overflow:hidden;border:0;border-radius:24px;background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%);box-shadow:0 14px 28px #1e1b4b52,0 0 0 1.5px #fbbf2480,inset 0 1px 0 #ffffff29;transition:box-shadow .5s ease}
+.zipco-avw.zipco-avw-customer[data-mode=ownPending][data-ready=true]{box-shadow:0 14px 28px #1e1b4b52,0 0 0 1.5px #34d399bf,0 0 26px #34d3994a,inset 0 1px 0 #ffffff29}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-head{min-height:0;padding:13px 12px 0 13px;gap:11px;align-items:center}
+.zipco-avw-query.zipco-avw-customer[data-mode=ownPending] .zipco-avw-ring{width:56px;height:56px}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-orbit{display:none}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity{cursor:pointer;min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity h3{margin:0;font-size:15.5px;line-height:1.2}
+.zipco-own-st{display:block;margin-top:3px;font-size:11.5px;line-height:1.3;font-weight:700;color:#a5b4c7}
+.zipco-own-st b{font-weight:900;color:#fde68a}
+.zipco-avw-customer[data-mode=ownPending][data-ready=true] .zipco-own-st b{color:#6ee7b7}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total{justify-items:end;font-size:19px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total small{margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-recovery{margin:0 12px 12px}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-body{padding:0 13px 14px;background:none}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-product{margin:0 0 8px}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-pending{margin:0;padding-top:0;border-top:0;font-size:12px;line-height:1.45;color:#cfd3ff}
+
+/* Chevron de detalle (30 px visibles, 44 px de zona táctil). También lo usa «Retiro en el local» como adorno (span aria-hidden). */
+.zipco-own-chv{position:relative;flex:none;width:30px;height:30px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:inherit;background:#94a3b833;transition:transform .35s ease}
+.zipco-own-chv::after{content:'';position:absolute;inset:-7px}
+.zipco-own-chv[aria-expanded=true],.zipco-own-chv[data-open=true]{transform:rotate(180deg)}
+.zipco-own-chv:focus-visible,.zipco-own-cta:focus-visible{outline:2px solid #5eead4;outline-offset:3px}
+
+/* ---------- Carril «Tú → Negocio → Pedido» (componente StatusRail; oscuro por defecto, claro con data-theme=light) ---------- */
+.zipco-own-rail{display:flex;align-items:center;margin:12px 12px;padding:0 10px;height:48px;border-radius:16px;background:#ffffff0f;box-shadow:inset 0 0 0 1px #ffffff1f}
+.zipco-own-rail[data-theme=light]{background:#ffffffb3;box-shadow:inset 0 0 0 1px #0f766e2e}
+.zipco-own-step{flex:none;display:flex;align-items:center;gap:7px;min-width:0}
+.zipco-own-node{position:relative;flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center}
+.zipco-own-node[data-kind=done]{color:#064e3b;background:#34d399;box-shadow:0 0 0 3px #34d3992e}
+.zipco-own-node[data-kind=wait]{color:#451a03;background:#fbbf24;animation:zipco-own-glow 2s ease-in-out infinite}
+.zipco-own-node[data-kind=wait] svg{animation:zipco-own-flip 3s ease-in-out infinite}
+.zipco-own-node[data-kind=lock]{color:#94a3b8;background:#94a3b838;box-shadow:inset 0 0 0 1.5px #94a3b866}
+.zipco-own-rail[data-theme=light] .zipco-own-node[data-kind=lock]{color:#64748b;background:#e2e8f0;box-shadow:none}
+.zipco-own-node[data-kind=bell]{color:#451a03;background:linear-gradient(140deg,#fbbf24,#f59e0b);box-shadow:0 0 0 3px #fbbf2440}
+.zipco-own-node[data-kind=bell] svg{fill:#fff3c4;transform-origin:50% 10%;animation:zipco-own-ring 1.8s ease-in-out infinite}
+.zipco-own-node[data-pop=true]{animation:zipco-own-pop .6s cubic-bezier(.2,1.6,.4,1) both}
+.zipco-own-steptx{min-width:0;line-height:1.1}
+.zipco-own-steptx small{display:block;font-size:9px;font-weight:900;letter-spacing:.13em;color:#94a3b8}
+.zipco-own-rail[data-theme=light] .zipco-own-steptx small{color:#64748b}
+.zipco-own-steptx b{display:block;margin-top:2px;font-size:12px;font-weight:800;white-space:nowrap}
+.zipco-own-line{position:relative;flex:1;min-width:8px;height:2px;margin:0 7px;border-radius:2px;overflow:hidden;background:#94a3b84d}
+.zipco-own-line i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#34d399,#5eead4);transition:width .9s cubic-bezier(.4,0,.2,1)}
+
+/* ---------- Bloque «Tu pedido se encuentra listo» (componente ReadyPanel): pliegue de 650 ms, igual que el resto de la tarjeta ---------- */
+.zipco-own-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .65s cubic-bezier(.65,0,.25,1),opacity .35s ease,visibility 0s .65s}
+.zipco-own-fold[data-open=true]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .65s cubic-bezier(.65,0,.25,1),opacity .35s ease .15s,visibility 0s}
+.zipco-own-fold>div{min-height:0;overflow:hidden}
+.zipco-own-ac{padding:0 12px 13px}
+.zipco-own-msg{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.zipco-own-msg b{display:block;font-size:15px;line-height:1.2;font-weight:900}
+.zipco-own-msg small{display:block;margin-top:2px;font-size:12px;line-height:1.3;color:#cbd5e1}
+.zipco-own-fold[data-tone=light] .zipco-own-msg small{color:#475569}
+.zipco-own-tile{flex:none;width:36px;height:36px;border-radius:12px;transform:rotate(-8deg);display:grid;place-items:center;color:#451a03;background:linear-gradient(140deg,#fbbf24,#f59e0b);box-shadow:0 6px 14px #00000040}
+.zipco-own-tile[data-tone=bell] svg{fill:#fff3c4;transform-origin:50% 10%;animation:zipco-own-ring 1.8s ease-in-out infinite}
+.zipco-own-tile[data-tone=ok]{color:#fff;background:linear-gradient(140deg,#34d399,#059669);animation:zipco-own-pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.zipco-own-cta{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:100%;min-height:52px;padding:6px 12px;border:0;border-radius:16px;color:#fff;font-size:15px;font-weight:850;cursor:pointer;-webkit-tap-highlight-color:transparent;background:linear-gradient(100deg,#10b981,#0d9488 52%,#06b6d4);text-shadow:0 1px 2px #00322880;box-shadow:inset 0 1px 0 #ffffff66,0 8px 20px #06b6d452;animation:zipco-own-cta .6s cubic-bezier(.2,.9,.25,1.2) both}
+.zipco-own-cta[data-final=true]{background:linear-gradient(120deg,#16a34a,#047857)}
+.zipco-own-cta small{font-size:11px;font-weight:700;opacity:.92}
+.zipco-own-ctarow,.zipco-own-saving{display:flex;align-items:center;gap:8px}
+.zipco-own-cta::after{content:'';position:absolute;inset:0 auto 0 0;width:26%;z-index:-1;background:linear-gradient(90deg,transparent,#ffffffa6,transparent);animation:zipco-own-sheen 2.6s ease-in-out .9s infinite;pointer-events:none}
+.zipco-own-cta:active:not(:disabled){transform:scale(.97)}
+.zipco-own-cta:disabled{opacity:.75;cursor:default}
+.zipco-own-spin{width:18px;height:18px;border-radius:50%;border:2.5px solid #ffffff66;border-top-color:#fff;animation:zipco-own-spin .8s linear infinite}
+.zipco-own-error{margin:6px 0 0;font-size:11.5px;font-weight:800;color:#fca5a5}
+.zipco-own-fold[data-tone=light] .zipco-own-error{color:#be123c}
+
+/* ---------- Salida de la tarjeta hacia Historial (la dispara data-leaving=true; al terminar llama onLeaveEnd) ---------- */
+.zipco-avw[data-leaving=true]{overflow:hidden;animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}
+/* Rebote del contador de la pestaña «Historial»: aplicar la clase zipco-tab-bump 700 ms cuando el contador sube. */
+.zipco-tab-bump{animation:zipco-tab-bump .7s ease;border-color:#34d399!important;color:#047857!important;background:#d1fae5!important}
+
+/* ---------- Tarjeta «Retiro en el local» · tema claro (estructura JSX en INSTRUCCIONES_CODEX.md) ---------- */
+.zipco-pickup-c{position:relative;overflow:hidden;border-radius:24px;color:#0f172a;background:radial-gradient(110% 100% at 0% 0%,#d3faee,transparent 55%),linear-gradient(160deg,#f8faff,#e8f8f2);box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #fbbf2499,inset 0 1px 0 #fff;transition:box-shadow .5s ease}
+.zipco-pickup-c[data-ready=true]{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #059669b3,0 0 24px #34d3994d,inset 0 1px 0 #fff}
+.zipco-pickup-c-head{display:flex;align-items:center;gap:11px;width:100%;padding:13px 12px 0 13px;box-sizing:border-box;background:none;border:0;color:inherit;text-align:left;cursor:pointer}
+.zipco-pickup-c-head:focus-visible{outline:2px solid #0f766e;outline-offset:-3px}
+.zipco-pickup-c-tile{position:relative;width:50px;height:50px;flex:none;border-radius:16px;display:grid;place-items:center;overflow:hidden;color:#fff;background:linear-gradient(140deg,#34d3b0,#0e8aa5);box-shadow:0 6px 14px #0e8aa557}
+.zipco-pickup-c-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff55,transparent 65%);animation:zipco-own-sheen 3.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c-name{display:block;font-size:15.5px;font-weight:900;line-height:1.2}
+.zipco-pickup-c-state{display:block;margin-top:3px;font-size:11.5px;font-weight:700;color:#475569}
+.zipco-pickup-c-state b{color:#b45309;font-weight:900}
+.zipco-pickup-c[data-ready=true] .zipco-pickup-c-state b{color:#047857}
+.zipco-pickup-c-total{text-align:right;flex:none}
+.zipco-pickup-c-total b{display:block;font-size:19px;line-height:1;font-weight:900;color:#2f7a5a;font-variant-numeric:tabular-nums}
+.zipco-pickup-c-total small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#64748b}
+.zipco-pickup-c[data-leaving=true]{animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}
+
+/* ---------- Keyframes ---------- */
+@keyframes zipco-own-glow{0%,100%{box-shadow:0 0 0 3px #fbbf2433}50%{box-shadow:0 0 0 7px #fbbf2400}}
+@keyframes zipco-own-flip{0%,45%{transform:rotate(0)}55%,100%{transform:rotate(180deg)}}
+@keyframes zipco-own-ring{0%,45%,100%{transform:rotate(0)}5%{transform:rotate(18deg)}10%{transform:rotate(-16deg)}15%{transform:rotate(13deg)}20%{transform:rotate(-10deg)}25%{transform:rotate(7deg)}30%{transform:rotate(-4deg)}35%{transform:rotate(2deg)}}
+@keyframes zipco-own-pop{0%{transform:scale(.5)}60%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes zipco-own-cta{0%{opacity:0;transform:translateY(10px) scale(.94)}60%{opacity:1;transform:translateY(-1px) scale(1.02)}100%{opacity:1;transform:none}}
+@keyframes zipco-own-sheen{0%,30%{transform:translateX(-140%) skewX(-20deg)}100%{transform:translateX(520%) skewX(-20deg)}}
+@keyframes zipco-own-spin{to{transform:rotate(360deg)}}
+@keyframes zipco-ready-leave{0%{max-height:760px;opacity:1;transform:none}55%{max-height:760px;opacity:0;transform:translateX(90px) scale(.95)}100%{max-height:0;opacity:0;transform:translateX(90px) scale(.95);border-width:0;box-shadow:none}}
+@keyframes zipco-tab-bump{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* ---------- Pausa con la lista quieta / en scroll, y movimiento reducido (mismo criterio que el resto del archivo) ---------- */
+[data-request-motion=idle] .zipco-own-node,[data-request-motion=idle] .zipco-own-node svg,[data-request-motion=idle] .zipco-own-tile svg,[data-request-motion=idle] .zipco-own-cta::after,[data-request-motion=idle] .zipco-pickup-c-tile::after,
+[data-request-list-scrolling=true] .zipco-own-node,[data-request-list-scrolling=true] .zipco-own-node svg,[data-request-list-scrolling=true] .zipco-own-tile svg,[data-request-list-scrolling=true] .zipco-own-cta::after,[data-request-list-scrolling=true] .zipco-pickup-c-tile::after{animation-play-state:paused!important}
+@media(max-width:350px){.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity h3{font-size:14.5px}.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total{font-size:17px}.zipco-own-steptx b{font-size:11px}.zipco-own-step{gap:5px}.zipco-own-line{margin:0 4px}.zipco-own-rail{padding:0 8px}}
+@media(prefers-reduced-motion:reduce){
+  .zipco-own-node,.zipco-own-node svg,.zipco-own-tile,.zipco-own-tile svg,.zipco-own-cta,.zipco-own-cta::after,.zipco-own-spin,.zipco-pickup-c-tile::after,.zipco-tab-bump{animation:none!important}
+  .zipco-own-fold,.zipco-own-line i,.zipco-own-chv,.zipco-avw.zipco-avw-customer[data-mode=ownPending],.zipco-pickup-c{transition:none!important}
+  .zipco-avw[data-leaving=true],.zipco-pickup-c[data-leaving=true]{animation:none!important;opacity:0}
+}
+
+.zipco-receipt-local-detail{padding:12px 14px 18px}.zipco-receipt-recovery{padding:10px 14px;font-size:12px}.zipco-receipt-recovery button{min-height:44px;border:1px solid #94a3b8;border-radius:12px;padding:8px 12px;margin:4px}.zipco-pickup-c-head>.zipco-own-chv{flex-shrink:0}.zipco-pickup-c-total{max-width:35%;overflow-wrap:anywhere}
+@media(max-width:350px){.zipco-own-rail .zipco-own-step{flex:1;min-width:0;gap:4px}.zipco-own-rail .zipco-own-node{width:24px;height:24px;flex-shrink:0}.zipco-own-rail .zipco-own-line{flex:0 0 6px;min-width:6px;margin:0 3px}.zipco-own-rail .zipco-own-steptx small{font-size:7px;letter-spacing:.06em}.zipco-own-rail .zipco-own-steptx b{font-size:10px;white-space:normal;overflow-wrap:anywhere}}
+[data-coordination-motion=idle] .zipco-own-node,[data-coordination-motion=idle] .zipco-own-node svg,[data-coordination-motion=idle] .zipco-own-cta,[data-coordination-motion=idle] .zipco-own-cta::after,[data-coordination-motion=idle] .zipco-own-tile,[data-coordination-motion=idle] .zipco-own-spin{animation-play-state:paused!important}

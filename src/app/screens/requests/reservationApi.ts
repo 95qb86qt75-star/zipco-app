@@ -1,3 +1,4 @@
+import {knownCustomerReceiptHeaders} from './customerReceiptContract';
 import {API_BASE_URL} from '../../api/apiConfig';
 import {isRecord} from './orderValueParsers';
 import {normalizeRequestProcess,type RequestProcessSummary} from './requestProcess';
@@ -21,7 +22,7 @@ export function reservationAllowed(p:RequestProcessSummary|null|undefined,busine
 export async function sendReservationAction(p:RequestProcessSummary,orderId:number,business:boolean,action:ReservationAction,body:ReservationBody,token:string,key:string,signal?:AbortSignal){
   if(!reservationAllowed(p,business,action)||body.expectedVersion!==p.version||body.reservationId!==p.reservation?.id||
     !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(key))throw new AvailabilityError('Actualiza la reserva antes de confirmar.',0);
-  const response=await fetch(`${API_BASE_URL}/request-processes/${p.id}/actions/${RESERVATION_PATHS[action]}`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(p)},body:JSON.stringify(body),signal});
+  const response=await fetch(`${API_BASE_URL}/request-processes/${p.id}/actions/${RESERVATION_PATHS[action]}`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(p),...knownCustomerReceiptHeaders(token)},body:JSON.stringify(body),signal});
   const value:unknown=await response.json().catch(()=>null);
   if(!response.ok){const error=processApiError(response.status,value);throw new AvailabilityError(response.status>=500?'No se pudo confirmar el resultado. Reintenta los mismos datos.':error.message,response.status,isRecord(value)&&typeof value.code==='string'?value.code:'',error.refreshConditions);}
   const raw=action==='OPEN_RESERVATION_WHATSAPP'&&isRecord(value)?value.result:value;
