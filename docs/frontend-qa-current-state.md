@@ -21,10 +21,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
-Integrada para publicar la [variante B inicial del cliente de Claude](frontend-customer-initial-coordination-variant-b-qa.md).
+Commit QA 5e5cd01: [variante B inicial del cliente de Claude](frontend-customer-initial-coordination-variant-b-qa.md).
 Tres archivos de diseño adaptados; ventana original de Condiciones aceptadas
 preservada y comparada en navegador. 23 unitarias y nueve recorridos focalizados
-aprobados. Se conserva el flujo de negocio y la consulta posterior; sin backend.
+aprobados y build QA/PWA correcto. Push realizado; GitHub informa Vercel success.
+La API Vercel devolvió 403 y el alias exige SSO: SHA/artefactos servidos todavía
+no comprobados. No confundir éxito de estado con verificación del alias.
+Se conserva el flujo de negocio y la consulta posterior; sin backend.
 
 Entrega vigente para Claude: [prompt reducido del cliente antes del primer acceso WhatsApp](PROMPT_CLAUDE_CLIENTE_INICIAR_COORDINACION.md).
 El usuario obtiene dos TSX reales y un CSS global solo de referencia de las
@@ -34,7 +37,7 @@ Sustituye para este trabajo al paquete amplio anterior, que queda histórico.
 Ese bloque solo preparó el prompt. Después el usuario entregó los tres archivos
 de la variante B y autorizó su integración; ver el informe enlazado arriba.
 
-Entrega vigente c5f3c85: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
+Entrega anterior c5f3c85: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
 Conserva el diseño original de Condiciones aceptadas y los pasos inferiores,
 sin duplicar identidad/importe/acciones. 21 unitarias y siete recorridos
 focalizados aprobados. Build QA/PWA y publicación READY verificados. Pendiente
@@ -45,7 +48,7 @@ Solo presentación; conserva permisos y acciones. 27 unitarias y 10 recorridos
 focalizados aprobados. Build QA/PWA y publicación READY comprobados. Falta
 prueba física del usuario en iPhone. No requiere Railway.
 
-Versión actual de aplicación, comprobada por lectura en el cierre:
+Última versión con artefactos comprobados por lectura (anterior al push 5e5cd01):
 
 - Frontend c5f3c85dbbaa8b26821b07a908726c6d36d1b2b9, rama qa.
 - Vercel dpl_2tsHANn2VRMzhyyXYjyYoon1Sz5e, READY.

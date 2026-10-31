@@ -88,3 +88,27 @@ SHA, despliegue READY, alias y verificación de artefactos servidos.
 El código documental local pendiente se incluye como antecedente autorizado;
 la carpeta extraída por el usuario permanece sin cambios ni seguimiento añadido.
 Main y producción intactos. Pendiente prueba física del usuario.
+
+## Cierre de publicación y límite de acceso
+
+- Commit de aplicación 5e5cd01f82a4224064836816326dc8e31456169b, rama qa.
+- Build QA/PWA aprobado: 04:51:40.409–04:51:50.507 UTC, 10,098 s; advertencia
+  conocida de tamaño de bundle. No se repitió después por motivos documentales.
+- Push a qa correcto. GitHub get_commit_combined_status para ese SHA devuelve
+  Vercel state=success, target:
+  https://vercel.com/zipco-s-projects/zipco-app/HCn9gbu8u8cqDuEJo1ERcoQHeyBZ.
+- La observación directa de Vercel falló por HTTP 403, forbidden / Not authorized.
+  Intento medido 04:52:49.273–04:52:50.191, 0,918 s. El alias sin acceso responde
+  302 a SSO. No se creó credencial ni bypass ni se cambió protección/configuración.
+- El éxito de GitHub acredita el resultado comunicado por Vercel, pero no se
+  pudo verificar el SHA/JS/CSS actualmente servido por el alias. No registrar
+  READY autenticado ni assets nuevos como comprobados. La última verificación
+  completa de artefactos continúa siendo c5f3c85.
+- Comprobación física pendiente: recargar ZIPCO, comprobar QA 5e5cd01, abrir
+  Condiciones aceptadas y Pasos y opciones; revisar autorización/WhatsApp según
+  permisos reales. Si sigue una versión anterior, revisar acceso/publicación
+  antes de repetir acciones del pedido.
+- Diagnóstico de acceso/estado remoto por lectura hasta 04:54:44. Cierre
+  documental local posterior, sin otro push/despliegue. Permanece pendiente
+  restaurar acceso Vercel autorizado para verificar el artefacto servido.
+- Railway, main y producción intactos; carpeta extraída del usuario conservada.
