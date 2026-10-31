@@ -64,11 +64,15 @@ reparación de escenarios; no acreditan que el build o las animaciones causen
 demoras de 30–40 minutos. No hay perfilado FPS/CPU/GPU/Safari para afirmar
 un problema de rendimiento del producto.
 
-## Alcance todavía no aprobado
+## Piloto de herramientas aprobado y validado
 
 La [propuesta de estabilización](frontend-qa-tools-stabilization-proposal.md)
-está presentada, no implementada ni aprobada para ejecutar. La instrucción de
-guardar esta memoria no aprueba refactorizar herramientas.
+fue aprobada después de guardar la memoria y ejecutada con alcance acotado.
+Ver [resultados](frontend-qa-tools-pilot-2026-10-30.md). Reutilizar los fixtures,
+selección por caso/rol/ancho y verificación de publicación existente de ese
+bloque; no convertir el piloto en autorización para reescribir otras baterías.
+Medir los próximos ajustes para comprobar el ahorro real: el piloto valida las
+herramientas, no demuestra todavía una reducción del tiempo total por cambio.
 
 No ampliar ese bloque a código productivo, contratos, backend, variables,
 configuración o despliegues sin definir y aprobar su alcance.

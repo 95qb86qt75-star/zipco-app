@@ -12,15 +12,24 @@ ni convierte pruebas sintéticas en aprobación física.
 - El [diagnóstico de tiempos](frontend-qa-development-time-diagnosis-2026-10-30.md)
   está aceptado como orientación; no es una medición del rendimiento de ZIPCO.
 - El [bloque de estabilización](frontend-qa-tools-stabilization-proposal.md)
-  fue propuesto y sigue pendiente de aprobación. Guardarlo no autoriza ejecutar.
+  fue aprobado como piloto acotado y ejecutado. [Resultados y límites](frontend-qa-tools-pilot-2026-10-30.md).
 - El cierre documental 14823df guardó la memoria sin push ni despliegue.
   El siguiente pedido del usuario autoriza el ajuste frontend de scroll al abrir
-  Detalle del cliente y su publicación QA; no autoriza el bloque de herramientas.
+  Detalle del cliente y su publicación QA. La aprobación del piloto llegó
+  después, con alcance separado y sin push/despliegue.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
 
-Última versión de aplicación verificada antes del ajuste de Detalle:
+Versión actual de aplicación, comprobada por lectura durante el piloto:
+
+- Frontend b9512e6372cd5a83c662f00eca783404ab1977ad, rama qa.
+- Vercel dpl_3An1hnuYNUjPoSDxRk5X8DXq1q67, READY.
+- Alias https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+- JS /assets/index-B3uIRY_w.js; CSS /assets/index-C0YMgPD1.css.
+- El piloto solo modifica herramientas/documentación local; no publica otra app.
+
+Antecedente anterior al ajuste de Detalle:
 
 - Frontend e367ab6809a203462350beb8f60c60ba66d55f85, rama qa.
 - Vercel dpl_9kccSSNGodiPZ1MfwhENtZLuAKFC, READY.
@@ -175,6 +184,7 @@ Las expresiones «actual», «pendiente» o «sin commit» son del momento descr
 El respaldo documental 14823df quedó guardado localmente y pasa a incluirse
 en el siguiente ajuste funcional de Detalle. Aplicar la política de validación/
 medición a los ajustes autorizados.
-Esperar aprobación explícita del bloque de herramientas antes de refactorizar
-fixtures/runners/verificador. La publicación de e367ab6 no se repite por guardar
-estos archivos. Las pruebas físicas pendientes requieren al usuario y sus teléfonos.
+El piloto ya autorizado estabilizó únicamente los dos escenarios indicados y
+el verificador QA de lectura. Reutilizarlos según dependencias; cualquier
+ampliación requiere definir alcance. No hay push ni publicación de herramientas.
+Las pruebas físicas pendientes requieren al usuario y sus teléfonos.

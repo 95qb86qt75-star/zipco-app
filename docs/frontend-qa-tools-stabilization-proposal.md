@@ -1,7 +1,9 @@
 # Propuesta acotada: estabilizar escenarios y verificación QA
 
-Fecha: 2026-10-30. **Estado: propuesta presentada, pendiente de aprobación.**
-El usuario pidió guardarla en memoria; eso no autoriza implementarla.
+Fecha: 2026-10-30. **Estado: piloto acotado aprobado y ejecutado.**
+Autorización posterior: «probemos si funciona eso y si no pasa nada malo,
+lo dejamos como regla». [Resultados y límites](frontend-qa-tools-pilot-2026-10-30.md).
+Se conserva debajo el alcance presentado; no autoriza ampliaciones.
 
 ## Objetivo
 
@@ -50,7 +52,8 @@ baterías, instalar dependencias o añadir un framework nuevo.
 
 Código productivo, contratos, estados, reglas comerciales, backend, variables,
 configuración de Vercel, secretos/protección, producción y despliegues.
-No hacer push a qa: activa una publicación automática. Commit/publicación
-posteriores requieren el alcance correspondiente aprobado.
+No hacer push a qa: activa una publicación automática. Se conserva un commit
+local del piloto; cualquier publicación requiere su alcance aprobado.
 
-Hasta recibir aprobación, no modificar herramientas por esta propuesta.
+El piloto permite reutilizar los dos escenarios y el verificador de lectura.
+No autoriza refactorizar otras baterías, modificar la app o publicar.

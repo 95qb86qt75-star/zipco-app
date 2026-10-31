@@ -21,7 +21,9 @@ describen su versión; no sustituyen el contrato o el estado actual.
   tiempos a gráficos o animaciones sin mediciones.
 - Cambiar herramientas requiere un bloque definido y aprobado. La
   [propuesta de estabilización](docs/frontend-qa-tools-stabilization-proposal.md)
-  está pendiente de aprobación; guardar su documentación no autoriza ejecutarla.
+  fue aprobada como piloto acotado y sus [resultados](docs/frontend-qa-tools-pilot-2026-10-30.md)
+  están registrados. Reutilizar esas herramientas según dependencias; ampliar
+  el alcance exige definir el nuevo bloque. No equivale a autorización global.
 - Guardar memoria no autoriza despliegues. Un push a qa puede activar Vercel:
   los cierres exclusivamente documentales y el bloque propuesto no hacen push
   ni despliegue sin alcance aprobado.
