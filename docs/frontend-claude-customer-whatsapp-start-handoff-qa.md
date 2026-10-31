@@ -1,5 +1,9 @@
 # Entrega a Claude: tarjeta inicial de coordinación del cliente
 
+**Entrega histórica sustituida.** El usuario eligió un formato reducido:
+[prompt único, rutas y tres fuentes necesarias](PROMPT_CLAUDE_CLIENTE_INICIAR_COORDINACION.md).
+No usar el ZIP amplio para este trabajo. Se conserva como antecedente.
+
 Fecha local: 2026-10-30. Clasificación: solo frontend, documentación y copia de
 código para diseño. Este bloque no modifica la aplicación ni publica.
 

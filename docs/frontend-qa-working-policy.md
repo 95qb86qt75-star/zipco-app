@@ -23,6 +23,10 @@ reduce sus controles de coordinación, alcance, permisos o publicación.
 8. Al entregar material a Claude para rediseño, señalar los archivos de código
    vigentes del repo y sus líneas actuales. Un documento de diseño no sustituye
    el TSX/CSS real; no sobrescribir código vigente con copias antiguas.
+   Formato acordado: un único prompt con rutas, líneas, lógica, botones y
+   animaciones; adjuntar solo las fuentes necesarias. Separar qué se modifica y
+   qué CSS es solo referencia. No preparar ZIP con decenas de archivos o JSON
+   de configuración para un ajuste local, salvo petición expresa.
 
 ## Medición separada por bloque
 
