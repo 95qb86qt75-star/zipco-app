@@ -21,6 +21,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
+Preparado para Claude el [paquete de diseño del cliente antes del primer acceso WhatsApp](frontend-claude-customer-whatsapp-start-handoff-qa.md):
+código vigente completo, mapa de líneas, estados/clics/animaciones y formato de
+devolución. El usuario adjunta las capturas de c5f3c85. Solo documentación y ZIP;
+no se ha implementado otro diseño ni se ha hecho push/despliegue por esta entrega.
+Pendiente recibir el diseño de Claude y la autorización de integración.
+
 Entrega vigente c5f3c85: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
 Conserva el diseño original de Condiciones aceptadas y los pasos inferiores,
 sin duplicar identidad/importe/acciones. 21 unitarias y siete recorridos
