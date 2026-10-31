@@ -16,16 +16,16 @@ export function ProductPreviewScope({preview,proposalId,processId,enabled,captio
   return <PreviewContext.Provider value={{enabled:enabled||!!known.current.preview,preview:known.current.preview,caption}}>{children}</PreviewContext.Provider>;
 }
 
-function ProductImage({item,large=false}:{item:ProductPreviewItem;large?:boolean}){
+function ProductImage({item,large=false,loading='lazy'}:{item:ProductPreviewItem;large?:boolean;loading?:'eager'|'lazy'}){
   const [broken,setBroken]=useState(false);
-  return item.imageUrl&&!broken?<img src={item.imageUrl} alt={large?item.name:''} loading={large?'eager':'lazy'} decoding="async" referrerPolicy="no-referrer" onError={()=>setBroken(true)}/>
+  return item.imageUrl&&!broken?<img src={item.imageUrl} alt={large?item.name:''} loading={large?'eager':loading} decoding="async" referrerPolicy="no-referrer" onError={()=>setBroken(true)}/>
     :<span className="zipco-product-image-fallback"><ShoppingBag aria-hidden="true"/>{large&&<small>Imagen no disponible</small>}</span>;
 }
 const money=(value:number)=>`$${value.toLocaleString('es-CL')}`;
 
 /** With no explicit preview, uses this card's current proposal. Null explicitly
  * disables inheritance (e.g. an old proposal in the conversation history). */
-export default function ProductPreviewControl({preview:explicit,className='',fallback,caption}:{preview?:ProductPreview|null;className?:string;fallback?:ReactNode;caption?:string}){
+export default function ProductPreviewControl({preview:explicit,className='',fallback,caption,thumbnailLoading='lazy'}:{preview?:ProductPreview|null;className?:string;fallback?:ReactNode;caption?:string;thumbnailLoading?:'eager'|'lazy'}){
   const context=useContext(PreviewContext),preview=explicit===undefined?context.preview:explicit;
   const [selected,setSelected]=useState<{proposalId:number;lineIndex:number}|null>(null);
   const trigger=useRef<HTMLButtonElement|null>(null);
@@ -37,7 +37,7 @@ export default function ProductPreviewControl({preview:explicit,className='',fal
   return <span className={`zipco-product-preview ${className}`} onClick={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
     <span className="zipco-product-thumbs">
       {preview.items.map(line=><button key={`${preview.proposalId}:${line.lineIndex}`} type="button" className="zipco-product-thumb" aria-label={`Ver producto: ${line.name}, línea ${line.lineIndex+1}`} onClick={event=>{trigger.current=event.currentTarget;setSelected({proposalId:preview.proposalId,lineIndex:line.lineIndex});}}>
-        <ProductImage key={line.imageUrl} item={line}/><span className="zipco-product-quantity">{line.quantity}×</span>
+        <ProductImage key={line.imageUrl} item={line} loading={line.lineIndex===0?thumbnailLoading:'lazy'}/><span className="zipco-product-quantity">{line.quantity}×</span>
       </button>)}
     </span>
     <Dialog.Root open={!!item} onOpenChange={open=>{if(!open)setSelected(null);}}><Dialog.Portal>

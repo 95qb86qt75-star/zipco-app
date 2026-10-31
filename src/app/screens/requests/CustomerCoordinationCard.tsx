@@ -30,7 +30,7 @@ export default function CustomerCoordinationCard({id,name,price,quantity,model,d
     {!own&&<div className="zipco-avw-customer-band"><small>COORDINACIÓN</small><div className="zipco-avw-customer-bandrow"><h4>{title}</h4>{detail}</div></div>}
     <div className="zipco-avw-query-head">
       <span className="zipco-avw-ring">
-        <ProductPreviewControl fallback={<span className="zipco-avw-thumb"><ShoppingBag size={26}/></span>}/>
+        <ProductPreviewControl thumbnailLoading="eager" fallback={<span className="zipco-avw-thumb"><ShoppingBag size={26}/></span>}/>
         <i className="zipco-avw-quantity">{quantity}×</i>
         <span className="zipco-avw-query-orbit" aria-hidden="true"><span className="zipco-avw-query-badge">{own?<Check size={16}/>:closed?<Clock3 size={16}/>:<WhatsAppMark className="h-4 w-4"/>}</span></span>
       </span>

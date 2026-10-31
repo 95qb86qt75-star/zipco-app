@@ -1,6 +1,6 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-10-30, America/Santiago.
+Actualizado: 2026-10-31, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
@@ -20,6 +20,12 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Ajuste acotado de [carga de miniatura del cliente](frontend-customer-coordination-thumbnail-loading-qa.md):
+el usuario confirma foto visible en el detalle pero no en el círculo. Primera
+miniatura de la consulta pasa a eager; resto conserva lazy. 16 unitarias y cinco
+escenarios aprobados. No se atribuye todavía una causa Safari confirmada;
+pendiente publicación y comprobación física del usuario.
 
 Commit QA 5e5cd01: [variante B inicial del cliente de Claude](frontend-customer-initial-coordination-variant-b-qa.md).
 Tres archivos de diseño adaptados; ventana original de Condiciones aceptadas
