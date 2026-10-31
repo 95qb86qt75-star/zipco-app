@@ -58,6 +58,15 @@
 .zipco-customer-coordination-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s ease}.zipco-customer-coordination-fold[data-open=true]{grid-template-rows:1fr}.zipco-customer-coordination-fold-in{overflow:hidden;min-height:0}
 .zipco-customer-coordination-options{padding-top:10px;display:grid;gap:8px}.zipco-customer-coordination-options>button{min-height:44px}.zipco-customer-coordination-options>p{margin:0;font-size:11px;color:#a5b4c7}
 .zipco-customer-coordination-detail button:focus-visible{outline:2px solid #5eead4;outline-offset:3px}
+.zipco-avw-customer[data-mode=declined] .zipco-avw-query-body{padding-top:0;background:none}
+.zipco-customer-declined-message{margin:0 0 12px;font-size:12px;line-height:1.5;color:#cbd5e1}
+.zipco-customer-declined-actions{display:grid;gap:8px;padding-bottom:2px}
+.zipco-customer-declined-actions .zipco-customer-coordination-open{margin:0}
+.zipco-customer-declined-actions .zipco-avw-query-reconfirm{width:100%;min-height:44px;margin:0;border:1px solid #99f6e455;border-radius:15px;background:#e2e8f00d;color:#ccfbf1;font-size:12px;font-weight:800}
+.zipco-customer-coordination-main{padding-top:12px}
+.zipco-customer-coordination-detail>.zipco-avw-reveal[data-folded=false]>.zipco-avw-reveal-inner>.zipco-customer-coordination-main{pointer-events:auto}
+.zipco-customer-coordination-main>p{margin:8px 0;font-size:11.5px}
+.zipco-customer-coordination-main>p>b{color:#a7f3d0}
 
 [data-request-motion=idle] .zipco-avw-query-orbit,[data-request-motion=idle] .zipco-avw-query-badge,[data-request-motion=idle] .zipco-avw-query-actions span,[data-request-motion=idle] .zipco-avw-query-actions span::before,[data-request-motion=idle] .zipco-avw-query-actions svg,[data-request-motion=idle] .zipco-avw-customer-band em,[data-request-list-scrolling=true] .zipco-avw-query *{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-avw-customer-band{padding:5px 8px}.zipco-avw-customer-bandrow h4{font-size:12px}.zipco-avw-customer-band .zipco-avw-query-detail{font-size:10px;padding:0 7px}.zipco-avw-customer .zipco-avw-query-head{gap:8px;padding:12px 10px}.zipco-avw-query.zipco-avw-customer .zipco-avw-ring{width:52px;height:52px}.zipco-avw-customer-identity h3{font-size:14px}.zipco-avw-customer-price{font-size:15px}.zipco-avw-customer-total{font-size:14px}.zipco-customer-coordination-controls button{font-size:10px}.zipco-avw-customer-product{font-size:9px}}

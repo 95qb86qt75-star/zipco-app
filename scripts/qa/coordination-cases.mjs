@@ -4,6 +4,7 @@ export const coordinationCases = [
   { case: 'reveal', role: 'customer', width: 393, height: 852, confirm: true, reduce: false },
   { case: 'reveal', role: 'customer', width: 320, height: 852, confirm: false, reduce: true },
   { case: 'fits', role: 'customer', width: 393, height: 1400 },
+  { case: 'declined-confirm', role: 'customer', width: 393, height: 852 },
   ...['controls', 'declined', 'ready'].map(name => ({ case: name, role: 'business', width: 393, height: 852 })),
 ];
 
@@ -46,15 +47,44 @@ export async function runCoordinationCase(ctx, spec, negative) {
     assert.equal(await evaluate('window.revealScrolls.length'), p.calls); assert.equal(await evaluate('window.posts.length'), 0);
     return;
   }
-  if (spec.case === 'declined') {
-    await tap('#order-20 .zipco-avw-query-no'); await tap('#order-20 .zipco-avw-query-yes');
+  const declined = spec.case.startsWith('declined');
+  if (declined) {
+    await tap('#order-20 .zipco-avw-query-no');
+    if (!business) {
+      await openDetail();
+      await evaluate('window.delayPost=true');
+    }
+    await tap('#order-20 .zipco-avw-query-yes');
+    if (!business) {
+      await wait('typeof window.releasePost==="function"');
+      assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'), 'true');
+      assert.equal(await evaluate('document.querySelector("#order-20").dataset.mode'), 'confirm');
+      await evaluate('window.delayPost=false;window.releasePost()');
+    }
     await wait('document.querySelector("#order-20")?.dataset.mode==="declined"');
     await wait('!!document.querySelector(".zipco-toast")'); await tap('.zipco-toast-close');
+    if (!business) {
+      assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'), 'false');
+      assert.equal(await evaluate('document.querySelector("#coordination-detail-20").closest(".zipco-avw-reveal").inert'), true);
+      assert.equal(await evaluate('document.querySelector("main").dataset.view'), 'coordination');
+      assert.equal(await evaluate('window.counts.coordination'), 1);
+      assert.equal(await evaluate('document.querySelectorAll("#order-20 .zipco-avw-query-reconfirm").length'), 1);
+      assert.equal(await evaluate('document.querySelector("#order-20 .zipco-customer-coordination-open").textContent'), 'Abrir WhatsApp');
+      assert(await evaluate('document.querySelector("#order-20").getBoundingClientRect().height<380'));
+      await ctx.screenshot('declined-compact-' + spec.width);
+      if (spec.case === 'declined-confirm') {
+        await tap('#order-20 .zipco-avw-query-reconfirm');
+        await wait('window.counts.active===1');
+        assert.equal(await evaluate('window.posts.length'), 2);
+        assert.equal(await evaluate('window.posts.at(-1).url.endsWith("/confirm-whatsapp-coordination")'), true);
+        return;
+      }
+    }
   }
   if (spec.case === 'ready') { await tap('#order-20 .zipco-co-colrow'); await delay(500); }
   else await openDetail();
   const initial = await evaluate('window.posts.length');
-  assert.equal(initial, spec.case === 'declined' ? 1 : 0);
+  assert.equal(initial, declined ? 1 : 0);
   await conditions();
   if (business) {
     await tap('#order-20 .zipco-co-lk.rose');
@@ -79,5 +109,5 @@ export async function runCoordinationCase(ctx, spec, negative) {
   assert.equal(await evaluate('window.posts.length'), initial + 1);
   assert.equal(await evaluate('window.posts.at(-1).url.endsWith("/open-whatsapp")'), true);
   await evaluate('window.departWhatsapp();window.resumeWhatsapp()');
-  if (spec.case === 'declined') await wait('document.querySelector("#order-20")?.dataset.mode==="question"');
+  if (declined) await wait('document.querySelector("#order-20")?.dataset.mode==="question"');
 }

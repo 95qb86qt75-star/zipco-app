@@ -21,6 +21,11 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
+Entrega en preparación: [tarjeta compacta del cliente tras Devolver](frontend-customer-declined-compact-card-qa.md).
+Solo presentación; conserva permisos y acciones. 27 unitarias y 10 recorridos
+focalizados aprobados. El commit que incorpora ese informe identifica la nueva
+versión; su entrega verifica build y publicación QA. No requiere Railway.
+
 Versión actual de aplicación, comprobada por lectura durante el piloto:
 
 - Frontend b9512e6372cd5a83c662f00eca783404ab1977ad, rama qa.
