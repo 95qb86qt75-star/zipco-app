@@ -64,3 +64,17 @@ si el acceso no cambió, no repetir consultas por rutina ni afirmar validación
 del alias sin ella. Consultar estado GitHub del nuevo SHA y distinguirlo de
 verificar los assets servidos. Pendiente recargar el iPhone, comprobar el nuevo
 QA y confirmar si la miniatura ya se ve sin tocarla ni abrir la foto grande.
+
+## Cierre
+
+- Aplicación b230cf47f3faff00f86f340c3b59650eb38286f6, rama qa; push correcto.
+- Build QA/PWA aprobado, 05:41:46.650–05:41:58.902 UTC: 12,252 s.
+- GitHub comunica Vercel success para ese SHA, comprobado antes de 05:42:39:
+  https://vercel.com/zipco-s-projects/zipco-app/F6f9MXs59Y1R54xCnAdgHy736TXT.
+- No se repitió la lectura Vercel con el acceso conocido como no autorizado.
+  Sin comprobación nueva del SHA/assets servidos por el alias; no afirmar READY
+  autenticado. El usuario debe comprobar QA b230cf4 en el iPhone.
+- Caso físico todavía pendiente. Esto es una mitigación de carga localizada,
+  no una causa Safari acreditada ni una resolución confirmada por el teléfono.
+- Cierre documental local posterior a 05:42:39, sin otro push por documentación.
+  Ningún cambio de Railway, main, producción o datos del pedido.

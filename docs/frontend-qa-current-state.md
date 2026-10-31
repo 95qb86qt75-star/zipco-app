@@ -21,11 +21,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
-Ajuste acotado de [carga de miniatura del cliente](frontend-customer-coordination-thumbnail-loading-qa.md):
+QA b230cf4: ajuste acotado de [carga de miniatura del cliente](frontend-customer-coordination-thumbnail-loading-qa.md):
 el usuario confirma foto visible en el detalle pero no en el círculo. Primera
 miniatura de la consulta pasa a eager; resto conserva lazy. 16 unitarias y cinco
-escenarios aprobados. No se atribuye todavía una causa Safari confirmada;
-pendiente publicación y comprobación física del usuario.
+escenarios y build QA/PWA aprobados. Push correcto; GitHub comunica Vercel success.
+No se atribuye todavía una causa Safari confirmada. Pendiente comprobar la
+miniatura en el iPhone y los assets servidos cuando exista acceso Vercel válido.
 
 Commit QA 5e5cd01: [variante B inicial del cliente de Claude](frontend-customer-initial-coordination-variant-b-qa.md).
 Tres archivos de diseño adaptados; ventana original de Condiciones aceptadas
