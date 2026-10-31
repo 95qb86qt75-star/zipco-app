@@ -27,9 +27,10 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
-Corrección autorizada de mezcla visual en 2c29b27: se elimina la tarjeta antigua
+Publicado QA b5f37dd: corrección de mezcla visual observada en 2c29b27. Se elimina la tarjeta antigua
 anidada en ownPending y el fallback visual de productos READY sin resumen v2.
-Compatibilidad de acciones conservada. Seis escenarios únicos aprobados; ver
+Compatibilidad de acciones conservada. Seis escenarios únicos y build QA/PWA aprobados;
+GitHub Vercel success. Pendiente revisión física, sin verificación autenticada de assets; ver
 [diagnóstico y corrección](frontend-cliu15-mixed-design-diagnosis-qa.md).
 
 Publicado QA 2c29b27: [CliU15 y recepción/finalización v2](frontend-customer-receipt-finalization-cliu15-qa.md),

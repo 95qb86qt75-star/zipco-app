@@ -84,3 +84,14 @@ Build final QA/PWA aprobado UTC 22:27:50.227–22:28:06.956: 16,73 s.
 JS local index-D4HtMWeS.js, CSS index-DC4zDgC8.css. El CSS de la app no cambió
 respecto del bloque anterior: la corrección sustituye la composición de componentes.
 diff --cached --check aprobado. Se registra SHA y resultado Vercel al publicar.
+
+## Publicación
+
+App b5f37dd42e40b836c1de99fb21ea18e37ac4d943, rama qa. Push correcto observado
+UTC 22:29:00. GitHub comunica Vercel success para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/Cah7NGrp8MJTEGwGQJ4awv1b2zhs.
+Alias QA https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+No se repitió la API Vercel 403 ni se afirma lectura autenticada del asset servido.
+Publicación/verificación: unos segundos después del push, sin error observado.
+El cierre documental queda local, sin otro push/despliegue. Railway, main y
+producción intactos. Sigue pendiente la revisión física en el iPhone del usuario.
