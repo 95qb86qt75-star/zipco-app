@@ -6,13 +6,16 @@ export const coordinationCases = [
   { case: 'fits', role: 'customer', width: 393, height: 1400 },
   { case: 'declined-confirm', role: 'customer', width: 393, height: 852 },
   ...['controls', 'declined', 'ready'].map(name => ({ case: name, role: 'business', width: 393, height: 852 })),
+  { case: 'declined', role: 'business', width: 320, height: 852 },
+  { case: 'declined-incoming', role: 'business', width: 320, height: 852 },
+  { case: 'declined-disabled', role: 'business', width: 393, height: 852 },
 ];
 
 export async function runCoordinationCase(ctx, spec, negative) {
   const { assert, evaluate, send, wait, delay, tap } = ctx;
-  const business = spec.role === 'business', disabled = spec.case === 'disabled';
+  const business = spec.role === 'business', disabled = spec.case.endsWith('disabled'), incoming = spec.case === 'declined-incoming';
   await send('Emulation.setEmulatedMedia', { features: spec.reduce ? [{ name: 'prefers-reduced-motion', value: 'reduce' }] : [] });
-  const query = 'details=1&navigate=1' + (business ? '&business=1' : '') +
+  const query = 'details=1&navigate=1' + (business&&!incoming ? '&business=1' : '') +
     (spec.case === 'ready' ? '&before=1' : '') + (disabled ? '&no-open=1' : '');
   await ctx.visit(query, spec.width, spec.height);
   if (negative === 'pointer-events') await evaluate('(()=>{const s=document.createElement("style");s.textContent=".zipco-customer-coordination-detail button{pointer-events:none!important}";document.head.append(s);})()');
@@ -24,6 +27,7 @@ export async function runCoordinationCase(ctx, spec, negative) {
     const posts = await evaluate('window.posts.length');
     await tap(business ? '#order-20 .zipco-co-strip2' : '#order-20 .zipco-customer-conditions');
     await wait('!!document.querySelector("[role=dialog]")'); assert.equal(await evaluate('window.posts.length'), posts);
+    if (business&&spec.case.startsWith('declined')) assert.equal(await evaluate('document.querySelector(".zipco-business-pending-detail").dataset.coordinationMotion'), 'idle');
     await closeDialog(); await wait('!document.querySelector("[role=dialog]")');
   };
   const options = async () => {
@@ -63,6 +67,20 @@ export async function runCoordinationCase(ctx, spec, negative) {
     }
     await wait('document.querySelector("#order-20")?.dataset.mode==="declined"');
     await wait('!!document.querySelector(".zipco-toast")'); await tap('.zipco-toast-close');
+    if (incoming) {
+      await evaluate('window.switchRole()');
+      await wait('!!document.querySelector(".zipco-business-pending")');
+      await wait('document.querySelector("#order-20 .zipco-avw-query-reconfirm")?.disabled===false');
+      assert.equal(await evaluate('document.querySelector(".zipco-business-pending-message").textContent'), 'El cliente indicó que todavía falta coordinar.');
+    }
+    if (business) {
+      assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'), 'false');
+      assert.equal(await evaluate('document.querySelectorAll("#order-20 .zipco-co-go").length'), 1);
+      assert.equal(await evaluate('document.querySelectorAll("#order-20 .zipco-avw-query-reconfirm").length'), 1);
+      assert.equal(await evaluate('document.querySelector("main").dataset.view'), 'coordination');
+      assert(await evaluate('document.querySelector("#order-20").getBoundingClientRect().height<460'));
+      await ctx.screenshot('business-declined-compact-' + spec.width);
+    }
     if (!business) {
       assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'), 'false');
       assert.equal(await evaluate('document.querySelector("#coordination-detail-20").closest(".zipco-avw-reveal").inert'), true);
@@ -87,6 +105,12 @@ export async function runCoordinationCase(ctx, spec, negative) {
   assert.equal(initial, declined ? 1 : 0);
   await conditions();
   if (business) {
+    if (declined) {
+      assert.equal(await evaluate('document.querySelector("#order-20 .zipco-business-pending-options").closest(".zipco-avw-reveal").inert'), true);
+      await tap('#order-20 .zipco-business-pending-more');
+      await delay(450);
+      await ctx.screenshot('business-declined-detail-' + spec.width);
+    }
     await tap('#order-20 .zipco-co-lk.rose');
     await wait('document.querySelector("[role=dialog]")?.textContent.includes("¿Por qué la anulas?")===true');
     assert.equal(await evaluate('window.posts.length'), initial); await closeDialog(); await wait('!document.querySelector("[role=dialog]")');
@@ -102,7 +126,7 @@ export async function runCoordinationCase(ctx, spec, negative) {
   const openButton = business ? '#order-20 .zipco-co-go' : '#order-20 .zipco-customer-coordination-open';
   if (disabled) {
     assert.equal(await evaluate('document.querySelector("' + openButton + '").disabled'), true);
-    await tap(openButton); assert.equal(await evaluate('window.posts.length'), 0);
+    await tap(openButton); assert.equal(await evaluate('window.posts.length'), initial);
     return;
   }
   await tap(openButton); await wait('!!document.querySelector(".zipco-ah")'); await wait('window.navigations.length===1');

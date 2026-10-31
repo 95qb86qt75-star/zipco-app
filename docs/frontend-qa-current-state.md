@@ -21,6 +21,11 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
+Siguiente entrega autorizada: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
+Conserva el diseño original de Condiciones aceptadas y los pasos inferiores,
+sin duplicar identidad/importe/acciones. 21 unitarias y siete recorridos
+focalizados aprobados. La entrega verificará build y publicación solo QA.
+
 Entrega vigente 29641b4: [tarjeta compacta del cliente tras Devolver](frontend-customer-declined-compact-card-qa.md).
 Solo presentación; conserva permisos y acciones. 27 unitarias y 10 recorridos
 focalizados aprobados. Build QA/PWA y publicación READY comprobados. Falta

@@ -68,6 +68,33 @@
 .zipco-customer-coordination-main>p{margin:8px 0;font-size:11.5px}
 .zipco-customer-coordination-main>p>b{color:#a7f3d0}
 
+/* Saved negative, business: a single header and actions, original conditions strip. */
+.zipco-business-pending{background:radial-gradient(ellipse at 100% 0,#6d42ad66,transparent 56%),radial-gradient(ellipse at 0 40%,#0d948844,transparent 65%),#10162f}
+.zipco-business-pending-band{display:flex;align-items:center;gap:10px;margin:7px 7px 0;padding:10px 12px;border:1px solid #5eead4;border-radius:18px;background:linear-gradient(110deg,#d1fae5,#f1f5ff);color:#17213a}
+.zipco-business-pending-band>div{flex:1;min-width:0}.zipco-business-pending-band small{font-size:9px;font-weight:900;letter-spacing:.16em;color:#047857}.zipco-business-pending-band h4{font-size:13px;font-weight:900;line-height:1.3}
+.zipco-business-pending-band .zipco-avw-query-detail{color:#17213a;min-height:44px;padding:0 10px;border:1px solid #94a3b8;border-radius:24px;font-size:11px;font-weight:800;text-decoration:none;background:#ffffff77;flex:none}
+.zipco-business-pending .zipco-avw-query-head{background:none;padding:14px 12px;gap:12px;min-height:96px}
+.zipco-business-pending .zipco-avw-query-copy>h4{color:#fff;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+.zipco-business-pending-product{display:inline-block;max-width:100%;margin-top:5px;padding:2px 7px;border:1px solid #c4b5fd55;border-radius:10px;color:#ddd6fe;font-size:10px;overflow-wrap:anywhere}
+.zipco-business-pending-price{display:block;color:#fff;font-size:18px;margin-top:3px}
+.zipco-business-pending .zipco-avw-query-body{padding:0 12px 12px;background:none}
+.zipco-business-pending-message{margin:0 0 12px;padding:9px 10px;border-left:2px solid #fbbf24;border-radius:0 10px 10px 0;background:#fbbf2410;color:#fde68a;font-size:12px;line-height:1.45}
+.zipco-business-pending-detail{color:#e2e8f0;font-size:12px;line-height:1.5}
+.zipco-business-pending-actions{display:grid;gap:8px}
+.zipco-business-pending-actions .zipco-business-pending-open{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;min-height:44px;margin:0;border-radius:15px;background:linear-gradient(110deg,#10b981,#0f766e);color:white;font-size:13px;font-weight:850;padding:10px}
+.zipco-business-pending-actions .zipco-avw-query-reconfirm{width:100%;min-height:44px;margin:0;border:1px solid #99f6e455;border-radius:15px;background:#e2e8f00d;color:#ccfbf1;font-size:12px;font-weight:800}
+.zipco-business-pending-actions button:disabled{opacity:.5}
+.zipco-business-pending-main{padding-top:14px}
+.zipco-business-pending-detail .zipco-avw-reveal[data-folded=false]>.zipco-avw-reveal-inner>.zipco-business-pending-main,.zipco-business-pending-detail .zipco-avw-reveal[data-folded=false]>.zipco-avw-reveal-inner>.zipco-business-pending-options{pointer-events:auto}
+.zipco-business-pending-main .zipco-co-co2{margin-top:12px;padding:12px;border:1px solid #cbd5e144;border-radius:18px;background:linear-gradient(145deg,#111c32,#0d2330)}
+.zipco-business-pending-main .zipco-co-steps{margin-top:12px}
+.zipco-business-pending-main .zipco-co-st{padding-bottom:12px}.zipco-business-pending-main .zipco-co-st.last{padding-bottom:0}
+.zipco-business-pending-more{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px;margin-top:10px;border:1px solid #cbd5e133;border-radius:14px;background:#ffffff08;color:#cbd5e1;font-weight:750}
+.zipco-business-pending-options{padding:10px 0;display:grid;gap:8px}.zipco-business-pending-options button{min-height:44px}
+.zipco-business-pending-legal{margin:10px 0 0;color:#94a3b8;font-size:10px;text-align:center}
+.zipco-business-pending-consent{margin:0 0 10px;color:#cbd5e1;font-size:12px}
+.zipco-business-pending button:focus-visible{outline:2px solid #5eead4;outline-offset:3px}
+
 [data-request-motion=idle] .zipco-avw-query-orbit,[data-request-motion=idle] .zipco-avw-query-badge,[data-request-motion=idle] .zipco-avw-query-actions span,[data-request-motion=idle] .zipco-avw-query-actions span::before,[data-request-motion=idle] .zipco-avw-query-actions svg,[data-request-motion=idle] .zipco-avw-customer-band em,[data-request-list-scrolling=true] .zipco-avw-query *{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-avw-customer-band{padding:5px 8px}.zipco-avw-customer-bandrow h4{font-size:12px}.zipco-avw-customer-band .zipco-avw-query-detail{font-size:10px;padding:0 7px}.zipco-avw-customer .zipco-avw-query-head{gap:8px;padding:12px 10px}.zipco-avw-query.zipco-avw-customer .zipco-avw-ring{width:52px;height:52px}.zipco-avw-customer-identity h3{font-size:14px}.zipco-avw-customer-price{font-size:15px}.zipco-avw-customer-total{font-size:14px}.zipco-customer-coordination-controls button{font-size:10px}.zipco-avw-customer-product{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.zipco-avw-query *,.zipco-avw-query *::before{animation:none!important;transition:none!important}.zipco-avw-customer-band em{-webkit-text-fill-color:currentColor;background:none}.zipco-customer-coordination-fold{transition:none}}

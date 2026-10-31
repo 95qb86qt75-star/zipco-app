@@ -18,7 +18,7 @@ export default function WhatsappCoordinationPanel({order,business,refresh,childr
   const context=[process?.id,process?.agreementPublicId,process?.version,round?.confirmationId,negative?.id,respond?'respond':'confirm'].join(':');
   const sameSession=!!session&&session===binding.current,ownPending=round?.status==='PENDING'&&round.initiatedBy===(business?'BUSINESS':'CUSTOMER')&&process?.state==='IN_PROGRESS';
   const closed=process?.state==='COORDINATING'&&(negative?.active===true||round?.status==='DECLINED');
-  useEffect(()=>{if(closed&&!business)setExpanded(false);},[closed,business]);
+  useEffect(()=>{if(closed)setExpanded(false);},[closed]);
   // DECLINE or COORDINATING alone does not prove shared access. CONFIRM is the
   // server's authority for the first question, regardless of who opened WhatsApp.
   const relevant=order.recordState==='available'&&order.orderType==='product'&&['COORDINATING','IN_PROGRESS'].includes(process?.state??'')&&(confirm||respond||ownPending||closed);

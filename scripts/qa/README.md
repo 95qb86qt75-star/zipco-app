@@ -14,7 +14,7 @@ node scripts/check-acceptance-presentation.mjs --case short-viewport
 node --test scripts/qa/selection.checks.mjs scripts/qa/publication.checks.mjs scripts/qa/timing.checks.mjs
 ```
 
-Sin filtros se ejecutan 12 y 3 casos respectivamente. `--exclude` permite omitir
+Sin filtros se ejecutan 15 y 3 casos respectivamente. `--exclude` permite omitir
 un caso ya aprobado: `--exclude controls:customer:393:852`. No seleccionar todo
 por rutina; elegir consumidores y estados afectados. Los anchos son los del
 catálogo, no tamaños arbitrarios. `--list` no abre navegador.
