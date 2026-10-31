@@ -27,10 +27,11 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
-Integración en curso: [CliU15 y recepción/finalización v2](frontend-customer-receipt-finalization-cliu15-qa.md),
+Publicado QA 2c29b27: [CliU15 y recepción/finalización v2](frontend-customer-receipt-finalization-cliu15-qa.md),
 backend QA 5d09106. Panel y carril en WhatsApp/retiro, recepción abierta y cierre
 separados, agrupación de ambos roles, idempotencia y recuperación. Trece escenarios
-locales aprobados; publicación y validación física se registran al cierre.
+locales aprobados, build QA/PWA y GitHub Vercel success. Pendiente verificación de
+assets autenticados y prueba física. Main conserva 8295ab8; Railway no se modificó.
 
 QA b230cf4: ajuste acotado de [carga de miniatura del cliente](frontend-customer-coordination-thumbnail-loading-qa.md):
 el usuario confirma foto visible en el detalle pero no en el círculo. Primera

@@ -100,3 +100,34 @@ pruebas/build. Publicación aún no afirmada en esta entrada inicial.
 No cambia herramientas compartidas ni configuración Vercel. Publicar solo qa.
 La API Vercel había dado 403 en el bloque anterior: no repetir esa consulta sin
 cambio de acceso. Comprobar estado con GitHub; distinguirlo de assets servidos.
+
+## Cierre de fuentes y publicación
+
+Commit de app 2c29b275b8b70a70acb2241c7a7a27421d9f13f0, rama qa; push correcto
+confirmado UTC 16:58:39. Vercel creó el despliegue
+https://vercel.com/zipco-s-projects/zipco-app/Cdpz7Sdz9fZWGhZR8JMhab3eanE3.
+Primer estado consultado: pending. No atribuir todavía READY ni assets servidos.
+
+Build final QA/PWA: UTC 16:56:34.790–16:56:49.911, 15.121 s total;
+fase interna 14.974 s. Bundle index-Ttma6TSR.js y CSS index-DC4zDgC8.css son
+artefactos locales; no se afirma que el alias ya los sirva. diff --cached --check
+aprobado tras restaurar solo dist/index.html generado. La prueba nueva del worker
+pasó para ambos eventos; la selección identity produjo tres aprobadas y 55 omitidas.
+
+Análisis/implementación/preparación se alternaron y no tienen timers independientes
+completos en este bloque; sus intervalos combinados se conservan arriba. La demora
+se concentró en integración de contrato y recuperación, no en el build de 15 s.
+No es una medición del rendimiento de la app ni de las animaciones.
+Duración hasta push: 28 min 09 s. Espera de despliegue posterior separada.
+Pendientes: estado final de Vercel, assets autenticados cuando exista acceso,
+y prueba física iPhone/Android, sin crear ni confirmar pedidos desde el agente.
+
+UTC 17:00:05 o posterior: GitHub devuelve Vercel success para el SHA de app y el
+despliegue indicado. No se consultó nuevamente la API 403 ni se atribuye verificación
+autenticada de assets. Alias QA habitual:
+https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+Main comprobado por lectura: 8295ab8c6024ab20851ebd371308d2f299b4668f, sin cambios.
+Publicación/verificación desde 16:58:39 hasta success: aproximadamente 1 min 30 s;
+ese intervalo incluyó espera de ejecución/aprobación de lectura y documentación.
+El cierre documental posterior queda local, sin otro push ni despliegue.
+Solo siguen pendientes assets autenticados y validación física.
