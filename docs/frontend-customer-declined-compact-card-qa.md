@@ -66,3 +66,21 @@ intercaladas hasta 01:32:56; sus tiempos individuales quedan en qa-pilot.
 Documentación/cierre desde 01:32:56. Build y publicación se miden por separado
 en el cierre, sin sumarlos dos veces si se solapan. No se mide FPS/rendimiento
 del producto ni se atribuye demora a gráficos. El clic externo sigue pausado.
+
+## Cierre verificado
+
+- Aplicación 29641b414291b6b9ad534afdbb6fec446a5c5f53, rama qa; push autorizado
+  incluye el antecedente de herramientas 578e58e.
+- Build QA/PWA aprobado: 01:34:56.804–01:35:07.373 UTC, 10,569 s. Se conservó
+  la advertencia conocida de tamaño de bundle; no se amplió el alcance.
+- Push qa completado y despliegue dpl_HBACJuThKqCHJSWDpg75SanSaKEA READY.
+  Observación GET: 01:35:48.735–01:36:04.455, 15,720 s; no es la duración
+  exacta del build remoto porque comenzó después del push.
+- Verificador reutilizado: 5 GET, identidad/proyecto/rama/alias/backend QA y
+  marcadores de diseño aprobados. JS /assets/index-BABZA0CH.js y CSS
+  /assets/index-BzTGpkDu.css. Final de verificación antes de 01:36:53 UTC.
+- Alias https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+- La entrega física queda pendiente; abrir ZIPCO, comprobar QA 29641b4 y probar
+  Devolver, Detalle, Abrir WhatsApp y Ya coordinamos en el pedido correspondiente.
+- Memoria de cierre guardada localmente sin otro push/despliegue documental.
+  Railway, main, producción y el diagnóstico de clic externo permanecen intactos.

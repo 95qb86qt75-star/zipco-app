@@ -21,18 +21,19 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
-Entrega en preparación: [tarjeta compacta del cliente tras Devolver](frontend-customer-declined-compact-card-qa.md).
+Entrega vigente 29641b4: [tarjeta compacta del cliente tras Devolver](frontend-customer-declined-compact-card-qa.md).
 Solo presentación; conserva permisos y acciones. 27 unitarias y 10 recorridos
-focalizados aprobados. El commit que incorpora ese informe identifica la nueva
-versión; su entrega verifica build y publicación QA. No requiere Railway.
+focalizados aprobados. Build QA/PWA y publicación READY comprobados. Falta
+prueba física del usuario en iPhone. No requiere Railway.
 
 Versión actual de aplicación, comprobada por lectura durante el piloto:
 
-- Frontend b9512e6372cd5a83c662f00eca783404ab1977ad, rama qa.
-- Vercel dpl_3An1hnuYNUjPoSDxRk5X8DXq1q67, READY.
+- Frontend 29641b414291b6b9ad534afdbb6fec446a5c5f53, rama qa.
+- Vercel dpl_HBACJuThKqCHJSWDpg75SanSaKEA, READY.
 - Alias https://zipco-app-git-qa-zipco-s-projects.vercel.app.
-- JS /assets/index-B3uIRY_w.js; CSS /assets/index-C0YMgPD1.css.
-- El piloto solo modifica herramientas/documentación local; no publica otra app.
+- JS /assets/index-BABZA0CH.js; CSS /assets/index-BzTGpkDu.css.
+- El piloto no publicó una app; sus herramientas se incorporaron después en
+  la entrega funcional autorizada 29641b4. Este cierre documental no publica.
 
 Antecedente anterior al ajuste de Detalle:
 
