@@ -1,0 +1,15 @@
+/* ---------- Tarjeta «Retiro en el local» · tema claro (estructura JSX en INSTRUCCIONES_CODEX.md) ---------- */
+.zipco-pickup-c{position:relative;overflow:hidden;border-radius:24px;color:#0f172a;background:radial-gradient(110% 100% at 0% 0%,#d3faee,transparent 55%),linear-gradient(160deg,#f8faff,#e8f8f2);box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #fbbf2499,inset 0 1px 0 #fff;transition:box-shadow .5s ease}
+.zipco-pickup-c[data-ready=true]{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #059669b3,0 0 24px #34d3994d,inset 0 1px 0 #fff}
+.zipco-pickup-c-head{display:flex;align-items:center;gap:11px;width:100%;padding:13px 12px 0 13px;box-sizing:border-box;background:none;border:0;color:inherit;text-align:left;cursor:pointer}
+.zipco-pickup-c-head:focus-visible{outline:2px solid #0f766e;outline-offset:-3px}
+.zipco-pickup-c-tile{position:relative;width:50px;height:50px;flex:none;border-radius:16px;display:grid;place-items:center;overflow:hidden;color:#fff;background:linear-gradient(140deg,#34d3b0,#0e8aa5);box-shadow:0 6px 14px #0e8aa557}
+.zipco-pickup-c-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff55,transparent 65%);animation:zipco-own-sheen 3.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c-name{display:block;font-size:15.5px;font-weight:900;line-height:1.2}
+.zipco-pickup-c-state{display:block;margin-top:3px;font-size:11.5px;font-weight:700;color:#475569}
+.zipco-pickup-c-state b{color:#b45309;font-weight:900}
+.zipco-pickup-c[data-ready=true] .zipco-pickup-c-state b{color:#047857}
+.zipco-pickup-c-total{text-align:right;flex:none}
+.zipco-pickup-c-total b{display:block;font-size:19px;line-height:1;font-weight:900;color:#2f7a5a;font-variant-numeric:tabular-nums}
+.zipco-pickup-c-total small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#64748b}
+.zipco-pickup-c[data-leaving=true]{animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}

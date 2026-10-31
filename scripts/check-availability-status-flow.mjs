@@ -3,7 +3,7 @@
 import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';
 let source=fs.readFileSync('scripts/check-availability-flow.mjs','utf8');
 source=source.replace("node_modules/.cache/availability-flow","node_modules/.cache/availability-status-flow");
-source=source.replace('const harness = `','const harness = `\nimport StatusToast from \'/src/app/screens/requests/StatusToast.tsx\';\nimport {StatusChangeHost,useStatusChangeRecords} from \'/src/app/screens/requests/StatusChangeFlow.tsx\';\nimport {statusViewFor,countStatusViews} from \'/src/app/screens/requests/requestStatusGrouping.ts\';');
+source=source.replace('const harness = `','const harness = `\nimport StatusToast from \'/src/app/features/requests/shared/feedback/StatusToast.tsx\';\nimport {StatusChangeHost,useStatusChangeRecords} from \'/src/app/features/requests/shared/feedback/StatusChangeFlow.tsx\';\nimport {statusViewFor,countStatusViews} from \'/src/app/features/requests/domain/requestStatusGrouping.ts\';');
 const start=source.indexOf('function Harness(){'),end=source.indexOf("createRoot(document.getElementById('root')).render(<Harness/>);",start);
 if(start<0||end<0)throw Error('Existing availability fixture changed');
 const replacement=String.raw`function Harness(){const [actor,setActor]=useState('checkout'),[revision,setRevision]=useState(0),[expanded,setExpanded]=useState(false),[view,setView]=useState('pending');

@@ -1,13 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createNotificationNavigation, parseNotificationTarget, waitForNotificationCard, NOTIFICATION_CARD_OPEN_EVENT } from './notificationNavigation';
-import { presentationKey, readSystemPresentations, PRESENTATION_CACHE, PRESENTATION_PATH,
-  deliverUnpresentedNotice, rememberOpenedPresentation, noticeMatchesPresentation } from './notificationDelivery';
-import { customerOrderNotice } from './orderNotice';
-import { coordinationProcess } from '../screens/requests/requestProcessFixtures';
-import { createClickTraceStore } from './qaNotificationClickTraceStore.js';
-import { statusViewFor } from '../screens/requests/requestStatusGrouping';
+import { createNotificationNavigation, parseNotificationTarget, waitForNotificationCard, NOTIFICATION_CARD_OPEN_EVENT } from "./notificationNavigation";
+import { presentationKey, readSystemPresentations, PRESENTATION_CACHE, PRESENTATION_PATH, deliverUnpresentedNotice, rememberOpenedPresentation, noticeMatchesPresentation } from "./notificationDelivery";
+import { customerOrderNotice } from "./orderNotice";
+import { coordinationProcess } from "../features/requests/fixtures/requestProcessFixtures";
+import { createClickTraceStore } from "./qaNotificationClickTraceStore.js";
+import { statusViewFor } from "../features/requests/domain/requestStatusGrouping";
 
 const origin = 'https://zipco.test';
 const workerSource = readFileSync(new URL('../../../public/push-sw.js', import.meta.url), 'utf8');

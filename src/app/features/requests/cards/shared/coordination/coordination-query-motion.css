@@ -1,0 +1,21 @@
+.zipco-avw-query .zipco-avw-ring::before{animation-duration:4s!important}
+.zipco-avw-query-orbit{position:absolute;inset:-4px;animation:zipco-query-orbit 4s linear infinite;pointer-events:none;z-index:3}
+.zipco-avw-query .zipco-avw-query-orbit .zipco-avw-query-badge{bottom:auto;right:auto;top:50%;left:-5px;margin-top:-13px;width:26px;height:26px;animation:zipco-query-counter 4s linear infinite;box-shadow:0 0 0 2px #5eead455}
+.zipco-avw-query[data-mode=declined] .zipco-avw-query-orbit,.zipco-avw-query[data-mode=ownPending] .zipco-avw-query-orbit{animation:none}
+.zipco-avw-query[data-mode=declined] .zipco-avw-query-orbit .zipco-avw-query-badge,.zipco-avw-query[data-mode=ownPending] .zipco-avw-query-orbit .zipco-avw-query-badge{animation:none}
+.zipco-avw-query-actions button>span{position:relative;overflow:hidden;transition:transform .2s cubic-bezier(.2,1.6,.4,1);isolation:isolate}
+.zipco-avw-query-actions .zipco-avw-query-yes>span{animation:zipco-query-halo 2.2s ease-in-out infinite;--query-halo:#34d39966}
+.zipco-avw-query-actions .zipco-avw-query-yes[data-amber=true]>span{--query-halo:#fbbf2466}
+.zipco-avw-query-actions .zipco-avw-query-no:not([data-cancel=true])>span{background:linear-gradient(140deg,#fb7185,#e11d48);color:#fff;animation:zipco-query-halo 2.2s 1.1s ease-in-out infinite;--query-halo:#fb718566}
+.zipco-avw-query-actions .zipco-avw-query-yes>span::before{content:'';position:absolute;inset:-20px;background:linear-gradient(110deg,transparent 35%,#fff6,transparent 65%);animation:zipco-query-shine 3s ease-in-out infinite;pointer-events:none;z-index:-1}
+.zipco-avw-query-yes:not(:disabled)>span>svg{animation:zipco-query-hop 3s ease-in-out infinite}
+.zipco-avw-query-no:not(:disabled):not([data-cancel=true])>span>svg{animation:zipco-query-hop 4s 1s ease-in-out infinite}
+.zipco-avw-query-actions button:not(:disabled):active>span{transform:scale(.86)}
+.zipco-avw-query-actions button:disabled>span,.zipco-avw-query-actions button:disabled>span::before,.zipco-avw-query-actions button:disabled svg{animation:none}
+@media(hover:hover){.zipco-avw-query-actions button:not(:disabled):hover>span{transform:translateY(-2px)}}
+@keyframes zipco-query-word{to{background-position:220% center}}
+@keyframes zipco-query-orbit{to{transform:rotate(360deg)}}
+@keyframes zipco-query-counter{to{transform:rotate(-360deg)}}
+@keyframes zipco-query-halo{0%,100%{box-shadow:0 0 0 0 var(--query-halo)}50%{box-shadow:0 0 0 7px transparent}}
+@keyframes zipco-query-shine{0%,65%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes zipco-query-hop{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-3px)}90%{transform:translateY(1px)}}

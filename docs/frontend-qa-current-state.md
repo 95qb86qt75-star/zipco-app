@@ -7,6 +7,24 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Reorganización global de frontend autorizada el 2026-10-31: 12 capacidades en
+  `src/app/features`, vistas y controladores separados, tarjetas y estilos con
+  propietarios identificables y sin copias ejecutables en `src/app/screens`.
+  Consultar el [mapa de fuentes](../src/app/features/README.md), el
+  [mapa de tarjetas](../src/app/features/requests/cards/README.md) y el
+  [informe de validación](frontend-feature-organization-2026-10-31.md).
+  1.743 unitarias y 35 recorridos de navegador sintéticos aprobados; build QA/PWA
+  aprobado. Publicación de este bloque pendiente de registrar tras verificar Vercel.
+  La reorganización conserva contratos, permisos, recuperación y las ventanas
+  reales. No sustituye el rediseño integral del detalle de retiro pendiente.
+
+- Usuario confirma coordinación cliente correcta, pero señala detalle antiguo en
+  retiro local. [Comparación con el paquete de Claude](frontend-pickup-full-design-handoff-diagnosis-qa.md):
+  la entrega no traía cuerpo completo de retiro y pedía conservar el existente.
+  Ajustes locales de contraste/toques y tres casos aprobados no equivalen al rediseño
+  integral pendiente. Ese diagnóstico precede a la reorganización; incluye ajustes
+  locales de contraste y toques ahora incorporados y comprobados en el bloque.
+
 - La [vista aislada inicial](frontend-customer-course-design-preview-qa.md) queda
   como antecedente: el contrato backend ya está publicado y se integró en 2c29b27.
   La corrección de [mezcla CliU15](frontend-cliu15-mixed-design-diagnosis-qa.md)
@@ -54,7 +72,10 @@ La API Vercel devolvió 403 y el alias exige SSO: SHA/artefactos servidos todav�
 no comprobados. No confundir éxito de estado con verificación del alias.
 Se conserva el flujo de negocio y la consulta posterior; sin backend.
 
-Entrega vigente para Claude: [prompt reducido del cliente antes del primer acceso WhatsApp](PROMPT_CLAUDE_CLIENTE_INICIAR_COORDINACION.md).
+Entrega anterior para Claude: [prompt reducido del cliente antes del primer acceso WhatsApp](PROMPT_CLAUDE_CLIENTE_INICIAR_COORDINACION.md).
+Sus rutas y líneas corresponden a aquella versión. Para una entrega nueva usar el
+mapa de fuentes vigente y calcular las líneas del código actual, sin adjuntar copias
+históricas de la carpeta de traspaso.
 El usuario obtiene dos TSX reales y un CSS global solo de referencia de las
 rutas indicadas; Claude devuelve los TSX modificados y un CSS nuevo aislado.
 Incluye líneas, lógica, clics y animaciones sin JSON ni carpetas de contexto.

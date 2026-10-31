@@ -2,13 +2,9 @@ import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as React from 'react';
 import type { ComponentProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import MyOrderCard from '../screens/requests/MyOrderCard';
-import type { OrderAction } from '../screens/requests/types';
-import {
-  createPreviewCallbacks,
-  createUnavailablePreviewOrder,
-  previewHasNoTransition
-} from './DevUnavailableOrderPreview';
+import MyOrderCard from "../features/requests/cards/customer/order/MyOrderCard";
+import type { OrderAction } from "../features/requests/domain/types";
+import { createPreviewCallbacks, createUnavailablePreviewOrder, previewHasNoTransition } from "./DevUnavailableOrderPreview";
 
 afterEach(() => {
   vi.unstubAllGlobals();

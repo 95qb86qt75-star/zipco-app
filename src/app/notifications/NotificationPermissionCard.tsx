@@ -1,12 +1,8 @@
+import * as React from 'react';
 import { Bell, BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  enablePushNotifications,
-  getExistingPushSubscription,
-  getPushSupport,
-  PushActivationError,
-} from "./pushNotifications";
-import { showAppToast } from "../screens/Toast";
+import { enablePushNotifications, getExistingPushSubscription, getPushSupport, PushActivationError } from "./pushNotifications";
+import { showAppToast } from "../shared/notifications/Toast";
 
 type State =
   "checking" | "unsupported" | "blocked" | "inactive" | "active" | "saving";

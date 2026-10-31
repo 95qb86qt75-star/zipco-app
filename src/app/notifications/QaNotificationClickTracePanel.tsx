@@ -1,5 +1,6 @@
+import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import QaPushObservationPanel from './QaPushObservationPanel';
+import QaPushObservationPanel from "./QaPushObservationPanel";
 
 export default function QaNotificationClickTracePanel() {
   const [report, setReport] = useState('');

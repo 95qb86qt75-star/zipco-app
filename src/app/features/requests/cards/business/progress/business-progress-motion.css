@@ -1,0 +1,25 @@
+/* La tarjeta R conserva el degradado violeta-noche aprobado en las capturas (sobre zipco-co-dk, que es el slate de la tarjeta O). */
+.zipco-co-dk.zipco-ec-dk{background:linear-gradient(155deg,#1c1650 0%,#101434 42%,#0c1a2e 100%);box-shadow:0 14px 30px rgba(30,41,59,.38),0 0 0 1.5px rgba(94,234,212,.35),inset 0 1px 0 rgba(255,255,255,.3)}
+.zipco-ec-dk .zipco-co-a1{background:rgba(139,92,246,.6);opacity:1}
+.zipco-ec-dk .zipco-co-a2{background:rgba(94,234,212,.28);opacity:1}
+a.zipco-ag-ph{text-decoration:none}
+.zipco-ag2-x[data-open="false"] .zipco-ag2-xi{visibility:hidden;transition:visibility 0s linear .45s}
+.zipco-ag-err{margin:14px 2px 0;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1px #fecdd3;color:#9f1239;padding:10px 12px;font-size:13px;line-height:1.35}
+.zipco-ag-err button{margin-top:8px;border:0;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px #fecdd3;color:#9f1239;padding:6px 14px;font-size:12.5px;font-weight:800}
+
+/* R: keep decoration idle in collapsed/offscreen cards and respect reduced motion. */
+.zipco-ec-dk *, .zipco-ec-dk *::before, .zipco-ec-dk *::after { animation-play-state: paused; }
+.zipco-ec-dk[data-coordination-motion="active"] *, .zipco-ec-dk[data-coordination-motion="active"] *::before, .zipco-ec-dk[data-coordination-motion="active"] *::after { animation-play-state: running; }
+.zipco-ec-dk .zipco-co-a1,.zipco-ec-dk .zipco-co-a2 { animation:none; }
+.zipco-ec-dk .zipco-co-strip2-v { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.zipco-ag-t,.zipco-ag2-s,.zipco-ag2-q { overflow-wrap:anywhere; }
+.zipco-ag-items { margin-top:12px; display:grid; gap:10px; font-size:12px; color:#334155; }
+.zipco-ag-items li { padding:10px; background:#f0fdfa; border-radius:12px; overflow-wrap:anywhere; }
+.zipco-ag-cta,.zipco-ag-cta::after,.zipco-ag-cta .ic::after,.zipco-ag-cta .go { animation-iteration-count:3; }
+@media(prefers-reduced-motion:reduce){.zipco-ec-dk *,.zipco-ec-dk *::before,.zipco-ec-dk *::after,.zipco-ag2-r,.zipco-ag2-r::before{animation:none!important;transition:none!important}.zipco-ag2-x{transition:none!important}}
+@media(max-width:360px){.zipco-ec{padding:12px 10px}.zipco-ec-lbl{font-size:10px}.zipco-ec-chv svg{width:12px}.zipco-ec-slt span.l{font-size:12px}.zipco-ag-p{font-size:21px!important}.zipco-ag2-h{flex-wrap:wrap}}
+
+/* Static radial glows preserve R without blurred moving layers. */
+.zipco-co-dk.zipco-ec-dk{background:radial-gradient(ellipse at 100% 0,rgba(139,92,246,.52),transparent 48%),radial-gradient(ellipse at 0 100%,rgba(94,234,212,.25),transparent 50%),linear-gradient(155deg,#1c1650 0%,#101434 42%,#0c1a2e 100%)}
+.zipco-ec-dk .zipco-co-a1,.zipco-ec-dk .zipco-co-a2{display:none}
+.zipco-ag-details{margin-top:8px;font-size:12px;color:#475569;overflow-wrap:anywhere}.zipco-ag-details summary{cursor:pointer;min-height:32px;align-content:center}.zipco-ag-details p{padding:5px 0}

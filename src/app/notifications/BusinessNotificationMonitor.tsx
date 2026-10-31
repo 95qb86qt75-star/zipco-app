@@ -1,23 +1,18 @@
-import {customerReceiptHeaders} from '../screens/requests/customerReceiptContract';
-import {INITIAL_DECLINE_HEADERS} from '../screens/requests/whatsappInitialDeclineContract';
+import { customerReceiptHeaders } from "../features/requests/domain/customerReceiptContract";
+import { INITIAL_DECLINE_HEADERS } from "../features/requests/domain/whatsappInitialDeclineContract";
 import { useEffect, useRef } from "react";
-import { traceNotificationClick } from './notificationClickTrace';
-import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from '../screens/requests/requestProcess';
-import { createCustomerOrderNotices } from './orderNotice';
-import { proposalNotice } from './proposalNotice';
-import {lateInitialNotice} from './lateInitialNotice';
-import {whatsappCoordinationNotice} from './whatsappCoordinationNotice';
-import { createNotificationRefreshQueue } from './notificationRefreshQueue';
-import { presentationKey, readSystemPresentations, rememberOpenedPresentation } from './notificationDelivery';
+import { traceNotificationClick } from "./notificationClickTrace";
+import { normalizeOrderProcess, orderNotificationState, type RequestProcessSummary } from "../features/requests/domain/requestProcess";
+import { createCustomerOrderNotices } from "./orderNotice";
+import { proposalNotice } from "./proposalNotice";
+import { lateInitialNotice } from "./lateInitialNotice";
+import { whatsappCoordinationNotice } from "./whatsappCoordinationNotice";
+import { createNotificationRefreshQueue } from "./notificationRefreshQueue";
+import { presentationKey, readSystemPresentations, rememberOpenedPresentation } from "./notificationDelivery";
 import { API_BASE_URL } from "../api/apiConfig";
-import { showAppToast } from "../screens/Toast";
+import { showAppToast } from "../shared/notifications/Toast";
 import { updatePushPresence } from "./pushNotifications";
-import {
-  markInteractionUnread,
-  publishActiveRequestCount,
-  publishUnreadCount,
-  type InteractionKind,
-} from "./unreadInteractions";
+import { markInteractionUnread, publishActiveRequestCount, publishUnreadCount, type InteractionKind } from "./unreadInteractions";
 
 const POLL_INTERVAL_MS = 15_000;
 const PRESENCE_INTERVAL_MS = 5_000;

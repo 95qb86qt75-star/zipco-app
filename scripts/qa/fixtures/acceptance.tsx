@@ -1,18 +1,20 @@
 // @ts-nocheck
 // Explicit fixture preserving the checkout/status adapter and short-list geometry.
-import StatusToast from '/src/app/screens/requests/StatusToast.tsx';
-import {StatusChangeHost,useStatusChangeRecords} from '/src/app/screens/requests/StatusChangeFlow.tsx';
-import {statusViewFor,countStatusViews} from '/src/app/screens/requests/requestStatusGrouping.ts';
+// @ts-nocheck
+// Explicit fixture preserving the checkout/status adapter and short-list geometry.
+import StatusToast from "/src/app/features/requests/shared/feedback/StatusToast.tsx";
+import { StatusChangeHost, useStatusChangeRecords } from "/src/app/features/requests/shared/feedback/StatusChangeFlow.tsx";
+import { statusViewFor, countStatusViews } from "/src/app/features/requests/domain/requestStatusGrouping.ts";
 
 import React,{useState,useEffect} from 'react';
 import {createRoot} from 'react-dom/client';
-import ProcessOrderCard from '/src/app/screens/requests/ProcessOrderCard.tsx';
-import CheckoutScreen from '/src/app/screens/CheckoutScreen.tsx';
-import {normalizeMyOrdersPayload,normalizeBusinessOrdersPayload} from '/src/app/screens/requests/orderNormalization.ts';
-import {availabilityInitial,pickupPlan,whatsappPlan} from '/src/app/screens/requests/availabilityFixtures.ts';
-import {agreementFixture} from '/src/app/screens/requests/requestProcessFixtures.ts';
-import ProcessHistoryCard from '/src/app/screens/requests/ProcessHistoryCard.tsx';
-import ActionHologramHost,{dismissAction} from '/src/app/screens/requests/ActionHologram.tsx';
+import ProcessOrderCard from "/src/app/features/requests/cards/shared/layout/ProcessOrderCard.tsx";
+import CheckoutScreen from "/src/app/features/checkout/product/CheckoutScreen.tsx";
+import { normalizeMyOrdersPayload, normalizeBusinessOrdersPayload } from "/src/app/features/requests/domain/orderNormalization.ts";
+import { availabilityInitial, pickupPlan, whatsappPlan } from "/src/app/features/requests/fixtures/availabilityFixtures.ts";
+import { agreementFixture } from "/src/app/features/requests/fixtures/requestProcessFixtures.ts";
+import ProcessHistoryCard from "/src/app/features/requests/cards/shared/history/ProcessHistoryCard.tsx";
+import ActionHologramHost, { dismissAction } from "/src/app/features/requests/shared/feedback/ActionHologram.tsx";
 import '/src/styles/index.css';
 window.flowCalls=[]; window.testDriverReady=false;
 localStorage.setItem('zipco-token','customer-test-only');

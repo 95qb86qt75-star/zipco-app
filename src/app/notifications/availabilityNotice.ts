@@ -1,5 +1,5 @@
-import {availabilityFlow} from '../screens/requests/availabilityContract';
-import type {ProcessOrder} from '../screens/requests/requestProcess';
+import { availabilityFlow } from "../features/requests/domain/availabilityContract";
+import type { ProcessOrder } from "../features/requests/domain/requestProcess";
 const positive=(v:number)=>Number.isInteger(v)&&v>0&&v<=2147483647;
 export function availabilityNotice(order:{id:number}&ProcessOrder){
   const p=order.requestProcess,plan=p?.availability;

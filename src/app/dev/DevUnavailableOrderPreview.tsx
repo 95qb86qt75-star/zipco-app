@@ -1,5 +1,6 @@
-import MyOrderCard from '../screens/requests/MyOrderCard';
-import { getActionableOrder, normalizeMyOrdersPayload } from '../screens/requests/orderNormalization';
+import * as React from 'react';
+import MyOrderCard from "../features/requests/cards/customer/order/MyOrderCard";
+import { getActionableOrder, normalizeMyOrdersPayload } from "../features/requests/domain/orderNormalization";
 
 const DEV_UNAVAILABLE_FIXTURE_MARKER = 'ZIPCO_DEV_UNAVAILABLE_FIXTURE_ONLY';
 

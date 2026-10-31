@@ -27,6 +27,24 @@ reduce sus controles de coordinación, alcance, permisos o publicación.
    animaciones; adjuntar solo las fuentes necesarias. Separar qué se modifica y
    qué CSS es solo referencia. No preparar ZIP con decenas de archivos o JSON
    de configuración para un ajuste local, salvo petición expresa.
+9. Organización aprobada el 2026-10-31: aplicar en todo el frontend unidades por
+   capacidad y composiciones visuales identificables. Una tarjeta y sus estados
+   de interacción relacionados tienen un propietario canónico. Separar pantalla,
+   composición visual, estilos, controlador y API; compartir solo piezas con la
+   misma estructura, significado y comportamiento. No conservar diseños antiguos
+   como rutas alternativas ni pegar un encabezado nuevo sobre un cuerpo anterior.
+   Antes de una entrega a Claude, consultar el [mapa vigente de fuentes](../src/app/features/README.md)
+   y el [mapa de tarjetas](../src/app/features/requests/cards/README.md), y entregar
+   las dependencias visuales completas del estado solicitado.
+9. Organización aprobada el 2026-10-31: aplicar en todo el frontend unidades por
+   capacidad y composiciones visuales identificables. Una tarjeta y sus estados
+   de interacción relacionados tienen un propietario canónico. Separar pantalla,
+   composición visual, estilos, controlador y API; compartir solo piezas con la
+   misma estructura, significado y comportamiento. No conservar diseños antiguos
+   como rutas alternativas ni pegar un encabezado nuevo sobre un cuerpo anterior.
+   Antes de una entrega a Claude, consultar el [mapa vigente de fuentes](../src/app/features/README.md)
+   y el [mapa de tarjetas](../src/app/features/requests/cards/README.md), y entregar
+   las dependencias visuales completas del estado solicitado.
 
 ## Medición separada por bloque
 

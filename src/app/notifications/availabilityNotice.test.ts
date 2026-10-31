@@ -1,10 +1,10 @@
 import {describe,it,expect,vi} from 'vitest';
-import {availabilityNotice} from './availabilityNotice';
-import {createCustomerOrderNotices} from './orderNotice';
-import {canonicalPresentationKey,presentationKey} from './notificationDelivery';
-import {createNotificationNavigation,parseNotificationTarget} from './notificationNavigation';
-import {availabilityInitial,availabilityWaiting,pickupPlan} from '../screens/requests/availabilityFixtures';
-import {orderNotificationState} from '../screens/requests/requestProcess';
+import { availabilityNotice } from "./availabilityNotice";
+import { createCustomerOrderNotices } from "./orderNotice";
+import { canonicalPresentationKey, presentationKey } from "./notificationDelivery";
+import { createNotificationNavigation, parseNotificationTarget } from "./notificationNavigation";
+import { availabilityInitial, availabilityWaiting, pickupPlan } from "../features/requests/fixtures/availabilityFixtures";
+import { orderNotificationState } from "../features/requests/domain/requestProcess";
 const origin='https://zipco.test';
 describe('confirmed availability identity and own notice',()=>{
   it.each([2,17,101])('recognizes confirmation version %s separately from order/process/proposal IDs',version=>{

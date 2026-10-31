@@ -9,8 +9,8 @@ const rejecting=process.argv.includes('--reject'),kind=rejecting?'reject':'accep
 const directory=path.resolve(`node_modules/.cache/${kind}-glass-browser`),assets=path.resolve('node_modules/.cache/business-alternative-draft-qa/assets');
 fs.mkdirSync(directory,{recursive:true});
 await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
-import React from 'react';import {createRoot} from 'react-dom/client';import Accept from './src/app/screens/requests/AcceptGlassButton';
-import Reject from './src/app/screens/requests/RejectGlassButton';
+import React from 'react';import {createRoot} from 'react-dom/client';import Accept from './src/app/features/requests/cards/shared/coordination/AcceptGlassButton';
+import Reject from './src/app/features/requests/cards/shared/coordination/RejectGlassButton';
 window.React=React;window.calls=0;window.bubbles=0;
 const click=e=>{e.stopPropagation();window.calls++};
 function App(){return <main style={{padding:16}} onClick={()=>window.bubbles++}>

@@ -1,6 +1,7 @@
+import * as React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { readCoordinationSession, subscribeCoordinationSession } from '../screens/requests/coordinationSession';
-import { observationApi, ObservationError, sanitizeObservationSession, type ObservationSession } from './qaPushObservationApi';
+import { readCoordinationSession, subscribeCoordinationSession } from "../features/requests/application/intents/coordinationSession";
+import { observationApi, ObservationError, sanitizeObservationSession, type ObservationSession } from "./qaPushObservationApi";
 
 const storageKey='zipco-qa-push-observation-session-v1';
 const restore = () => {

@@ -10,9 +10,9 @@ fs.mkdirSync(directory, { recursive: true });
 const harness = `
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import ProcessOrderCard from '/src/app/screens/requests/ProcessOrderCard.tsx';
-import {normalizeMyOrdersPayload} from '/src/app/screens/requests/orderNormalization.ts';
-import {cancelPendingOrder,cancelledPendingOrder,cancelledPendingReceipt} from '/src/app/screens/requests/pendingCancellationFixtures.ts';
+import ProcessOrderCard from '/src/app/features/requests/cards/shared/layout/ProcessOrderCard.tsx';
+import {normalizeMyOrdersPayload} from '/src/app/features/requests/domain/orderNormalization.ts';
+import {cancelPendingOrder,cancelledPendingOrder,cancelledPendingReceipt} from '/src/app/features/requests/fixtures/pendingCancellationFixtures.ts';
 import '/src/styles/index.css';
 window.pendingCalls=[]; window.pendingRefresh=0;
 localStorage.setItem('zipco-token','browser-test-only');

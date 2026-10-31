@@ -1,8 +1,9 @@
+import * as React from 'react';
 
   import { createRoot } from "react-dom/client";
   import { registerSW } from "virtual:pwa-register";
   import App from "./app/App.tsx";
-  import AgreementRoute from './app/screens/requests/AgreementRoute';
+  import AgreementRoute from "./app/features/requests/shared/conditions/AgreementRoute";
   import "./styles/index.css";
 
   const availabilityDesign = import.meta.env.QA_AVAILABILITY_DESIGN &&

@@ -1,0 +1,13 @@
+@import "../../customer/whatsapp/customer-coordination.css";
+@import "../coordination/coordination-query-motion.css";
+@import "../../customer/whatsapp/customer-coordination-detail.css";
+@import "../../business/coordination/business-coordination-pending.css";
+@import "../coordination/coordination-query-responsive.css";
+@import "../../customer/progress/customer-receipt-card.css";
+@import "./detail-chevron.css";
+@import "../../../shared/feedback/status-rail.css";
+@import "../../../shared/feedback/ready-panel.css";
+@import "../../../application/motion/receipt-departure.css";
+@import "../../customer/local-pickup/customer-pickup.css";
+@import "../../../application/motion/customer-receipt-motion.css";
+@import "../../customer/progress/customer-receipt-details.css";

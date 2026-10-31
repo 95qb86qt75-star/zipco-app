@@ -14,9 +14,9 @@ fs.mkdirSync(directory, { recursive: true });
 const entry = `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import Screen from './src/app/screens/RequestsScreen';
-import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './src/app/screens/requests/orderNormalization';
-import { pendingProcess, coordinationProcess, rawOrder } from './src/app/screens/requests/requestProcessFixtures';
+import Screen from './src/app/features/requests/screen/RequestsScreen';
+import { normalizeBusinessOrdersPayload, normalizeMyOrdersPayload } from './src/app/features/requests/domain/orderNormalization';
+import { pendingProcess, coordinationProcess, rawOrder } from './src/app/features/requests/fixtures/requestProcessFixtures';
 window.React = React;
 window.fetch = async () => { throw Error('Backend disabled in synthetic UI check'); };
 window.fixtureHasBusiness = new URLSearchParams(location.search).get('open') === 'requests-business';

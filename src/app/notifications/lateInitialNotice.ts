@@ -1,4 +1,4 @@
-import type {ProcessOrder} from '../screens/requests/requestProcess';
+import type { ProcessOrder } from "../features/requests/domain/requestProcess";
 export function lateInitialNotice(order:{id:number}&ProcessOrder,business:boolean){
   const late=order.requestProcess?.lateInitialResponse;
   if(!late)return null;

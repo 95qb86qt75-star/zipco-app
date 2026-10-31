@@ -1,8 +1,8 @@
-import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, isPendingRequestRejected, orderNotificationState, type ProcessOrder } from '../screens/requests/requestProcess';
-import { proposalNotice } from './proposalNotice';
-import {lateInitialNotice} from './lateInitialNotice';
-import {availabilityNotice} from './availabilityNotice';
-import {whatsappCoordinationNotice} from './whatsappCoordinationNotice';
+import { COORDINATION_ACCEPTED_MESSAGE, hasRequestProcess, isPendingRequestRejected, orderNotificationState, type ProcessOrder } from "../features/requests/domain/requestProcess";
+import { proposalNotice } from "./proposalNotice";
+import { lateInitialNotice } from "./lateInitialNotice";
+import { availabilityNotice } from "./availabilityNotice";
+import { whatsappCoordinationNotice } from "./whatsappCoordinationNotice";
 
 export function customerOrderNotice(order: { status: string } & ProcessOrder): readonly [string, string] | null {
   if (hasRequestProcess(order)) {

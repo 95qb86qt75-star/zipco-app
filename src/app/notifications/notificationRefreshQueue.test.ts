@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createNotificationRefreshQueue } from './notificationRefreshQueue';
-import { createCustomerOrderNotices } from './orderNotice';
-import { parseOrders } from './BusinessNotificationMonitor';
-import { orderNotificationState } from '../screens/requests/requestProcess';
-import { pendingProcess, coordinationProcess } from '../screens/requests/requestProcessFixtures';
+import { createNotificationRefreshQueue } from "./notificationRefreshQueue";
+import { createCustomerOrderNotices } from "./orderNotice";
+import { parseOrders } from "./BusinessNotificationMonitor";
+import { orderNotificationState } from "../features/requests/domain/requestProcess";
+import { pendingProcess, coordinationProcess } from "../features/requests/fixtures/requestProcessFixtures";
 
 const pending = { id: 20, status: 'pending', requestProcess: pendingProcess };
 const accepted = { id: 20, status: 'accepted', requestProcess: coordinationProcess };

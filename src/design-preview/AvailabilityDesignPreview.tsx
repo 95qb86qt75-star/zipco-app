@@ -1,7 +1,8 @@
+import * as React from 'react';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ArrowLeft, CalendarDays, ClipboardList, Heart, Home, ShoppingBag, Store, Trash2, UserRound } from 'lucide-react';
-import { AvailableRequestDesign, BusinessDesignActions, ConfirmAvailabilityDesign, ConsultationDesignSheet, DesignConfirmation, PendingRequestDesign, type RequestDesignData } from '../app/screens/requests/availability-design/AvailabilityDesign';
+import { AvailableRequestDesign, BusinessDesignActions, ConfirmAvailabilityDesign, ConsultationDesignSheet, DesignConfirmation, PendingRequestDesign, type RequestDesignData } from "../app/features/requests/shared/availability-design/AvailabilityDesign";
 import '../styles/index.css';
 import './availability-preview.css';
 

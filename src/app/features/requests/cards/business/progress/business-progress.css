@@ -1,0 +1,73 @@
+/* ===== ZIPCO · En curso / "Notificar pedido listo" (negocio, diseño R) + "Acuerdo completo" (V2) =====
+   Va DESPUÉS del bloque de index.css.coordinacion-o.css (reutiliza zipco-co-dk/pill/av/strip2/fb/fold/colrow/us/spin2 y los
+   keyframes zipco-co-un-dot / nodepop / ring / pop). Prefijos nuevos: zipco-ec- (tarjeta) y zipco-ag- / zipco-ag2- (hoja). */
+/* R: En curso (negocio) */
+.zipco-ec{position:relative;margin-top:12px;border-radius:20px;padding:14px 14px 12px;background:linear-gradient(180deg,rgba(15,23,42,.4),rgba(15,23,42,.26));box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.3)}
+.zipco-ec-h{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#cbd5e1}
+.zipco-ec-top{margin-top:10px;display:flex;align-items:center;gap:14px}
+.zipco-ec-orbw{position:relative;flex:none;width:50px;height:50px}
+.zipco-ec-orb{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.5),transparent 48%),linear-gradient(145deg,#8b5cf6,#0d9488 80%);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),0 6px 16px rgba(13,148,136,.45)}
+.zipco-ec-orb.d{background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.55),transparent 48%),linear-gradient(145deg,#34d399,#0d9488 65%,#0f766e);animation:zipco-ec-orbpop .9s cubic-bezier(.2,.9,.25,1.25) both}
+.zipco-ec-ring{position:absolute;inset:-7px;border-radius:50%;border:2px dashed rgba(94,234,212,.6);animation:zipco-ec-spin 10s linear infinite}
+.zipco-ec-orb.d .zipco-ec-ring{border:2px solid rgba(94,234,212,.7);animation:zipco-co-un-ring 1.3s ease-out .2s both}
+.zipco-ec-ico{display:flex;animation:zipco-ec-bob 2.6s ease-in-out infinite}
+.zipco-ec-tw{position:absolute;width:6px;height:6px;border-radius:50%;background:#fde68a;box-shadow:0 0 8px 1px #fde68a;opacity:0;animation:zipco-ec-tw 2.4s ease-in-out infinite}
+.zipco-ec-t{font-size:18px;line-height:1.12;font-weight:800;color:#fff}
+.zipco-ec-s{margin-top:3px;font-size:13px;line-height:1.38;color:#d5dbe5}
+.zipco-ec-s b{color:#fff;font-weight:700}
+.zipco-ec-trk{position:relative;margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);justify-items:center}
+.zipco-ec-line{position:absolute;top:13px;left:12.5%;right:12.5%;height:3px;border-radius:3px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 6px,transparent 6px 11px);animation:zipco-ec-march .9s linear infinite}
+.zipco-ec-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;width:var(--w,66.67%);background:linear-gradient(90deg,#34d399,#5eead4);box-shadow:0 0 10px rgba(94,234,212,.55);transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.zipco-ec-fill::before{content:"";position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent) no-repeat;background-size:38% 100%;animation:zipco-ec-flow 1.7s linear infinite}
+.zipco-ec-fill::after{content:"";position:absolute;right:-5px;top:50%;width:11px;height:11px;margin-top:-5.5px;border-radius:50%;background:#99f6e4;box-shadow:0 0 0 3px rgba(52,211,153,.25),0 0 14px 3px rgba(94,234,212,.85)}
+.zipco-ec-nd{position:relative;z-index:1;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.zipco-ec-nd.done{color:#fff;background:linear-gradient(145deg,#10b981,#059669);box-shadow:0 0 0 4px rgba(52,211,153,.16),0 4px 10px rgba(5,150,105,.35)}
+.zipco-ec-nd.act{color:#042f2e;background:linear-gradient(145deg,#99f6e4,#2dd4bf);box-shadow:0 0 0 4px rgba(94,234,212,.2);animation:zipco-co-un-dot 1.9s ease-in-out infinite}
+.zipco-ec-nd.act::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2.5px solid transparent;border-top-color:#5eead4;border-right-color:rgba(94,234,212,.35);animation:zipco-co-spin2 1.1s linear infinite}
+.zipco-ec-nd.lock{color:#94a3b8;background:#1d2338;box-shadow:inset 0 0 0 2px rgba(255,255,255,.28)}
+.zipco-ec-nd.pop{animation:zipco-co-un-nodepop .8s cubic-bezier(.2,.9,.25,1.2) both}
+.zipco-ec-nd.pop::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid #34d399;animation:zipco-co-un-ring 1.1s ease-out .15s both}
+.zipco-ec-lbl{margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;font-size:11.5px;font-weight:700;line-height:1.1;color:#d5dbe5}
+.zipco-ec-sl{margin-top:13px}
+.zipco-ec-slw{position:relative}
+.zipco-ec-tr{position:relative;height:56px;border-radius:999px;overflow:hidden;background:rgba(15,23,42,.45);box-shadow:inset 0 0 0 1.5px rgba(94,234,212,.45),inset 0 2px 8px rgba(0,0,0,.25);touch-action:none;user-select:none;-webkit-user-select:none}
+.zipco-ec-slf{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p)*(100% - 56px) + 30px);opacity:calc(var(--p)*4);border-radius:999px;background:linear-gradient(100deg,#10b981,#0d9488 55%,#06b6d4);box-shadow:0 0 22px rgba(52,211,153,.6);transition:width .45s cubic-bezier(.2,1.3,.4,1),opacity .3s}
+.zipco-ec-tr.drag .zipco-ec-slf{transition:none}
+.zipco-ec-slt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;padding-left:54px;pointer-events:none;opacity:calc(1 - var(--p)*1.8)}
+.zipco-ec-slt span.l{font-size:14px;font-weight:800;color:transparent;background:linear-gradient(100deg,#99f6e4 30%,#fff 50%,#99f6e4 70%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;animation:zipco-ec-txt 2.6s linear infinite}
+.zipco-ec-chv{display:flex;color:#5eead4}
+.zipco-ec-chv svg{margin-left:-7px;animation:zipco-ec-chv 1.4s ease-in-out infinite}
+.zipco-ec-chv svg:nth-child(1){margin-left:0}
+.zipco-ec-chv svg:nth-child(2){animation-delay:.18s}
+.zipco-ec-chv svg:nth-child(3){animation-delay:.36s}
+.zipco-ec-hd{position:absolute;top:4px;left:calc(4px + var(--p)*(100% - 56px));width:48px;height:48px;padding:0;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0f766e;cursor:grab;touch-action:none;background:radial-gradient(circle at 30% 20%,#ffffff,#d1fae5 72%);box-shadow:0 4px 12px rgba(0,0,0,.35),0 0 0 3px rgba(94,234,212,.38),inset 0 -3px 6px rgba(13,148,136,.25);transition:left .45s cubic-bezier(.2,1.3,.4,1)}
+.zipco-ec-hd.idle{animation:zipco-ec-nudge 3.4s ease-in-out 1.2s infinite}
+.zipco-ec-hd.hint{animation:zipco-ec-nudge2 .8s ease-in-out 1}
+.zipco-ec-hd.drag{transition:none;cursor:grabbing}
+.zipco-ec-hd svg{pointer-events:none}
+.zipco-ec-slw .zipco-co-us{left:calc(100% - 28px);top:28px}
+.zipco-ec-sent{position:absolute;inset:0;padding-right:54px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,50,40,.35);pointer-events:none;animation:zipco-co-un-pop .5s ease both}
+.zipco-ec-hd.fin{box-shadow:0 4px 12px rgba(0,0,0,.35),0 0 0 3px rgba(255,255,255,.55)}
+.zipco-ec-note{margin-top:10px;text-align:center;font-size:12px;line-height:1.4;color:#d5dbe5}
+.zipco-ec-st{margin-top:13px;display:flex;align-items:center;gap:12px;border-radius:16px;padding:11px 12px;background:rgba(15,23,42,.34);box-shadow:inset 0 0 0 1px rgba(94,234,212,.35)}
+.zipco-ec-st-ic{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#5eead4;background:rgba(94,234,212,.14);box-shadow:inset 0 0 0 1px rgba(94,234,212,.35)}
+.zipco-ec-st-ic.w svg{animation:zipco-ec-flip 2.4s ease-in-out infinite}
+.zipco-ec-st-ic.ok{color:#fff;background:linear-gradient(145deg,#10b981,#059669);box-shadow:0 0 0 4px rgba(52,211,153,.16);animation:zipco-co-un-nodepop .8s cubic-bezier(.2,.9,.25,1.2) both}
+.zipco-ec-st-t{font-size:14px;line-height:1.2;font-weight:800;color:#fff}
+.zipco-ec-st-s{margin-top:2px;font-size:12px;color:#d5dbe5}
+.zipco-ec-dots{display:inline-flex;gap:3px;margin-left:5px;vertical-align:middle}
+.zipco-ec-dots i{width:4px;height:4px;border-radius:50%;background:#5eead4;animation:zipco-ec-dot 1.2s ease-in-out infinite}
+.zipco-ec-dots i:nth-child(2){animation-delay:.18s}.zipco-ec-dots i:nth-child(3){animation-delay:.36s}
+@keyframes zipco-ec-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes zipco-ec-bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2.5px) rotate(-5deg)}}
+@keyframes zipco-ec-tw{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
+@keyframes zipco-ec-orbpop{0%{transform:scale(.4) rotate(-40deg)}60%{transform:scale(1.14) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes zipco-ec-march{from{background-position:0 0}to{background-position:11px 0}}
+@keyframes zipco-ec-flow{from{background-position:-60% 0}to{background-position:160% 0}}
+@keyframes zipco-ec-txt{from{background-position:120% 0}to{background-position:-120% 0}}
+@keyframes zipco-ec-chv{0%,100%{opacity:.25;transform:translateX(0)}50%{opacity:1;transform:translateX(3px)}}
+@keyframes zipco-ec-nudge{0%,58%,100%{transform:translateX(0)}68%{transform:translateX(16px)}78%{transform:translateX(0)}86%{transform:translateX(8px)}93%{transform:translateX(0)}}
+@keyframes zipco-ec-nudge2{0%{transform:translateX(0)}30%{transform:translateX(22px)}60%{transform:translateX(0)}80%{transform:translateX(10px)}100%{transform:translateX(0)}}
+@keyframes zipco-ec-flip{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(180deg)}}
+@keyframes zipco-ec-dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.zipco-ec-ring,.zipco-ec-ico,.zipco-ec-tw,.zipco-ec-line,.zipco-ec-fill::before,.zipco-ec-nd.act,.zipco-ec-nd.act::before,.zipco-ec-nd.pop,.zipco-ec-nd.pop::after,.zipco-ec-slt span.l,.zipco-ec-chv svg,.zipco-ec-hd.idle,.zipco-ec-hd.hint,.zipco-ec-st-ic.w svg,.zipco-ec-st-ic.ok,.zipco-ec-dots i,.zipco-ec-orb.d,.zipco-ec-orb.d .zipco-ec-ring,.zipco-ec-c.bump b,.zipco-ec-c.bump::after,.zipco-ec-in0,.zipco-ec-in1{animation:none!important}.zipco-ec-fill,.zipco-ec-slf,.zipco-ec-hd{transition:none}.zipco-ec-slt span.l{color:#99f6e4;background:none}}

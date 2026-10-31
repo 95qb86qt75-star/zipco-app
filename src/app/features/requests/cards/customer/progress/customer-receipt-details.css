@@ -1,0 +1,11 @@
+.zipco-receipt-local-detail{padding:12px 14px 18px}.zipco-receipt-recovery{padding:10px 14px;font-size:12px}.zipco-receipt-recovery button{min-height:44px;border:1px solid #94a3b8;border-radius:12px;padding:8px 12px;margin:4px}.zipco-pickup-c-head>.zipco-own-chv{flex-shrink:0}.zipco-pickup-c-total{max-width:35%;overflow-wrap:anywhere}
+.zipco-pickup-c>.zipco-avw-reveal[data-folded=false]>.zipco-avw-reveal-inner>.zipco-receipt-local-detail{pointer-events:auto}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-strip2{background:#ffffffc9;border-color:#0f766e40;color:#0f172a;box-shadow:inset 0 1px 0 #fff}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-strip2-l{color:#0f766e}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-strip2-v{color:#0f172a}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-strip2-ic{color:#0f766e;background:#ccfbf1;box-shadow:0 0 0 1px #0f766e33}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-strip2-go{color:#0f766e;background:#e2f5f0}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-go2{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:12px;background:linear-gradient(110deg,#047857,#0e7490);border-color:#0f766e;color:#fff;box-shadow:0 5px 14px #0f766e26}
+.zipco-pickup-c .zipco-receipt-details .zipco-co-go2:focus-visible,.zipco-pickup-c .zipco-receipt-details .zipco-co-strip2:focus-visible{outline:2px solid #0f766e;outline-offset:3px}
+@media(max-width:350px){.zipco-own-rail .zipco-own-step{flex:1;min-width:0;gap:4px}.zipco-own-rail .zipco-own-node{width:24px;height:24px;flex-shrink:0}.zipco-own-rail .zipco-own-line{flex:0 0 6px;min-width:6px;margin:0 3px}.zipco-own-rail .zipco-own-steptx small{font-size:7px;letter-spacing:.06em}.zipco-own-rail .zipco-own-steptx b{font-size:10px;white-space:normal;overflow-wrap:anywhere}}
+[data-coordination-motion=idle] .zipco-own-node,[data-coordination-motion=idle] .zipco-own-node svg,[data-coordination-motion=idle] .zipco-own-cta,[data-coordination-motion=idle] .zipco-own-cta::after,[data-coordination-motion=idle] .zipco-own-tile,[data-coordination-motion=idle] .zipco-own-spin{animation-play-state:paused!important}

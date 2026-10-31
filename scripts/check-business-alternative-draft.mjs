@@ -12,9 +12,9 @@ const assets = path.resolve(process.argv[2] || 'node_modules/.cache/business-alt
 fs.mkdirSync(directory, { recursive: true });
 await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React from 'react'; import { createRoot } from 'react-dom/client';
-import Actions from './src/app/screens/requests/PendingAlternativeActions';
-import { normalizeBusinessOrdersPayload } from './src/app/screens/requests/orderNormalization';
-import { rawOrder, pendingProcess } from './src/app/screens/requests/requestProcessFixtures';
+import Actions from './src/app/features/requests/forms/proposal/PendingAlternativeActions';
+import { normalizeBusinessOrdersPayload } from './src/app/features/requests/domain/orderNormalization';
+import { rawOrder, pendingProcess } from './src/app/features/requests/fixtures/requestProcessFixtures';
 window.React = React; window.blockedRequests = 0;
 window.fetch = async () => { window.blockedRequests++; throw Error('Network disabled in draft test'); };
 const service = new URLSearchParams(location.search).get('type') === 'service';

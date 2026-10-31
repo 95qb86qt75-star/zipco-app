@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import BusinessNotificationMonitor from './BusinessNotificationMonitor';
-import { showAppToast } from '../screens/Toast';
-import { orderNotificationState } from '../screens/requests/requestProcess';
-import { publishActiveRequestCount, markInteractionUnread } from './unreadInteractions';
-import { pendingProcess, coordinationProcess } from '../screens/requests/requestProcessFixtures';
-import { cancelledPendingOrder } from '../screens/requests/pendingCancellationFixtures';
-import { proposalsFixture } from '../screens/requests/proposalFixtures';
-import { normalizeRequestProcess } from '../screens/requests/requestProcess';
-import { rememberOpenedPresentation } from './notificationDelivery';
-import {availabilityWaiting} from '../screens/requests/availabilityFixtures';
+import BusinessNotificationMonitor from "./BusinessNotificationMonitor";
+import { showAppToast } from "../shared/notifications/Toast";
+import { orderNotificationState } from "../features/requests/domain/requestProcess";
+import { publishActiveRequestCount, markInteractionUnread } from "./unreadInteractions";
+import { pendingProcess, coordinationProcess } from "../features/requests/fixtures/requestProcessFixtures";
+import { cancelledPendingOrder } from "../features/requests/fixtures/pendingCancellationFixtures";
+import { proposalsFixture } from "../features/requests/fixtures/proposalFixtures";
+import { normalizeRequestProcess } from "../features/requests/domain/requestProcess";
+import { rememberOpenedPresentation } from "./notificationDelivery";
+import { availabilityWaiting } from "../features/requests/fixtures/availabilityFixtures";
 
 const runtime = vi.hoisted(() => ({ cleanup: undefined as undefined | (() => void) }));
 // Exercise the monitor's real effect, event listeners and timers without adding a DOM dependency.
@@ -17,7 +17,7 @@ vi.mock('react', async (original) => ({
   useRef: (value: unknown) => ({ current: value }),
   useEffect: (effect: () => void | (() => void)) => { runtime.cleanup = effect() || undefined; },
 }));
-vi.mock('../screens/Toast', () => ({ showAppToast: vi.fn() }));
+vi.mock("../shared/notifications/Toast", () => ({ showAppToast: vi.fn() }));
 vi.mock('./pushNotifications', () => ({ updatePushPresence: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('./unreadInteractions', () => ({
   markInteractionUnread: vi.fn(), publishActiveRequestCount: vi.fn(), publishUnreadCount: vi.fn(),

@@ -10,15 +10,15 @@ const assets = path.resolve('node_modules/.cache/business-alternative-draft-qa/a
 fs.mkdirSync(directory, { recursive: true });
 await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
-import Negotiation from './src/app/screens/requests/ProposalNegotiation';
-import AcceptedProposalHost from './src/app/screens/requests/AcceptedProposalHost';
-import DealSuccessHost from './src/app/screens/requests/DealSuccess';
-import ActionHologramHost from './src/app/screens/requests/ActionHologram';
-import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
-import {normalizeRequestProcess} from './src/app/screens/requests/requestProcess';
-import {normalizeBusinessOrdersPayload} from './src/app/screens/requests/orderNormalization';
-import {rawOrder} from './src/app/screens/requests/requestProcessFixtures';
-import {statusViewFor} from './src/app/screens/requests/requestStatusGrouping';
+import Negotiation from './src/app/features/requests/forms/proposal/ProposalNegotiation';
+import AcceptedProposalHost from './src/app/features/requests/shared/feedback/AcceptedProposalHost';
+import DealSuccessHost from './src/app/features/requests/shared/feedback/DealSuccess';
+import ActionHologramHost from './src/app/features/requests/shared/feedback/ActionHologram';
+import {proposalsFixture} from './src/app/features/requests/fixtures/proposalFixtures';
+import {normalizeRequestProcess} from './src/app/features/requests/domain/requestProcess';
+import {normalizeBusinessOrdersPayload} from './src/app/features/requests/domain/orderNormalization';
+import {rawOrder} from './src/app/features/requests/fixtures/requestProcessFixtures';
+import {statusViewFor} from './src/app/features/requests/domain/requestStatusGrouping';
 window.React=React;let role=true,read=proposalsFixture(0),redraw=()=>{};let saved=new Map();
 window.posts=[];window.uploads=0;window.fail=false;window.lose=false;window.expire=false;window.getFails=false;window.stale=false;
 window.pauseReads=false;window.proposalReads=0;window.denyDraft=false;window.refreshes=0;

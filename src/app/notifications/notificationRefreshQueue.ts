@@ -1,4 +1,4 @@
-import { isRecord, parsePositiveInteger } from '../screens/requests/orderValueParsers';
+import { isRecord, parsePositiveInteger } from "../features/requests/domain/orderValueParsers";
 
 export type NotificationRefresh = {
   navigate: boolean;

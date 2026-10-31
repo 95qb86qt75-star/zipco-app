@@ -4,11 +4,11 @@ import { spawn } from 'node:child_process'; import { build } from 'esbuild'; imp
 const directory = path.resolve('node_modules/.cache/whatsapp-load-recovery'); fs.mkdirSync(directory, {recursive:true});
 await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
 import React,{useState,useEffect,useCallback} from 'react';import {createRoot} from 'react-dom/client';
-import useRequests from './src/app/screens/requests/useRequests';import BusinessOrdersTab from './src/app/screens/requests/BusinessOrdersTab';import MyOrdersTab from './src/app/screens/requests/MyOrdersTab';
-import RequestStatusTab from './src/app/screens/requests/RequestStatusTab';import useReadyTransitions from './src/app/screens/requests/useReadyTransitions';import ProcessHistoryCard from './src/app/screens/requests/ProcessHistoryCard';
-import {statusViewFor} from './src/app/screens/requests/requestStatusGrouping';import {rawOrder,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
-import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';import ActionHologramHost from './src/app/screens/requests/ActionHologram';
-import {diagnosticSnapshot,clearDiagnostics} from './src/app/screens/requests/loadOrdersDiagnostics';
+import useRequests from './src/app/features/requests/application/useRequests';import BusinessOrdersTab from './src/app/features/requests/screen/components/BusinessOrdersTab';import MyOrdersTab from './src/app/features/requests/screen/components/MyOrdersTab';
+import RequestStatusTab from './src/app/features/requests/screen/components/RequestStatusTab';import useReadyTransitions from './src/app/features/requests/application/motion/useReadyTransitions';import ProcessHistoryCard from './src/app/features/requests/cards/shared/history/ProcessHistoryCard';
+import {statusViewFor} from './src/app/features/requests/domain/requestStatusGrouping';import {rawOrder,coordinationProcess,agreementFixture} from './src/app/features/requests/fixtures/requestProcessFixtures';
+import {proposalsFixture} from './src/app/features/requests/fixtures/proposalFixtures';import ActionHologramHost from './src/app/features/requests/shared/feedback/ActionHologram';
+import {diagnosticSnapshot,clearDiagnostics} from './src/app/features/requests/screen/diagnostics/loadOrdersDiagnostics';
 window.diagnostics=diagnosticSnapshot;window.clearDiagnostics=clearDiagnostics;
 let visibility='visible';Object.defineProperty(document,'visibilityState',{get:()=>visibility});Object.defineProperty(document,'hidden',{get:()=>visibility==='hidden'});
 window.toasts=[];window.addEventListener('zipco-toast',e=>window.toasts.push(e.detail));window.reads=[];window.readMode='ok';window.navigations=0;

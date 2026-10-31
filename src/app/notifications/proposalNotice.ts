@@ -1,4 +1,4 @@
-import type { ProcessOrder } from '../screens/requests/requestProcess';
+import type { ProcessOrder } from "../features/requests/domain/requestProcess";
 export function proposalNotice(order: { id: number } & ProcessOrder, business: boolean) {
   const p = order.requestProcess;
   if (!p?.proposalSummary) return null;

@@ -1,0 +1,17 @@
+/* ── Transición a "Listos" (ver INSTRUCCIONES §3.7) ── */
+/* 1 · Llegada de la tarjeta: arranca con animation-delay inline (lo que falte del holograma); mientras espera queda en el fotograma 0 (atenuada, desplazada). */
+.zipco-cp[data-arrive="true"]{animation:zipco-cp-arr 1.3s cubic-bezier(.2,.9,.25,1.15) both}
+@keyframes zipco-cp-arr{0%{opacity:.35;transform:translateX(-34px) scale(.96);box-shadow:0 0 0 0 rgba(20,184,166,.7)}45%{opacity:1;transform:translateX(5px) scale(1.01);box-shadow:0 0 0 10px rgba(20,184,166,.28)}100%{opacity:1;transform:none;box-shadow:0 0 0 22px rgba(20,184,166,0)}}
+/* 2 · Rebote del chip "Listos" (agrégale la clase zipco-chip-bump; el chip debe ser position:relative). */
+.zipco-chip-bump{animation:zipco-cp-chip 1s cubic-bezier(.2,.9,.25,1.4) both}
+.zipco-chip-bump::after{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid #2dd4bf;pointer-events:none;animation:zipco-cp-chipring 1.1s ease-out .05s both}
+@keyframes zipco-cp-chip{0%{transform:scale(1)}35%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes zipco-cp-chipring{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.45);opacity:0}}
+/* 3 · Globo "Tu pedido pasó a Listos" (hijo del chip Listos). La flecha apunta al centro del chip. */
+.zipco-cp-tip{position:absolute;z-index:30;top:calc(100% + 8px);left:50%;display:flex;align-items:center;gap:7px;white-space:nowrap;border-radius:12px;padding:7px 11px 7px 8px;font:700 12px 'Outfit',sans-serif;color:#fff;background:linear-gradient(135deg,#0d9488,#0891b2);box-shadow:0 8px 20px rgba(13,148,136,.45);pointer-events:none;animation:zipco-cp-tipin .5s cubic-bezier(.2,.9,.25,1.3) both,zipco-cp-tipout .5s ease 3.1s both}
+.zipco-cp-tip::before{content:"";position:absolute;top:-5px;left:calc(50% - 5px);width:10px;height:10px;transform:rotate(45deg);background:#0d9488;border-radius:2px}
+.zipco-cp-tip .tp{display:flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;background:rgba(255,255,255,.22)}
+.zipco-cp-tip b{font-weight:800}
+@keyframes zipco-cp-tipin{0%{opacity:0;transform:translate(-50%,-8px) scale(.9)}100%{opacity:1;transform:translate(-50%,0)}}
+@keyframes zipco-cp-tipout{to{opacity:0;transform:translate(-50%,-6px)}}
+@media (prefers-reduced-motion:reduce){.zipco-cp[data-arrive="true"],.zipco-chip-bump,.zipco-chip-bump::after,.zipco-cp-tip{animation:none!important}.zipco-cp-tip{transform:translateX(-50%)}}

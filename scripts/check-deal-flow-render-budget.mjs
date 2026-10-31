@@ -15,12 +15,12 @@ if (mode === 'baseline' && !fs.existsSync(baseline)) fs.writeFileSync(baseline, 
 const css = mode === 'baseline-replay' ? fs.readFileSync(baseline) : currentCss;
 await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import * as Dialog from '@radix-ui/react-dialog';
-import AcceptAuthorizeCard from './src/app/screens/requests/AcceptAuthorizeCard';
-import AcceptGlassButton from './src/app/screens/requests/AcceptGlassButton';
-import ProposalChat from './src/app/screens/requests/ProposalChat';
-import DealSuccessHost,{announceDealClosed} from './src/app/screens/requests/DealSuccess';
-import {normalizeProposals} from './src/app/screens/requests/proposalContract';
-import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
+import AcceptAuthorizeCard from './src/app/features/requests/cards/shared/coordination/AcceptAuthorizeCard';
+import AcceptGlassButton from './src/app/features/requests/cards/shared/coordination/AcceptGlassButton';
+import ProposalChat from './src/app/features/requests/cards/shared/proposal/ProposalChat';
+import DealSuccessHost,{announceDealClosed} from './src/app/features/requests/shared/feedback/DealSuccess';
+import {normalizeProposals} from './src/app/features/requests/domain/proposalContract';
+import {proposalsFixture} from './src/app/features/requests/fixtures/proposalFixtures';
 window.React=React;window.requests=0;window.fetch=async()=>{window.requests++;throw Error('Network forbidden');};
 localStorage.setItem('zipco-user-id','12');localStorage.setItem('zipco-token','synthetic');localStorage.setItem('zipco-business-id','8');
 const fixture=proposalsFixture(2,true),read=normalizeProposals(fixture,fixture.process.id);let show=()=>{},serial=0;

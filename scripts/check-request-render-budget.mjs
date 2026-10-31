@@ -15,10 +15,10 @@ if(mode==='baseline')fs.copyFileSync(cssFile,path.join(directory,'baseline.css')
 const css=fs.readFileSync(mode==='baseline-replay'?path.join(directory,'baseline.css'):cssFile);
 await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
 import React from 'react';import {createRoot} from 'react-dom/client';
-import ProcessOrderCard from './src/app/screens/requests/ProcessOrderCard';
-import {normalizeMyOrdersPayload} from './src/app/screens/requests/orderNormalization';
-import {rawOrder} from './src/app/screens/requests/requestProcessFixtures';
-import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
+import ProcessOrderCard from './src/app/features/requests/cards/shared/layout/ProcessOrderCard';
+import {normalizeMyOrdersPayload} from './src/app/features/requests/domain/orderNormalization';
+import {rawOrder} from './src/app/features/requests/fixtures/requestProcessFixtures';
+import {proposalsFixture} from './src/app/features/requests/fixtures/proposalFixtures';
 window.React=React;window.requests=0;window.fetch=async()=>{window.requests++;throw Error('Network forbidden');};
 localStorage.setItem('zipco-token','synthetic-session');localStorage.setItem('zipco-user-id','11');
 const process=proposalsFixture(1,false).process;

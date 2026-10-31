@@ -10,18 +10,18 @@ const assets = path.resolve('node_modules/.cache/business-alternative-draft-qa/a
 fs.mkdirSync(directory, { recursive: true });
 await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
-import ProcessOrderCard from './src/app/screens/requests/ProcessOrderCard';
-import ProcessHistoryCard from './src/app/screens/requests/ProcessHistoryCard';
-import MyOrderCard from './src/app/screens/requests/MyOrderCard';
-import BusinessOrderCard from './src/app/screens/requests/BusinessOrderCard';
-import {OrderHistoryList} from './src/app/screens/requests/CompactHistoryList';
-import {proposalsFixture} from './src/app/screens/requests/proposalFixtures';
-import {normalizeBusinessOrdersPayload,normalizeMyOrdersPayload} from './src/app/screens/requests/orderNormalization';
-import {rawOrder,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
-import {cancelledPendingOrder} from './src/app/screens/requests/pendingCancellationFixtures';
-import ActionHologramHost,{announceAction,dismissAction} from './src/app/screens/requests/ActionHologram';
-import {WhatsappReturnTracker,whatsappReturnKey,markWhatsappOpened,clearWhatsappReturn} from './src/app/screens/requests/whatsappReturn';
-import {rejectedPendingOrder} from './src/app/screens/requests/pendingRejectionFixtures';
+import ProcessOrderCard from './src/app/features/requests/cards/shared/layout/ProcessOrderCard';
+import ProcessHistoryCard from './src/app/features/requests/cards/shared/history/ProcessHistoryCard';
+import MyOrderCard from './src/app/features/requests/cards/customer/order/MyOrderCard';
+import BusinessOrderCard from './src/app/features/requests/cards/business/order/BusinessOrderCard';
+import {OrderHistoryList} from './src/app/features/requests/cards/shared/history/OrderHistoryList';
+import {proposalsFixture} from './src/app/features/requests/fixtures/proposalFixtures';
+import {normalizeBusinessOrdersPayload,normalizeMyOrdersPayload} from './src/app/features/requests/domain/orderNormalization';
+import {rawOrder,coordinationProcess,agreementFixture} from './src/app/features/requests/fixtures/requestProcessFixtures';
+import {cancelledPendingOrder} from './src/app/features/requests/fixtures/pendingCancellationFixtures';
+import ActionHologramHost,{announceAction,dismissAction} from './src/app/features/requests/shared/feedback/ActionHologram';
+import {WhatsappReturnTracker,whatsappReturnKey,markWhatsappOpened,clearWhatsappReturn} from './src/app/features/requests/application/whatsappReturn';
+import {rejectedPendingOrder} from './src/app/features/requests/fixtures/pendingRejectionFixtures';
 window.React=React;window.action=announceAction;window.dismissAction=dismissAction;window.posts=0;window.reads=0;window.startPosts=[];let redraw=()=>{},state='AWAITING_BUSINESS_RESPONSE',business=true,legacy=false;
 const pendingBusinessRead=()=>{const read=proposalsFixture(0,true);read.process.allowedActions.push('REJECT_PENDING_REQUEST');return read;};
 window.fetch=async(input,options={})=>{

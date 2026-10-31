@@ -1,8 +1,9 @@
+import * as React from 'react';
 import { useMemo, useState } from 'react';
-import { requestDevSession } from './devAuthApi';
-import { DEV_ACCOUNT_OPTIONS, resolveDevAuthConfig, type DevAccount } from './devAuthConfig';
-import { persistDevSession } from './devSessionStorage';
-import DevUnavailableOrderPreview from './DevUnavailableOrderPreview';
+import { requestDevSession } from "./devAuthApi";
+import { DEV_ACCOUNT_OPTIONS, resolveDevAuthConfig, type DevAccount } from "./devAuthConfig";
+import { persistDevSession } from "./devSessionStorage";
+import DevUnavailableOrderPreview from "./DevUnavailableOrderPreview";
 
 export default function DevAccessPanel({ onAuthenticated }: { onAuthenticated: () => void }) {
   const config = useMemo(() => resolveDevAuthConfig({

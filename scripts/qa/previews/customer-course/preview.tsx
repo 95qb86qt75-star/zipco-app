@@ -1,17 +1,17 @@
 // Development-only design sandbox. No orders, authentication, storage or API calls.
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import CustomerPickupCard from '/src/app/screens/requests/CustomerPickupCard';
-import CustomerReceiptDetails from '/src/app/screens/requests/CustomerReceiptDetails';
-import {ConditionsSheet} from '/src/app/screens/requests/CoordinationSheets';
-import {agreementFixture} from '/src/app/screens/requests/requestProcessFixtures';
+import CustomerPickupCard from "/src/app/features/requests/cards/customer/local-pickup/CustomerPickupCard";
+import CustomerReceiptDetails from "/src/app/features/requests/cards/customer/progress/CustomerReceiptDetails";
+import { ConditionsSheet } from "/src/app/features/requests/shared/conditions/CoordinationSheets";
+import { agreementFixture } from "/src/app/features/requests/fixtures/requestProcessFixtures";
 import '/src/styles/index.css';
 
 import './preview.css';
-import CustomerCoordinationCard from '/src/app/screens/requests/CustomerCoordinationCard';
-import {ProductPreviewScope} from '/src/app/screens/requests/ProductPreviewControl';
-import ReadyPanel,{type ReadyModel,type ReadyStage} from '/src/app/screens/requests/ReadyPanel';
-import StatusRail from '/src/app/screens/requests/StatusRail';
+import CustomerCoordinationCard from "/src/app/features/requests/cards/customer/whatsapp/CustomerCoordinationCard";
+import { ProductPreviewScope } from "/src/app/features/requests/shared/product-preview/ProductPreviewControl";
+import ReadyPanel, { type ReadyModel, type ReadyStage } from "/src/app/features/requests/shared/feedback/ReadyPanel";
+import StatusRail from "/src/app/features/requests/shared/feedback/StatusRail";
 
 function PickupPreview(){
  const [stage,setStage]=useState<'waiting'|ReadyStage|'history'>('waiting'),[open,setOpen]=useState(false),[busy,setBusy]=useState(false);

@@ -1,0 +1,71 @@
+# Una fuente de diseño por tarjeta
+
+La pantalla selecciona las tarjetas mediante
+`shared/layout/ProcessOrderCard.tsx`. Su lógica conserva el contrato existente.
+Los archivos de entrada y los controladores no son diseños alternativos: componen
+la única vista correspondiente.
+
+## Cliente
+
+- **Pendiente:** `customer/pending/CustomerPendingCard.tsx`.
+- **Aceptado, antes de abrir WhatsApp:**
+  `customer/whatsapp/initial/CustomerInitialCoordinationCard.tsx`.
+  Su CSS y `CustomerStepsSheet.tsx` están en esa misma carpeta.
+- **¿Coordinación lista?, confirmar Falta y negativa guardada:**
+  `customer/whatsapp/CustomerCoordinationQuestionCard.tsx`.
+  El detalle vive en `CustomerCoordinationDetail.tsx`; los estilos son
+  `customer-coordination.css` y `customer-coordination-detail.css`.
+- **En curso / listo / recibido por WhatsApp:**
+  `customer/progress/CustomerWhatsappProgressCard.tsx`.
+  Su estilo principal es `customer-receipt-card.css`.
+- **Retiro local, preparando / listo / recibido:**
+  `customer/local-pickup/CustomerPickupCard.tsx` y `customer-pickup.css`.
+- **Detalle de los pedidos de producto:**
+  `customer/progress/CustomerReceiptDetails.tsx`,
+  `customer-receipt-details.css` y los controles compartidos de disponibilidad
+  indicados abajo. Es parte del diseño completo; no entregar únicamente la
+  cabecera al pedir un rediseño del retiro.
+- **Servicios en curso:**
+  `customer/service/CustomerServiceProgressCard.tsx`, con sus estilos en esa carpeta.
+  Conserva el recorrido de servicios; no es una versión antigua del producto.
+
+`CustomerReceiptFlowCardView.tsx` compone el retiro o WhatsApp con los diálogos
+reales. Su controlador está en `customer/progress/application`. La consulta de
+coordinación usa `customer/whatsapp/application`; las decisiones de negocio y
+permisos siguen en los hooks de `requests/application` y en la API.
+
+## Negocio
+
+- **Disponibilidad confirmada, esperando cliente:**
+  `business/availability/AvailabilityWaitingCard.tsx`.
+- **Consulta de coordinación y respuesta negativa:**
+  `business/coordination/BusinessCoordinationWaitingCard.tsx` y
+  `BusinessPendingCoordinationDetail.tsx`; estilo `business-coordination-pending.css`.
+- **Coordinación inicial compartida donde la composición es idéntica:**
+  `shared/coordination/InitialCoordinationCardView.tsx`.
+  La variante inicial del cliente producto se separa en su carpeta indicada arriba.
+- **Preparando / notificar listo:**
+  `business/progress/BusinessProgressCardView.tsx` y sus CSS.
+- **Fuera de hora:** `shared/late-initial/LateInitialCard.tsx` y su CSS.
+- **Propuesta:** `shared/proposal/ProposalWaitingCard.tsx` y su CSS.
+- **Historial:** `shared/history/CompactHistoryList.tsx`, `ProcessHistoryCard.tsx`;
+  las listas de pedidos y cotizaciones y sus normalizadores tienen archivos propios.
+
+## Dependencias visuales que se conservan
+
+- `shared/layout/DetailReveal.tsx`: pliegue y apertura accesibles.
+- `shared/layout/availability-card-foundation.css`: superficie, miniatura y anillo.
+- `shared/layout/detail-chevron.css`: control compacto de detalle.
+- `shared/coordination/CoordinationVisualPrimitives.tsx`: pasos y efectos comunes.
+- `shared/availability/AvailabilityPostActionsView.tsx`: controles de retiro,
+  permiso y reserva; su controlador conserva las acciones existentes.
+- `../../shared/feedback/StatusRail.tsx`, `ReadyPanel.tsx` y sus CSS: progreso y
+  recepción compartidos entre retiro y WhatsApp.
+- `../../shared/conditions/CoordinationSheets.tsx`: Condiciones aceptadas y las
+  otras ventanas reales; conservarlas salvo un rediseño explícito de esa ventana.
+- `../../shared/product-preview/ProductPreviewControl.tsx`: miniatura y producto.
+
+Los manifiestos `shared/layout/availability-card-styles.css` y
+`coordination-card-styles.css`, más `src/styles/index.css`, solo ordenan imports.
+No contienen una segunda tarjeta. No recrear los archivos CSS retirados al
+integrar paquetes cuyo nombre anterior era `coordination-v2.css`.

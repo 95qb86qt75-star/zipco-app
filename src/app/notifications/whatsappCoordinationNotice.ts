@@ -1,4 +1,4 @@
-import type {ProcessOrder} from '../screens/requests/requestProcess';
+import type { ProcessOrder } from "../features/requests/domain/requestProcess";
 export function whatsappCoordinationNotice(order:{id:number}&ProcessOrder,business:boolean){
   const p=order.requestProcess,c=p?.whatsappCoordination,initial=p?.whatsappCoordinationInitialDecline;
   if(p&&initial?.active)return initial.declinedBy===(business?'BUSINESS':'CUSTOMER')?null:{key:'order-'+order.id+'-coordination-initial-declined-'+initial.recordedVersion,notice:['Todav\u00eda falta coordinar','La otra parte indic\u00f3 que todav\u00eda falta coordinar este pedido. Sigue en Por coordinar.'] as const};

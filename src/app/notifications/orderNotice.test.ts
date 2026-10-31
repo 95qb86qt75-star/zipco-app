@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { customerOrderNotice } from './orderNotice';
-import { parseOrders } from './BusinessNotificationMonitor';
-import { pendingProcess, coordinationProcess } from '../screens/requests/requestProcessFixtures';
+import { customerOrderNotice } from "./orderNotice";
+import { parseOrders } from "./BusinessNotificationMonitor";
+import { pendingProcess, coordinationProcess } from "../features/requests/fixtures/requestProcessFixtures";
 
 describe('customer acceptance notice', () => {
   it('uses approved coordination copy after parsing the list response', () => {

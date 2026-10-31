@@ -3,12 +3,12 @@ import fs from 'node:fs';import path from 'node:path';import http from 'node:htt
 const directory=path.resolve('node_modules/.cache/business-own-feedback'),assets=path.resolve('node_modules/.cache/business-alternative-draft-qa/assets');fs.mkdirSync(directory,{recursive:true});
 await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
 import React,{useState,useEffect} from 'react';import {createRoot} from 'react-dom/client';
-import useRequests from './src/app/screens/requests/useRequests';import BusinessOrdersTab from './src/app/screens/requests/BusinessOrdersTab';
-import MyOrdersTab from './src/app/screens/requests/MyOrdersTab';
+import useRequests from './src/app/features/requests/application/useRequests';import BusinessOrdersTab from './src/app/features/requests/screen/components/BusinessOrdersTab';
+import MyOrdersTab from './src/app/features/requests/screen/components/MyOrdersTab';
 import {waitForNotificationCard} from './src/app/notifications/notificationNavigation';
-import ActionHologramHost from './src/app/screens/requests/ActionHologram';import Toast from './src/app/screens/Toast';
-import {rawOrder,pendingProcess,coordinationProcess,agreementFixture} from './src/app/screens/requests/requestProcessFixtures';
-import {rejectedPendingProcess} from './src/app/screens/requests/pendingRejectionFixtures';
+import ActionHologramHost from './src/app/features/requests/shared/feedback/ActionHologram';import Toast from './src/app/shared/notifications/Toast';
+import {rawOrder,pendingProcess,coordinationProcess,agreementFixture} from './src/app/features/requests/fixtures/requestProcessFixtures';
+import {rejectedPendingProcess} from './src/app/features/requests/fixtures/pendingRejectionFixtures';
 window.React=React;window.posts=[];window.toasts=[];window.receipt=false;window.failed=false;window.stale=false;
 const query=new URLSearchParams(location.search),business=query.get('role')!=='customer';
 localStorage.setItem('zipco-user-id','12');localStorage.setItem('zipco-token','synthetic-session');if(business)localStorage.setItem('zipco-business-id','1');else localStorage.removeItem('zipco-business-id');

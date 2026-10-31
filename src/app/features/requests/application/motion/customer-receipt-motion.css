@@ -1,0 +1,20 @@
+/* ---------- Keyframes ---------- */
+@keyframes zipco-own-glow{0%,100%{box-shadow:0 0 0 3px #fbbf2433}50%{box-shadow:0 0 0 7px #fbbf2400}}
+@keyframes zipco-own-flip{0%,45%{transform:rotate(0)}55%,100%{transform:rotate(180deg)}}
+@keyframes zipco-own-ring{0%,45%,100%{transform:rotate(0)}5%{transform:rotate(18deg)}10%{transform:rotate(-16deg)}15%{transform:rotate(13deg)}20%{transform:rotate(-10deg)}25%{transform:rotate(7deg)}30%{transform:rotate(-4deg)}35%{transform:rotate(2deg)}}
+@keyframes zipco-own-pop{0%{transform:scale(.5)}60%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes zipco-own-cta{0%{opacity:0;transform:translateY(10px) scale(.94)}60%{opacity:1;transform:translateY(-1px) scale(1.02)}100%{opacity:1;transform:none}}
+@keyframes zipco-own-sheen{0%,30%{transform:translateX(-140%) skewX(-20deg)}100%{transform:translateX(520%) skewX(-20deg)}}
+@keyframes zipco-own-spin{to{transform:rotate(360deg)}}
+@keyframes zipco-ready-leave{0%{max-height:760px;opacity:1;transform:none}55%{max-height:760px;opacity:0;transform:translateX(90px) scale(.95)}100%{max-height:0;opacity:0;transform:translateX(90px) scale(.95);border-width:0;box-shadow:none}}
+@keyframes zipco-tab-bump{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* ---------- Pausa con la lista quieta / en scroll, y movimiento reducido (mismo criterio que el resto del archivo) ---------- */
+[data-request-motion=idle] .zipco-own-node,[data-request-motion=idle] .zipco-own-node svg,[data-request-motion=idle] .zipco-own-tile svg,[data-request-motion=idle] .zipco-own-cta::after,[data-request-motion=idle] .zipco-pickup-c-tile::after,
+[data-request-list-scrolling=true] .zipco-own-node,[data-request-list-scrolling=true] .zipco-own-node svg,[data-request-list-scrolling=true] .zipco-own-tile svg,[data-request-list-scrolling=true] .zipco-own-cta::after,[data-request-list-scrolling=true] .zipco-pickup-c-tile::after{animation-play-state:paused!important}
+@media(max-width:350px){.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity h3{font-size:14.5px}.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total{font-size:17px}.zipco-own-steptx b{font-size:11px}.zipco-own-step{gap:5px}.zipco-own-line{margin:0 4px}.zipco-own-rail{padding:0 8px}}
+@media(prefers-reduced-motion:reduce){
+  .zipco-own-node,.zipco-own-node svg,.zipco-own-tile,.zipco-own-tile svg,.zipco-own-cta,.zipco-own-cta::after,.zipco-own-spin,.zipco-pickup-c-tile::after,.zipco-tab-bump{animation:none!important}
+  .zipco-own-fold,.zipco-own-line i,.zipco-own-chv,.zipco-avw.zipco-avw-customer[data-mode=ownPending],.zipco-pickup-c{transition:none!important}
+  .zipco-avw[data-leaving=true],.zipco-pickup-c[data-leaving=true]{animation:none!important;opacity:0}
+}

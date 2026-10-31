@@ -10,13 +10,14 @@ fs.mkdirSync(directory, { recursive: true });
 const harness = `
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import CheckoutScreen from '/src/app/screens/CheckoutScreen.tsx';
-import ActionHologramHost from '/src/app/screens/requests/ActionHologram.tsx';
+import CheckoutScreen from '/src/app/features/checkout/product/CheckoutScreen.tsx';
+import ActionHologramHost from '/src/app/features/requests/shared/feedback/ActionHologram.tsx';
 import '/src/styles/index.css';
 window.checkoutCalls=[]; window.checkoutComplete=0;
 localStorage.setItem('zipco-token','browser-test-only');
 localStorage.setItem('zipco-user-id','8');
 window.fetch=async (url,init)=>{
+ if(String(url).endsWith('/businesses/5/submission-advisory'))return new Response(JSON.stringify({contract:'request-submission-advisory-v1',businessId:5,businessName:'ZIPCO Negocio QA',checkedAt:new Date().toISOString(),timeZone:'America/Santiago',localDate:'2026-10-31',status:'IN_SERVICE_HOURS',reason:'WITHIN_WINDOW',requiresConfirmation:false,todayWindow:null,activeWindow:null,nextWindow:null}));
  if(String(url).endsWith('/request-process-capabilities'))return new Response(JSON.stringify({supportedContracts:['availability-v1','availability-v2'],reservationCreationEnabled:false}));
  if(!String(url).endsWith('/orders/availability-requests')) throw Error('Unexpected HTTP');
  const body=JSON.parse(init.body);window.checkoutCalls.push({body,key:init.headers['Idempotency-Key']});

@@ -1,0 +1,22 @@
+/* =====================================================================================================
+   ZIPCO · Cliente «En curso» · diseño CliU15 (carril de progreso + bloque «Tu pedido se encuentra listo» dentro de la tarjeta)
+   Todo lo de abajo es NUEVO (líneas 102 en adelante). No se modificó ninguna regla anterior: se sobrescribe por especificidad.
+   ===================================================================================================== */
+
+/* ---------- Tarjeta del cliente en modo ownPending ---------- */
+.zipco-avw.zipco-avw-customer[data-mode=ownPending]{position:relative;overflow:hidden;border:0;border-radius:24px;background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%);box-shadow:0 14px 28px #1e1b4b52,0 0 0 1.5px #fbbf2480,inset 0 1px 0 #ffffff29;transition:box-shadow .5s ease}
+.zipco-avw.zipco-avw-customer[data-mode=ownPending][data-ready=true]{box-shadow:0 14px 28px #1e1b4b52,0 0 0 1.5px #34d399bf,0 0 26px #34d3994a,inset 0 1px 0 #ffffff29}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-head{min-height:0;padding:13px 12px 0 13px;gap:11px;align-items:center}
+.zipco-avw-query.zipco-avw-customer[data-mode=ownPending] .zipco-avw-ring{width:56px;height:56px}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-orbit{display:none}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity{cursor:pointer;min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity h3{margin:0;font-size:15.5px;line-height:1.2}
+.zipco-own-st{display:block;margin-top:3px;font-size:11.5px;line-height:1.3;font-weight:700;color:#a5b4c7}
+.zipco-own-st b{font-weight:900;color:#fde68a}
+.zipco-avw-customer[data-mode=ownPending][data-ready=true] .zipco-own-st b{color:#6ee7b7}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total{justify-items:end;font-size:19px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total small{margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-recovery{margin:0 12px 12px}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-body{padding:0 13px 14px;background:none}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-product{margin:0 0 8px}
+.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-pending{margin:0;padding-top:0;border-top:0;font-size:12px;line-height:1.45;color:#cfd3ff}

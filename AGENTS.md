@@ -28,6 +28,15 @@ describen su versión; no sustituyen el contrato o el estado actual.
   los cierres exclusivamente documentales y el bloque propuesto no hacen push
   ni despliegue sin alcance aprobado.
 
+## Organización visual vigente
+
+- Consultar el [mapa de fuentes](src/app/features/README.md) y el
+  [mapa de tarjetas](src/app/features/requests/cards/README.md) antes de editar
+  un diseño o preparar una entrega a Claude.
+- Mantener una composición canónica por tarjeta/flujo visual. Separar diseño de
+  carga, permisos y recuperación; no crear copias antiguas/nuevas ni alternativas
+  silenciosas. Conservar las ventanas compartidas reales y sus contratos.
+
 ## Clasificación obligatoria
 
 Antes de implementar una modificación, clasificarla como:

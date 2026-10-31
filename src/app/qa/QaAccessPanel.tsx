@@ -1,11 +1,8 @@
+import * as React from 'react';
 import { useMemo, useState } from "react";
 import { persistDevSession } from "../dev/devSessionStorage";
 import { requestQaSession } from "./qaAuthApi";
-import {
-  QA_ACCOUNT_OPTIONS,
-  resolveQaAuthConfig,
-  type QaAccount,
-} from "./qaAuthConfig";
+import { QA_ACCOUNT_OPTIONS, resolveQaAuthConfig, type QaAccount } from "./qaAuthConfig";
 
 export default function QaAccessPanel({
   onAuthenticated,
