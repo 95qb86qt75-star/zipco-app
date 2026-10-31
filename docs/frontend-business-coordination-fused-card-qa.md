@@ -71,3 +71,20 @@ qa/Vercel QA, verificar READY, SHA, alias, assets y marcadores mediante el
 verificador existente. Sin modificar main, producción ni Railway. La entrega
 indica versión, despliegue y tiempos reales. Pendiente prueba física del usuario.
 El diagnóstico de clic externo permanece pausado.
+
+## Cierre verificado
+
+- Aplicación c5f3c85dbbaa8b26821b07a908726c6d36d1b2b9, rama qa.
+- Build QA/PWA aprobado, 01:54:04.622–01:54:18.360 UTC: 13,738 s. Advertencia
+  conocida de bundle grande, sin cambios fuera del alcance.
+- Push qa correcto. Vercel dpl_2tsHANn2VRMzhyyXYjyYoon1Sz5e READY.
+- Observación GET del despliegue: 01:54:54.455–01:55:19.852, 25,397 s;
+  es la ventana observada después del push, no tiempo exacto del build remoto.
+- Verificación de identidad, proyecto, rama, alias, backend QA y marcadores:
+  5 GET, proceso 3,219 s. JS /assets/index-BIgUK92l.js y CSS
+  /assets/index-BlCqjNmb.css. Completada antes de 01:55:38 UTC.
+- Alias https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+- Prueba física pendiente: recargar ZIPCO, comprobar QA c5f3c85 y revisar la
+  tarjeta del negocio con negativa guardada, Condiciones, opciones y WhatsApp.
+- Memoria final local, sin otro push/despliegue por documentación. Sin cambios
+  en Railway, main o producción.

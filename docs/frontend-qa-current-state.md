@@ -21,22 +21,23 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
-Siguiente entrega autorizada: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
+Entrega vigente c5f3c85: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
 Conserva el diseño original de Condiciones aceptadas y los pasos inferiores,
 sin duplicar identidad/importe/acciones. 21 unitarias y siete recorridos
-focalizados aprobados. La entrega verificará build y publicación solo QA.
+focalizados aprobados. Build QA/PWA y publicación READY verificados. Pendiente
+comprobación física del usuario. No requiere Railway.
 
-Entrega vigente 29641b4: [tarjeta compacta del cliente tras Devolver](frontend-customer-declined-compact-card-qa.md).
+Entrega anterior 29641b4: [tarjeta compacta del cliente tras Devolver](frontend-customer-declined-compact-card-qa.md).
 Solo presentación; conserva permisos y acciones. 27 unitarias y 10 recorridos
 focalizados aprobados. Build QA/PWA y publicación READY comprobados. Falta
 prueba física del usuario en iPhone. No requiere Railway.
 
-Versión actual de aplicación, comprobada por lectura durante el piloto:
+Versión actual de aplicación, comprobada por lectura en el cierre:
 
-- Frontend 29641b414291b6b9ad534afdbb6fec446a5c5f53, rama qa.
-- Vercel dpl_HBACJuThKqCHJSWDpg75SanSaKEA, READY.
+- Frontend c5f3c85dbbaa8b26821b07a908726c6d36d1b2b9, rama qa.
+- Vercel dpl_2tsHANn2VRMzhyyXYjyYoon1Sz5e, READY.
 - Alias https://zipco-app-git-qa-zipco-s-projects.vercel.app.
-- JS /assets/index-BABZA0CH.js; CSS /assets/index-BzTGpkDu.css.
+- JS /assets/index-BIgUK92l.js; CSS /assets/index-BlCqjNmb.css.
 - El piloto no publicó una app; sus herramientas se incorporaron después en
   la entrega funcional autorizada 29641b4. Este cierre documental no publica.
 
