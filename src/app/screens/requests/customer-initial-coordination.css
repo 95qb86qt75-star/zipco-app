@@ -1,0 +1,100 @@
+/* Tarjeta inicial del cliente (pedido aceptado → iniciar coordinación por WhatsApp). Alcance: .zipco-ci y .zipco-ci-*.
+   Se activa solo en la variante cliente, no embebida y de producto (customerInitial). No modifica reglas globales zipco-co-*. */
+
+/* ── Superficie ─────────────────────────────────────────────── */
+.zipco-co-dk.zipco-ci{padding:14px;border-radius:24px;background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%);box-shadow:0 14px 30px rgba(30,27,75,.35),0 0 0 1.5px rgba(94,234,212,.35),0 0 26px rgba(139,92,246,.28)}
+.zipco-co-dk.zipco-ci::before{content:none}
+
+/* ── Cabecera (CoordinationCardHeader variant="customer-initial") ── */
+.zipco-ci-h{display:flex;align-items:center;gap:12px}
+.zipco-ci-th{position:relative;flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#6ee7b7,#a78bfa,#f9a8d4,#a78bfa,#6ee7b7);box-shadow:0 0 18px rgba(167,139,250,.5)}
+.zipco-ci-th .zipco-product-preview,.zipco-ci-th .zipco-product-neutral{width:50px;height:50px;border-radius:50%}
+.zipco-ci-th .zipco-product-thumbs{width:50px;max-width:50px;padding:0;overflow:visible}
+.zipco-ci-th .zipco-product-thumb{width:50px;height:50px;border-radius:50%;border:0;box-shadow:0 0 0 3px #141846}
+.zipco-ci-th .zipco-product-thumb>img,.zipco-ci-th .zipco-product-image-fallback{border-radius:50%}
+.zipco-ci-th .zipco-product-neutral,.zipco-ci-th .zipco-product-image-fallback{background:radial-gradient(circle at 30% 25%,#fde68a,#f59e0b 55%,#c2410c);color:#fff;border:0;box-shadow:0 0 0 3px #141846}
+.zipco-ci-th .zipco-product-thumb:not(:first-child),.zipco-ci-th .zipco-product-quantity{display:none}
+.zipco-ci-fb{display:grid;place-items:center;width:50px;height:50px;border-radius:50%;overflow:hidden;color:#fff;background:radial-gradient(circle at 30% 25%,#fde68a,#f59e0b 55%,#c2410c);box-shadow:0 0 0 3px #141846}
+.zipco-ci-q{position:absolute;left:-2px;bottom:-4px;z-index:2;min-width:22px;height:16px;padding:0 5px;border-radius:999px;display:grid;place-items:center;background:#fff;color:#0f172a;font-size:10px;font-weight:900;font-style:normal;box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none}
+.zipco-ci-nm{flex:1;min-width:0;font-size:16px;line-height:1.15;font-weight:900;overflow-wrap:anywhere}
+.zipco-ci-pr{flex:none;text-align:right}
+.zipco-ci-price{font-size:21px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(167,139,250,.9)}
+.zipco-ci-agreed{margin-top:4px;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:#d5dbe5}
+
+/* ── Fila de estado: Nueva · pill · Ocultar ───────────────── */
+.zipco-ci-sr{margin-top:11px;display:flex;align-items:center;gap:8px;min-width:0}
+.zipco-ci .zipco-co-pill{min-width:0;background:rgba(15,23,42,.35);color:#f1f5f9;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.zipco-ci .zipco-co-pill i{background:#5eead4}
+.zipco-ci-new{flex:none;border-radius:999px;background:#0ea5e9;color:#fff;font-size:9.5px;font-weight:900;padding:3px 7px}
+.zipco-ci-hide{position:relative;flex:none;margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 10px 0 11px;border:0;border-radius:999px;color:#e2e8f0;font:800 11.5px 'Outfit',sans-serif;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);cursor:pointer}
+.zipco-ci-hide::after{content:"";position:absolute;inset:-8px -4px}
+.zipco-ci-hide[data-folded="true"]{display:none}
+.zipco-ci-hide:focus-visible,.zipco-ci-dtl:focus-visible,.zipco-ci-lnk:focus-visible,.zipco-ci-ob:focus-visible,.zipco-ci-close:focus-visible{outline:2px solid #5eead4;outline-offset:3px}
+
+/* ── Zona de acción ───────────────────────────────────────── */
+.zipco-ci-act{margin-top:12px}
+.zipco-ci .zipco-co-strip2{margin-top:12px}
+.zipco-ci :is(.zipco-co-go,.zipco-contact-consent){border-radius:16px;min-height:52px}
+.zipco-ci .zipco-co-go2{border-radius:16px}
+.zipco-ci .zipco-co-ld{height:52px;border-radius:16px}
+.zipco-ci .zipco-co-rail{height:52px}
+.zipco-ci-help{margin:9px 2px 0;font-size:12px;line-height:1.4;color:#cbd5e1}
+.zipco-ci-act>.zipco-co-wrapb{margin-top:12px}
+.zipco-ci-recovery{margin-top:12px}.zipco-ci-recovery .zipco-co-go2{margin-top:10px}
+.zipco-ci-lnk{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;border:0;background:none;color:#c4b5fd;font:700 13px 'Outfit',sans-serif;cursor:pointer}
+.zipco-ci-lnk:disabled{opacity:.5}
+.zipco-ci-lg{margin:8px 2px 0;display:flex;align-items:center;gap:6px;font-size:11.5px;line-height:1.3;color:#a5b4c7}
+.zipco-ci-lg svg{flex:none;color:#5eead4}
+.zipco-ci-dtl{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:10px;padding:0 12px;border:0;border-radius:14px;background:rgba(226,232,240,.07);box-shadow:inset 0 0 0 1px rgba(203,213,225,.22);color:#e2e8f0;font:600 12.5px 'Outfit',sans-serif;text-align:left;cursor:pointer}
+.zipco-ci-dtl-t{flex:1;min-width:0}.zipco-ci-dtl-t b{color:#fff;font-weight:800}
+.zipco-ci-dots{display:flex;gap:4px}
+.zipco-ci-dots i{width:16px;height:5px;border-radius:3px;background:rgba(255,255,255,.2)}
+.zipco-ci-dots i[data-on="true"]{background:#34d399}
+.zipco-ci-dots i:last-child[data-on="true"]{background:#5eead4}
+
+/* ── Hoja inferior ────────────────────────────────────────── */
+
+.zipco-ci-bg{position:fixed;inset:0;z-index:900;background:rgba(2,8,23,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.zipco-ci-sh{position:fixed;z-index:901;font-family:Outfit,sans-serif;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;border-radius:26px 26px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom));background:#0b1626;color:#e7faff;box-shadow:0 -10px 40px rgba(0,0,0,.5),inset 0 1.5px 0 rgba(103,232,249,.5);outline:none}
+.zipco-ci-gr{width:42px;height:4px;border-radius:9px;background:#475569;margin:0 auto 12px}
+.zipco-ci-sh-t{margin:0;font-size:19px;font-weight:900}
+.zipco-ci-sh .zipco-co-sm{color:#a9bbcf}
+.zipco-ci-sp{display:grid;grid-template-columns:repeat(3,1fr);list-style:none;margin:18px 0 8px;padding:0}
+.zipco-ci-sp>li{position:relative;min-width:0;padding:0 2px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.zipco-ci-sp>li>b{margin-top:6px;font-size:12px;font-weight:800;line-height:1.2;color:#f1f5f9}
+.zipco-ci-sp>li>small{margin-top:2px;font-size:10.5px;line-height:1.25;color:#a5b4c7}
+.zipco-ci-nd{position:relative;z-index:1;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:900;color:#94a3b8;background:#232b4a;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22)}
+.zipco-ci-sp>li[data-done="true"] .zipco-ci-nd{color:#fff;background:linear-gradient(145deg,#10b981,#059669);box-shadow:0 0 0 4px rgba(52,211,153,.14)}
+.zipco-ci-sp>li[data-current="true"] .zipco-ci-nd{color:#052e2b;background:#5eead4;box-shadow:0 0 0 4px rgba(94,234,212,.2)}
+.zipco-ci-ln{position:absolute;top:13px;left:calc(-50% + 18px);right:calc(50% + 18px);height:2px;border-radius:2px;background:rgba(255,255,255,.16)}
+.zipco-ci-ln i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:linear-gradient(90deg,#34d399,#5eead4)}
+.zipco-ci-ln i[data-fill="true"]{width:100%}
+/* La línea de «Contacto» se rellena mientras carga (1,4 s). La de «WhatsApp» se rellena al terminar la carga (2,4 s, retraso 1,3 s): suman los 3,9 s del controlador. */
+.zipco-ci-ln i[data-run="true"]{width:100%;animation:zipco-ci-fill 1.4s cubic-bezier(.4,0,.2,1) both}
+.zipco-ci-ln i[data-late="true"]{width:100%;animation:zipco-ci-fill 2.4s cubic-bezier(.4,0,.2,1) 1.3s both}
+.zipco-ci-nd[data-pop="true"]{animation:zipco-co-un-nodepop .8s cubic-bezier(.2,.9,.25,1.2) both}
+.zipco-ci-nd[data-pop="true"]::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid #34d399;animation:zipco-co-un-ring 1.1s ease-out .15s both}
+.zipco-ci-nd[data-pulse="true"]{animation:zipco-co-un-dot 1.9s ease-in-out infinite}
+@keyframes zipco-ci-fill{from{width:0}to{width:100%}}
+.zipco-ci-ob{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px;margin-top:14px;border:1px solid rgba(253,164,175,.5);border-radius:14px;background:transparent;color:#fda4af;font:800 12.5px 'Outfit',sans-serif;cursor:pointer}
+.zipco-ci-ob:disabled{opacity:.5}
+.zipco-ci-sh :is(.zipco-co-lk,button):not(.zipco-ci-ob):not(.zipco-ci-close){min-height:44px}
+.zipco-ci-close{display:block;width:100%;min-height:46px;margin-top:14px;border:0;border-radius:14px;background:#122d40;color:#e7faff;font:800 13px 'Outfit',sans-serif;box-shadow:inset 0 0 0 1px rgba(100,130,150,.5);cursor:pointer}
+
+/* ── Adaptación ───────────────────────────────────────────── */
+@media(max-width:350px){
+  .zipco-ci-nm{font-size:14.5px}.zipco-ci-price{font-size:18px}
+  .zipco-ci-hide span{display:none}.zipco-ci-hide{padding:0 9px}
+  .zipco-ci-dtl{font-size:11.5px}.zipco-ci-sp>li>small{font-size:10px}
+  .zipco-ci-th{width:52px;height:52px}
+}
+
+/* ── Movimiento reducido ──────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  .zipco-ci-ln i[data-run="true"],.zipco-ci-ln i[data-late="true"],.zipco-ci-nd[data-pop="true"],.zipco-ci-nd[data-pop="true"]::after,.zipco-ci-nd[data-pulse="true"]{animation:none!important}
+}
+@media(prefers-reduced-motion:no-preference){.zipco-ci-sh{animation:zipco-ci-up .25s ease-out both}.zipco-ci-bg{animation:zipco-ci-bg .25s ease-out both}}
+@keyframes zipco-ci-up{from{transform:translateY(40px);opacity:0}}
+@keyframes zipco-ci-bg{from{opacity:0}}
+
+.zipco-ci-sh[data-coordination-motion="idle"] *, .zipco-ci-sh[data-coordination-motion="idle"] *::after,.zipco-ci-sh[aria-hidden="true"] *{animation-play-state:paused!important}

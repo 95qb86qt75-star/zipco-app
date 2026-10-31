@@ -1,10 +1,25 @@
-import { ChevronDown, User } from 'lucide-react';
+import { ChevronDown, ShoppingBag, User } from 'lucide-react';
 import ProductPreviewControl from './ProductPreviewControl';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
-export function CoordinationCardHeader({ name, image, price, statusLabel, isUnread = false }: {
+export function CoordinationCardHeader({ name, image, price, statusLabel, isUnread = false, variant, quantity }: {
   name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean;
+  /** Presentación opcional del cliente (pedido aceptado, producto). Sin variante, la cabecera conserva su apariencia actual. */
+  variant?: 'customer-initial'; quantity?: number;
 }) {
+  if (variant === 'customer-initial') return <div className="zipco-ci-h">
+    <span className="zipco-ci-th">
+      <ProductPreviewControl fallback={<span className="zipco-ci-fb">{image ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-full object-cover" /> : <ShoppingBag size={24} strokeWidth={2} aria-hidden="true" />}</span>}/>
+      {quantity ? <i className="zipco-ci-q">{quantity}×</i> : null}
+    </span>
+    <div className="zipco-ci-nm zipco-co-client-name">{name}</div>
+    <div className="zipco-ci-pr">
+      <div data-agreement-price className="zipco-ci-price">
+        {price === null ? <span aria-label="Total pendiente de verificación" className="inline-block h-[21px] w-20 rounded-md bg-white/10 align-bottom" /> : `$${price.toLocaleString('es-CL')}`}
+      </div>
+      <div className="zipco-ci-agreed">ACORDADO</div>
+    </div>
+  </div>;
   return <div style={{ display:'flex',alignItems:'center',gap:12 }}>
     <ProductPreviewControl fallback={<span className="zipco-co-av">{image ? <ImageWithFallback src={image} alt="" className="h-full w-full rounded-[14px] object-cover" /> : <User size={24} strokeWidth={2} aria-hidden="true" />}</span>}/>
     <div style={{ minWidth:0,flex:1 }}>

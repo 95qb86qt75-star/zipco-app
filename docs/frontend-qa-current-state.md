@@ -21,13 +21,18 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Versión publicada frente a memoria local
 
+Integrada para publicar la [variante B inicial del cliente de Claude](frontend-customer-initial-coordination-variant-b-qa.md).
+Tres archivos de diseño adaptados; ventana original de Condiciones aceptadas
+preservada y comparada en navegador. 23 unitarias y nueve recorridos focalizados
+aprobados. Se conserva el flujo de negocio y la consulta posterior; sin backend.
+
 Entrega vigente para Claude: [prompt reducido del cliente antes del primer acceso WhatsApp](PROMPT_CLAUDE_CLIENTE_INICIAR_COORDINACION.md).
 El usuario obtiene dos TSX reales y un CSS global solo de referencia de las
 rutas indicadas; Claude devuelve los TSX modificados y un CSS nuevo aislado.
 Incluye líneas, lógica, clics y animaciones sin JSON ni carpetas de contexto.
 Sustituye para este trabajo al paquete amplio anterior, que queda histórico.
-No se implementa ni despliega un diseño por preparar el prompt; pendiente
-recibir la devolución de Claude y la autorización de integración.
+Ese bloque solo preparó el prompt. Después el usuario entregó los tres archivos
+de la variante B y autorizó su integración; ver el informe enlazado arriba.
 
 Entrega vigente c5f3c85: [tarjeta fusionada de coordinación del negocio](frontend-business-coordination-fused-card-qa.md).
 Conserva el diseño original de Condiciones aceptadas y los pasos inferiores,

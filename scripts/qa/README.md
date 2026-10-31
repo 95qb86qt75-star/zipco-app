@@ -69,3 +69,8 @@ Las fases anidadas o ejecuciones paralelas no deben sumarse al total del bloque.
 No se reescribieron check-coordination-inline, check-availability-flow ni
 check-availability-status-flow. Tampoco se cambiaron scripts de package.json,
 frameworks, configuración, build o despliegues.
+
+La variante inicial del cliente tiene escenarios adicionales reutilizando este
+runner: `node scripts/check-customer-initial-coordination.mjs --list`. Seleccionar
+por caso/ancho. Incluyen controles, consentimiento, bloqueo, revocación y
+recuperación; la firma original de Condiciones se compara en controls a 393 px.
