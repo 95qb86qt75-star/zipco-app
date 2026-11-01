@@ -3,7 +3,7 @@ import { showStatusToast, hideStatusToast } from "./statusToast.ts";
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Check,Clock3,LoaderCircle} from 'lucide-react';
 import { readCoordinationSession, subscribeCoordinationSession } from "../../application/intents/coordinationSession";
-import { getStatusChange, getStatusNotice, closeStatusNotice, projectStatusOrders, registerStatusPage, subscribeStatusChanges, statusResultCopy, isStatusArrival, markStatusArrival, type StatusOrder } from "./statusChangePresentation";
+import { getStatusChange, getStatusNotice, closeStatusNotice, projectStatusOrders, registerStatusPage, subscribeStatusChanges, statusResultCopy, isStatusArrival, markStatusArrival, usesAvailableWhatsappExit, type StatusOrder } from "./statusChangePresentation";
 import type { StatusView } from "../../domain/requestStatusGrouping";
 import { scrollToRequestOrder } from "../../application/motion/requestSummaryScroll";
 import ProductPreviewControl from "../product-preview/ProductPreviewControl";
@@ -13,7 +13,8 @@ export function useStatusChangeRecords<T extends StatusOrder>(orders:T[],busines
 export function useCardStatusChange(order:StatusOrder,business:boolean){useStatusRevision();return getStatusChange(order,business);}
 export default function StatusChangeFlow({order,business,children}:{order:StatusOrder;business:boolean;children:ReactNode}){
   const change=useCardStatusChange(order,business),copy=change?.result?statusResultCopy(change.result,change.source):null;
-  const presentation=change&&!(change.inlineSaving&&change.stage==='saving');
+  const designExit=change?.stage==='exiting'&&usesAvailableWhatsappExit(order,business);
+  const presentation=change&&!(change.inlineSaving&&change.stage==='saving')&&!designExit;
   const arriving=isStatusArrival(order,business),root=useRef<HTMLDivElement>(null);
   useEffect(()=>{
     if(!arriving||!root.current)return;
@@ -29,7 +30,7 @@ export default function StatusChangeFlow({order,business,children}:{order:Status
     const resize=typeof ResizeObserver==='undefined'?null:new ResizeObserver(focus);resize?.observe(container);
     return()=>{observer.disconnect();resize?.disconnect();previous?.removeAttribute("data-arrived");};
   },[arriving]);
-  return <div ref={root} data-arrival={arriving||undefined} className="zipco-status-flow" data-presenting={!!presentation} data-status-order={`${business}:${order.id}:${order.requestProcess?.id}`} data-stage={change?.stage}>
+  return <div ref={root} data-arrival={arriving||undefined} className="zipco-status-flow" data-design-exit={designExit||undefined} data-presenting={!!presentation} data-status-order={`${business}:${order.id}:${order.requestProcess?.id}`} data-stage={change?.stage}>
     <div className="zipco-status-flow-inner">
       <div className="zipco-status-source" aria-hidden={presentation?true:undefined} style={presentation&&change?.height?{height:change.height}:undefined} {...(presentation?{inert:''}:{})}>{children}</div>
       {presentation&&change&&<div className="zipco-status-overlay"><article role="status" aria-label={copy?.title??'Guardando respuesta'} className="zipco-status-result" data-amber={copy?.amber}>

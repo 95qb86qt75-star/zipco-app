@@ -1,11 +1,18 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-10-31, America/Santiago.
+Actualizado: 2026-11-01, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- Disponible del cliente, camino WhatsApp CliU18: diseño completo integrado con
+  componentes reales, plegado accesible, recuperación visible y salida de 900 ms
+  conectada después del holograma. Retiro y otras confirmaciones conservados.
+  [Informe y tiempos](frontend-available-whatsapp-cliu18-qa.md): 109 unitarias,
+  12 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en preparación;
+  pendiente comprobación física en iPhone/Android.
 
 - Retiro local del cliente CliU17 integrado: cabecera, carril sin cortes y detalle
   completo con pestañas «Cómo retirar» / «Contacto y opciones». Una sola composición,

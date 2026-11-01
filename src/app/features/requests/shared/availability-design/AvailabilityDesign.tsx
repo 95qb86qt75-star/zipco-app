@@ -3,7 +3,7 @@ import BusinessResponseHoursNotice from "../hours/BusinessResponseHoursNotice";
 import { useId, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { ArrowLeft, ArrowLeftRight, CalendarDays, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Hourglass, LockKeyhole, Pencil, Send, ShieldCheck, Store, UserRound, X, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Hourglass, LockKeyhole, Pencil, Send, ShieldCheck, Store, UserRound, X, Zap } from 'lucide-react';
 import AcceptGlassButton from "../../cards/shared/coordination/AcceptGlassButton";
 import WhatsAppMark from "../icons/WhatsAppMark";
 import "./availability-design.css";
@@ -115,13 +115,16 @@ function Modal({ open, onOpenChange, title, description, children, sheet = false
   </Dialog.Portal></Dialog.Root>;
 }
 
-export function DesignConfirmation({ open, onOpenChange, title, description, confirmLabel, onConfirm, children, cancelLabel = 'Volver' }: {
+export function DesignConfirmation({ open, onOpenChange, title, description, confirmLabel, onConfirm, children, cancelLabel = 'Volver', variant }: {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; confirmLabel: string;
-  onConfirm: () => void; children?: ReactNode; cancelLabel?: string;
+  onConfirm: () => void; children?: ReactNode; cancelLabel?: string; variant?: 'decline';
 }) {
+  // Explicit visual variant: unrelated confirmations keep their existing presentation.
+  const decline = variant === 'decline';
   return <AlertDialog.Root open={open} onOpenChange={onOpenChange}><AlertDialog.Portal>
     <AlertDialog.Overlay className="zipco-av-overlay zipco-av-alert-overlay" />
-    <AlertDialog.Content className="zipco-av-dialog zipco-av-alert">
+    <AlertDialog.Content className={`zipco-av-dialog zipco-av-alert${decline ? ' zipco-av-alert-decline' : ''}`}>
+      {decline && <span className="zipco-av-decline-ic" aria-hidden="true"><X /></span>}
       <AlertDialog.Title className="zipco-av-dialog-title">{title}</AlertDialog.Title>
       <AlertDialog.Description className="zipco-av-dialog-description">{description}</AlertDialog.Description>
       {children}<div className="zipco-av-button-row">
@@ -213,12 +216,65 @@ export function BusinessDesignActions({ data, onConfirm, onAlternative, onReject
   </div>;
 }
 
-export function AvailableRequestDesign({ data, expanded, onToggle, pickup, contact, onContactChange, onContinue, onDecline, busy = false, error, extraDetails,reservationNote,onReservationNote,onReserve,simplified=false }: {
+const DISPONIBLE = 'DISPONIBLE'.split('');
+
+/** Camino «Coordinarán por WhatsApp» (diseño CliU18). Única implementación de esta variante; el retiro local sigue en AvailableRequestDesign.
+ *  Solo presentación: usa los mismos datos, callbacks y componentes reales (ProductPreviewControl, AcceptGlassButton, ContactSwitch). */
+function AvailableWhatsappDesign({ data, expanded, onToggle, contact, onContactChange, onContinue, onDecline, busy, error, extraDetails, onReserve, simplified, leaving, recovery }: {
+  data: RequestDesignData; expanded: boolean; onToggle: () => void; contact: boolean; onContactChange: (checked: boolean) => void;
+  onContinue: () => void; onDecline: () => void; busy: boolean; error?: string; extraDetails?: ReactNode;
+  onReserve?: () => void; simplified: boolean; leaving: boolean; recovery?: ReactNode;
+}) {
+  const detailsId = useId(), stateId = useId();
+  return <article className="zipco-av-ticket zipco-av-available zipco-av-available-wa" data-leaving={leaving ? 'true' : undefined} data-expanded={expanded} aria-busy={busy}
+    aria-label={`${data.counterpart}: disponibilidad confirmada`} {...(leaving?{inert:''}:{})}>
+    <div className="zipco-av-ticket-inner"><TicketHeader data={data} kind="available" />
+      {/* Estado + carril: se pliegan al abrir el detalle para que la tarjeta no ocupe toda la pantalla. */}
+      <div className="zipco-avwa-fold" data-open={!expanded} aria-hidden={expanded}><div><div className="zipco-avwa-status">
+        <h2 className="zipco-avwa-pill"><i aria-hidden="true"><Check /></i><span className="zipco-avwa-sr">Disponible</span><b aria-hidden="true">{DISPONIBLE.map((letter, index) => <span key={index} style={{ animationDelay: `${(index * 0.09).toFixed(2)}s` }}>{letter}</span>)}</b></h2>
+        <p className="zipco-av-subtitle">Confirmaron que lo tienen. ¿Quieres continuar con la compra?</p>
+        <ol className="zipco-avwa-rail" aria-label="Estado de la solicitud">
+          <li data-kind="done"><span aria-hidden="true"><Check /></span><small>NEGOCIO</small><b>Disponible</b></li>
+          <li data-kind="now"><span aria-hidden="true"><Hourglass /></span><small>TÚ</small><b>Decidir</b></li>
+          <li data-kind="lock"><span aria-hidden="true"><LockKeyhole /></span><small>WHATSAPP</small><b>Después</b></li>
+        </ol>
+      </div></div></div>
+      {/* Los errores y la recuperación nunca quedan ocultos por el pliegue. */}
+      {error && <p role="alert" className="zipco-av-error">{error}</p>}
+      {recovery}
+      <div id={detailsId} className="zipco-avwa-fold" data-open={expanded} aria-hidden={!expanded} {...(!expanded?{inert:''}:{})}><div><div className="zipco-avwa-detail">
+        <Items data={data} showPrice />
+        {extraDetails && <div className="zipco-avwa-extra">{extraDetails}</div>}
+        <section className="zipco-avwa-card" aria-label="Coordinación por WhatsApp">
+          <div className="zipco-avwa-how"><span className="zipco-avwa-wa" aria-hidden="true"><WhatsAppMark /></span><div><h3>Coordinarán por WhatsApp</h3>
+            <p>El negocio quiere acordar contigo los detalles, el pago y la entrega por WhatsApp.</p></div></div>
+          {!simplified && <><div className="zipco-avwa-consent"><div><b>Permitir que este negocio me escriba por WhatsApp</b>
+            <span id={stateId} role="status" className="zipco-avwa-state" data-on={contact}>{contact ? 'Permitido' : 'No permitido'}</span></div>
+            <ContactSwitch checked={contact} disabled={busy} onChange={() => onContactChange(!contact)} /></div>
+            <small>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</small></>}
+        </section>
+        {!simplified && onReserve && <AcceptGlassButton label={busy ? 'Guardando…' : 'Solicitar reserva'} flush disabled={busy} onClick={onReserve} />}
+        <div className="zipco-av-decisions zipco-avwa-decisions"><AcceptGlassButton label={busy ? 'Guardando…' : onReserve ? 'Iré sin reserva' : 'Sí, continuar con la compra'} flush disabled={busy} onClick={onContinue} />
+          <button type="button" className="zipco-av-decline" disabled={busy} onClick={onDecline}><X />No, gracias</button></div>
+        <p className="zipco-av-fine zipco-av-centered"><ShieldCheck />Esto no representa un pago realizado.</p>
+      </div></div></div>
+      <footer className="zipco-av-ticket-footer zipco-av-centered">
+        <button type="button" className="zipco-av-disclosure zipco-avwa-dis" disabled={busy||leaving} aria-expanded={expanded} aria-controls={detailsId} onClick={onToggle}>{expanded ? 'Ocultar detalle' : 'Ver detalle'}<ChevronDown aria-hidden="true" /></button>
+      </footer>
+    </div>
+  </article>;
+}
+
+export function AvailableRequestDesign({ data, expanded, onToggle, pickup, contact, onContactChange, onContinue, onDecline, busy = false, error, extraDetails,reservationNote,onReservationNote,onReserve,simplified=false,leaving=false,recovery }: {
   data: RequestDesignData; expanded: boolean; onToggle: () => void; pickup?: Omit<PickupDesign,'reservationOffer'> & {reservationOffer?:ReservationOffer};
   contact: boolean; onContactChange: (checked: boolean) => void; onContinue: () => void; onDecline: () => void; busy?: boolean; error?: string; extraDetails?: ReactNode;
   reservationNote?:string;onReservationNote?:(v:string)=>void;onReserve?:()=>void;simplified?:boolean;
+  /** Solo camino WhatsApp. La pone en true el flujo existente cuando ya va a quitar la tarjeta (tras el holograma): corre la salida visual. No cambia datos ni acciones. */
+  leaving?: boolean;
+  recovery?: ReactNode;
 }) {
   const detailsId = useId(), unavailableId = useId();
+  if (!pickup) return <AvailableWhatsappDesign data={data} expanded={expanded} onToggle={onToggle} contact={contact} onContactChange={onContactChange} onContinue={onContinue} onDecline={onDecline} busy={busy} error={error} extraDetails={extraDetails} onReserve={onReserve} simplified={simplified} leaving={leaving} recovery={recovery} />;
   return <article className="zipco-av-ticket zipco-av-available" aria-label={`${data.counterpart}: disponibilidad confirmada`}>
     <div className="zipco-av-ticket-inner"><TicketHeader data={data} kind="available" />
       <h2 className="zipco-av-neon">DISPONIBLE</h2><p className="zipco-av-subtitle">Confirmaron que lo tienen. ¿Quieres continuar con la compra?</p>
@@ -226,17 +282,15 @@ export function AvailableRequestDesign({ data, expanded, onToggle, pickup, conta
       <div id={detailsId} hidden={!expanded}>
         <Items data={data} showPrice /><Perforation />
         {extraDetails}
-        {pickup ? <section className="zipco-av-channel-summary"><h3><Store />El negocio te espera en el local</h3>
+        <section className="zipco-av-channel-summary"><h3><Store />El negocio te espera en el local</h3>
           <blockquote>{pickup.message || DEFAULT_PICKUP_MESSAGE}{pickup.scheduleOrAddress && <span><Clock />{pickup.scheduleOrAddress}</span>}</blockquote>
           <p>{pickup.reservationOffer&&pickup.reservationOffer.mode!=='NONE'?'Puedes solicitar que guarden todo el pedido o ir sin reserva.':'No es una reserva: pagas y retiras directamente en el local.'}</p>
           {!simplified&&pickup.reservationOffer&&<ReservationOfferSummary offer={pickup.reservationOffer}/>}
           {!simplified&&pickup.reservationOffer&&pickup.reservationOffer.mode!=='NONE'&&onReservationNote&&<label className="mt-2 block text-xs">Nota opcional para la reserva<textarea aria-label="Nota para la reserva" className="mt-1 w-full rounded-xl border bg-white p-2 text-slate-950" disabled={busy} value={reservationNote??''} onChange={e=>onReservationNote(Array.from(e.target.value).slice(0,300).join(''))}/></label>}
           {pickup.allowsContact && <><button type="button" className="zipco-av-contact-button" disabled aria-describedby={unavailableId}><WhatsAppMark />Escribir por WhatsApp</button>
             <small id={unavailableId}>Disponible después de confirmar que continúas y autorizar el contacto.</small></>}
-        </section> : <section className="zipco-av-channel-summary"><h3><WhatsAppMark />Coordinarán por WhatsApp</h3>
-          <p>El negocio quiere acordar contigo los detalles, el pago y la entrega por WhatsApp.</p>
-        </section>}
-        {!simplified&&(!pickup || pickup.allowsContact) && <section className="zipco-av-channel-summary">
+        </section>
+        {!simplified&&pickup.allowsContact && <section className="zipco-av-channel-summary">
           <div className="zipco-av-consent zipco-av-consent-dark"><b>Permitir que este negocio me escriba por WhatsApp</b><ContactSwitch checked={contact} disabled={busy} onChange={() => onContactChange(!contact)} /></div>
           <small>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</small>
         </section>}

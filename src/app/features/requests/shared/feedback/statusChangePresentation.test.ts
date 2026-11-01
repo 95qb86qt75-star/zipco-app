@@ -2,6 +2,7 @@ import {beforeEach,afterEach,expect,it,vi} from 'vitest';
 import { normalizeBusinessOrdersPayload } from "../../domain/orderNormalization";
 import { coordinationProcess, rawOrder } from "../../fixtures/requestProcessFixtures";
 import { countStatusViews } from "../../domain/requestStatusGrouping";
+import {availabilityWaiting,availabilityAccepted} from "../../fixtures/availabilityFixtures";
 let api:typeof import("./statusChangePresentation"),identity:Map<string,string>;
 const source=()=>normalizeBusinessOrdersPayload([{...rawOrder,status:'accepted',requestProcess:{...coordinationProcess,state:'COORDINATING',version:7}}])[0];
 const advance=(state='IN_PROGRESS',version=8)=>{const s=source();return {...s,requestProcess:{...s.requestProcess!,state,version}};};
@@ -41,4 +42,14 @@ it('highlights only the explicit destination order in the same session and role'
  expect(api.isStatusArrival(source(),true)).toBe(true);expect(api.isStatusArrival(source(),false)).toBe(false);
  vi.advanceTimersByTime(2400);expect(api.isStatusArrival(source(),true)).toBe(false);
  api.markStatusArrival(20,true);identity.set('zipco-token','another');expect(api.isStatusArrival(source(),true)).toBe(false);
+});
+it('runs the availability WhatsApp exit for 900 ms after the hologram, then exposes Ver',async()=>{
+ const gate=await import('./statusOverlay'),old={...source(),status:'pending',requestProcess:availabilityWaiting},fresh={...source(),requestProcess:availabilityAccepted};
+ api.registerStatusPage({},false,'waiting',true);const owner={};gate.setStatusOverlay(owner,true);
+ const change=api.beginStatusChange(old,false)!;api.completeStatusChange(change,fresh);vi.advanceTimersByTime(6000);
+ expect(change.stage).toBe('success');expect(api.getStatusNotice()).toBeNull();gate.setStatusOverlay(owner,false);
+ expect(change.stage).toBe('exiting');vi.advanceTimersByTime(899);expect(api.getStatusNotice()).toBeNull();
+ vi.advanceTimersByTime(1);expect(api.getStatusChange(old,false)).toBeUndefined();expect(api.getStatusNotice()).toMatchObject({view:'coordination',title:'Solicitud confirmada'});
+ expect(api.usesAvailableWhatsappExit(old,true)).toBe(false);
+ expect(api.usesAvailableWhatsappExit({...old,requestProcess:{...availabilityWaiting,availability:{...availabilityWaiting.availability!,path:'LOCAL_PICKUP'}}},false)).toBe(false);
 });

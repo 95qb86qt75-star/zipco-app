@@ -180,3 +180,143 @@
 @keyframes zipco-customer-waiting-pulse{0%,100%{opacity:1;text-shadow:0 0 6px #e879f9,0 0 18px #c026d3,0 0 36px #a21caf}50%{opacity:.62;text-shadow:0 0 3px #e879f9,0 0 8px #c026d3}}
 @media(max-width:350px){.zipco-av-identity b{font-size:14px}.zipco-av-price b{font-size:17px}.zipco-av-identity small{font-size:8px}.zipco-av-ticket-inner{padding:12px}.zipco-av-ticket-footer{flex-wrap:wrap}.zipco-av-decisions{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}.zipco-av-decisions .zipco-accept-label{font-size:11px}.zipco-av-business .zipco-accept-price{padding:5px}.zipco-av-dialog{padding-inline:15px}}
 @media(prefers-reduced-motion:reduce){.zipco-av-ticket *,.zipco-av-dialog *{animation:none!important;transition:none!important}}
+
+/* =====================================================================================================
+   ZIPCO · Cliente · «Disponible» · camino «Coordinarán por WhatsApp» (diseño CliU18). Todo lo de abajo es NUEVO y está acotado
+   a .zipco-av-available-wa (el retiro local y las demás tarjetas no se ven afectados) o a .zipco-av-alert-decline.
+   ===================================================================================================== */
+.zipco-av-available-wa{background:linear-gradient(125deg,#22d3ee,#7c3aed 60%,#34d399);box-shadow:0 14px 28px #1e1b4b52,0 0 22px #34d39938}
+.zipco-av-available-wa .zipco-av-ticket-inner{background:radial-gradient(120% 70% at 100% 0,#a855f733,transparent 65%),linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%)}
+.zipco-av-available-wa .zipco-av-ticket-header{gap:11px}
+.zipco-av-available-wa .zipco-av-identity b{font-size:15.5px}
+.zipco-av-available-wa .zipco-av-price b{font-size:19px}
+.zipco-av-available-wa .zipco-product-thumbs{max-width:104px;padding:2px 2px 6px}
+.zipco-av-available-wa .zipco-product-thumb{width:46px;height:46px;border-radius:14px}
+.zipco-av-available-wa .zipco-product-thumb::after{content:'';position:absolute;inset:-4px}
+.zipco-av-available-wa .zipco-av-ticket-icon{width:46px;height:46px;border-radius:14px}
+.zipco-av-available-wa .zipco-av-ticket-icon svg{width:22px;height:22px}
+.zipco-avwa-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Pliegue (650 ms): estado/carril al plegar; detalle al desplegar ---------- */
+.zipco-avwa-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .65s cubic-bezier(.65,0,.25,1),opacity .35s ease,visibility 0s .65s}
+.zipco-avwa-fold[data-open=true]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .65s cubic-bezier(.65,0,.25,1),opacity .35s ease .15s,visibility 0s}
+.zipco-avwa-fold>div{min-height:0;overflow:hidden}
+
+/* ---------- «DISPONIBLE»: entrada con rebote, ola de letras, ondas del check, destello y latido ---------- */
+.zipco-avwa-status{padding-top:12px;text-align:center}
+.zipco-avwa-pill{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:8px;margin:0;padding:5px 14px 5px 7px;border-radius:99px;background-color:#34d39924;box-shadow:inset 0 0 0 1.5px #4ade808c;animation:zipco-avwa-jelly .9s cubic-bezier(.2,1.2,.4,1) both,zipco-avwa-bump 4.4s ease-in-out 1.6s infinite}
+.zipco-avwa-pill::before{content:'';position:absolute;left:7px;top:50%;width:24px;height:24px;margin-top:-12px;border-radius:50%;border:2px solid #4ade80;animation:zipco-avwa-ripple 2.2s ease-out infinite;pointer-events:none}
+.zipco-avwa-pill::after{content:'';position:absolute;top:0;bottom:0;left:0;width:30%;background:linear-gradient(100deg,transparent,#ffffff73,transparent);animation:zipco-avwa-sweep 4.4s ease-in-out 1.2s infinite;pointer-events:none}
+.zipco-avwa-pill>i{position:relative;z-index:1;overflow:hidden;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#064e3b;background:#34d399;animation:zipco-avwa-halo 2.8s ease-in-out infinite}
+.zipco-avwa-pill>i svg{width:14px;height:14px;stroke-width:3.4}
+.zipco-avwa-pill>b{display:inline-flex;font-size:21px;line-height:1;font-weight:900;letter-spacing:.12em;color:#bbf7d0;text-shadow:0 0 6px #4ade80,0 0 16px #16a34a}
+.zipco-avwa-pill>b>span{display:inline-block;animation:zipco-avwa-wave 4.4s ease-in-out 1.4s infinite}
+.zipco-av-available-wa .zipco-av-subtitle{margin:9px 0 0;font-size:12.5px;color:#a7f3d0}
+
+/* ---------- Carril: negocio listo → tú decides → WhatsApp después ---------- */
+.zipco-avwa-rail{list-style:none;display:flex;align-items:flex-start;gap:0;margin:12px 0 0;padding:10px 6px 9px;border-radius:16px;background:#ffffff0f;box-shadow:inset 0 0 0 1px #ffffff1f}
+.zipco-avwa-rail>li{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px}
+.zipco-avwa-rail>li+li::before{content:'';position:absolute;top:12px;right:calc(50% + 17px);width:calc(100% - 34px);height:2px;border-radius:2px;background:#94a3b859}
+.zipco-avwa-rail>li[data-kind=now]::before{background:linear-gradient(90deg,#34d399,#5eead4)}
+.zipco-avwa-rail>li>span{position:relative;width:26px;height:26px;border-radius:50%;display:grid;place-items:center}
+.zipco-avwa-rail>li>span svg{width:14px;height:14px;stroke-width:3}
+.zipco-avwa-rail small{display:block;font-size:9px;font-weight:900;letter-spacing:.13em;line-height:1;color:#94a3b8}
+.zipco-avwa-rail b{display:block;margin-top:-1px;font-size:12px;line-height:1.15;font-weight:800;color:#fff;overflow-wrap:anywhere}
+.zipco-avwa-rail>li[data-kind=done]>span{overflow:hidden;color:#064e3b;background:#34d399;animation:zipco-avwa-halo 2.8s ease-in-out infinite}
+.zipco-avwa-rail>li[data-kind=done]>span::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#ffffffd9 50%,transparent 70%);transform:translateX(-130%);animation:zipco-avwa-shine 3.8s ease-in-out infinite}
+.zipco-avwa-rail>li[data-kind=now]>span{color:#451a03;background:#fbbf24;box-shadow:0 0 0 3px #fbbf2438}
+.zipco-avwa-rail>li[data-kind=now]>span::before{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid #fbbf24;animation:zipco-avwa-ring 2s ease-out infinite}
+.zipco-avwa-rail>li[data-kind=lock]>span{color:#94a3b8;background:#94a3b838;box-shadow:inset 0 0 0 1.5px #94a3b866}
+.zipco-avwa-rail>li[data-kind=lock] b{color:#94a3b8}
+
+/* ---------- Detalle compacto ---------- */
+.zipco-avwa-detail{padding-top:12px}
+.zipco-av-available-wa .zipco-av-items{margin-top:0;gap:6px}
+.zipco-av-available-wa .zipco-av-item{align-items:flex-start;font-size:13px}
+.zipco-av-available-wa .zipco-av-quantity{min-width:26px;height:24px;border-radius:9px;font-size:12px;font-weight:800;background:#22d3ee29}
+.zipco-av-available-wa .zipco-av-item-name{padding-top:2px;line-height:1.25}
+.zipco-av-available-wa .zipco-av-item>b{padding-top:2px}
+.zipco-avwa-extra{display:grid;gap:0;margin-top:8px;padding-top:8px;border-top:1px dashed #a78bfa80;font-size:12px;line-height:1.4;color:#cbd5e1}
+.zipco-avwa-extra .zipco-av-note{margin:0}
+.zipco-avwa-extra .zipco-av-schedule{margin:0;min-height:30px;font-size:12.5px;font-weight:700;color:#fde68a}
+.zipco-avwa-extra a,.zipco-avwa-extra button{display:inline-flex;align-items:center;min-height:44px;color:#5eead4;text-decoration:underline}
+.zipco-avwa-card{margin-top:8px;padding:10px 11px;border-radius:16px;background:#ffffff0f;box-shadow:inset 0 0 0 1px #ffffff24}
+.zipco-avwa-how{display:flex;gap:9px;align-items:flex-start}
+.zipco-avwa-wa{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#25d366,#128c7e);box-shadow:0 5px 12px #128c7e66}
+.zipco-avwa-wa svg{width:17px;height:17px}
+.zipco-avwa-how h3{margin:0;font-size:14px;font-weight:800;color:#fff}
+.zipco-avwa-how p{margin:2px 0 0;font-size:11.5px;line-height:1.35;color:#cbd5e1}
+.zipco-avwa-consent{display:flex;align-items:center;gap:12px;margin-top:8px;padding-top:8px;border-top:1px dashed #ffffff33}
+.zipco-avwa-consent>div{flex:1;min-width:0}
+.zipco-avwa-consent b{display:block;font-size:12.5px;line-height:1.3;color:#fff}
+.zipco-avwa-state{display:inline-flex;align-items:center;margin-top:4px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:800;color:#a7f3d0;background:#10b9812e;box-shadow:inset 0 0 0 1px #34d39966;animation:zipco-avwa-pop .35s ease both}
+.zipco-avwa-state[data-on=false]{color:#fde68a;background:#fbbf2424;box-shadow:inset 0 0 0 1px #fbbf2466}
+.zipco-avwa-card>small{display:block;margin:2px 0 0;font-size:11px;line-height:1.4;color:#cbd5e1}
+/* interruptor: 52×44 de zona táctil, pista de 46×28 */
+.zipco-av-available-wa .zipco-av-switch{position:relative;width:52px;height:44px;border-radius:0;background:none}
+.zipco-av-available-wa .zipco-av-switch::before{content:'';position:absolute;left:3px;top:8px;width:46px;height:28px;border-radius:99px;background:#475569;transition:background .25s}
+.zipco-av-available-wa .zipco-av-switch[aria-checked=true]::before{background:#10b981}
+.zipco-av-available-wa .zipco-av-switch>span{z-index:1;left:6px;top:11px;width:22px;height:22px;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.zipco-av-available-wa .zipco-av-switch[aria-checked=true]>span{transform:translateX(18px);background:#fff}
+.zipco-av-available-wa .zipco-av-switch:disabled{opacity:.55;cursor:default}
+
+/* ---------- Decisiones: una columna ---------- */
+.zipco-avwa-decisions{grid-template-columns:1fr;gap:7px;margin-top:10px}
+.zipco-avwa-decisions .zipco-accept-check{display:flex}
+.zipco-avwa-decisions .zipco-accept-btn{min-height:50px;padding:6px 12px 6px 10px}
+.zipco-avwa-decisions .zipco-accept-label{font-size:16px;text-align:left;white-space:normal;line-height:1.15}
+.zipco-avwa-decisions .zipco-av-decline{min-height:46px;font-size:13.5px;font-weight:800}
+.zipco-av-available-wa .zipco-av-fine{margin-top:8px;font-size:10.5px}
+.zipco-av-available-wa .zipco-av-error{margin:10px 0 0;padding:10px 12px;border-radius:14px;color:#fecdd3;background:#f43f5e24;box-shadow:inset 0 0 0 1.5px #fb718599}
+.zipco-av-available-wa .zipco-avwa-recovery{min-height:44px;padding:8px 12px;margin-top:6px;border:1px solid #fb7185;border-radius:12px;color:#fecdd3;font-weight:700}
+.zipco-av-available-wa .zipco-av-ticket-footer{margin-top:8px}
+.zipco-av-available-wa .zipco-avwa-dis{min-height:44px;padding:0 15px;font-size:12.5px}
+.zipco-avwa-dis svg{transition:transform .35s ease}
+.zipco-av-available-wa[data-expanded=true] .zipco-avwa-dis svg{transform:rotate(180deg)}
+.zipco-av-available-wa :focus-visible{outline:3px solid #a78bfa;outline-offset:3px}
+
+/* ---------- Salida (la activa leaving=true desde el flujo existente, después del holograma) ---------- */
+.zipco-av-available-wa[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-avwa-leave .9s ease-in forwards}
+/* Only this card supplies its own exit; preserve the shared flow elsewhere. */
+.zipco-status-flow[data-stage=exiting][data-design-exit=true]{grid-template-rows:1fr;opacity:1;transform:none;transition:none}
+
+/* ---------- Confirmación «No, gracias» (mismo lenguaje oscuro; solo cuando decline = true) ---------- */
+.zipco-av-dialog.zipco-av-alert-decline{text-align:center;color:#e2e8f0;background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%);box-shadow:0 24px 70px #020617a0,0 0 0 1.5px #fb71858c,0 0 26px #f43f5e33,inset 0 1px 0 #ffffff24;animation:zipco-avwa-dialog .4s cubic-bezier(.2,1.2,.4,1) both}
+.zipco-av-alert-decline .zipco-av-dialog-title{margin-top:12px;color:#fff}
+.zipco-av-alert-decline .zipco-av-dialog-description{color:#cbd5e1}
+.zipco-av-decline-ic{display:grid;place-items:center;width:54px;height:54px;margin:0 auto;border-radius:18px;color:#fff;background:linear-gradient(145deg,#fb7185,#e11d48);box-shadow:0 0 0 4px #fb718533,0 8px 20px #e11d4873;animation:zipco-avwa-shake 3.6s ease-in-out .6s infinite}
+.zipco-av-decline-ic svg{width:26px;height:26px;stroke-width:2.8}
+.zipco-av-alert-decline .zipco-av-button-row>*{min-height:48px;border-radius:15px;font-size:14px}
+.zipco-av-alert-decline .zipco-av-secondary{border:1.5px solid #fb7185;color:#fff;background:#f43f5e29}
+.zipco-av-alert-decline .zipco-av-primary{color:#fff;background:linear-gradient(100deg,#10b981,#0d9488 52%,#06b6d4);box-shadow:0 8px 20px #06b6d459,inset 0 1.5px 2px #ffffff66;text-shadow:0 1px 2px #042f2e99}
+.zipco-av-alert-decline :focus-visible{outline:3px solid #a78bfa;outline-offset:3px}
+
+/* ---------- Keyframes ---------- */
+@keyframes zipco-avwa-jelly{0%{transform:scale(.4);opacity:0}45%{transform:scale(1.14);opacity:1}62%{transform:scale(.94)}80%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes zipco-avwa-bump{0%,78%,100%{transform:scale(1)}86%{transform:scale(1.06)}93%{transform:scale(.99)}}
+@keyframes zipco-avwa-wave{0%,62%,100%{transform:translateY(0)}18%{transform:translateY(-5px) scale(1.12)}36%{transform:translateY(1px)}}
+@keyframes zipco-avwa-ripple{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+@keyframes zipco-avwa-sweep{0%,60%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(320%) skewX(-20deg)}}
+@keyframes zipco-avwa-halo{0%,100%{box-shadow:0 0 0 3px #34d39938,0 0 0 #34d39900}50%{box-shadow:0 0 0 5px #34d3990f,0 0 14px 3px #34d39999}}
+@keyframes zipco-avwa-shine{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+@keyframes zipco-avwa-ring{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+@keyframes zipco-avwa-pop{0%{transform:scale(.8)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes zipco-avwa-leave{0%{max-height:1400px;opacity:1;transform:none}55%{max-height:1400px;opacity:0;transform:translateX(90px) scale(.95)}100%{max-height:0;opacity:0;transform:translateX(90px) scale(.95);padding:0;margin:0}}
+@keyframes zipco-avwa-dialog{from{opacity:0;transform:translate(-50%,-44%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes zipco-avwa-shake{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-9deg)}92%{transform:rotate(8deg)}95%{transform:rotate(-5deg)}98%{transform:rotate(3deg)}}
+
+/* ---------- Pausa con la lista quieta / en scroll, pantallas angostas y movimiento reducido ---------- */
+[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span::after,
+[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::after{animation-play-state:paused!important}
+@media(max-width:350px){.zipco-av-available-wa .zipco-av-identity b{font-size:14px}.zipco-av-available-wa .zipco-av-price b{font-size:17px}.zipco-avwa-pill>b{font-size:18px}.zipco-avwa-rail b{font-size:11px}.zipco-avwa-decisions .zipco-accept-label{font-size:14.5px}.zipco-av-available-wa .zipco-product-thumbs{max-width:56px}}
+@media(prefers-reduced-motion:reduce){
+  .zipco-avwa-pill,.zipco-avwa-pill::before,.zipco-avwa-pill::after,.zipco-avwa-pill>i,.zipco-avwa-pill>b>span,.zipco-avwa-rail>li>span,.zipco-avwa-rail>li>span::before,.zipco-avwa-rail>li>span::after,.zipco-avwa-state,.zipco-av-decline-ic,.zipco-av-dialog.zipco-av-alert-decline{animation:none!important}
+  .zipco-avwa-pill::before,.zipco-avwa-rail>li[data-kind=now]>span::before{display:none}
+  .zipco-avwa-fold,.zipco-avwa-dis svg,.zipco-av-available-wa .zipco-av-switch::before,.zipco-av-available-wa .zipco-av-switch>span{transition:none!important}
+  .zipco-av-available-wa[data-leaving=true]{animation:none!important;opacity:0;max-height:0;padding:0;margin:0}
+}
+
+/* Respect the actual visibility gate used by request cards, including pseudo-elements. */
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *::before,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *::after{animation-play-state:paused!important}

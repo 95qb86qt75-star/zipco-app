@@ -8,6 +8,11 @@ la única vista correspondiente.
 ## Cliente
 
 - **Pendiente:** `customer/pending/CustomerPendingCard.tsx`.
+- **Disponible, antes de continuar por WhatsApp:** `AvailableWhatsappDesign` en
+  `../shared/availability-design/AvailabilityDesign.tsx`; estilos CliU18 en
+  `availability-design.css`, acotados a `.zipco-av-available-wa`. Su conexión real
+  vive en `shared/availability/AvailabilityFlowCard.tsx`. La rama de retiro de
+  disponibilidad permanece en `AvailableRequestDesign`.
 - **Aceptado, antes de abrir WhatsApp:**
   `customer/whatsapp/initial/CustomerInitialCoordinationCard.tsx`.
   Su CSS y `CustomerStepsSheet.tsx` están en esa misma carpeta.

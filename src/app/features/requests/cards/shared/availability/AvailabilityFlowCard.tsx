@@ -17,11 +17,13 @@ import AvailabilityWaitingCard from "../../business/availability/AvailabilityWai
 import { reservationFlow } from "../../../domain/reservationContract";
 import { simplifiedReservationFlow, isSimpleOffer } from "../../../domain/simplifiedReservationContract";
 import ReservationDecisionDialog from "../../../shared/reservations/ReservationDecisionDialog";
+import {useCardStatusChange} from "../../../shared/feedback/StatusChangeFlow";
 
 export default function AvailabilityFlowCard({order,business,expanded,onToggle,refresh,isUnread=false}:{
   order:BusinessRequest|MyOrder;business:boolean;expanded:boolean;onToggle:()=>void;refresh:()=>void;isUnread?:boolean;
 }){
   const operation=useAvailability(order,business,refresh);
+  const statusChange=useCardStatusChange(order,business);
   const [sheet,setSheet]=useState(false),[decline,setDecline]=useState(false),[past,setPast]=useState(false);
   const [contact,setContact]=useState(true);
   const [reservationDecision,setReservationDecision]=useState(false);
@@ -63,20 +65,21 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
       <ConfirmAvailabilityDesign responseSchedule={{businessId:Number(localStorage.getItem('zipco-business-id')),date:order.needNow?undefined:order.deliveryDate,time:order.needNow?undefined:order.deliveryTime}} open={sheet} onOpenChange={setSheet} onChoose={confirm} busy={operation.busy} error={operation.error||undefined} reservationContract={reservationFlow(process)} reservationTotal={data.total} simplified={simplifiedReservationFlow(process)} checking={operation.checking} recovery={<>{operation.message&&<p role="status" className="zipco-av-dialog-hint">{operation.message}</p>}{(operation.error||operation.checking)&&<button type="button" className="zipco-av-secondary w-full" disabled={operation.busy} onClick={()=>void operation.update()}>{operation.checking?'Comprobando pedido…':'Comprobar pedido'}</button>}</>}/>
     </>:!business&&plan?<>
       <AvailableRequestDesign data={data} expanded={expanded} onToggle={onToggle} contact={contact} onContactChange={setContact} simplified={simplifiedReservationFlow(process)&&plan.path==='LOCAL_PICKUP'}
+        leaving={statusChange?.stage==='exiting'} recovery={plan.path==='WHATSAPP'&&operation.error?<button type="button" className="zipco-avwa-recovery" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>:undefined}
         pickup={plan.path==='LOCAL_PICKUP'?{message:plan.customerMessage??'',scheduleOrAddress:plan.scheduleOrAddress??'',allowsContact:plan.allowCustomerWhatsapp,...(plan.reservationOffer?{reservationOffer:plan.reservationOffer}:{})}:undefined}
         busy={operation.busy||!availabilityAllowed(process,false,'CONTINUE_REQUEST')||!availabilityAllowed(process,false,'DECLINE_REQUEST')}
         onContinue={()=>simplifiedReservationFlow(process)&&plan.path==='LOCAL_PICKUP'?setReservationDecision(true):void continueRequest(false,false)} onDecline={()=>setDecline(true)} error={choiceError||operation.error||undefined}
         onReserve={!simplifiedReservationFlow(process)&&reservationFlow(process)&&plan.reservationOffer&&plan.reservationOffer.mode!=='NONE'?()=>void continueRequest(false,true):undefined}
         reservationNote={reservationNote} onReservationNote={setReservationNote}
         extraDetails={<>{order.note&&<p className="zipco-av-note">Nota: {order.note}</p>}<p className="zipco-av-schedule">{data.schedule}</p>{reference}</>}/>
-      {operation.error&&<button className="mt-2 rounded-xl border p-2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>}
+      {operation.error&&plan.path!=='WHATSAPP'&&<button className="mt-2 rounded-xl border p-2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button>}
     </>:business&&plan?<AvailabilityWaitingCard name={name} price={data.total} items={data.items} schedule={data.schedule} note={order.note} reference={reference}
       path={plan.path} customerMessage={plan.customerMessage} scheduleOrAddress={plan.scheduleOrAddress} expanded={expanded} onToggle={onToggle} isUnread={isUnread}
       busy={operation.busy} canRetire={availabilityAllowed(process,true,'WITHDRAW_AVAILABILITY')} onRetire={()=>setDecline(true)} error={error}/>
       :<article className="zipco-aurora-card rounded-[24px] p-4"><p>No pudimos comprobar las condiciones de disponibilidad.</p><button type="button" onClick={refresh}>Actualizar pedido</button></article>}
     {simplifiedReservationFlow(process)&&plan?.path==='LOCAL_PICKUP'&&<ReservationDecisionDialog open={reservationDecision} onClose={()=>setReservationDecision(false)} process={process} name={name} onRefresh={()=>void operation.update()} contact={contact} onContact={setContact} busy={operation.busy} error={choiceError||operation.error||undefined} onConfirm={(reserve,note)=>{setReservationNote(note);void continueRequest(false,reserve,note);}}/>}
-    <DesignConfirmation open={decline} onOpenChange={setDecline} title={business?'¿Retirar la disponibilidad?':'¿No quieres continuar con la compra?'} description="La solicitud se conservará en Historial."
-      confirmLabel={business?'Retirar disponibilidad':'No, gracias'} onConfirm={()=>void closeRequest()}/>
+    <DesignConfirmation open={decline} onOpenChange={setDecline} variant={!business&&plan?.path==='WHATSAPP'?'decline':undefined} title={business?'¿Retirar la disponibilidad?':plan?.path==='WHATSAPP'?'¿Cerrar esta solicitud?':'¿No quieres continuar con la compra?'} description={!business&&plan?.path==='WHATSAPP'?'Si no continúas, el negocio no seguirá con este pedido. Quedará guardada en Historial.':'La solicitud se conservará en Historial.'}
+      confirmLabel={business?'Retirar disponibilidad':plan?.path==='WHATSAPP'?'Sí, cerrar solicitud':'No, gracias'} onConfirm={()=>void closeRequest()}/>
     <DesignConfirmation open={past&&operation.expired} onOpenChange={setPast} title="La fecha y hora solicitadas ya pasaron" description="Las condiciones conservarán la fecha original. ¿Quieres continuar igualmente?"
       confirmLabel="Sí, continuar igualmente" onConfirm={()=>void continueRequest(true)}/>
   </div>;

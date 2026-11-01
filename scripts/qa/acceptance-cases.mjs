@@ -31,9 +31,11 @@ export async function runAcceptanceCase(ctx, spec, negative) {
   const saving = await evaluate('(()=>{const root=document.querySelector(".zipco-status-flow"),source=root.querySelector(".zipco-status-source"),result=root.querySelector(".zipco-status-result");return{height:root.getBoundingClientRect().height,resultHeight:result.getBoundingClientRect().height,sourceVisible:getComputedStyle(source).display!=="none",inert:source.inert};})()');
   assert(Math.abs(saving.height - before) < 1); assert(saving.resultHeight < 180); assert(saving.sourceVisible && saving.inert);
   await evaluate('window.releaseContinue()'); await wait('document.querySelector(".zipco-ah")?.textContent.includes("Solicitud confirmada")===true');
-  await wait('!document.querySelector(".zipco-ah")&&!!document.querySelector(".zipco-status-result")');
-  const success = await evaluate('({height:document.querySelector(".zipco-status-flow").getBoundingClientRect().height,text:document.querySelector(".zipco-status-result").textContent,compact:document.querySelector(".zipco-status-result").getBoundingClientRect().height<180})');
-  assert(success.height <= before + 1); assert(success.text.includes('Solicitud confirmada') && !success.text.includes('Falta coordinar')); assert(success.compact);
+  await wait('!document.querySelector(".zipco-ah")&&document.querySelector(".zipco-status-flow")?.dataset.designExit==="true"');
+  const success = await evaluate('({height:document.querySelector(".zipco-status-flow").getBoundingClientRect().height,leaving:document.querySelector(".zipco-av-available-wa").dataset.leaving,inert:document.querySelector(".zipco-av-available-wa").inert,animation:getComputedStyle(document.querySelector(".zipco-av-available-wa")).animationName})');
+  assert(success.height <= before + 1);assert.equal(success.leaving,'true');assert(success.inert);assert.equal(success.animation,'zipco-avwa-leave');
+  await delay(160);assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-status-flow")).opacity'),'1');
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-status-flow")).transform'),'none');
   await wait('!!document.querySelector(".zipco-toast-action")'); assert.equal(await evaluate('window.currentView'), 'waiting');
   await send('Emulation.setDeviceMetricsOverride', { width: spec.width, height: spec.height, deviceScaleFactor: 1, mobile: true });
   if (negative === 'toast') await evaluate('document.querySelector(".zipco-toast b").textContent="Falta coordinar"');
