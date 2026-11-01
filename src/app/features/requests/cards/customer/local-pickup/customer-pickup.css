@@ -5,11 +5,73 @@
 .zipco-pickup-c-head:focus-visible{outline:2px solid #0f766e;outline-offset:-3px}
 .zipco-pickup-c-tile{position:relative;width:50px;height:50px;flex:none;border-radius:16px;display:grid;place-items:center;overflow:hidden;color:#fff;background:linear-gradient(140deg,#34d3b0,#0e8aa5);box-shadow:0 6px 14px #0e8aa557}
 .zipco-pickup-c-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff55,transparent 65%);animation:zipco-own-sheen 3.4s ease-in-out infinite;pointer-events:none}
-.zipco-pickup-c-name{display:block;font-size:15.5px;font-weight:900;line-height:1.2}
-.zipco-pickup-c-state{display:block;margin-top:3px;font-size:11.5px;font-weight:700;color:#475569}
-.zipco-pickup-c-state b{color:#b45309;font-weight:900}
-.zipco-pickup-c[data-ready=true] .zipco-pickup-c-state b{color:#047857}
+.zipco-pickup-c-name{display:block;font-size:15.5px;font-weight:900;line-height:1.2;overflow-wrap:anywhere}
+.zipco-pickup-c-meta{display:flex;flex-wrap:wrap;align-items:center;gap:3px 7px;margin-top:4px}
+.zipco-pickup-c-prod{font-size:11.5px;font-weight:700;color:#475569;overflow-wrap:anywhere}
+.zipco-pickup-c-pill{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:800;color:#92400e;background:#fef3c7;box-shadow:inset 0 0 0 1px #f59e0b73}
+.zipco-pickup-c[data-ready=true] .zipco-pickup-c-pill{color:#047857;background:#d1fae5;box-shadow:inset 0 0 0 1px #05966966}
 .zipco-pickup-c-total{text-align:right;flex:none}
 .zipco-pickup-c-total b{display:block;font-size:19px;line-height:1;font-weight:900;color:#2f7a5a;font-variant-numeric:tabular-nums}
 .zipco-pickup-c-total small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#64748b}
 .zipco-pickup-c[data-leaving=true]{animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}
+
+/* ---------- Carril de la tarjeta: pasos apilados (círculo arriba, texto abajo) para que no se corte en pantallas angostas ---------- */
+.zipco-pickup-c .zipco-own-rail{height:auto;align-items:flex-start;padding:10px 6px 9px;margin:12px 12px}
+.zipco-pickup-c .zipco-own-rail .zipco-own-step{flex:1;min-width:0;flex-direction:column;align-items:center;text-align:center;gap:5px}
+.zipco-pickup-c .zipco-own-rail .zipco-own-steptx{text-align:center}
+.zipco-pickup-c .zipco-own-rail .zipco-own-steptx b{margin-top:-1px;white-space:normal;overflow-wrap:anywhere;font-size:12px}
+.zipco-pickup-c .zipco-own-rail .zipco-own-line{flex:0 0 14%;max-width:56px;min-width:8px;margin:12px -6px 0}
+/* brillos sutiles: ticket verde (halo + destello + trazo) y reloj de arena «Preparando» (anillo + chispa) */
+.zipco-pickup-c .zipco-own-node[data-kind=done]:not([data-pop=true]){overflow:hidden;animation:zipco-pickup-halo 2.8s ease-in-out infinite}
+.zipco-pickup-c .zipco-own-node[data-kind=done]::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#ffffffd9 50%,transparent 70%);transform:translateX(-130%);animation:zipco-pickup-shine 3.8s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c .zipco-own-step:nth-of-type(2) .zipco-own-node[data-kind=done]::after{animation-delay:.9s}
+.zipco-pickup-c .zipco-own-step:nth-of-type(3) .zipco-own-node[data-kind=done]::after{animation-delay:1.8s}
+.zipco-pickup-c .zipco-own-node[data-kind=done] svg path{stroke-dasharray:24;animation:zipco-pickup-draw .7s ease-out both}
+.zipco-pickup-c .zipco-own-node[data-kind=wait]::before,.zipco-pickup-c .zipco-own-node[data-kind=bell]::before{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid #fbbf24;animation:zipco-pickup-ring 2s ease-out infinite;pointer-events:none}
+.zipco-pickup-c .zipco-own-node[data-kind=wait]::after{content:'';position:absolute;right:-5px;top:-4px;width:6px;height:6px;border-radius:50%;background:#fff7ed;box-shadow:0 0 6px 2px #fbbf24f2;animation:zipco-pickup-twinkle 2.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c .zipco-own-node[data-kind=wait] svg{filter:drop-shadow(0 0 3px #fff7edE6)}
+@keyframes zipco-pickup-halo{0%,100%{box-shadow:0 0 0 3px #34d3992e,0 0 0 #34d39900}50%{box-shadow:0 0 0 5px #34d3990f,0 0 14px 3px #34d39999}}
+@keyframes zipco-pickup-shine{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+@keyframes zipco-pickup-draw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes zipco-pickup-ring{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+@keyframes zipco-pickup-twinkle{0%,100%{opacity:0;transform:scale(.4)}45%,55%{opacity:1;transform:scale(1)}}
+
+/* ---------- Detalle: pestañas «Cómo retirar» / «Contacto y opciones» ---------- */
+.zipco-pickup-c .zipco-receipt-local-detail{padding:2px 13px 15px;font-size:12.5px;line-height:1.45;color:#334155}
+.zipco-pickup-c .zipco-pickup-det [hidden]{display:none!important}
+.zipco-pickup-c .zipco-pickup-tabs{display:grid;grid-template-columns:1fr 1.3fr;gap:4px;padding:4px;margin-bottom:10px;border-radius:14px;background:#0f766e1a}
+.zipco-pickup-c .zipco-pickup-tab{min-height:44px;padding:0 6px;border:0;border-radius:11px;font-size:12.5px;font-weight:800;line-height:1.15;font-family:inherit;color:#475569;background:transparent;cursor:pointer}
+.zipco-pickup-c .zipco-pickup-tab[aria-selected=true]{color:#0f766e;background:#fff;box-shadow:0 2px 8px #0f766e33}
+.zipco-pickup-c .zipco-pickup-det button:focus-visible{outline:2px solid #0f766e;outline-offset:3px}
+.zipco-pickup-c .zipco-pickup-how{padding:2px 2px 0}
+.zipco-pickup-c .zipco-pickup-how-t{display:flex;align-items:center;gap:7px;margin:0;color:#0f766e}
+.zipco-pickup-c .zipco-pickup-how-t b{font-size:14.5px;font-weight:900;color:#0f172a}
+.zipco-pickup-c .zipco-pickup-how-m{margin:6px 0 0;font-size:14px;line-height:1.35;font-weight:600;color:#0f172a;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-pickup-c .zipco-pickup-how-w{display:inline-flex;align-items:center;max-width:100%;margin:6px 0 0;padding:4px 10px;border-radius:999px;background:#ecfdf5;color:#065f46;font-weight:800;box-shadow:inset 0 0 0 1px #05966940;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-pickup-c .zipco-pickup-how-n{display:flex;align-items:flex-start;gap:6px;margin:7px 0 0;font-size:11.5px;line-height:1.35;color:#64748b}
+.zipco-pickup-c .zipco-pickup-how-n svg{flex:none;margin-top:1px}
+.zipco-pickup-c .zipco-pickup-det .zipco-co-strip2{margin-top:9px}
+.zipco-pickup-c .zipco-pickup-pay{margin:9px 2px 0;font-size:11.5px;color:#475569}
+.zipco-pickup-c .zipco-pickup-alerts{margin-bottom:10px;padding:10px 12px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-size:12px;line-height:1.4}
+.zipco-pickup-c .zipco-pickup-alerts>*+*{margin-top:8px}
+.zipco-pickup-c .zipco-pickup-alerts p{margin:0}
+.zipco-pickup-c .zipco-pickup-alerts button{min-height:44px;padding:0 12px;border:0;border-radius:12px;font-weight:800;color:#9f1239;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af;cursor:pointer}
+.zipco-pickup-c .zipco-pickup-k{margin:2px 2px 0;font-size:9.5px;font-weight:900;letter-spacing:.14em;color:#64748b}
+.zipco-pickup-c .zipco-pickup-det .zipco-co-go2.zipco-pickup-wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:48px;margin-top:7px;border:0;border-radius:15px;font-size:14px;font-weight:850;color:#047857;background:#fff;box-shadow:inset 0 0 0 1.5px #10b981,0 4px 12px #10b9812a}
+.zipco-pickup-c .zipco-pickup-det .zipco-co-go2.zipco-pickup-wa:disabled{opacity:.6;cursor:default}
+.zipco-pickup-c .zipco-pickup-consent{margin:9px 2px 0;font-size:11.5px;line-height:1.4;color:#475569}
+.zipco-pickup-c .zipco-pickup-act{display:block;width:100%;margin-top:8px;min-height:48px;border-radius:15px;border-color:#0f766e59;background:#ffffffcc;color:#0f172a;font-weight:800;font-size:13px}
+.zipco-pickup-c .zipco-pickup-revoke{display:block;min-height:44px;margin-top:2px;border:0;background:none;font-size:12.5px;font-weight:800;color:#0f766e;text-decoration:underline}
+.zipco-pickup-c .zipco-pickup-cancel{width:100%;display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:10px;border:0;border-radius:15px;font-size:13.5px;font-weight:850;color:#be123c;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-pickup-c button:disabled{opacity:.6}
+.zipco-pickup-c [data-reservation-panel] [role=alert],.zipco-pickup-c [data-reservation-panel] [role=alert] p{color:#9f1239}
+@media(max-width:350px){.zipco-pickup-c-name{font-size:14.5px}.zipco-pickup-c-total b{font-size:17px}.zipco-pickup-c .zipco-own-rail .zipco-own-steptx b{font-size:11px}.zipco-pickup-c .zipco-own-rail .zipco-own-steptx small{font-size:9px;letter-spacing:.13em}.zipco-pickup-c .zipco-own-rail .zipco-own-node{width:26px;height:26px}}
+[data-request-motion=idle] .zipco-pickup-c .zipco-own-node,[data-request-motion=idle] .zipco-pickup-c .zipco-own-node::before,[data-request-motion=idle] .zipco-pickup-c .zipco-own-node::after,
+[data-request-list-scrolling=true] .zipco-pickup-c .zipco-own-node,[data-request-list-scrolling=true] .zipco-pickup-c .zipco-own-node::before,[data-request-list-scrolling=true] .zipco-pickup-c .zipco-own-node::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.zipco-pickup-c .zipco-own-node,.zipco-pickup-c .zipco-own-node::before,.zipco-pickup-c .zipco-own-node::after,.zipco-pickup-c .zipco-own-node svg path{animation:none!important}.zipco-pickup-c .zipco-own-node[data-kind=wait]::before,.zipco-pickup-c .zipco-own-node[data-kind=wait]::after,.zipco-pickup-c .zipco-own-node[data-kind=bell]::before{display:none}}
+
+/* Reuse the real card visibility gate as well as the list's motion gates. */
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-scrolling=true] .zipco-pickup-c) .zipco-own-node,
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-scrolling=true] .zipco-pickup-c) .zipco-own-node::before,
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-scrolling=true] .zipco-pickup-c) .zipco-own-node::after,
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-scrolling=true] .zipco-pickup-c) .zipco-own-node svg path{animation-play-state:paused!important}

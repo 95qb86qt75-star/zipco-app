@@ -25,6 +25,8 @@ la única vista correspondiente.
   `customer-receipt-details.css` y los controles compartidos de disponibilidad
   indicados abajo. Es parte del diseño completo; no entregar únicamente la
   cabecera al pedir un rediseño del retiro.
+  El default corresponde a WhatsApp; `CustomerPickupDetails` es la composición de
+  retiro con pestañas, cuyos estilos viven en `customer/local-pickup/customer-pickup.css`.
 - **Servicios en curso:**
   `customer/service/CustomerServiceProgressCard.tsx`, con sus estilos en esa carpeta.
   Conserva el recorrido de servicios; no es una versión antigua del producto.
@@ -59,6 +61,9 @@ permisos siguen en los hooks de `requests/application` y en la API.
 - `shared/coordination/CoordinationVisualPrimitives.tsx`: pasos y efectos comunes.
 - `shared/availability/AvailabilityPostActionsView.tsx`: controles de retiro,
   permiso y reserva; su controlador conserva las acciones existentes.
+  `AvailabilityPostActions.tsx` admite un render opcional de piezas para el retiro
+  del cliente; el default sigue compartido. `PickupInstructions.tsx` es la única
+  fuente del bloque de instrucciones para ambas presentaciones.
 - `../shared/feedback/StatusRail.tsx`, `ReadyPanel.tsx` y sus CSS: progreso y
   recepción compartidos entre retiro y WhatsApp.
 - `../shared/conditions/CoordinationSheets.tsx`: Condiciones aceptadas y las

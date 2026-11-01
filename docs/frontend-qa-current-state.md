@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Retiro local del cliente CliU17 integrado: cabecera, carril sin cortes y detalle
+  completo con pestañas «Cómo retirar» / «Contacto y opciones». Una sola composición,
+  componentes de reserva y condiciones reales, controladores sin cambios. Ver
+  [alcance, pruebas y límites](frontend-pickup-cliu17-qa.md). 107 unitarias distintas,
+  18 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en curso; falta
+  revisión física en iPhone. Este bloque sustituye el rediseño de retiro pendiente
+  mencionado en los antecedentes inferiores.
+
 - En cada modificación visual de una tarjeta, consultar la
   [regla de entrega a Claude](frontend-card-visual-handoff-policy.md). Entregar en
   el chat rutas y líneas verificadas, archivos editables/referencia explícitos y
@@ -31,7 +39,7 @@ ni convierte pruebas sintéticas en aprobación física.
   No se reintentó la lectura de assets con credenciales ya rechazadas; falta esa
   comprobación autenticada y la revisión física en ambos celulares.
   La reorganización conserva contratos, permisos, recuperación y las ventanas
-  reales. No sustituye el rediseño integral del detalle de retiro pendiente.
+   reales. Ese bloque no incluía el detalle completo, integrado después en CliU17.
 
 - Usuario confirma coordinación cliente correcta, pero señala detalle antiguo en
   retiro local. [Comparación con el paquete de Claude](frontend-pickup-full-design-handoff-diagnosis-qa.md):
