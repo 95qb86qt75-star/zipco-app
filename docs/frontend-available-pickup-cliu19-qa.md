@@ -76,7 +76,11 @@ históricos; los reintentos no aumentan el número de escenarios distintos.
 
 ## Publicación y límites
 
-Commit/estado Vercel se completan en el cierre. Solo rama qa / Vercel QA.
+Publicado **1fd8295052e64fcaf23acc600f0e362a42cc62ef**, rama qa,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4U1jD3FrtRfMvT1F74jgeeQJr364).
+El commit de integración inicial `2ee9d30` también hizo push; la revisión final
+conectó el diálogo oscuro de cierre al retiro y volvió a compilar antes de publicar.
+Solo rama qa / Vercel QA.
 Main verificado sin cambios en `8295ab8c6024ab20851ebd371308d2f299b4668f`;
 producción y Railway no modificados. La carpeta previa del usuario en design-handoffs
 queda fuera del commit. dist/index.html generado se restaura antes de guardar.
@@ -96,9 +100,11 @@ Fuente local `node_modules/.cache/cliu19-timing.json`, desde primera observació
 | Integración inicial | 18 s |
 | Preparación de pruebas | 6 min 53 s |
 | Pruebas, correcciones y espacio entre ejecuciones | 63 min 58 s |
-| Build | comando QA/PWA 14,97 s; cierre de fase en JSON |
-| Documentación | cierre en JSON |
-| Publicación/verificación | cierre posterior |
+| Build y revisión de salida inicial | 1 min 41 s; comando QA/PWA 14,97 s |
+| Documentación inicial | 12 s |
+| Primera publicación y revisión | 1 min 49 s |
+| Última conexión visual, prueba y build | 1 min 50 s; build final 19,39 s |
+| Publicación/verificación final | 1 min |
 
 **63 min 58 s no son ejecución continua de tests.** El último grupo de cuatro
 escenarios registró 22:56:38–22:57:01 UTC y 22,69 s de proceso. El build comenzó
@@ -106,3 +112,7 @@ a las 23:51:14 UTC: hay aproximadamente 54 minutos posteriores sin scripts de
 pruebas activos. No hay medición fina que determine la causa de ese intervalo;
 no atribuirlo a compilación, gráficos, animaciones ni rendimiento del producto.
 Otros navegadores corrieron parcialmente en paralelo; no sumar sus esperas dos veces.
+Total de reloj desde primera observación hasta Vercel success: **1 h 27 min 37 s**,
+con los intervalos no desglosados indicados arriba. No equivale a tiempo de código
+ni de scripts activos. Este cierre documental posterior no repite pruebas/build
+y permanece local, sin otro despliegue.

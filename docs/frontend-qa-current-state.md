@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Disponible de retiro local CliU19 integrado sobre el diseño aprobado WhatsApp:
   nueve variantes, reservas reales y salida/recuperación para LOCAL_PICKUP.
   [Informe, pruebas y medición](frontend-available-pickup-cliu19-qa.md): 97 unitarias,
-  17 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en preparación;
+  17 escenarios sintéticos y build QA/PWA aprobados. Publicado QA `1fd8295`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4U1jD3FrtRfMvT1F74jgeeQJr364);
   pendiente revisión física. No se alteraron contratos ni backend.
 
 - Disponible del cliente, camino WhatsApp CliU18: diseño completo integrado con
@@ -86,6 +87,12 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Publicado QA **1fd8295052e64fcaf23acc600f0e362a42cc62ef**: Disponible de retiro
+CliU19 completo, FREE/PREPAYMENT y contratos anteriores, recuperación y salida
+compartidas, confirmación de cierre oscura. 97 unitarias, 17 escenarios únicos y
+build QA/PWA aprobados; Vercel success. Railway/main/producción sin modificaciones.
+El cierre documental posterior queda local, sin otro push.
 
 Publicado QA **dcd1deb0a25b91d532221881b9d6a0af3fff3faa**: Disponible WhatsApp
 del cliente, CliU18 completo y conexión de salida/recuperación. 109 unitarias,
