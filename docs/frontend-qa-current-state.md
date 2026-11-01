@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   componentes reales, plegado accesible, recuperación visible y salida de 900 ms
   conectada después del holograma. Retiro y otras confirmaciones conservados.
   [Informe y tiempos](frontend-available-whatsapp-cliu18-qa.md): 109 unitarias,
-  12 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en preparación;
+  12 escenarios sintéticos y build QA/PWA aprobados. Publicado QA `dcd1deb`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/A6t58hs9pqY54TT6PuwrtsxRoY1e);
   pendiente comprobación física en iPhone/Android.
 
 - Retiro local del cliente CliU17 integrado: cabecera, carril sin cortes y detalle
@@ -78,6 +79,12 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Publicado QA **dcd1deb0a25b91d532221881b9d6a0af3fff3faa**: Disponible WhatsApp
+del cliente, CliU18 completo y conexión de salida/recuperación. 109 unitarias,
+12 escenarios sintéticos y build QA/PWA aprobados; Vercel success. API/contratos,
+retiro, Railway y producción sin modificaciones. Main conserva `8295ab8`.
+Cierre documental posterior local, sin otro push/despliegue.
 
 Publicado QA **604cb939110d0916d4bece610cf20e0c7670fb02**: detalle completo CliU17
 de retiro del cliente, pestañas con reserva/condiciones reales y opciones separadas.

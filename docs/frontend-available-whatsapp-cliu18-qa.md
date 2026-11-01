@@ -74,8 +74,9 @@ Evidencia local ignorada: `node_modules/.cache/qa-pilot/available-whatsapp-desig
 
 ## Publicación y pendientes
 
-Preparado para publicar exclusivamente en rama qa / Vercel QA; versión y resultado
-se registran al verificar el despliegue. Railway no fue necesario. Main y producción
+Publicado **dcd1deb0a25b91d532221881b9d6a0af3fff3faa**, rama qa;
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/A6t58hs9pqY54TT6PuwrtsxRoY1e).
+Railway no fue necesario. Main y producción
 intactos. El HTML generado de dist no se versiona. La carpeta previa del usuario
 en `docs/design-handoffs/` se conserva fuera del commit.
 
@@ -90,6 +91,9 @@ sin medición. Fuente local: `node_modules/.cache/available-wa-timing.json`.
 Análisis 1 min 46 s; implementación inicial 1 min 1 s; preparación 1 min 47 s;
 pruebas y reparación del arnés 3 min 51 s. Build/revisión final: 1 min 58 s,
 incluye revisión, limpieza de JSX y comprobación dirigida; comandos de build
-14,07 s y 10,41 s, no dos minutos de compilación. Documentación y publicación
-se completan en el cierre. Navegadores parcialmente en paralelo: no duplicar
-sus esperas al sumar fases. Son tiempos de desarrollo, no rendimiento de la app.
+14,07 s y 10,41 s, no dos minutos de compilación. Documentación inicial: 1 min 6 s.
+Publicación hasta confirmar Vercel: 1 min 58 s (incluye espera externa).
+Total desde la primera observación de reloj hasta Vercel success: **13 min 27 s**;
+no incluye las lecturas previas sin timer ni este cierre documental posterior.
+Navegadores parcialmente en paralelo: no duplicar sus esperas al sumar fases.
+Son tiempos de desarrollo, no rendimiento de la app.
