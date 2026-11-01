@@ -97,6 +97,15 @@ rechazadas. No se repiten esos accesos inválidos.
 No hubo pedidos nuevos, pushes artificiales ni confirmaciones reales. El diagnóstico
 del clic externo sigue pausado. Main y producción no se modifican.
 
+### Confirmación posterior del usuario
+
+El usuario confirmó: «listo quedó igual» y pidió conservar este método para los
+rediseños siguientes. Se registra como aprobación visual del diseño completo.
+No equivale a una nueva ejecución acreditada de todos los flujos físicos de reserva,
+recepción y finalización. El método queda en la política de trabajo y en la regla
+de entrega a Claude para poder consultarlo fuera del historial del chat.
+Este cierre solo modifica documentación; no repite tests/build ni publica.
+
 ## Tiempos
 
 Medición local desde 01:46:22 hasta 02:06:14 UTC, **19 min 52 s** hasta verificar

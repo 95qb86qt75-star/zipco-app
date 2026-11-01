@@ -45,6 +45,13 @@ reduce sus controles de coordinación, alcance, permisos o publicación.
     gradual cuando se trabaje en la unidad; no autoriza una nueva reorganización
     global ni cambios de comportamiento. Los archivos existentes de mayor tamaño
     no se consideran automáticamente incumplimientos.
+11. Método visual confirmado por el usuario tras CliU17 QA `604cb93`: aplicar la
+    [integración completa](frontend-card-visual-handoff-policy.md)
+    en próximos rediseños. Integrar la composición, detalle, estilos y animaciones
+    aprobados sobre el código vigente; conservar la lógica y ventanas protegidas,
+    sin mezclar cuerpos antiguos ni duplicar tarjetas. El número de archivos surge
+    de las dependencias, no de una cuota fija. La confirmación visual no sustituye
+    pruebas funcionales aún pendientes.
 
 ## Medición separada por bloque
 

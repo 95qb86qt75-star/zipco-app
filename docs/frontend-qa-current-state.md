@@ -13,8 +13,11 @@ ni convierte pruebas sintéticas en aprobación física.
   [alcance, pruebas y límites](frontend-pickup-cliu17-qa.md). 107 unitarias distintas,
   18 escenarios sintéticos y build QA/PWA aprobados. Publicado en QA `604cb93`,
   [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/ErqUFn3f6hTUkqBhCqMpNfyETKkq);
-  falta revisión física en iPhone. Este bloque sustituye el rediseño de retiro pendiente
-  mencionado en los antecedentes inferiores.
+  el usuario confirma que el diseño quedó igual al aprobado. Esta confirmación
+  visual no acredita todos los escenarios funcionales reales de reservas/recepción.
+  Este bloque sustituye el rediseño de retiro pendiente mencionado en los antecedentes.
+  El usuario solicita repetir este método en futuros rediseños; quedó incorporado
+  a la política de trabajo y a la regla de entrega/integración visual.
 
 - En cada modificación visual de una tarjeta, consultar la
   [regla de entrega a Claude](frontend-card-visual-handoff-policy.md). Entregar en
@@ -72,7 +75,8 @@ ni convierte pruebas sintéticas en aprobación física.
 Publicado QA **604cb939110d0916d4bece610cf20e0c7670fb02**: detalle completo CliU17
 de retiro del cliente, pestañas con reserva/condiciones reales y opciones separadas.
 107 unitarias distintas, 18 escenarios únicos y build QA/PWA aprobados; Vercel
-success. Sin cambios de contrato/backend; pendiente iPhone y assets autenticados.
+success. Sin cambios de contrato/backend; diseño confirmado por el usuario,
+pendientes flujos funcionales físicos completos y assets autenticados.
 El cierre documental posterior queda local, sin otro push/despliegue.
 
 Publicado QA **6f239ca**: reorganización global en doce capacidades y composiciones

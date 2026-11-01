@@ -101,3 +101,37 @@ Si la fuente no confirma una acción o efecto, indicar la incertidumbre.
 Esta regla define el formato y la preparación. No exige una nueva aprobación ni
 otra ronda con Claude cuando el usuario ya entregó código aprobado y autorizó su
 integración. Tampoco autoriza por sí sola publicaciones o cambios de backend.
+
+## Método confirmado por el usuario: integración completa CliU17
+
+El usuario confirmó que el diseño de retiro local publicado en QA `604cb93`
+quedó igual al diseño aprobado y pidió aplicar este método a los siguientes
+rediseños de frontend. Consultar este apartado antes de preparar o integrar una
+entrega visual. Evidencia: [integración de retiro CliU17](frontend-pickup-cliu17-qa.md).
+
+1. Partir de las fuentes actuales del repo y delimitar la variante exacta. Entregar
+   a Claude su composición visual completa y las dependencias necesarias, con los
+   permisos de edición y la explicación funcional definidos arriba.
+2. Solicitar los archivos autorizados completos, junto con la explicación de cada
+   cambio, clic, estado, transición, animación y límite de las pruebas realizadas.
+3. Comparar la entrega con el repo vigente e integrar el diseño completo: cabecera,
+   cuerpo, detalle, estilos y efectos. No pegar solo el encabezado ni conservar
+   fragmentos visuales anteriores que contradigan el diseño aprobado. Tampoco
+   sobrescribir lógica vigente con una copia anterior del archivo.
+4. Conservar controladores, acciones, permisos, recuperación y ventanas reales que
+   estén fuera del rediseño, especialmente Condiciones aceptadas. Cuando un bloque
+   compartido impida componer el diseño, separar sus piezas de presentación con
+   una interfaz acotada, como el render opcional de CliU17, manteniendo una sola
+   implementación y el comportamiento por defecto de sus otros consumidores.
+5. Localizar los estilos de la variante y verificar especificidad, orden de carga,
+   responsive y compuertas de movimiento. No imitar reservas, condiciones u otros
+   componentes reales para hacer que la captura coincida.
+6. Verificar el diseño integrado con componentes reales, comparar capturas al mismo
+   ancho y probar interacciones, estados y consumidores compartidos según el riesgo.
+   Reutilizar los escenarios existentes; medir las fases y documentar diferencias.
+7. Publicar solo dentro del alcance autorizado y registrar la confirmación visual
+   del usuario por separado de las pruebas funcionales pendientes.
+
+CliU17 necesitó siete archivos de aplicación; ese número no es una regla. Cada
+rediseño requiere únicamente sus propietarios y dependencias reales. Este método
+no autoriza reorganizar otras pantallas, modificar contratos ni publicar sin alcance.
