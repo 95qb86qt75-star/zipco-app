@@ -80,7 +80,12 @@ JSON unitarios en `node_modules/.cache/pickup-cliu17-unit*.json` (locales, ignor
 
 ## Publicación y límites
 
-Commit y estado final de Vercel se completan en el cierre documental posterior.
+Publicado **604cb939110d0916d4bece610cf20e0c7670fb02**, rama `qa`,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/ErqUFn3f6hTUkqBhCqMpNfyETKkq).
+Antes del commit del diseño, un fallo de comillas al guardar el mensaje dejó pasar
+primero los tres commits documentales previos (`eedabac`); ese push fue innecesario
+y no cambió el código de la app. Se corrigió usando un archivo de mensaje y se
+publicó el commit completo. No se oculta ese despliegue intermedio en la medición.
 Solo rama qa y Vercel QA. El archivo generado `dist/index.html` se restaura y no se
 incluye en el commit. La carpeta de traspaso previa no relacionada queda fuera.
 
@@ -94,9 +99,22 @@ del clic externo sigue pausado. Main y producción no se modifican.
 
 ## Tiempos
 
-Medición local desde 01:46:22 UTC. El cierre incorpora la tabla final por fase desde
-`node_modules/.cache/pickup-cliu17-timing.json`. Preparación incluye adaptación de
-fixtures y detección del patrón de tests; las ejecuciones paralelas de navegador se
-cuentan por tiempo transcurrido, sin sumar dos veces sus esperas. La revisión final
-de documentación incluyó una comprobación unitaria adicional de 1,4 s. Estas cifras
-describen el trabajo de desarrollo, no el rendimiento de la app.
+Medición local desde 01:46:22 hasta 02:06:14 UTC, **19 min 52 s** hasta verificar
+Vercel. Fuente: `node_modules/.cache/pickup-cliu17-timing.json`.
+
+| Fase medida | Tiempo transcurrido |
+| --- | --- |
+| Análisis | 2 min 58 s |
+| Implementación de aplicación | 1 min 52 s |
+| Preparación inicial de pruebas | 4 min 32 s |
+| Pruebas y reparación de fixtures | 5 min 9 s |
+| Build y revisión de salida | 28 s; comando QA/PWA 9,15 s |
+| Documentación y revisión final | 2 min 47 s |
+| Commit, push y verificación Vercel | 2 min 5 s |
+
+La fase de documentación incluye preparación tardía del test `.test.ts` y su
+ejecución de 1,4 s; no se dispone de una separación fina de ese intervalo.
+La ejecución de pruebas incluye correcciones del fixture, sin medición fina aparte.
+Los navegadores corrieron parcialmente en paralelo: no sumar sus tiempos al total.
+El cierre documental posterior se mide aparte y no ejecuta otra suite/build ni push.
+Estas cifras describen desarrollo, no rendimiento de la app.

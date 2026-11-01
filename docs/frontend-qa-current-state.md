@@ -11,8 +11,9 @@ ni convierte pruebas sintéticas en aprobación física.
   completo con pestañas «Cómo retirar» / «Contacto y opciones». Una sola composición,
   componentes de reserva y condiciones reales, controladores sin cambios. Ver
   [alcance, pruebas y límites](frontend-pickup-cliu17-qa.md). 107 unitarias distintas,
-  18 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en curso; falta
-  revisión física en iPhone. Este bloque sustituye el rediseño de retiro pendiente
+  18 escenarios sintéticos y build QA/PWA aprobados. Publicado en QA `604cb93`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/ErqUFn3f6hTUkqBhCqMpNfyETKkq);
+  falta revisión física en iPhone. Este bloque sustituye el rediseño de retiro pendiente
   mencionado en los antecedentes inferiores.
 
 - En cada modificación visual de una tarjeta, consultar la
@@ -67,6 +68,12 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Publicado QA **604cb939110d0916d4bece610cf20e0c7670fb02**: detalle completo CliU17
+de retiro del cliente, pestañas con reserva/condiciones reales y opciones separadas.
+107 unitarias distintas, 18 escenarios únicos y build QA/PWA aprobados; Vercel
+success. Sin cambios de contrato/backend; pendiente iPhone y assets autenticados.
+El cierre documental posterior queda local, sin otro push/despliegue.
 
 Publicado QA **6f239ca**: reorganización global en doce capacidades y composiciones
 canónicas. Mapa vigente en `src/app/features/README.md`. 1.743 unitarias, 35 recorridos
