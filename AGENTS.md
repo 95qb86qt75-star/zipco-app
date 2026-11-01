@@ -36,6 +36,10 @@ describen su versión; no sustituyen el contrato o el estado actual.
 - Mantener una composición canónica por tarjeta/flujo visual. Separar diseño de
   carga, permisos y recuperación; no crear copias antiguas/nuevas ni alternativas
   silenciosas. Conservar las ventanas compartidas reales y sus contratos.
+- Tamaño orientativo: procurar archivos editables de hasta 400 líneas y revisar
+  su división cuando superen 500. Separar por responsabilidad, sin fragmentar un
+  flujo coherente ni comprimir código para cumplir la cifra. Las excepciones se
+  justifican; aplicar gradualmente al trabajar en la unidad correspondiente.
 
 ## Clasificación obligatoria
 

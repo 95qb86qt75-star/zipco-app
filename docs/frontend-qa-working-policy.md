@@ -36,15 +36,14 @@ reduce sus controles de coordinación, alcance, permisos o publicación.
    Antes de una entrega a Claude, consultar el [mapa vigente de fuentes](../src/app/features/README.md)
    y el [mapa de tarjetas](../src/app/features/requests/cards/README.md), y entregar
    las dependencias visuales completas del estado solicitado.
-9. Organización aprobada el 2026-10-31: aplicar en todo el frontend unidades por
-   capacidad y composiciones visuales identificables. Una tarjeta y sus estados
-   de interacción relacionados tienen un propietario canónico. Separar pantalla,
-   composición visual, estilos, controlador y API; compartir solo piezas con la
-   misma estructura, significado y comportamiento. No conservar diseños antiguos
-   como rutas alternativas ni pegar un encabezado nuevo sobre un cuerpo anterior.
-   Antes de una entrega a Claude, consultar el [mapa vigente de fuentes](../src/app/features/README.md)
-   y el [mapa de tarjetas](../src/app/features/requests/cards/README.md), y entregar
-   las dependencias visuales completas del estado solicitado.
+10. Tamaño orientativo de archivos editables: procurar hasta 400 líneas y revisar
+    la división al superar 500. Es una guía, no un bloqueo automático. Extraer por
+    responsabilidad y mantener una sola implementación; conservar un flujo completo
+    cuando dividirlo empeore su comprensión o seguridad y justificar la excepción.
+    No comprimir ni minificar código para aparentar menos líneas. Aplicar de forma
+    gradual cuando se trabaje en la unidad; no autoriza una nueva reorganización
+    global ni cambios de comportamiento. Los archivos existentes de mayor tamaño
+    no se consideran automáticamente incumplimientos.
 
 ## Medición separada por bloque
 

@@ -7,6 +7,11 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Guía de tamaño acordada: procurar hasta 400 líneas por archivo editable y
+  revisar responsabilidades al superar 500, con excepciones justificadas. Aplicar
+  gradualmente, sin fragmentar flujos coherentes, duplicar diseños ni comprimir
+  código. Este cierre es documental: no se movió código ni se desplegó.
+
 - Reorganización global de frontend autorizada el 2026-10-31: 12 capacidades en
   `src/app/features`, vistas y controladores separados, tarjetas y estilos con
   propietarios identificables y sin copias ejecutables en `src/app/screens`.

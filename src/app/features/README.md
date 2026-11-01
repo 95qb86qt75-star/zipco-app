@@ -52,3 +52,12 @@ pantalla conectada a la API. Las vistas de prueba importan los componentes reale
 
 La separación facilita localizar un diseño. No sustituye la comparación visual,
 las pruebas de interacción ni la comprobación física en los teléfonos.
+
+## Tamaño orientativo
+
+Procurar hasta 400 líneas por archivo editable; revisar su división al superar
+500. Separar responsabilidades completas, preservando una sola implementación y
+el flujo de cada tarjeta. Una excepción justificada es preferible a fragmentar
+artificialmente el código. No reducir líneas mediante compresión o minificación.
+La revisión es gradual al trabajar en cada unidad, no una reescritura automática
+de todos los archivos existentes.
