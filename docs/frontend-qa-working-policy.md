@@ -23,10 +23,11 @@ reduce sus controles de coordinación, alcance, permisos o publicación.
 8. Al entregar material a Claude para rediseño, señalar los archivos de código
    vigentes del repo y sus líneas actuales. Un documento de diseño no sustituye
    el TSX/CSS real; no sobrescribir código vigente con copias antiguas.
-   Formato acordado: un único prompt con rutas, líneas, lógica, botones y
-   animaciones; adjuntar solo las fuentes necesarias. Separar qué se modifica y
-   qué CSS es solo referencia. No preparar ZIP con decenas de archivos o JSON
-   de configuración para un ajuste local, salvo petición expresa.
+   Aplicar siempre el [formato obligatorio de rediseño de tarjetas](frontend-card-visual-handoff-policy.md):
+   lista copiable de rutas y líneas, prompt de archivos autorizados/referencia y
+   prompt funcional con todos sus apartados. Entregarlos en el chat; adjuntar solo
+   las fuentes necesarias. No preparar ZIP con decenas de archivos o JSON de
+   configuración para un ajuste local, salvo petición expresa.
 9. Organización aprobada el 2026-10-31: aplicar en todo el frontend unidades por
    capacidad y composiciones visuales identificables. Una tarjeta y sus estados
    de interacción relacionados tienen un propietario canónico. Separar pantalla,

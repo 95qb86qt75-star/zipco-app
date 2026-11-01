@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- En cada modificación visual de una tarjeta, consultar la
+  [regla de entrega a Claude](frontend-card-visual-handoff-policy.md). Entregar en
+  el chat rutas y líneas verificadas, archivos editables/referencia explícitos y
+  explicación de qué representa, significado de sus partes, motivo de sus botones,
+  instrucciones del participante, estados posteriores y objetivo del rediseño.
+  Es una regla documental vigente, no solo un acuerdo del historial.
+
 - Guía de tamaño acordada: procurar hasta 400 líneas por archivo editable y
   revisar responsabilidades al superar 500, con excepciones justificadas. Aplicar
   gradualmente, sin fragmentar flujos coherentes, duplicar diseños ni comprimir

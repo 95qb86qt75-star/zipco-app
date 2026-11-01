@@ -30,6 +30,11 @@ describen su versión; no sustituyen el contrato o el estado actual.
 
 ## Organización visual vigente
 
+- En cada modificación visual de tarjetas, consultar y aplicar el
+  [formato obligatorio de entrega a Claude](docs/frontend-card-visual-handoff-policy.md):
+  rutas/líneas actuales, archivos editables y de referencia separados y explicación
+  completa de significado, botones, instrucciones, estados posteriores y objetivo.
+  Entregar los prompts en el chat, salvo petición distinta del usuario.
 - Consultar el [mapa de fuentes](src/app/features/README.md) y el
   [mapa de tarjetas](src/app/features/requests/cards/README.md) antes de editar
   un diseño o preparar una entrega a Claude.
