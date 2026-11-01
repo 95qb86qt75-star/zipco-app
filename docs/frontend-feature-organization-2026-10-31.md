@@ -122,7 +122,7 @@ tiene medición desglosada. No se completan intervalos ausentes por estimación.
 | Navegador: recepción / retiro / paridad / inicial / negocio | 28,68 / 12,95 / 13,85 / 50,46 / 9,90 s por suite, incluidas preparación y apertura de Chrome. Se superponen. |
 | Build QA y PWA | 9,54 s según el cronómetro del procedimiento de build. |
 | Documentación y preparación adicional | Intervalos de sesión conservados; parte del tramo 23:48–23:52 contiene diagnóstico del arnés de checkout. No existe desglose fiable para atribuir todo ese tramo a documentación. |
-| Publicación/verificación | Pendiente de registrar al cerrar Vercel QA. |
+| Publicación y observación | 72,63 s de intervalo de sesión, desde el comienzo del push hasta cerrar la observación y revisar capturas. Vercel comunicó success dentro de ese intervalo; no es una medición de su tiempo interno de build. |
 
 Los intervalos de fase no equivalen a CPU ni a escritura de código. Las duraciones
 anidadas o paralelas no se suman para calcular el total del bloque. No hubo cambios
@@ -131,10 +131,35 @@ rutas, datos faltantes de escenarios y un adaptador de inspección de vistas par
 las unitarias. No se midió rendimiento de la app ni se atribuyó la duración a sus
 gráficos o animaciones.
 
+Registro de sesión hasta las **23:59:36 UTC**: **58 min 53 s** desde que comenzó
+el cronómetro. Se conserva también su agrupación original para no presentar una
+precisión de atribución que no existe:
+
+| Etiqueta del registro | Tiempo de reloj | Límite de interpretación |
+| --- | --- | --- |
+| Análisis | 5 min 51 s | Incluye lecturas e inventario inicial. |
+| Implementación | 28 min 59 s | Incluye comprobaciones intermedias; no es tiempo puro escribiendo. |
+| Preparación de pruebas | 7 min 13 s | Hubo navegador y escritura de mapa en paralelo. |
+| Ejecución, dos intervalos | 3 min 22 s | No contiene todas las suites: varias corrieron durante otras fases. |
+| Build, intervalo de sesión | 58 s | Compilación/PWA real: 9,54 s; el resto incluye observación y lanzamiento de comprobaciones. |
+| Documentación/preparación adicional | 11 min 17 s | Incluye diagnóstico de dos escenarios y esperas; no se atribuye íntegramente a escribir documentación. |
+| Publicación/observación | 1 min 13 s | Push y comprobación de estado CI; sin verificación autenticada del alias. |
+
+Las cifras de ejecución de cada suite de la tabla anterior son las medidas
+específicas más útiles. No añadirlas a estos 58 min 53 s: ya ocurrieron dentro
+de esos intervalos. El cierre Git documental posterior queda fuera de ese corte.
+
 ## Publicación y pendientes
 
-Rama: `qa`. Commit de código y estado de Vercel: pendientes de registrar tras el
-cierre. Una sola publicación QA prevista para el bloque, sin despliegues parciales.
+Rama: `qa`. Commit de código: **`6f239cad792e593a46576a5b07827e017d7909fc`**.
+Push correcto desde `b5f37dd`; una sola publicación QA del bloque, sin despliegues
+parciales. GitHub comunica **[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4wyL3yhQ73mfEpRMtV8RaLnncfjf)** para ese SHA.
+Alias aprobado: https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+
+No se repitió la comprobación de assets con credenciales que ya devolvieron 403,
+ni se modificó la protección SSO. El éxito de CI no se presenta como verificación
+autenticada del JS/CSS servido por el alias. El cierre documental posterior se
+guarda localmente y no provoca otro despliegue.
 
 Pendiente después de publicar: revisar en ambos celulares las tarjetas y ventanas
 habituales. Quedan separados el rediseño integral de retiro aún no entregado y el

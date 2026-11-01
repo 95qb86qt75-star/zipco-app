@@ -59,11 +59,11 @@ permisos siguen en los hooks de `requests/application` y en la API.
 - `shared/coordination/CoordinationVisualPrimitives.tsx`: pasos y efectos comunes.
 - `shared/availability/AvailabilityPostActionsView.tsx`: controles de retiro,
   permiso y reserva; su controlador conserva las acciones existentes.
-- `../../shared/feedback/StatusRail.tsx`, `ReadyPanel.tsx` y sus CSS: progreso y
+- `../shared/feedback/StatusRail.tsx`, `ReadyPanel.tsx` y sus CSS: progreso y
   recepción compartidos entre retiro y WhatsApp.
-- `../../shared/conditions/CoordinationSheets.tsx`: Condiciones aceptadas y las
+- `../shared/conditions/CoordinationSheets.tsx`: Condiciones aceptadas y las
   otras ventanas reales; conservarlas salvo un rediseño explícito de esa ventana.
-- `../../shared/product-preview/ProductPreviewControl.tsx`: miniatura y producto.
+- `../shared/product-preview/ProductPreviewControl.tsx`: miniatura y producto.
 
 Los manifiestos `shared/layout/availability-card-styles.css` y
 `coordination-card-styles.css`, más `src/styles/index.css`, solo ordenan imports.

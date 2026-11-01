@@ -14,7 +14,10 @@ ni convierte pruebas sintéticas en aprobación física.
   [mapa de tarjetas](../src/app/features/requests/cards/README.md) y el
   [informe de validación](frontend-feature-organization-2026-10-31.md).
   1.743 unitarias y 35 recorridos de navegador sintéticos aprobados; build QA/PWA
-  aprobado. Publicación de este bloque pendiente de registrar tras verificar Vercel.
+  aprobado. Código publicado en `6f239cad792e593a46576a5b07827e017d7909fc`, rama
+  `qa`; GitHub informa [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4wyL3yhQ73mfEpRMtV8RaLnncfjf).
+  No se reintentó la lectura de assets con credenciales ya rechazadas; falta esa
+  comprobación autenticada y la revisión física en ambos celulares.
   La reorganización conserva contratos, permisos, recuperación y las ventanas
   reales. No sustituye el rediseño integral del detalle de retiro pendiente.
 
@@ -44,6 +47,13 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Publicado QA **6f239ca**: reorganización global en doce capacidades y composiciones
+canónicas. Mapa vigente en `src/app/features/README.md`. 1.743 unitarias, 35 recorridos
+distintos y build QA/PWA aprobados; Vercel success. Se conserva el cuerpo de retiro
+vigente, con los ajustes locales previos de contraste y toques. Pendiente revisión
+física; no se reabre el diagnóstico del clic externo. El cierre documental posterior
+queda local y no genera otro despliegue.
 
 Publicado QA b5f37dd: corrección de mezcla visual observada en 2c29b27. Se elimina la tarjeta antigua
 anidada en ownPending y el fallback visual de productos READY sin resumen v2.
