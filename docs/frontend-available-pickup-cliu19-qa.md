@@ -51,9 +51,10 @@ Railway no fue necesario. El diagnóstico de clic externo sigue pausado.
 - **97 unitarias distintas aprobadas**, incluyendo variantes, consulta inicial,
   resumen compacto/default, fallback de instrucciones, composición, recuperación
   y salida de retiro de 900 ms con destino real En curso.
-- **16 escenarios distintos de navegador aprobados**: 13 de retiro y tres
+- **17 escenarios distintos de navegador aprobados**: 13 de retiro y cuatro
   regresiones (controles WhatsApp, aceptación WhatsApp con holograma y tarjeta
-  posterior de retiro con condiciones). Retiro prueba nueve variantes, anchos
+  posterior de retiro con condiciones y confirmación oscura de «No, gracias»).
+  Retiro prueba nueve variantes, anchos
   320/393/430, nota de 300 caracteres conservada, consentimiento requerido para
   prepago, diálogo real de reserva, recuperación plegada y salida con aviso Ver.
 - Toques por coordenadas, componentes reales, HTTP sintético. Sin pedidos,
@@ -62,8 +63,10 @@ Railway no fue necesario. El diagnóstico de clic externo sigue pausado.
   preview sintético de prepago orientativo con fecha incompatible. Solo se
   repitieron los pendientes. El caso de mensaje vacío se verificó en la vista
   unitaria: no se relajó el normalizador para introducir una respuesta inválida.
-- Capturas revisadas con tema y diálogo reales. Build QA/PWA final aprobado
-  una vez: **14,97 s**, con advertencia existente de tamaño de chunks.
+- Capturas revisadas con tema y diálogo reales. Build QA/PWA final aprobado:
+  **19,39 s**, con advertencia existente de tamaño de chunks. Se repitió el build
+  inicial de 14,97 s tras conectar también el diálogo oscuro de cierre en retiro;
+  esta última conexión se verificó en un escenario dirigido, sin repetir toda la suite.
   Imports correctos; no existe tsc/script de tipos independiente en este repo.
 
 Resultados locales ignorados en `node_modules/.cache/cliu19-unit*.json` y

@@ -10,7 +10,7 @@ ni convierte pruebas sintéticas en aprobación física.
 - Disponible de retiro local CliU19 integrado sobre el diseño aprobado WhatsApp:
   nueve variantes, reservas reales y salida/recuperación para LOCAL_PICKUP.
   [Informe, pruebas y medición](frontend-available-pickup-cliu19-qa.md): 97 unitarias,
-  16 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en preparación;
+  17 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en preparación;
   pendiente revisión física. No se alteraron contratos ni backend.
 
 - Disponible del cliente, camino WhatsApp CliU18: diseño completo integrado con
