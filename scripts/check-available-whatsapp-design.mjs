@@ -5,7 +5,7 @@ await runSuite('available-whatsapp-design','acceptance',catalog,async(ctx,spec)=
  await ctx.visit('available-design=1'+(spec.case==='pickup'?'&pickup=1':spec.case==='reference'?'&reference-photo=1':''),spec.width,852);
  await wait('!!document.querySelector(".zipco-av-available")');
  if(spec.case==='pickup'){
-  assert.equal(await evaluate('!!document.querySelector(".zipco-av-available-wa")'),false);
+  assert.equal(await evaluate('!!document.querySelector(".zipco-av-available-pk")'),true);
   await tap('.zipco-av-disclosure');await wait('document.querySelector(".zipco-av-disclosure").getAttribute("aria-expanded")==="true"');
   await tap('.zipco-av-decline');await wait('!!document.querySelector("[role=alertdialog]")');
   assert.equal(await evaluate('document.querySelector("[role=alertdialog]").classList.contains("zipco-av-alert-decline")'),false);

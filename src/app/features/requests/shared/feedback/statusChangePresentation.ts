@@ -25,8 +25,8 @@ export function markStatusArrival(orderId:number,business:boolean){
 export function isStatusArrival(order:StatusOrder,business:boolean){return arrival?.session===readCoordinationSession()&&arrival?.business===business&&arrival?.orderId===order.id;}
 export const subscribeStatusChanges=(callback:()=>void)=>{listeners.add(callback);return()=>{listeners.delete(callback);};};
 export const statusChangeKey=(order:StatusOrder,business:boolean)=>`${business}:${order.id}:${order.requestProcess?.id}`;
-/** Presentation only: the approved WhatsApp availability card owns a 900 ms exit. */
-export const usesAvailableWhatsappExit=(order:StatusOrder,business:boolean)=>!business&&order.requestProcess?.state==='AWAITING_CUSTOMER_CONTINUATION'&&order.requestProcess.availability?.path==='WHATSAPP';
+/** Presentation only: both availability card modalities share the approved 900 ms exit. */
+export const usesAvailableDesignExit=(order:StatusOrder,business:boolean)=>!business&&order.requestProcess?.state==='AWAITING_CUSTOMER_CONTINUATION'&&['WHATSAPP','LOCAL_PICKUP'].includes(order.requestProcess.availability?.path??'');
 export function registerStatusPage(owner:object,business:boolean,view:StatusView,orders:boolean){
   const session=readCoordinationSession();
   if(!session)return()=>{};
@@ -89,7 +89,7 @@ export function completeStatusChange(change:StatusChange|null,latest:StatusOrder
     if(changes.get(change.key)!==change)return;
     if(statusOverlayVisible()){change.releaseOverlay=subscribeStatusOverlay(()=>{if(!statusOverlayVisible()){change.releaseOverlay?.();change.releaseOverlay=undefined;advance();}});return;}
     if(change.destination===statusViewFor('orders',change.source.status,previous,false,change.business)){remove();return;}
-    change.stage='exiting';notify();change.timer=setTimeout(remove,typeof window!=='undefined'&&typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:usesAvailableWhatsappExit(change.source,change.business)?900:500);
+    change.stage='exiting';notify();change.timer=setTimeout(remove,typeof window!=='undefined'&&typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:usesAvailableDesignExit(change.source,change.business)?900:500);
   };
   change.timer=setTimeout(advance,1500);return true;
 }

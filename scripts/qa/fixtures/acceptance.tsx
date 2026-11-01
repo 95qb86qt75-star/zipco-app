@@ -16,6 +16,8 @@ import { agreementFixture } from "/src/app/features/requests/fixtures/requestPro
 import ProcessHistoryCard from "/src/app/features/requests/cards/shared/history/ProcessHistoryCard.tsx";
 import ActionHologramHost, { dismissAction } from "/src/app/features/requests/shared/feedback/ActionHologram.tsx";
 import '/src/styles/index.css';
+import {freeOffer,paidOffer,freeReservation} from '/src/app/features/requests/fixtures/reservationFixtures';
+import {simpleFree,simplePaid,simpleReserved,simplePaidPending} from '/src/app/features/requests/fixtures/simplifiedReservationFixtures';
 window.flowCalls=[]; window.testDriverReady=false;
 const fixtureParams=new URLSearchParams(location.search),availableDesign=fixtureParams.has('available-design');
 localStorage.setItem('zipco-token','customer-test-only');
@@ -38,6 +40,14 @@ function orderFor(business){return {...raw,status,requestProcess:processFor(busi
 const subject={orderType:'product',items:[{catalogItemId:5,nameSnapshot:'Producto QA',descriptionSnapshot:'Producto de prueba',quantity:1,unitPriceClpSnapshot:12000,subtotalClp:12000}],needNow:true,note:raw.note,referencePhoto:null};
 proposals=[{id:123,sequence:0,type:'ORIGINAL_REQUEST',authorActor:'CUSTOMER',authorUserId:1,createdAt:raw.createdAt,subjectSchemaVersion:1,subjectSnapshot:subject,totalPriceClp:12000,scheduledFor:null,reservationAmountClp:null}];
 if(availableDesign){plan=fixtureParams.has('pickup')?pickupPlan:whatsappPlan;state={...state,state:'AWAITING_CUSTOMER_CONTINUATION',version:2};proposals[0]={...proposals[0],availability:plan};}
+const reservationVariant=availableDesign?fixtureParams.get('reservation'):null;
+if(reservationVariant){
+ const simple=reservationVariant.startsWith('simple')||reservationVariant==='none',paid=reservationVariant.endsWith('paid');
+ let offer=reservationVariant==='none'?{mode:'NONE'}:simple?paid?simplePaid:simpleFree:paid?paidOffer:freeOffer;
+ if(reservationVariant.includes('advisory'))offer={...offer,simplified:{...offer.simplified,hoursPolicy:'ADVISORY_ONLY',opensAt:null,closesAt:null,holdMinutes:null,scheduledFor:null}};
+ plan={...pickupPlan,reservationOffer:offer,allowCustomerWhatsapp:!fixtureParams.has('no-contact'),...(fixtureParams.has('no-message')?{customerMessage:'',scheduleOrAddress:null}:{})};
+ state={...state,flowContract:simple?'AVAILABILITY_V3':'AVAILABILITY_V2',serverNow:new Date().toISOString()};proposals[0]={...proposals[0],availability:plan};
+}
 window.fetch=async (url,init)=>{
  if(String(url).endsWith('/request-process-capabilities'))return new Response(JSON.stringify({supportedContracts:['availability-v1','availability-v2'],reservationCreationEnabled:false}));
  const body=init?.body?JSON.parse(init.body):null,business=String(init?.headers?.Authorization).includes('business-test-only');
@@ -50,6 +60,7 @@ window.fetch=async (url,init)=>{
  }
  if((init?.method??'GET')==='GET'){
   if(!String(url).includes('processContract=availability-v3'))throw Error('Missing S2 read opt-in');
+  if(String(url).includes('/reservation-options'))return json({serverNow:new Date().toISOString(),version:state.version,offerId:31,reservationOffer:plan.reservationOffer,...(plan.reservationOffer.mode!=='NONE'?{previewTiming:{holdStartsAt:'2099-10-25T14:00:00Z',pickupBy:plan.reservationOffer.simplified?.hoursPolicy==='ADVISORY_ONLY'?null:'2099-10-25T14:30:00Z',paymentDueAt:plan.reservationOffer.mode==='PREPAYMENT'&&plan.reservationOffer.simplified?.hoursPolicy!=='ADVISORY_ONLY'?'2099-10-25T14:15:00Z':null}}:{})});
   if(String(url).includes('/orders/'))return json([orderFor(business)]);
   if(String(url).includes('/agreement')){const latest=proposals.at(-1);return json({...agreementFixture,totalPriceClp:latest.totalPriceClp,acceptedProposalId:latest.id,subjectSchemaVersion:latest.subjectSchemaVersion,scheduledFor:null,subjectSnapshot:latest.subjectSnapshot,availability:plan});}
   if(String(url).includes('/proposals'))return json({process:processFor(business),proposals});

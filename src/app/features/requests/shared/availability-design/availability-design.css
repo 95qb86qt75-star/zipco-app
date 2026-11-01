@@ -81,13 +81,6 @@
 .zipco-av-available .zipco-av-neon{margin-top:10px;font-size:27px;color:#bbf7d0;text-shadow:0 0 6px #4ade80,0 0 18px #16a34a,0 0 36px #15803d}
 .zipco-av-available .zipco-av-subtitle{margin-top:3px;color:#a7f3d0;text-shadow:none}
 .zipco-av-available .zipco-av-perforation{margin:8px -12px 0}
-.zipco-av-channel-summary{margin-top:8px;border:1px solid #ffffff24;border-radius:15px;padding:10px;background:#ffffff0f}
-.zipco-av-channel-summary h3{display:flex;align-items:center;gap:7px;margin:0;font-size:14px;font-weight:700;color:#fff}
-.zipco-av-channel-summary h3 svg{flex:none;width:17px;height:17px;color:#5eead4}
-.zipco-av-channel-summary p,.zipco-av-channel-summary small{display:block;margin:5px 0 0;font-size:11.5px;line-height:1.4;color:#cbd5e1}
-.zipco-av-channel-summary blockquote{margin:8px 0 0;padding:9px 10px;border-radius:4px 14px 14px;background:#fff;color:#0f172a;font-size:13px;font-weight:700;white-space:pre-wrap;overflow-wrap:anywhere}
-.zipco-av-channel-summary blockquote>span{display:flex;align-items:center;gap:6px;border-top:1px dashed #cbd5e1;padding-top:6px;margin-top:6px;color:#0f766e;font-size:12px;font-weight:500}
-.zipco-av-channel-summary blockquote svg{width:14px;height:14px;flex:none}
 .zipco-av-contact-button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:36px;border:0;border-radius:11px;margin-top:8px;background:#059669;color:#fff;font-size:12px;font-weight:700}
 .zipco-av-contact-button svg{width:16px;height:16px}
 .zipco-av-contact-button:disabled{opacity:.45;cursor:not-allowed}
@@ -129,8 +122,6 @@
 .zipco-av-switch>span{position:absolute;width:21px;height:21px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0f172a59;transition:transform .2s}
 .zipco-av-switch[aria-checked=true]{background:#10b981}
 .zipco-av-switch[aria-checked=true]>span{transform:translateX(19px)}
-.zipco-av-consent-dark{margin-top:9px;padding:6px 8px;background:#0004;border-color:#34d39966;border-radius:10px}
-.zipco-av-consent-dark>b{flex:1;font-size:11.5px}
 .zipco-av-send{width:100%;border:1px solid #ffffff66;border-radius:99px;margin-top:16px;min-height:48px;background:linear-gradient(100deg,#10b981,#0d9488 52%,#06b6d4);font-size:15px;box-shadow:inset 0 2px 3px #ffffff52,0 8px 20px #06b6d452}
 .zipco-av-send svg{width:20px;height:20px}
 .zipco-av-alert-overlay{z-index:1010}
@@ -275,6 +266,134 @@
 .zipco-av-available-wa[data-expanded=true] .zipco-avwa-dis svg{transform:rotate(180deg)}
 .zipco-av-available-wa :focus-visible{outline:3px solid #a78bfa;outline-offset:3px}
 
+/* ---------- Retiro en el local (-pk): lo propio de esta modalidad; el resto lo comparte con WhatsApp (-wa) ---------- */
+/* Parte alta más compacta (solo retiro; WhatsApp conserva su tamaño aprobado) */
+.zipco-av-available-pk .zipco-av-ticket-inner{padding:11px}
+.zipco-av-available-pk .zipco-av-ticket-header{gap:10px}
+.zipco-av-available-pk .zipco-product-thumb{width:40px;height:40px;border-radius:12px}
+.zipco-av-available-pk .zipco-av-identity small{font-size:8px}
+.zipco-av-available-pk .zipco-av-identity b{font-size:14.5px}
+.zipco-av-available-pk .zipco-av-price b{font-size:18px}
+.zipco-av-available-pk .zipco-av-price small{margin-top:2px}
+.zipco-av-available-pk .zipco-avwa-status{padding-top:7px}
+.zipco-av-available-pk .zipco-avwa-pill{padding:3px 12px 3px 5px}
+.zipco-av-available-pk .zipco-avwa-pill>i{width:20px;height:20px}
+.zipco-av-available-pk .zipco-avwa-pill>b{font-size:17px}
+.zipco-av-available-pk .zipco-av-subtitle{margin:5px 0 0;font-size:11.5px;line-height:1.3}
+.zipco-av-available-pk .zipco-avwa-rail{margin:7px 0 0;padding:6px 4px;border-radius:14px}
+.zipco-av-available-pk .zipco-avwa-rail>li{gap:5px}
+.zipco-av-available-pk .zipco-avwa-rail>li>span{width:22px;height:22px}
+.zipco-av-available-pk .zipco-avwa-rail>li+li::before{top:10px}
+.zipco-av-available-pk .zipco-avwa-rail small{font-size:8px}
+.zipco-av-available-pk .zipco-avwa-rail b{font-size:11.5px}
+.zipco-av-available-pk .zipco-av-ticket-footer{margin-top:2px;padding-bottom:0}
+.zipco-av-available-pk .zipco-avwa-dis{min-height:44px;padding:0 14px;font-size:12px}
+.zipco-av-available-pk .zipco-avwa-detail{padding-top:6px}
+.zipco-av-available-pk .zipco-av-item{font-size:12.5px}
+.zipco-av-available-pk .zipco-avwa-extra{margin-top:4px;padding-top:4px}
+.zipco-av-available-pk .zipco-avwa-extra .zipco-av-schedule{min-height:30px}
+.zipco-av-available-pk .zipco-avwa-extra .zipco-av-note{font-size:11.5px}
+.zipco-av-available-pk .zipco-avwa-extra a,.zipco-av-available-pk .zipco-avwa-extra button{min-height:40px}
+
+/* Aviso «Puedes reservar este producto» (contrato simplificado) */
+.zipco-avpk-op{margin-top:6px;padding:8px 9px;border-radius:15px;background:linear-gradient(150deg,#10b98133,#ffffff0d 70%);box-shadow:inset 0 0 0 1.5px #34d3998c,0 0 22px #34d3992e}
+.zipco-avpk-op[data-mode=PREPAYMENT]{background:linear-gradient(150deg,#fbbf2433,#ffffff0d 70%);box-shadow:inset 0 0 0 1.5px #fbbf248c,0 0 22px #fbbf2429}
+.zipco-avpk-hero{display:flex;gap:10px;align-items:flex-start}
+.zipco-avpk-hero>div{flex:1;min-width:0}
+.zipco-avpk-bm{position:relative;flex:none;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#34d399,#0d9488 60%,#06b6d4);box-shadow:0 8px 20px #0d948c8c,inset 1.5px 1.5px 1px #fff9;animation:zipco-avpk-bob 3.2s ease-in-out infinite}
+.zipco-avpk-op[data-mode=PREPAYMENT] .zipco-avpk-bm{background:linear-gradient(145deg,#fcd34d,#f59e0b 60%,#ea580c);box-shadow:0 8px 20px #f59e0b80,inset 1.5px 1.5px 1px #fff9}
+.zipco-avpk-bm em{position:relative;z-index:1;display:grid;place-items:center;animation:zipco-avpk-tilt 3.2s ease-in-out infinite}
+.zipco-avpk-bm em svg{width:22px;height:22px;stroke-width:2.4}
+.zipco-avpk-bm u{position:absolute;inset:0;border-radius:13px;border:2px solid #5eead4;animation:zipco-avpk-ring 2.4s ease-out infinite}
+.zipco-avpk-bm u+u{animation-delay:1.2s}
+.zipco-avpk-op[data-mode=PREPAYMENT] .zipco-avpk-bm u{border-color:#fcd34d}
+.zipco-avpk-bm s{position:absolute;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 8px #fff;animation:zipco-avpk-tw 2.4s ease-in-out infinite;top:-3px;right:-2px}
+.zipco-avpk-bm s+s{top:auto;bottom:2px;left:-5px;right:auto;width:5px;height:5px;animation-delay:.8s}
+.zipco-avpk-top{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px}
+.zipco-avpk-top small{font-size:8.5px;font-weight:900;letter-spacing:.14em;color:#6ee7b7}
+.zipco-avpk-op[data-mode=PREPAYMENT] .zipco-avpk-top small{color:#fcd34d}
+.zipco-avpk-chip{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:99px;font-size:9.5px;font-weight:900;letter-spacing:.07em}
+.zipco-avpk-chip svg{width:10px;height:10px;stroke-width:3.4}
+.zipco-avpk-chip[data-kind=free]{color:#a7f3d0;background:#10b98133;box-shadow:inset 0 0 0 1px #34d39980}
+.zipco-avpk-chip[data-kind=pre]{color:#fde68a;background:#fbbf2429;box-shadow:inset 0 0 0 1px #fbbf2480}
+.zipco-avpk-chip[data-kind=none]{color:#cbd5e1;background:#94a3b829;box-shadow:inset 0 0 0 1px #94a3b866}
+.zipco-avpk-hero h3{margin:3px 0 0;font-size:13px;line-height:1.2;font-weight:800;color:#fff}
+.zipco-avpk-hero p{margin:2px 0 0;font-size:11px;line-height:1.35;color:#d1fae5}
+.zipco-avpk-op[data-mode=PREPAYMENT] .zipco-avpk-hero p{color:#fef3c7}
+.zipco-avpk-hero p b{color:#fff}
+/* con el detalle abierto el aviso se vuelve una franja */
+.zipco-av-available-pk[data-expanded=true] .zipco-avpk-hero{align-items:center}
+.zipco-av-available-pk[data-expanded=true] .zipco-avpk-bm{width:30px;height:30px;border-radius:10px}
+.zipco-av-available-pk[data-expanded=true] .zipco-avpk-bm em svg{width:17px;height:17px}
+.zipco-av-available-pk[data-expanded=true] .zipco-avpk-bm u,.zipco-av-available-pk[data-expanded=true] .zipco-avpk-bm s,.zipco-av-available-pk[data-expanded=true] .zipco-avpk-hero p{display:none}
+.zipco-av-available-pk[data-expanded=true] .zipco-avpk-hero h3{margin:0;font-size:12.5px}
+.zipco-av-available-pk[data-expanded=true] .zipco-avpk-top{margin-bottom:2px}
+/* Componente real ReservationOfferSummary, revestido sin tocar su archivo */
+.zipco-avpk-det{margin-top:6px;padding-top:6px;border-top:1px dashed #ffffff38}
+.zipco-avpk-det>section,.zipco-avpk-offer>section{margin:0;padding:0;border:0;background:none;color:#cbd5e1;font-size:10.5px;line-height:1.35}
+.zipco-avpk-det>section p,.zipco-avpk-offer>section p{margin:0}
+.zipco-avpk-det>section p+p,.zipco-avpk-offer>section p+p{margin-top:3px}
+.zipco-avpk-det>section p.font-bold{display:none}                  /* el título ya lo dice el sello de arriba */
+.zipco-avpk-offer{margin-top:6px;padding:9px 10px;border-radius:15px;background:#ffffff0f;box-shadow:inset 0 0 0 1px #ffffff24}
+.zipco-avpk-offer>section{font-size:11.5px}
+.zipco-avpk-offer>section p.font-bold{font-size:13px;line-height:1.3;color:#fff}
+.zipco-avpk-offer>section strong{color:#fde68a}
+.zipco-avpk-in{background:#0000001f;box-shadow:inset 0 0 0 1px #ffffff1a}
+
+/* Ficha de retiro */
+.zipco-av-available-pk .zipco-avpk-card{margin-top:6px;padding:8px 10px 2px}
+.zipco-avpk-hd{display:flex;align-items:center;gap:8px}
+.zipco-avpk-hd h3{margin:0;font-size:12.5px;font-weight:800;color:#fff}
+.zipco-avpk-ic{flex:none;width:22px;height:22px;border-radius:8px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#38bdf8,#0369a1)}
+.zipco-avpk-ic svg{width:15px;height:15px}
+.zipco-avpk-tk{margin-top:7px;border-radius:14px;background:#fff;color:#0f172a;box-shadow:0 6px 16px #0206174d;overflow:hidden}
+.zipco-avpk-msg{margin:0;padding:8px 11px 7px;font-size:12.5px;font-weight:700;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
+.zipco-avpk-perf{display:flex;align-items:center}
+.zipco-avpk-perf i{flex:none;width:12px;height:12px;margin:0 -1px;border-radius:50%;background:#171a40}
+.zipco-avpk-perf i:first-child{margin-left:-6px}.zipco-avpk-perf i:last-child{margin-right:-6px}
+.zipco-avpk-perf span{flex:1;border-top:2px dashed #cbd5e1}
+.zipco-avpk-stub{display:flex;align-items:center;gap:10px;padding:6px 11px 8px;background:linear-gradient(180deg,#f0fdfa,#e6fffa)}
+.zipco-avpk-stub>span{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#14b8a6,#0f766e);box-shadow:0 0 0 4px #14b8a62e}
+.zipco-avpk-stub>span svg{width:15px;height:15px}
+.zipco-avpk-stub small{display:block;font-size:9px;font-weight:900;letter-spacing:.12em;color:#0f766e}
+.zipco-avpk-stub b{display:block;margin-top:1px;font-size:12px;line-height:1.3;font-weight:800;color:#0f172a;white-space:pre-wrap;overflow-wrap:anywhere}
+.zipco-avpk-sn{margin-top:8px}
+.zipco-avpk-sn p{margin:5px 0 0;font-size:11.5px;color:#cbd5e1}
+.zipco-avpk-nt{display:flex;align-items:center;gap:7px;width:100%;min-height:44px;margin-top:4px;padding:0 4px;border:0;border-top:1px dashed #fff3;background:none;color:#5eead4;font-size:12.5px;font-weight:700;text-align:left}
+.zipco-avpk-nt svg{flex:none;width:15px;height:15px}
+.zipco-avpk-nt svg:last-child{margin-left:auto;width:14px;height:14px;transition:transform .3s}
+.zipco-avpk-nt[aria-expanded=true] svg:last-child{transform:rotate(180deg)}
+.zipco-avpk-field{display:block;margin-bottom:6px}
+.zipco-avpk-field textarea{display:block;box-sizing:border-box;width:100%;min-height:56px;padding:8px 10px;border:0;border-radius:12px;resize:vertical;font:inherit;font-size:13px;font-weight:500;color:#0f172a;background:#fff;box-shadow:inset 0 0 0 1px #cbd5e1}
+.zipco-avpk-field textarea:disabled{opacity:.6}
+.zipco-avpk-cr{margin-top:4px;padding-top:4px;border-top:1px dashed #fff3}
+.zipco-avpk-cr .zipco-avwa-consent{margin-top:0;padding-top:0;border-top:0}
+.zipco-avpk-cr .zipco-avwa-consent b{font-size:12px}
+.zipco-avpk-cr small{display:block;margin:0 0 6px;font-size:10.5px;line-height:1.3;color:#cbd5e1}
+.zipco-avpk-cr .zipco-avwa-state{margin-top:4px;padding:2px 8px;font-size:10.5px}
+.zipco-av-available-pk .zipco-av-switch{height:40px}
+
+/* Botones: principal con brillo, «Iré sin reserva» secundario y «No, gracias» suave */
+.zipco-avpk-res{margin-top:8px}
+.zipco-av-available-pk .zipco-avwa-decisions{margin-top:8px;gap:6px}
+.zipco-av-available-pk .zipco-avwa-decisions .zipco-accept-btn,.zipco-av-available-pk .zipco-avpk-res .zipco-accept-btn{min-height:46px}
+.zipco-av-available-pk .zipco-avwa-decisions .zipco-av-decline{min-height:42px;border:0;background:#f43f5e1a;color:#fda4af;font-weight:700}
+.zipco-avpk-sec .zipco-accept-wrap{background:transparent;box-shadow:inset 0 0 0 1.5px #5eead4;animation:none}
+.zipco-avpk-sec .zipco-accept-blob{display:none}
+.zipco-avpk-sec .zipco-accept-btn{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;text-shadow:none}
+.zipco-avpk-sec .zipco-accept-btn::before,.zipco-avpk-sec .zipco-accept-btn::after{display:none}
+.zipco-avpk-sec .zipco-accept-check{background:#5eead433;box-shadow:inset 0 0 0 1.5px #5eead4;animation:none}
+.zipco-av-available-pk .zipco-av-fine{margin-top:6px;font-size:10px}
+
+@keyframes zipco-avpk-bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
+@keyframes zipco-avpk-tilt{0%,70%,100%{transform:scale(1)}80%{transform:scale(1.18)}90%{transform:scale(.96)}}
+@keyframes zipco-avpk-ring{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.55);opacity:0}}
+@keyframes zipco-avpk-tw{0%,100%{transform:scale(0);opacity:0}50%{transform:scale(1);opacity:1}}
+:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpk-bm,
+:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpk-bm *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.zipco-avpk-bm,.zipco-avpk-bm *{animation:none!important}.zipco-avpk-bm u,.zipco-avpk-bm s{display:none}.zipco-avpk-nt svg:last-child{transition:none}}
+@media(max-width:350px){.zipco-avpk-hero h3{font-size:12.5px}.zipco-avpk-msg{font-size:12px}}
+
 /* ---------- Salida (la activa leaving=true desde el flujo existente, después del holograma) ---------- */
 .zipco-av-available-wa[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-avwa-leave .9s ease-in forwards}
 /* Only this card supplies its own exit; preserve the shared flow elsewhere. */
@@ -308,7 +427,7 @@
 /* ---------- Pausa con la lista quieta / en scroll, pantallas angostas y movimiento reducido ---------- */
 [data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span::after,
 [data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::after{animation-play-state:paused!important}
-@media(max-width:350px){.zipco-av-available-wa .zipco-av-identity b{font-size:14px}.zipco-av-available-wa .zipco-av-price b{font-size:17px}.zipco-avwa-pill>b{font-size:18px}.zipco-avwa-rail b{font-size:11px}.zipco-avwa-decisions .zipco-accept-label{font-size:14.5px}.zipco-av-available-wa .zipco-product-thumbs{max-width:56px}}
+@media(max-width:350px){.zipco-av-available-wa .zipco-av-identity b{font-size:14px}.zipco-av-available-wa .zipco-av-price b{font-size:17px}.zipco-avwa-pill>b{font-size:18px}.zipco-avwa-rail b{font-size:11px}.zipco-avwa-decisions .zipco-accept-label{font-size:14.5px}.zipco-av-available-wa .zipco-product-thumbs{max-width:56px}.zipco-avpk-msg{font-size:12.5px}.zipco-av-available-pk .zipco-avpk-offer>section p.font-bold{font-size:12.5px}}
 @media(prefers-reduced-motion:reduce){
   .zipco-avwa-pill,.zipco-avwa-pill::before,.zipco-avwa-pill::after,.zipco-avwa-pill>i,.zipco-avwa-pill>b>span,.zipco-avwa-rail>li>span,.zipco-avwa-rail>li>span::before,.zipco-avwa-rail>li>span::after,.zipco-avwa-state,.zipco-av-decline-ic,.zipco-av-dialog.zipco-av-alert-decline{animation:none!important}
   .zipco-avwa-pill::before,.zipco-avwa-rail>li[data-kind=now]>span::before{display:none}

@@ -50,6 +50,13 @@ it('runs the availability WhatsApp exit for 900 ms after the hologram, then expo
  expect(change.stage).toBe('success');expect(api.getStatusNotice()).toBeNull();gate.setStatusOverlay(owner,false);
  expect(change.stage).toBe('exiting');vi.advanceTimersByTime(899);expect(api.getStatusNotice()).toBeNull();
  vi.advanceTimersByTime(1);expect(api.getStatusChange(old,false)).toBeUndefined();expect(api.getStatusNotice()).toMatchObject({view:'coordination',title:'Solicitud confirmada'});
- expect(api.usesAvailableWhatsappExit(old,true)).toBe(false);
- expect(api.usesAvailableWhatsappExit({...old,requestProcess:{...availabilityWaiting,availability:{...availabilityWaiting.availability!,path:'LOCAL_PICKUP'}}},false)).toBe(false);
+ expect(api.usesAvailableDesignExit(old,true)).toBe(false);
+ expect(api.usesAvailableDesignExit({...old,requestProcess:{...availabilityWaiting,availability:{...availabilityWaiting.availability!,path:'LOCAL_PICKUP'}}},false)).toBe(true);
+});
+it('keeps local pickup through the same 900 ms visual exit and uses its real active destination',()=>{
+ const old={...source(),status:'pending',requestProcess:{...availabilityWaiting,availability:{...availabilityWaiting.availability!,path:'LOCAL_PICKUP' as const}}};
+ const fresh={...source(),requestProcess:{...availabilityAccepted,state:'IN_PROGRESS',availability:old.requestProcess.availability}};
+ api.registerStatusPage({},false,'waiting',true);const change=api.beginStatusChange(old,false)!;api.completeStatusChange(change,fresh);
+ vi.advanceTimersByTime(1500);expect(change.stage).toBe('exiting');vi.advanceTimersByTime(899);expect(api.getStatusNotice()).toBeNull();
+ vi.advanceTimersByTime(1);expect(api.getStatusNotice()).toMatchObject({view:'active',orderId:20});
 });

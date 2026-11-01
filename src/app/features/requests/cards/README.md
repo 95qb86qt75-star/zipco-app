@@ -11,8 +11,11 @@ la única vista correspondiente.
 - **Disponible, antes de continuar por WhatsApp:** `AvailableWhatsappDesign` en
   `../shared/availability-design/AvailabilityDesign.tsx`; estilos CliU18 en
   `availability-design.css`, acotados a `.zipco-av-available-wa`. Su conexión real
-  vive en `shared/availability/AvailabilityFlowCard.tsx`. La rama de retiro de
-  disponibilidad permanece en `AvailableRequestDesign`.
+  vive en `shared/availability/AvailabilityFlowCard.tsx`.
+- **Disponible, antes de continuar con retiro local:** `AvailablePickupDesign`
+  en el mismo `AvailabilityDesign.tsx`, estilos `.zipco-av-available-pk` / `.zipco-avpk-*`.
+  `AvailableRequestDesign` selecciona ambas modalidades; comparten estado, permiso
+  y control de detalle. La decisión de reserva mantiene su diálogo real.
 - **Aceptado, antes de abrir WhatsApp:**
   `customer/whatsapp/initial/CustomerInitialCoordinationCard.tsx`.
   Su CSS y `CustomerStepsSheet.tsx` están en esa misma carpeta.

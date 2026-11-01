@@ -3,7 +3,7 @@ import { showStatusToast, hideStatusToast } from "./statusToast.ts";
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Check,Clock3,LoaderCircle} from 'lucide-react';
 import { readCoordinationSession, subscribeCoordinationSession } from "../../application/intents/coordinationSession";
-import { getStatusChange, getStatusNotice, closeStatusNotice, projectStatusOrders, registerStatusPage, subscribeStatusChanges, statusResultCopy, isStatusArrival, markStatusArrival, usesAvailableWhatsappExit, type StatusOrder } from "./statusChangePresentation";
+import { getStatusChange, getStatusNotice, closeStatusNotice, projectStatusOrders, registerStatusPage, subscribeStatusChanges, statusResultCopy, isStatusArrival, markStatusArrival, usesAvailableDesignExit, type StatusOrder } from "./statusChangePresentation";
 import type { StatusView } from "../../domain/requestStatusGrouping";
 import { scrollToRequestOrder } from "../../application/motion/requestSummaryScroll";
 import ProductPreviewControl from "../product-preview/ProductPreviewControl";
@@ -13,7 +13,7 @@ export function useStatusChangeRecords<T extends StatusOrder>(orders:T[],busines
 export function useCardStatusChange(order:StatusOrder,business:boolean){useStatusRevision();return getStatusChange(order,business);}
 export default function StatusChangeFlow({order,business,children}:{order:StatusOrder;business:boolean;children:ReactNode}){
   const change=useCardStatusChange(order,business),copy=change?.result?statusResultCopy(change.result,change.source):null;
-  const designExit=change?.stage==='exiting'&&usesAvailableWhatsappExit(order,business);
+  const designExit=change?.stage==='exiting'&&usesAvailableDesignExit(order,business);
   const presentation=change&&!(change.inlineSaving&&change.stage==='saving')&&!designExit;
   const arriving=isStatusArrival(order,business),root=useRef<HTMLDivElement>(null);
   useEffect(()=>{

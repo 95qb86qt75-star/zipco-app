@@ -7,13 +7,20 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Disponible de retiro local CliU19 integrado sobre el diseño aprobado WhatsApp:
+  nueve variantes, reservas reales y salida/recuperación para LOCAL_PICKUP.
+  [Informe, pruebas y medición](frontend-available-pickup-cliu19-qa.md): 97 unitarias,
+  16 escenarios sintéticos y build QA/PWA aprobados. Publicación QA en preparación;
+  pendiente revisión física. No se alteraron contratos ni backend.
+
 - Disponible del cliente, camino WhatsApp CliU18: diseño completo integrado con
   componentes reales, plegado accesible, recuperación visible y salida de 900 ms
   conectada después del holograma. Retiro y otras confirmaciones conservados.
   [Informe y tiempos](frontend-available-whatsapp-cliu18-qa.md): 109 unitarias,
   12 escenarios sintéticos y build QA/PWA aprobados. Publicado QA `dcd1deb`,
   [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/A6t58hs9pqY54TT6PuwrtsxRoY1e);
-  pendiente comprobación física en iPhone/Android.
+  el usuario aprobó visualmente WhatsApp («quedó espectacular»). No equivale a
+  comprobar todos los escenarios funcionales físicos; CliU19 aún requiere revisión.
 
 - Retiro local del cliente CliU17 integrado: cabecera, carril sin cortes y detalle
   completo con pestañas «Cómo retirar» / «Contacto y opciones». Una sola composición,
