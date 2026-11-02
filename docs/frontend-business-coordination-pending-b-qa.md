@@ -92,7 +92,10 @@ históricos del runner `qa-pilot/coordination-detail/`.
 - Ventana paralela de builds/validación final/ajustes: 3 min 45,76 s. No es tiempo
   exclusivo del compilador. Tres comandos QA/PWA: 14,31 s, 8,58 s y 10,03 s;
   los dos últimos se justifican por nuevos cambios CSS de pausa y cantidad.
-- Documentación, publicación/verificación y cierre se registran al finalizar.
+- Documentación inicial: 1 min 41,80 s. Commit, push y observación de Vercel:
+  1 min 12,93 s, incluidas esperas entre consultas. Total desde primer reloj
+  hasta publicación verificada: 18 min 28,89 s. Cierre documental posterior local,
+  sin otro push ni repetición de controles.
 
 Las ventanas incluyen preparación adicional, correcciones y coordinación entre
 llamadas; no hay medida exclusiva para cada ajuste intercalado. No se suman de
@@ -100,6 +103,11 @@ nuevo los comandos concurrentes. No son mediciones de rendimiento de la app.
 
 ## Publicación
 
-Rama qa. Commit y estado de Vercel se completan al verificar la publicación QA.
+Publicado en rama qa: **8c2e71c79fbde9a55c6dc4ebaa85836b59c910ee**.
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/DBwFvB8wDP7Wq1ENB7WRudTYEfcu),
+verificado por el estado del commit. Alias QA:
+https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+La autenticación SSO del alias limita la lectura automática del sitio publicado;
+la verificación visual/interactiva descrita fue local, con componentes reales.
 Railway no necesario. Main y producción intactos; se conserva fuera del commit
 el paquete antiguo no rastreado de docs/design-handoffs del usuario.
