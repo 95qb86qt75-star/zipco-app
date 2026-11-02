@@ -9,8 +9,10 @@ ni convierte pruebas sintéticas en aprobación física.
 
 - El usuario consideró 280 ms demasiado rápido. Disponible WhatsApp/retiro queda
   en **420 ms**, curva más gradual, opacidad de 220 ms sin espera inicial. Solo
-  CSS: tres recorridos reutilizados y build QA/PWA aprobados; publicación en
-  preparación. Sustituye la duración de 280 ms del antecedente inferior.
+  CSS: tres recorridos reutilizados y build QA/PWA aprobados; publicado QA
+  `3a35e3d`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/BLVKtizQ3rXyuYhqcpKxh29m4rHu).
+  Sustituye la duración de 280 ms del antecedente inferior. Pendiente preferencia
+  táctil del usuario en iPhone.
   [Alcance y validación](frontend-available-fold-response-qa.md).
 
 - Ajuste de respuesta de Disponible tras aprobación visual CliU19: pliegue común
@@ -101,6 +103,11 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Publicado QA **3a35e3d692d2fb6bf3b4ace7581c9118e5ce4df2**: punto intermedio
+de 420 ms en Disponible, sin espera inicial, curva más gradual y opacidad de
+220 ms. Tres escenarios y build aprobados; Vercel success. Solo CSS productivo,
+sin API/backend/main/producción. Cierre documental local sin otro despliegue.
 
 Publicado QA **c0754aa3292308b13c8a05740cd7444cd81feb94**: respuesta del detalle
 Disponible WhatsApp/retiro de 650 a 280 ms, opacidad sin espera inicial. Solo CSS

@@ -13,10 +13,19 @@ reserva con pago previo. Cada uno registra 0,42 s al abrir/cerrar/reabrir. Se co
 inert/ARIA y se verifica diálogo de reserva y movimiento reducido. No se repite
 la suite funcional ni los tamaños aprobados: solo cambió la duración/curva del
 pliegue, sin layout nuevo. Build QA/PWA aprobado una vez.
-Publicación QA en preparación; pendiente preferencia táctil del usuario en iPhone.
+Publicado QA **3a35e3d692d2fb6bf3b4ace7581c9118e5ce4df2**, rama qa,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/BLVKtizQ3rXyuYhqcpKxh29m4rHu).
+Pendiente preferencia táctil del usuario en iPhone.
 Medición local: `node_modules/.cache/available-fold-smooth-timing.json`. Análisis
 inicial no cronometrado por separado; preparar el test fue actualizar su duración
 esperada durante la implementación. No se presenta como prueba FPS/CPU/Safari.
+
+Tiempos transcurridos de esta revisión: implementación/preparación 5 s; pruebas
+34 s; build/revisión de salida 48 s (comando QA/PWA 10,27 s); documentación inicial
+10 s; intervalo de publicación/verificación 3 min 49 s. Este último incluye
+espacios entre llamadas y no mide solo ejecución de Vercel. Total desde primer
+registro hasta cierre de la medición: 5 min 25 s; cierre documental posterior
+local, sin push ni repetición de pruebas/build.
 
 ## Antecedente: primera corrección de 280 ms
 
