@@ -43,6 +43,6 @@ if(business&&embedded&&process?.state==='COORDINATING'&&(process.whatsappCoordin
   const waLabel = 'Iniciar coordinación por WhatsApp';
   const customerInitial = !business && !embedded && accepted.subjectSnapshot.orderType === 'product' && process?.availability?.path === 'WHATSAPP';
   if(customerInitial)return <CustomerInitialCoordinationCard model={{accepted,acceptedAt,allowed,authorized,canOpen,client,conditionsSummary,counterpartPending,deferred,dialogs,folded,fresh,go,image,isUnread,motionRef,negotiated,onInspect,operation,order,pending,phase,price,process,recoveryOnly,refocus,refresh,setDeferred,setFolded,setSheet,sheet,statusLabel,step2Done,stepsTrigger,unlock,waLabel}}/>;
-  return <InitialCoordinationCardView model={{accepted,acceptedAt,allowed,business,canOpen,client,conditionsSummary,counterpartPending,deferred,dialogs,embedded,folded,fresh,go,image,isUnread,motionRef,negotiated,onInspect,operation,order,pending,phase,price,process,recoveryOnly,refresh,setDeferred,setFolded,setSheet,statusLabel,step2Done,unlock,waLabel}}/>;
+  return <InitialCoordinationCardView model={{accepted,acceptedAt,allowed,business,canOpen,client,conditionsSummary,counterpartPending,deferred,dialogs,embedded,folded,fresh,go,image,isUnread,motionRef,negotiated,onInspect,operation,order,pending,phase,price,process,recoveryOnly,refresh,setDeferred,setFolded,setSheet,sheet,statusLabel,step2Done,unlock,waLabel}}/>;
 
 }

@@ -1,13 +1,15 @@
+import {BusinessCoordinationDisclosure} from '../cards/business/coordination/businessCoordinationDisclosure';
 import {expandPresentationTree} from '../../../testing/renderPresentation';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, agreement: null as unknown, retry: vi.fn() }));
-vi.mock('react', async (original) => ({
-  ...await original<typeof import('react')>(),
+vi.mock('react', async original => {const actual=await original<typeof import('react')>();return {
+  ...actual,
   useEffect: () => undefined,
   useId: () => 'pending-test-detail',
   useRef: (current: unknown) => ({ current }),
+  useContext:(context:any)=>context===BusinessCoordinationDisclosure?null:actual.useContext(context),
   useState: (initial: unknown) => {
     const index = hooks.cursor++;
     if (!(index in hooks.slots)) hooks.slots[index] = typeof initial === 'function' ? initial() : initial;
@@ -15,7 +17,7 @@ vi.mock('react', async (original) => ({
       hooks.slots[index] = typeof next === 'function' ? next(hooks.slots[index]) : next;
     }];
   },
-}));
+};});
 vi.mock('react-dom', async (original) => ({ ...await original<typeof import('react-dom')>(), createPortal: (children: React.ReactNode) => children }));
 vi.mock("../application/useAgreement", () => ({ default: () => ({ state: hooks.agreement, retry: hooks.retry }) }));
 vi.mock("../../../notifications/unreadInteractions", async original => ({

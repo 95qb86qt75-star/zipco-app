@@ -19,3 +19,13 @@
 @keyframes zipco-query-halo{0%,100%{box-shadow:0 0 0 0 var(--query-halo)}50%{box-shadow:0 0 0 7px transparent}}
 @keyframes zipco-query-shine{0%,65%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 @keyframes zipco-query-hop{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-3px)}90%{transform:translateY(1px)}}
+
+/* Negocio · consulta «¿Coordinación lista por WhatsApp?» */
+@keyframes zipco-business-ask-halo{0%,100%{box-shadow:0 0 0 3px rgba(94,234,212,.22),0 0 0 rgba(94,234,212,0)}50%{box-shadow:0 0 0 5px rgba(94,234,212,.06),0 0 14px 3px rgba(94,234,212,.6)}}
+@keyframes zipco-business-ask-seg{0%,100%{box-shadow:inset 0 0 0 1px rgba(94,234,212,.55),0 0 0 rgba(94,234,212,0)}50%{box-shadow:inset 0 0 0 1px rgba(94,234,212,.55),0 0 10px rgba(94,234,212,.45)}}
+@keyframes zipco-business-ask-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.14)}85%{transform:translateY(1px) scale(.92)}}
+@keyframes zipco-business-ask-wave{0%,45%{opacity:0}60%{opacity:1}100%{opacity:0}}
+@keyframes zipco-business-ask-ring{0%{box-shadow:0 0 0 0 rgba(52,211,153,.55),inset 1.5px 1.5px 1px rgba(255,255,255,.55)}70%,100%{box-shadow:0 0 0 9px rgba(52,211,153,0),inset 1.5px 1.5px 1px rgba(255,255,255,.55)}}
+@keyframes zipco-business-ask-hop{0%,70%,100%{transform:translateY(0)}80%{transform:translateY(-3px)}90%{transform:translateY(1px)}}
+@keyframes zipco-business-ask-spin{to{transform:rotate(360deg)}}
+@keyframes zipco-business-ask-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}

@@ -54,6 +54,9 @@ permisos siguen en los hooks de `requests/application` y en la API.
   Diseño B de `declined`: cabecera/aviso en WaitingCard, recorrido/acciones/detalle
   y menú flotante en PendingDetail. Condiciones y opciones usan sus controles reales;
   sin cambios en los controladores ni las demás variantes.
+  Consulta B (question/confirm/ownPending): cabecera en WaitingCard; detalle
+  BusinessAskDetail en shared/coordination/InitialCoordinationCardView.tsx,
+  estilos business-ask en coordination-query*.css. Condiciones y acciones reales.
 - **Coordinación inicial compartida donde la composición es idéntica:**
   `shared/coordination/InitialCoordinationCardView.tsx`.
   La variante inicial del cliente producto se separa en su carpeta indicada arriba.

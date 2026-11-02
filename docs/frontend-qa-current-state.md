@@ -7,12 +7,19 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Consulta del negocio «¿Coordinación lista por WhatsApp?» integrada con diseño B
+  completo, detalle único, menú y autorización real en el recorrido. Declined,
+  cliente y coordinación inicial conservados. 90 unitarias, cuatro recorridos
+  reutilizados, seis nuevos escenarios y build QA/PWA aprobados; pendiente revisión
+  física. [Informe y tiempos](frontend-business-coordination-question-b-qa.md).
+
 - Negocio, Coordinación pendiente (`declined`): integrado el diseño B completo
   con miniatura real, recorrido compacto y Más opciones flotante. Controladores,
   permisos y ventanas reales conservados. 90 unitarias, seis recorridos existentes,
   cuatro grupos nuevos de interacción y build QA/PWA aprobados. Publicado QA
   `8c2e71c`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/DBwFvB8wDP7Wq1ENB7WRudTYEfcu).
-  Pendiente revisión física. [Informe y tiempos](frontend-business-coordination-pending-b-qa.md).
+  El usuario confirmó el diseño y la reapertura de WhatsApp con regreso a la
+  consulta. [Informe y tiempos](frontend-business-coordination-pending-b-qa.md).
 
 - El usuario consideró 280 ms demasiado rápido. Disponible WhatsApp/retiro queda
   en **420 ms**, curva más gradual, opacidad de 220 ms sin espera inicial. Solo

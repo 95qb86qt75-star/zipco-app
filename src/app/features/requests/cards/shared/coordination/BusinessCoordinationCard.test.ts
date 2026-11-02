@@ -1,3 +1,4 @@
+import {BusinessCoordinationDisclosure} from '../../business/coordination/businessCoordinationDisclosure';
 import {renderPresentationRoot} from '../../../../../testing/renderPresentation';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -5,10 +6,11 @@ import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ slots: [] as any[], cursor: 0, run: vi.fn(), update: vi.fn(), retry: vi.fn(), announce:vi.fn(),release:vi.fn(),prompt:null as any,actor:true, latest: null as any, busy: false, recovery: false, pending: false }));
 vi.mock("../../../application/useStartWorkPrompt",()=>({default:(props:unknown)=>{state.prompt=props;return state.release;}}));
 vi.mock("../../../shared/feedback/ActionHologram",()=>({announceAction:state.announce}));
-vi.mock('react', async original => ({ ...await original<typeof import('react')>(),
+vi.mock('react', async original => {const actual=await original<typeof import('react')>();return { ...actual,
+  useContext:(context:any)=>context===BusinessCoordinationDisclosure?null:actual.useContext(context),
   useState: (initial: any) => { const i=state.cursor++; if (!(i in state.slots)) state.slots[i]=initial; return [state.slots[i], (v:any)=>state.slots[i]=typeof v==='function'?v(state.slots[i]):v]; },
   useRef: (initial:any) => { const i=state.cursor++; return state.slots[i] ??= {current:initial}; }, useEffect: vi.fn(),
-}));
+};});
 vi.mock("../../../application/useCoordination", () => ({ default: (_order:unknown,business:boolean) => {state.actor=business;return { busy:state.busy, message:'', needsUpdate:state.recovery, storageWarning:()=>'', restored:()=>false,
   pending:()=>state.pending?{}:null, run:state.run, update:state.update, retry:state.retry, currentOrder:()=>state.latest };} }));
 import BusinessCoordinationCard from "./BusinessCoordinationCard";

@@ -111,7 +111,9 @@ export async function runCoordinationCase(ctx, spec, negative) {
       await delay(450);
       await ctx.screenshot('business-declined-detail-' + spec.width);
     }
-    await tap(declined?'.zipco-business-pending-options .zipco-co-lk.rose':'#order-20 .zipco-co-lk.rose');
+    const ask=await evaluate('!!document.querySelector(".zipco-business-ask-detail")');
+    if(ask)await tap('.zipco-business-ask-more');
+    await tap(declined?'.zipco-business-pending-options .zipco-co-lk.rose':ask?'.zipco-business-ask-menu .zipco-co-lk.rose':'#order-20 .zipco-co-lk.rose');
     await wait('document.querySelector("[role=dialog]")?.textContent.includes("¿Por qué la anulas?")===true');
     assert.equal(await evaluate('window.posts.length'), initial); await closeDialog(); await wait('!document.querySelector("[role=dialog]")');
   } else {

@@ -14,3 +14,92 @@
 .zipco-avw-query .zipco-avw-query-badge{z-index:2;animation:none}
 [data-request-motion=idle] .zipco-avw-query .zipco-avw-ring::before,[data-request-list-scrolling=true] .zipco-avw-query .zipco-avw-ring::before{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.zipco-avw-query .zipco-avw-ring::before{animation:none}}
+
+/* ===== Negocio · «¿Coordinación lista por WhatsApp?» (BusinessCoordinationWaitingCard, no declined) =====
+   Todo cuelga de .zipco-business-ask / .zipco-business-ask-detail: no toca al cliente ni a «Coordinación pendiente». */
+.zipco-avw.zipco-business-ask{background:linear-gradient(160deg,#1c1650 0%,#101434 62%,#0c1a2e 100%);box-shadow:0 14px 28px rgba(30,27,75,.32),0 0 0 1.5px rgba(94,234,212,.5),0 0 22px rgba(94,234,212,.15),inset 0 1px 0 rgba(255,255,255,.16)}
+.zipco-business-ask[data-mode=confirm]{box-shadow:0 14px 28px rgba(30,27,75,.32),0 0 0 1.5px rgba(251,191,36,.6),0 0 22px rgba(251,191,36,.18),inset 0 1px 0 rgba(255,255,255,.16)!important}
+.zipco-business-ask[data-mode=ownPending]{box-shadow:0 14px 28px rgba(30,27,75,.32),0 0 0 1.5px rgba(167,139,250,.55),0 0 22px rgba(167,139,250,.18),inset 0 1px 0 rgba(255,255,255,.16)!important}
+.zipco-business-ask button:focus-visible{outline:3px solid #a78bfa;outline-offset:3px}
+/* Franja superior: pastilla + «Ver detalle» (la manito es solo dibujo; el único botón es el texto con la flecha) */
+.zipco-business-ask-band{display:flex;align-items:center;gap:8px;padding:6px 8px 0 12px}
+.zipco-business-ask-pill{flex:1;min-width:0;display:inline-flex;align-items:center;gap:8px;max-width:max-content;padding:4px 12px 4px 5px;border-radius:99px;background:rgba(94,234,212,.14);box-shadow:inset 0 0 0 1.5px rgba(94,234,212,.5)}
+.zipco-business-ask-pill i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#34d399;color:#052e22;animation:zipco-business-ask-halo 2.8s ease-in-out infinite}
+.zipco-business-ask-pill b{font-size:10.5px;font-weight:900;letter-spacing:.11em;color:#99f6e4;white-space:nowrap}
+.zipco-business-ask-toggle{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-left:auto;padding:0 6px 0 2px;border:0;background:none;color:#fff;font-size:13px;font-weight:800}
+.zipco-business-ask-toggle:active{opacity:.7}
+.zipco-business-ask-toggle>svg{transition:transform .42s cubic-bezier(.22,1,.36,1)}.zipco-business-ask-toggle[aria-expanded=true]>svg{transform:rotate(180deg)}
+.zipco-business-ask-hand{display:inline-flex;margin:0 -2px 0 -4px;color:#fff;filter:drop-shadow(0 0 6px rgba(94,234,212,.55));animation:zipco-business-ask-tap 1.8s ease-in-out infinite}
+.zipco-business-ask-toggle[aria-expanded=true] .zipco-business-ask-hand{display:none}
+.zipco-business-ask-w1,.zipco-business-ask-w2{animation:zipco-business-ask-wave 1.8s ease-out infinite}.zipco-business-ask-w2{animation-delay:.18s}
+/* Cabecera */
+.zipco-avw-query-head.zipco-business-ask-head{min-height:0;margin-top:9px;padding:0 12px;gap:10px;background:none}
+.zipco-business-ask .zipco-avw-ring{width:54px;height:54px}
+.zipco-business-ask .zipco-avw-ring :is(.zipco-product-preview,.zipco-product-neutral,.zipco-product-thumbs,.zipco-product-thumb,.zipco-avw-thumb){width:46px;height:46px;max-width:46px}
+.zipco-business-ask-label{display:block;font-size:8px;font-weight:800;letter-spacing:.15em;color:#c4b5fd}
+.zipco-business-ask-name{display:block;font-size:14.5px;line-height:1.2;font-weight:800;color:#fff;overflow-wrap:anywhere}
+.zipco-business-ask-product{display:inline-block;max-width:100%;margin-top:3px;padding:1px 8px;border:1px solid rgba(196,181,253,.35);border-radius:9px;color:#ddd6fe;font-size:10.5px;overflow-wrap:anywhere}
+.zipco-business-ask-total{flex:none;text-align:right}
+.zipco-business-ask-price{display:block;font-size:18px;line-height:1.05;font-weight:900;color:#5eead4;text-shadow:0 0 12px rgba(94,234,212,.5);font-variant-numeric:tabular-nums}
+.zipco-business-ask-price[data-unknown=true]{max-width:84px;font-size:12px;line-height:1.2;text-shadow:none;color:#ddd6fe}
+.zipco-business-ask-total small{display:block;margin-top:2px;font-size:8px;font-weight:800;letter-spacing:.13em;color:#a5b4fc}
+/* Recorrido (segmentos) */
+.zipco-business-ask-track{display:flex;gap:3px;margin:7px 12px 0;padding:2px;list-style:none;border-radius:13px;background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.zipco-business-ask-track li{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:3px 2px;border-radius:99px;background:rgba(255,255,255,.05)}
+.zipco-business-ask-track li.done{background:rgba(16,185,129,.22)}.zipco-business-ask-track li.on{background:rgba(94,234,212,.2);box-shadow:inset 0 0 0 1px rgba(94,234,212,.55)}
+.zipco-business-ask-track i{flex:none;width:16px;height:16px;display:grid;place-items:center;color:#94a3b8;font-style:normal}.zipco-business-ask-track li.done i{color:#6ee7b7}.zipco-business-ask-track li.on i{color:#5eead4}
+.zipco-business-ask-track li.on{animation:zipco-business-ask-seg 2.4s ease-in-out infinite}
+.zipco-business-ask-track b{min-width:0;font-size:10.5px;font-weight:800;color:#cbd5e1;overflow-wrap:anywhere;line-height:1.1}.zipco-business-ask-track li.on b{color:#99f6e4}
+.zipco-business-ask-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Error / recuperación existentes */
+.zipco-business-ask .zipco-avw-query-recovery{margin:8px 12px 0;padding:9px 11px;border-radius:13px;background:rgba(244,63,94,.14);box-shadow:inset 0 0 0 1.5px rgba(251,113,133,.6);color:#fecdd3}
+/* Pregunta + Sí / Falta redondos */
+.zipco-business-ask-row{display:flex;align-items:center;gap:8px;margin:9px 12px 12px}
+.zipco-business-ask-q{flex:1;min-width:0;margin:0;font-size:15.5px;line-height:1.2;font-weight:800;color:#fff}.zipco-business-ask-q em{font-style:normal;color:#5eead4}
+.zipco-business-ask-btns{display:flex;flex:none;gap:4px}
+.zipco-business-ask-btns button{display:flex;flex-direction:column;align-items:center;gap:3px;width:56px;min-height:60px;padding:0;border:0;background:none;color:#e2e8f0;font-size:10px;font-weight:700}
+.zipco-business-ask-btns .ib{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;color:#fff;transition:transform .2s cubic-bezier(.2,1.6,.4,1)}
+.zipco-business-ask-btns .ib svg{animation:zipco-business-ask-hop 3s ease-in-out infinite}
+.zipco-business-ask-yes .ib{background:linear-gradient(135deg,#34d399,#059669);box-shadow:inset 1.5px 1.5px 1px rgba(255,255,255,.55);animation:zipco-business-ask-ring 2.2s ease-out infinite}
+.zipco-business-ask-yes[data-amber=true] .ib{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#422006;animation:none}
+.zipco-business-ask-no .ib{background:linear-gradient(140deg,#fb7185,#e11d48);box-shadow:inset 1.5px 1.5px 1px rgba(255,255,255,.5)}
+.zipco-business-ask-no[data-cancel=true] .ib{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1.5px rgba(203,213,225,.45)}
+.zipco-business-ask-no[data-cancel=true] .ib svg,.zipco-business-ask-yes[data-amber=true] .ib svg{animation:none}
+.zipco-business-ask-btns button:not(:disabled):active .ib{transform:scale(.86)}
+@media(hover:hover){.zipco-business-ask-btns button:not(:disabled):hover .ib{transform:translateY(-2px)}}
+.zipco-business-ask-btns button:disabled{opacity:.45;cursor:not-allowed}.zipco-business-ask-btns button:disabled :is(.ib,svg){animation:none}
+.zipco-business-ask-saving{display:flex;flex:none;align-items:center;gap:9px;min-height:46px;color:#c4b5fd;font-size:13px;font-weight:700}
+.zipco-business-ask-spin{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:zipco-business-ask-spin .8s linear infinite}
+/* Detalle: una sola tarjeta */
+.zipco-business-ask .zipco-avw-query-body{padding:0 12px 12px;background:none}
+.zipco-business-ask .zipco-avw-query-description{margin:0 0 9px;font-size:11.5px;line-height:1.4;color:#cbd5e1}
+.zipco-business-ask-detail{pointer-events:auto}
+.zipco-business-ask-card{padding:0 12px 6px;border-radius:17px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.zipco-business-ask-card .zipco-business-ask-cond{margin:0 0 9px;min-height:52px;padding:6px 0;border-radius:0;background:none;box-shadow:none;border-bottom:1px solid rgba(255,255,255,.12)}
+.zipco-business-ask-card .zipco-co-strip2-ic{width:28px;height:28px}.zipco-business-ask-card .zipco-co-strip2-l{font-size:9px;letter-spacing:.13em}.zipco-business-ask-card .zipco-co-strip2-v{font-size:13px}.zipco-business-ask-card .zipco-co-strip2-go{width:26px;height:26px}
+.zipco-business-ask-card .zipco-co-steps{margin-top:0}
+.zipco-business-ask-card .zipco-co-st{padding-bottom:10px}.zipco-business-ask-card .zipco-co-st.last{padding-bottom:2px}
+.zipco-business-ask-card .zipco-co-sl{font-size:13px}.zipco-business-ask-card .zipco-co-sm{font-size:11px}
+.zipco-business-ask-card :is(.zipco-co-go,.zipco-co-go2){height:auto;min-height:44px;margin-top:4px;padding:5px 10px;border-radius:14px;font-size:13px;white-space:normal;text-align:center}
+.zipco-business-ask-card .zipco-co-wrapb .zipco-co-go{margin-top:4px}
+.zipco-business-ask-card .zipco-co-ld{height:46px;margin-top:4px;border-radius:14px}.zipco-business-ask-card .zipco-co-rail{height:46px}
+.zipco-business-ask-card .zipco-co-ld-l{font-size:12.5px;padding:0 6px}
+.zipco-business-ask-card .zipco-co-lnk{margin:4px 0 0;padding:10px 4px;min-height:44px}
+.zipco-business-ask-card .zipco-co-co2-p{margin:10px 0 0;font-size:12px}
+.zipco-business-ask-alert{padding:9px 11px;border-radius:13px;background:rgba(244,63,94,.14);box-shadow:inset 0 0 0 1.5px rgba(251,113,133,.6);color:#fecdd3}
+/* Pie: aviso legal + «Más opciones» */
+.zipco-business-ask-foot{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding-bottom:2px}
+.zipco-business-ask-legal{flex:1;margin:0;min-width:0;font-size:9.5px;line-height:1.3;color:#94a3b8}
+.zipco-business-ask-more{display:inline-flex;align-items:center;gap:6px;flex:none;height:40px;margin:-6px 0 -6px 8px;padding:0 12px;border:0;border-radius:99px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(203,213,225,.4);color:#f1f5f9;font-size:12px;font-weight:700;white-space:nowrap}
+.zipco-business-ask-more:active{background:rgba(255,255,255,.16)}.zipco-business-ask-more[aria-expanded=false]>svg:last-child{transform:rotate(180deg)}
+.zipco-business-ask-menu{position:absolute;right:0;bottom:46px;z-index:3;display:grid;min-width:220px;max-width:100%;padding:6px;border-radius:16px;background:#1b1a45;box-shadow:0 14px 30px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.18);animation:zipco-business-ask-pop .2s ease both}
+.zipco-business-ask-menu[hidden]{display:none}
+.zipco-business-ask-menu button{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 10px;border:0;border-radius:11px;background:none;color:#e2e8f0;font-size:12.5px;font-weight:700;text-align:left}.zipco-business-ask-menu button.rose{color:#fda4af}.zipco-business-ask-menu button:disabled{opacity:.5}
+@media(hover:hover){.zipco-business-ask-menu button:not(:disabled):hover{background:rgba(255,255,255,.07)}}
+
+/* Integration with real preview and clipped reveal: one quantity, portal menu. */
+.zipco-business-ask .zipco-product-quantity{display:none}
+.zipco-business-ask-menu{position:fixed;z-index:95;min-width:0;max-width:calc(100vw - 24px);overflow-y:auto;overscroll-behavior:contain;color:#e2e8f0}
+.zipco-business-ask-menu button:focus-visible{outline:3px solid #a78bfa;outline-offset:-3px}
+.zipco-business-ask-more{position:relative}.zipco-business-ask-more::after{content:'';position:absolute;inset:-2px 0}
+.zipco-business-ask[data-expanded=true]:has([data-coordination-motion=idle]) *, .zipco-business-ask[data-expanded=true]:has([data-coordination-motion=idle]) *::before,.zipco-business-ask[data-expanded=true]:has([data-coordination-motion=idle]) *::after{animation-play-state:paused!important}
