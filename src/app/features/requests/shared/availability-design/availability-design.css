@@ -188,9 +188,9 @@
 .zipco-av-available-wa .zipco-av-ticket-icon svg{width:22px;height:22px}
 .zipco-avwa-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-/* ---------- Pliegue inmediato al toque: 280 ms, sin espera para mostrar contenido ---------- */
-.zipco-avwa-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .28s cubic-bezier(.22,1,.36,1),opacity .16s ease,visibility 0s .28s}
-.zipco-avwa-fold[data-open=true]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .28s cubic-bezier(.22,1,.36,1),opacity .16s ease,visibility 0s}
+/* ---------- Pliegue suave intermedio: 420 ms, sin espera para mostrar contenido ---------- */
+.zipco-avwa-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s .42s}
+.zipco-avwa-fold[data-open=true]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s}
 .zipco-avwa-fold>div{min-height:0;overflow:hidden}
 
 /* ---------- «DISPONIBLE»: entrada con rebote, ola de letras, ondas del check, destello y latido ---------- */

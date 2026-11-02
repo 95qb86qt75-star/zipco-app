@@ -11,7 +11,7 @@ await runSuite('available-fold','acceptance',catalog,async(ctx,spec)=>{
   await wait('window.foldTimes.length>='+String(i+1));
   const sample=await evaluate(`(()=>{const button=document.querySelector('.zipco-avwa-dis'),detail=document.getElementById(button.getAttribute('aria-controls')),style=getComputedStyle(detail);return{open:button.getAttribute('aria-expanded'),inert:detail.inert,hidden:detail.getAttribute('aria-hidden'),visibility:style.visibility,delay:style.transitionDelay,seconds:window.foldTimes.at(-1)}})()`);
   assert.equal(sample.open,i===0?'true':'false');assert.equal(sample.inert,i!==0);assert.equal(sample.hidden,i===0?'false':'true');assert.equal(sample.visibility,i===0?'visible':'hidden');
-  assert(Math.abs(sample.seconds-.28)<.02);if(i===0)assert(sample.delay.split(',').every(value=>parseFloat(value)===0));
+  assert(Math.abs(sample.seconds-.42)<.02);if(i===0)assert(sample.delay.split(',').every(value=>parseFloat(value)===0));
  }
  await tap('.zipco-avwa-dis');await wait('window.foldTimes.length===3');
  assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth'),false);

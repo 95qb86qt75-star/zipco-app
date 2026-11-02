@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- El usuario consideró 280 ms demasiado rápido. Disponible WhatsApp/retiro queda
+  en **420 ms**, curva más gradual, opacidad de 220 ms sin espera inicial. Solo
+  CSS: tres recorridos reutilizados y build QA/PWA aprobados; publicación en
+  preparación. Sustituye la duración de 280 ms del antecedente inferior.
+  [Alcance y validación](frontend-available-fold-response-qa.md).
+
 - Ajuste de respuesta de Disponible tras aprobación visual CliU19: pliegue común
   WhatsApp/retiro de 650 a 280 ms, sin retraso inicial de opacidad. Solo CSS, sin
   alterar reservas ni acciones. Cinco escenarios de toque/transición aprobados y

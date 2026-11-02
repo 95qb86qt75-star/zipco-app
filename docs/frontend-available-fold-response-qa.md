@@ -1,5 +1,25 @@
 # Respuesta al abrir/cerrar Disponible
 
+## Revisión posterior: punto intermedio de 420 ms
+
+El usuario consideró 280 ms demasiado rápido y pidió suavidad sin volver al efecto
+pegado. Se ajustan únicamente las mismas reglas CSS: **420 ms**, curva
+`cubic-bezier(.25,.8,.25,1)`, opacidad de 220 ms sin espera inicial y ocultamiento
+al terminar el cierre. Sustituye la preferencia de 280 ms descrita como antecedente
+abajo; no altera acciones, reservas, APIs ni salida posterior al holograma.
+
+Tres escenarios reutilizados aprobados a 393 px: WhatsApp, reserva gratuita y
+reserva con pago previo. Cada uno registra 0,42 s al abrir/cerrar/reabrir. Se conserva
+inert/ARIA y se verifica diálogo de reserva y movimiento reducido. No se repite
+la suite funcional ni los tamaños aprobados: solo cambió la duración/curva del
+pliegue, sin layout nuevo. Build QA/PWA aprobado una vez.
+Publicación QA en preparación; pendiente preferencia táctil del usuario en iPhone.
+Medición local: `node_modules/.cache/available-fold-smooth-timing.json`. Análisis
+inicial no cronometrado por separado; preparar el test fue actualizar su duración
+esperada durante la implementación. No se presenta como prueba FPS/CPU/Safari.
+
+## Antecedente: primera corrección de 280 ms
+
 Fecha: 2026-11-01, America/Santiago. Clasificación: solo frontend, animación CSS.
 El usuario aprobó el aspecto CliU19, pero reportó lentitud al desplegar/plegar,
 especialmente con reserva. El turno interrumpido anterior solo leyó archivos.
