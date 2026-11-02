@@ -95,4 +95,26 @@ Registros locales ignorados: business-ask-timing.json, business-ask-unit.json y
 qa-pilot/business-ask-design-b en node_modules/.cache. Las ventanas de validación
 incluyen correcciones y esperas; build y navegador corrieron en paralelo.
 No son mediciones de FPS/CPU ni se suman dos veces fases concurrentes.
-Se completa commit y estado Vercel al verificar QA.
+Medición desde primer reloj hasta Vercel success: **11 min 37,51 s**.
+
+| Ventana | Tiempo |
+| --- | --- |
+| Análisis | 1 min 31,88 s |
+| Implementación y preparación inicial | 50,43 s |
+| Pruebas, adaptación de arnés y correcciones | 4 min 25,96 s |
+| Build, conexión authorized y validación paralela | 2 min 56,41 s |
+| Documentación inicial | 46,56 s |
+| Commit, push y observación Vercel | 1 min 6,27 s |
+
+Preparación de pruebas y correcciones intercaladas no tienen contador exclusivo;
+no se presentan como tiempos de implementación o ejecución pura. Los dos builds
+QA/PWA tardaron 25,39 s y 18,54 s dentro de esas ventanas; el segundo corresponde
+a la conexión posterior del dato autorizado. No se suman nuevamente.
+El cierre documental posterior queda local, sin nuevo push ni despliegue.
+
+Publicado **8f89b86ea92d06c52c765693310bcd04b3eee3a2**, rama qa.
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4mDQV7He1SD4LwLcAiyyjk9GDL9i),
+verificado por el estado del commit. Alias:
+https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+El alias tiene autenticación SSO: la revisión visual/táctil acreditada es local,
+con componentes reales. Pendiente prueba física de esta versión con el usuario.

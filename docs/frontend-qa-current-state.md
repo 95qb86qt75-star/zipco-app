@@ -10,8 +10,9 @@ ni convierte pruebas sintéticas en aprobación física.
 - Consulta del negocio «¿Coordinación lista por WhatsApp?» integrada con diseño B
   completo, detalle único, menú y autorización real en el recorrido. Declined,
   cliente y coordinación inicial conservados. 90 unitarias, cuatro recorridos
-  reutilizados, seis nuevos escenarios y build QA/PWA aprobados; pendiente revisión
-  física. [Informe y tiempos](frontend-business-coordination-question-b-qa.md).
+  reutilizados, seis nuevos escenarios y build QA/PWA aprobados. Publicado QA
+  `8f89b86`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4mDQV7He1SD4LwLcAiyyjk9GDL9i).
+  Pendiente revisión física. [Informe y tiempos](frontend-business-coordination-question-b-qa.md).
 
 - Negocio, Coordinación pendiente (`declined`): integrado el diseño B completo
   con miniatura real, recorrido compacto y Más opciones flotante. Controladores,
