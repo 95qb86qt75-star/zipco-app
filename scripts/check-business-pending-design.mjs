@@ -1,0 +1,68 @@
+import {withBrowser} from './qa/browser.mjs';
+
+await withBrowser('business-pending-design-b','coordination',async ctx=>{
+  const {assert,evaluate,wait,tap,send,delay}=ctx;
+  const menu='.zipco-business-pending-options';
+  const more='.zipco-business-pending-more';
+  const escape=()=>send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});
+  for(const width of [320,393]){
+    // no-access only skips the unrelated first-Yes wait; all menu permissions remain real.
+    await ctx.visit('details=1&business=1&business-pending=1&no-access=1',width,852);
+    await wait('!!document.querySelector(".zipco-business-pending-open")');
+    await tap('.zipco-business-pending .zipco-product-thumb');
+    await wait('!!document.querySelector(".zipco-product-sheet")');
+    assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'),'false');
+    await tap('.zipco-product-close');await wait('!document.querySelector(".zipco-product-sheet")');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-business-pending .zipco-product-quantity")).display'),'none');
+    await tap('.zipco-business-pending .zipco-avw-query-detail');await delay(450);
+    await tap(more);await wait('!document.querySelector("'+menu+'").hidden');
+    assert.equal(await evaluate('document.querySelector("'+menu+'").closest("#order-20")===null'),true);
+    assert.equal(await evaluate('document.querySelector("'+menu+'").contains(document.activeElement)'),true);
+    assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+    await ctx.screenshot('menu-'+width);
+    await escape();await wait('document.querySelector("'+menu+'").hidden');
+    assert.equal(await evaluate('document.activeElement===document.querySelector("'+more+'")'),true);
+    await tap(more);await tap('#home-test');await wait('document.querySelector("'+menu+'").hidden');
+    assert.equal(await evaluate('document.body.dataset.home'), 'clicked');
+    await tap(more);await tap(menu+' .zipco-co-lk.rose');
+    await wait('!!document.querySelector("[role=dialog]")');
+    await escape();await wait('!document.querySelector("[role=dialog]")');
+    await wait('!document.querySelector("'+menu+'").hidden');
+    await escape();await wait('document.querySelector("'+menu+'").hidden');
+    await tap(more);
+    await evaluate('document.querySelector("#order-20 .zipco-avw-query-body").inert=true');
+    await wait('document.querySelector("'+menu+'").hidden');
+    await evaluate('document.querySelector("#order-20 .zipco-avw-query-body").inert=false');
+    await wait('!document.querySelector("'+menu+'").hidden');
+    await escape();
+    assert.equal(await evaluate('window.posts.length'),0);
+    console.log('PASS menu/focus/dialog/inert/outside/local-only '+width);
+  }
+  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  await ctx.visit('details=1&business=1&business-pending=1&business-consent=1&no-access=1',393,852);
+  await wait('!!document.querySelector(".zipco-business-pending-open")');
+  assert.equal(await evaluate('document.querySelector(".zipco-business-pending-open").textContent.includes("Autorizo comenzar")'),true);
+  await evaluate('window.delayPost=true');await tap('.zipco-business-pending-open');
+  await wait('typeof window.releasePost==="function"');
+  assert.equal(await evaluate('[...document.querySelectorAll(".zipco-business-pending-actions button")].every(button=>button.disabled)'),true);
+  assert.equal(await evaluate('window.posts.length'),1);
+  assert.equal(await evaluate('window.posts[0].url.endsWith("/authorize-contact")'),true);
+  await evaluate('window.delayPost=false;window.releasePost()');
+  await wait('document.querySelector(".zipco-business-pending-open")?.textContent.includes("Abrir WhatsApp")===true');
+  assert.equal(await evaluate('window.posts.length'),1);
+  await ctx.screenshot('authorized-reduced');
+  console.log('PASS authorization/loading/one-send/reduced-motion');
+  await ctx.visit('details=1&business=1&business-pending=1&no-access=1',393,852);
+  await wait('!!document.querySelector(".zipco-business-pending-open")');
+  await evaluate('window.lost=true');await tap('.zipco-business-pending-open');
+  await wait('document.querySelector(".zipco-business-pending-detail")?.textContent.includes("Reintentar operación pendiente")===true');
+  const key=await evaluate('window.posts[0].key');
+  assert.equal(await evaluate('document.querySelector(".zipco-business-pending-open")===null'),true);
+  await tap('.zipco-business-pending .zipco-avw-query-detail');await delay(450);
+  await tap(more);await escape();
+  assert.equal(await evaluate('window.posts.length'),1);
+  assert.equal(await evaluate('window.posts[0].key'),key);
+  assert.equal(await evaluate('document.querySelector(".zipco-business-pending-detail").textContent.includes("Reintentar operación pendiente")'),true);
+  await ctx.screenshot('recovery');
+  console.log('PASS uncertain-send/recovery-survives/no-automatic-retry');
+});

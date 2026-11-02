@@ -51,6 +51,9 @@ permisos siguen en los hooks de `requests/application` y en la API.
 - **Consulta de coordinación y respuesta negativa:**
   `business/coordination/BusinessCoordinationWaitingCard.tsx` y
   `BusinessPendingCoordinationDetail.tsx`; estilo `business-coordination-pending.css`.
+  Diseño B de `declined`: cabecera/aviso en WaitingCard, recorrido/acciones/detalle
+  y menú flotante en PendingDetail. Condiciones y opciones usan sus controles reales;
+  sin cambios en los controladores ni las demás variantes.
 - **Coordinación inicial compartida donde la composición es idéntica:**
   `shared/coordination/InitialCoordinationCardView.tsx`.
   La variante inicial del cliente producto se separa en su carpeta indicada arriba.

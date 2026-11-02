@@ -71,7 +71,7 @@ export async function runCoordinationCase(ctx, spec, negative) {
       await evaluate('window.switchRole()');
       await wait('!!document.querySelector(".zipco-business-pending")');
       await wait('document.querySelector("#order-20 .zipco-avw-query-reconfirm")?.disabled===false');
-      assert.equal(await evaluate('document.querySelector(".zipco-business-pending-message").textContent'), 'El cliente indicó que todavía falta coordinar.');
+      assert.equal(await evaluate('document.querySelector(".zipco-business-pending-message span").textContent'), 'El cliente indicó que todavía falta coordinar.');
     }
     if (business) {
       assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'), 'false');
@@ -106,12 +106,12 @@ export async function runCoordinationCase(ctx, spec, negative) {
   await conditions();
   if (business) {
     if (declined) {
-      assert.equal(await evaluate('document.querySelector("#order-20 .zipco-business-pending-options").closest(".zipco-avw-reveal").inert'), true);
+      assert.equal(await evaluate('document.querySelector(".zipco-business-pending-options").hidden'), true);
       await tap('#order-20 .zipco-business-pending-more');
       await delay(450);
       await ctx.screenshot('business-declined-detail-' + spec.width);
     }
-    await tap('#order-20 .zipco-co-lk.rose');
+    await tap(declined?'.zipco-business-pending-options .zipco-co-lk.rose':'#order-20 .zipco-co-lk.rose');
     await wait('document.querySelector("[role=dialog]")?.textContent.includes("¿Por qué la anulas?")===true');
     assert.equal(await evaluate('window.posts.length'), initial); await closeDialog(); await wait('!document.querySelector("[role=dialog]")');
   } else {

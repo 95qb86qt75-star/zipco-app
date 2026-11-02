@@ -1,11 +1,17 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-01, America/Santiago.
+Actualizado: 2026-11-02, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- Negocio, Coordinación pendiente (`declined`): integrado el diseño B completo
+  con miniatura real, recorrido compacto y Más opciones flotante. Controladores,
+  permisos y ventanas reales conservados. 90 unitarias, seis recorridos existentes,
+  cuatro grupos nuevos de interacción y build QA/PWA aprobados. Pendiente revisión
+  física. [Informe y tiempos](frontend-business-coordination-pending-b-qa.md).
 
 - El usuario consideró 280 ms demasiado rápido. Disponible WhatsApp/retiro queda
   en **420 ms**, curva más gradual, opacidad de 220 ms sin espera inicial. Solo
