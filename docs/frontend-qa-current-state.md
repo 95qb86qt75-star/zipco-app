@@ -7,6 +7,11 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Ajuste de respuesta de Disponible tras aprobación visual CliU19: pliegue común
+  WhatsApp/retiro de 650 a 280 ms, sin retraso inicial de opacidad. Solo CSS, sin
+  alterar reservas ni acciones. Cinco escenarios de toque/transición aprobados y
+  build QA/PWA; publicación en preparación. Ver [medición y alcance](frontend-available-fold-response-qa.md).
+
 - Disponible de retiro local CliU19 integrado sobre el diseño aprobado WhatsApp:
   nueve variantes, reservas reales y salida/recuperación para LOCAL_PICKUP.
   [Informe, pruebas y medición](frontend-available-pickup-cliu19-qa.md): 97 unitarias,
