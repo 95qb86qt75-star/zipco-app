@@ -10,7 +10,10 @@ ni convierte pruebas sintéticas en aprobación física.
 - Ajuste de respuesta de Disponible tras aprobación visual CliU19: pliegue común
   WhatsApp/retiro de 650 a 280 ms, sin retraso inicial de opacidad. Solo CSS, sin
   alterar reservas ni acciones. Cinco escenarios de toque/transición aprobados y
-  build QA/PWA; publicación en preparación. Ver [medición y alcance](frontend-available-fold-response-qa.md).
+  build QA/PWA; publicado QA `c0754aa`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/2VssW9jxm9oeG2jrS5X8whYDKa3e).
+  Ver [medición y alcance](frontend-available-fold-response-qa.md). Pendiente sensación
+  táctil en iPhone; no hay perfil FPS/CPU que acredite la causa del tironeo.
 
 - Disponible de retiro local CliU19 integrado sobre el diseño aprobado WhatsApp:
   nueve variantes, reservas reales y salida/recuperación para LOCAL_PICKUP.
@@ -92,6 +95,11 @@ ni convierte pruebas sintéticas en aprobación física.
 - No tocar C:/dev/zipco-app, main o producción. Mantener las reglas de AGENTS.md.
 
 ## Versión publicada frente a memoria local
+
+Publicado QA **c0754aa3292308b13c8a05740cd7444cd81feb94**: respuesta del detalle
+Disponible WhatsApp/retiro de 650 a 280 ms, opacidad sin espera inicial. Solo CSS
+productivo; cinco escenarios medidos y build QA/PWA aprobados; Vercel success.
+Sin cambios en reservas, contratos, Railway, main o producción. Cierre local sin push.
 
 Publicado QA **1fd8295052e64fcaf23acc600f0e362a42cc62ef**: Disponible de retiro
 CliU19 completo, FREE/PREPAYMENT y contratos anteriores, recuperación y salida

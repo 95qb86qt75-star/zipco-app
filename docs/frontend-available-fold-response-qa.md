@@ -46,7 +46,23 @@ del iPhone del usuario después de actualizar QA.
 
 ## Publicación y tiempos
 
-Solo Vercel QA y rama qa; versión/estado se completan en el cierre. Sin pedidos
+Publicado **c0754aa3292308b13c8a05740cd7444cd81feb94**, rama qa,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/2VssW9jxm9oeG2jrS5X8whYDKa3e).
+Solo Vercel QA. Sin pedidos
 ni notificaciones reales. No se reabre el diagnóstico de clic externo.
 Fases medidas en `node_modules/.cache/available-fold-timing.json`: análisis,
 implementación, preparación, pruebas, build, documentación y publicación.
+
+| Fase | Tiempo transcurrido |
+| --- | --- |
+| Análisis desde primer registro | 27 s |
+| Ajuste CSS | 3 s |
+| Preparación del escenario | 50 s |
+| Pruebas y corrección de aislamiento | 1 min 35 s |
+| Build/revisión de salida | 57 s; comando QA/PWA 11,14 s |
+| Documentación inicial | 10 s |
+| Commit, push y verificación de publicación | 1 min 29 s |
+
+Total desde primer registro hasta Vercel success: **5 min 31 s**. Los intervalos
+incluyen coordinación y esperas; no suman dos veces subfases. El cierre documental
+posterior queda local y no ejecuta otra suite, build ni despliegue.
