@@ -69,7 +69,11 @@ imagen de catálogo remota. Pendiente Safari/iPhone y Android físicos.
 
 ## Publicación y tiempos
 
-Pendiente publicar y verificar únicamente Vercel QA. Se conservará el directorio
+Publicado únicamente Vercel QA: `de1d9ea92c05e3c4b15ae89e0fd0e9b7ef4cec17`,
+rama qa. [Estado Vercel success](https://vercel.com/zipco-s-projects/zipco-app/EuPCS6qW96KANEcvnoJ1sJbuMLd7)
+verificado por el check del commit. No acredita una sesión autenticada móvil.
+El cierre documental se guarda localmente sin otro push/despliegue.
+Se conservó el directorio
 ajeno sin seguimiento docs/design-handoffs/claude-cliente-coordinacion-whatsapp-c5f3c85.
 
 Medición de fases secuenciales en node_modules/.cache/wa-wait-timing.json.
@@ -77,3 +81,21 @@ Build/PWA interno: 11,06 s. Pruebas unitarias: 2,85 s. Navegadores reutilizados
 se ejecutaron parcialmente en paralelo; sus duraciones no se suman al tiempo
 de pared. La tabla final se completa después de verificar publicación. Los
 tiempos de desarrollo no miden el rendimiento de la app.
+
+| Fase | Tiempo de pared |
+| --- | ---: |
+| Análisis | 200.3 s |
+| Implementación | 70.8 s |
+| Preparación de pruebas | 62.8 s |
+| Pruebas, inspección y esperas | 134.4 s |
+| Build y verificación de salida | 29.8 s |
+| Documentación | 89.9 s |
+| Publicación/verificación QA | 96.7 s |
+| Cierre documental | 4.4 s |
+
+Total medido: 689.0 s. Corte antes de guardar el commit documental final.
+Build interno 11,06 s; el intervalo de build incluye esperar/leer su salida.
+Durante ejecución se preparó el caso adicional de recuperación y se inspeccionó
+el diff/captura; ese tiempo no está separado de los 134,4 s de la fase.
+No se conserva un timer aislado del primer lote de siete casos: el runner
+sobrescribe timing.json al ejecutar --recovery-only. No se inventa esa cifra.

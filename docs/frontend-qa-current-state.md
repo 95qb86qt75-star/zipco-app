@@ -12,7 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   Cabecera/modalidad, carril real, estado, condiciones, contacto y permisos.
   Controles montados de forma estable al cambiar a preparando. 72 unitarias,
   ocho escenarios nuevos y dos regresiones reutilizadas aprobados; build QA/PWA
-  aprobado. Publicación QA pendiente de verificación en este corte documental.
+  aprobado. Publicado QA `de1d9ea`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/EuPCS6qW96KANEcvnoJ1sJbuMLd7).
   Pendiente iPhone/Android físicos. [Informe y tiempos](frontend-whatsapp-waiting-design-qa.md).
 
 - Retiro del cliente B Línea integrado solo para reserva PREPAYMENT pendiente
