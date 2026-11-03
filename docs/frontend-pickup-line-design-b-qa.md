@@ -90,4 +90,25 @@ qa-pilot/pickup-line-design bajo node_modules/.cache. Se separan análisis,
 implementación, preparación, pruebas, build, documentación y publicación.
 Pruebas/build se solapan y sus comandos no se suman dos veces. Los ajustes
 intercalados se identifican como tales, no como ejecución exclusiva.
-Versión y Vercel se completan al verificar la publicación QA.
+Publicado **1a39aea7d0be85b5d15d7319a884e6a6e37e9ada**, rama qa.
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/HrXERd8FG1jMzSEg2HYrnhEtedhJ),
+verificado por el estado del commit. Alias:
+https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+El alias requiere SSO: la validación visual/táctil acreditada fue local.
+
+| Ventana | Tiempo |
+| --- | --- |
+| Análisis y delimitación de variantes | 3 min 42,07 s |
+| Implementación inicial | 49,61 s |
+| Preparación inicial de escenarios | 1 min 41,57 s |
+| Pruebas y correcciones intercaladas | 5 min 15,48 s |
+| Build, revisión final y ajuste de foco/CSS | 2 min 52,25 s |
+| Documentación inicial | 50,32 s |
+| Commit, push y observación Vercel | 1 min 13,29 s |
+
+Total desde primer reloj hasta Vercel success: **16 min 24,60 s**. Las ventanas
+incluyen coordinación y esperas, no solo escritura o ejecución. Los dos comandos
+QA/PWA tardaron 13,72 s y 12,21 s dentro de esas ventanas; el segundo corresponde
+al ajuste final del alcance CSS. Las correcciones durante pruebas no tienen un
+cronómetro exclusivo y no se presentan como tiempo puro de implementación.
+Cierre documental posterior local, sin nuevo push, suite o despliegue.

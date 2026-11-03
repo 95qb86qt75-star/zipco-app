@@ -10,8 +10,9 @@ ni convierte pruebas sintéticas en aprobación física.
 - Retiro del cliente B Línea integrado solo para reserva PREPAYMENT pendiente
   AWAITING_BUSINESS_CONFIRMATION, oferta advisory y pedido IN_PROGRESS. Cabecera
   «Esperando al negocio», pestañas y reserva real plegable; otras variantes intactas.
-  72 unitarias, 18 escenarios de navegador y build QA/PWA aprobados. Pendiente
-  prueba física. [Informe y tiempos](frontend-pickup-line-design-b-qa.md).
+  72 unitarias, 18 escenarios de navegador y build QA/PWA aprobados. Publicado QA
+  `1a39aea`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/HrXERd8FG1jMzSEg2HYrnhEtedhJ).
+  Pendiente prueba física. [Informe y tiempos](frontend-pickup-line-design-b-qa.md).
 
 - Cliente, negativa guardada de coordinación: diseño B completo integrado con
   recorrido, aviso según actor, detalle y opciones reales. Se estabilizó el árbol
