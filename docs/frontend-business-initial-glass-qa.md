@@ -1,5 +1,45 @@
 # Negocio · coordinación inicial · B·Vidrio
 
+## Revisión tras capturas del usuario — 2026-11-03
+
+Solo frontend. El usuario comparó la referencia del pie con c08404a: Retirar
+permiso seguía como botón ancho y Anular debajo. La entrega había advertido esa
+desviación; en la primera integración se mantuvo sin aprovechar la interfaz
+render ya existente. Se corrige la composición completa del pie ahora.
+
+- InitialCoordinationCardView.tsx: usa AvailabilityPostActions con su render
+  existente para colocar los controles reales de contacto junto a Anular,
+  seguido del aviso legal y Ocultar. Los diálogos continúan en el componente
+  original; los nodos se usan sin reconstruir callbacks. Reserva/instrucciones,
+  cancelar y avisos se conservan si existen. Ningún archivo protegido cambia.
+- coordination-flow.css: dos enlaces con apariencia plana en una fila,
+  tamaños adaptables y zonas táctiles de 44 px. Errores/autorización ocupan ancho
+  completo. Se eliminan las reglas ya sin uso de zipco-bi-opts.
+- El destello estaba limitado por reglas compartidas a tres iteraciones y con
+  z-index negativo. Se coloca sobre el fondo del botón, bajo sus etiquetas,
+  con pointer-events:none e iteración infinita. Respeta las pausas y movimiento
+  reducido. Entrada del botón una vez; halo continuo, sin opacidad inicial cero.
+- Margen inferior: se reprodujo distancia cero entre fila y borde. El ajuste
+  previo overflow:clip evitaba el scroll interno de foco, pero permitió colapsar
+  el margen. display:flow-root lo contiene sin recuperar el scroll interno.
+
+Validación: 31 unitarias de AvailabilityPostActionsView y BusinessCoordinationCard;
+cuatro casos en check-business-glass-footer: layouts 320/390/430 con posiciones
+de enlaces, apariencia sin caja, margen, destello y diálogos reales; error real
+del controlador de permisos con HTTP sintético, recuperación visible y un solo
+POST sin reintentos automáticos. Una regresión reutilizada controls negocio
+390 comprueba plegado, miniatura, ventanas, foco y scrollTop cero. Aprobadas.
+El primer intento del nuevo test asumía textarea en Anular: esa ventana muestra
+motivos y solo necesita texto en Otro. Se corrigió el selector, no producción.
+El control negativo inicial detectó margen cero antes de la corrección.
+
+Build QA/PWA aprobado, 15,38 s internos, advertencia habitual de chunks grandes.
+No se repiten escenarios no afectados. Captura real del repo a 390 inspeccionada;
+Chrome local no acredita coincidencia final en teléfonos. Pendiente iPhone/Android.
+Mismos datos, endpoints, permisos, recuperación y confirmaciones; sin Railway.
+Main y producción intactos. Publicación de esta revisión pendiente en Vercel QA.
+Tiempos de revisión: business-glass-parity-timing.json; lectura inicial sin timer.
+
 2026-11-03, America/Santiago. Clasificación: solo frontend, presentación y
 navegación local. Tres archivos completos entregados por el usuario desde Claude.
 

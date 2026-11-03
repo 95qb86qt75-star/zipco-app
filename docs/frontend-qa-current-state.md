@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Revisión B·Vidrio contra capturas: pie con Retirar permiso y Anular en una
+  fila, destello visible repetido y margen inferior conservado en la fila cerrada.
+  Reutiliza render existente sin modificar archivos protegidos. 31 unitarias,
+  cuatro escenarios específicos y una regresión de foco aprobados; build QA/PWA
+  aprobado. Publicación pendiente. [Detalle](frontend-business-initial-glass-qa.md).
+
 - Negocio, tarjeta inicial de producto por WhatsApp: B·Vidrio integrado con
   cabecera, fila plegada, condiciones, pasos y permisos reales. Tres fuentes
   visuales, sin controladores ni contrato nuevos. 80 unitarias, siete escenarios

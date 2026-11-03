@@ -267,6 +267,14 @@ function BusinessInitialCard({model}:{model:InitialModel}){
     :canOpen?{n:'3',t:'Iniciar coordinación',s:'Toca aquí · WhatsApp · paso 3 de 3',wa:true}
     :{n:'3',t:'Coordinación autorizada',s:counterpartPending?'Esperando al cliente · paso 3 de 3':'Actualiza el pedido para continuar',wa:false};
   const sub=(text:string)=><div className="zipco-co-sm" style={{marginTop:6}}>{text}</div>;
+  const footer:NonNullable<React.ComponentProps<typeof AvailabilityPostActions>['render']>=parts=><div className="zipco-bi-foot">
+    {parts?.contact}
+    {allowed('ANNUL_COORDINATION')&&!recoveryOnly&&!pending&&<button type="button" className="zipco-bi-annul" disabled={operation.busy} onClick={()=>setSheet('anul')}><Trash2 size={14} strokeWidth={2.3} aria-hidden="true"/>Anular solicitud</button>}
+    {(parts?.reservation||parts?.instructions||parts?.cancel)&&<div className="zipco-bi-footer-extra">{parts.reservation}{parts.instructions}{parts.cancel}</div>}
+    {parts?.alerts&&<div className="zipco-bi-footer-alerts">{parts.alerts}</div>}
+    <p className="zipco-bi-legal">ZIPCO no procesa ni verifica pagos.</p>
+    <button type="button" className="zipco-co-fold zipco-bi-hide" aria-expanded={true} onClick={()=>setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true"/>Ocultar tarjeta</button>
+  </div>;
   return <article ref={motionRef} data-coordination-motion="idle" id={`order-${order.id}`} tabIndex={0} data-unread={isUnread} data-aurora-state={process?.state} data-coordination-role="business"
     aria-label={`${client}: coordinación pendiente`} className="zipco-co-dk zipco-bi scroll-mb-36" data-bi-recovery={recovery||undefined}
     onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); event.currentTarget.classList.remove('zipco-notification-target'); toggle(); } }}
@@ -334,12 +342,7 @@ function BusinessInitialCard({model}:{model:InitialModel}){
 
           {operation.busy && phase !== 'loading' && <p role="status" className="zipco-co-co2-p">Actualizando pedido…</p>}
 
-          <div className="zipco-bi-foot">
-            {availabilityFlow(process) && <div className="zipco-bi-opts"><AvailabilityPostActions order={order} business={business} refresh={refresh}/></div>}
-            {allowed('ANNUL_COORDINATION') && !recoveryOnly && !pending && <button type="button" className="zipco-bi-annul" disabled={operation.busy} onClick={() => setSheet('anul')}><Trash2 size={14} strokeWidth={2.3} aria-hidden="true" />Anular solicitud</button>}
-            <p className="zipco-bi-legal">ZIPCO no procesa ni verifica pagos.</p>
-            <button type="button" className="zipco-co-fold zipco-bi-hide" aria-expanded={true} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
-          </div>
+          {availabilityFlow(process)?<AvailabilityPostActions order={order} business={business} refresh={refresh} render={footer}/>:footer(null)}
         </section>
       </div></div></div>
 
