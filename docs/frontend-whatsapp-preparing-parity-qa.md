@@ -46,7 +46,9 @@ Pendiente comprobar físicamente iPhone/Android y revisar el nuevo texto de esta
 
 ## Publicación y medición
 
-Solo Vercel QA, rama qa; pendiente verificar despliegue. Directorio ajeno sin
+Publicado solo Vercel QA, rama qa: `c1fe89c37adf3260e957e97d226af9dc51f6cbe2`.
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/DjQEUTLwj6KiWoqbmKpjNdpraTPY)
+verificado por el check del commit. Directorio ajeno sin
 seguimiento docs/design-handoffs/claude-cliente-coordinacion-whatsapp-c5f3c85
 conservado. Cierre documental local sin push adicional después del despliegue.
 
@@ -56,3 +58,19 @@ Unitarias y navegador inicialmente en paralelo; no se suman dos veces. La fase
 de ejecución incluye inspección de captura y diagnóstico del fallo sintético.
 Reparación y repetición de ese único caso registradas como fases separadas.
 Estos tiempos no miden el rendimiento de la app.
+
+| Fase | Tiempo de pared |
+| --- | ---: |
+| Implementación | 43.4 s |
+| Preparación de pruebas | 5.9 s |
+| Ejecución e inspección | 111.9 s |
+| Reparación de fixture | 6.1 s |
+| Repetición focalizada | 24.4 s |
+| Intervalo de build/lectura y preparación del cierre | 56.7 s |
+| Documentación | 35.2 s |
+| Publicación y verificación QA | 76.4 s |
+
+Total medido desde implementación hasta verificar publicación: 360.0 s.
+Excluye análisis inicial y este cierre documental final. Build/PWA interno: 10,75 s;
+el intervalo exterior de build incluye espera, lectura de salida y preparación
+del texto de cierre, sin timer individual de esos subpasos.

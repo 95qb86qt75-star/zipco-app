@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - WhatsApp del cliente: la misma visual aprobada se aplica también a Preparando.
   Pastilla «PREPARANDO TU PEDIDO», mensaje y carril propios del estado. Solo dos
   fuentes de presentación cambiadas, sin controladores/CSS nuevos. 62 unitarias,
-  cuatro casos de navegador y build QA/PWA aprobados. Publicación QA pendiente.
+  cuatro casos de navegador y build QA/PWA aprobados. Publicado QA `c1fe89c`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/DjQEUTLwj6KiWoqbmKpjNdpraTPY).
   [Informe de alcance, pruebas y tiempos](frontend-whatsapp-preparing-parity-qa.md).
 
 - WhatsApp del cliente, primer Sí propio y esperando respuesta del negocio:
