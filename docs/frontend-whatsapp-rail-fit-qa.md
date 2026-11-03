@@ -23,8 +23,22 @@ No se repiten suites de acciones: cambio CSS local sin API/controlador afectado.
 Campos, endpoints, acciones, estados y permisos intactos. Railway no necesario;
 main y producción sin cambios. Chrome local no sustituye iPhone/Android físicos.
 
-Publicación solo Vercel QA, rama qa, pendiente verificar. Directorio ajeno
+Publicación solo Vercel QA `ca0fcddc35e1c8440ee3605a81ffc220ff4f1093`, rama qa,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4ySL5JFktMr3GdZwYzeFiwkNpfVJ)
+verificado. Directorio ajeno
 sin seguimiento conservado. Cierre documental local sin push adicional.
 Tiempos en node_modules/.cache/wa-rail-timing.json: lectura inicial no medida;
 reproducción y preparación combinadas, implementación, pruebas, build,
 documentación y publicación separadas. No miden rendimiento de la app.
+
+| Fase | Tiempo de pared |
+| --- | ---: |
+| reproduction-and-test-preparation | 30.3 s |
+| implementation | 3.1 s |
+| test-execution | 28.0 s |
+| build | 45.8 s |
+| documentation | 8.6 s |
+| publication | 81.5 s |
+
+Build/PWA interno: 9,46 s; intervalo externo incluye espera/lectura e inspección
+de captura. Corte anterior al commit documental final.

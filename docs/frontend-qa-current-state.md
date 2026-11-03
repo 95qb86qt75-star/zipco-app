@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Carril WhatsApp: texto Pendiente completo en Esperando y Preparando mediante
   distribución flexible y separadores compactos, CSS acotado a .zipco-wa-w.
   Seis comprobaciones geométricas/táctiles y build QA/PWA aprobados. Publicación
-  pendiente. [Alcance y tiempos](frontend-whatsapp-rail-fit-qa.md).
+  QA `ca0fcdd` verificada: [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4ySL5JFktMr3GdZwYzeFiwkNpfVJ).
+  [Alcance y tiempos](frontend-whatsapp-rail-fit-qa.md).
 
 - Detalle WhatsApp invisible: reproducido con opacidad cero y animación de
   entrada pausada. Corrección local de zipco-wa-w-rise para conservar contenido
