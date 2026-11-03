@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Preparando del negocio: ajuste local de apertura/cierre y arrastre reportados
+  como trabados. Una fuente CSS: pliegue sin escala/desplazamiento, mismos 420 ms,
+  y adornos/blur/glow pausados durante el arrastre. Cinco escenarios funcionales,
+  medición local y build QA/PWA aprobados; no acredita aún fluidez en Android.
+  Publicación pendiente. [Detalle y mediciones](frontend-business-progress-option-a-qa.md).
+
 - Negocio, producto WhatsApp En curso: opción A de Preparando integrada en cuatro
   fuentes visuales, con deslizador real y efecto de paquete/campana dentro de
   la secuencia existente. 61 unitarias, nueve escenarios nuevos y una regresión

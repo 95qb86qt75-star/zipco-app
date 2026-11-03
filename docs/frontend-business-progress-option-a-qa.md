@@ -1,5 +1,52 @@
 # Negocio · Preparando el pedido · opción A
 
+## Ajuste de movimiento — 2026-11-03
+
+El usuario precisó sensación de trabado tanto al abrir/cerrar como al arrastrar.
+Clasificación solo frontend. Única fuente productiva modificada:
+business-progress-motion.css, exclusivamente .zipco-bp.
+
+- El despliegue heredaba altura, opacidad, escala y desplazamiento simultáneos.
+  Se conserva duración de 420 ms con otra curva y texto sin escala/traslación.
+  Opacidad 220 ms, visibilidad coherente al cerrar y reducción de movimiento.
+- El arrastre ya tenía transition:none en la posición del mando: no se atribuye
+  el problema a una transición de 450 ms. Mientras .zipco-ec-tr.drag está activo
+  se pausan los adornos, se suspende el backdrop blur de condiciones y se
+  omiten sombras del mando/relleno. Vuelven al terminar. No se cambia el diseño
+  en reposo ni el componente SlideToNotify, umbral, gestos o estados.
+
+Medición con check-business-progress-motion y el runner existente, Chrome local,
+CPU limitada x4. Antes del cambio, comparación secuencial con CSS candidato
+inyectado, sin publicar. p95 de intervalo RAF en arrastre: 33,3 ms inicial,
+16,8 ms candidato. Una ejecución integrada paralela a otro navegador volvió
+a 33,3 ms; la ejecución final aislada midió 16,8 ms. Por tanto, no se afirma
+mejora estable de FPS ni causa confirmada de la sensación en Android.
+
+Última muestra aislada frente a la inicial:
+
+| Medición local | Inicial | Integrada aislada |
+| --- | ---: | ---: |
+| Primer cambio de altura al abrir | 116,0 ms | 96,8 ms |
+| Primer cambio de altura al cerrar | 136,4 ms | 69,2 ms |
+| RAF p95 al abrir | 16,8 ms | 33,2 ms |
+| RAF p95 al cerrar | 16,8 ms | 16,7 ms |
+| RAF p95 arrastrando | 33,3 ms | 16,8 ms |
+
+La muestra de apertura no demuestra mejora general de frames. Verificación
+concreta: cero animaciones activas durante el arrastre, posición sin transición,
+avance parcial ~65 % sin POST y transform:none en el pliegue. Son muestras de
+desarrollo con CPU limitada, no un benchmark de Safari/Android ni de la app real.
+Artefactos originales y finales en node_modules/.cache, sin pedidos reales.
+
+Cinco escenarios existentes reutilizados por dependencia directa: layouts
+320/390/430 (abrir/cerrar, foco, inert, ventanas), arrastre parcial/completo con
+un solo envío confirmado y campana antes del holograma, y el flujo reducido.
+Aprobados. No se repiten unitarias/contrato: solo CSS local; acción y controlador
+intactos. Build QA/PWA aprobado, 10,56 s internos, advertencia preexistente de
+chunks grandes. Mismos campos/endpoints; Railway no necesario, main/producción
+intactos. Pendiente prueba física para valorar la sensación de movimiento.
+Publicación de este ajuste pendiente en Vercel QA.
+
 2026-11-03, America/Santiago. Clasificación: solo frontend, presentación e
 interacción local. Cuatro archivos completos entregados por el usuario.
 
