@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Detalle WhatsApp invisible: reproducido con opacidad cero y animación de
+  entrada pausada. Corrección local de zipco-wa-w-rise para conservar contenido
+  opaco desde el primer fotograma; efectos y pausas se mantienen. Seis casos
+  de navegador y build QA/PWA aprobados. Publicación pendiente de verificación.
+  [Diagnóstico, corrección y tiempos](frontend-whatsapp-detail-entry-visibility-qa.md).
+
 - WhatsApp del cliente: la misma visual aprobada se aplica también a Preparando.
   Pastilla «PREPARANDO TU PEDIDO», mensaje y carril propios del estado. Solo dos
   fuentes de presentación cambiadas, sin controladores/CSS nuevos. 62 unitarias,

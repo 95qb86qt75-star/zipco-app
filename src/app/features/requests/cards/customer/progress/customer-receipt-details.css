@@ -13,7 +13,8 @@
 /* =====================================================================================================
    WhatsApp · esperando al negocio · detalle (clases exclusivas .zipco-wa-w-*, no tocan otras tarjetas)
    ===================================================================================================== */
-@keyframes zipco-wa-w-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Entry may be paused at frame zero; never make real content transparent. */
+@keyframes zipco-wa-w-rise{from{transform:translateY(6px)}to{transform:none}}
 @keyframes zipco-wa-w-sweep{0%,40%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(520%) skewX(-18deg)}}
 .zipco-wa-w-line{display:flex;flex-direction:column;gap:7px}
 .zipco-wa-w .zipco-wa-w-det{display:flex;flex-direction:column;gap:7px;margin:0;padding:0;background:none;border:0;box-shadow:none}
