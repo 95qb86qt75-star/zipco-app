@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Detalle WhatsApp invisible: reproducido con opacidad cero y animación de
   entrada pausada. Corrección local de zipco-wa-w-rise para conservar contenido
   opaco desde el primer fotograma; efectos y pausas se mantienen. Seis casos
-  de navegador y build QA/PWA aprobados. Publicación pendiente de verificación.
+  de navegador y build QA/PWA aprobados. Publicado QA `8ec1fa9`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/ETo9bJuxaR5kDfbueDPCpKjgHns5).
   [Diagnóstico, corrección y tiempos](frontend-whatsapp-detail-entry-visibility-qa.md).
 
 - WhatsApp del cliente: la misma visual aprobada se aplica también a Preparando.

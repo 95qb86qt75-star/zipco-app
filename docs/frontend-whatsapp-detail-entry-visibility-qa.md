@@ -44,7 +44,22 @@ Directorio ajeno sin seguimiento conservado. Cierre documental sin push extra.
 
 ## Publicación y medición
 
-Publicación Vercel QA pendiente. Fases en wa-detail-entry-timing.json dentro de
+Publicado Vercel QA `8ec1fa921505fe96aa98ef8939ceed3931b10512`, rama qa,
+[check Vercel success](https://vercel.com/zipco-s-projects/zipco-app/ETo9bJuxaR5kDfbueDPCpKjgHns5).
+Fases en wa-detail-entry-timing.json dentro de
 node_modules/.cache. Lectura inicial sin temporizador. La primera fase agrupa
 preparación de reproducción y diagnóstico; implementación, verificación, build,
 documentación y publicación se miden aparte. No son tiempos de rendimiento.
+
+| Fase medida | Tiempo de pared |
+| --- | ---: |
+| reproduction | 60.3 s |
+| implementation | 4.6 s |
+| test-execution | 44.8 s |
+| build | 51.6 s |
+| documentation | 10.0 s |
+| publication | 82.5 s |
+
+Intervalo exterior build incluye lectura/espera y preparación del cierre;
+ejecución interna QA/PWA: 9,94 s. No se dispone de separación de los otros
+subpasos. Los tiempos excluyen la lectura inicial y este commit documental final.
