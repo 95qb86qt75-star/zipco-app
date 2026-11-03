@@ -45,7 +45,8 @@ Aprobados. No se repiten unitarias/contrato: solo CSS local; acción y controlad
 intactos. Build QA/PWA aprobado, 10,56 s internos, advertencia preexistente de
 chunks grandes. Mismos campos/endpoints; Railway no necesario, main/producción
 intactos. Pendiente prueba física para valorar la sensación de movimiento.
-Publicación de este ajuste pendiente en Vercel QA.
+Publicado solo Vercel QA `42dd79d1e8b0ced174cf79366f7cf813f874ebbd`, rama qa:
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/Bv9qqo7UKJiJYRBz8Ym72Y6Xdkch).
 
 2026-11-03, America/Santiago. Clasificación: solo frontend, presentación e
 interacción local. Cuatro archivos completos entregados por el usuario.
@@ -149,3 +150,20 @@ Build/PWA interno: 10,31 s. Intervalo exterior incluye espera y lectura de
 salida. Ejecución incluye inspección de captura y la regresión reutilizada.
 Corte anterior al commit documental final; excluye lectura inicial no medida.
 Cierre documental local sin otro push ni despliegue.
+
+## Tiempos del ajuste de movimiento
+
+| Intervalo | Tiempo de pared |
+| --- | ---: |
+| diagnosis-and-measurement | 122.3 s |
+| implementation | 5.3 s |
+| test-execution | 208.7 s |
+| build | 29.9 s |
+| documentation | 51.8 s |
+| publication | 125.6 s |
+
+Primer intervalo agrupa diagnóstico y preparación de la comparación; lectura
+inicial no medida. Ejecución incluye una repetición aislada con medición de
+animaciones activas añadida después de observar variación. Build/PWA interno:
+10,56 s; intervalo exterior incluye espera/lectura de salida. Corte anterior al
+commit documental final. No se hizo otro push/despliegue por este cierre.

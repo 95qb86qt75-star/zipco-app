@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   como trabados. Una fuente CSS: pliegue sin escala/desplazamiento, mismos 420 ms,
   y adornos/blur/glow pausados durante el arrastre. Cinco escenarios funcionales,
   medición local y build QA/PWA aprobados; no acredita aún fluidez en Android.
-  Publicación pendiente. [Detalle y mediciones](frontend-business-progress-option-a-qa.md).
+  Publicado QA `42dd79d`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/Bv9qqo7UKJiJYRBz8Ym72Y6Xdkch).
+  [Detalle y mediciones](frontend-business-progress-option-a-qa.md).
 
 - Negocio, producto WhatsApp En curso: opción A de Preparando integrada en cuatro
   fuentes visuales, con deslizador real y efecto de paquete/campana dentro de
