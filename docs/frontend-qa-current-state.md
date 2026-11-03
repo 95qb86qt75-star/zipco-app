@@ -11,7 +11,9 @@ ni convierte pruebas sintéticas en aprobación física.
   recorrido, aviso según actor, detalle y opciones reales. Se estabilizó el árbol
   de Providers para conservar la redirección WhatsApp al volver a question.
   90 unitarias, cuatro escenarios reutilizados, siete nuevos y build QA/PWA
-  aprobados. Pendiente revisión física.
+  aprobados. Publicado QA `801b135`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/2MBFHR1RcoEjFxSy1CCDQw7b5rhs).
+  Pendiente revisión física. Interrupción por límite de uso registrada por separado.
   [Informe y tiempos](frontend-customer-coordination-declined-b-qa.md).
 
 - Consulta del negocio «¿Coordinación lista por WhatsApp?» integrada con diseño B

@@ -91,4 +91,33 @@ customer-declined-b-unit.json y qa-pilot/customer-declined-design-b/ bajo
 node_modules/.cache. Build y validación final corrieron en paralelo; no sumar sus
 comandos nuevamente. Las ventanas de pruebas incluyen el diagnóstico/corrección
 de continuidad; no son mediciones de rendimiento de la app.
-Se completan versión, publicación y tiempos al verificar Vercel QA.
+Publicado en rama qa: **801b135ac9c204c6b85131abd509339530874407**.
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/2MBFHR1RcoEjFxSy1CCDQw7b5rhs),
+verificado por el estado del commit. Alias QA:
+https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+El alias requiere SSO; las pruebas visuales/interactivas acreditadas fueron
+locales. Pendiente revisión física del usuario.
+
+| Ventana medida | Tiempo |
+| --- | --- |
+| Análisis inicial | 1 min 42,57 s |
+| Copia/adaptación inicial | 6,24 s |
+| Preparación inicial de escenarios | 56,88 s |
+| Pruebas y correcciones intercaladas | 2 min 46,92 s |
+| Build y validación final paralela | 1 min 56,74 s |
+| Reanudación y comprobación del repositorio | 1 min 10,58 s |
+| Commit, push y observación Vercel | 1 min 2,64 s |
+
+La copia inicial no representa toda la implementación: el ajuste de continuidad
+del Provider se realizó durante la ventana de pruebas. El comando de build QA/PWA
+tardó 14,08 s dentro de su ventana, sin sumarlo nuevamente. La documentación no
+tuvo medición exclusiva completa: el final inicial se aproxima con la escritura
+del informe (22:12:05,877 UTC), no como duración de toda la redacción.
+
+La revisión automática no pudo ejecutarse por límite de uso y bloqueó el primer
+git restore; no lo consideró inseguro. Intervalo entre última escritura del informe
+y reanudación: **2 h 26 min 3,28 s**, separado como interrupción/revisión no
+disponible, no desarrollo ni despliegue. Al continuar se ejecutó la aprobación
+normal; sin repetir pruebas/build ya aprobados ni eludir controles.
+Tiempo transcurrido excluyendo ese intervalo: **9 min 44,23 s**, con coordinación
+y esperas incluidas. Cierre documental posterior local, sin otro push/despliegue.
