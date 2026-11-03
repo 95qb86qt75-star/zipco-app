@@ -68,3 +68,8 @@
 /* Real preview supplies its own quantities; preserve one total badge. */
 .zipco-wa-w .zipco-product-quantity{display:none}
 .zipco-wa-w .zipco-wa-w-body{display:flex;flex-direction:column;gap:7px}
+/* Each step owns a share of the rail; labels must fit inside the card. */
+.zipco-wa-w .zipco-own-step{flex:1 1 0;gap:4px}
+.zipco-wa-w .zipco-own-line{flex:0 0 4px;min-width:4px;margin:0 3px}
+.zipco-wa-w .zipco-own-steptx b{white-space:normal;overflow-wrap:anywhere}
+@media(min-width:351px){.zipco-wa-w .zipco-own-rail .zipco-own-node{width:26px;height:26px}}
