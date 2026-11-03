@@ -37,7 +37,9 @@ Build QA/PWA aprobado, 15,38 s internos, advertencia habitual de chunks grandes.
 No se repiten escenarios no afectados. Captura real del repo a 390 inspeccionada;
 Chrome local no acredita coincidencia final en teléfonos. Pendiente iPhone/Android.
 Mismos datos, endpoints, permisos, recuperación y confirmaciones; sin Railway.
-Main y producción intactos. Publicación de esta revisión pendiente en Vercel QA.
+Main y producción intactos. Revisión publicada en Vercel QA, rama qa:
+`38632ce6413a4f90a603a19313a3df94ce738cb9`,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/7NzhQwfd2HqXvr7BDUYkPJybmisM).
 Tiempos de revisión: business-glass-parity-timing.json; lectura inicial sin timer.
 
 2026-11-03, America/Santiago. Clasificación: solo frontend, presentación y
@@ -150,3 +152,19 @@ y preparación del texto documental; no hay timer separado de esos subpasos.
 Publicación incluye espera del push y observación del check Vercel. Corte
 anterior al commit documental final. No se dispone de un total íntegro que
 incluya la lectura inicial no medida.
+
+## Tiempos de revisión contra capturas
+
+| Intervalo | Tiempo de pared |
+| --- | ---: |
+| reproduction-and-test-preparation | 70.7 s |
+| implementation | 44.0 s |
+| test-execution | 121.4 s |
+| build | 107.7 s |
+| documentation | 12.1 s |
+| publication | 82.5 s |
+
+Build/PWA interno 15,38 s. El intervalo exterior incluye la regresión de foco
+paralela e inspección de captura, no solo compilación. Ejecución incluye corregir
+el selector del diálogo. Lectura inicial y cierre documental final fuera del
+temporizador. Cierre local sin otro push ni despliegue.

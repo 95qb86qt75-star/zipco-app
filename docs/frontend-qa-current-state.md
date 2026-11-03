@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   fila, destello visible repetido y margen inferior conservado en la fila cerrada.
   Reutiliza render existente sin modificar archivos protegidos. 31 unitarias,
   cuatro escenarios específicos y una regresión de foco aprobados; build QA/PWA
-  aprobado. Publicación pendiente. [Detalle](frontend-business-initial-glass-qa.md).
+  aprobado. Publicado QA `38632ce`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/7NzhQwfd2HqXvr7BDUYkPJybmisM).
+  [Detalle](frontend-business-initial-glass-qa.md).
 
 - Negocio, tarjeta inicial de producto por WhatsApp: B·Vidrio integrado con
   cabecera, fila plegada, condiciones, pasos y permisos reales. Tres fuentes
