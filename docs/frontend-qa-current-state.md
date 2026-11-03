@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- WhatsApp del cliente: la misma visual aprobada se aplica también a Preparando.
+  Pastilla «PREPARANDO TU PEDIDO», mensaje y carril propios del estado. Solo dos
+  fuentes de presentación cambiadas, sin controladores/CSS nuevos. 62 unitarias,
+  cuatro casos de navegador y build QA/PWA aprobados. Publicación QA pendiente.
+  [Informe de alcance, pruebas y tiempos](frontend-whatsapp-preparing-parity-qa.md).
+
 - WhatsApp del cliente, primer Sí propio y esperando respuesta del negocio:
   diseño completo recibido de Claude integrado en la composición canónica.
   Cabecera/modalidad, carril real, estado, condiciones, contacto y permisos.
