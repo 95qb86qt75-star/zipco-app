@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Retiro del cliente B Línea integrado solo para reserva PREPAYMENT pendiente
+  AWAITING_BUSINESS_CONFIRMATION, oferta advisory y pedido IN_PROGRESS. Cabecera
+  «Esperando al negocio», pestañas y reserva real plegable; otras variantes intactas.
+  72 unitarias, 18 escenarios de navegador y build QA/PWA aprobados. Pendiente
+  prueba física. [Informe y tiempos](frontend-pickup-line-design-b-qa.md).
+
 - Cliente, negativa guardada de coordinación: diseño B completo integrado con
   recorrido, aviso según actor, detalle y opciones reales. Se estabilizó el árbol
   de Providers para conservar la redirección WhatsApp al volver a question.

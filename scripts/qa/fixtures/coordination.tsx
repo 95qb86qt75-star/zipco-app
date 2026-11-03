@@ -19,10 +19,10 @@ const basePendingProcess=original;
 const businessPendingProcess=()=>{const value=basePendingProcess();if(!q.has('business-pending'))return value;return {...value,version:8,coordination:{...value.coordination,businessContactAuthorized:!q.has('business-consent')},whatsappCoordinationInitialDecline:{contract:'whatsapp-coordination-initial-decline-v1',id:899,declinedBy:q.has('incoming')?'CUSTOMER':'BUSINESS',declinedAt:'2026-10-30T18:00:00Z',recordedVersion:8,active:true}};};
 const pickupDesignProcess=()=>{
  const value=businessPendingProcess();if(!q.has('pickup-design'))return value;
- const variant=q.get('reservation'),preset=variant==='paid'?simplePaidPending:variant?simpleReserved:null;
+ const variant=q.get('reservation'),preset=(variant==='paid'||variant==='paid-advisory')?simplePaidPending:variant?simpleReserved:null;
  const process={...value,...(preset?{flowContract:preset.flowContract,availability:preset.availability,reservation:preset.reservation,reservationChoice:preset.reservationChoice,...(preset.reservationFollowUp?{reservationFollowUp:preset.reservationFollowUp}:{})}:{}),serverNow:new Date().toISOString()};
  if(process.reservationFollowUp?.paymentConfirmationReminder)process.reservationFollowUp={...process.reservationFollowUp,paymentConfirmationReminder:{...process.reservationFollowUp.paymentConfirmationReminder,expectedVersion:process.version}};
- if(variant==='advisory'){
+ if(variant==='advisory'||variant==='paid-advisory'){
   process.availability={...process.availability,reservationOffer:{...process.availability.reservationOffer,simplified:{...process.availability.reservationOffer.simplified,hoursPolicy:'ADVISORY_ONLY',opensAt:null,closesAt:null,holdMinutes:null,scheduledFor:null}}};
   process.reservation={...process.reservation,timing:{...process.reservation.timing,pickupBy:null,paymentDueAt:null}};
  }

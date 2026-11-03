@@ -1,0 +1,58 @@
+import {withBrowser} from './qa/browser.mjs';
+await withBrowser('pickup-line-design','coordination',async ctx=>{
+ const {assert,evaluate,wait,tap,delay,send}=ctx;
+ const visit=async(width=390,extra='')=>{
+  await send('Emulation.setEmulatedMedia',{features:[]});
+  await ctx.visit('pickup=1&pickup-progress=1&pickup-design=1&reservation=paid-advisory&no-access=1'+extra,width,852);
+  await wait('!!document.querySelector(".zipco-pickup-c[data-pickup-design=line]")');
+ };
+ for(const width of process.argv.includes('--focus-only')?[390]:[320,390,430]){
+  await visit(width);
+  assert.equal(await evaluate('document.querySelector(".zipco-pickup-c-state").textContent'),'Esperando al negocio');
+  await ctx.screenshot('closed-'+width);
+  await tap('.zipco-pickup-c-toggle');await delay(450);
+  assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+  await wait('document.querySelector(".zipco-pk-fold")?.dataset.measured==="true"');
+  assert.equal(await evaluate('document.querySelectorAll("[data-reservation-panel]").length'),1);
+  assert.equal(await evaluate('document.querySelector(".zipco-pk-res").dataset.tone'),'pending');
+  assert.equal(await evaluate('document.querySelector("[data-reservation-panel]>section").inert'),true);
+  await tap('.zipco-pk-more');await delay(450);
+  assert.equal(await evaluate('document.querySelector("[data-reservation-panel]>section").inert'),false);
+  assert.equal(await evaluate('document.querySelector("[data-reservation-panel]").textContent.includes("no tiene vencimiento automático")'),true);
+  await ctx.screenshot('reservation-open-'+width);
+  await tap('.zipco-pk-cd');await wait('!!document.querySelector("[role=dialog]")');
+  await evaluate('[...document.querySelectorAll("[role=dialog] button")].find(button=>button.textContent.includes("Cerrar")).dataset.testClose="true"');
+  await tap('[data-test-close]');await wait('!document.querySelector("[role=dialog]")');
+  await tap('.zipco-pickup-tab:last-child');
+  assert.equal(await evaluate('document.querySelector(".zipco-pickup-panel").hidden'),true);
+  assert.equal(await evaluate('!!document.querySelector(".zipco-pickup-consent,.zipco-pickup-revoke")'),false);
+  await tap('.zipco-pickup-cancel');await wait('!!document.querySelector("[role=dialog] textarea")');
+  await evaluate('(()=>{const input=document.querySelector("[role=dialog] textarea");Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,"value").set.call(input,"Motivo conservado");input.dispatchEvent(new Event("input",{bubbles:true}));})()');
+  await evaluate('[...document.querySelectorAll("[role=dialog] button")].find(button=>button.textContent==="Volver").dataset.testBack="true"');
+  await tap('[data-test-back]');await wait('!document.querySelector("[role=dialog]")');
+  await tap('.zipco-pk-hide');assert.equal(await evaluate('document.querySelector(".zipco-pickup-c-toggle").getAttribute("aria-expanded")'),'false');
+  assert.equal(await evaluate('document.activeElement===document.querySelector(".zipco-pickup-c-toggle")'),true);
+  await tap('.zipco-pickup-c-toggle');await delay(450);
+  assert.equal(await evaluate('document.querySelector(".zipco-pickup-tab:last-child").getAttribute("aria-selected")'),'true');
+  await tap('.zipco-pickup-cancel');await wait('!!document.querySelector("[role=dialog] textarea")');
+  assert.equal(await evaluate('document.querySelector("[role=dialog] textarea").value'),'Motivo conservado');
+  assert.equal(await evaluate('window.posts.length'),0);
+  console.log('PASS paid-advisory/layout/fold/conditions/tabs/dialog-state '+width);
+ }
+ if(process.argv.includes('--focus-only'))return;
+ await visit(320,'&long=1&no-open=1');await tap('.zipco-pickup-c-toggle');await delay(450);
+ assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+ await tap('.zipco-pickup-tab:last-child');
+ await evaluate('(()=>{window.savedPanel=document.querySelector("[data-reservation-panel]");const alert=document.createElement("div");alert.setAttribute("role","alert");alert.textContent="Error de reserva sintético";const button=document.createElement("button");button.textContent="Reintentar";alert.append(button);window.savedPanel.append(alert);})()');
+ await wait('document.querySelector(".zipco-pickup-tab:first-child").getAttribute("aria-selected")==="true"');
+ await wait('document.querySelector(".zipco-pk-fold").dataset.open==="true"');
+ assert.equal(await evaluate('document.querySelector("[data-reservation-panel] [role=alert]").inert'),false);
+ assert.equal(await evaluate('window.savedPanel===document.querySelector("[data-reservation-panel]")'),true);
+ assert.equal(await evaluate('window.posts.length'),0);
+ console.log('PASS hidden-tab/new-alert/auto-open/long-name');
+ await visit();await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ await tap('.zipco-pickup-c-toggle');await delay(80);await tap('.zipco-pk-more');
+ assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-pk-fold")).transitionDuration'),'0s');
+ assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-pickup-c-hand")).animationName'),'none');
+ console.log('PASS reduced-motion');
+});
