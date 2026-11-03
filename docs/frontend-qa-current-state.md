@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Negocio, producto WhatsApp En curso: opción A de Preparando integrada en cuatro
+  fuentes visuales, con deslizador real y efecto de paquete/campana dentro de
+  la secuencia existente. 61 unitarias, nueve escenarios nuevos y una regresión
+  reutilizada aprobados; build QA/PWA aprobado. Publicación pendiente.
+  Textos del slider actuales y READY conservados. Pendiente celulares físicos.
+  [Alcance, pruebas y tiempos](frontend-business-progress-option-a-qa.md).
+
 - Revisión B·Vidrio contra capturas: pie con Retirar permiso y Anular en una
   fila, destello visible repetido y margen inferior conservado en la fila cerrada.
   Reutiliza render existente sin modificar archivos protegidos. 31 unitarias,

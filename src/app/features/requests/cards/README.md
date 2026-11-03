@@ -79,6 +79,10 @@ permisos siguen en los hooks de `requests/application` y en la API.
   La variante inicial del cliente producto se separa en su carpeta indicada arriba.
 - **Preparando / notificar listo:**
   `business/progress/BusinessProgressCardView.tsx` y sus CSS.
+  Opción A: BusinessInProgressCard solo para producto IN_PROGRESS por WhatsApp,
+  no embedded. Cabecera business-progress de ProgressCardShell, estilos .zipco-bp.
+  SlideToNotify y controlador permanecen reales; READY/recibido, servicios,
+  retiro y embebidos conservan su composición.
 - **Fuera de hora:** `shared/late-initial/LateInitialCard.tsx` y su CSS.
 - **Propuesta:** `shared/proposal/ProposalWaitingCard.tsx` y su CSS.
 - **Historial:** `shared/history/CompactHistoryList.tsx`, `ProcessHistoryCard.tsx`;

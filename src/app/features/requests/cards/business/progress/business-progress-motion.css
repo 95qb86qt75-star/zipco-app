@@ -23,3 +23,18 @@ a.zipco-ag-ph{text-decoration:none}
 .zipco-co-dk.zipco-ec-dk{background:radial-gradient(ellipse at 100% 0,rgba(139,92,246,.52),transparent 48%),radial-gradient(ellipse at 0 100%,rgba(94,234,212,.25),transparent 50%),linear-gradient(155deg,#1c1650 0%,#101434 42%,#0c1a2e 100%)}
 .zipco-ec-dk .zipco-co-a1,.zipco-ec-dk .zipco-co-a2{display:none}
 .zipco-ag-details{margin-top:8px;font-size:12px;color:#475569;overflow-wrap:anywhere}.zipco-ag-details summary{cursor:pointer;min-height:32px;align-content:center}.zipco-ag-details p{padding:5px 0}
+
+/* ===== UI-BUSINESS-PROGRESS-01 · movimiento y adaptación (solo `.zipco-bp`) ===== */
+/* El diseño nuevo no usa las luces violeta ni el degradado radial anteriores. */
+.zipco-co-dk.zipco-ec-dk.zipco-bp{background:linear-gradient(155deg,#1e293b 0%,#0f172a 42%,#0b1220 100%)}
+/* Pausas: fuera de pantalla / lista en scroll / tarjeta inactiva. El contenido sigue visible en el primer fotograma. */
+[data-request-motion="idle"] .zipco-bp *,[data-request-motion="idle"] .zipco-bp *::before,[data-request-motion="idle"] .zipco-bp *::after,
+[data-request-list-scrolling="true"] .zipco-bp *,[data-request-list-scrolling="true"] .zipco-bp *::before,[data-request-list-scrolling="true"] .zipco-bp *::after{animation-play-state:paused!important}
+@media (max-width:350px){.zipco-bp-id b{font-size:14.5px}.zipco-bp-pr b{font-size:17px}.zipco-bp-fg{display:none}.zipco-bp-toggle{padding-left:8px;font-size:12px}.zipco-bp-pill b{font-size:9.5px}.zipco-bp-q b{font-size:17px}.zipco-bp-lbl{font-size:9.5px}.zipco-bp .zipco-ec-slt span.l{font-size:12px}}
+@media (prefers-reduced-motion:reduce){
+  .zipco-bp *,.zipco-bp *::before,.zipco-bp *::after{animation:none!important}
+  .zipco-bp-fold,.zipco-bp-chv,.zipco-bp .zipco-ec-hd,.zipco-bp .zipco-ec-slf{transition:none!important}
+  .zipco-bp .zipco-ec-slw:has(.zipco-ec-sent>svg) .zipco-ec-hd>svg{opacity:0}
+  .zipco-bp .zipco-ec-slw:has(.zipco-ec-sent>svg) .zipco-ec-hd::after{opacity:1}
+  .zipco-bp .zipco-ec-slw:has(.zipco-ec-sent>svg) .zipco-ec-tr::before{display:none}
+}
