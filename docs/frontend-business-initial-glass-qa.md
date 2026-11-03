@@ -77,8 +77,11 @@ de navegador a Safari físico. No se repiten baterías no afectadas.
 Mismos campos de pedido/acuerdo, consentimiento y allowedActions; mismas
 lecturas y endpoints AUTHORIZE_CONTACT, OPEN_WHATSAPP, ANNUL_COORDINATION y
 revocación. Sin campos, headers, endpoints, persistencia ni transiciones nuevos.
-Railway no necesario. Main y producción intactos. Rama qa, solo Vercel QA,
-pendiente verificación de publicación. Directorio ajeno sin seguimiento
+Railway no necesario. Main y producción intactos. Rama qa, solo Vercel QA:
+`c08404a3d29b38c4ca024488eeef74991f0d6bc2`,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/CMBikJhBbepv8sC1uD3Nmt5rWK83)
+verificado por el check del commit. Cierre documental local sin otro push.
+Directorio ajeno sin seguimiento
 docs/design-handoffs/claude-cliente-coordinacion-whatsapp-c5f3c85 conservado.
 
 Tiempos en node_modules/.cache/business-glass-timing.json. Lectura inicial no
@@ -87,3 +90,23 @@ no se dispone de timer separado de esa parte de preparación. Se distinguen
 reparación del test, corrección de foco, repeticiones, build, documentación y
 publicación. Unitarias y navegadores corrieron parcialmente en paralelo; los
 tiempos no se suman dos veces ni miden rendimiento de la app.
+
+| Intervalo medido | Tiempo de pared |
+| --- | ---: |
+| analysis | 64.0 s |
+| implementation | 90.8 s |
+| test-preparation | 2.9 s |
+| test-execution | 81.9 s |
+| test-fixture-repair | 3.1 s |
+| test-execution-retry | 200.7 s |
+| implementation-focus-fix | 2.9 s |
+| test-execution-focus-fix | 64.5 s |
+| build | 81.6 s |
+| documentation | 50.1 s |
+| publication | 144.8 s |
+
+Build/PWA interno: 11,14 s. Intervalo exterior build incluye espera/lectura
+y preparación del texto documental; no hay timer separado de esos subpasos.
+Publicación incluye espera del push y observación del check Vercel. Corte
+anterior al commit documental final. No se dispone de un total íntegro que
+incluya la lectura inicial no medida.

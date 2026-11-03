@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   cabecera, fila plegada, condiciones, pasos y permisos reales. Tres fuentes
   visuales, sin controladores ni contrato nuevos. 80 unitarias, siete escenarios
   nuevos y dos regresiones reutilizadas aprobados; build QA/PWA aprobado.
-  Publicación pendiente de verificar. Pendiente celulares físicos.
+  Publicado QA `c08404a`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/CMBikJhBbepv8sC1uD3Nmt5rWK83).
+  Pendiente celulares físicos.
   [Informe, adaptaciones y tiempos](frontend-business-initial-glass-qa.md).
 
 - Carril WhatsApp: texto Pendiente completo en Esperando y Preparando mediante
