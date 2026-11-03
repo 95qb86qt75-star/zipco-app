@@ -32,11 +32,11 @@ export async function runCoordinationCase(ctx, spec, negative) {
   };
   const options = async () => {
     const posts = await evaluate('window.posts.length');
-    await tap('#order-20 .zipco-customer-coordination-controls button:last-child');
+    await tap('#order-20 .zipco-customer-coordination-controls button:last-child,#order-20 .zipco-customer-declined-more');
     await wait('document.querySelector("#order-20 .zipco-customer-coordination-fold")?.dataset.open==="true"');
     assert.equal(await evaluate('document.querySelector("#order-20 .zipco-customer-coordination-fold").inert'), false);
     assert.equal(await evaluate('window.posts.length'), posts);
-    await tap('#order-20 .zipco-customer-coordination-controls button:last-child');
+    await tap('#order-20 .zipco-customer-coordination-controls button:last-child,#order-20 .zipco-customer-declined-more');
     await wait('document.querySelector("#order-20 .zipco-customer-coordination-fold")?.inert===true');
   };
   if (spec.case === 'reveal' || spec.case === 'fits') {
@@ -87,7 +87,7 @@ export async function runCoordinationCase(ctx, spec, negative) {
       assert.equal(await evaluate('document.querySelector("main").dataset.view'), 'coordination');
       assert.equal(await evaluate('window.counts.coordination'), 1);
       assert.equal(await evaluate('document.querySelectorAll("#order-20 .zipco-avw-query-reconfirm").length'), 1);
-      assert.equal(await evaluate('document.querySelector("#order-20 .zipco-customer-coordination-open").textContent'), 'Abrir WhatsApp');
+      assert.equal(await evaluate('document.querySelector("#order-20 .zipco-customer-coordination-open").textContent.startsWith("Abrir WhatsApp")'), true);
       assert(await evaluate('document.querySelector("#order-20").getBoundingClientRect().height<380'));
       await ctx.screenshot('declined-compact-' + spec.width);
       if (spec.case === 'declined-confirm') {

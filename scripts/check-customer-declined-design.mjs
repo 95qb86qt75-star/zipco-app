@@ -1,0 +1,68 @@
+import {withBrowser} from './qa/browser.mjs';
+await withBrowser('customer-declined-design-b','coordination',async ctx=>{
+ const {assert,evaluate,wait,tap,delay,send}=ctx;
+ const detail='#order-20 .zipco-customer-declined-toggle',more='#order-20 .zipco-customer-declined-more';
+ const negative=async(width,self=false,extra='')=>{
+  await ctx.visit('details=1&navigate=1'+(self?'':'&business=1')+extra,width,852);
+  await tap('#order-20 .zipco-avw-query-no');await tap('#order-20 .zipco-avw-query-yes');
+  await wait('document.querySelector("#order-20")?.dataset.mode==="declined"');
+  await wait('!!document.querySelector(".zipco-toast-close")');await tap('.zipco-toast-close');
+  if(!self){await evaluate('window.switchRole()');await wait('!!document.querySelector(".zipco-customer-declined")');}
+  await wait('document.querySelector(".zipco-customer-declined .zipco-avw-query-reconfirm")?.disabled===false');
+  assert.equal(await evaluate('document.querySelector(".zipco-customer-declined-message span").textContent'),self?'Avisaste al negocio que todavía falta coordinar.':'El negocio indicó que todavía falta coordinar.');
+  assert.equal(await evaluate('window.counts.coordination'),1);
+ };
+ const closeDialog=()=>tap('[role=dialog] button[aria-label="Cerrar"],[role=dialog] button[aria-label="Cerrar detalle"]');
+ for(const width of [320,390,430]){
+  await send('Emulation.setEmulatedMedia',{features:[]});await negative(width);
+  assert.equal(await evaluate('document.documentElement.scrollWidth<=innerWidth'),true);
+  assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-customer-declined-handwrap")).animationPlayState'),'running');
+  await ctx.screenshot('closed-'+width);
+  await tap('.zipco-customer-declined .zipco-product-thumb');await wait('!!document.querySelector(".zipco-product-sheet")');
+  assert.equal(await evaluate('document.querySelector("#order-20").dataset.expanded'),'false');await tap('.zipco-product-close');
+  await tap(detail);await delay(500);
+  assert.equal(await evaluate('document.querySelector("#coordination-detail-20").closest(".zipco-avw-reveal").inert'),false);
+  await ctx.screenshot('open-'+width);
+  await tap('.zipco-customer-declined-cond');await wait('!!document.querySelector("[role=dialog]")');
+  await closeDialog();await wait('!document.querySelector("[role=dialog]")');
+  await tap(more);await delay(450);
+  assert.equal(await evaluate('document.querySelector(".zipco-customer-declined-fold").inert'),false);
+  await tap('.zipco-customer-declined-options .zipco-co-lk');await wait('document.querySelector("[role=dialog]")?.textContent.includes("¿Por qué la anulas?")===true');
+  await closeDialog();await wait('!document.querySelector("[role=dialog]")');
+  await evaluate('[...document.querySelectorAll(".zipco-customer-declined-options button")].find(button=>button.textContent.includes("Retirar mi permiso")).dataset.testRevoke="true"');
+  await tap('[data-test-revoke]');await wait('document.querySelector("[role=dialog]")?.textContent.includes("¿Retirar tu permiso")===true');
+  await evaluate('[...document.querySelectorAll("[role=dialog] button")].find(button=>button.textContent==="Volver").dataset.testBack="true"');
+  await tap('[data-test-back]');await wait('!document.querySelector("[role=dialog]")');
+  await tap(more);await delay(450);
+  assert.equal(await evaluate('document.querySelector(".zipco-customer-declined-fold").inert'),true);
+  await tap(detail);await delay(450);
+  assert.equal(await evaluate('document.querySelector("#coordination-detail-20").closest(".zipco-avw-reveal").inert'),true);
+  assert.equal(await evaluate('window.posts.length'),1);
+  console.log('PASS incoming/layout/product/conditions/options/real-dialogs/fold '+width);
+ }
+ await negative(390,true);
+ await evaluate('window.delayPost=true');await tap('.zipco-customer-declined .zipco-avw-query-reconfirm');
+ await wait('typeof window.releasePost==="function"');
+ assert.equal(await evaluate('document.querySelector(".zipco-customer-declined-body").inert'),true);
+ assert.equal(await evaluate('window.posts.length'),2);
+ await evaluate('window.delayPost=false;window.releasePost()');await wait('window.counts.active===1');
+ console.log('PASS own-negative/yes/one-send/inert/active');
+ await negative(390);await evaluate('window.lost=true');await tap('.zipco-customer-declined .zipco-avw-query-reconfirm');
+ await wait('!!document.querySelector(".zipco-avw-query-recovery-actions")');
+ assert.equal(await evaluate('document.querySelector(".zipco-customer-declined .zipco-avw-query-reconfirm")===null'),true);
+ assert.equal(await evaluate('window.posts.length'),2);
+ console.log('PASS uncertain-send/visible-recovery/no-auto-retry');
+ await negative(390);await tap('.zipco-customer-declined .zipco-customer-coordination-open');
+ await wait('window.navigations.length===1');
+ assert.equal(await evaluate('window.posts.length'),2);
+ assert.equal(await evaluate('window.posts.at(-1).url.endsWith("/open-whatsapp")'),true);
+ await evaluate('window.departWhatsapp();window.resumeWhatsapp()');
+ await wait('document.querySelector("#order-20")?.dataset.mode==="question"');
+ console.log('PASS incoming-negative/open-whatsapp/navigation/resume');
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ await negative(320);
+ assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-customer-declined-handwrap")).animationName'),'none');
+ await tap(detail);await delay(50);await tap(more);
+ assert.equal(await evaluate('getComputedStyle(document.querySelector(".zipco-customer-declined-fold")).transitionDuration'),'0s');
+ await ctx.screenshot('reduced');console.log('PASS reduced-motion');
+});

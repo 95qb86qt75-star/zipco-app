@@ -23,6 +23,9 @@ la única vista correspondiente.
   `customer/whatsapp/CustomerCoordinationQuestionCard.tsx`.
   El detalle vive en `CustomerCoordinationDetail.tsx`; los estilos son
   `customer-coordination.css` y `customer-coordination-detail.css`.
+  Diseño B de declined: banda/cabecera y aviso de actor en QuestionCard;
+  recorrido/acciones, detalle único y opciones en CoordinationDetail.
+  Mantener la identidad de Providers entre modos para no interrumpir WhatsApp.
 - **En curso / listo / recibido por WhatsApp:**
   `customer/progress/CustomerWhatsappProgressCard.tsx`.
   Su estilo principal es `customer-receipt-card.css`.

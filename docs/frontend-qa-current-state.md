@@ -7,12 +7,20 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Cliente, negativa guardada de coordinación: diseño B completo integrado con
+  recorrido, aviso según actor, detalle y opciones reales. Se estabilizó el árbol
+  de Providers para conservar la redirección WhatsApp al volver a question.
+  90 unitarias, cuatro escenarios reutilizados, siete nuevos y build QA/PWA
+  aprobados. Pendiente revisión física.
+  [Informe y tiempos](frontend-customer-coordination-declined-b-qa.md).
+
 - Consulta del negocio «¿Coordinación lista por WhatsApp?» integrada con diseño B
   completo, detalle único, menú y autorización real en el recorrido. Declined,
   cliente y coordinación inicial conservados. 90 unitarias, cuatro recorridos
   reutilizados, seis nuevos escenarios y build QA/PWA aprobados. Publicado QA
   `8f89b86`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/4mDQV7He1SD4LwLcAiyyjk9GDL9i).
-  Pendiente revisión física. [Informe y tiempos](frontend-business-coordination-question-b-qa.md).
+  El usuario aprobó visualmente la consulta. Las demás pruebas físicas pendientes
+  se conservan. [Informe y tiempos](frontend-business-coordination-question-b-qa.md).
 
 - Negocio, Coordinación pendiente (`declined`): integrado el diseño B completo
   con miniatura real, recorrido compacto y Más opciones flotante. Controladores,
