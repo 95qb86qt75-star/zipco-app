@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Negocio, tarjeta inicial de producto por WhatsApp: B·Vidrio integrado con
+  cabecera, fila plegada, condiciones, pasos y permisos reales. Tres fuentes
+  visuales, sin controladores ni contrato nuevos. 80 unitarias, siete escenarios
+  nuevos y dos regresiones reutilizadas aprobados; build QA/PWA aprobado.
+  Publicación pendiente de verificar. Pendiente celulares físicos.
+  [Informe, adaptaciones y tiempos](frontend-business-initial-glass-qa.md).
+
 - Carril WhatsApp: texto Pendiente completo en Esperando y Preparando mediante
   distribución flexible y separadores compactos, CSS acotado a .zipco-wa-w.
   Seis comprobaciones geométricas/táctiles y build QA/PWA aprobados. Publicación

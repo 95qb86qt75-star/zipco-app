@@ -57,6 +57,12 @@ permisos siguen en los hooks de `requests/application` y en la API.
 
 ## Negocio
 
+- **Inicial, producto aceptado por WhatsApp antes de consultar coordinación:**
+  `BusinessInitialCard` en `shared/coordination/InitialCoordinationCardView.tsx`.
+  Cabecera `business-initial` de CoordinationCardShell; estilos B·Vidrio `.zipco-bi`
+  en coordination-flow.css. Solo business, no embedded y producto WHATSAPP.
+  Controlador y ventanas compartidas intactos; cliente/servicios/retiro no cambian.
+
 - **Disponibilidad confirmada, esperando cliente:**
   `business/availability/AvailabilityWaitingCard.tsx`.
 - **Consulta de coordinación y respuesta negativa:**
