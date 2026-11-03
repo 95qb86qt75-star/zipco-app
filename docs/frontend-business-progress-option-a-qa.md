@@ -73,8 +73,10 @@ confirmaciones reales; HTTP restringido a fixture. Pendiente iPhone/Android.
 Mismos datos de pedido/acuerdo, estado, consentimiento y allowedActions.
 Lecturas de pedidos/acuerdo y MARK_READY, revocación y recuperación existentes;
 sin nuevos campos, headers, endpoints, almacenamiento ni transiciones. Railway
-no necesario. Main y producción intactos. Rama qa, publicación solo Vercel QA,
-pendiente verificar. Directorio ajeno sin seguimiento preservado; cierre
+no necesario. Main y producción intactos. Rama qa, publicado solo Vercel QA:
+`61e0dd90205452f28857892a9654960166e3c7d8`,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/2Zh9TZcnzjhxHeL8k1fRp61w8Fhn)
+verificado. Directorio ajeno sin seguimiento preservado; cierre
 documental posterior sin push adicional.
 
 Fases en business-progress-a-timing.json dentro de node_modules/.cache.
@@ -83,3 +85,20 @@ preparación de escenarios, ejecución, ajuste de layout y su repetición,
 build, documentación y publicación registrados aparte. Unitarias/navegador
 corrieron parcialmente en paralelo, no se suman dos veces. No son mediciones
 de rendimiento de la app.
+
+| Fase medida | Tiempo de pared |
+| --- | ---: |
+| analysis | 89.1 s |
+| implementation | 54.3 s |
+| test-preparation | 74.3 s |
+| test-execution | 138.1 s |
+| implementation-layout-fix | 4.6 s |
+| test-execution-layout | 68.8 s |
+| build | 32.8 s |
+| documentation | 69.2 s |
+| publication | 136.9 s |
+
+Build/PWA interno: 10,31 s. Intervalo exterior incluye espera y lectura de
+salida. Ejecución incluye inspección de captura y la regresión reutilizada.
+Corte anterior al commit documental final; excluye lectura inicial no medida.
+Cierre documental local sin otro push ni despliegue.
