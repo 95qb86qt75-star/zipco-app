@@ -20,3 +20,51 @@
 .zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-body{padding:0 13px 14px;background:none}
 .zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-product{margin:0 0 8px}
 .zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-pending{margin:0;padding-top:0;border-top:0;font-size:12px;line-height:1.45;color:#cfd3ff}
+
+/* =====================================================================================================
+   WhatsApp · «Indicaste que ya coordinaron» (espera del negocio) · composición exclusiva .zipco-wa-w
+   Solo aplica con la clase zipco-wa-w en el <article> (sin readyModel y preparing===false). Las demás variantes no la llevan.
+   ===================================================================================================== */
+@keyframes zipco-wa-w-halo{0%,100%{box-shadow:0 0 0 3px #fbbf2438,0 0 0 #fbbf2400}50%{box-shadow:0 0 0 5px #fbbf2412,0 0 14px 3px #fbbf2499}}
+@keyframes zipco-wa-w-flip{0%,72%{transform:rotate(0)}86%,100%{transform:rotate(180deg)}}
+@keyframes zipco-wa-w-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.14)}85%{transform:translateY(1px) scale(.92)}}
+@keyframes zipco-wa-w-wave{0%,45%{opacity:0}60%{opacity:1}100%{opacity:0}}
+@keyframes zipco-wa-w-wig{0%,60%,100%{transform:rotate(0) scale(1)}68%{transform:rotate(-14deg) scale(1.12)}76%{transform:rotate(12deg) scale(1.12)}84%{transform:rotate(-6deg)}}
+.zipco-wa-w-hd{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.zipco-wa-w-mod{display:flex;align-items:center;gap:7px;padding:11px 14px 0;min-width:0}
+.zipco-wa-w-mi{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#052e16;background:linear-gradient(140deg,#4ade80,#16a34a);box-shadow:0 0 10px #4ade8066;animation:zipco-wa-w-wig 3s ease-in-out 1s infinite}
+.zipco-wa-w-mod b{font-size:10px;font-weight:900;letter-spacing:.14em;line-height:1.2;color:#86efac;overflow-wrap:anywhere}
+.zipco-wa-w-tp{display:flex;align-items:center;gap:8px;padding:4px 8px 0 12px}
+.zipco-wa-w-pill{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:8px;padding:4px 10px 4px 5px;border-radius:99px;background:#fbbf2424;box-shadow:inset 0 0 0 1.5px #fbbf2480}
+.zipco-wa-w-pill i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#451a03;background:#fbbf24;animation:zipco-wa-w-halo 2.8s ease-in-out infinite}
+.zipco-wa-w-pill i svg{animation:zipco-wa-w-flip 3.6s ease-in-out infinite}
+.zipco-wa-w-pill b{font-size:10px;font-weight:900;letter-spacing:.08em;color:#fde68a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zipco-wa-w-toggle{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-left:auto;padding:0 4px 0 2px;border:0;border-radius:0;background:none;color:#fff;font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer}
+.zipco-wa-w-toggle:focus-visible{outline:3px solid #a78bfa;outline-offset:2px;border-radius:12px}
+.zipco-wa-w-chv{display:inline-flex;color:#e2e8f0;transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.zipco-wa-w-toggle[aria-expanded=true] .zipco-wa-w-chv{transform:rotate(180deg)}
+.zipco-wa-w-fg{display:inline-flex;margin:0 -2px 0 -4px;color:#fde68a;filter:drop-shadow(0 0 5px #f59e0b88);animation:zipco-wa-w-tap 1.8s ease-in-out infinite;pointer-events:none}
+.zipco-wa-w-w1,.zipco-wa-w-w2{animation:zipco-wa-w-wave 1.8s ease-out infinite}.zipco-wa-w-w2{animation-delay:.18s}
+.zipco-wa-w-h{display:flex;align-items:center;gap:11px;padding:2px 13px 0}
+.zipco-wa-w-h .zipco-avw-ring{flex:none}
+.zipco-wa-w-id{flex:1;min-width:0}
+.zipco-wa-w-id small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.15em;color:#c4b5fd}
+.zipco-wa-w-id h3{margin:0;font-size:15.5px;line-height:1.2;font-weight:900;color:#fff;overflow-wrap:anywhere}
+.zipco-wa-w-pc{display:block;margin-top:3px;font-size:11.5px;line-height:1.3;font-weight:700;color:#a5b4c7;overflow-wrap:anywhere}
+.zipco-wa-w-total{flex:none;max-width:36%;text-align:right}
+.zipco-wa-w-total b{display:block;font-size:19px;line-height:1;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.zipco-wa-w-total b[data-long=true]{font-size:12px;line-height:1.15;color:#fde68a;max-width:76px;margin-left:auto}
+.zipco-wa-w-total small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#a5b4c7}
+/* carril existente (StatusRail dark): solo presentación, sin caja y con nodos algo mayores */
+.zipco-wa-w .zipco-own-rail{background:none;box-shadow:none;padding:6px 4px 4px;margin:8px 12px 10px}
+@media(min-width:351px){.zipco-wa-w .zipco-own-rail .zipco-own-node{width:30px;height:30px}.zipco-wa-w .zipco-own-rail .zipco-own-line{height:4px}}
+.zipco-wa-w.zipco-avw-customer[data-mode=ownPending] .zipco-avw-query-recovery{margin:0 12px 12px}
+.zipco-wa-w.zipco-avw-customer[data-mode=ownPending] .zipco-wa-w-body{padding:0 12px 8px;background:none}
+@media(max-width:350px){.zipco-wa-w-id h3{font-size:14.5px}.zipco-wa-w-total b{font-size:17px}.zipco-wa-w-fg{display:none}.zipco-wa-w-toggle{padding:0 4px 0 8px;font-size:12px}.zipco-wa-w-pill b{font-size:9.5px}}
+/* Pausas existentes y movimiento reducido */
+[data-request-motion=idle] .zipco-wa-w *,[data-request-list-scrolling=true] .zipco-wa-w *,[data-coordination-motion=idle] .zipco-wa-w *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.zipco-wa-w *,.zipco-wa-w *::before,.zipco-wa-w *::after{animation:none!important}.zipco-wa-w-chv{transition:none!important}}
+
+/* Real preview supplies its own quantities; preserve one total badge. */
+.zipco-wa-w .zipco-product-quantity{display:none}
+.zipco-wa-w .zipco-wa-w-body{display:flex;flex-direction:column;gap:7px}

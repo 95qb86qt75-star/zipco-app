@@ -10,13 +10,22 @@ function ConditionsStrip({summary,onConditions}:{summary:string;onConditions:()=
  return <button type="button" className="zipco-co-strip2" onClick={onConditions}><span className="zipco-co-strip2-ic"><CircleCheck size={16}/></span><span style={{minWidth:0,flex:1}}><div className="zipco-co-strip2-l">Condiciones aceptadas</div><div className="zipco-co-strip2-v">{summary}</div></span><span className="zipco-co-strip2-go"><ChevronRight size={16}/></span></button>;
 }
 
-/** Shared by the real card and isolated design preview; callbacks own all actions. (Sin cambios para WhatsApp ni vista previa.) */
-export default function CustomerReceiptDetails({summary,onConditions,onContact,blocked=false,children}:{summary:string;onConditions:()=>void;onContact?:()=>void;blocked?:boolean;children?:ReactNode}){
- return <div className="zipco-receipt-details">
-  <ConditionsStrip summary={summary} onConditions={onConditions}/>
-  <p className="mt-3 text-xs">ZIPCO no procesa ni verifica pagos.</p>
-  {onContact&&<button type="button" className="zipco-co-go2" disabled={blocked} onClick={onContact}><WhatsAppMark className="h-4 w-4"/> Escribir al negocio</button>}
-  {children}
+/** Presentación de «WhatsApp · esperando al negocio» (prop opcional `waitingDesign`, la envía CustomerReceiptFlowCardView).
+ *  Misma lógica y mismos callbacks: solo cambia la colocación. `children` (consentimiento, permisos y avisos reales de
+ *  AvailabilityPostActions) se renderiza SIN reconstruirse. Sin la prop, el componente se comporta exactamente como siempre. */
+/** Shared by the real card and isolated design preview; callbacks own all actions. (Sin cambios para WhatsApp ni vista previa salvo `waitingDesign`.) */
+export default function CustomerReceiptDetails({summary,onConditions,onContact,blocked=false,waitingDesign=false,children}:{summary:string;onConditions:()=>void;onContact?:()=>void;blocked?:boolean;waitingDesign?:boolean;children?:ReactNode}){
+
+ return <div className={'zipco-receipt-details'+(waitingDesign?' zipco-wa-w-det':'')}>
+  {waitingDesign?<div className="zipco-wa-w-tiles" data-solo={!onContact}>
+   <button type="button" className="zipco-wa-w-tile" aria-label="Condiciones aceptadas" aria-haspopup="dialog" onClick={onConditions}><span className="zipco-wa-w-ico" data-kind="cond" aria-hidden="true"><CircleCheck size={16} strokeWidth={2.4}/></span><span className="zipco-wa-w-bd"><small className="zipco-wa-w-ey">CONDICIONES ACEPTADAS</small><b>{summary}</b></span></button>
+   {onContact&&<button type="button" className="zipco-wa-w-tile zipco-wa-w-wa" disabled={blocked} onClick={onContact}><span className="zipco-wa-w-ico" data-kind="wa" aria-hidden="true"><WhatsAppMark className="h-4 w-4"/></span><span className="zipco-wa-w-bd"><small className="zipco-wa-w-ey">CONTACTO OPCIONAL</small><b>Escribir al negocio</b></span></button>}
+  </div>:<><ConditionsStrip summary={summary} onConditions={onConditions}/><p className="mt-3 text-xs">ZIPCO no procesa ni verifica pagos.</p>{onContact&&<button type="button" className="zipco-co-go2" disabled={blocked} onClick={onContact}><WhatsAppMark className="h-4 w-4"/> Escribir al negocio</button>}</>}
+  <div key="post-actions" className={waitingDesign?'zipco-wa-w-opts':undefined} style={waitingDesign?undefined:{display:'contents'}}>
+   {waitingDesign&&<span className="zipco-wa-w-ico" data-kind="perm" aria-hidden="true"><ShieldCheck size={15} strokeWidth={2.4}/></span>}
+   <div key="controls" className={waitingDesign?'zipco-wa-w-opts-bd':undefined} style={waitingDesign?undefined:{display:'contents'}}>{children}</div>
+  </div>
+  {waitingDesign&&<><p className="zipco-wa-w-pay">ZIPCO no procesa ni verifica pagos.</p><button type="button" className="zipco-wa-w-hide" onClick={event=>{const toggle=event.currentTarget.closest('.zipco-wa-w')?.querySelector<HTMLButtonElement>('.zipco-wa-w-toggle');toggle?.click();toggle?.focus({preventScroll:true});}}>Ocultar detalle<ChevronUp size={14} aria-hidden="true"/></button></>}
  </div>;
 }
 

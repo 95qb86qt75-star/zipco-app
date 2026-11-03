@@ -29,6 +29,9 @@ la única vista correspondiente.
 - **En curso / listo / recibido por WhatsApp:**
   `customer/progress/CustomerWhatsappProgressCard.tsx`.
   Su estilo principal es `customer-receipt-card.css`.
+  Esperando respuesta al primer Sí propio: rama `.zipco-wa-w`, detalle mediante
+  `waitingDesign` en CustomerReceiptDetails; estilos propios en los dos CSS de
+  progress. Carril y controles conservan identidad al pasar a preparando.
 - **Retiro local, preparando / listo / recibido:**
   `customer/local-pickup/CustomerPickupCard.tsx` y `customer-pickup.css`.
   Variante B Línea: solo pago previo advisory pendiente de confirmación. La

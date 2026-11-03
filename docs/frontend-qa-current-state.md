@@ -1,11 +1,19 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-02, America/Santiago.
+Actualizado: 2026-11-03, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- WhatsApp del cliente, primer Sí propio y esperando respuesta del negocio:
+  diseño completo recibido de Claude integrado en la composición canónica.
+  Cabecera/modalidad, carril real, estado, condiciones, contacto y permisos.
+  Controles montados de forma estable al cambiar a preparando. 72 unitarias,
+  ocho escenarios nuevos y dos regresiones reutilizadas aprobados; build QA/PWA
+  aprobado. Publicación QA pendiente de verificación en este corte documental.
+  Pendiente iPhone/Android físicos. [Informe y tiempos](frontend-whatsapp-waiting-design-qa.md).
 
 - Retiro del cliente B Línea integrado solo para reserva PREPAYMENT pendiente
   AWAITING_BUSINESS_CONFIRMATION, oferta advisory y pedido IN_PROGRESS. Cabecera
