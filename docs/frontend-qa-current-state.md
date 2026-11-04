@@ -10,7 +10,9 @@ ni convierte pruebas sintéticas en aprobación física.
 - Corrección visual CliU27: se retiró la pausa global por detalle cerrado que
   inmovilizaba los adornos visibles. Pruebas de avance temporal aprobadas en
   WhatsApp/retiro, cerrada/abierta y pausa/reanudación por scroll/fuera de vista;
-  movimiento reducido conservado. Build QA/PWA aprobado. Publicación en curso.
+  movimiento reducido conservado. Build QA/PWA aprobado. Publicado QA `7821c38`,
+  [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/6Y7Trz7t3zHPT8Y98E3JVygbyiLP).
+  Pendiente confirmar movimiento en el celular.
   [Causa y comprobaciones](frontend-availability-waiting-cliu27-qa.md).
 
 - Negocio, disponibilidad confirmada esperando cliente: CliU27 integrado en los

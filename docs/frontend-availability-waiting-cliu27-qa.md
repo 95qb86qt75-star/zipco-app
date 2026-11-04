@@ -100,6 +100,10 @@ restantes: no cambió JSX, layout, permisos ni contrato. Pendiente celular físi
 
 Medición de este ajuste: análisis, edición de una regla y preparación inicial
 no cronometrados; no se estiman. Pruebas: 54 s de pared con ejecución/revisión;
-build efectivo y publicación se completan al verificar. La ventana del build
+build efectivo 10,3 s (ventana de orquestación 42 s); documentación inicial
+26,8 s; publicación/verificación 93 s (incluye espera, push 3,5 s dentro de ella).
+Publicado `7821c3871e575613c22381a79b97bb8e6bda0cd2` en rama `qa`,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/6Y7Trz7t3zHPT8Y98E3JVygbyiLP).
+Cierre documental local sin otro push. La ventana del build
 incluye espera y orquestación; no se suma al tiempo efectivo. Solo frontend;
 Railway innecesario, `main` y producción intactos.
