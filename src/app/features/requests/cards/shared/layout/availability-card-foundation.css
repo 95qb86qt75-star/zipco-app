@@ -160,4 +160,3 @@
 /* Keep focus from scrolling the card itself; the chevron is not the animated hand. */
 .zipco-avw.zipco-aw{overflow:clip;display:flow-root}
 .zipco-aw-hint .zipco-aw-chv{animation:none;filter:none;margin:0}
-.zipco-aw[data-expanded=false] *,.zipco-aw[data-expanded=false] *::before,.zipco-aw[data-expanded=false] *::after{animation-play-state:paused!important}

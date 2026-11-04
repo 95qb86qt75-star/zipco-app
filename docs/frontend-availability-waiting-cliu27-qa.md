@@ -76,3 +76,30 @@ Cierre documental posterior conservado local, sin otro push que genere build.
 Railway innecesario. `main` conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`;
 producción intacta. Las preguntas sobre otras
 tarjetas, brillos y etiqueta del retiro cliente siguen pendientes, sin cambios.
+
+## Corrección posterior: adornos estáticos con la tarjeta cerrada
+
+Reporte físico del usuario después de `1e4d490`: las animaciones no se movían.
+Causa confirmada en CSS: la adaptación de integración
+`.zipco-aw[data-expanded=false] * {animation-play-state:paused!important}`
+detenía también el punto, la mano y el reloj visibles. Se eliminó únicamente
+esa regla productiva. Se conserva la pausa existente por scroll, fuera de vista
+y movimiento reducido. El diseño, los envíos y las acciones no cambian.
+
+La prueba anterior comprobaba que se pausara, pero no que avanzara estando
+visible/cerrada. Se amplió el escenario reutilizable para medir `currentTime`
+de las animaciones reales en el navegador. Dos casos aprobados (WhatsApp y
+retiro): punto/mano/reloj avanzan cerrada, reloj del detalle avanza abierta,
+scroll e idle pausan y al volver a active avanzan; reduced-motion desactiva.
+Se conservan los controles táctiles, visores reales, foco y cancelación del
+diálogo incluidos en esos escenarios. HTTP simulado, sin pedidos reales.
+
+Build QA/PWA aprobado de nuevo porque cambió CSS productivo (2403 módulos,
+advertencia previa de chunks). No se repitieron las 62 unitarias ni responsive
+restantes: no cambió JSX, layout, permisos ni contrato. Pendiente celular físico.
+
+Medición de este ajuste: análisis, edición de una regla y preparación inicial
+no cronometrados; no se estiman. Pruebas: 54 s de pared con ejecución/revisión;
+build efectivo y publicación se completan al verificar. La ventana del build
+incluye espera y orquestación; no se suma al tiempo efectivo. Solo frontend;
+Railway innecesario, `main` y producción intactos.

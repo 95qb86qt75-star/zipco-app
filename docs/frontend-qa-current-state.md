@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Corrección visual CliU27: se retiró la pausa global por detalle cerrado que
+  inmovilizaba los adornos visibles. Pruebas de avance temporal aprobadas en
+  WhatsApp/retiro, cerrada/abierta y pausa/reanudación por scroll/fuera de vista;
+  movimiento reducido conservado. Build QA/PWA aprobado. Publicación en curso.
+  [Causa y comprobaciones](frontend-availability-waiting-cliu27-qa.md).
+
 - Negocio, disponibilidad confirmada esperando cliente: CliU27 integrado en los
   dos archivos visuales autorizados, único diseño para WhatsApp/retiro, error
   visible plegada y visores/retirada reales. 62 unitarias, ocho escenarios
