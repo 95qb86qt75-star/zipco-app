@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Negocio, disponibilidad confirmada esperando cliente: CliU27 integrado en los
+  dos archivos visuales autorizados, único diseño para WhatsApp/retiro, error
+  visible plegada y visores/retirada reales. 62 unitarias, ocho escenarios
+  específicos y dos regresiones reutilizadas aprobados; build QA/PWA aprobado.
+  Pendiente publicación y comprobación física.
+  [Alcance, pruebas y tiempos](frontend-availability-waiting-cliu27-qa.md).
+
 - Preparando del negocio: ajuste local de apertura/cierre y arrastre reportados
   como trabados. Una fuente CSS: pliegue sin escala/desplazamiento, mismos 420 ms,
   y adornos/blur/glow pausados durante el arrastre. Cinco escenarios funcionales,

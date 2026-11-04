@@ -65,6 +65,9 @@ permisos siguen en los hooks de `requests/application` y en la API.
 
 - **Disponibilidad confirmada, esperando cliente:**
   `business/availability/AvailabilityWaitingCard.tsx`.
+  Diseño CliU27 único para WhatsApp/retiro; estilos exclusivos `.zipco-aw*`
+  en `shared/layout/availability-card-foundation.css`. Error siempre visible,
+  fotos y confirmación de retirada reales. Controlador sin cambios.
 - **Consulta de coordinación y respuesta negativa:**
   `business/coordination/BusinessCoordinationWaitingCard.tsx` y
   `BusinessPendingCoordinationDetail.tsx`; estilo `business-coordination-pending.css`.

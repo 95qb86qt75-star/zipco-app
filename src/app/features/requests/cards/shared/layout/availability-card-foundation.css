@@ -76,3 +76,88 @@
 @media (prefers-reduced-motion:reduce){.zipco-avw-reveal,.zipco-avw-reveal[data-folded=true]{transition:none}}
 /* Reuse the list's existing motion gates; the diagnostic incident remains paused. */
 :is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"]) .zipco-avw *{animation-play-state:paused!important}
+
+/* ===== UI-AVAILABILITY-WAITING-01 =====
+ * Tarjeta del negocio «Esperando al cliente» (Solicitudes → Mi Negocio → Esperando respuesta). Todo bajo `.zipco-aw`
+ * (clase propia añadida junto a `.zipco-avw` en AvailabilityWaitingCard). No cambia reglas globales de `.zipco-avw`. */
+@keyframes zipco-aw-dot{0%,100%{box-shadow:0 0 0 4px rgba(167,139,250,.2)}50%{box-shadow:0 0 0 8px rgba(167,139,250,0)}}
+@keyframes zipco-aw-flip{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(180deg)}}
+.zipco-avw.zipco-aw{color:#e2e8f0;font-family:'Outfit',sans-serif;background:radial-gradient(ellipse at 100% 0,rgba(139,92,246,.2),transparent 60%),linear-gradient(155deg,#1e293b 0%,#0f172a 42%,#0b1220 100%);box-shadow:0 14px 30px rgba(30,41,59,.38),0 0 0 1.5px rgba(167,139,250,.35),inset 0 1px 0 rgba(255,255,255,.3)}
+.zipco-aw button:focus-visible{outline:3px solid #a78bfa;outline-offset:2px}
+.zipco-aw-mod{display:flex;align-items:center;gap:7px;padding:9px 14px 0}
+.zipco-aw-mi{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#052e16;background:linear-gradient(140deg,#4ade80,#16a34a);box-shadow:0 0 10px rgba(74,222,128,.4)}
+.zipco-aw-mod b{font-size:10px;font-weight:900;letter-spacing:.14em;line-height:1.2;color:#86efac}
+.zipco-aw[data-modality="local"] .zipco-aw-mi{color:#451a03;background:linear-gradient(140deg,#fde68a,#f59e0b);box-shadow:0 0 10px rgba(251,191,36,.4)}
+.zipco-aw[data-modality="local"] .zipco-aw-mod b{color:#fcd34d}
+.zipco-aw-tp{display:flex;align-items:center;gap:8px;min-height:44px;padding:2px 12px 0}
+.zipco-aw-pill{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:8px;padding:5px 11px 5px 9px;border-radius:99px;background:rgba(167,139,250,.12);box-shadow:inset 0 0 0 1.5px rgba(167,139,250,.55)}
+.zipco-aw-pill i{flex:none;width:9px;height:9px;border-radius:50%;background:#a78bfa;animation:zipco-aw-dot 1.8s ease-in-out infinite}
+.zipco-aw-pill b{font-size:10px;font-weight:900;letter-spacing:.08em;color:#ddd6fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.zipco-aw-hint{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#fff;pointer-events:none}
+.zipco-aw-hint svg{flex:none;margin:0 -2px 0 -4px;color:#ddd6fe;filter:drop-shadow(0 0 5px rgba(167,139,250,.55));animation:zipco-avw-tap 1.8s ease-in-out infinite}
+.zipco-aw-hint .zipco-avw-wave1,.zipco-aw-hint .zipco-avw-wave2{stroke:#c4b5fd}
+.zipco-aw-chv{flex:none;color:#e2e8f0;transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.zipco-aw[data-expanded="true"] .zipco-aw-chv{transform:rotate(180deg)}
+.zipco-aw-r{display:flex;align-items:center;gap:10px;padding:0 13px 0}
+.zipco-aw-th{position:relative;flex:none;display:flex;width:44px;height:44px;pointer-events:auto}
+.zipco-aw-th .zipco-product-preview,.zipco-aw-th .zipco-product-neutral{width:44px;height:44px;border-radius:13px;display:flex}
+.zipco-aw-th .zipco-product-thumbs{width:44px;max-width:44px;padding:0;overflow:visible}
+.zipco-aw-th .zipco-product-thumb{width:44px;height:44px;border-radius:13px;border:1.5px solid #f4c968;box-shadow:0 0 10px rgba(255,206,107,.35);overflow:hidden}
+.zipco-aw-th .zipco-product-thumb>img,.zipco-aw-th .zipco-product-image-fallback{border-radius:12px}
+.zipco-aw-th .zipco-product-neutral,.zipco-aw-th .zipco-product-image-fallback{background:linear-gradient(140deg,#be185d,#f59e0b 55%,#16a34a);color:#fff;border:0}
+.zipco-aw-th .zipco-product-thumb:not(:first-child),.zipco-aw-th .zipco-product-quantity{display:none}
+.zipco-aw-fb{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;color:#fff;background:linear-gradient(140deg,#be185d,#f59e0b 55%,#16a34a);box-shadow:inset 0 0 0 1.5px rgba(244,201,104,.8),0 0 10px rgba(255,206,107,.35)}
+.zipco-aw-q{position:absolute;right:-3px;bottom:-5px;min-width:20px;padding:1px 4px;border-radius:6px;background:#fff;color:#0b2633;font-size:10px;font-weight:900;font-style:normal;line-height:1.2;text-align:center;pointer-events:none}
+.zipco-aw-id{flex:1;min-width:0}
+.zipco-aw-id small{display:flex;align-items:center;gap:6px;font-size:8.5px;font-weight:800;letter-spacing:.15em;color:#94a3b8}
+.zipco-aw-id small em{font-style:normal;padding:1px 6px;border-radius:99px;background:#38bdf8;color:#020617;font-size:9px;letter-spacing:0;font-weight:900}
+.zipco-aw-id h4{margin:0;font-size:15px;line-height:1.2;font-weight:900;color:#fff;overflow-wrap:anywhere}
+.zipco-aw-pr{flex:none;max-width:36%;text-align:right}
+.zipco-aw-pr b{display:block;font-size:18px;line-height:1;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.zipco-aw-pr small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#c4b5fd}
+/* errores: siempre visibles */
+.zipco-aw-err{margin:10px 12px 0}.zipco-aw-err:empty{display:none}
+.zipco-aw-err .zipco-av-error{margin:0;padding:10px 12px;border-radius:14px;background:rgba(251,191,36,.08);box-shadow:inset 0 0 0 1.5px rgba(251,191,36,.5);border:0;color:#fde68a;font-size:12px;line-height:1.4}
+.zipco-aw-err .zipco-av-error p{margin:0;color:#fde68a}
+.zipco-aw-err .zipco-av-error button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px;margin-top:8px;border:0;border-radius:99px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px rgba(251,191,36,.6);color:#fde68a;font:800 13px 'Outfit',sans-serif;cursor:pointer}
+.zipco-aw-err .zipco-av-error button svg{width:14px;height:14px}.zipco-aw-err .zipco-av-error button:disabled{opacity:.6;cursor:default}
+/* fila plegada (informativa; el botón que cubre la tarjeta recibe el toque) */
+.zipco-aw-row{display:flex;align-items:center;gap:9px;margin:8px 12px 10px;min-height:44px;padding:5px 8px;border-radius:14px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(167,139,250,.35)}
+.zipco-aw[data-expanded="true"] .zipco-aw-row{display:none}
+.zipco-aw-nd{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#2e1065;background:linear-gradient(145deg,#ddd6fe,#a78bfa)}
+.zipco-aw-nd svg,.zipco-aw-sumi svg{animation:zipco-aw-flip 2.6s ease-in-out infinite}
+.zipco-aw-tx{min-width:0;flex:1}.zipco-aw-tx b{display:block;font-size:13px;line-height:1.2;font-weight:800;color:#fff;overflow-wrap:anywhere}
+.zipco-aw-tx small{display:block;margin-top:1px;font-size:11px;font-weight:600;color:#cbd5e1}
+.zipco-aw-rchv{flex:none;color:#ddd6fe}
+/* detalle */
+.zipco-aw-dt{display:grid;gap:6px;padding:8px 12px 8px}
+.zipco-aw-sum{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:14px;background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(167,139,250,.03));box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 0 0 1.5px rgba(167,139,250,.4)}
+.zipco-aw-sumi{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#ede9fe;background:rgba(167,139,250,.2);box-shadow:inset 0 0 0 1px rgba(196,181,253,.4)}
+.zipco-aw-sum p{margin:0;font-size:12px;line-height:1.3;color:#d5dbe5;overflow-wrap:anywhere}.zipco-aw-sum p b{color:#fff;font-weight:900}
+.zipco-aw-sum p+p{margin-top:2px;font-size:11.5px;color:#c4b5fd}
+.zipco-aw-one{padding:2px 10px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.zipco-aw-li{margin:0;display:flex;align-items:center;gap:9px;padding:4px 0;font-size:13px;font-weight:700;color:#e2e8f0}
+.zipco-aw-li+.zipco-aw-li{border-top:1px solid rgba(255,255,255,.08)}
+.zipco-aw-li .q{flex:none;min-width:28px;height:22px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:900;color:#67e8f9;background:rgba(34,211,238,.14)}
+.zipco-aw-li .n{flex:1;min-width:0;overflow-wrap:anywhere}.zipco-aw-li b{flex:none;color:#fff;font-weight:800;font-variant-numeric:tabular-nums}
+.zipco-aw-rows{margin:4px 0 0;padding:0;border-top:1px solid rgba(255,255,255,.12)}
+.zipco-aw-rows>div{display:flex;align-items:flex-start;gap:9px;padding:6px 0}.zipco-aw-rows>div+div{border-top:1px solid rgba(255,255,255,.08)}
+.zipco-aw-rows .i{flex:none;width:22px;height:22px;margin-top:1px;border-radius:50%;display:grid;place-items:center;color:#fcd34d;background:rgba(251,191,36,.08)}
+.zipco-aw-rows span:last-child{min-width:0}
+.zipco-aw-rows dt{display:block;font-size:8.5px;font-weight:800;letter-spacing:.12em;line-height:1.25;color:#94a3b8;text-transform:uppercase;white-space:normal}
+.zipco-aw-rows dd{display:block;margin:1px 0 0;font-size:12.5px;line-height:1.25;font-weight:800;color:#fff;text-align:left;overflow-wrap:anywhere}
+.zipco-aw-note{margin:0;padding:6px 10px;border-radius:14px;font-size:11.5px;line-height:1.3;color:#cbd5e1;overflow-wrap:anywhere;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}.zipco-aw-note b{color:#fff}
+.zipco-aw-ref{margin:0}.zipco-aw-ref>button{margin-top:0!important;min-height:48px}
+.zipco-aw-foot{display:grid;justify-items:center}
+.zipco-aw-acts{display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+.zipco-aw .zipco-aw-wd{pointer-events:auto;width:auto;min-height:44px;margin:0;padding:0 14px;border:0;border-radius:10px;background:none;box-shadow:none;color:#fda4af;font:700 12.5px 'Outfit',sans-serif;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(251,113,133,.55)}
+.zipco-aw .zipco-aw-wd:disabled{opacity:.55;cursor:default}
+.zipco-aw-hide{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 12px;border:0;background:none;color:#94a3b8;font:700 12px 'Outfit',sans-serif;cursor:pointer}
+.zipco-aw-fine{margin:-4px 4px 0;text-align:center;font-size:10px;line-height:1.3;color:#94a3b8}
+@media (max-width:350px){.zipco-aw-id h4{font-size:14.5px}.zipco-aw-pr b{font-size:17px}.zipco-aw-hint svg{display:none}.zipco-aw-pill b{font-size:9.5px}}
+/* movimiento: el contenido siempre es visible (ningún efecto parte de opacidad 0). Pausas heredadas de `.zipco-avw` arriba. */
+@media (prefers-reduced-motion:reduce){.zipco-aw *,.zipco-aw *::before,.zipco-aw *::after{animation:none!important}.zipco-aw-chv{transition:none}}
+/* Keep focus from scrolling the card itself; the chevron is not the animated hand. */
+.zipco-avw.zipco-aw{overflow:clip;display:flow-root}
+.zipco-aw-hint .zipco-aw-chv{animation:none;filter:none;margin:0}
+.zipco-aw[data-expanded=false] *,.zipco-aw[data-expanded=false] *::before,.zipco-aw[data-expanded=false] *::after{animation-play-state:paused!important}
