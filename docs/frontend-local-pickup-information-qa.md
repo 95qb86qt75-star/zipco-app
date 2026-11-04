@@ -121,7 +121,14 @@ Primer build efectivo QA/PWA 11,8 s dentro de ventana 53 s. Segundo build efecti
 build y el escenario repetido, sin sumarlos dos veces. Esperas/lecturas/documentación
 se completan al verificar publicación. No atribuye duración a rendimiento gráfico.
 
-Rama `qa`, publicación pendiente de verificar al redactar. Main conservó
+Publicado en rama `qa`: `0dc73c0cce58e074eb9a5fde1b4a697dad4db908`.
+[Vercel success verificado para ese SHA](https://vercel.com/zipco-s-projects/zipco-app/9uUYLsAGytKXdzUt4op7bWf5Q1zs).
+Documentación/revisión inicial 87 s; revisión final con segundo build, lectura
+remota 401, controles y redacción del informe 241 s; preparación de publicación
+49 s. No existe separación más fina del tiempo de redacción en ese tramo y no
+se inventa. Publicación/verificación 135 s de pared, incluido push de 5 s y espera
+de Vercel; no se suman dos veces. Cierre documental posterior no dispara otro build.
+Main conservó
 `8295ab8c6024ab20851ebd371308d2f299b4668f`, producción intacta. Railway ya preparado;
 desde este bloque no se modificó, activó ni desplegó backend. Cierre documental
 posterior al éxito se conserva local para evitar otro despliegue solo por memoria.

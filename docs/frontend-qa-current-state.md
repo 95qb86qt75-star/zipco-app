@@ -13,7 +13,9 @@ ni convierte pruebas sintéticas en aprobación física.
   Contadores por participante, cabecera negociada, UUID y recuperación real.
   Reservas, WhatsApp y antiguos conservados; admisión QA no activada por frontend.
   19 suites focalizadas y seis escenarios de navegador aprobados, build QA/PWA
-  aprobado. Pendiente verificar publicación y después coordinar admisión y móviles.
+  aprobado. Publicado QA `0dc73c0`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/9uUYLsAGytKXdzUt4op7bWf5Q1zs).
+  Pendiente actualizar ambos teléfonos, coordinar admisión con backend y probar
+  solicitudes nuevas. No se activó `LOCAL_PICKUP_INFORMATION_ENABLED` desde frontend.
   [Contrato integrado, fuentes, límites y tiempos](frontend-local-pickup-information-qa.md).
 
 - Corrección visual CliU27: se retiró la pausa global por detalle cerrado que
