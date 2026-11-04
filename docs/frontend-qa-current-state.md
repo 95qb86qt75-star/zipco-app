@@ -1,11 +1,20 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-03, America/Santiago.
+Actualizado: 2026-11-04, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- E200 integrado: retiro local informativo solo cuando backend devuelve
+  `localPickupInformation`. Negocio Historial al informar; cliente conserva
+  decisión, instrucciones y acuse «Confirmo recepción» de las indicaciones.
+  Contadores por participante, cabecera negociada, UUID y recuperación real.
+  Reservas, WhatsApp y antiguos conservados; admisión QA no activada por frontend.
+  19 suites focalizadas y seis escenarios de navegador aprobados, build QA/PWA
+  aprobado. Pendiente verificar publicación y después coordinar admisión y móviles.
+  [Contrato integrado, fuentes, límites y tiempos](frontend-local-pickup-information-qa.md).
 
 - Corrección visual CliU27: se retiró la pausa global por detalle cerrado que
   inmovilizaba los adornos visibles. Pruebas de avance temporal aprobadas en

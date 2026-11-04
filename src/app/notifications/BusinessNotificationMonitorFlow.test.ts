@@ -9,6 +9,7 @@ import { proposalsFixture } from "../features/requests/fixtures/proposalFixtures
 import { normalizeRequestProcess } from "../features/requests/domain/requestProcess";
 import { rememberOpenedPresentation } from "./notificationDelivery";
 import { availabilityWaiting } from "../features/requests/fixtures/availabilityFixtures";
+import {informationWaiting,informationActive,informationAcknowledged} from '../features/requests/fixtures/localPickupInformationFixtures';
 
 const runtime = vi.hoisted(() => ({ cleanup: undefined as undefined | (() => void) }));
 // Exercise the monitor's real effect, event listeners and timers without adding a DOM dependency.
@@ -93,6 +94,12 @@ function businessServer(initial: Array<{ id: number; status: string }>) {
 }
 
 describe('monitor acceptance flow across service worker and polling', () => {
+  it('keeps informational business consultations out of active counts and never announces preparation or ready',async()=>{
+    const server=businessServer([{id:20,status:'pending',requestProcess:informationWaiting}]);
+    BusinessNotificationMonitor({onSessionExpired:vi.fn()});await tick();expect(publishActiveRequestCount).toHaveBeenLastCalledWith(0);
+    for(const p of [informationActive,informationAcknowledged]){server.setOrders([{id:20,status:'accepted',requestProcess:p}]);document.dispatchEvent(new Event('visibilitychange'));await tick();expect(publishActiveRequestCount).toHaveBeenLastCalledWith(0);}
+    expect(showAppToast).not.toHaveBeenCalled();
+  });
   it('announces actual availability with versioned destination once, while status remains pending',async()=>{
     await mount();
     serverOrder={...pending,requestProcess:{...availabilityWaiting,version:17}};

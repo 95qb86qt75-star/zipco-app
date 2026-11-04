@@ -1,4 +1,5 @@
 import * as React from 'react';
+import LocalPickupInformationCard from '../local-pickup-information/LocalPickupInformationCard';
 import { CoordinationWaitingCard } from "../coordination/CoordinationWaitingCard";
 import { type CoordinationCardModel } from "../coordination/coordinationCardModel";
 import StatusChangeFlow from "../../../shared/feedback/StatusChangeFlow";
@@ -120,6 +121,8 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     </div>;
 
   const wrapCoordination=(detail:ReactNode)=>coordinationView&&accepted&&(business||coordinationView.mode!=='ownPending'||accepted.subjectSnapshot.orderType!=='product')?<CoordinationWaitingCard business={business} authorized={business?process?.coordination?.businessContactAuthorized:undefined} items={accepted.subjectSnapshot.items.map(item=>({name:item.nameSnapshot,quantity:item.quantity}))} id={order.id!} name={name} price={price} quantity={accepted.subjectSnapshot.items.reduce((sum,item)=>sum+item.quantity,0)} model={coordinationView}>{detail}</CoordinationWaitingCard>:detail;
+
+  if(process?.localPickupInformation&&(business||process.localPickupInformation.status!=='AWAITING_CUSTOMER_DECISION'))return <LocalPickupInformationCard order={order} business={business} refresh={onRetry}/>;
 
   if(awaiting&&process?.lateInitialResponse&&(business||['AWAITING_CUSTOMER','STILL_NEEDED'].includes(process.lateInitialResponse.status)))
     return <LateInitialCard key={`${business}:${process.id}`} order={order} business={business} expanded={isExpanded} onToggle={toggle} refresh={onRetry} isUnread={isUnread}/>;

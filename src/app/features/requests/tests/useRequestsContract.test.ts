@@ -23,12 +23,12 @@ vi.mock('react', () => ({
   useEffect: (effect: () => unknown) => { hooks.effects.push(effect); },
 }));
 vi.mock("../../../shared/notifications/Toast", () => ({ showAppToast: hooks.toast }));
-// Capability negotiation is covered by customerReceiptContract.test.ts. These
+// Capability negotiation is covered by contract tests. These
 // transport scenarios isolate list refreshes and must not consume their first
 // mocked response with an unrelated capability request.
-vi.mock('../domain/customerReceiptContract', async original => ({
- ...await original<typeof import('../domain/customerReceiptContract')>(),
- customerReceiptHeaders: async () => ({}),
+vi.mock('../api/participantContractHeaders', async original => ({
+ ...await original<typeof import('../api/participantContractHeaders')>(),
+ participantHeaders: async () => ({}),
 }));
 import useRequests from "../application/useRequests";
 import { clearDiagnostics, diagnosticSnapshot } from "../screen/diagnostics/loadOrdersDiagnostics";

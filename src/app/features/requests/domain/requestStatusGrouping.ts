@@ -1,3 +1,4 @@
+import {informationView} from "./localPickupInformation";
 import { receiptPending } from "./customerReceiptContract";
 import { hasRequestProcess, isPendingRequestCancelled, isPendingRequestRejected, isProposalRejected, isAvailabilityClosed, type RequestProcessSummary } from "./requestProcess";
 export type RequestKind = "orders" | "quotes";
@@ -15,6 +16,7 @@ export function statusViewFor(
   business = false,
 ): StatusView | null {
   if (kind === "orders") {
+    const information=informationView(requestProcess,business);if(information)return information;
     if(requestProcess?.state==='AWAITING_BUSINESS_RESPONSE'&&requestProcess.lateInitialResponse?.status==='AWAITING_CUSTOMER')return business?'pending':'waiting';
     if (['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_BUSINESS_COUNTER_RESPONSE', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
     if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && (isPendingRequestCancelled(requestProcess) || isAvailabilityClosed(requestProcess))) ||

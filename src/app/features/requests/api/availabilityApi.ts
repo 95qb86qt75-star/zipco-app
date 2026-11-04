@@ -1,4 +1,5 @@
-import { knownCustomerReceiptHeaders } from "../domain/customerReceiptContract";
+import { knownParticipantHeaders } from "./participantContractHeaders";
+import {LOCAL_PICKUP_INFORMATION_HEADERS} from '../domain/localPickupInformation';
 import { API_BASE_URL } from "../../../api/apiConfig";
 import { isRecord } from "../domain/orderValueParsers";
 import { normalizeRequestProcess, type RequestProcessSummary } from "../domain/requestProcess";
@@ -15,6 +16,7 @@ export class AvailabilityError extends RequestProcessError {
   constructor(message: string, status: number, readonly code = '', refresh = false) { super(message,status,refresh); }
 }
 export function availabilityAllowed(process: RequestProcessSummary | null | undefined, business: boolean, action: AvailabilityAction) {
+  if(process?.localPickupInformation&&action==='CANCEL_PICKUP')return false;
   if (!process || !availabilityFlow(process) || !process.allowedActions.includes(action)) return false;
   if (action === 'CONFIRM_AVAILABILITY') return business && process.state === 'AWAITING_BUSINESS_RESPONSE' && !process.agreementPublicId;
   if (['CONTINUE_REQUEST','DECLINE_REQUEST','WITHDRAW_AVAILABILITY'].includes(action)) return process.state === 'AWAITING_CUSTOMER_CONTINUATION' &&
@@ -28,7 +30,7 @@ export async function sendAvailabilityAction(process: RequestProcessSummary, ord
   if (!availabilityAllowed(process,business,action) || body.expectedVersion !== process.version ||
     !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(key)) throw new AvailabilityError('Actualiza el pedido antes de confirmar.',0);
   const response = await fetch(`${API_BASE_URL}/request-processes/${process.id}/actions/${AVAILABILITY_ACTION_PATHS[action]}`, {
-    method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(process),...knownCustomerReceiptHeaders(token)},body:JSON.stringify(body),signal,
+    method:'POST', headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json','Idempotency-Key':key,...processContractHeaders(process),...knownParticipantHeaders(token),...(process.localPickupInformation?LOCAL_PICKUP_INFORMATION_HEADERS:{})},body:JSON.stringify(body),signal,
   });
   const raw: unknown = await response.json().catch(()=>null);
   if (!response.ok) {

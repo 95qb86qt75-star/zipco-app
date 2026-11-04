@@ -10,6 +10,7 @@ import { announceAction } from "../shared/feedback/ActionHologram";
 import { simplifiedReservationFlow } from "../domain/simplifiedReservationContract";
 import { startReservationPayment } from "./startReservationPayment";
 import { showAppToast } from "../../../shared/notifications/Toast";
+import {statusViewFor} from '../domain/requestStatusGrouping';
 
 export default function useAvailability(order:BusinessRequest|MyOrder,business:boolean,refresh:()=>void){
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[expired,setExpired]=useState(false);
@@ -63,8 +64,8 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
       if(flow){verified=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return false;if(!verified?.requestProcess||verified.id!==order.id||verified.requestProcess.id!==process.id||verified.requestProcess.version<finalReceipt.requestProcess.version)throw Error('read pending');finalReceipt={orderId:verified.id!,orderStatus:verified.status,requestProcess:verified.requestProcess};}
       publish(finalReceipt);setExpired(false);
       if(!flow&&action!=='REVOKE_CONTACT_CONSENT')window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,
-        view:action==='CONFIRM_AVAILABILITY'?'waiting':action==='CONTINUE_REQUEST'?receipt.requestProcess.state==='IN_PROGRESS'?'active':'coordination':'history'}}));
-      const text=action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
+        view:statusViewFor('orders',finalReceipt.orderStatus,finalReceipt.requestProcess,false,business)}}));
+      const text=finalReceipt.requestProcess.localPickupInformation?{title:business?'Disponibilidad informada':'Indicaciones para ir al local',description:business?'Ya está en Historial. No necesitas preparar ni enviar otro aviso.':'Conservamos las indicaciones. Confirma cuando las hayas recibido.'}:action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
         :action==='CONTINUE_REQUEST'?{title:'Solicitud confirmada',description:receipt.requestProcess.availability?.path==='LOCAL_PICKUP'?'El pedido quedó en curso, pendiente de retiro en el local.':'Ya puedes revisar el contacto e iniciar la coordinación.'}
         :action==='REVOKE_CONTACT_CONSENT'?{title:'Permiso de contacto retirado',description:'Se retiró tu propio permiso para futuras entregas de contacto.'}
         :{title:action==='DECLINE_REQUEST'?'Solicitud finalizada':action==='WITHDRAW_AVAILABILITY'?'Disponibilidad retirada':'Retiro cancelado',description:'La solicitud quedó en Historial.'};

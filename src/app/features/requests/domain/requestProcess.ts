@@ -1,3 +1,4 @@
+import {normalizeLocalPickupInformation,type LocalPickupInformation} from "./localPickupInformation";
 import { normalizeWhatsappInitialDecline, type WhatsappInitialDecline } from "./whatsappInitialDeclineContract";
 import { normalizeCustomerReceipt, type CustomerReceipt, receiptPending } from "./customerReceiptContract";
 import { isRecord, parseIsoDate } from "./orderValueParsers";
@@ -8,7 +9,7 @@ import { simplifiedReservationFlow, isSimpleOffer, isAdvisoryOffer } from "./sim
 import { LATE_INITIAL_PATHS, normalizeLateInitial, type LateInitialView } from "./lateInitialContract";
 import { RESERVATION_PATHS, reservationFlow, normalizeReservationChoice, normalizeReservation, normalizeReservationFollowUp, type Reservation, type ReservationChoice, type ReservationFollowUp } from "./reservationContract";
 
-export const PROCESS_ACTIONS = ['DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
+export const PROCESS_ACTIONS = ['ACK_LOCAL_PICKUP_INFORMATION','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number]|keyof typeof RESERVATION_PATHS|keyof typeof LATE_INITIAL_PATHS|'CONFIRM_WHATSAPP_COORDINATION'|'RESPOND_WHATSAPP_COORDINATION';
 
 export const PENDING_REJECTION_REASONS = {
@@ -25,6 +26,7 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  localPickupInformation?:LocalPickupInformation;
   customerReceipt?:CustomerReceipt;
   whatsappCoordinationInitialDecline?:WhatsappInitialDecline;
   whatsappCoordination?:WhatsappCoordination;
@@ -96,6 +98,8 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     followUp&&reservation?.mode!=='PREPAYMENT'||choice&&availability&&choice.offerId!==availability.availabilityConfirmationId||
     choice?.choice==='REQUEST_RESERVATION'&&!reservation||reservation&&(!value.serverNow||!value.agreementPublicId)||
     reservation?.mode==='PREPAYMENT'&&(!followUp||reservation.paymentReceiptDeclaration&&availability?.reservationOffer?.mode==='PREPAYMENT'&&reservation.paymentReceiptDeclaration.amountClp!==availability.reservationOffer.requiredAmountClp))return null;
+   const information=value.localPickupInformation===undefined?undefined:normalizeLocalPickupInformation(value.localPickupInformation,value,availability);
+   if(information===null||value.allowedActions.includes("ACK_LOCAL_PICKUP_INFORMATION")&&!information)return null;
    const simple=simplifiedReservationFlow(value),offer=availability?.reservationOffer;
    if(simple&&reservation?.timing&&(isAdvisoryOffer(offer)?reservation.timing.pickupBy!==null||reservation.timing.paymentDueAt!==null:reservation.timing.pickupBy===null))return null;
    if(offer&&offer.mode!=='NONE'&&(simple!==isSimpleOffer(offer))||!simple&&(choice?.termsVersion||choice?.noReservationAcknowledged||followUp?.paymentConfirmationReminder||value.allowedActions.includes('CANCEL_PICKUP_RESERVATION'))||
@@ -168,6 +172,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
    const requestedProductPreview=normalizeProductPreview(value.requestedProductPreview);
    return {
     id: value.id, state: value.state, version: value.version,
+     ...(information?{localPickupInformation:information}:{}),
      ...(customerReceipt?{customerReceipt}:{}),
     currentProposalId: value.currentProposalId,
     agreementPublicId: value.agreementPublicId as string | null,

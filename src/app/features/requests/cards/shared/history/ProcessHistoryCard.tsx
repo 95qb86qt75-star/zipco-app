@@ -1,4 +1,5 @@
 import * as React from 'react';
+import LocalPickupInformationCard from '../local-pickup-information/LocalPickupInformationCard';
 import { AcceptedConditionsPanel } from "../../../shared/conditions/AcceptedConditions";
 import useAgreement from "../../../application/useAgreement";
 import { AuroraProposalHeader } from "../layout/OrderCardAurora";
@@ -60,5 +61,5 @@ export function ProcessHistoryCardContent({ order }: { order: MyOrder | Business
 export default function ProcessHistoryCard(props:{order:MyOrder|BusinessRequest}){
   const process=props.order.requestProcess;
   if(!process)return <ProcessHistoryCardContent {...props}/>;
-  return <ProductPreviewScope preview={props.order.orderType==='service'?undefined:process.productPreview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}><ProcessHistoryCardContent {...props}/></ProductPreviewScope>;
+  return <ProductPreviewScope preview={props.order.orderType==='service'?undefined:process.productPreview} proposalId={process.currentProposalId} processId={process.id} caption={process.agreementPublicId?'PRODUCTO ACORDADO':process.proposalSummary?'PRODUCTO PROPUESTO':'PRODUCTO SOLICITADO'} enabled={props.order.orderType==='product'}>{process.localPickupInformation?<LocalPickupInformationCard order={props.order} business={'customerName'in props.order} refresh={()=>window.dispatchEvent(new CustomEvent('zipco-requests-refresh'))}/>:<ProcessHistoryCardContent {...props}/>}</ProductPreviewScope>;
 }

@@ -1,4 +1,4 @@
-import { customerReceiptHeaders } from "../domain/customerReceiptContract";
+import { participantHeaders as customerReceiptHeaders } from "../api/participantContractHeaders";
 import { INITIAL_DECLINE_HEADERS } from "../domain/whatsappInitialDeclineContract";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFixedOrderAcceptance } from "./fixedOrderAcceptance";

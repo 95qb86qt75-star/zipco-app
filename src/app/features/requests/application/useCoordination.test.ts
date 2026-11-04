@@ -203,6 +203,7 @@ describe('pending rejection recovery with mocked backend', () => {
     const hook = useCoordination(normalizeBusinessOrdersPayload([rejectPendingOrder])[0], true, vi.fn());
     const first = hook.run('REJECT_PENDING_REQUEST', 'unavailable');
     expect(await hook.run('REJECT_PENDING_REQUEST', 'unavailable')).toBe(false);
+    await vi.waitFor(()=>expect(finish).toBeTypeOf('function'));
     finish(response(rejectedPendingReceipt)); expect(await first).toBe(true);
     expect(await hook.run('REJECT_PENDING_REQUEST', 'unavailable')).toBe(false); expect(await hook.retry()).toBe(false);
     expect(dispatch.mock.calls.find(([event]) => event.type === 'zipco-process-receipt')?.[0]).toMatchObject({ detail: rejectedPendingReceipt });
@@ -334,6 +335,7 @@ describe('coordination hook with mocked server and external navigation', () => {
     const { default: useCoordination } = await import("./useCoordination");
     const hook = useCoordination(normalizeMyOrdersPayload([input])[0], false, vi.fn());
     const first = hook.run(action); expect(await hook.run(action)).toBe(false);
+    await vi.waitFor(()=>expect(finish).toBeTypeOf('function'));
     finish(response(result)); expect(await first).toBe(true);
     expect(hook.pending()).toBeNull(); expect(hooks.slots[2]).toBe(true);
     expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt' && (event as CustomEvent).detail.orderStatus === result.orderStatus)).toBe(true);
@@ -408,6 +410,7 @@ describe('coordination hook with mocked server and external navigation', () => {
     const hook = useCoordination(normalizeBusinessOrdersPayload([input])[0], true, vi.fn());
     const first = hook.run('MARK_READY');
     expect(await hook.run('MARK_READY')).toBe(false);
+    await vi.waitFor(()=>expect(finish).toBeTypeOf('function'));
     finish(response(result)); expect(await first).toBe(true);
     expect(hook.pending()).toBeNull(); expect(hooks.slots[2]).toBe(true);
     expect(dispatch.mock.calls.some(([event]) => event.type === 'zipco-process-receipt' && (event as CustomEvent).detail.orderStatus === 'ready')).toBe(true);

@@ -205,8 +205,8 @@ export function useRequestsScreenController({
     requests.filter(
       (record) =>
         record.recordState === "available" &&
-        statusViewFor("orders", record.status, record.requestProcess, record.requestProcessInvalid) !== null &&
-        statusViewFor("orders", record.status, record.requestProcess, record.requestProcessInvalid) !== "history",
+        statusViewFor("orders", record.status, record.requestProcess, record.requestProcessInvalid,true) !== null &&
+        statusViewFor("orders", record.status, record.requestProcess, record.requestProcessInvalid,true) !== "history",
     ).length +
     quotes.businessQuotes.filter(
       (record) =>
@@ -229,7 +229,7 @@ export function useRequestsScreenController({
   const unreadHistoryCount = (
     requestType === "orders" ? orderRecords : quoteRecords
   )
-    .filter((record) => statusViewFor(requestType, record.status, 'requestProcess' in record ? record.requestProcess : undefined, 'requestProcessInvalid' in record ? record.requestProcessInvalid : false) === "history")
+    .filter((record) => statusViewFor(requestType, record.status, 'requestProcess' in record ? record.requestProcess : undefined, 'requestProcessInvalid' in record ? record.requestProcessInvalid : false,subTab==='my-business') === "history")
     .filter((record) =>
       unread.has(
         interactionKey(requestType === "orders" ? "order" : "quote", record.id),

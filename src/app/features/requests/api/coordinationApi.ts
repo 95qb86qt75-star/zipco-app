@@ -1,4 +1,6 @@
-import { customerReceiptHeaders, receiptPending } from "../domain/customerReceiptContract";
+import { receiptPending } from "../domain/customerReceiptContract";
+import {participantHeaders} from './participantContractHeaders';
+import type {LocalPickupInformation} from '../domain/localPickupInformation';
 import { API_BASE_URL } from "../../../api/apiConfig";
 import { isRecord } from "../domain/orderValueParsers";
 import { isPendingRequestCancelled, isPendingRequestRejected, validPendingRejectionReason, validPendingRejectionDetail, normalizeRequestProcess, type PendingRejectionReason, type RequestProcessSummary } from "../domain/requestProcess";
@@ -10,6 +12,7 @@ import { INITIAL_DECLINE_CONTRACT, INITIAL_DECLINE_HEADERS } from "../domain/wha
 import { WHATSAPP_COORDINATION_CONTRACT } from "../domain/whatsappCoordinationContract";
 
 export const COORDINATION_PATHS = {
+  ACK_LOCAL_PICKUP_INFORMATION:'ack-local-pickup-information',
   DECLARE_PRODUCT_RECEIVED:'declare-product-received', FINALIZE_REQUEST:'finalize-request',
   DECLINE_WHATSAPP_COORDINATION:'decline-whatsapp-coordination',
   CONFIRM_WHATSAPP_COORDINATION:'confirm-whatsapp-coordination', RESPOND_WHATSAPP_COORDINATION:'respond-whatsapp-coordination',
@@ -59,7 +62,7 @@ export function coordinationBody(action: CoordinationAction, version: number, re
       throw new RequestProcessError('Selecciona un motivo. Para Otro motivo escribe una explicación de hasta 1000 caracteres.', 0);
     return { expectedVersion: version, confirmationAccepted: true, reasonCode: reason, ...(reason === 'other' ? { reasonDetail: trimmed } : {}) };
   }
-  if (action === 'DECLARE_PRODUCT_RECEIVED' || action === 'FINALIZE_REQUEST' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT' || action === 'CANCEL_PENDING_REQUEST')
+  if (action === 'ACK_LOCAL_PICKUP_INFORMATION' || action === 'DECLARE_PRODUCT_RECEIVED' || action === 'FINALIZE_REQUEST' || action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT' || action === 'CANCEL_PENDING_REQUEST')
     return { expectedVersion: version, confirmationAccepted: true };
   if (action === 'ANNUL_COORDINATION') {
     const trimmed = detail.trim();
@@ -77,6 +80,8 @@ export function contactAuthorized(process: RequestProcessSummary | null | undefi
 
 export function coordinationAllowed(process: RequestProcessSummary | null | undefined, business: boolean, action: CoordinationAction) {
   if (!process?.allowedActions.includes(action)) return false;
+  if(action==='ACK_LOCAL_PICKUP_INFORMATION')return !business&&process.state==='IN_PROGRESS'&&!!process.agreementPublicId&&process.localPickupInformation?.status==='AWAITING_CUSTOMER_ACK';
+  if(process.localPickupInformation&&['MARK_READY','START_WORK','ACK_READY_NOTICE','CONFIRM_RECEIPT','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','ANNUL_COORDINATION'].includes(action))return false;
   if(reservationFlow(process)&&process.reservation?.mode==='PREPAYMENT'&&action==='OPEN_WHATSAPP')return false;
   if (action === 'CANCEL_PENDING_REQUEST') return !business && process.state === 'AWAITING_BUSINESS_RESPONSE' && process.agreementPublicId === null;
   if (action === 'REJECT_PENDING_REQUEST') return business && process.state === 'AWAITING_BUSINESS_RESPONSE' && process.agreementPublicId === null;
@@ -113,9 +118,11 @@ export function coordinationAllowed(process: RequestProcessSummary | null | unde
   return action === 'ANNUL_COORDINATION' ? coordinating : coordinating || process.state === 'IN_PROGRESS' || process.state === 'READY';
 }
 
-export async function sendCoordination(processId: number, orderId: number, action: CoordinationAction, body: CoordinationBody, token: string, key: string, signal?: AbortSignal, expectedProposalId?: number,flowContract?:RequestProcessSummary['flowContract']) {
+export async function sendCoordination(processId: number, orderId: number, action: CoordinationAction, body: CoordinationBody, token: string, key: string, signal?: AbortSignal, expectedProposalId?: number,flowContract?:RequestProcessSummary['flowContract'],information?:{localPickupInformation?:LocalPickupInformation;agreementPublicId:string|null}) {
   const receiptAction=action==='DECLARE_PRODUCT_RECEIVED'||action==='FINALIZE_REQUEST';
-  const receiptHeaders=await customerReceiptHeaders(token,receiptAction);
+  const informationAction=action==='ACK_LOCAL_PICKUP_INFORMATION';
+  const receiptHeaders=await participantHeaders(token,receiptAction||informationAction);
+  if(informationAction&&(!receiptHeaders['X-Local-Pickup-Information-Contract']||information?.localPickupInformation?.status!=='AWAITING_CUSTOMER_ACK'||body.confirmationAccepted!==true||Object.keys(body).sort().join(',')!=='confirmationAccepted,expectedVersion'||![processId,orderId,expectedProposalId,body.expectedVersion].every(v=>typeof v==='number'&&Number.isSafeInteger(v)&&v>0&&v<=2147483647)||!/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i.test(key)))throw new RequestProcessError('Actualiza las indicaciones antes de confirmar su recepción.',409,true);
   if(receiptAction&&!receiptHeaders['X-Customer-Receipt-Contract'])throw new RequestProcessError('Actualiza ZIPCO para confirmar la recepción y finalizar esta solicitud.',409,true);
   if(receiptHeaders['X-Customer-Receipt-Contract']&&['ACK_READY_NOTICE','CONFIRM_RECEIPT'].includes(action))throw new RequestProcessError('Actualiza el pedido antes de confirmar su recepción.',409,true);
   const whatsappAction=action==='CONFIRM_WHATSAPP_COORDINATION'||action==='RESPOND_WHATSAPP_COORDINATION';
@@ -142,6 +149,7 @@ export async function sendCoordination(processId: number, orderId: number, actio
   }
   const raw = action === 'OPEN_WHATSAPP' && isRecord(payload) ? payload.result : payload;
   const process = isRecord(raw) ? normalizeRequestProcess(raw.requestProcess) : null;
+  if(informationAction&&(process?.localPickupInformation?.status!=='ACKNOWLEDGED'||process.version!==body.expectedVersion+1||process.localPickupInformation.availabilityConfirmationId!==information?.localPickupInformation?.availabilityConfirmationId||process.agreementPublicId!==information?.agreementPublicId||process.currentProposalId!==expectedProposalId||process.allowedActions.length!==0))throw new RequestProcessError('No se pudo comprobar el acuse de las indicaciones. Actualiza el estado.',502);
   if(whatsappAction&&(process?.version!==body.expectedVersion+1||process.state!==(action==='RESPOND_WHATSAPP_COORDINATION'&&body.coordinationAccepted===false?'COORDINATING':'IN_PROGRESS')||process.whatsappCoordination?.status!==(action==='CONFIRM_WHATSAPP_COORDINATION'?'PENDING':body.coordinationAccepted?'CONFIRMED':'DECLINED')||action==='RESPOND_WHATSAPP_COORDINATION'&&process.whatsappCoordination?.confirmationId!==body.confirmationId))throw new RequestProcessError('No se pudo comprobar la confirmación. Actualiza el pedido.',502);
   if(action==='DECLINE_WHATSAPP_COORDINATION'&&(process?.state!=='COORDINATING'||process.version!==body.expectedVersion+1||process.whatsappCoordinationInitialDecline?.active!==true||process.whatsappCoordinationInitialDecline.recordedVersion!==process.version))throw new RequestProcessError('No se pudo comprobar la negativa. Actualiza el pedido.',502);
   const customerConfirmation = action === 'ACK_READY_NOTICE' || action === 'CONFIRM_RECEIPT';
@@ -171,7 +179,7 @@ export async function sendCoordination(processId: number, orderId: number, actio
 export async function refreshCoordinationOrder(orderId: number, business: boolean, token: string,
   businessId = localStorage.getItem('zipco-business-id'), signal?: AbortSignal) {
   if (business && (!businessId || !/^[1-9]\d*$/.test(businessId))) throw new RequestProcessError('No se pudo verificar el negocio. Actualiza la pantalla.', 0);
-  const response = await fetch(`${API_BASE_URL}/orders/${business ? `business/${businessId}` : 'my-orders'}${AVAILABILITY_QUERY}`, { headers: { Authorization: `Bearer ${token}`,...INITIAL_DECLINE_HEADERS,...await customerReceiptHeaders(token) }, cache:'no-store', signal });
+  const response = await fetch(`${API_BASE_URL}/orders/${business ? `business/${businessId}` : 'my-orders'}${AVAILABILITY_QUERY}`, { headers: { Authorization: `Bearer ${token}`,...INITIAL_DECLINE_HEADERS,...await participantHeaders(token) }, cache:'no-store', signal });
   if (!response.ok) throw coordinationError(response.status, null);
   const payload: unknown = await response.json();
   const orders = business ? normalizeBusinessOrdersPayload(payload) : normalizeMyOrdersPayload(payload);

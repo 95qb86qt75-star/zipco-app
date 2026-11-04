@@ -1,4 +1,5 @@
-import { customerReceiptHeaders } from "../features/requests/domain/customerReceiptContract";
+import { participantHeaders as customerReceiptHeaders } from "../features/requests/api/participantContractHeaders";
+import {informationView} from '../features/requests/domain/localPickupInformation';
 import { INITIAL_DECLINE_HEADERS } from "../features/requests/domain/whatsappInitialDeclineContract";
 import { useEffect, useRef } from "react";
 import { traceNotificationClick } from "./notificationClickTrace";
@@ -233,10 +234,10 @@ export default function BusinessNotificationMonitor({
           "ready",
         ]);
         publishActiveRequestCount(
-          orders.filter((record) => activeOrderStatuses.has(record.status))
+          orders.filter((record) => informationView(record.requestProcess,true)!=='history'&&activeOrderStatuses.has(record.status))
             .length +
             customerOrders.filter((record) =>
-              activeOrderStatuses.has(record.status),
+              informationView(record.requestProcess,false)!=='history'&&activeOrderStatuses.has(record.status),
             ).length +
             businessQuotes.filter((record) =>
               activeQuoteStatuses.has(record.status),
@@ -252,7 +253,7 @@ export default function BusinessNotificationMonitor({
         orders
             .filter(
               (order) =>
-                order.status === "pending" &&
+                !order.requestProcess?.localPickupInformation&&order.status === "pending" &&
                 !orderStatuses.current.has(order.id) &&
                 (hasBusinessBaseline.current || newOrderPushHints.has(order.id)),
             )
@@ -267,6 +268,7 @@ export default function BusinessNotificationMonitor({
             );
         if (hasBusinessBaseline.current) {
           orders.forEach((order) => {
+            if(order.requestProcess?.localPickupInformation)return;
             const receipt=order.requestProcess?.customerReceipt;
             if(receipt&&receipt.status!=='AWAITING_RECEIPT'){
               if(orderStatuses.current.get(order.id)!==orderNotificationState(order))announce('order-'+order.id+'-coordination-'+(receipt.status==='FINALIZED'?'request-finalized':'receipt-declared')+'-'+order.requestProcess!.version,receipt.status==='FINALIZED'?'Solicitud finalizada':'Producto recibido',receipt.status==='FINALIZED'?'El cliente finalizó la solicitud. Puedes revisarla en Historial.':'El cliente indicó que recibió el producto. Falta finalizar la solicitud.',{kind:'order',id:order.id},'/?open=requests-business&orderId='+order.id);

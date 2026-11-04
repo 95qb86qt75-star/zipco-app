@@ -12,7 +12,7 @@ function useStatusRevision(){const[,setRevision]=useState(0);useEffect(()=>subsc
 export function useStatusChangeRecords<T extends StatusOrder>(orders:T[],business:boolean){useStatusRevision();return projectStatusOrders(orders,business);}
 export function useCardStatusChange(order:StatusOrder,business:boolean){useStatusRevision();return getStatusChange(order,business);}
 export default function StatusChangeFlow({order,business,children}:{order:StatusOrder;business:boolean;children:ReactNode}){
-  const change=useCardStatusChange(order,business),copy=change?.result?statusResultCopy(change.result,change.source):null;
+  const change=useCardStatusChange(order,business),copy=change?.result?statusResultCopy(change.result,change.source,business):null;
   const designExit=change?.stage==='exiting'&&usesAvailableDesignExit(order,business);
   const presentation=change&&!(change.inlineSaving&&change.stage==='saving')&&!designExit;
   const arriving=isStatusArrival(order,business),root=useRef<HTMLDivElement>(null);

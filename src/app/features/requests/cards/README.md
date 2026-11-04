@@ -5,6 +5,18 @@ La pantalla selecciona las tarjetas mediante
 Los archivos de entrada y los controladores no son diseños alternativos: componen
 la única vista correspondiente.
 
+## Retiro directo informativo (contrato E200)
+
+`shared/local-pickup-information/LocalPickupInformationCard.tsx` y su CSS poseen
+la consulta sin reserva admitida explícitamente por backend. Negocio: Historial
+desde disponibilidad informada; cliente: decisión por la tarjeta Disponible
+actual, después indicaciones/acuse y finalmente Historial con las mismas
+instrucciones. No usa preparar/Listo/recepción física. Selección exclusivamente
+por `requestProcess.localPickupInformation`, nunca solo por modalidad o importe.
+La lógica de transporte/UUID permanece en `useCoordination` y la agrupación por
+participante en `domain/requestStatusGrouping.ts`. Los pedidos antiguos conservan
+sus propietarios actuales.
+
 ## Cliente
 
 - **Pendiente:** `customer/pending/CustomerPendingCard.tsx`.

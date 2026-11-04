@@ -50,8 +50,9 @@ export function projectStatusOrders<T extends StatusOrder>(orders:T[],business:b
 }
 export function getStatusNotice(){return page?.session===readCoordinationSession()&&!statusOverlayVisible()?notice:null;}
 export function closeStatusNotice(){notice=null;pumpNotices();}
-export function statusResultCopy(result:StatusOrder,source?:StatusOrder){
+export function statusResultCopy(result:StatusOrder,source?:StatusOrder,business=false){
   const p=result.requestProcess,view=statusViewFor('orders',result.status,p,false,false);
+  if(p?.localPickupInformation)return {title:business?'Disponibilidad informada':p.localPickupInformation.status==='ACKNOWLEDGED'?'Indicaciones recibidas':'Indicaciones para ir al local',description:business||p.localPickupInformation.status==='ACKNOWLEDGED'?'Ya puedes consultar las indicaciones en Historial.':'Lee las indicaciones del negocio y confirma que las recibiste.',amber:false};
   if(p?.lateInitialResponse?.status==='AWAITING_CUSTOMER')return {title:'Consulta enviada',description:'El cliente debe responder si a\u00fan lo necesita.',amber:false};
   if(p?.lateInitialResponse?.status==='STILL_NEEDED')return {title:'Respuesta enviada',description:'Falta acordar una nueva hora.',amber:true};
   if(p?.whatsappCoordinationInitialDecline?.active)return {title:'Falta coordinar',description:'Sigue en Por coordinar.',amber:true};
@@ -75,13 +76,13 @@ export function completeStatusChange(change:StatusChange|null,latest:StatusOrder
     const moveFocus=!!root&&(root.contains(document.activeElement)||document.activeElement===document.body),list=root?.closest<HTMLElement>('[data-requests-scroll]');
     changes.delete(change.key);
     const current=change.result??latest,target=change.destination??destination;
-    const copy=statusResultCopy(current,change.source);
+    const copy=statusResultCopy(current,change.source,change.business);
     const next:StatusNotice={id:++serial,orderId:current.id!,business:change.business,view:target,...copy};
     if(target==='coordination'&&(current.requestProcess?.whatsappCoordinationInitialDecline?.active===true||current.requestProcess?.whatsappCoordination?.status==='DECLINED')){
       next.title=statusViewFor('orders',change.source.status,previous,false,change.business)==='active'?'Volvió a Por coordinar':'Sigue en Por coordinar';
       if(!change.business)next.description='Avisamos al negocio que aún falta coordinar.';
     }
-    if(target==='active'){next.title='Pedido en curso';next.description=change.business?'Ya lo encuentras en la pestaña En curso.':current.requestProcess?.whatsappCoordination?.status==='PENDING'?'Avisamos al negocio. Falta que confirme.':'El pedido está En curso.';}
+    if(target==='active'&&!current.requestProcess?.localPickupInformation){next.title='Pedido en curso';next.description=change.business?'Ya lo encuentras en la pestaña En curso.':current.requestProcess?.whatsappCoordination?.status==='PENDING'?'Avisamos al negocio. Falta que confirme.':'El pedido está En curso.';}
     notice=next;pumpNotices();
     if(moveFocus&&list){if(!list.hasAttribute('tabindex'))list.setAttribute('tabindex','-1');list.focus({preventScroll:true});}
   };

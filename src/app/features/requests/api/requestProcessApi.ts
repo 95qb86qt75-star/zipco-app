@@ -1,4 +1,4 @@
-import { knownCustomerReceiptHeaders } from "../domain/customerReceiptContract";
+import { knownParticipantHeaders } from "./participantContractHeaders";
 import { INITIAL_DECLINE_HEADERS } from "../domain/whatsappInitialDeclineContract";
 import { API_BASE_URL } from "../../../api/apiConfig";
 import { isRecord } from "../domain/orderValueParsers";
@@ -31,7 +31,7 @@ export async function acceptFixedOrder(process: RequestProcessSummary, orderId: 
 
 export async function readAgreement(processId: number, agreementPublicId: string | null, token: string, signal?: AbortSignal) {
   const response = await fetch(`${API_BASE_URL}/request-processes/${processId}/agreement${AVAILABILITY_QUERY}`, {
-    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...knownCustomerReceiptHeaders(token) }, signal, cache: 'no-store',
+    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...knownParticipantHeaders(token) }, signal, cache: 'no-store',
   });
   const body = await bodyOf(response);
   if (!response.ok) throw processApiError(response.status, body, true);
@@ -43,7 +43,7 @@ export async function readAgreement(processId: number, agreementPublicId: string
 
 export async function readBusinessOrderForRecovery(orderId: number, businessId: number, token: string) {
   const response = await fetch(`${API_BASE_URL}/orders/business/${businessId}${AVAILABILITY_QUERY}`, {
-    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...knownCustomerReceiptHeaders(token) },
+    headers: { Authorization: `Bearer ${token}`, ...INITIAL_DECLINE_HEADERS,...knownParticipantHeaders(token) },
   });
   const body = await bodyOf(response);
   if (!response.ok) throw processApiError(response.status, body);
