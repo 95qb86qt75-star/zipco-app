@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   dos archivos visuales autorizados, único diseño para WhatsApp/retiro, error
   visible plegada y visores/retirada reales. 62 unitarias, ocho escenarios
   específicos y dos regresiones reutilizadas aprobados; build QA/PWA aprobado.
-  Pendiente publicación y comprobación física.
+  Publicado QA `1e4d490`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/3Dj6uqKnEo5seQg7pyCoRkHUXxi3).
+  Pendiente comprobación física en ambos celulares.
   [Alcance, pruebas y tiempos](frontend-availability-waiting-cliu27-qa.md).
 
 - Preparando del negocio: ajuste local de apertura/cierre y arrastre reportados

@@ -64,6 +64,15 @@ Build efectivo QA/PWA: 11 s; ventana de orquestación/espera del build: 60 s
 ejecutar las tres pruebas de permisos; no hubo cronómetro independiente para
 esa porción y no se inventa su duración. Publicación se registra al verificar.
 
-Publicación QA: pendiente al preparar este informe. Railway innecesario.
-Rama `qa`; `main` y producción fuera del alcance. Las preguntas sobre otras
+Documentación inicial y controles finales: 112 s, con la porción de pruebas
+adicionales indicada arriba. Publicación/verificación: 78 s de pared (incluye
+espera de Vercel y revisión visual abierta mientras se esperaba, sin sumar ese
+paralelismo). Envío Git: 3,6 s incluidos. Cronómetro hasta verificación: 15 min
+3 s; lectura inicial anterior no medida. No son tiempos de rendimiento de app.
+
+Publicado en `qa`: `1e4d49026ecc698c653ddb774a293585043acbdf`.
+[Vercel success verificado para ese SHA](https://vercel.com/zipco-s-projects/zipco-app/3Dj6uqKnEo5seQg7pyCoRkHUXxi3).
+Cierre documental posterior conservado local, sin otro push que genere build.
+Railway innecesario. `main` conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`;
+producción intacta. Las preguntas sobre otras
 tarjetas, brillos y etiqueta del retiro cliente siguen pendientes, sin cambios.
