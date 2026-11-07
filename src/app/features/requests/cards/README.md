@@ -99,6 +99,9 @@ permisos siguen en los hooks de `requests/application` y en la API.
   SlideToNotify y controlador permanecen reales; READY/recibido, servicios,
   retiro y embebidos conservan su composición.
 - **Fuera de hora:** `shared/late-initial/LateInitialCard.tsx` y su CSS.
+  Cliente AWAITING_CUSTOMER: `CustomerQuery` (CliU28), estilos exclusivos
+  `.zipco-late-card--query` / `.zipco-lq-*`. Negocio y STILL_NEEDED conservados.
+  Controlador, ventanas y recuperación permanecen compartidos y reales.
 - **Propuesta:** `shared/proposal/ProposalWaitingCard.tsx` y su CSS.
 - **Historial:** `shared/history/CompactHistoryList.tsx`, `ProcessHistoryCard.tsx`;
   las listas de pedidos y cotizaciones y sus normalizadores tienen archivos propios.

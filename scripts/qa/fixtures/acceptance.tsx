@@ -1,4 +1,5 @@
 import {participantHeaders} from '/src/app/features/requests/api/participantContractHeaders';
+import {lateProcess} from '/src/app/features/requests/fixtures/lateInitialFixtures';
 // @ts-nocheck
 // Explicit fixture preserving the checkout/status adapter and short-list geometry.
 // @ts-nocheck
@@ -22,6 +23,7 @@ import {simpleFree,simplePaid,simpleReserved,simplePaidPending} from '/src/app/f
 window.flowCalls=[]; window.testDriverReady=false;
 const fixtureParams=new URLSearchParams(location.search),availableDesign=fixtureParams.has('available-design');
 const informationScenario=fixtureParams.get('information');
+const lateScenario=fixtureParams.get('late-query');
 localStorage.setItem('zipco-token','customer-test-only');
 localStorage.setItem('zipco-user-id','1');
 sessionStorage.clear();
@@ -30,6 +32,7 @@ let status='pending',plan=null,proposals=[];
 let raw={id:20,businessId:5,customerName:'Cliente QA',businessName:'ZIPCO Negocio QA',products:[{name:'Producto QA',quantity:1,price:12000}],total:12000,createdAt:'2026-10-25T05:00:00.000Z',needNow:true,note:'Hola necesito esto de prueba',referencePhoto:null,deliveryDate:null,deliveryTime:null};
 if(availableDesign&&fixtureParams.has('reference-photo'))raw.referencePhoto=location.origin+'/icon-192.png';
 function processFor(business,receipt=false){
+ if(lateScenario){const p={...state,allowedActions:fixtureParams.has('no-answer')?[]:lateProcess(state.lateInitialResponse.status,business).allowedActions};return receipt?{...p,allowedActions:[]}:p;}
  const actions=state.state==='AWAITING_BUSINESS_RESPONSE'?(business?['CONFIRM_AVAILABILITY','REJECT_PENDING_REQUEST','PROPOSE_ALTERNATIVE']:['CANCEL_PENDING_REQUEST'])
   :state.state==='AWAITING_CUSTOMER_CONTINUATION'?(business?['WITHDRAW_AVAILABILITY']:['CONTINUE_REQUEST','DECLINE_REQUEST'])
   :state.state==='AWAITING_CUSTOMER_DECISION'||state.state==='AWAITING_CUSTOMER_FINAL_DECISION'?(business?[]:['ACCEPT_PROPOSAL','REJECT_PROPOSAL',...(state.state==='AWAITING_CUSTOMER_DECISION'?['COUNTER_PROPOSAL']:[])])
@@ -59,6 +62,11 @@ if(informationScenario){
  else state={...state,localPickupInformation:information};
  if(informationScenario==='active'){state={...state,state:'IN_PROGRESS',version:4,agreementPublicId:'agreement-test',reservationChoice:{offerId:31,choice:'NONE',noReservationAcknowledged:true},localPickupInformation:{...information,status:'AWAITING_CUSTOMER_ACK'}};status='accepted';}
 }
+if(lateScenario){
+ state={...lateProcess(lateScenario==='still'?'STILL_NEEDED':'AWAITING_CUSTOMER',false),productPreview:state.productPreview};plan=null;
+ raw={...raw,needNow:false,deliveryDate:'2026-10-26',deliveryTime:'17:45'};
+ if(lateScenario==='long'){raw.businessName='Negocio de nombre extenso para comprobar la tarjeta del cliente';raw.products=[1,2,3].map((quantity,index)=>({name:'Producto de nombre largo '+index,quantity,price:1000}));raw.total=6000;state.productPreview={...state.productPreview,items:raw.products.map((item,lineIndex)=>({lineIndex,catalogItemId:5+lineIndex,source:'CATALOG',name:item.name,description:'Descripción de prueba',quantity:item.quantity,unitPriceClp:item.price,subtotalClp:item.price*item.quantity,imageUrl:location.origin+'/icon-192.png'}))};}
+}
 let informationVisibleOrders=informationScenario?{customer:structuredClone(orderFor(false)),business:structuredClone(orderFor(true))}:null;
 window.fetch=async (url,init)=>{
  if(String(url).endsWith('/request-process-capabilities'))return new Response(JSON.stringify({supportedContracts:['availability-v1','availability-v2'],reservationCreationEnabled:false,...(informationScenario?{localPickupInformation:{contract:'local-pickup-information-v1',enabled:true,creationEnabled:false}}:{})}));
@@ -79,6 +87,11 @@ window.fetch=async (url,init)=>{
  }
  const action=String(url).split('/actions/')[1];
  if(body.expectedVersion!==state.version)return json({code:'STALE_VERSION'},409);
+ if(lateScenario&&['confirm-late-request-need','decline-late-request-need'].includes(action)){
+  if(business||body.queryId!==42)return json({code:'INCOMPATIBLE_STATE'},409);
+  state={...lateProcess(action==='confirm-late-request-need'?'STILL_NEEDED':'NO_LONGER_NEEDED',false),productPreview:state.productPreview};status=action==='confirm-late-request-need'?'pending':'cancelled';
+  return json({orderId:20,orderStatus:status,requestProcess:processFor(business,true)});
+ }
  if(action==='confirm-availability'){
   const f=body.fulfillment;
   plan={...(f.path==='LOCAL_PICKUP'?pickupPlan:whatsappPlan),customerMessage:f.path==='LOCAL_PICKUP'?f.customerMessage||pickupPlan.customerMessage:null,scheduleOrAddress:f.path==='LOCAL_PICKUP'?f.scheduleOrAddress||null:null,allowCustomerWhatsapp:f.path==='WHATSAPP'||f.allowCustomerWhatsapp===true};

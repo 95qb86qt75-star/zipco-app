@@ -1,11 +1,19 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-04, America/Santiago.
+Actualizado: 2026-11-07, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- CliU28: consulta «¿Todavía necesitas este pedido?» del cliente integrada desde
+  los dos archivos completos de Claude. Diseño acotado a AWAITING_CUSTOMER;
+  negocio/STILL_NEEDED y avisos conservados. Mano visible/activa, pausa correcta
+  por scroll/fuera de vista, permisos individuales, foco al ocultar y fotos reales.
+  106 unitarias y nueve escenarios de navegador aprobados; build QA/PWA aprobado.
+  Pendiente verificación de publicación QA y después celulares físicos.
+  [Fuentes, diferencias y tiempos](frontend-late-customer-query-cliu28-qa.md).
 
 - E200 integrado: retiro local informativo solo cuando backend devuelve
   `localPickupInformation`. Negocio Historial al informar; cliente conserva
