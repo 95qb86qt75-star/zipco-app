@@ -12,7 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   negocio/STILL_NEEDED y avisos conservados. Mano visible/activa, pausa correcta
   por scroll/fuera de vista, permisos individuales, foco al ocultar y fotos reales.
   106 unitarias y nueve escenarios de navegador aprobados; build QA/PWA aprobado.
-  Pendiente verificación de publicación QA y después celulares físicos.
+  Publicado QA `869cf5f`, [Vercel success](https://vercel.com/zipco-s-projects/zipco-app/BkKM1aD7uxTi5JZuXTRPQoyvKn1v).
+  Pendiente comprobación física en iPhone y Android.
   [Fuentes, diferencias y tiempos](frontend-late-customer-query-cliu28-qa.md).
 
 - E200 integrado: retiro local informativo solo cuando backend devuelve

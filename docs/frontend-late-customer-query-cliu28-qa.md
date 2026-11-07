@@ -64,8 +64,12 @@ Lectura inicial previa al cronómetro no estimada. Análisis 86 s; implementaci�
 75 s; preparación de pruebas 62 s; ejecución/revisión 63 s. Unitarias y navegador
 parcialmente solapados, no sumar sus duraciones a la ventana de ejecución.
 Build efectivo QA/PWA 11,8 s dentro de ventana de orquestación de 46 s; no sumar
-ambos. Documentación/publicación se completan tras verificar Vercel.
+ambos. Documentación/preparación de publicación 98 s. El despliegue fue verificado
+por el contexto Vercel del SHA exacto: publicación/verificación 90 s de pared,
+incluidos push de 3,9 s y espera; sin sumarlo a pruebas/build ya medidos.
 
-Publicación QA pendiente al redactar. Main/producción fuera del bloque;
+Publicado en `qa`: `869cf5f0675b71b366e0f8968287a24af764b251`.
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/BkKM1aD7uxTi5JZuXTRPQoyvKn1v).
+Main conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`; producción intacta;
 Railway innecesario. Los cierres documentales posteriores se conservan locales
 sin otro push que produzca un despliegue solo por memoria.
