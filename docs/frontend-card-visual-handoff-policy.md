@@ -7,6 +7,12 @@ el historial del chat no sustituye esta regla.
 
 ## Preparación obligatoria
 
+En los rediseños de listas, conservar el aspecto con un presupuesto decorativo:
+evitar bucles permanentes de sombras, filtros o fondos; preferir gestos breves de
+transform/opacity y pausar lo no visible. Medir el estado en reposo y el scroll
+con varias tarjetas reales. No desactivar spinners, feedback operativo ni ocultar
+contenido para ahorrar efectos. Una maqueta aislada no acredita fluidez en celular.
+
 1. Identificar pantalla, rol, modalidad y estado exactos. Distinguir tarjeta
    cerrada, detalle abierto y ventanas asociadas.
 2. Leer el código vigente del repo y verificar sus rutas y líneas actuales. No

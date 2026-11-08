@@ -317,3 +317,15 @@
 .zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cxw .zipco-pickup-cancel:disabled{opacity:.6;cursor:default}
 @media(max-width:350px){.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-stamp{width:26px;height:26px;right:8px;top:9px}.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>p:first-child{max-width:calc(100% - 36px)}.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wat b{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state i,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state i svg,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-stamp,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-sh>*,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa{animation:none!important;transition:none!important}}
+
+/* PERF-PICKUP-DECORATION-01: static glass, bounded accents, no continuous paints.
+   Keep action spinners, ready feedback and the actual disclosure transitions. */
+.zipco-pickup-c :is(.zipco-own-node:not([data-pop=true]),.zipco-pickup-c-state i,.zipco-pk-ico,.zipco-pk-go){animation:none!important}
+.zipco-pickup-c .zipco-own-node::before,.zipco-pickup-c .zipco-own-node::after,
+.zipco-pickup-c .zipco-pk-line::before{animation:none!important}
+.zipco-pickup-c .zipco-pickup-c-tile::after,
+.zipco-pickup-c .zipco-pickup-tab[aria-selected=true]::after,
+.zipco-pickup-c .zipco-pk-more::after{animation:none!important;opacity:0}
+.zipco-pickup-c :is(.zipco-pickup-c-hand,.zipco-pickup-c-w1,.zipco-pickup-c-w2,.zipco-pickup-c-state i svg,.zipco-own-node svg,.zipco-pk-ico svg){animation-iteration-count:2!important}
+.zipco-pickup-c .zipco-pk-stamp{animation:zipco-pk-ok-pop .55s ease-out both!important}
+.zipco-pickup-c :is(.zipco-pk-more,.zipco-pickup-c-hand,.zipco-own-node[data-kind=wait] svg){-webkit-backdrop-filter:none;backdrop-filter:none;filter:none}

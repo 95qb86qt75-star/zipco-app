@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Presupuesto decorativo de retiro: CSS acotado a zipco-pickup-c, vidrio estático,
+  gestos de dos ciclos y sin sombras/fondos en bucle; conserva pliegue e indicadores
+  operativos. En comparación Chromium con doce tarjetas: 21 animaciones infinitas
+  (tres fuera de vista) pasan a cero persistentes tras asentarse. 19 unitarias,
+  estabilidad y controles de reserva aprobados; build QA/PWA aprobado.
+  Publicación en preparación; rendimiento físico/captura nativa pendiente.
+  [Mediciones y límites](frontend-pickup-decoration-budget-qa.md).
+
 - Causa del bucle reproducida tras la precisión del usuario: afecta a la tarjeta
   ámbar de pago pendiente, no a la verde sin reserva. ReservationFold alternaba
   cut -17/45 px y la tarjeta 574/697 px. Corrección: medidas offset internas,
