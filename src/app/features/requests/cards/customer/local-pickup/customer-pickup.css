@@ -173,7 +173,7 @@
 .zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-n{display:flex;align-items:flex-start;gap:6px;margin:7px 0 0;font-size:11.5px;line-height:1.35;color:#64748b}
 .zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-n svg{flex:none;margin-top:1px}
 /* Reserva (bloque real de ReservationPanel; solo presentación) */
-.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold{overflow:hidden}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold{position:relative;overflow:hidden}
 .zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold[data-measured=true]{max-height:var(--pk-cut);transition:max-height .42s cubic-bezier(.22,1,.36,1)}
 .zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold[data-measured=true][data-open=true]{max-height:var(--pk-full)}
 .zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [inert]{visibility:hidden}
@@ -242,14 +242,6 @@
 
 /* ---------- Reserva SIN pago previo CONFIRMADA · retiro pendiente (solo data-pickup-tone=confirmed) ----------
    Reutiliza la cabecera, el carril y las pestañas de la variante «línea»; no toca pago previo, sin reserva, pedido listo, recibido ni WhatsApp. */
-/* El detalle de retiro cambia de altura una sola vez. Evita interpolar una
-   cuadrícula intrínseca dentro de la lista desplazable; conserva el fundido,
-   los formularios montados y el inert de DetailReveal. */
-.zipco-pickup-c[data-pickup-design=line]{overflow-anchor:none}
-.zipco-pickup-c[data-pickup-design=line]>.zipco-avw-reveal{display:block;height:auto;transition:opacity .18s ease,visibility 0s}
-.zipco-pickup-c[data-pickup-design=line]>.zipco-avw-reveal[data-folded=true]{height:0;transition:none}
-.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-panel{animation:none}
-@media(prefers-reduced-motion:reduce){.zipco-pickup-c[data-pickup-design=line]>.zipco-avw-reveal{transition:none}}
 @keyframes zipco-pk-ok-halo{0%,100%{box-shadow:0 0 0 3px #10b98133,0 0 0 #10b98100}50%{box-shadow:0 0 0 5px #10b98112,0 0 14px 3px #10b98188}}
 @keyframes zipco-pk-ok-pop{0%{transform:scale(1)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes zipco-pk-ok-ring{0%{box-shadow:0 0 0 0 #10b98155}70%,100%{box-shadow:0 0 0 9px #10b98100}}

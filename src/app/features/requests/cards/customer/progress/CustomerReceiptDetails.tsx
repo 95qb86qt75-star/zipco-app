@@ -45,7 +45,12 @@ function ReservationFold({children}:{children:ReactNode}){
    const p=panel();if(!p||p.offsetHeight===0)return; // pestaña oculta: se vuelve a medir al mostrarse (ResizeObserver)
    const kids=Array.from(p.children) as HTMLElement[];
    const amount=(kids[1]?.tagName==='P'?kids[1]:kids[1]?.querySelector<HTMLElement>('p'))??kids[0];
-   const top=body.getBoundingClientRect().top,cut=Math.ceil(amount.getBoundingClientRect().bottom-top)+2,full=Math.ceil(p.scrollHeight);
+   // Layout coordinates do not change with scroll anchoring or ancestor transforms.
+   // body is the positioned offset parent; never derive a height from viewport Y.
+   let top=0,node:HTMLElement|null=amount;
+   while(node&&node!==body){top+=node.offsetTop;node=node.offsetParent as HTMLElement|null;}
+   if(node!==body)return;
+   const full=Math.ceil(p.scrollHeight),cut=Math.min(full,Math.max(0,top+amount.offsetHeight+2));
    setSize(prev=>prev&&prev.cut===cut&&prev.full===full?prev:{cut,full});
    const hasAlert=!!p.querySelector('[role="alert"]');setAlert(prev=>prev===hasAlert?prev:hasAlert);
    const hidden=!(expandedRef.current||hasAlert);
@@ -57,7 +62,8 @@ function ReservationFold({children}:{children:ReactNode}){
   sync();
   const ro=new ResizeObserver(sync),mo=new MutationObserver(sync);
   mo.observe(body,{childList:true,characterData:true,subtree:true});
-  ro.observe(body);const p=panel();if(p){ro.observe(p);mo.observe(p,{childList:true,characterData:true,subtree:true});}
+  // Observe natural content, not the clipped box whose max-height this effect sets.
+  const p=panel();if(p){ro.observe(p);mo.observe(p,{childList:true,characterData:true,subtree:true});}
   return()=>{ro.disconnect();mo.disconnect();for(const [node,inert] of priorInert.current)node.inert=inert;priorInert.current.clear();};
  },[expanded]);
  return <div className="zipco-pk-row zipco-pk-res" data-tone={tone}>

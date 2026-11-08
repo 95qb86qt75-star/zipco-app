@@ -7,6 +7,15 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Causa del bucle reproducida tras la precisión del usuario: afecta a la tarjeta
+  ámbar de pago pendiente, no a la verde sin reserva. ReservationFold alternaba
+  cut -17/45 px y la tarjeta 574/697 px. Corrección: medidas offset internas,
+  límites no negativos y ResizeObserver solo en contenido natural, no en la caja
+  recortada que redimensiona. Retirada la mitigación general anterior: vuelve el
+  pliegue suave original. 19 unitarias, estabilidad de cinco tarjetas y controles
+  de reserva/error aprobados; build QA/PWA aprobado. Publicación en preparación;
+  comprobación física pendiente. [Detalle](frontend-paid-reservation-fold-fix-qa.md).
+
 - Abierto: usuario informa parpadeo y movimiento continuo de Solicitudes después
   de abrir una tarjeta de retiro. No reproducido en Chromium aislado ni en
   RequestsScreen con cinco tarjetas. Mitigación frontend: pliegue sin interpolar
