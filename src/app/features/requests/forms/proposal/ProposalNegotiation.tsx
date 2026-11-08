@@ -315,12 +315,12 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                     </div>
                     {!reject && availabilityFlow(read.process) && read.process.availability && <>
                       <div className="zipco-pz-perf" aria-hidden="true" />
-                      <AvailabilityPlanSummary plan={read.process.availability} customerProposal showReservation={!reservationFlow(read.process) || !offer} />
+                      <AvailabilityPlanSummary plan={read.process.availability} customerProposal />
                     </>}
                   </section>
                   {availabilityFlow(read.process) && isAcceptAction(decision) && <>
                     {reservationFlow(read.process) && offer && <div className="zipco-pz-choice">
-                      <ReservationChoiceFields offer={offer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy} />
+                      <ReservationChoiceFields offer={offer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy} variant="cards" hideSummary />
                     </div>}
                     {read.process.availability?.allowCustomerWhatsapp
                       ? <label className={`zipco-pz-ct${contactPreference ? ' on' : ''}`}>

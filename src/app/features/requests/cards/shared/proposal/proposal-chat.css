@@ -316,14 +316,27 @@
 .zipco-pz-perf::before{left:-7px}.zipco-pz-perf::after{right:-7px}
 .zipco-pz-sum section[aria-label="Camino de esta propuesta"]{margin-top:8px;padding:0;background:none;box-shadow:none;border-radius:0}
 .zipco-pz-sum section[aria-label="Camino de esta propuesta"]::after{display:none}
-/* Elección de reserva (ReservationChoiceFields, sin tocarlo): tarjetas */
+/* Elección de reserva: ReservationChoiceFields variant="cards" */
 .zipco-pz-choice{margin-top:10px}
-.zipco-pz-choice fieldset{margin:0;padding:0;border:0;min-width:0}
-.zipco-pz-choice label:has(input[type="radio"]){position:relative;display:flex;align-items:center;gap:8px;min-height:54px;margin-top:8px;padding:8px 10px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0;font-size:12.5px;line-height:1.25;font-weight:700;color:#475569;cursor:pointer;transition:box-shadow .2s,background .2s}
-.zipco-pz-choice label:has(input[type="radio"]:checked){background:#f5f3ff;color:#1e1b4b;box-shadow:inset 0 0 0 2px #7c3aed,0 8px 18px rgba(124,58,237,.2)}
-.zipco-pz-choice label:has(input[type="radio"]:focus-visible){outline:2px solid #7c3aed;outline-offset:2px}
-.zipco-pz-choice textarea{display:block;width:100%;box-sizing:border-box;min-height:56px;margin-top:8px;padding:9px 12px;border:0;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #cbd5e1;font:500 13.5px/1.35 inherit;color:#0f172a;resize:none}
-.zipco-pz-choice textarea:focus{outline:none;box-shadow:inset 0 0 0 2px #7c3aed}
+.zipco-rc{margin:0;padding:0;border:0;min-width:0}
+.zipco-rc-cap{display:block;margin:0 2px 5px;font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#64748b}
+.zipco-rc-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zipco-rc-opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:72px;padding:8px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0;font-size:12.5px;line-height:1.2;font-weight:700;color:#475569;text-align:center;cursor:pointer;transition:box-shadow .2s,background .2s}
+.zipco-rc-opt.on{background:#f5f3ff;color:#1e1b4b;box-shadow:inset 0 0 0 2px #7c3aed,0 8px 18px rgba(124,58,237,.2)}
+.zipco-rc-opt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.zipco-rc-opt:has(input:focus-visible){outline:2px solid #7c3aed;outline-offset:2px}
+.zipco-rc-ci{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#ede9fe;color:#6d28d9;transition:background .2s,color .2s}
+.zipco-rc-ci svg{width:15px;height:15px}
+.zipco-rc-opt.on .zipco-rc-ci{background:linear-gradient(135deg,#8b5cf6,#4f46e5);color:#fff}
+.zipco-rc-opt.on::after{content:"✓";position:absolute;right:7px;top:7px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#7c3aed;color:#fff;font-size:11px;font-weight:900;animation:zipco-pz-pop .25s both}
+.zipco-rc-opt:has(input:disabled){opacity:.6;cursor:default}
+.zipco-rc-nt{display:block;margin-top:8px}
+.zipco-rc-nt span{display:flex;justify-content:space-between;margin:0 2px 4px;font-size:12px;font-weight:800;color:#334155}
+.zipco-rc-nt i{font-style:normal;font-weight:700;color:#94a3b8;font-variant-numeric:tabular-nums}
+.zipco-rc-nt textarea{display:block;width:100%;box-sizing:border-box;min-height:56px;padding:9px 12px;border:0;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #cbd5e1;font:500 13.5px/1.35 inherit;color:#0f172a;resize:none}
+.zipco-rc-nt textarea:focus{outline:none;box-shadow:inset 0 0 0 2px #7c3aed}
+.zipco-rc-wn{display:flex;gap:8px;margin:10px 0 0;padding:7px 10px;border-radius:12px;background:#fffbeb;box-shadow:inset 3px 0 0 #f59e0b;font-size:11.5px;line-height:1.38;color:#78350f}
+.zipco-rc-wn::before{content:"";flex:none;width:14px;height:14px;margin-top:1px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d97706' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat}
 .zipco-pz-ct{position:relative;display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border-radius:14px;box-shadow:inset 0 0 0 1px #d9d6ee;cursor:pointer;transition:box-shadow .18s,background .18s}
 .zipco-pz-ct.on{background:#f0fdfa;box-shadow:inset 0 0 0 1.5px #5eead4}
 .zipco-pz-ct input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
