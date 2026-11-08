@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Botones de acceso de propuesta del cliente: recorte explícito de las capas de
   vidrio a la píldora y backdrop-filter desactivado solo en esos dos accesos.
   CSS acotado a zipco-pw/proposal-entry-actions, foco interior visible. Tres anchos
-  y toques aprobados, build QA/PWA aprobado. Publicación en preparación;
+  y toques aprobados, build QA/PWA aprobado. Publicado QA `df53aa6`,
+  Vercel success del SHA exacto;
   comprobación física del artefacto rectangular pendiente.
   [Detalle y tiempos](frontend-proposal-button-clip-qa.md).
 

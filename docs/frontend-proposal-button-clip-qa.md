@@ -29,8 +29,12 @@ capturas fixed-buttons-320/390/430.png en .cache/customer-proposal-redesign/.
 
 Tiempos: análisis/inspección 93 s; implementación, preparación y comprobaciones
 46 s. Build 7,47 s Vite en paralelo, no se suma nuevamente. No se inventa una
-separación no instrumentada de preparación/ejecución. Documentación/publicación
-se completan al cierre. No se cambiaron herramientas.
+separación no instrumentada de preparación/ejecución. Documentación inicial y
+commit/push: 43 s; espera/verificación de publicación: 60 s. Cierre documental
+posterior separado. No se cambiaron herramientas.
 
-Rama qa; publicación pendiente al redactar. Railway no necesario. Main y producción
+Rama qa; publicado `df53aa640fc6e8bd8602b1b71ab2a81c918991b8`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/BKQRDpym9rjjdcMUpV4x4m2WXsLV
+No repetido el acceso independiente a bundles con credenciales locales previamente
+limitadas por 403 y sin cambios de acceso. Railway no necesario. Main y producción
 intactos. No se crearon pedidos ni se enviaron decisiones o notificaciones reales.
