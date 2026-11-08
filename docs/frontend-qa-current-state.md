@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   mensaje y cambio real obligatorios, disponibilidad opcional. Atrasadas
   conservan su regla de nueva hora. Un solo archivo de código modificado;
   22 unitarias, tres recorridos de navegador y build QA/PWA aprobados.
-  Publicación en preparación; comprobación física pendiente.
+  Publicado QA `faf12a5`, Vercel success del SHA exacto; comprobación física
+  pendiente. Verificación independiente de bundle limitada por acceso previo 403.
   [Alcance, pruebas y tiempos](frontend-normal-alternative-glow-qa.md).
 
 - D · Glow: formulario inicial de alternativa del negocio para STILL_NEEDED

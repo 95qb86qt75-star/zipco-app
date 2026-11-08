@@ -46,9 +46,15 @@ Railway no es necesario; main y producción intactos.
 
 Lectura inicial anterior al cronómetro no estimada. Análisis 66 s; implementación
 34 s; preparación de escenarios 130 s; ejecución/revisión 104 s. Build y unitarias
-solapados con esa ventana, sin sumar de nuevo. Cierre y publicación al verificar.
+solapados con esa ventana, sin sumar de nuevo. Documentación y preparación del
+commit 56 s; publicación/verificación 66 s (push 3,08 s y espera incluidos).
+Cierre documental posterior no incluido.
 Estos tiempos no son mediciones de rendimiento de la app.
 
-Publicación QA pendiente al preparar el informe. No se repite la verificación
+Publicado QA faf12a5d966695533c4d959bb2f008f1b6a2c9ec; Vercel success para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/AEZSeJ75DBtRHEtcrYAvjcajddVG.
+El cierre documental posterior queda local, sin otro push/despliegue.
+No se repite la verificación
 adicional de artefactos con credencial local que ya devolvió 403 sin cambios en
-su acceso. Se verificará el estado Vercel del SHA exacto y se indicará ese límite.
+su acceso. Estado Vercel del SHA exacto verificado; bundle servido no comprobado
+independientemente. Confirmación física pendiente.
