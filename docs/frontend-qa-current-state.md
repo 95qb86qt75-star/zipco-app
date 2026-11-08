@@ -12,7 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   operativos. En comparación Chromium con doce tarjetas: 21 animaciones infinitas
   (tres fuera de vista) pasan a cero persistentes tras asentarse. 19 unitarias,
   estabilidad y controles de reserva aprobados; build QA/PWA aprobado.
-  Publicación en preparación; rendimiento físico/captura nativa pendiente.
+  Publicado QA `8b27afc`, Vercel success del SHA exacto;
+  rendimiento físico/captura nativa pendiente.
   [Mediciones y límites](frontend-pickup-decoration-budget-qa.md).
 
 - Causa del bucle reproducida tras la precisión del usuario: afecta a la tarjeta

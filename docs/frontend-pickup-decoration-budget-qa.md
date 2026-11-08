@@ -65,9 +65,17 @@ Hubo un bloqueo EBUSY transitorio al iniciar Chromium y se repitió ese escenari
 
 ## Tiempos y publicación
 
-Tiempos medidos por fase se completan al cierre. La implementación incluye la
+Análisis y primera medición: 156 s; implementación/preparación y primeras
+comparaciones: 98 s; verificación/comparación adicional: 124 s.
+La implementación incluye la
 preparación de comparación y ejecución inicial; no se inventa separación ausente.
 Build y pruebas se solapan, no se suman dos veces.
+Documentación inicial y commit/push: 62 s; verificación de publicación: 39 s.
+Cierre documental posterior separado.
 
-Rama qa; publicación pendiente. Campos/endpoints sin cambios. Railway no necesario;
+Rama qa; publicado `8b27afc2a80487a9fe87d043d9f3934e758c53f4`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/8vUorZZwJwCBuvH2YTRB669kYBrf
+No repetida consulta independiente de bundles con acceso local antes limitado por
+403 y sin cambios de credenciales/protección.
+Campos/endpoints sin cambios. Railway no necesario;
 main y producción intactos. La mejora física queda pendiente de confirmación.
