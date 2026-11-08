@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Corregida la propuesta entrante oculta al mantener seleccionado el resumen
+  naranja del cliente: responses omitía las decisiones de propuesta inicial y
+  final, aunque Por responder sí las contaba. Incluidas sin cambiar API ni
+  navegación. 58 pruebas, dos recorridos de navegador y build QA/PWA aprobados;
+  publicación en preparación y prueba física pendiente.
+  [Causa, evidencia y tiempos](frontend-live-proposal-response-filter-qa.md).
+
 - Glow ampliado a la alternativa inicial normal del negocio: mismo diseño,
   mensaje y cambio real obligatorios, disponibilidad opcional. Atrasadas
   conservan su regla de nueva hora. Un solo archivo de código modificado;

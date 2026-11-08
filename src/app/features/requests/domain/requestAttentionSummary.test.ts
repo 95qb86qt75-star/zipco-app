@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCustomerAttentionItems, getCustomerCoordinationItems } from "./requestAttentionSummary";
 import { coordinationProcess } from "../fixtures/requestProcessFixtures";
+import { proposalsFixture } from "../fixtures/proposalFixtures";
+import { availabilityWaiting } from "../fixtures/availabilityFixtures";
 
 describe('persistent customer coordination summary', () => {
   it('counts pending and ongoing coordination regardless of consent or unread alerts', () => {
@@ -22,6 +24,15 @@ describe('persistent customer coordination summary', () => {
 });
 
 describe("getCustomerAttentionItems", () => {
+  it.each([1, 3])('includes a live proposal requiring customer decision alongside availability (sequence %s)', sequence => {
+    const available = { id: 20, status: 'pending', requestProcess: availabilityWaiting };
+    const proposal = { id: 21, status: 'alternative_proposed', requestProcess: proposalsFixture(sequence, false).process };
+    expect(getCustomerAttentionItems([available], 'orders', new Set()).responses.map(item => item.id)).toEqual([20]);
+    expect(getCustomerAttentionItems([available, proposal], 'orders', new Set()).responses.map(item => item.id)).toEqual([20, 21]);
+  });
+  it('does not treat a customer counterproposal awaiting the business as a response to answer', () => {
+    expect(getCustomerAttentionItems([{ id: 21, status: 'alternative_proposed', requestProcess: proposalsFixture(2, false).process }], 'orders', new Set()).responses).toEqual([]);
+  });
   it('includes READY processes in customer attention without requiring a push or treating them as completed', () => {
     const requestProcess = { ...coordinationProcess, state: 'READY' };
     const result = getCustomerAttentionItems([{ id: 20, status: 'ready', requestProcess }], 'orders', new Set());

@@ -50,6 +50,7 @@ import { rejectPendingOrder, rejectedPendingOrder, rejectedPendingReceipt } from
 import { announceProposalSent } from "../shared/feedback/proposalSentFeedback";
 import { proposalsFixture } from "../fixtures/proposalFixtures";
 import { lateProcess } from "../fixtures/lateInitialFixtures";
+import { availabilityWaiting } from "../fixtures/availabilityFixtures";
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
   return React.Children.toArray(expandPresentationTree(root)).flatMap((child) => React.isValidElement(child)
@@ -86,6 +87,22 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', { getItem: () => session ? 'synthetic-session-value' : null });
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.unstubAllGlobals(); });
+
+it.each([1, 3])('keeps an incoming proposal visible while customer response summary remains selected (sequence %s)', sequence => {
+  hooks.loading = false; session = true; window.location.search = '?open=requests-customer';
+  const available = { ...rawOrder, status: 'pending', requestProcess: availabilityWaiting };
+  hooks.orders = normalizeMyOrdersPayload([available]);
+  const summary = nodes(render()).find(node => typeof node.props.className === 'string' && node.props.className.includes('border-orange-400'))!;
+  summary.props.onClick();
+  const before = render();
+  expect(nodes(before).find(node => node.type === MyOrdersTab)?.props.myOrders.map((order: any) => order.id)).toEqual([20]);
+  hooks.orders = normalizeMyOrdersPayload([available, { ...rawOrder, id: 21, status: 'alternative_proposed',
+    requestProcess: { ...proposalsFixture(sequence, false).process, id: 8 } }]);
+  const after = render();
+  expect(nodes(after).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('waiting');
+  expect(nodes(after).find(node => node.type === MyOrdersTab)?.props.myOrders.map((order: any) => order.id).sort()).toEqual([20, 21]);
+  expect(hooks.action).not.toHaveBeenCalled();
+});
 
 it.each(['matching', 'different-agreement', 'other-category'])('navigates to Listos only for its own completed presentation (%s)', mode => {
   hooks.loading = false; session = true;

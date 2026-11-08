@@ -38,7 +38,9 @@ export function getCustomerAttentionItems(
     .filter((record) =>
       kind === "orders"
         ? hasRequestProcess(record)
-          ? record.requestProcess?.lateInitialResponse?.status==='AWAITING_CUSTOMER' || record.requestProcess?.state === 'AWAITING_CUSTOMER_CONTINUATION' || record.requestProcess?.state === 'COORDINATION_PENDING' && unreadInteractions.has(`order:${record.id}`)
+          ? record.requestProcess?.lateInitialResponse?.status==='AWAITING_CUSTOMER' ||
+            ['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(record.requestProcess?.state ?? '') ||
+            record.requestProcess?.state === 'COORDINATION_PENDING' && unreadInteractions.has(`order:${record.id}`)
           : record.status === "alternative_proposed" ||
           (record.status === "accepted" &&
             unreadInteractions.has(`order:${record.id}`))
