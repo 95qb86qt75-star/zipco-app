@@ -46,8 +46,8 @@ type Props = {
   messageMaxLength: number;
   explanationHint: string;
   photoFields: ReactNode;
-  /** Opcional. Solo la edición del negocio para una solicitud atrasada (STILL_NEEDED) la envía; sin ella todo se ve como antes. */
-  late?: { scheduleRequired: boolean; changeCount: number };
+  /** Presentación Glow compartida; scheduleRequired solo señala el contrato atrasado. */
+  late?: { scheduleRequired: boolean; changeCount: number; counterProposal?: boolean };
 };
 
 const field = "zipco-readable-field w-full rounded-xl border p-3 text-sm";
@@ -68,6 +68,11 @@ const suggestedMessages = [
   { label: "Por alta demanda no alcancé a responder", text: "Por alta demanda no alcancé a responder a tiempo." },
   { label: "Te propongo una nueva hora", text: "Te propongo una nueva hora para tu pedido." },
   { label: "Puedo ofrecerte esta alternativa", text: "Puedo ofrecerte esta alternativa para tu pedido." },
+];
+const customerMessages = [
+  { label: 'Ajustar la cantidad', text: 'Me gustaría ajustar la cantidad de mi pedido.' },
+  { label: 'Proponer otro horario', text: 'Me acomoda más este horario para mi pedido.' },
+  { label: 'Proponer otra opción', text: 'Quisiera proponer esta otra opción para mi pedido.' },
 ];
 
 const tiles: Array<{ key: ChangeKey; label: string; icon: typeof Package }> = [
@@ -411,7 +416,7 @@ export default function AlternativeChangeEditor(props: Props) {
           </label>
           {props.message.trim() === "" && (
             <div className="zipco-la-chips" role="group" aria-label="Frases sugeridas">
-              {suggestedMessages.map((suggestion) => (
+              {(late.counterProposal ? customerMessages : suggestedMessages).map((suggestion) => (
                 <button key={suggestion.label} type="button" onClick={() => props.setMessage(suggestion.text)} className="zipco-la-chip">{suggestion.label}</button>
               ))}
             </div>

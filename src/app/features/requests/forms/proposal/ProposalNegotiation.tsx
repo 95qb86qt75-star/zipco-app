@@ -361,6 +361,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         </Dialog.Content></Dialog.Portal>
     </Dialog.Root>}
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
+      counterProposal={!business && draftAction === 'COUNTER_PROPOSAL'}
       sourceOverride={proposalDraftSource(read)} title={draftAction==='COUNTER_PROPOSAL'?'Contraponer · 1 vez':titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
       onCheck={business && draftAction === 'PROPOSE_ALTERNATIVE' && read.process.lateInitialResponse?.status === 'STILL_NEEDED' ? checkLateAlternative : undefined}

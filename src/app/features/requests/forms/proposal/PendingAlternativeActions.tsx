@@ -63,9 +63,10 @@ export function LocalAlternativePhoto({ onFile, onPreview, late = false }: { onF
   </div>;
 }
 
-export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, onCheck, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields }: {
+export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, onCheck, counterProposal = false, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
   onCheck?: () => Promise<string>;
+  counterProposal?: boolean;
   onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void | boolean>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode; reviewFields?: import('react').ReactNode|((review:AlternativeReview)=>import('react').ReactNode);
 }) {
   const [source] = useState(() => sourceOverride ?? alternativeSource(order));
@@ -83,12 +84,12 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const [sendError, setSendError] = useState('');
   const [checkMessage, setCheckMessage] = useState('');
   const sendLock = useRef(false);
-  // La alternativa inicial del negocio comparte Glow, normal o atrasada.
+  // La alternativa inicial del negocio y la contrapropuesta comparten Glow.
   // Solo la solicitud atrasada señala la nueva fecha que exige su contrato.
   const lateProcess = order.requestProcess?.lateInitialResponse;
-  const glowAlternative = Boolean(sourceOverride && onConfirm) && canPrepareAlternative(order, 'customerName' in order);
+  const glowAlternative = Boolean(sourceOverride && onConfirm) && (counterProposal || canPrepareAlternative(order, 'customerName' in order));
   const glowEdit = glowAlternative && !reviewing;
-  const lateScheduleRequired = lateProcess?.status === 'STILL_NEEDED' && lateProcess.requiresNewSchedule === true;
+  const lateScheduleRequired = !counterProposal && lateProcess?.status === 'STILL_NEEDED' && lateProcess.requiresNewSchedule === true;
   const current = sourceOverride ? order.requestProcess?.id === source.processId && order.requestProcess.version <= source.expectedVersion
     : alternativeSourceCurrent(source, order, true);
   const validation = reviewAlternative(source, draft);
@@ -178,7 +179,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               message={draft.message} setMessage={updateMessage} messageMaxLength={1000}
               explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
               photoFields={null}
-              late={glowAlternative ? { scheduleRequired: lateScheduleRequired, changeCount } : undefined} />}
+              late={glowAlternative ? { scheduleRequired: lateScheduleRequired, changeCount, counterProposal } : undefined} />}
             {line && <div className={glowAlternative ? '' : 'mt-4'} hidden={glowAlternative && changeCount === 0}><LocalAlternativePhoto late={glowAlternative} onFile={onConfirm ? file => setFile(file) : undefined} onPreview={setPreview} /></div>}
           </fieldset>
           {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
