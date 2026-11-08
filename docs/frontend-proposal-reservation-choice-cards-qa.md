@@ -55,8 +55,12 @@ conservadas. Ninguna API, permiso, estado, recuperación o backend cambia.
 
 Análisis 53 s; integración/preparación y primeras pruebas 95 s; validación y esperas
 90 s. Build Vite 10,31 s en paralelo a la validación, no sumar dos veces. No se
-inventa una separación ausente de preparación/ejecución. Documentación/publicación
-se completan al cierre.
+inventa una separación ausente de preparación/ejecución. Documentación inicial y
+commit/push: 51 s; espera/verificación de publicación: 72 s. Cierre documental
+posterior separado.
 
-Rama qa; publicación pendiente al redactar. Railway no necesario. Main y producción
+Rama qa; publicado `94ea3acb33286a1e69c47abd480cee59c1ae26a5`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/5T8SCg34RRnSL9w5H1TD8MaFuHVS
+No repetida comprobación independiente de bundles con credenciales locales antes
+limitadas por 403 y sin cambios de acceso. Railway no necesario. Main y producción
 intactos. Carpeta ajena de handoff conservada y dist generado excluido.

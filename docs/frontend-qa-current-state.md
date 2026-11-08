@@ -12,7 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   Aviso sin reserva condicional en variante cards y plain (también contrapropuesta).
   Conservados recorte de botones y presupuesto gráfico, sin reintroducir insignias
   duplicadas ni cambiar execute. 18 unitarias, siete grupos Chromium y build QA/PWA
-  aprobados. Publicación en preparación; celulares físicos pendientes.
+  aprobados. Publicado QA `94ea3ac`, Vercel success del SHA exacto;
+  celulares físicos pendientes.
   [Detalle](frontend-proposal-reservation-choice-cards-qa.md).
 
 - Botones de acceso de propuesta del cliente: recorte explícito de las capas de

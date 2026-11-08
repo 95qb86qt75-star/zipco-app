@@ -22,7 +22,9 @@ sus propietarios actuales.
 - **Propuesta por responder y conversación:** ProposalWaitingCard.tsx / .zipco-pw,
   ProposalChat.tsx y ProposalNegotiation.tsx / .zipco-pz; CSS en shared/proposal.
   Negocio conserva su rama. CustomerProposal es solo presentación de oferta,
-  no modifica contratos ni ReservationChoiceFields. Presupuesto decorativo acotado.
+  sin modificar contratos. Al aceptar usa ReservationChoiceFields variant=cards
+  e hideSummary; contrapropuesta mantiene plain. Aviso sin reserva condicionado
+  a NONE. Presupuesto decorativo acotado.
 
 - **Pendiente:** `customer/pending/CustomerPendingCard.tsx`.
 - **Disponible, antes de continuar por WhatsApp:** `AvailableWhatsappDesign` en
