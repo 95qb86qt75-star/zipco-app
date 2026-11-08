@@ -47,9 +47,10 @@ sus propietarios actuales.
   y controles conservan identidad al pasar a preparando. Listo/recibido conservados.
 - **Retiro local, preparando / listo / recibido:**
   `customer/local-pickup/CustomerPickupCard.tsx` y `customer-pickup.css`.
-  Variante B Línea: solo pago previo advisory pendiente de confirmación. La
-  selecciona CustomerReceiptFlowCardView mediante lineDesign; detalle en
-  CustomerPickupLineDetails dentro de CustomerReceiptDetails.tsx. Otros estados
+  Variante B Línea: pago previo advisory pendiente de confirmación (`lineDesign`).
+  Reserva gratuita advisory confirmada en IN_PROGRESS, sin modelo listo/recibido:
+  `confirmedFreeDesign`, con boleto verde y CustomerPickupConfirmedDetails.
+  Las selecciona CustomerReceiptFlowCardView; detalles en CustomerReceiptDetails.tsx. Otros estados
   usan la composición estándar. Reserva y ventanas siguen siendo componentes reales.
 - **Detalle de los pedidos de producto:**
   `customer/progress/CustomerReceiptDetails.tsx`,

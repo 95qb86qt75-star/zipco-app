@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect,useId,useRef,useState} from 'react';
-import {ChevronDown,ChevronRight,ChevronUp,CircleCheck,Hourglass,MapPin,MessageCircle,ShieldCheck,Ticket,X} from 'lucide-react';
+import {Check,ChevronDown,ChevronRight,ChevronUp,CircleCheck,Hourglass,MapPin,MessageCircle,ShieldCheck,Ticket,X} from 'lucide-react';
 import type {ReactNode} from 'react';
 import WhatsAppMark from "../../../shared/icons/WhatsAppMark";
 import type {AvailabilityPostActionParts} from "../../shared/availability/AvailabilityPostActionsView";
@@ -135,6 +135,73 @@ function CustomerPickupLineDetails({summary,onConditions,onContact,blocked=false
  </div>;
 }
 
+/** Detalle de «Retiro en el local» con reserva SIN pago previo CONFIRMADA (prop `confirmedFreeDesign`, decidida por el contenedor).
+ *  Presentación de «boleto»: pestaña «Cómo retirar» = reserva real (boleto) + nota del negocio + Condiciones aceptadas;
+ *  pestaña «Contacto y opciones» = contacto, permiso y cancelar reales, en una tarjeta. Mismas reglas que la variante de línea:
+ *  - Ambas pestañas siempre montadas (la inactiva solo lleva `hidden`); teclado ←/→/Inicio/Fin.
+ *  - Avisos y recuperación (`parts.alerts`) fuera de las pestañas; un error nuevo en la pestaña oculta cambia a ella.
+ *  - Solo se muestra lo que el controlador entrega (`parts.has`, `onContact`). No se cancela ni se retira nada al cambiar de pestaña o plegar. */
+function CustomerPickupConfirmedDetails({summary,onConditions,onContact,blocked=false,parts}:{summary:string;onConditions:()=>void;onContact?:()=>void;blocked?:boolean;parts:AvailabilityPostActionParts|null}){
+ const id=useId(),[tab,setTab]=useState<0|1>(0);
+ const has=parts?.has;
+ const firstHas=!!(has?.instructions||has?.reservation);
+ const secondHas=!!(onContact||has?.contact||has?.cancel);
+ const tabbed=firstHas&&secondHas;
+ const active:0|1=tabbed?tab:0;
+ const activeRef=useRef(active);activeRef.current=active;
+ const panels=[useRef<HTMLDivElement>(null),useRef<HTMLDivElement>(null)];
+ const seen=useRef<string[]|null>(null);
+ useEffect(()=>{
+  if(!tabbed){seen.current=null;return;}
+  const errors=()=>panels.map(p=>Array.from(p.current?.querySelectorAll('[role="alert"]')??[]).map(node=>node.textContent?.trim()??'').filter(Boolean).join('\n'));
+  seen.current=errors();
+  const watch=()=>{
+   const now=errors(),before=seen.current??now;seen.current=now;
+   const changed=[0,1].find(i=>!!now[i]&&now[i]!==before[i]&&i!==activeRef.current);
+   if(changed!==undefined){
+    const focused=document.activeElement,previous=activeRef.current;
+    const moveFocus=panels[previous].current?.contains(focused)||document.getElementById(`${id}-tab-${previous}`)===focused;
+    setTab(changed as 0|1);
+    if(moveFocus)document.getElementById(`${id}-tab-${changed}`)?.focus({preventScroll:true});
+   }
+  };
+  const mo=new MutationObserver(watch);
+  panels.forEach(p=>{if(p.current)mo.observe(p.current,{childList:true,characterData:true,subtree:true});});
+  return()=>mo.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[tabbed]);
+ const onKey=(e:React.KeyboardEvent<HTMLButtonElement>)=>{
+  if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft'&&e.key!=='Home'&&e.key!=='End')return;
+  e.preventDefault();const next:0|1=e.key==='Home'?0:e.key==='End'?1:active===0?1:0;setTab(next);
+  document.getElementById(`${id}-tab-${next}`)?.focus();
+ };
+ const tabBtn=(i:0|1,label:string,icon:ReactNode)=><button type="button" role="tab" id={`${id}-tab-${i}`} aria-selected={active===i} aria-controls={`${id}-panel-${i}`} tabIndex={active===i?0:-1} className="zipco-pickup-tab" onClick={()=>setTab(i)} onKeyDown={onKey}>{icon}{label}</button>;
+ const collapse=(e:React.MouseEvent<HTMLButtonElement>)=>{const toggle=e.currentTarget.closest('.zipco-pickup-c')?.querySelector<HTMLButtonElement>('.zipco-pickup-c-toggle,.zipco-pickup-c-head');toggle?.click();toggle?.focus({preventScroll:true});};
+ const hide=(i:0|1)=>tabbed&&active!==i;
+ return <div className="zipco-receipt-details zipco-pickup-det" data-tabbed={tabbed}>
+  {has?.alerts&&<div className="zipco-pickup-alerts">{parts?.alerts}</div>}
+  {tabbed&&<div className="zipco-pickup-tabs" role="tablist" aria-label="Detalle del retiro">{tabBtn(0,'Cómo retirar',<MapPin size={14} strokeWidth={2.4} aria-hidden="true"/>)}{tabBtn(1,'Contacto y opciones',<MessageCircle size={14} strokeWidth={2.4} aria-hidden="true"/>)}</div>}
+  <div ref={panels[0]} id={`${id}-panel-0`} className="zipco-pickup-panel" {...(tabbed?{role:'tabpanel','aria-labelledby':`${id}-tab-0`}:{})} hidden={hide(0)}>
+   <div className="zipco-pk-sh">
+    {has?.reservation&&<div className="zipco-pk-tk"><span className="zipco-pk-stamp" aria-hidden="true"><Check size={18} strokeWidth={3}/></span>{parts?.reservation}</div>}
+    {has?.instructions&&<div className="zipco-pk-bub">{React.isValidElement<{variant?:'default'|'customer'|'customer-line'}>(parts?.instructions)?React.cloneElement(parts.instructions,{variant:'customer-line'}):parts?.instructions}</div>}
+    <button type="button" className="zipco-pk-cond" aria-haspopup="dialog" onClick={onConditions}><span className="zipco-pk-condi" aria-hidden="true"><CircleCheck size={15} strokeWidth={2.5}/></span><span className="zipco-pk-condt"><small>CONDICIONES ACEPTADAS</small><b>{summary}</b></span><span className="zipco-pk-condg" aria-hidden="true"><ChevronRight size={16} strokeWidth={2.6}/></span></button>
+   </div>
+   <p className="zipco-pickup-pay">ZIPCO no procesa ni verifica pagos.</p>
+  </div>
+  {secondHas&&<div ref={panels[1]} id={`${id}-panel-1`} className="zipco-pickup-panel" {...(tabbed?{role:'tabpanel','aria-labelledby':`${id}-tab-1`}:{})} hidden={hide(1)}>
+   <div className="zipco-pk-sh zipco-pk-ct">
+    {(onContact||has?.contact)&&<div className="zipco-pk-cc">
+     {onContact&&<button type="button" className="zipco-pk-wa" disabled={blocked} onClick={onContact}><span className="zipco-pk-wai" aria-hidden="true"><WhatsAppMark className="h-5 w-5"/></span><span className="zipco-pk-wat"><small>CONTACTO OPCIONAL</small><b>Escribir al negocio</b></span><span className="zipco-pk-condg" aria-hidden="true"><ChevronRight size={16} strokeWidth={2.6}/></span></button>}
+     {has?.contact&&<div className="zipco-pk-perm"><span className="zipco-pk-permi" aria-hidden="true"><ShieldCheck size={15} strokeWidth={2.4}/></span><div className="zipco-pk-permb">{parts?.contact}</div></div>}
+    </div>}
+    {has?.cancel&&<div className="zipco-pk-cxw">{parts?.cancel}</div>}
+   </div>
+  </div>}
+  <button type="button" className="zipco-pk-hide" onClick={collapse}>Ocultar detalle<ChevronUp size={14} aria-hidden="true"/></button>
+ </div>;
+}
+
 function StandardPickupDetails({summary,onConditions,onContact,blocked=false,parts}:{summary:string;onConditions:()=>void;onContact?:()=>void;blocked?:boolean;parts:AvailabilityPostActionParts|null}){
  const id=useId(),[tab,setTab]=useState<0|1>(0);
  const has=parts?.has;
@@ -188,4 +255,4 @@ function StandardPickupDetails({summary,onConditions,onContact,blocked=false,par
  </div>;
 }
 
-export function CustomerPickupDetails({lineDesign=false,...props}:React.ComponentProps<typeof StandardPickupDetails>&{lineDesign?:boolean}){return lineDesign?<CustomerPickupLineDetails {...props}/>:<StandardPickupDetails {...props}/>;}
+export function CustomerPickupDetails({lineDesign=false,confirmedFreeDesign=false,...props}:React.ComponentProps<typeof StandardPickupDetails>&{lineDesign?:boolean;confirmedFreeDesign?:boolean}){return lineDesign?<CustomerPickupLineDetails {...props}/>:confirmedFreeDesign?<CustomerPickupConfirmedDetails {...props}/>:<StandardPickupDetails {...props}/>;}

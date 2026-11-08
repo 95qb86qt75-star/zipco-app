@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Reserva gratuita confirmada del cliente: tres archivos completos de Claude y
+  conexión mínima en CustomerReceiptFlowCardView. Variante solo FREE/CONFIRMED,
+  IN_PROGRESS y horario advisory, sin modelo listo/recibido. Boleto real, nota,
+  condiciones y contacto/opciones con permisos conservados. 18 pruebas y siete
+  grupos Chromium aprobados, build QA/PWA aprobado. Publicación en preparación;
+  celulares pendientes. [Detalle y tiempos](frontend-confirmed-free-pickup-qa.md).
+
 - Decisión de reserva del cliente con Glow integrada en TSX y CSS propio nuevo:
   nota plegable, oferta real, contacto explícito y pie fijo. Consulta, envío,
   excepciones sin preview y bloqueos preservados. 53 unitarias, 14 grupos del
