@@ -29,8 +29,11 @@ Evidencia ignorada: .cache/proposal-clean-buttons/run.mjs y results en
 
 Tiempos: análisis 61 s; implementación/preparación, validación y build en paralelo
 51 s. Build Vite 9,78 s incluido en ese intervalo; no sumar dos veces. No se
-inventan subdivisiones sin instrumentación. Documentación/publicación se completan
-al cierre.
+inventan subdivisiones sin instrumentación. Documentación inicial y commit/push:
+46 s; espera/verificación de publicación: 69 s. Cierre documental posterior separado.
 
-Rama qa, publicación pendiente al redactar. Railway no necesario. Main y producción
+Rama qa, publicado `cf094aca3634fee5efd35e978878063fe648649a`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/G1TZjBR4CMNKAdZM7uWLymfRVMk6
+No repetida comprobación independiente de bundles con credenciales locales antes
+limitadas por 403 y sin cambios de acceso. Railway no necesario. Main y producción
 intactos. Solo estilos de los botones del cliente, no otras variantes de negocio.

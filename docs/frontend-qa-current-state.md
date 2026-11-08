@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   degradado limpio, check pequeño, Aceptar centrado, importe en cápsula cuando
   existe, revisión violeta sin flecha. Solo dos CSS con selectores zipco-pw/pz;
   sin blobs, brillo grande ni backdrop blur. Tres anchos/toques y build QA/PWA
-  aprobados. Publicación en preparación; comprobación física pendiente.
+  aprobados. Publicado QA `cf094ac`, Vercel success del SHA exacto;
+  comprobación física pendiente.
   [Detalle y tiempos](frontend-proposal-clean-buttons-qa.md).
 
 - Aceptar propuesta: ReservationChoiceFields variante cards/hideSummary integrada,
