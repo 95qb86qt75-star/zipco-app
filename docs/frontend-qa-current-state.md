@@ -11,8 +11,9 @@ ni convierte pruebas sintéticas en aprobación física.
   arrivalDesign y etiqueta Por orden de llegada junto a Retiro en el local.
   Solo IN_PROGRESS, sin reserva ni modelo listo/recibido, con choice NONE u oferta
   NONE explícita. Conserva los estados y botones históricos; E200 no se modifica.
-  19 unitarias, siete grupos Chromium y build QA/PWA aprobados. Publicación en
-  preparación; iPhone pendiente. [Detalle y tiempos](frontend-arrival-pickup-qa.md).
+  19 unitarias, siete grupos Chromium y build QA/PWA aprobados. Publicado QA
+  `a405535`, Vercel success del SHA exacto; iPhone pendiente.
+  [Detalle y tiempos](frontend-arrival-pickup-qa.md).
 
 - Reserva gratuita confirmada del cliente: tres archivos completos de Claude y
   conexión mínima en CustomerReceiptFlowCardView. Variante solo FREE/CONFIRMED,

@@ -42,8 +42,14 @@ tsc configurado; build no equivale a tipado completo. Celulares físicos pendien
 Análisis 15 s; implementación y primera ejecución unitaria 91 s (sin separar el
 tiempo de esa ejecución); preparación del arnés 27 s; pruebas, reparación del
 fixture y espera 108 s. Build ejecutado en paralelo al final de las pruebas:
-12,78 s Vite, no se suma nuevamente a esos intervalos. Documentación y publicación
-se completan en el cierre. No se cambiaron herramientas, configuraciones o dependencias.
+12,78 s Vite, no se suma nuevamente a esos intervalos. Documentación inicial y
+commit/push 46 s; espera y verificación de publicación 74 s. Cierre documental
+posterior separado. No se cambiaron herramientas, configuraciones o dependencias.
 
-Rama qa. Publicación pendiente al redactar. Railway no necesario; main y producción
+Rama qa, publicado `a405535a0ab1ff90c81330594c553615b106c8c6`.
+Vercel success del SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/62Gg5962cMbfTVJjpBUThocNShru
+Sin nueva comprobación independiente del bundle servido: acceso local previamente
+403, sin cambios de credenciales que justifiquen repetirlo.
+Railway no necesario; main y producción
 intactos. Dist generado excluido y carpeta previa ajena conservada.
