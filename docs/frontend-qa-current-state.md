@@ -1,11 +1,18 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-07, America/Santiago.
+Actualizado: 2026-11-08, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- Modalidad/instrucciones del negocio con Glow: dos archivos de Claude
+  integrados, pie fijo y componentes reales. Mensaje conserva su predeterminado
+  opcional; pago previo conserva consentimiento explícito (sin autoactivación).
+  73 unitarias, 13 grupos visuales más envío real con HTTP simulado y build
+  QA/PWA aprobados. Publicación en preparación; celulares físicos pendientes.
+  [Alcance, diferencias, pruebas y tiempos](frontend-business-fulfillment-glow-qa.md).
 
 - Cliente Contraponer · 1 vez reutiliza Glow, con frases propias, cambio y
   mensaje obligatorios, sin exigir cambiar una fecha vigente válida. Una prop exclusivamente

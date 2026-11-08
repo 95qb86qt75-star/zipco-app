@@ -439,3 +439,157 @@
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *,
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *::before,
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *::after{animation-play-state:paused!important}
+
+/* ===== ConfirmAvailabilityDesign · «¿Cómo seguirá este pedido?» + «Retiro en el local» (prefijo exclusivo zipco-pk-) ===== */
+@keyframes zipco-pk-fade{from{opacity:0}to{opacity:1}}
+@keyframes zipco-pk-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes zipco-pk-drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,14px) scale(1.2)}}
+@keyframes zipco-pk-drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-10px) scale(1.15)}}
+@keyframes zipco-pk-pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes zipco-pk-glow{0%,100%{box-shadow:0 8px 20px #4f46e552,0 0 0 0 #14b8a600}50%{box-shadow:0 10px 26px #4f46e573,0 0 0 5px #14b8a62b}}
+@keyframes zipco-pk-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes zipco-pk-slide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+@keyframes zipco-pk-spin{to{transform:rotate(360deg)}}
+@keyframes zipco-pk-nd1{0%,100%{box-shadow:inset 0 0 0 2px #6366f1,0 0 0 4px #6366f12e,0 0 0 #8b5cf600}35%{box-shadow:inset 0 0 0 2px #7c3aed,0 0 0 6px #8b5cf64d,0 0 26px 8px #8b5cf673}}
+@keyframes zipco-pk-nd2{0%,100%{box-shadow:inset 0 0 0 2px #6366f1,0 0 0 4px #6366f12e,0 0 0 #8b5cf600}35%{box-shadow:inset 0 0 0 2px #7c3aed,0 0 0 6px #8b5cf64d,0 0 26px 8px #8b5cf673}}
+
+.zipco-av-dialog.zipco-pk-dialog{--zipco-pk-g:linear-gradient(115deg,#7c3aed,#4f46e5 55%,#0ea5a0);display:flex;flex-direction:column;max-width:380px;max-height:calc(100dvh - 32px);padding:0;overflow:hidden;isolation:isolate;background:#fff;box-shadow:0 0 0 1px #6366f124,0 28px 64px #1e1b4b6b;animation:zipco-pk-fade .3s both}
+.zipco-pk-dialog *{box-sizing:border-box}
+.zipco-pk-dialog::before,.zipco-pk-dialog::after{content:"";position:absolute;z-index:0;top:-60px;width:190px;height:150px;border-radius:50%;filter:blur(34px);pointer-events:none}
+.zipco-pk-dialog::before{right:-50px;background:#8b5cf64d;animation:zipco-pk-drift1 9s ease-in-out infinite}
+.zipco-pk-dialog::after{left:-60px;background:#14b8a63d;animation:zipco-pk-drift2 11s ease-in-out infinite}
+.zipco-pk-prog{position:absolute;left:0;right:0;top:0;z-index:5;height:3px;overflow:hidden;background:#e0e7ff;pointer-events:none}
+.zipco-pk-prog i{position:absolute;inset:0 auto 0 0;width:40%;background:var(--zipco-pk-g);animation:zipco-pk-slide 1.1s ease-in-out infinite}
+.zipco-pk-dialog .zipco-pk-close{position:absolute;right:6px;top:6px;z-index:4;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#64748b;cursor:pointer}
+.zipco-pk-close svg{width:17px;height:17px}
+.zipco-pk-body{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 16px 8px}
+.zipco-pk-body>*{animation:zipco-pk-up .38s cubic-bezier(.2,.8,.2,1) both}
+.zipco-pk-body>:nth-child(2){animation-delay:.04s}.zipco-pk-body>:nth-child(n+3){animation-delay:.08s}
+.zipco-pk-hd{display:flex;align-items:center;gap:12px;padding-right:44px}
+.zipco-pk-badge{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--zipco-pk-g);color:#fff;box-shadow:0 8px 18px #4f46e54d;animation:zipco-pk-pop .5s cubic-bezier(.3,1.4,.5,1) both}
+.zipco-pk-badge svg{width:24px;height:24px}
+.zipco-pk-dialog .zipco-pk-title{margin:0;font-size:19px;line-height:1.15;font-weight:800;letter-spacing:-.02em;color:#0f172a}
+.zipco-pk-sub{margin:7px 0 0;font-size:12.5px;line-height:1.4;color:#475569}
+.zipco-pk-h2{display:flex;align-items:flex-start;gap:4px;margin:-6px 40px 0 -10px}
+.zipco-pk-h2 .zipco-pk-title{padding-top:12px;font-size:18px}
+.zipco-pk-dialog .zipco-pk-bk{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#4f46e5;cursor:pointer}
+.zipco-pk-bk svg{width:16px;height:16px}
+.zipco-pk-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.zipco-pk-notice [data-response-hours]{margin:10px 0 0;padding:9px 11px;border:0;border-radius:14px;background:#fffbebf2;box-shadow:inset 0 0 0 1px #fde68a;color:#78350f;font-size:11.5px;line-height:1.4}
+.zipco-pk-notice [data-response-hours] button{min-height:44px;padding:0;font-size:12px;color:#92400e}
+.zipco-pk-fs{margin:0;padding:0;border:0;min-width:0}
+.zipco-pk-hint{display:flex;gap:8px;align-items:flex-start;margin:12px 0 0;padding:9px 11px;border-radius:12px;background:#eef2ff;color:#3730a3;font-size:11.5px;line-height:1.4}
+.zipco-pk-hint svg{flex:none;width:12px;height:12px;margin-top:3px}
+.zipco-pk-dialog .zipco-pk-opt{position:relative;display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;padding:12px;border:0;border-radius:18px;background:#ffffffe0;box-shadow:inset 0 0 0 1px #e0e7ff,0 6px 16px #4f46e514;color:#0f172a;text-align:left;cursor:pointer;transition:box-shadow .25s,transform .15s}
+.zipco-pk-opt:hover{box-shadow:inset 0 0 0 1.5px #818cf8,0 10px 22px #4f46e529}
+.zipco-pk-opt:active{transform:scale(.985)}
+.zipco-pk-opt-ic{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:15px;color:#fff;animation:zipco-pk-float 3.4s ease-in-out infinite}
+.zipco-pk-opt-ic svg{width:24px;height:24px}
+.zipco-pk-opt-wa .zipco-pk-opt-ic{background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 8px 16px #05966952}
+.zipco-pk-opt-pk .zipco-pk-opt-ic{background:linear-gradient(140deg,#38bdf8,#4f46e5);box-shadow:0 8px 16px #4f46e552;animation-delay:.6s}
+.zipco-pk-opt-tx{flex:1;min-width:0}
+.zipco-pk-opt-tx b{display:block;font-size:15px;line-height:1.2;font-weight:800;overflow-wrap:anywhere}
+.zipco-pk-opt-tx>span{display:block;margin-top:2px;font-size:12px;line-height:1.3;color:#475569}
+.zipco-pk-opt-tx small{display:inline-flex;align-items:flex-start;gap:5px;margin-top:6px;padding:3px 8px;border-radius:99px;background:#eef2ff;color:#3730a3;font-size:10.5px;font-weight:700;line-height:1.25}
+.zipco-pk-opt-tx small svg{flex:none;width:12px;height:12px;margin-top:1px}
+.zipco-pk-opt-go{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#eef2ff;color:#4f46e5}
+.zipco-pk-opt-go svg{width:18px;height:18px}
+.zipco-pk-sc{margin-top:12px}
+.zipco-pk-sl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;line-height:1.3;color:#1e293b}
+.zipco-pk-sl i{font-style:normal;font-size:11px;font-weight:500;color:#94a3b8;font-variant-numeric:tabular-nums}
+.zipco-pk-sl b>b,.zipco-pk-sl>span>b{color:#7c3aed}
+.zipco-pk-sl em{font-style:normal}
+.zipco-pk-grow{flex:1;min-width:0}
+.zipco-pk-si{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#ede9fe,#cffafe);color:#4f46e5}
+.zipco-pk-si svg{width:14px;height:14px}
+.zipco-pk-dialog .zipco-pk-in{display:block;width:100%;margin-top:7px;padding:10px 12px;border:0;border-radius:14px;background:#ffffffeb;box-shadow:inset 0 0 0 1px #c7d2fe;color:#0f172a;font:500 13.5px/1.35 Outfit,system-ui,sans-serif;outline:none;resize:none;transition:box-shadow .2s}
+.zipco-pk-in::placeholder{color:#94a3b8}
+.zipco-pk-dialog .zipco-pk-in:focus{background:#fff;box-shadow:inset 0 0 0 2px #6366f1,0 0 0 4px #6366f126}
+textarea.zipco-pk-in{min-height:56px}
+.zipco-pk-dialog .zipco-pk-in.zipco-pk-nud1{animation:zipco-pk-nd1 .9s ease-in-out 2}
+.zipco-pk-dialog .zipco-pk-in.zipco-pk-nud2{animation:zipco-pk-nd2 .9s ease-in-out 2}
+.zipco-pk-fold{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0;border:0;background:none;color:#1e293b;text-align:left;font:800 13px Outfit,system-ui,sans-serif;cursor:pointer}
+.zipco-pk-fold em{font-style:normal;font-weight:600;color:#94a3b8}
+.zipco-pk-fold-i{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#eef2ff;color:#4f46e5}
+.zipco-pk-fold-i svg{width:15px;height:15px}
+.zipco-pk-fold-n{font-style:normal;font-size:11px;font-weight:500;color:#94a3b8;font-variant-numeric:tabular-nums}
+.zipco-pk-schbox{animation:zipco-pk-up .3s both}
+.zipco-pk-schbox[hidden]{display:none}
+.zipco-pk-inw{position:relative;display:block;margin-top:6px}
+.zipco-pk-inw>svg{position:absolute;left:12px;top:50%;width:16px;height:16px;margin-top:-8px;color:#6366f1;pointer-events:none}
+.zipco-pk-dialog .zipco-pk-inw .zipco-pk-in{margin:0;min-height:46px;padding-left:36px}
+.zipco-pk-h{margin:5px 0 0;font-size:11px;line-height:1.4;color:#64748b}
+.zipco-pk-swr{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 10px;border:0;border-radius:16px;background:#ffffffe6;box-shadow:inset 0 0 0 1px #e0e7ff;color:#1e293b;text-align:left;cursor:pointer;transition:box-shadow .25s,background .25s}
+.zipco-pk-swt{flex:1;min-width:0}
+.zipco-pk-swt b{display:block;font:800 13px/1.25 Outfit,system-ui,sans-serif}
+.zipco-pk-swt small{display:block;margin-top:2px;font:500 11px/1.35 Outfit,system-ui,sans-serif;color:#64748b}
+.zipco-pk-lockb{display:inline-block;margin-bottom:3px;padding:1px 7px;border-radius:99px;background:#d1fae5;color:#047857;font:900 8.5px/1.5 Outfit,system-ui,sans-serif;letter-spacing:.08em;font-style:normal}
+.zipco-pk-sw{flex:none;position:relative;width:46px;height:28px;border-radius:99px;background:#cbd5e1;transition:background .25s}
+.zipco-pk-sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0f172a4d;transition:transform .28s cubic-bezier(.3,1.4,.5,1)}
+.zipco-pk-swr.zipco-pk-on{background:linear-gradient(90deg,#10b9811a,#14b8a612);box-shadow:inset 0 0 0 1.5px #34d399}
+.zipco-pk-on .zipco-pk-sw{background:#10b981}.zipco-pk-on .zipco-pk-sw::after{transform:translateX(18px)}
+.zipco-pk-dialog .zipco-pk-swr:disabled{opacity:1;cursor:default}
+.zipco-pk-pvs{padding:10px;border-radius:18px;background:#eef2ffb3;box-shadow:inset 0 0 0 1px #e0e7ff}
+.zipco-pk-chip{padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:900;letter-spacing:.07em;background:#e2e8f0;color:#475569}
+.zipco-pk-chip-free{background:#d1fae5;color:#047857}.zipco-pk-chip-pre{background:#fef3c7;color:#92400e}
+.zipco-pk-tk{margin-top:8px;border-radius:14px;background:#fff;box-shadow:0 6px 16px #1e1b4b1f;overflow:hidden}
+.zipco-pk-tkm{margin:0;padding:10px 12px;font-size:13px;font-weight:700;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;color:#0f172a}
+.zipco-pk-tkm.zipco-pk-ph{color:#94a3b8;font-weight:600}
+.zipco-pk-perf{display:flex;align-items:center}
+.zipco-pk-perf i{flex:none;width:12px;height:12px;margin:0 -1px;border-radius:50%;background:#eef2ff}.zipco-pk-perf i:first-child{margin-left:-6px}.zipco-pk-perf i:last-child{margin-right:-6px}
+.zipco-pk-perf span{flex:1;border-top:2px dashed #cbd5e1}
+.zipco-pk-stub{display:flex;align-items:center;gap:10px;padding:7px 12px 9px;background:linear-gradient(180deg,#f0fdfa,#e6fffa)}
+.zipco-pk-stub>span{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:linear-gradient(145deg,#14b8a6,#0f766e);color:#fff}
+.zipco-pk-stub>span svg{width:15px;height:15px}
+.zipco-pk-stub small{display:block;font-size:9px;font-weight:900;letter-spacing:.12em;color:#0f766e}
+.zipco-pk-stub b{display:block;margin-top:1px;font-size:12px;line-height:1.3;font-weight:800;color:#0f172a;overflow-wrap:anywhere}
+.zipco-pk-warn{margin:8px 0 0;padding:8px 10px;border-radius:12px;background:#fffbeb;box-shadow:inset 0 0 0 1px #fde68a;color:#78350f;font-size:11.5px;line-height:1.4}
+.zipco-pk-foot{position:relative;z-index:1;padding:8px 16px 14px;background:#fffffff0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid #eef0fb}
+.zipco-pk-foot>:empty{display:none}
+.zipco-pk-err{margin:0 0 8px;padding:9px 11px;border-radius:12px;background:#fef2f2;box-shadow:inset 0 0 0 1px #fecaca;color:#991b1b;font-size:12.5px;line-height:1.35}
+.zipco-pk-sum{margin:0 0 7px;font-size:11px;font-weight:700;line-height:1.35;color:#4338ca}
+.zipco-pk-fh{margin:0 0 7px;font-size:11.5px;font-weight:700;line-height:1.35;color:#b45309}
+.zipco-pk-fb{display:flex;gap:8px}
+.zipco-pk-dialog .zipco-pk-back{flex:.8;min-height:46px;border:1px solid #c7d2fe;border-radius:99px;background:#fff;color:#3730a3;font:800 14px Outfit,system-ui,sans-serif;cursor:pointer}
+.zipco-pk-dialog .zipco-pk-go{flex:1.6;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:6px 12px;border:0;border-radius:99px;background:var(--zipco-pk-g);color:#fff;font:800 14px Outfit,system-ui,sans-serif;box-shadow:0 8px 20px #4f46e552;animation:zipco-pk-glow 2.6s ease-in-out infinite;cursor:pointer;transition:transform .15s}
+.zipco-pk-go:active{transform:scale(.97)}
+.zipco-pk-dialog .zipco-pk-go.zipco-pk-soft,.zipco-pk-dialog .zipco-pk-go:disabled{opacity:1;animation:none;box-shadow:none;background:#e2e8f0;color:#64748b}
+.zipco-pk-dialog .zipco-pk-go:disabled{cursor:not-allowed}
+.zipco-pk-dialog .zipco-pk-back:disabled{opacity:.55}
+
+/* Condiciones de reserva: componentes protegidos (Simple/ReservationOfferFields) re-estilizados solo por CSS */
+.zipco-pk-reserve{margin-top:12px}
+.zipco-pk-reserve fieldset{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;min-width:0;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important}
+.zipco-pk-reserve fieldset>*{margin:0!important}
+.zipco-pk-reserve legend{float:none;width:100%;padding:0!important;margin:0 0 6px!important;display:flex;align-items:center;gap:8px;font:800 13px/1.3 Outfit,system-ui,sans-serif;color:#1e293b}
+.zipco-pk-reserve legend::before{content:"";flex:none;width:26px;height:26px;border-radius:9px;background:linear-gradient(135deg,#ede9fe,#cffafe) center/auto no-repeat;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'/%3E%3C/svg%3E"),linear-gradient(135deg,#ede9fe,#cffafe);background-position:center;background-repeat:no-repeat}
+.zipco-pk-reserve fieldset>*:not(label:has(>input[type=radio])){grid-column:1/-1}
+.zipco-pk-reserve label:has(>input[type=radio]){position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;min-height:76px!important;padding:10px 6px 8px;border-radius:14px;background:#ffffffe6;box-shadow:inset 0 0 0 1px #e0e7ff;color:#334155;text-align:center;font:700 11.5px/1.2 Outfit,system-ui,sans-serif;cursor:pointer;transition:box-shadow .2s,background .2s,transform .15s}
+.zipco-pk-reserve label:has(>input[type=radio]):active{transform:scale(.97)}
+.zipco-pk-reserve label:has(>input[type=radio]:checked){background:linear-gradient(160deg,#7c3aed1a,#14b8a617);box-shadow:inset 0 0 0 1.5px #6366f1,0 6px 14px #4f46e524;color:#1e1b4b}
+.zipco-pk-reserve input[type=radio]{appearance:none;-webkit-appearance:none;flex:none;width:20px;height:20px;margin:0;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px #cbd5e1;transition:box-shadow .2s,background .2s;cursor:pointer}
+.zipco-pk-reserve input[type=radio]:checked{background:radial-gradient(circle,#fff 0 28%,transparent 32%),linear-gradient(115deg,#7c3aed,#4f46e5 55%,#0ea5a0);box-shadow:none}
+.zipco-pk-reserve input[type=radio]:disabled{opacity:.6}
+.zipco-pk-reserve fieldset>label.block,.zipco-pk-reserve label.block{display:block;margin-top:8px!important;font:700 12px/1.3 Outfit,system-ui,sans-serif;color:#334155}
+.zipco-pk-reserve label.block input,.zipco-pk-reserve label.block select,.zipco-pk-reserve label.block textarea{display:block;width:100%;min-height:46px;margin-top:6px!important;padding:10px 12px!important;border:0!important;border-radius:14px!important;background:#fff!important;box-shadow:inset 0 0 0 1px #c7d2fe;color:#0f172a;font:500 13.5px/1.35 Outfit,system-ui,sans-serif;outline:none}
+.zipco-pk-reserve label.block textarea{resize:none}
+.zipco-pk-reserve label.block input:focus,.zipco-pk-reserve label.block select:focus,.zipco-pk-reserve label.block textarea:focus{box-shadow:inset 0 0 0 2px #6366f1,0 0 0 4px #6366f126}
+.zipco-pk-reserve label.block input[aria-label="Monto de reserva"]{padding-left:30px!important;font-variant-numeric:tabular-nums;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20'%3E%3Ctext x='1' y='15' font-family='Outfit,Arial' font-size='14' font-weight='700' fill='%236366f1'%3E$%3C/text%3E%3C/svg%3E") 14px center/auto no-repeat!important}
+.zipco-pk-reserve[data-nudge="1"] input[aria-label="Monto de reserva"]{animation:zipco-pk-nd1 .9s ease-in-out 2}
+.zipco-pk-reserve[data-nudge="2"] input[aria-label="Monto de reserva"]{animation:zipco-pk-nd2 .9s ease-in-out 2}
+.zipco-pk-reserve label.block small{display:block;margin-top:8px;padding:8px 10px;border-radius:12px;background:#fef2f2;box-shadow:inset 0 0 0 1px #fecaca;color:#991b1b;font:500 11.5px/1.4 Outfit,system-ui,sans-serif}
+.zipco-pk-reserve label.block small:not([role]){background:none;box-shadow:none;padding:0;color:#64748b;font-size:11px;margin-top:5px}
+.zipco-pk-reserve p{margin:8px 0 0!important;font:500 11.5px/1.4 Outfit,system-ui,sans-serif}
+.zipco-pk-reserve p:not([role]){padding:8px 10px;border-radius:12px;background:#f1f5f9;color:#475569}
+.zipco-pk-reserve p[role=status]{display:flex;align-items:center;gap:8px;color:#64748b}
+.zipco-pk-reserve p[role=status]::before{content:"";flex:none;width:14px;height:14px;border-radius:50%;border:2px solid #c7d2fe;border-top-color:#6366f1;animation:zipco-pk-spin .8s linear infinite}
+.zipco-pk-reserve p[role=alert]{padding:8px 10px;border-radius:12px;background:#fef2f2;box-shadow:inset 0 0 0 1px #fecaca;color:#991b1b}
+.zipco-pk-reserve p[role=alert] button{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;font-weight:800;text-decoration:underline;color:#4338ca}
+.zipco-pk-legacy fieldset{display:block!important}
+.zipco-pk-legacy legend{margin-bottom:4px!important}
+.zipco-pk-dialog button:focus-visible,.zipco-pk-dialog input:focus-visible,.zipco-pk-dialog select:focus-visible,.zipco-pk-dialog textarea:focus-visible{outline:3px solid #8b5cf6;outline-offset:2px}
+@media(max-width:350px){.zipco-pk-dialog .zipco-pk-title{font-size:17px}.zipco-pk-reserve label:has(>input[type=radio]){font-size:11px;padding-inline:4px}}
+@media(prefers-reduced-motion:reduce){
+  .zipco-pk-dialog,.zipco-pk-dialog *,.zipco-pk-dialog::before,.zipco-pk-dialog::after{animation:none!important;transition:none!important}
+  .zipco-pk-dialog .zipco-pk-in.zipco-pk-nud1,.zipco-pk-dialog .zipco-pk-in.zipco-pk-nud2,.zipco-pk-reserve[data-nudge] input[aria-label="Monto de reserva"]{box-shadow:inset 0 0 0 2px #7c3aed,0 0 0 6px #8b5cf64d,0 0 20px 6px #8b5cf666!important}
+}
