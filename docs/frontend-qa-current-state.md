@@ -7,6 +7,15 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Abierto: usuario informa parpadeo y movimiento continuo de Solicitudes después
+  de abrir una tarjeta de retiro. No reproducido en Chromium aislado ni en
+  RequestsScreen con cinco tarjetas. Mitigación frontend: pliegue sin interpolar
+  altura en pickup-design=line, fundido conservado, panel sin entrada transformada
+  y overflow-anchor:none. 19 unitarias, siete grupos de interacción y dos grupos
+  de estabilidad aprobados; build QA/PWA aprobado. Pendiente publicación y prueba
+  física: no atribuir causa confirmada a Safari ni declarar resolución.
+  [Evidencia y límites](frontend-pickup-fold-stability-qa.md).
+
 - Retiro sin reserva del cliente: reutiliza la composición verde aprobada con
   arrivalDesign y etiqueta Por orden de llegada junto a Retiro en el local.
   Solo IN_PROGRESS, sin reserva ni modelo listo/recibido, con choice NONE u oferta
