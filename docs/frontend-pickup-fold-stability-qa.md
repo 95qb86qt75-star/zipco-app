@@ -44,9 +44,14 @@ screen-run.mjs; escenarios reutilizados en .cache/arrival-pickup-design/.
 Análisis y preparación inicial/reproducción: 281 s (no separados retrospectivamente).
 Implementación y primera ejecución: 44 s. Verificación/reparación del arnés: 52 s.
 Build 9,79 s Vite en paralelo a las pruebas, no se suma dos veces.
-Documentación/publicación se completan al cierre. La reparación del arnés eliminó
+Documentación inicial y commit/push: 42 s; espera/verificación Vercel: 72 s.
+Cierre documental posterior separado. La reparación del arnés eliminó
 una declaración duplicada; no cambió herramientas versionadas.
 
-Rama qa. Publicación pendiente al redactar. Railway no necesario. Main y producción
+Rama qa. Publicado `5347e7a5df8f70edd61b37b7fb52cb41569dd980`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/7N6ABWh37RVmGMAR1YNgDuSitaq2
+No se repite la comprobación independiente del bundle con el acceso local
+anteriormente limitado por 403 y sin cambios de credenciales/protección.
+Railway no necesario. Main y producción
 intactos. No se declara el fallo resuelto: pedir comprobación física del mismo
 abrir/cerrar después de actualizar QA, sin crear solicitudes ni repetir acciones.

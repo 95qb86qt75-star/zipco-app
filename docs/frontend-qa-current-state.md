@@ -12,7 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   RequestsScreen con cinco tarjetas. Mitigación frontend: pliegue sin interpolar
   altura en pickup-design=line, fundido conservado, panel sin entrada transformada
   y overflow-anchor:none. 19 unitarias, siete grupos de interacción y dos grupos
-  de estabilidad aprobados; build QA/PWA aprobado. Pendiente publicación y prueba
+  de estabilidad aprobados; build QA/PWA aprobado. Publicado QA `5347e7a`,
+  Vercel success del SHA exacto. Pendiente prueba
   física: no atribuir causa confirmada a Safari ni declarar resolución.
   [Evidencia y límites](frontend-pickup-fold-stability-qa.md).
 
