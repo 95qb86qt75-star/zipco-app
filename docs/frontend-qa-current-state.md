@@ -10,8 +10,9 @@ ni convierte pruebas sintéticas en aprobación física.
 - Modalidad/instrucciones del negocio con Glow: dos archivos de Claude
   integrados, pie fijo y componentes reales. Mensaje conserva su predeterminado
   opcional; pago previo conserva consentimiento explícito (sin autoactivación).
-  73 unitarias, 13 grupos visuales más envío real con HTTP simulado y build
-  QA/PWA aprobados. Publicación en preparación; celulares físicos pendientes.
+  73 unitarias, 13 grupos visuales más recorrido completo con HTTP simulado y
+  build QA/PWA aprobados. Publicado QA `f90c4b0`, Vercel success del SHA exacto;
+  celulares físicos pendientes. Artefactos limitados por acceso local previo 403.
   [Alcance, diferencias, pruebas y tiempos](frontend-business-fulfillment-glow-qa.md).
 
 - Cliente Contraponer · 1 vez reutiliza Glow, con frases propias, cambio y
