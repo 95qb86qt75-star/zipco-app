@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Check, ImagePlus, Trash2, X } from 'lucide-react';
+import { CalendarClock, Check, ImagePlus, Trash2, X } from 'lucide-react';
 import type { ChangeKey } from "./AlternativeProposalFields";
 import AlternativeChangeEditor, { type ChangeValues } from "./AlternativeChangeEditor";
 import AlternativeReviewPanel from "../../cards/shared/proposal/AlternativeReviewPanel";
@@ -11,11 +11,32 @@ import type { BusinessRequest, MyOrder } from "../../domain/types";
 type Order = BusinessRequest | MyOrder;
 const field = 'zipco-readable-field w-full rounded-xl border p-3 text-sm';
 
-export function LocalAlternativePhoto({ onFile, onPreview }: { onFile?: (file: File | null, preview: string) => void; onPreview?: (preview: string) => void } = {}) {
+export function LocalAlternativePhoto({ onFile, onPreview, late = false }: { onFile?: (file: File | null, preview: string) => void; onPreview?: (preview: string) => void; late?: boolean } = {}) {
   const [photo, setPhoto] = useState('');
   const [error, setError] = useState('');
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo); }, [photo]);
+  if (late) return <div className="zipco-la-photo">
+    {photo ? <div className="zipco-la-photo-row" data-ready="true">
+      <span className="zipco-la-photo-ic"><img src={photo} alt="Foto preparada para la alternativa" className="zipco-la-photo-img" /><span className="zipco-la-photo-ck"><Check className="h-3 w-3" strokeWidth={3.4} aria-hidden="true" /></span></span>
+      <span className="zipco-la-photo-tx"><b>Imagen adjunta</b><em>Preparada en este dispositivo</em></span>
+      <button type="button" aria-label="Quitar foto preparada" onClick={() => { setPhoto(''); onFile?.(null, ''); onPreview?.(''); }} className="zipco-la-photo-rm"><Trash2 className="h-4 w-4" /></button>
+    </div> : <button type="button" onClick={() => input.current?.click()} className="zipco-la-photo-row">
+      <span className="zipco-la-photo-ic"><ImagePlus className="h-5 w-5" /></span>
+      <span className="zipco-la-photo-tx"><b>Agregar foto de referencia</b><em>Opcional, úsala si ayuda a explicar la propuesta.</em></span>
+    </button>}
+    <p className="zipco-la-fine">{onFile ? 'La foto se cargará al confirmar el envío. JPG, PNG o WebP, hasta 8 MB.' : 'Foto solo en este formulario, sin subir ni guardar. JPG, PNG o WebP, hasta 8 MB.'}</p>
+    {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+    <input ref={input} type="file" hidden accept="image/jpeg,image/png,image/webp" onChange={event => {
+      const file = event.target.files?.[0]; event.target.value = '';
+      if (!file) return;
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size < 1 || file.size > 8 * 1024 * 1024) {
+        setError('Selecciona una imagen JPG, PNG o WebP de hasta 8 MB.'); return;
+      }
+      try { const url = URL.createObjectURL(file); setPhoto(url); onFile?.(file, url); onPreview?.(url); setError(''); }
+      catch { setError('No se pudo preparar la foto. Intenta con otra imagen.'); }
+    }} />
+  </div>;
   return <div>
     {photo ? <div className="flex items-center gap-3 rounded-[18px] bg-emerald-50 p-3 ring-[1.5px] ring-inset ring-emerald-300 dark:bg-emerald-950/30">
       <span className="relative shrink-0">
@@ -62,6 +83,12 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const [sendError, setSendError] = useState('');
   const [checkMessage, setCheckMessage] = useState('');
   const sendLock = useRef(false);
+  // Variante «solicitud atrasada»: negocio (el pedido trae customerName) que prepara su alternativa tras STILL_NEEDED.
+  // Se deduce de datos y callbacks que ya existen (onCheck solo lo entrega ProposalNegotiation en este caso); no del título.
+  const lateProcess = order.requestProcess?.lateInitialResponse;
+  const lateAlt = Boolean(sourceOverride && onCheck) && 'customerName' in order && lateProcess?.status === 'STILL_NEEDED';
+  const lateEdit = lateAlt && !reviewing;
+  const lateScheduleRequired = Boolean(lateProcess?.requiresNewSchedule);
   const current = sourceOverride ? order.requestProcess?.id === source.processId && order.requestProcess.version <= source.expectedVersion
     : alternativeSourceCurrent(source, order, true);
   const validation = reviewAlternative(source, draft);
@@ -113,17 +140,21 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
 
   const originalSchedule = source.needNow ? 'Lo antes posible' : `${source.date || 'Sin fecha disponible'} · ${source.time || 'Sin hora disponible'}`;
   const changeCount = draft.lines.reduce((count, value) => count + value.selected.size, 0) + Number(draft.scheduleChanged);
+  const reviewLabel = editing ? 'Guarda o cierra la edición' : !changeCount ? 'Elige al menos un cambio'
+    : draft.message.trim().length < 3 ? 'Falta explicar el cambio' : 'Revisar alternativa';
   const preparationHint = !changeCount ? 'Elige al menos un cambio.' : draft.message.trim().length < 3
     ? 'Explica el cambio (mínimo 3 caracteres).' : validation.review
       ? `${changeCount} ${changeCount === 1 ? 'cambio listo' : 'cambios listos'} para revisar` : validation.error;
   return <Dialog.Root open onOpenChange={value => { if (!value && !sendLock.current) close(); }}>
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-      <Dialog.Content className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900`}>
-        <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className={`absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full ${reviewing ? '' : 'bg-slate-100 dark:bg-slate-800'}`}><X className="h-5 w-5" /></button></Dialog.Close>
+      <Dialog.Content className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900${lateEdit ? ' zipco-late-alternative' : ''}`}>
+        <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className={`zipco-la-x absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full ${reviewing ? '' : 'bg-slate-100 dark:bg-slate-800'}`}><X className="h-5 w-5" /></button></Dialog.Close>
         <div ref={body} data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
-          <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
-          <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+          {lateEdit && <div className="zipco-la-step"><span className="zipco-la-bars" aria-hidden="true"><i /><i /></span>PASO 1 DE 2 · PREPARAR</div>}
+          <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}${lateEdit ? ' zipco-la-title' : ''}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
+          <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}${lateEdit ? ' zipco-la-sub' : ''}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : lateEdit ? 'Elige qué cambia. El pedido original se conserva y nada se envía todavía.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+          {lateEdit && lateScheduleRequired && <div className="zipco-la-req" role="note"><CalendarClock className="h-[18px] w-[18px] shrink-0" aria-hidden="true" /><span>Ya pasó de hora: elige una <b>nueva fecha y hora</b>.</span></div>}
           {extraFields}
           {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
           <fieldset disabled={!current || sending} className={reviewing ? 'hidden' : ''}>
@@ -146,20 +177,21 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               onApply={applyChange} onRemove={removeChange}
               message={draft.message} setMessage={updateMessage} messageMaxLength={1000}
               explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
-              photoFields={null} />}
-            {line && <div className="mt-4"><LocalAlternativePhoto onFile={onConfirm ? file => setFile(file) : undefined} onPreview={setPreview} /></div>}
+              photoFields={null}
+              late={lateAlt ? { scheduleRequired: lateScheduleRequired, changeCount } : undefined} />}
+            {line && <div className={lateAlt ? '' : 'mt-4'} hidden={lateAlt && changeCount === 0}><LocalAlternativePhoto late={lateAlt} onFile={onConfirm ? file => setFile(file) : undefined} onPreview={setPreview} /></div>}
           </fieldset>
           {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
             photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel} />}
           {reviewing&&validation.review&&(typeof reviewFields==='function'?reviewFields(validation.review):reviewFields)}
         </div>
         <div data-alternative-footer className={`shrink-0 border-t border-slate-200 dark:border-slate-700 ${reviewing ? 'px-5 py-3' : 'bg-white px-[18px] pb-4 pt-2.5 dark:bg-slate-900'}`}>
-          {!reviewing && !editing && <p className="mb-2 text-center text-xs font-semibold text-violet-700 dark:text-violet-200">{preparationHint}</p>}
+          {!reviewing && !editing && (!lateAlt || validation.review || (changeCount > 0 && draft.message.trim().length >= 3)) && <p className="zipco-la-hint-foot mb-2 text-center text-xs font-semibold text-violet-700 dark:text-violet-200" data-late-missing={lateAlt && lateScheduleRequired && changeCount > 0 && (!draft.scheduleChanged || draft.immediate) ? 'true' : undefined}>{preparationHint}{lateAlt && lateScheduleRequired && changeCount > 0 && (!draft.scheduleChanged || draft.immediate) ? ' · falta una fecha y hora programadas' : ''}</p>}
           {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}
           {showErrors && validation.error && <p role="alert" className="mb-2 text-sm text-red-700">{validation.error}</p>}
-          {sendError && <p role="alert" className="mb-2 text-sm text-red-700">{sendError}</p>}
+          {sendError && <p role="alert" className="zipco-la-err mb-2 text-sm text-red-700">{sendError}</p>}
           {checkMessage && <p role="status" className="mb-2 text-sm text-slate-700 dark:text-slate-200">{checkMessage}</p>}
-          {sendError && onCheck && <button type="button" disabled={sending} className="mb-2 min-h-12 w-full rounded-xl border border-violet-300 px-3 font-bold text-violet-800 dark:text-violet-200" onClick={async () => {
+          {sendError && onCheck && <button type="button" disabled={sending} className="zipco-la-check mb-2 min-h-12 w-full rounded-xl border border-violet-300 px-3 font-bold text-violet-800 dark:text-violet-200" onClick={async () => {
             if (sendLock.current) return;
             sendLock.current = true; setSending(true); setCheckMessage('');
             try { const message = await onCheck(); setSendError(''); setCheckMessage(message); }
@@ -177,7 +209,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
                 catch (error) { setSendError(error instanceof Error ? error.message : 'No se pudo confirmar el envío. Reintenta la misma operación.'); }
                 finally { sendLock.current = false; setSending(false); }
               } : undefined} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">{sending ? 'Enviando…' : 'Confirmar y enviar'}</button>
-              : <div className="min-w-0 flex-[1.5]"><button type="button" disabled={!current || editing || !validation.review} onClick={() => { setShowErrors(true); if (current && !editing && validation.review) setReviewing(true); }} className="zipco-alt-go">Revisar alternativa</button></div>}
+              : <div className="min-w-0 flex-[1.5]"><button type="button" disabled={!current || editing || !validation.review} onClick={() => { setShowErrors(true); if (current && !editing && validation.review) setReviewing(true); }} className="zipco-alt-go" data-wait={lateAlt && !validation.review ? 'true' : undefined}>{lateAlt ? <>{reviewLabel}{validation.review && !editing && <i className="zipco-la-bdg" aria-hidden="true">{changeCount}</i>}</> : 'Revisar alternativa'}</button></div>}
           </div>
         </div>
       </Dialog.Content>

@@ -34,3 +34,121 @@
   .zipco-alt-orig::before,.zipco-alt-orig::after,.zipco-alt-go::after { animation:none }
   .zipco-alt-tile { transition:none }
 }
+
+/* ===== Negocio · «Proponer alternativa» tras una solicitud atrasada respondida con STILL_NEEDED (solo la edición inicial). =====
+   Todo va bajo .zipco-late-alternative: los demás consumidores de este archivo no cambian. No anima transform/opacity del contenedor
+   del diálogo (usa translate de Tailwind) ni deja contenido transparente: cada animación termina en su estado visible. */
+@keyframes zipco-la-up { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:none } }
+@keyframes zipco-la-drift1 { 0%,100% { transform:translate(0,0) scale(1) } 50% { transform:translate(-26px,14px) scale(1.2) } }
+@keyframes zipco-la-drift2 { 0%,100% { transform:translate(0,0) scale(1) } 50% { transform:translate(30px,-10px) scale(1.15) } }
+@keyframes zipco-la-pop { 0% { transform:scale(.4); opacity:0 } 60% { transform:scale(1.25); opacity:1 } 100% { transform:scale(1); opacity:1 } }
+@keyframes zipco-la-bar { from { transform:scaleX(0) } to { transform:scaleX(1) } }
+@keyframes zipco-la-pulse { 0% { box-shadow:0 0 0 0 rgba(245,158,11,.45) } 70%,100% { box-shadow:0 0 0 7px rgba(245,158,11,0) } }
+@keyframes zipco-la-glow { 0%,100% { box-shadow:0 8px 20px rgba(79,70,229,.32),0 0 0 0 rgba(20,184,166,0) } 50% { box-shadow:0 10px 26px rgba(79,70,229,.45),0 0 0 5px rgba(20,184,166,.16) } }
+@keyframes zipco-la-dot { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+.zipco-late-alternative.zipco-action-dialog { --zg:linear-gradient(115deg,#7c3aed,#4f46e5 55%,#0ea5a0); isolation:isolate; border-radius:24px; background:#fff; color:#0f172a; box-shadow:0 0 0 1px rgba(99,102,241,.14),0 28px 64px rgba(30,27,75,.42) }
+.zipco-late-alternative::before,.zipco-late-alternative::after { content:""; position:absolute; z-index:0; top:-60px; width:190px; height:150px; border-radius:50%; filter:blur(34px); pointer-events:none }
+.zipco-late-alternative::before { right:-50px; background:rgba(139,92,246,.3); animation:zipco-la-drift1 9s ease-in-out infinite }
+.zipco-late-alternative::after { left:-60px; background:rgba(20,184,166,.24); animation:zipco-la-drift2 11s ease-in-out infinite }
+.zipco-late-alternative [data-alternative-body],.zipco-late-alternative [data-alternative-footer] { position:relative; z-index:1 }
+.zipco-late-alternative [data-alternative-body] { padding:14px 16px 8px }
+.zipco-late-alternative .zipco-la-x { width:44px; height:44px; right:6px; top:6px; background:transparent; color:#64748b }
+.zipco-late-alternative .zipco-la-title { margin:6px 0 0; font-size:19px; letter-spacing:-.02em }
+.zipco-late-alternative .zipco-la-sub { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0 }
+.zipco-la-step { display:flex; align-items:center; gap:8px; font-size:10px; font-weight:800; letter-spacing:.16em; color:#4f46e5 }
+.zipco-la-bars { display:flex; gap:3px; width:46px }
+.zipco-la-bars i { flex:1; height:4px; border-radius:4px; background:#e0e7ff; transform-origin:left }
+.zipco-la-bars i:first-child { background:var(--zg); animation:zipco-la-bar .7s .25s cubic-bezier(.2,.8,.2,1) both }
+.zipco-la-req { display:flex; align-items:center; gap:8px; margin-top:8px; padding:6px 10px; border-radius:12px; background:rgba(255,251,235,.92); box-shadow:inset 0 0 0 1px #fde68a; color:#78350f; font-size:12px; line-height:1.3 }
+.zipco-la-req svg { color:#d97706; animation:zipco-la-dot 1.8s ease-in-out infinite }
+.zipco-la > * { animation:zipco-la-up .38s cubic-bezier(.2,.8,.2,1) both }
+.zipco-la > :nth-child(2) { animation-delay:.04s }.zipco-la > :nth-child(3) { animation-delay:.08s }.zipco-la > :nth-child(n+4) { animation-delay:.12s }
+.zipco-la-orig { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; border-radius:14px; background:rgba(255,255,255,.75); box-shadow:inset 0 0 0 1px #e0e7ff }
+.zipco-la-orig-label { font-size:9px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#6366f1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.zipco-la-orig-main { margin-top:1px; font-size:13.5px; font-weight:800; line-height:1.25; overflow-wrap:anywhere }
+.zipco-la-orig-note { margin-top:1px; font-size:11px; color:#64748b; overflow-wrap:anywhere }
+.zipco-la-orig-price { flex:none; font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; background:var(--zg); -webkit-background-clip:text; background-clip:text; color:transparent }
+.zipco-la-q { margin:12px 0 0; font-size:12.5px; font-weight:800; letter-spacing:.01em; color:#334155 }
+.zipco-la-list { display:flex; flex-direction:column; gap:6px; margin-top:6px }
+.zipco-la-tile { position:relative; display:flex; align-items:center; gap:10px; width:100%; min-height:46px; min-width:0; padding:5px 58px 5px 8px; border:0; border-radius:14px; background:rgba(255,255,255,.82); box-shadow:inset 0 0 0 1px #e5e9fb; color:#0f172a; text-align:left; transition:box-shadow .25s,background .25s,transform .15s }
+.zipco-la-tile:active:not(:disabled) { transform:scale(.985) }
+.zipco-la-tile:disabled { opacity:.4; cursor:not-allowed }
+.zipco-la-tile-ic { display:grid; place-items:center; flex:none; width:30px; height:30px; border-radius:10px; background:#eef2ff; color:#4f46e5; transition:background .3s,color .3s }
+.zipco-la-tile-tx { display:flex; flex:1; align-items:center; justify-content:space-between; gap:8px; min-width:0 }
+.zipco-la-tile-tx b { font-size:13px; font-weight:800; white-space:nowrap }
+.zipco-la-tile-tx em { display:flex; flex-direction:column; align-items:flex-end; gap:1px; min-width:0; font-style:normal; font-variant-numeric:tabular-nums; font-size:11.5px; font-weight:700; line-height:1.15; text-align:right; color:#64748b }
+.zipco-la-tile-tx em span { display:block; overflow-wrap:anywhere }
+.zipco-la-tile-tx em s { font-size:10px; font-weight:600; color:#94a3b8; text-decoration-color:#cbd5e1 }
+.zipco-la-tile::after { content:""; position:absolute; right:10px; top:50%; width:34px; height:20px; margin-top:-10px; border-radius:99px; background-color:#e2e8f0; background-image:radial-gradient(circle,#fff 7.5px,transparent 8px); background-repeat:no-repeat; background-size:20px 20px; background-position:2px 50%; box-shadow:inset 0 0 0 1px rgba(15,23,42,.06); transition:background-position .28s cubic-bezier(.3,1.4,.5,1),background-color .25s; pointer-events:none }
+.zipco-la-tile[data-open="true"] { box-shadow:inset 0 0 0 1.5px #6366f1,0 0 0 4px rgba(99,102,241,.12) }
+.zipco-la-tile[data-active="true"] { background:linear-gradient(90deg,rgba(124,58,237,.09),rgba(20,184,166,.07)); box-shadow:inset 0 0 0 1px rgba(99,102,241,.32) }
+.zipco-la-tile[data-active="true"] .zipco-la-tile-ic { background:var(--zg); color:#fff; animation:zipco-la-pop .45s cubic-bezier(.3,1.4,.5,1) both }
+.zipco-la-tile[data-active="true"] em { color:#4338ca }
+.zipco-la-tile[data-active="true"]::after { background-color:#4f46e5; background-position:calc(100% - 2px) 50% }
+.zipco-la-tile[data-need="true"] { animation:zipco-la-pulse 2.2s ease-out infinite }
+.zipco-la-tile[data-need="true"] em { color:#b45309 }
+.zipco-la-tile[data-need="true"]::after { background-color:#fbbf24 }
+.zipco-la-tile:focus-visible,.zipco-la-chip:focus-visible,.zipco-late-alternative .zipco-alt-go:focus-visible,.zipco-late-alternative .zipco-alt-back:focus-visible,.zipco-late-alternative .zipco-la-x:focus-visible,.zipco-la-photo-row:focus-visible,.zipco-la-photo-rm:focus-visible,.zipco-late-alternative .zipco-ed button:focus-visible,.zipco-late-alternative .zipco-ed-in:focus-visible { outline:3px solid #8b5cf6; outline-offset:2px }
+.zipco-la-editor { scroll-margin:56px 0 12px }
+.zipco-late-alternative .zipco-ed { margin:0; padding:10px 12px; border:0; border-radius:16px; background:rgba(248,250,255,.95); box-shadow:inset 0 0 0 1.5px #a5b4fc; animation:zipco-la-up .3s cubic-bezier(.2,.8,.2,1) both }
+.zipco-late-alternative .zipco-ed-title { font-size:13px }
+.zipco-late-alternative .zipco-ed-link { min-height:44px; color:#4f46e5 }
+.zipco-late-alternative .zipco-ed-in { min-height:44px; border:0; border-radius:12px; background:#fff; box-shadow:inset 0 0 0 1px #c7d2fe; font-variant-numeric:tabular-nums; transition:box-shadow .2s }
+.zipco-late-alternative .zipco-ed-in:focus { box-shadow:inset 0 0 0 2px #6366f1,0 0 0 4px rgba(99,102,241,.15); outline:none }
+.zipco-late-alternative .zipco-ed-save { min-height:44px; border-radius:12px; background:var(--zg); box-shadow:0 6px 14px rgba(79,70,229,.28) }
+.zipco-late-alternative .zipco-ed-save:disabled { box-shadow:none }
+.zipco-late-alternative .zipco-ed-step { background:#e0e7ff; color:#3730a3; transition:transform .12s }
+.zipco-late-alternative .zipco-ed-step:active { transform:scale(.9) }
+.zipco-late-alternative .zipco-ed-plus { background:var(--zg); color:#fff }
+.zipco-late-alternative .zipco-ed-help { font-size:11.5px; line-height:1.35; color:#64748b }
+.zipco-late-alternative .zipco-ed-close { display:block; width:100%; min-height:44px; color:#64748b }
+.zipco-la-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px }
+.zipco-la-chip { position:relative; min-height:34px; padding:0 10px; border:0; border-radius:999px; background:#eef2ff; color:#3730a3; box-shadow:inset 0 0 0 1px #c7d2fe; font-size:11.5px; font-weight:700; line-height:1.2; text-align:left; transition:background .2s,color .2s,transform .12s }
+.zipco-la-chip::after { content:""; position:absolute; inset:-5px -3px }
+.zipco-la-chip:active { transform:scale(.96) }
+.zipco-la-chip[aria-pressed="true"] { background:var(--zg); color:#fff; box-shadow:none }
+.zipco-la-chips[aria-label="Frases sugeridas"] { animation:zipco-la-up .3s both }
+.zipco-la-msg { display:block; margin-top:12px }
+.zipco-la-msg-top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; font-size:12.5px; font-weight:800; letter-spacing:.01em; color:#334155 }
+.zipco-la-msg-top i { font-style:normal; font-size:11px; font-weight:500; color:#94a3b8; font-variant-numeric:tabular-nums }
+.zipco-late-alternative .zipco-la-ta { display:block; min-height:62px; margin-top:6px; padding:10px 12px; border-radius:14px; font-size:13px; background:rgba(255,255,255,.9); box-shadow:inset 0 0 0 1px #c7d2fe; transition:box-shadow .2s }
+.zipco-late-alternative .zipco-la-ta:focus { background:#fff; box-shadow:inset 0 0 0 2px #6366f1,0 0 0 4px rgba(99,102,241,.15) }
+.zipco-la-hint { display:block; margin-top:5px; font-size:11px; font-weight:400; line-height:1.35; color:#64748b }
+.zipco-la-photo { margin-top:8px }
+.zipco-la-photo-row { display:inline-flex; align-items:center; gap:8px; min-height:44px; max-width:100%; padding:0 14px 0 6px; border:1px dashed #a5b4fc; border-radius:999px; background:rgba(255,255,255,.85); color:#3730a3; text-align:left; transition:background .25s,border-color .25s }
+.zipco-la-photo-row[data-ready="true"] { padding-right:4px; border:1px solid #34d399; background:#ecfdf5; color:#065f46 }
+.zipco-la-photo-ic { position:relative; display:grid; place-items:center; flex:none; width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#ede9fe,#cffafe); color:#4f46e5 }
+.zipco-la-photo-row[data-ready="true"] .zipco-la-photo-ic { animation:zipco-la-pop .4s cubic-bezier(.3,1.4,.5,1) both }
+.zipco-la-photo-img { width:32px; height:32px; border-radius:50%; object-fit:cover }
+.zipco-la-photo-ck { position:absolute; right:-4px; top:-4px; display:grid; place-items:center; width:16px; height:16px; border-radius:50%; background:#10b981; color:#fff; box-shadow:0 0 0 2px #fff }
+.zipco-la-photo-tx { min-width:0 }
+.zipco-la-photo-tx b { display:block; font-size:12.5px; font-weight:800 }
+.zipco-la-photo-tx em { display:none }
+.zipco-la-photo-rm { display:grid; place-items:center; flex:none; width:44px; height:44px; border:0; border-radius:50%; background:transparent; color:#047857 }
+.zipco-la-fine { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0 }
+.zipco-late-alternative [data-alternative-footer] { padding:8px 16px 14px; background:rgba(255,255,255,.94); backdrop-filter:blur(8px); border-top:1px solid #eef0fb }
+.zipco-late-alternative .zipco-la-hint-foot { margin-bottom:7px; font-size:11.5px; font-weight:700; color:#4f46e5 }
+.zipco-late-alternative .zipco-la-hint-foot[data-late-missing="true"] { color:#b45309 }
+.zipco-late-alternative .zipco-la-err { padding:8px 10px; border-radius:12px; background:#fef2f2; font-size:12.5px; line-height:1.35 }
+.zipco-late-alternative .zipco-la-check { min-height:46px; border-radius:12px; border:1.5px solid #c4b5fd; font-size:13px }
+.zipco-late-alternative .zipco-alt-back { flex:.8; min-height:46px; border:1px solid #c7d2fe; font-size:14px }
+.zipco-late-alternative .zipco-alt-go { display:flex; align-items:center; justify-content:center; gap:8px; min-height:46px; padding:6px 12px; font-size:14px; background:var(--zg); box-shadow:0 8px 20px rgba(79,70,229,.32); animation:zipco-la-glow 2.6s ease-in-out infinite }
+.zipco-late-alternative .zipco-alt-go::after { display:none }
+.zipco-late-alternative .zipco-alt-go:disabled { animation:none; box-shadow:none; filter:none; opacity:1; background:#e2e8f0; color:#64748b }
+.zipco-la-bdg { display:grid; place-items:center; min-width:20px; height:20px; padding:0 5px; border-radius:99px; background:rgba(255,255,255,.25); font-size:11px; font-weight:800; font-style:normal; animation:zipco-la-pop .4s cubic-bezier(.3,1.4,.5,1) both }
+.dark .zipco-late-alternative.zipco-action-dialog { background:#0b1020; color:#f1f5f9; box-shadow:0 0 0 1px #243056,0 28px 64px rgba(0,0,0,.6) }
+.dark .zipco-la-q,.dark .zipco-la-msg-top { color:#e2e8f0 }
+.dark .zipco-la-orig,.dark .zipco-la-tile:not([data-active="true"]) { background:#0f1730; box-shadow:inset 0 0 0 1px #243056 }
+.dark .zipco-la-tile { color:#e2e8f0 }
+.dark .zipco-la-tile-tx em,.dark .zipco-la-orig-note,.dark .zipco-la-hint,.dark .zipco-late-alternative .zipco-ed-help { color:#94a3b8 }
+.dark .zipco-la-tile[data-active="true"] em { color:#a5b4fc }
+.dark .zipco-late-alternative .zipco-ed { background:#0d1530; box-shadow:inset 0 0 0 1.5px #6366f1 }
+.dark .zipco-late-alternative .zipco-ed-in,.dark .zipco-late-alternative .zipco-la-ta { background:#070b18; color:#f1f5f9; box-shadow:inset 0 0 0 1px #2a3766 }
+.dark .zipco-la-chip { background:#162046; color:#c7d2fe; box-shadow:inset 0 0 0 1px #2a3766 }
+.dark .zipco-late-alternative [data-alternative-footer] { background:rgba(11,16,32,.94); border-top-color:#1e2a52 }
+.dark .zipco-late-alternative .zipco-alt-back { background:#0f172a; color:#ddd6fe; border-color:#3b4a80 }
+.dark .zipco-late-alternative .zipco-alt-go:disabled { background:#1a2346; color:#8b9bc0 }
+@media (prefers-reduced-motion:reduce) {
+  .zipco-late-alternative,.zipco-late-alternative *,.zipco-late-alternative::before,.zipco-late-alternative::after { animation:none !important; transition:none !important }
+}
+@media (max-width:350px) { .zipco-la-tile { padding-right:54px }.zipco-la-tile-tx b { font-size:12px }.zipco-la-orig-price { font-size:17px } }

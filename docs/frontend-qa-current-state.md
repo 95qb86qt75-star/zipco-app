@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- D · Glow: formulario inicial de alternativa del negocio para STILL_NEEDED
+  integrado desde tres archivos completos de Claude. Filas inline, atajos de
+  Santiago, frases, borrador/foto conservados y revisión/envío/holograma reales.
+  84 unitarias, ocho grupos de navegador y build QA/PWA aprobados. Publicación
+  pendiente de verificación; iPhone/Android físicos pendientes.
+  [Alcance, diferencias, pruebas y tiempos](frontend-late-alternative-glow-qa.md).
+
 - CliU28: consulta «¿Todavía necesitas este pedido?» del cliente integrada desde
   los dos archivos completos de Claude. Diseño acotado a AWAITING_CUSTOMER;
   negocio/STILL_NEEDED y avisos conservados. Mano visible/activa, pausa correcta
