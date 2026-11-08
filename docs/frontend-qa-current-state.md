@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Glow ampliado a la alternativa inicial normal del negocio: mismo diseño,
+  mensaje y cambio real obligatorios, disponibilidad opcional. Atrasadas
+  conservan su regla de nueva hora. Un solo archivo de código modificado;
+  22 unitarias, tres recorridos de navegador y build QA/PWA aprobados.
+  Publicación en preparación; comprobación física pendiente.
+  [Alcance, pruebas y tiempos](frontend-normal-alternative-glow-qa.md).
+
 - D · Glow: formulario inicial de alternativa del negocio para STILL_NEEDED
   integrado desde tres archivos completos de Claude. Filas inline, atajos de
   Santiago, frases, borrador/foto conservados y revisión/envío/holograma reales.
