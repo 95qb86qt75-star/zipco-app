@@ -63,9 +63,18 @@ Lectura inicial previa al cronómetro no estimada. Análisis 40 s; integración 
 revisión 48 s; preparación de pruebas 84 s; ejecución/revisión 249 s, incluidos
 ajustes del arnés. Unitarias: 1,03 s de ejecución del runner, solapadas con la
 preparación. Build: 7,05 s de bundling más generación PWA, dentro de la ventana
-de ejecución/revisión, sin sumarlo de nuevo. Documentación y publicación se
-registran al cierre. Estos tiempos no miden rendimiento de la app.
+de ejecución/revisión, sin sumarlo de nuevo. Documentación/preparación del commit
+74 s; publicación/verificación 81 s (incluye push de 3,3 s, espera Vercel y
+comprobación GET fallida por HTTP 403). Cierre documental posterior no incluido.
+Estos tiempos no miden rendimiento de la app.
 
-Rama qa. Publicación y SHA: pendientes de verificación al preparar este informe.
+Publicado en qa: 578fe17ad3fd41903b992e70e4b6e6499acffe2e.
+Vercel confirmó success para ese SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/DUSiFRdhqxPZZZHiSffbiQh4Q8dx.
+La comprobación adicional GET de artefactos/proyecto/alias con la herramienta
+existente no pudo completarse: HTTP 403 al consultar metadatos de Vercel con
+el acceso local. No se cambiaron credenciales, protección ni herramientas.
+Success de Vercel no se presenta como comprobación independiente del bundle.
+El cierre documental posterior queda local, sin push ni segundo despliegue.
 Railway innecesario. Main conserva 8295ab8c6024ab20851ebd371308d2f299b4668f;
 producción intacta. Carpeta previa ajena de docs/design-handoffs conservada.
