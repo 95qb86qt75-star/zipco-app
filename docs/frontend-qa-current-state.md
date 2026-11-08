@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   conexión mínima en CustomerReceiptFlowCardView. Variante solo FREE/CONFIRMED,
   IN_PROGRESS y horario advisory, sin modelo listo/recibido. Boleto real, nota,
   condiciones y contacto/opciones con permisos conservados. 18 pruebas y siete
-  grupos Chromium aprobados, build QA/PWA aprobado. Publicación en preparación;
+  grupos Chromium aprobados, build QA/PWA aprobado. Publicado QA `65f95f0`,
+  Vercel success del SHA exacto;
   celulares pendientes. [Detalle y tiempos](frontend-confirmed-free-pickup-qa.md).
 
 - Decisión de reserva del cliente con Glow integrada en TSX y CSS propio nuevo:

@@ -57,7 +57,13 @@ Intervalos registrados, sin sumar esperas paralelas dos veces:
 - Verificación y corrección focalizada: 192 s, incluye reparación de la entrada
   transparente y del escenario que intentaba tocar el detalle todavía plegado.
 - Build y espera de lectura de resultado: 60 s; ejecución Vite 10,35 s.
-- Documentación y publicación: se completan al cierre.
+- Documentación previa al commit: 69 s. Publicación/verificación: 76 s.
+  Cierre documental posterior separado; no incluido en esos intervalos.
 
-Rama qa. Publicación pendiente al redactar. Railway no necesario. Main y producción
+Rama qa, commit publicado `65f95f04b74b3a8f7a30c4013e476904378e3cda`.
+Vercel informó success del SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/3xHEcuAfaEk8zyfRvdsPQFudVDLy
+No repetida verificación independiente del bundle servido: el acceso local existente
+ya responde 403, sin cambios de credenciales/protección que justifiquen repetirla.
+Railway no necesario. Main y producción
 no modificados. Carpeta ajena de design-handoffs conservada. Dist generado se excluye.
