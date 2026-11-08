@@ -291,6 +291,11 @@
 .zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condt b{display:block;margin-top:1px;font-size:12.5px;font-weight:800;color:#0f172a;overflow-wrap:anywhere}
 .zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condg{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#0f766e;background:#fff;box-shadow:inset 0 0 0 1px #0f766e33}
 /* Contacto y opciones: una tarjeta + cancelar aparte */
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-title{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#065f46}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-title>b{font-size:13px}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-title>span{border:1px solid #6ee7b7;border-radius:99px;padding:3px 8px;background:#d1fae5;font-size:11px;font-weight:800}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-copy{margin:7px 0 10px;color:#475569;font-size:12px;line-height:1.4}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival .zipco-pickup-how-t{display:none}
 .zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-ct{gap:10px}
 .zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cc{overflow:hidden;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e22,0 3px 12px #0f766e14}
 .zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:11px;width:100%;min-height:60px;margin:0;padding:11px 12px;border:0;border-radius:0;background:linear-gradient(90deg,#ecfdf5,#fff);text-align:left;font:inherit;color:#0f172a;cursor:pointer;transition:background .2s}

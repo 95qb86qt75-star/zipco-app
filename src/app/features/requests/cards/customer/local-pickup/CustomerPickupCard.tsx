@@ -10,14 +10,14 @@ const OWN_CLICK='button,a,input,textarea,select,summary,[role="button"],[role="t
 
 const RAIL_COPY={you:{label:'TÚ',text:'Aceptaste'},business:{label:'NEGOCIO',waiting:'Preparando',ready:'Listo'},third:{label:'RETIRO',waiting:'Pendiente',ready:'¡Listo!',received:'Recibido'}};
 
-export default function CustomerPickupCard({id,name,product,price,expanded,onToggle,ready,busy=false,recovery,children,lineDesign=false,confirmedFreeDesign=false}:{id:number;name:string;product:string;price:number|null;expanded:boolean;onToggle:()=>void;ready?:ReadyModel;busy?:boolean;recovery?:ReactNode;children:ReactNode;lineDesign?:boolean;confirmedFreeDesign?:boolean}){
+export default function CustomerPickupCard({id,name,product,price,expanded,onToggle,ready,busy=false,recovery,children,lineDesign=false,confirmedFreeDesign=false,arrivalDesign=false}:{id:number;name:string;product:string;price:number|null;expanded:boolean;onToggle:()=>void;ready?:ReadyModel;busy?:boolean;recovery?:ReactNode;children:ReactNode;lineDesign?:boolean;confirmedFreeDesign?:boolean;arrivalDesign?:boolean}){
  const received=ready?.stage==='received'||ready?.stage==='finishing';
  const total=<span className="zipco-pickup-c-total"><b data-unknown={price===null}>{price===null?'Total por comprobar':'$'+price.toLocaleString('es-CL')}</b><small>ACORDADO</small></span>;
 
  // «Pedido listo» / «Producto recibido»: se conserva la composición anterior tal cual (fuera del alcance del rediseño).
  // Variantes con cabecera «de línea»: pago previo pendiente (`lineDesign`) y reserva sin pago previo confirmada (`confirmedFreeDesign`).
  // Ambas las decide el contenedor con datos del servidor; `lineDesign` tiene prioridad y «pedido listo / recibido» (`ready`) conserva siempre la composición anterior.
- const design:'line'|'confirmed'|null=ready?null:lineDesign?'line':confirmedFreeDesign?'confirmed':null;
+ const design:'line'|'confirmed'|null=ready?null:lineDesign?'line':confirmedFreeDesign||arrivalDesign?'confirmed':null;
  if(!design)return <article id={`order-${id}`} tabIndex={-1} className="zipco-pickup-c scroll-mb-36" data-ready={!!ready} data-leaving={ready?.stage==='finishing'} aria-busy={busy}>
   <button type="button" className="zipco-pickup-c-head" aria-expanded={expanded} aria-controls={`receipt-detail-${id}`} onClick={onToggle}>
    <span className="zipco-pickup-c-tile"><Package size={22}/></span>
@@ -38,7 +38,7 @@ export default function CustomerPickupCard({id,name,product,price,expanded,onTog
  return <article id={`order-${id}`} tabIndex={-1} className="zipco-pickup-c scroll-mb-36" data-ready={false} data-stage="wait" data-pickup-design="line" data-pickup-tone={design==='confirmed'?'confirmed':undefined} aria-busy={busy}>
   <div className="zipco-pickup-c-hd" onClick={toggleFromHeader}>
    <div className="zipco-pickup-c-top">
-    <span className="zipco-pickup-c-state"><i aria-hidden="true">{design==='confirmed'?<Check size={13} strokeWidth={3.2}/>:<Hourglass size={13} strokeWidth={2.8}/>}</i><b>{design==='confirmed'?'Pendiente de retiro':'Esperando al negocio'}</b></span>
+    <span className="zipco-pickup-c-state"><i aria-hidden="true">{design==='confirmed'?<Check size={13} strokeWidth={3.2}/>:<Hourglass size={13} strokeWidth={2.8}/>}</i><b>{arrivalDesign?'Retiro en el local':design==='confirmed'?'Pendiente de retiro':'Esperando al negocio'}</b></span>
     <button type="button" className="zipco-pickup-c-toggle" data-open={expanded} aria-expanded={expanded} aria-controls={`receipt-detail-${id}`} onClick={e=>{e.stopPropagation();onToggle();}}>
      <span className="zipco-pickup-c-hand" aria-hidden="true"><svg width="24" height="28" viewBox="0 -5 24 29" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><g className="zipco-pickup-c-w1" stroke="#f59e0b"><path d="M6.2 1.2a3.4 3.4 0 0 1 3.6 0"/></g><g className="zipco-pickup-c-w2" stroke="#f59e0b"><path d="M4.2 -1.4a6.6 6.6 0 0 1 7.6 0"/></g><path d="M10 9.5V4a2 2 0 0 0-4 0v10"/><path d="M14 10V9a2 2 0 0 0-4 0v1"/><path d="M18 11v-1a2 2 0 0 0-4 0v1"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></span>
      <span>{expanded?'Ocultar':'Ver detalle'}</span>

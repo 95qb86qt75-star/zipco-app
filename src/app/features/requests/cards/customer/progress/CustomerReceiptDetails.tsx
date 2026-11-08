@@ -141,7 +141,7 @@ function CustomerPickupLineDetails({summary,onConditions,onContact,blocked=false
  *  - Ambas pestañas siempre montadas (la inactiva solo lleva `hidden`); teclado ←/→/Inicio/Fin.
  *  - Avisos y recuperación (`parts.alerts`) fuera de las pestañas; un error nuevo en la pestaña oculta cambia a ella.
  *  - Solo se muestra lo que el controlador entrega (`parts.has`, `onContact`). No se cancela ni se retira nada al cambiar de pestaña o plegar. */
-function CustomerPickupConfirmedDetails({summary,onConditions,onContact,blocked=false,parts}:{summary:string;onConditions:()=>void;onContact?:()=>void;blocked?:boolean;parts:AvailabilityPostActionParts|null}){
+function CustomerPickupConfirmedDetails({summary,onConditions,onContact,blocked=false,parts,arrivalDesign=false}:{summary:string;onConditions:()=>void;onContact?:()=>void;blocked?:boolean;parts:AvailabilityPostActionParts|null;arrivalDesign?:boolean}){
  const id=useId(),[tab,setTab]=useState<0|1>(0);
  const has=parts?.has;
  const firstHas=!!(has?.instructions||has?.reservation);
@@ -183,8 +183,9 @@ function CustomerPickupConfirmedDetails({summary,onConditions,onContact,blocked=
   {tabbed&&<div className="zipco-pickup-tabs" role="tablist" aria-label="Detalle del retiro">{tabBtn(0,'Cómo retirar',<MapPin size={14} strokeWidth={2.4} aria-hidden="true"/>)}{tabBtn(1,'Contacto y opciones',<MessageCircle size={14} strokeWidth={2.4} aria-hidden="true"/>)}</div>}
   <div ref={panels[0]} id={`${id}-panel-0`} className="zipco-pickup-panel" {...(tabbed?{role:'tabpanel','aria-labelledby':`${id}-tab-0`}:{})} hidden={hide(0)}>
    <div className="zipco-pk-sh">
+    {arrivalDesign&&has?.instructions&&<div className="zipco-pk-tk zipco-pk-arrival"><div className="zipco-pk-arrival-title"><b>Retiro en el local</b><span>Por orden de llegada</span></div><p className="zipco-pk-arrival-copy">El producto no queda reservado y podría agotarse.</p>{parts?.instructions}</div>}
     {has?.reservation&&<div className="zipco-pk-tk"><span className="zipco-pk-stamp" aria-hidden="true"><Check size={18} strokeWidth={3}/></span>{parts?.reservation}</div>}
-    {has?.instructions&&<div className="zipco-pk-bub">{React.isValidElement<{variant?:'default'|'customer'|'customer-line'}>(parts?.instructions)?React.cloneElement(parts.instructions,{variant:'customer-line'}):parts?.instructions}</div>}
+    {!arrivalDesign&&has?.instructions&&<div className="zipco-pk-bub">{React.isValidElement<{variant?:'default'|'customer'|'customer-line'}>(parts?.instructions)?React.cloneElement(parts.instructions,{variant:'customer-line'}):parts?.instructions}</div>}
     <button type="button" className="zipco-pk-cond" aria-haspopup="dialog" onClick={onConditions}><span className="zipco-pk-condi" aria-hidden="true"><CircleCheck size={15} strokeWidth={2.5}/></span><span className="zipco-pk-condt"><small>CONDICIONES ACEPTADAS</small><b>{summary}</b></span><span className="zipco-pk-condg" aria-hidden="true"><ChevronRight size={16} strokeWidth={2.6}/></span></button>
    </div>
    <p className="zipco-pickup-pay">ZIPCO no procesa ni verifica pagos.</p>
@@ -255,4 +256,4 @@ function StandardPickupDetails({summary,onConditions,onContact,blocked=false,par
  </div>;
 }
 
-export function CustomerPickupDetails({lineDesign=false,confirmedFreeDesign=false,...props}:React.ComponentProps<typeof StandardPickupDetails>&{lineDesign?:boolean;confirmedFreeDesign?:boolean}){return lineDesign?<CustomerPickupLineDetails {...props}/>:confirmedFreeDesign?<CustomerPickupConfirmedDetails {...props}/>:<StandardPickupDetails {...props}/>;}
+export function CustomerPickupDetails({lineDesign=false,confirmedFreeDesign=false,arrivalDesign=false,...props}:React.ComponentProps<typeof StandardPickupDetails>&{lineDesign?:boolean;confirmedFreeDesign?:boolean;arrivalDesign?:boolean}){return lineDesign?<CustomerPickupLineDetails {...props}/>:confirmedFreeDesign||arrivalDesign?<CustomerPickupConfirmedDetails {...props} arrivalDesign={arrivalDesign}/>:<StandardPickupDetails {...props}/>;}

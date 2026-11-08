@@ -50,6 +50,9 @@ sus propietarios actuales.
   Variante B Línea: pago previo advisory pendiente de confirmación (`lineDesign`).
   Reserva gratuita advisory confirmada en IN_PROGRESS, sin modelo listo/recibido:
   `confirmedFreeDesign`, con boleto verde y CustomerPickupConfirmedDetails.
+  Retiro sin reserva explícita en IN_PROGRESS y sin modelo listo/recibido:
+  `arrivalDesign` reutiliza esa composición con indicaciones y Por orden de llegada,
+  sin boleto de reserva. No altera LocalPickupInformationCard del contrato E200.
   Las selecciona CustomerReceiptFlowCardView; detalles en CustomerReceiptDetails.tsx. Otros estados
   usan la composición estándar. Reserva y ventanas siguen siendo componentes reales.
 - **Detalle de los pedidos de producto:**
