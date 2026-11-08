@@ -54,9 +54,15 @@ regresión focalizada 288 s; preparación de navegador 20 s; ejecución/revisió
 431 s, incluidos ajustes del fixture. Preparación adicional de escenarios se
 solapó con la ventana de implementación; no representa tiempo puro de edición.
 Build se ejecutó en paralelo con navegador, sin sumar sus 12,17 s otra vez.
-Lectura inicial anterior al cronómetro no estimada. Cierre/publicación al
-verificar. Estas mediciones no describen rendimiento de la app.
+Lectura inicial anterior al cronómetro no estimada. Documentación/preparación
+del commit 199 s; publicación/verificación 60 s (push 2,93 s y espera incluidos).
+Cierre documental posterior no incluido. Estas mediciones no describen
+rendimiento de la app.
 
-Rama qa; publicación en preparación. La comprobación de artefactos con acceso
+Publicado en qa: dca1a77a76c44948e3a1bdf55545a7e225141863. Vercel success para
+ese SHA exacto: https://vercel.com/zipco-s-projects/zipco-app/9mTmJCi7GyE3inBF7TNdidU7CCCA.
+La memoria de cierre queda local, sin segundo push/despliegue.
+La comprobación de artefactos con acceso
 local previamente rechazado (403) no se repite sin un cambio de acceso; se
-verificará el estado Vercel del SHA exacto.
+verificó el estado Vercel del SHA exacto. No se afirma verificación independiente
+del bundle servido.
