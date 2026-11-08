@@ -8,10 +8,11 @@ ni convierte pruebas sintéticas en aprobación física.
 ## Decisiones vigentes
 
 - Cliente Contraponer · 1 vez reutiliza Glow, con frases propias, cambio y
-  mensaje obligatorios, sin exigir nueva fecha válida. Una prop exclusivamente
+  mensaje obligatorios, sin exigir cambiar una fecha vigente válida. Una prop exclusivamente
   visual desde ProposalNegotiation; límite y envío intactos. 55 unitarias,
   dos recorridos de contrapropuesta, regresión del negocio y build aprobados.
-  Publicación en preparación; iPhone/Android físicos pendientes.
+  Publicado QA `abf6e40`, Vercel success del SHA exacto; iPhone/Android físicos
+  pendientes. Artefactos no verificados independientemente por acceso previo 403.
   [Alcance, pruebas y tiempos](frontend-counterproposal-glow-qa.md).
 
 - Corregida la propuesta entrante oculta al mantener seleccionado el resumen

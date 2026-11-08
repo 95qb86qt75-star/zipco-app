@@ -48,8 +48,12 @@ opcional y cabeceras/UUID existentes. Railway no necesario, main/producción int
 Lectura inicial anterior al cronómetro no estimada. Análisis 90 s; implementación
 55 s; preparación 24 s; ejecución/revisión 127 s, incluida adaptación del fixture.
 Build y unitarias (892 ms runner) se solapan con esa ventana, sin sumarlos otra
-vez. Documentación/publicación se registran al cierre. No son métricas de la app.
+vez. Documentación/preparación del commit 47 s; publicación/verificación 66 s,
+incluidos push 3,60 s y espera. Cierre documental posterior no incluido.
+No son métricas de la app.
 
-Rama qa; publicación en preparación. Se verificará Vercel para el SHA exacto.
+Publicado en qa: abf6e40f66c4427d39429b9f783737b344e4c5c1. Vercel success para
+ese SHA: https://vercel.com/zipco-s-projects/zipco-app/7PA5GuFSv1wwQymy69dXvCtKTK2s.
+Cierre documental local, sin segundo push/despliegue.
 Verificación independiente de artefactos limitada por el acceso local 403 ya
 documentado; no se repite sin un cambio de acceso.
