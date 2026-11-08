@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Decisión de reserva del cliente con Glow integrada en TSX y CSS propio nuevo:
+  nota plegable, oferta real, contacto explícito y pie fijo. Consulta, envío,
+  excepciones sin preview y bloqueos preservados. 53 unitarias, 14 grupos del
+  diálogo y dos recorridos de AvailabilityFlowCard aprobados; build QA/PWA listo.
+  Publicación en preparación; comprobación física pendiente.
+  [Alcance, diferencias, pruebas y tiempos](frontend-reservation-decision-glow-qa.md).
+
 - Modalidad/instrucciones del negocio con Glow: dos archivos de Claude
   integrados, pie fijo y componentes reales. Mensaje conserva su predeterminado
   opcional; pago previo conserva consentimiento explícito (sin autoactivación).
