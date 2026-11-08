@@ -60,8 +60,11 @@ No migraciones ni variables nuevas; Railway innecesario. Main/producción intact
 Lectura inicial previa al cronómetro no estimada. Análisis 66 s; implementación
 121 s; preparación 38 s; ejecución/revisión 186 s (incluye preparar los dos
 escenarios adicionales del padre). Build y unitarias (1,96 s runner) solapados
-con esa ventana, sin sumarlos otra vez. Cierre/publicación al verificar. No son
-mediciones del rendimiento de la app.
+con esa ventana, sin sumarlos otra vez. Documentación/preparación del commit
+76 s; publicación/verificación 72 s, incluidos push 3,56 s y espera.
+Cierre documental posterior no incluido. No son mediciones del rendimiento de la app.
 
-Rama qa, publicación en preparación. Verificación independiente de artefactos
+Publicado en qa: 4920bf3cf423a2e61d18856c7c16ac3ddc45d837. Vercel success para
+ese SHA: https://vercel.com/zipco-s-projects/zipco-app/HVU2LR2ttjrH8sMu8kU77XAVVyCn.
+Cierre documental local, sin segundo push/despliegue. Verificación independiente de artefactos
 limitada por acceso local 403 anterior; no se cambian credenciales/protección.
