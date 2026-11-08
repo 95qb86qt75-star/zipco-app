@@ -75,6 +75,10 @@
 .zipco-pw .zipco-wait-details{margin-top:9px;padding-top:9px}
 .zipco-pw .zipco-proposal-entry-actions{margin-top:10px;gap:7px}
 .zipco-pw .zipco-proposal-entry-actions .zipco-glass-btn{min-height:44px}
+/* Clip each composited glass layer to the pill; no backdrop sampling rectangle. */
+.zipco-pw .zipco-proposal-entry-actions :is(.zipco-accept-wrap,.zipco-glass-wrap){border-radius:999px;overflow:hidden;isolation:isolate;clip-path:inset(0 round 999px)}
+.zipco-pw .zipco-proposal-entry-actions :is(.zipco-accept-btn,.zipco-glass-btn){-webkit-backdrop-filter:none!important;backdrop-filter:none!important;filter:none!important}
+.zipco-pw .zipco-proposal-entry-actions button:focus-visible{outline-offset:-3px}
 .zipco-pw .zipco-proposal-entry-actions .zipco-accept-label{text-align:center;padding-right:30px}
 .zipco-pw [role="alert"]{margin-top:9px;padding:8px 10px;border-radius:12px;background:rgba(244,63,94,.14);box-shadow:inset 0 0 0 1px rgba(251,113,133,.5);font-size:12px;line-height:1.35;color:#ffe4e6}
 .zipco-pw button:focus-visible{outline:2px solid #f1d054;outline-offset:3px}

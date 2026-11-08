@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Botones de acceso de propuesta del cliente: recorte explícito de las capas de
+  vidrio a la píldora y backdrop-filter desactivado solo en esos dos accesos.
+  CSS acotado a zipco-pw/proposal-entry-actions, foco interior visible. Tres anchos
+  y toques aprobados, build QA/PWA aprobado. Publicación en preparación;
+  comprobación física del artefacto rectangular pendiente.
+  [Detalle y tiempos](frontend-proposal-button-clip-qa.md).
+
 - Propuesta por responder del cliente: tarjeta zipco-pw, conversación/confirmación
   zipco-pz y textos de oferta opcionales solo para cliente. Reserva real y aviso
   sin reserva conservados; oferta no se repite en confirmación. Variante negocio
