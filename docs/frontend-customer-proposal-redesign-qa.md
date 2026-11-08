@@ -91,7 +91,12 @@ Análisis 83 s (tras lecturas iniciales no instrumentadas). Integración y prime
 pruebas/preparación 274 s. Preparación/reparación y ejecución focalizada 588 s.
 No se separan retrospectivamente intervalos sin instrumentación independiente.
 Builds se solapan con pruebas; no sumar dos veces sus 7,13/7,12 s Vite.
-Documentación/publicación se completan al cierre. Sin herramientas versionadas nuevas.
+Documentación inicial y commit/push: 93 s; espera/verificación de publicación: 74 s.
+Cierre documental posterior separado. Sin herramientas versionadas nuevas.
 
-Rama qa; publicación pendiente al redactar. Railway no necesario; main y producción
+Rama qa; publicado `23788fcf54f055b7fd0f1a08a8eb86c13b59730b`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/2XAdakd5mNLZDXpCCx6FHjWbx1nh
+No repetida la comprobación independiente de bundles con las credenciales locales
+que previamente respondían 403, sin cambios de acceso que justifiquen repetirla.
+Railway no necesario; main y producción
 intactos. Dist excluido; carpeta de handoff ajena conservada.

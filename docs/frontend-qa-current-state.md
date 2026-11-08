@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   zipco-pz y textos de oferta opcionales solo para cliente. Reserva real y aviso
   sin reserva conservados; oferta no se repite en confirmación. Variante negocio
   y núcleo execute sin cambios. 48 unitarias y recorridos Chromium con HTTP
-  simulado aprobados; build QA/PWA aprobado. Publicación en preparación;
+  simulado aprobados; build QA/PWA aprobado. Publicado QA `23788fc`,
+  Vercel success del SHA exacto;
   iPhone/Android físicos pendientes.
   [Integración, límites y tiempos](frontend-customer-proposal-redesign-qa.md).
 
