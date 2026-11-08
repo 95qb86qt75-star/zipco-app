@@ -195,3 +195,178 @@
   .zipco-chat-title { font-size:13px; }
   .zipco-chat-cell-old,.zipco-chat-cell-new { font-size:12px; }
 }
+
+
+/* ===== Rediseño de la pantalla del CLIENTE =====
+   Todo está bajo .zipco-pz, clase que solo recibe el diálogo del cliente (ProposalNegotiation). El negocio no cambia.
+   Las ventanas de detalle (.zipco-sheet) viven en otro portal, fuera de .zipco-pz: tampoco cambian. */
+@keyframes zipco-pz-bar{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
+@keyframes zipco-pz-spin{to{transform:rotate(360deg)}}
+@keyframes zipco-pz-pop{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes zipco-pz-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Encabezado y barra de progreso */
+.zipco-pz-hd{display:flex;align-items:center;gap:6px}
+.zipco-pz .zipco-pz-hd [class*="text-[22px]"]{font-size:20px;letter-spacing:-.01em}
+.zipco-pz-bk{display:grid;place-items:center;flex:none;width:44px;height:44px;margin:-6px 0 -6px -14px;border:0;background:transparent;padding:0}
+.zipco-pz-bk span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#ede9fe;color:#5b21b6}
+.zipco-pz-bk svg{width:18px;height:18px}
+.zipco-pz-bk:disabled{opacity:.5}
+.zipco-pz-prog{position:absolute;left:0;right:0;top:0;height:3px;z-index:11;background:#ede9fe}
+.zipco-pz-prog i{display:block;height:100%;transform-origin:left;background:linear-gradient(90deg,#7c3aed,#14b8a6);animation:zipco-pz-bar 1.3s ease-out both}
+.zipco-pz button:focus-visible,.zipco-pz input:focus-visible,.zipco-pz textarea:focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
+
+/* Línea de tiempo: riel + nodo + tarjeta */
+.zipco-pz .zipco-chat{gap:14px}
+.zipco-pz .zipco-pz-ev{position:relative;padding-left:26px;align-items:stretch}
+.zipco-pz .zipco-pz-ev::before{content:"";position:absolute;left:8px;top:26px;bottom:-16px;width:2px;border-radius:2px;background:linear-gradient(#c4b5fd,#99f6e4)}
+.zipco-pz .zipco-pz-ev.is-last::before{display:none}
+.zipco-pz-nd{position:absolute;left:0;top:8px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#8b5cf6,#4f46e5);box-shadow:0 0 0 3px #f6f4fd}
+.zipco-pz-nd.t{background:linear-gradient(145deg,#14b8a6,#0ea5e9)}
+.zipco-pz-nd.f{background:linear-gradient(145deg,#f59e0b,#ef4444)}
+.zipco-pz-nd svg{width:10px;height:10px}
+/* Tú: tarjeta clara con borde violeta */
+.zipco-pz .zipco-chat-mine{max-width:none;min-width:0;border-radius:18px;padding:9px 11px 10px;color:#1e1b4b;background:#fff;box-shadow:inset 0 0 0 1.5px #ddd6fe,0 4px 12px rgba(91,79,240,.08)}
+.zipco-pz .zipco-chat-mine .zipco-chat-who{color:#6d28d9}
+.zipco-pz .zipco-chat-mine .zipco-chat-money{color:#4c1d95;font-size:19px;font-weight:800}
+.zipco-pz .zipco-chat-mine .zipco-chat-thumb{background:linear-gradient(135deg,#c4b5fd,#7dd3c8)}
+/* El negocio: tarjeta oscura con aurora estática */
+.zipco-pz .zipco-chat-theirs{max-width:none;border-radius:18px;padding:9px 11px 10px}
+.zipco-pz .zipco-chat-theirs .zipco-chat-who{font-size:9.5px}
+.zipco-pz .zipco-chat-theirs.is-final{box-shadow:0 10px 22px rgba(30,27,75,.3),inset 0 0 0 1px rgba(251,191,36,.4)}
+.zipco-pz .zipco-chat-theirs.is-final .zipco-chat-who{color:#fde68a}
+.zipco-pz .zipco-chat-theirs.is-final::before{background:radial-gradient(ellipse,rgba(245,158,11,.5),rgba(245,158,11,.16) 45%,transparent 74%)}
+.zipco-pz .zipco-chat-offer{margin-top:6px;padding:0;background:none;box-shadow:none}
+.zipco-pz .zipco-chat-price{font-size:23px}
+/* Mini tabla «antes → ahora» */
+.zipco-pz-dt{margin-top:8px;padding:0 10px;border-radius:12px;background:rgba(255,255,255,.08)}
+.zipco-pz-dt>div{display:grid;grid-template-columns:minmax(52px,auto) minmax(0,1fr) 14px auto;align-items:center;gap:6px;padding:6px 0}
+.zipco-pz-dt>div+div{border-top:1px solid rgba(255,255,255,.1)}
+.zipco-pz-dt span{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#99f6e4;overflow-wrap:anywhere}
+.zipco-pz-dt s{min-width:0;font-size:12px;color:#94a3b8;text-decoration-thickness:1px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.zipco-pz-dt i{font-style:normal;color:#6ee7b7;text-align:center}
+.zipco-pz-dt b{min-width:0;font-size:13px;font-weight:800;color:#6ee7b7;font-variant-numeric:tabular-nums;text-align:right;overflow-wrap:anywhere}
+.zipco-chat-mine .zipco-pz-dt{background:#f5f3ff}
+.zipco-chat-mine .zipco-pz-dt span{color:#6d28d9}
+.zipco-chat-mine .zipco-pz-dt b,.zipco-chat-mine .zipco-pz-dt i{color:#047857}
+.zipco-chat-mine .zipco-pz-dt>div+div{border-color:#e4defa}
+/* «Ver detalle…» como enlace (el botón de vidrio sigue siendo el de las ventanas de detalle) */
+.zipco-pz .zipco-glassbtn{display:inline-flex;justify-content:flex-start;gap:7px;width:auto;min-height:36px;height:auto;margin:2px 0 -7px;padding:0 4px 0 0;border-radius:8px;background:none;box-shadow:none;text-shadow:none;font-size:12.5px;font-weight:800;color:#5b21b6;animation:none}
+.zipco-pz .zipco-chat-theirs .zipco-glassbtn{color:#99f6e4}
+.zipco-pz .zipco-glassbtn::before,.zipco-pz .zipco-glassbtn::after{display:none}
+.zipco-pz .zipco-glassbtn[data-open="false"],.zipco-pz .zipco-glassbtn[data-open="false"] .zipco-glassbtn-chev{animation:none}
+.zipco-pz .zipco-glassbtn-label{flex:none;padding:0}
+.zipco-pz .zipco-glassbtn-arrow{position:static;margin:0;width:22px;height:22px;background:none;box-shadow:inset 0 0 0 1.6px currentColor}
+.zipco-pz .zipco-glassbtn-chev{width:12px;height:12px}
+/* Te toca responder / aviso de contrapropuesta */
+.zipco-pz .zipco-chat-turn{margin-top:-2px}
+.zipco-pz .zipco-chat-ghost{margin-top:-2px}
+/* Condiciones que aceptarías (AvailabilityPlanSummary, sin tocarlo) */
+.zipco-pz section[aria-label="Camino de esta propuesta"]{position:relative;margin:0;padding:10px 12px 11px 14px;border:0;border-radius:16px;overflow:hidden;background:#fff;color:#334155;box-shadow:inset 0 0 0 1px rgba(20,184,166,.35),0 4px 14px rgba(20,184,166,.08)}
+.zipco-pz section[aria-label="Camino de esta propuesta"]::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#14b8a6,#6366f1)}
+.zipco-pz .zipco-chat>section[aria-label="Camino de esta propuesta"]::before{content:"CONDICIONES QUE ACEPTARÍAS";display:block;margin-bottom:5px;font-size:9px;font-weight:800;letter-spacing:.14em;color:#0f766e}
+.zipco-pz section[aria-label="Camino de esta propuesta"]>p:first-child{display:flex;align-items:center;gap:9px;margin:0;font-size:16px;font-weight:800;color:#0f172a}
+.zipco-pz section[aria-label="Camino de esta propuesta"]>p:first-child::before{content:"";flex:none;width:34px;height:34px;border-radius:11px;background:#ccfbf1 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E") center/19px no-repeat}
+.zipco-pz section[aria-label="Camino de esta propuesta"]>p{font-size:12.5px;line-height:1.35;overflow-wrap:anywhere}
+/* Oferta de reserva: filas con icono */
+.zipco-pz .zipco-offer{margin:8px 0 0;padding:8px 10px;border:0;border-radius:12px;background:#f0fdfa;box-shadow:inset 0 0 0 1px rgba(94,234,212,.6)}
+.zipco-pz .zipco-offer>p{margin:2px 0 0;font-size:11.5px;line-height:1.38;color:#334155}
+.zipco-pz .zipco-offer-h{display:flex;align-items:flex-start;gap:6px;margin:0 0 4px!important;font-size:12.5px!important;line-height:1.3;font-weight:800;color:#0f172a!important}
+.zipco-pz .zipco-offer-h::before{content:"";flex:none;width:8px;height:8px;margin:5px 0 0;border-radius:50%;background:#14b8a6;box-shadow:0 0 0 3px #ccfbf1}
+.zipco-pz .zipco-offer-line{display:flex;align-items:flex-start;gap:7px}
+.zipco-pz .zipco-offer-line::before{content:"";flex:none;width:15px;height:15px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4M12 8h.01'/%3E%3C/svg%3E") center/contain no-repeat}
+.zipco-pz .zipco-offer-line--check::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d9488' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")}
+.zipco-pz .zipco-offer-line--clock::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d28d9' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E")}
+
+/* Pie del chat: Contraponer y Rechazar con borde (el «Aceptar propuesta» sigue siendo AcceptGlassButton) */
+.zipco-pz .zipco-chat-foot{padding-top:6px;background:linear-gradient(#f6f4fd00,#f1effc)}
+.zipco-pz .zipco-chat-foot .zipco-accept-btn{min-height:52px}
+.zipco-pz .zipco-chat-foot .zipco-glass-wrap{margin-top:0;overflow:visible;background:#fff;box-shadow:inset 0 0 0 1.5px #c4b5fd}
+.zipco-pz .zipco-chat-foot .zipco-glass-blob{display:none}
+.zipco-pz .zipco-chat-foot .zipco-glass-btn{min-height:46px;padding:0 12px;font-size:13.5px;color:#5b21b6;text-shadow:none;background:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.zipco-pz .zipco-chat-foot .zipco-glass-btn svg{display:none}
+.zipco-pz .zipco-chat-foot .zipco-glass-btn>span{white-space:nowrap}
+.zipco-pz .zipco-chat-foot .zipco-glass-btn::before,.zipco-pz .zipco-chat-foot .zipco-glass-btn::after{display:none}
+.zipco-pz .zipco-chat-foot .zipco-glass-wrap:hover{background:#f5f3ff}
+.zipco-pz .zipco-chat-foot .zipco-chat-once{background:#ede9fe;color:#5b21b6;box-shadow:none}
+.zipco-pz .zipco-chat-foot .zipco-chat-rej:not(.zipco-pz-solid){min-height:46px;color:#be123c;text-shadow:none;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-pz .zipco-chat-foot .zipco-chat-rej:not(.zipco-pz-solid)::before{display:none}
+.zipco-pz .zipco-chat-foot .zipco-chat-rej:not(.zipco-pz-solid):hover{background:#fff1f2}
+.zipco-pz .zipco-chat-foot .zipco-chat-rej.zipco-pz-solid{flex:1.35;min-height:48px;font-size:14.5px}
+
+/* Confirmar: boleto, elección, contacto, pie */
+.zipco-pz-decision{display:grid;gap:0;padding:2px 0 4px;animation:zipco-pz-rise .26s cubic-bezier(.2,.8,.2,1) both}
+.zipco-pz-sum{position:relative;padding:10px 12px 10px 14px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:inset 0 0 0 1px rgba(124,58,237,.22),0 6px 18px rgba(91,79,240,.1)}
+.zipco-pz-sum::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#10b981,#6366f1)}
+.zipco-pz-sum.rej::before{background:linear-gradient(#fb7185,#e11d48)}
+.zipco-pz-sum.rej{box-shadow:inset 0 0 0 1px rgba(225,29,72,.25),0 6px 18px rgba(225,29,72,.1)}
+.zipco-pz-sum.exp h4{color:#92400e}
+.zipco-pz-sum h4{margin:2px 0 0;font-size:16px;line-height:1.2;font-weight:800;color:#0f172a}
+.zipco-pz-sr{display:flex;align-items:center;gap:10px;margin-top:9px;padding-top:9px;border-top:1px dashed #d4d0ef}
+.zipco-pz-th{position:relative;flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#ede9fe,#ccfbf1);color:#6d28d9}
+.zipco-pz-th b{position:absolute;right:-4px;bottom:-4px;padding:0 4px;border-radius:99px;background:#0f172a;color:#fff;font-size:9px;font-weight:900;line-height:13px}
+.zipco-pz-sr .t{min-width:0;flex:1}
+.zipco-pz-sr .t b{display:block;font-size:13.5px;overflow-wrap:anywhere}
+.zipco-pz-sr .t small{display:flex;align-items:center;gap:5px;margin-top:1px;font-size:11.5px;color:#64748b}
+.zipco-pz-sr .t small svg{flex:none;width:12px;height:12px}
+.zipco-pz-sr em{flex:none;font-style:normal;font-size:26px;font-weight:900;color:#0f766e;font-variant-numeric:tabular-nums;animation:zipco-pz-rise .4s .1s both}
+.zipco-pz-sum.rej .zipco-pz-sr em{color:#be123c;text-decoration:line-through;text-decoration-thickness:2px}
+.zipco-pz-perf{position:relative;margin:10px -12px 0 -14px;border-top:1.5px dashed #cfc9ee}
+.zipco-pz-perf::before,.zipco-pz-perf::after{content:"";position:absolute;top:-8px;width:14px;height:14px;border-radius:50%;background:#f7f6fd;box-shadow:inset 0 0 0 1px rgba(124,58,237,.2)}
+.zipco-pz-perf::before{left:-7px}.zipco-pz-perf::after{right:-7px}
+.zipco-pz-sum section[aria-label="Camino de esta propuesta"]{margin-top:8px;padding:0;background:none;box-shadow:none;border-radius:0}
+.zipco-pz-sum section[aria-label="Camino de esta propuesta"]::after{display:none}
+/* Elección de reserva (ReservationChoiceFields, sin tocarlo): tarjetas */
+.zipco-pz-choice{margin-top:10px}
+.zipco-pz-choice fieldset{margin:0;padding:0;border:0;min-width:0}
+.zipco-pz-choice label:has(input[type="radio"]){position:relative;display:flex;align-items:center;gap:8px;min-height:54px;margin-top:8px;padding:8px 10px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0;font-size:12.5px;line-height:1.25;font-weight:700;color:#475569;cursor:pointer;transition:box-shadow .2s,background .2s}
+.zipco-pz-choice label:has(input[type="radio"]:checked){background:#f5f3ff;color:#1e1b4b;box-shadow:inset 0 0 0 2px #7c3aed,0 8px 18px rgba(124,58,237,.2)}
+.zipco-pz-choice label:has(input[type="radio"]:focus-visible){outline:2px solid #7c3aed;outline-offset:2px}
+.zipco-pz-choice textarea{display:block;width:100%;box-sizing:border-box;min-height:56px;margin-top:8px;padding:9px 12px;border:0;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #cbd5e1;font:500 13.5px/1.35 inherit;color:#0f172a;resize:none}
+.zipco-pz-choice textarea:focus{outline:none;box-shadow:inset 0 0 0 2px #7c3aed}
+.zipco-pz-ct{position:relative;display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border-radius:14px;box-shadow:inset 0 0 0 1px #d9d6ee;cursor:pointer;transition:box-shadow .18s,background .18s}
+.zipco-pz-ct.on{background:#f0fdfa;box-shadow:inset 0 0 0 1.5px #5eead4}
+.zipco-pz-ct input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.zipco-pz-ct .ic{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:10px;background:#ccfbf1;color:#0f766e}
+.zipco-pz-ct .ic svg{width:15px;height:15px}
+.zipco-pz-ct .tx{min-width:0;flex:1;font-size:11px;line-height:1.35;color:#64748b}
+.zipco-pz-ct .tx b{display:block;font-size:12.5px;color:#0f172a}
+.zipco-pz-ct .tr{position:relative;flex:none;width:40px;height:24px;border-radius:99px;background:#cbd5e1;transition:background .2s}
+.zipco-pz-ct .tr::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.zipco-pz-ct.on .tr{background:#14b8a6}.zipco-pz-ct.on .tr::after{transform:translateX(16px)}
+.zipco-pz-ct:has(input:focus-visible){outline:2px solid #7c3aed;outline-offset:2px}
+.zipco-pz-nop{margin:10px 2px 0;font-size:11.5px;line-height:1.4;color:#64748b}
+.zipco-pz-err{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin:0 14px 8px;padding:9px 11px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;font-size:12.5px;line-height:1.38;color:#9f1239}
+.zipco-pz-err span{flex:1 1 200px}
+.zipco-pz-err button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:0;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1.5px #fb7185;font-size:12.5px;font-weight:800;color:#be123c}
+.zipco-pz-err button svg{width:14px;height:14px}
+.zipco-pz-err button:disabled{opacity:.55}
+.zipco-pz-cap{display:flex;align-items:center;justify-content:center;gap:6px;margin:0;font-size:10.8px;line-height:1.3;color:#64748b;text-align:center}
+.zipco-pz-cap svg{flex:none;width:14px;height:14px;color:#7c3aed}
+.zipco-pz-cap.rose svg{color:#e11d48}
+.zipco-pz-r2{display:flex;gap:9px}
+.zipco-pz-r2>.zipco-accept-wrap{flex:1.35;min-width:0}
+.zipco-pz-back{flex:1;min-height:48px;border:0;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1.5px #c4b5fd;color:#5b21b6;font-size:14.5px;font-weight:800}
+.zipco-pz-back:disabled{opacity:.55}
+.zipco-pz-solid:disabled{opacity:.7}
+.zipco-pz-sp{display:inline-block;width:15px;height:15px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:zipco-pz-spin .8s linear infinite}
+
+/* Modo oscuro (aproximación; el diseño aprobado es claro) */
+/* Keep shared glass artwork without inheriting permanent repaint loops. */
+:is(.zipco-pz,.zipco-pw) :is(.zipco-accept-blob,.zipco-glass-blob){animation:none!important}
+:is(.zipco-pz,.zipco-pw) :is(.zipco-accept-wrap,.zipco-accept-check,.zipco-glass-wrap,.zipco-glass-btn){animation-iteration-count:2!important}
+:is(.zipco-pz,.zipco-pw) :is(.zipco-accept-btn,.zipco-glass-btn)::after{animation-iteration-count:2!important}
+.zipco-pz .zipco-chat-rej::before{animation:none!important}
+.dark .zipco-pz .zipco-chat-mine,.dark .zipco-pz-sum,.dark .zipco-pz section[aria-label="Camino de esta propuesta"],.dark .zipco-pz-back{background:#1e293b;color:#e2e8f0}
+.dark .zipco-pz-sum h4,.dark .zipco-pz section[aria-label="Camino de esta propuesta"]>p:first-child,.dark .zipco-pz-ct .tx b{color:#f1f5f9}
+.dark .zipco-pz .zipco-offer{background:#0f2f2f}.dark .zipco-pz .zipco-offer>p{color:#cbd5e1}
+
+@media (prefers-reduced-motion:reduce){
+  .zipco-pz *,.zipco-pz *::before,.zipco-pz *::after{animation:none!important;transition:none!important}
+  .zipco-pz-sp{animation:zipco-pz-spin 1.6s linear infinite!important}
+}
+@media (max-width:360px){
+  .zipco-pz .zipco-chat-foot .zipco-glass-btn>span{white-space:normal}
+  .zipco-pz .zipco-chat-theirs .zipco-chat-price{font-size:21px}
+  .zipco-pz-sr em{font-size:22px}
+}

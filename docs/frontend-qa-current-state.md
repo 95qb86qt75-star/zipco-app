@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Propuesta por responder del cliente: tarjeta zipco-pw, conversación/confirmación
+  zipco-pz y textos de oferta opcionales solo para cliente. Reserva real y aviso
+  sin reserva conservados; oferta no se repite en confirmación. Variante negocio
+  y núcleo execute sin cambios. 48 unitarias y recorridos Chromium con HTTP
+  simulado aprobados; build QA/PWA aprobado. Publicación en preparación;
+  iPhone/Android físicos pendientes.
+  [Integración, límites y tiempos](frontend-customer-proposal-redesign-qa.md).
+
 - Presupuesto decorativo de retiro: CSS acotado a zipco-pickup-c, vidrio estático,
   gestos de dos ciclos y sin sombras/fondos en bucle; conserva pliegue e indicadores
   operativos. En comparación Chromium con doce tarjetas: 21 animaciones infinitas

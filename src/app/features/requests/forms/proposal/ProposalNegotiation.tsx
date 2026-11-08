@@ -4,7 +4,7 @@ import BusinessResponseHoursNotice from "../../shared/hours/BusinessResponseHour
 import { chileSchedule } from "../../api/serviceHoursAdvisory";
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowRight, MessageCircle, RefreshCw, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, Info, MessageCircle, Phone, RefreshCw, X } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from "../../domain/types";
 import { AlternativeDraftDialog } from "./PendingAlternativeActions";
 import { proposalDraftSource, type AlternativeReview } from "../../domain/alternativeDraft";
@@ -182,6 +182,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const relevant = initial || NEGOTIATION_STATES.includes(process.state) || isProposalRejected(process);
   if (!relevant && !open && !draftAction) return null;
   const exact = read && read.process.id === process.id && read.process.version >= process.version;
+  const client = !business; // el rediseño de presentación aplica solo al cliente; el negocio conserva su markup
   const choices = exact ? (Object.keys(PROPOSAL_PATHS) as ProposalAction[]).filter(action => proposalAllowed(read.process, business, action)) : [];
 
   const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
@@ -280,25 +281,87 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-        <Dialog.Content aria-busy={busy} data-accept-overlay={authCard || undefined} className="zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0">
+        <Dialog.Content aria-busy={busy} data-accept-overlay={authCard || undefined} className={`zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0${client ? ' zipco-pz' : ''}`}>
+          {client && busy && <div className="zipco-pz-prog" aria-hidden="true"><i /></div>}
           <div className="absolute right-2 top-2 z-10 flex gap-1">
             <button type="button" disabled={busy} aria-label="Actualizar propuestas" title="Actualizar propuestas" onClick={() => void load()} className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><RefreshCw className="h-[17px] w-[17px]" /></button>
             <Dialog.Close asChild><button type="button" disabled={busy} aria-label="Cerrar propuestas" className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><X className="h-[17px] w-[17px]" /></button></Dialog.Close>
           </div>
-          <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
-            <Dialog.Title className="text-[22px] font-extrabold leading-tight">{initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300">Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
+          {(() => {
+            const heading = <>
+              <Dialog.Title className="text-[22px] font-extrabold leading-tight">{client && decision ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
+              <Dialog.Description className={client && decision ? 'sr-only' : 'mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300'}>Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
+            </>;
+            return <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
+              {client ? <div className="zipco-pz-hd">
+                {decision && <button type="button" className="zipco-pz-bk" aria-label="Volver" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}><span><ArrowLeft aria-hidden="true" /></span></button>}
+                <div className="min-w-0 flex-1">{heading}</div>
+              </div> : heading}
+            </div>;
+          })()}
+          <div key={client ? String(decision) : undefined} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
+            {client && decision && read ? <div className="zipco-pz-decision">
+              {(() => {
+                const latest = read.proposals[read.proposals.length - 1];
+                const reject = decision.startsWith('REJECT_');
+                const offer = read.process.availability?.reservationOffer;
+                return <>
+                  <section className={`zipco-pz-sum${reject ? ' rej' : ''}${expired ? ' exp' : ''}`}>
+                    <h4>{expired ? 'La fecha y hora propuestas ya pasaron. ¿Quieres aceptar igualmente?' : reject ? '¿Confirmas rechazar esta propuesta exacta?' : '¿Confirmas esta propuesta exacta?'}</h4>
+                    <div className="zipco-pz-sr">
+                      <span className="zipco-pz-th"><ProductPreviewControl preview={latest.productPreview ?? null} /></span>
+                      <div className="t"><b>{proposalTitle(latest)}</b><small><Calendar aria-hidden="true" />{whenLong(latest)}</small></div>
+                      <em>{money(latest.totalPriceClp)}</em>
+                    </div>
+                    {!reject && availabilityFlow(read.process) && read.process.availability && <>
+                      <div className="zipco-pz-perf" aria-hidden="true" />
+                      <AvailabilityPlanSummary plan={read.process.availability} customerProposal showReservation={!reservationFlow(read.process) || !offer} />
+                    </>}
+                  </section>
+                  {availabilityFlow(read.process) && isAcceptAction(decision) && <>
+                    {reservationFlow(read.process) && offer && <div className="zipco-pz-choice">
+                      <ReservationChoiceFields offer={offer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy} />
+                    </div>}
+                    {read.process.availability?.allowCustomerWhatsapp
+                      ? <label className={`zipco-pz-ct${contactPreference ? ' on' : ''}`}>
+                          <input type="checkbox" checked={contactPreference} disabled={busy} onChange={e => setContactPreference(e.target.checked)} />
+                          <span className="ic" aria-hidden="true"><Phone /></span>
+                          <span className="tx"><b>Permitir que este negocio me escriba por WhatsApp</b>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span>
+                          <span className="tr" aria-hidden="true" />
+                        </label>
+                      : <p className="zipco-pz-nop">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>}
+                  </>}
+                </>;
+              })()}
+            </div> : <>
+              {read && <ProposalChat read={read} business={business}
+                turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
+                closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
+                canCounter={!business && choices.includes('COUNTER_PROPOSAL')}
+                plan={client && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal /> : undefined} />}
+            </>}
           </div>
-          <div className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
-            {read && <ProposalChat read={read} business={business}
-              turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
-              closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
-              canCounter={!business && choices.includes('COUNTER_PROPOSAL')} />}
-            {!business&&read?.process.availability&&<AvailabilityPlanSummary plan={read.process.availability}/>}
-          </div>
-          {error && <p role="alert" className="px-5 pt-2 text-sm text-red-700">{error}</p>}
+          {error && <p role="alert" className={client ? 'zipco-pz-err' : 'px-5 pt-2 text-sm text-red-700'}>{client ? <>
+            <span>{error}</span>
+            <button type="button" disabled={busy} onClick={() => void load()}><RefreshCw aria-hidden="true" />Actualizar propuestas</button>
+          </> : error}</p>}
           <div className="zipco-chat-foot shrink-0 space-y-2 px-4 pb-4 pt-1.5">
-            {decision ? <>
+            {decision ? (client ? <>
+              {(() => {
+                const reject = decision.startsWith('REJECT_');
+                const confirm = async () => { try { await execute(decision, undefined, null, expired, isAcceptAction(decision) && authorizeChoice.current); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
+                const blocked = busy || !choices.includes(decision);
+                return <>
+                  <p className={`zipco-pz-cap${reject ? ' rose' : ''}`}><Info aria-hidden="true" />{reject ? 'La solicitud finalizará y quedará en Historial.' : availabilityFlow(read?.process) ? 'Aceptar crea el acuerdo de esta propuesta. No representa un pago realizado.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
+                  <div className="zipco-pz-r2">
+                    <button type="button" className="zipco-pz-back" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
+                    {reject
+                      ? <button type="button" className="zipco-chat-rej zipco-pz-solid" disabled={blocked} aria-busy={busy} onClick={confirm}>{busy && <i className="zipco-pz-sp" aria-hidden="true" />}{busy ? 'Guardando…' : 'Sí, rechazar'}</button>
+                      : <AcceptGlassButton size="compact" flush label={busy ? 'Guardando…' : 'Sí, confirmar'} disabled={blocked} onClick={confirm} />}
+                  </div>
+                </>;
+              })()}
+            </> : <>
               <p className="text-sm font-bold">{expired ? 'La fecha y hora propuestas ya pasaron. ¿Quieres aceptar igualmente?' : `${titles[decision]}: ¿confirmas esta propuesta exacta?`}</p>
               <p className="text-xs">{decision.startsWith('REJECT_') ? 'La solicitud finalizará y quedará en Historial.' : availabilityFlow(read?.process) ? 'Aceptar crea el acuerdo de esta propuesta. No representa un pago realizado.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
               {availabilityFlow(read?.process)&&isAcceptAction(decision)&&<>
@@ -314,7 +377,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                     ? <AcceptGlassButton size="compact" flush label="Sí, confirmar" disabled={blocked} onClick={confirm} />
                     : <button className="zipco-chat-rej h-12" disabled={blocked} onClick={confirm}>Sí, confirmar</button>;
                 })()}</div>
-            </> : <>
+            </>) : <>
               {(() => {
                 const go = (action: ProposalAction) => {
                   if (['PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL'].includes(action)) {

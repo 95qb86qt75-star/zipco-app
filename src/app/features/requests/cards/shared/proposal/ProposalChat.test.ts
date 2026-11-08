@@ -10,6 +10,14 @@ const read = (sequence = 1) => { const value = proposalsFixture(sequence); retur
 const render = (value = read(), business = false, canCounter = true, turn: 'mine' | 'wait' | 'closed' = 'mine') => renderToStaticMarkup(
   React.createElement(ProposalChat, { read: value, business, canCounter, turn, closedText: 'El cliente rechazó la propuesta · Historial' }));
 
+it('places the customer plan after the turn and before counter guidance',()=>{
+ const html=renderToStaticMarkup(React.createElement(ProposalChat,{read:read(),business:false,turn:'mine',canCounter:true,plan:React.createElement('p',null,'Condiciones vigentes')}));
+ expect(html.indexOf('Te toca responder')).toBeLessThan(html.indexOf('Condiciones vigentes'));
+ expect(html.indexOf('Condiciones vigentes')).toBeLessThan(html.indexOf('Si haces una contrapropuesta'));
+ expect(html).toContain('zipco-pz-ev');
+ expect(render(read(),true)).not.toContain('zipco-pz-ev');
+});
+
 it('keeps ordered immutable snapshots and correct actor labels for both viewers', () => {
   const value = read(3), before = JSON.stringify(value);
   const customer = render(value), business = render(value, true);

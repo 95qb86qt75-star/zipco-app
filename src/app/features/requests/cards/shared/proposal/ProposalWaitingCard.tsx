@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Check, ChevronDown, ChevronUp, Clock3, Hourglass, Calendar, UserRound } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Clock3, Hand, Hourglass, Calendar, Tag, UserRound } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from "../../../domain/types";
 import OrderReferencePhoto from "../../../shared/photos/OrderReferencePhoto";
 import { safePhoto } from "../../../domain/agreement";
@@ -36,6 +36,50 @@ export default function ProposalWaitingCard({ order, business = true, expanded, 
   const original = valid(late?.scheduledFor) ? dateTime(late!.scheduledFor) : formatDeliverySchedule(order, business ? 'business' : 'customer');
   const stillNeeded = late?.status === 'STILL_NEEDED';
   const pt = valid(proposed) ? parts(proposed) : null;
+  if (!business) {
+    // Presentación del CLIENTE (rediseño). El markup del negocio queda intacto más abajo.
+    const sub = valid(proposed)
+      ? (final ? 'El negocio propone esta fecha y hora final' : 'El negocio te propone esta fecha y hora')
+      : final ? 'El negocio te envió su propuesta final' : 'El negocio te envió una propuesta';
+    return <article id={`order-${order.id}`} tabIndex={0} data-proposal-waiting={p.state} data-unread={isUnread}
+      className="zipco-wait-card zipco-pw scroll-mb-36" data-proposal-role="customer" aria-label={`${name}: propuesta por responder`}>
+      <div className="zipco-pw-top">
+        <span className="zipco-pw-eyebrow"><i aria-hidden="true" />PROPUESTA DEL NEGOCIO</span>
+        <button type="button" className="zipco-pw-toggle" aria-expanded={expanded} onClick={onToggle}>
+          <span className="zipco-pw-hand" aria-hidden="true"><Hand size={20} strokeWidth={2} /></span>
+          {expanded ? 'Ocultar detalle' : 'Ver detalle'}
+          <span className="zipco-pw-chev" aria-hidden="true"><ChevronDown size={16} /></span>
+        </button>
+      </div>
+      <div className="zipco-pw-id">
+        <span className="zipco-pw-th"><ProductPreviewControl /></span>
+        <div className="zipco-pw-nm"><small>NEGOCIO</small><h3>{name}</h3></div>
+        {price !== null && <div className="zipco-pw-pr"><strong>${price.toLocaleString('es-CL')}</strong><small>PROPUESTO</small></div>}
+      </div>
+      <div className="zipco-pw-panel">
+        {pt ? <span className="zipco-wait-cal" aria-hidden="true"><small>{pt.wd.toUpperCase()}</small><b>{pt.day}</b><i>{pt.mon.toUpperCase()}</i></span>
+          : <span className="zipco-pw-ring" aria-hidden="true"><Tag size={22} /></span>}
+        <div className="zipco-pw-info">
+          <strong className="zipco-pw-badge" data-final={final || undefined}>{final ? 'PROPUESTA FINAL' : 'POR RESPONDER'}</strong>
+          {valid(proposed) && <p className="zipco-pw-time"><b>{hour(proposed)}</b><em>nueva hora</em></p>}
+          <p className="zipco-pw-sub">{sub}</p>
+          {valid(proposed) && original && <p className="zipco-pw-before">Antes <s>{original}</s></p>}
+        </div>
+      </div>
+      {expanded && <div className="zipco-wait-details">
+        {order.products.state === 'available' && order.products.items.map((item, i) => <p className="zipco-wait-product" key={i}>
+          <span><b>{item.quantity}×</b> {item.name}</span><strong>${(item.price * item.quantity).toLocaleString('es-CL')}</strong></p>)}
+        {order.note && <p className="zipco-wait-note">{order.note}</p>}
+        {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={false} />}
+        <dl>
+          {original && <div><dt><Clock3 size={14} />Hora original</dt><dd>{original}</dd></div>}
+          {valid(proposed) && <div><dt><Calendar size={14} />Nueva hora propuesta</dt><dd>{dateTime(proposed)}</dd></div>}
+        </dl>
+        <p className="zipco-wait-help">Revisa la solicitud original y las condiciones propuestas antes de responder.</p>
+      </div>}
+      <ProposalNegotiation order={order} refresh={refresh} variant="aurora" reviewLabel="Revisar historial y responder" customerEntryActions/>
+    </article>;
+  }
   return <article id={`order-${order.id}`} tabIndex={0} data-proposal-waiting={p.state} data-unread={isUnread}
     className="zipco-wait-card scroll-mb-36" data-proposal-role={business?'business':'customer'} aria-label={`${name}: ${business?'esperando la respuesta del cliente':'propuesta por responder'}`}>
     <header className="zipco-wait-header">
