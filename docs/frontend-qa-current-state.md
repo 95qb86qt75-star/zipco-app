@@ -13,10 +13,11 @@ ni convierte pruebas sintéticas en aprobación física.
   límites no negativos y ResizeObserver solo en contenido natural, no en la caja
   recortada que redimensiona. Retirada la mitigación general anterior: vuelve el
   pliegue suave original. 19 unitarias, estabilidad de cinco tarjetas y controles
-  de reserva/error aprobados; build QA/PWA aprobado. Publicación en preparación;
+  de reserva/error aprobados; build QA/PWA aprobado. Publicado QA `e6661a0`,
+  Vercel success del SHA exacto;
   comprobación física pendiente. [Detalle](frontend-paid-reservation-fold-fix-qa.md).
 
-- Abierto: usuario informa parpadeo y movimiento continuo de Solicitudes después
+- Antecedente, mitigación sustituida por e6661a0: usuario informa parpadeo y movimiento continuo de Solicitudes después
   de abrir una tarjeta de retiro. No reproducido en Chromium aislado ni en
   RequestsScreen con cinco tarjetas. Mitigación frontend: pliegue sin interpolar
   altura en pickup-design=line, fundido conservado, panel sin entrada transformada

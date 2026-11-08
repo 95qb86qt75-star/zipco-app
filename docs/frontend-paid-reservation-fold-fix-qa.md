@@ -47,9 +47,13 @@ ReservationPanel ni controladores de envío. No requiere Railway.
 
 Análisis/reproducción y preparación inicial: 129 s. Implementación y primera
 repetición focalizada: 69 s. Pruebas y reparación de codificación: 81 s.
-Build Vite 12,75 s en paralelo, no se suma dos veces. Documentación y publicación
-se completan al cierre. No se cambiaron herramientas versionadas.
+Build Vite 12,75 s en paralelo, no se suma dos veces. Documentación inicial y
+commit/push: 49 s; espera/verificación Vercel: 55 s. Cierre documental posterior
+separado. No se cambiaron herramientas versionadas.
 
-Rama qa; publicación pendiente al redactar. Main y producción intactos. Esta
+Rama qa; publicado `e6661a05e8884393cb62984a4cb3bb7cb55a1f29`, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/FQeZxdk9J1tx2Ywd2BoLaXiyyEiV
+No se repite acceso independiente a bundles con las credenciales locales que
+previamente respondían 403. Railway no necesario. Main y producción intactos. Esta
 corrección sustituye la mitigación anterior; falta validación física para cerrar
 el reporte del usuario aunque el bucle reproducido ya no ocurre localmente.
