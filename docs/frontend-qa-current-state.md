@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Botones cliente ajustados directamente a las tres referencias del usuario:
+  degradado limpio, check pequeño, Aceptar centrado, importe en cápsula cuando
+  existe, revisión violeta sin flecha. Solo dos CSS con selectores zipco-pw/pz;
+  sin blobs, brillo grande ni backdrop blur. Tres anchos/toques y build QA/PWA
+  aprobados. Publicación en preparación; comprobación física pendiente.
+  [Detalle y tiempos](frontend-proposal-clean-buttons-qa.md).
+
 - Aceptar propuesta: ReservationChoiceFields variante cards/hideSummary integrada,
   dos opciones con iconos/check y contador Unicode 300. Oferta única en boleto.
   Aviso sin reserva condicional en variante cards y plain (también contrapropuesta).

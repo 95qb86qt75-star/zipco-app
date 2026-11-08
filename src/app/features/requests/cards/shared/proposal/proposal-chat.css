@@ -365,6 +365,17 @@
 .zipco-pz-sp{display:inline-block;width:15px;height:15px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:zipco-pz-spin .8s linear infinite}
 
 /* Modo oscuro (aproximación; el diseño aprobado es claro) */
+/* Customer reference: clean pills; no floating blobs, oversized gloss or blur. */
+:is(.zipco-pw,.zipco-pz) .zipco-accept-wrap{border-radius:999px;overflow:hidden;isolation:isolate;clip-path:inset(0 round 999px);background:linear-gradient(110deg,#70ddb0 0%,#13b8ac 48%,#04afd0 100%);box-shadow:inset 0 0 0 1.5px #ffffff8c,0 5px 12px #0d948829;animation:none!important}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-blob{display:none}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-btn{min-height:48px;justify-content:center;gap:9px;padding:7px 11px;background:linear-gradient(180deg,#ffffff16,#ffffff00);text-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;filter:none;box-shadow:inset 0 1px 1px #ffffff73,inset 0 -1px 1px #ffffff38}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-btn::before,:is(.zipco-pw,.zipco-pz) .zipco-accept-btn::after{display:none}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-check{width:27px;height:27px;background:#ffffff14;border:1px solid #ffffffe6;box-shadow:none;animation:none!important}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-check svg{width:17px;height:17px}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-label{flex:0 1 auto;font-size:14px;line-height:1.15;text-align:left}
+:is(.zipco-pw,.zipco-pz) .zipco-accept-price{margin-left:auto;padding:5px 10px;background:#087b8b73;box-shadow:inset 0 0 0 1px #ffffff59;font-size:13px;line-height:1.2}
+.zipco-pz .zipco-chat-foot .zipco-accept-btn{min-height:48px}
+.zipco-pz .zipco-accept-btn:focus-visible{outline-offset:-3px}
 /* Keep shared glass artwork without inheriting permanent repaint loops. */
 :is(.zipco-pz,.zipco-pw) :is(.zipco-accept-blob,.zipco-glass-blob){animation:none!important}
 :is(.zipco-pz,.zipco-pw) :is(.zipco-accept-wrap,.zipco-accept-check,.zipco-glass-wrap,.zipco-glass-btn){animation-iteration-count:2!important}
