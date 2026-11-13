@@ -35,4 +35,9 @@ Análisis/implementación inicial/preparación medidos como intervalo conjunto d
 navegador/build (tiempo total instrumentado hasta captura 98 s). Publicación y
 documentación se registran al cierre; no mide rendimiento de la app.
 
-Publicación Vercel QA pendiente de verificar al escribir este informe.
+Publicado en rama qa, commit e5b9cb36d0aa11cc35aebb02de9be2874279affe.
+Vercel success verificado para el SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/Amfwj87X8RqkXC5FjcL2PXBG9fwE
+Publicación/comprobación 48 s medidos, incluida espera externa. No se verificó
+por separado bundle protegido ni celular físico. Cierre documental local sin
+otro despliegue.

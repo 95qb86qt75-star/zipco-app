@@ -9,7 +9,7 @@ ni convierte pruebas sintéticas en aprobación física.
 
 - Proponer alternativa final del negocio ahora selecciona el diseño Glow ya
   aprobado en PendingAlternativeActions. Tres anchos, revisión/envío simulado y
-  build QA/PWA aprobados; publicación por verificar y prueba física pendiente.
+  build QA/PWA aprobados; QA `e5b9cb3`, Vercel success y prueba física pendiente.
   No cambia los archivos que Claude está rediseñando.
   [Detalle](frontend-final-alternative-glow-qa.md).
 
