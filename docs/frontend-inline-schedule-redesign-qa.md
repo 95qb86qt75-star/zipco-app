@@ -93,5 +93,12 @@ con navegador/build parcialmente en paralelo; no se suman dos veces.
 Documentación y publicación se registran al cierre. Sin atribuir desarrollo
 a rendimiento de la app. No se modificaron main ni producción.
 
-Publicación Vercel QA pendiente de verificación al escribir. Cierre documental
-posterior será local sin otro despliegue. Cambio ajeno de handoff conservado.
+Intervalo de validación/preparación adicional: 253 s, incluye el build y sus
+esperas en paralelo. Documentación medida: 82 s, parcialmente superpuesta a la
+finalización PWA. Publicación/verificación Vercel: 48 s incluida espera externa.
+
+Publicado en rama qa, commit 9d07f3fcb22e040f9a96e85096aa305b5b646a63.
+Vercel success asociado al SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/FYwPfvY3xVBpcouEfauARmJiqcaA
+No se verificó por separado el bundle remoto protegido ni el teléfono físico.
+Cierre documental local sin otro despliegue. Cambio ajeno de handoff conservado.
