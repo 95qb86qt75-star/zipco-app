@@ -83,4 +83,10 @@ exclusiva y no se suma el build dos veces. Unitarias 1,70 s; Vite 7,58 s más PW
 Documentación y publicación se registran al cierre. Las lecturas iniciales previas
 al cronómetro no están incluidas. No se confunde desarrollo con rendimiento app.
 
-Publicación Vercel QA pendiente de comprobar al escribir este informe.
+Documentación y preparación del cierre: 110 s medidos (incluye controles Git y
+push), publicación/verificación desde push: 51 s, incluida espera externa.
+Publicado en rama qa: b82d6c7bff4c766a548c41744db9cb8755fd17a6.
+Vercel success asociado al SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/5RFXzrMfVYsNMvRfy84BhXbfreZc
+No se comprobó por separado el bundle protegido ni el teléfono físico. Cierre
+documental local sin otro push/despliegue.

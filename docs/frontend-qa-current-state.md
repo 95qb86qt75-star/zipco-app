@@ -11,7 +11,7 @@ ni convierte pruebas sintéticas en aprobación física.
   línea de tiempo y revisiones aceptar/rechazar/renovar horario. Mantiene el
   formulario final Glow y el cliente. Aviso genérico sin inventar counterKind.
   43 unitarias, tres anchos negocio y cuatro recorridos de renovación aprobados;
-  build QA/PWA listo. Publicación por verificar y celulares físicos pendientes.
+  build QA/PWA listo. QA `b82d6c7`, Vercel success; celulares físicos pendientes.
   [Detalle y tiempos](frontend-business-counterproposal-redesign-qa.md).
 
 - Proponer alternativa final del negocio ahora selecciona el diseño Glow ya
