@@ -30,7 +30,19 @@ Toque por coordenadas abre chat, cero POST, cero excepciones JS. Captura 390
 inspeccionada. El scrollWidth interno incluye luces recortadas; no es desborde
 de la página. No hubo fallos del escenario. Capturas counter-circle-* en caché.
 
-Build QA/PWA y publicación se registran al cierre. No se repite suite funcional
+Build QA/PWA aprobado: Vite 9,52 s, 2412 módulos y diez precaches. Sin tsc
+configurado; transpilación no equivale a tipado completo. No se repite suite funcional
 general para CSS/ícono acotados: interacción afectada verificada con arnés existente.
 Sin prueba física iPhone/Android ni peticiones QA reales. Main y producción
 intactos; handoff ajeno conservado.
+
+## Publicación y tiempos
+
+QA e16ea7ecbc6ff5fdcd04ebaf12e885b0e99237e2, Vercel success para SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/898X55cMGXAiBNGkPKMgXVrkPTCr
+Sin inspección independiente del bundle protegido ni prueba física todavía.
+Análisis 20 s, implementación 19 s, preparación 23 s, ejecución 20 s.
+Intervalo build/verificación 41 s incluye Vite 9,52 s y lectura de captura;
+no representa CPU exclusivamente ni se suma dos veces.
+Documentación/preparación de publicación 7 s; publicación/verificación 45 s,
+incluye espera externa. Cierre documental local sin nuevo push/despliegue.

@@ -10,7 +10,7 @@ ni convierte pruebas sintéticas en aprobación física.
 - Contrapropuesta exterior negocio: aurora (3).css y cabecera con ArrowLeftRight;
   círculo 38 px centrado, selector corregido y botón 50 px con flecha finita.
   Tres anchos, reduced-motion, disabled y acceso al chat sin POST aprobados.
-  Publicación en verificación; celulares pendientes.
+  QA e16ea7e, Vercel success verificado; celulares pendientes.
   [Evidencia](frontend-business-counter-circle-qa.md).
 
 - Botón exterior de contrapropuesta del negocio: integrado aurora (1).css;
