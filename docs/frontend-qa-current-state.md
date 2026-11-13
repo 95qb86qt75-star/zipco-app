@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Contrapropuesta exterior negocio: aurora (3).css y cabecera con ArrowLeftRight;
+  círculo 38 px centrado, selector corregido y botón 50 px con flecha finita.
+  Tres anchos, reduced-motion, disabled y acceso al chat sin POST aprobados.
+  Publicación en verificación; celulares pendientes.
+  [Evidencia](frontend-business-counter-circle-qa.md).
+
 - Botón exterior de contrapropuesta del negocio: integrado aurora (1).css;
   elimina capas glossy/desenfoque y resplandor del precio solo en la variante
   business counter. Tres anchos y acceso real al chat sin POST aprobados;

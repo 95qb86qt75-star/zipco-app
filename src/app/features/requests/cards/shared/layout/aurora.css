@@ -107,13 +107,13 @@
 
 /* ===== Variante «contrapropuesta por responder» (solo tarjeta del negocio) =====
    Todo cuelga de .zipco-aurora-card--bz / .zipco-aurora-bz-*: sin la variante, la tarjeta Aurora y el botón compartido quedan idénticos.
-   Sin bucles de blur, sombras ni fondos: los gestos de atención se limitan a 3 ciclos y «reducir movimiento» los apaga. */
+   Sin bucles de blur, sombras ni fondos: los gestos de atención se limitan a 2 ciclos y «reducir movimiento» los apaga. */
 .zipco-aurora-card.zipco-aurora-card--bz { padding: 12px; }
-.zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after { animation: none; opacity: .75; }
+.zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after { animation: none; }
 .zipco-aurora-card--bz .zipco-aurora-price { text-shadow: none; }
 .zipco-aurora-bz-eb { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 9.5px; font-weight: 800; line-height: 1.2; letter-spacing: .13em; text-transform: uppercase; color: #ddd6fe;
   background: rgba(167, 139, 250, .14); box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .45); }
-.zipco-aurora-bz-eb .zipco-aurora-dot { animation: zipco-aurora-ping 1.9s ease-out 3; }
+.zipco-aurora-bz-eb .zipco-aurora-dot { animation: zipco-aurora-ping 1.9s ease-out 2; }
 .zipco-aurora-bz-id { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
 .zipco-aurora-bz-who { display: block; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #a5b4fc; }
 .zipco-aurora-bz-name { margin: 1px 0 0; font-size: 16px; line-height: 1.2; font-weight: 800; color: #fff; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
@@ -121,23 +121,26 @@
 .zipco-aurora-bz-pl { margin: 3px 0 0; font-size: 8.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #c4b5fd; }
 .zipco-aurora-bz-note { display: flex; align-items: center; gap: 11px; margin-top: 10px; padding: 10px 12px; border-radius: 16px; background: rgba(167, 139, 250, .12);
   box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .38); animation: zipco-aurora-bz-rise .4s cubic-bezier(.2, .8, .2, 1) both; }
-.zipco-aurora-bz-ic { position: relative; display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff;
-  background: linear-gradient(145deg, #8b5cf6, #4f46e5); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .35); }
-.zipco-aurora-bz-ic svg { width: 19px; height: 19px; }
-.zipco-aurora-bz-ic::after { content: ""; position: absolute; inset: -4px; border-radius: 15px; border: 2px solid rgba(167, 139, 250, .55); pointer-events: none; animation: zipco-aurora-bz-ring 2.2s ease-out 3; }
+.zipco-aurora-bz-ic { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: #fff;
+  background: linear-gradient(145deg, #8b5cf6, #4f46e5); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .3); }
+.zipco-aurora-bz-ic svg { display: block; width: 19px; height: 19px; }
 .zipco-aurora-bz-note p { min-width: 0; margin: 0; font-size: 12px; line-height: 1.35; color: #cbd5e1; }
 .zipco-aurora-bz-note b { display: block; margin-bottom: 2px; font-size: 14.5px; line-height: 1.25; font-weight: 800; color: #fff; }
 .zipco-aurora-bz-note mark { padding: 1px 7px; border-radius: 7px; background: rgba(45, 212, 191, .18); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, .45); color: #5eead4; font-weight: 800; }
-.zipco-aurora-bz-note span { display: block; }
+.zipco-aurora-bz-note p > span { display: block; }
 /* Botón «Revisar propuesta y responder» (ProposalDraftButton real): píldora limpia, sin brillos, capas ni desenfoque. Solo dentro de esta tarjeta. */
 .zipco-aurora-card--bz .zipco-glass-wrap { margin-top: 0; overflow: visible; background: none; box-shadow: none; }
 .zipco-aurora-card--bz .zipco-glass-blob { display: none; }
-.zipco-aurora-card--bz .zipco-glass-btn { min-height: 48px; background: linear-gradient(115deg, #7c3aed 0%, #6366f1 55%, #14b8a6 100%); -webkit-backdrop-filter: none; backdrop-filter: none;
+.zipco-aurora-card--bz .zipco-glass-btn { min-height: 50px; padding: 12px 52px; background: linear-gradient(115deg, #7c3aed 0%, #6366f1 72%, #0d9488 100%); -webkit-backdrop-filter: none; backdrop-filter: none;
   text-shadow: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .38); transition: transform .15s ease, filter .15s ease; }
 .zipco-aurora-card--bz .zipco-glass-btn::before, .zipco-aurora-card--bz .zipco-glass-btn::after { content: none; animation: none; }
 .zipco-aurora-card--bz .zipco-glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+/* La flecha real queda dentro de una pastilla a la derecha; el texto sigue centrado. */
+.zipco-aurora-card--bz .zipco-glass-btn > svg { position: absolute; right: 10px; top: 50%; box-sizing: border-box; width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: rgba(255, 255, 255, .22);
+  transform: translateY(-50%); animation: zipco-aurora-bz-nudge .9s ease-in-out .6s 2; }
+.zipco-aurora-card--bz .zipco-glass-btn:disabled > svg { animation: none; }
+@keyframes zipco-aurora-bz-nudge { 0%, 100% { transform: translate(0, -50%); } 50% { transform: translate(4px, -50%); } }
 @keyframes zipco-aurora-bz-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes zipco-aurora-bz-ring { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(1.35); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-bz-ic::after { animation: none; }
+  .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-card--bz .zipco-glass-btn > svg { animation: none; }
 }

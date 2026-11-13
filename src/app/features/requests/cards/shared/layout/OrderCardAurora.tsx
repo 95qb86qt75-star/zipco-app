@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CalendarClock, MessageCircle, Tag, User } from 'lucide-react';
+import { ArrowLeftRight, User } from 'lucide-react';
 import ProductPreviewControl from "../../../shared/product-preview/ProductPreviewControl";
 import { ImageWithFallback } from "../../../../../components/figma/ImageWithFallback";
 
@@ -8,13 +8,11 @@ import { ImageWithFallback } from "../../../../../components/figma/ImageWithFall
 
 // Cabecera "Aurora nocturna" compartida por todos los estados del pedido.
 // Solo presentación: el estado y las acciones siguen en ProcessOrderCard / ProposalNegotiation.
-export function AuroraProposalHeader({ name, image, price, statusLabel, summaryText, isUnread = false, priceLabel = 'Vigente', items, variant = 'default', counterKind }: {
+export function AuroraProposalHeader({ name, image, price, statusLabel, summaryText, isUnread = false, priceLabel = 'Vigente', items, variant = 'default' }: {
   name: string; image?: string | null; price: number | null; statusLabel: string; summaryText?: string; isUnread?: boolean;
   priceLabel?: string; items?: Array<{ name: string; quantity: number }>;
-  // Variante visual opcional. Sin ella el resultado es idéntico al de siempre. «counter»: solo la tarjeta del negocio con una contrapropuesta por responder.
+  // Variante visual opcional. Sin ella el resultado es idéntico al de siempre. «counter»: solo la tarjeta del negocio con una contrapropuesta por responder (aviso genérico: el tipo de cambio no está conectado a esta tarjeta).
   variant?: 'default' | 'counter';
-  // Solo con variant="counter": qué cambió la contrapropuesta, únicamente si el dato ya viene en la orden. Sin dato, el aviso es genérico.
-  counterKind?: 'schedule' | 'price';
 }) {
   if (variant === 'counter') {
     const avatar = <span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>
@@ -40,9 +38,9 @@ export function AuroraProposalHeader({ name, image, price, statusLabel, summaryT
         {items.map((item, index) => <p key={index} className="break-words"><strong>{item.quantity}x</strong> {item.name}</p>)}
       </div>}
       {summaryText && <div className="zipco-aurora-bz-note">
-        <span className="zipco-aurora-bz-ic" aria-hidden="true">{counterKind === 'schedule' ? <CalendarClock /> : counterKind === 'price' ? <Tag /> : <MessageCircle />}</span>
+        <span className="zipco-aurora-bz-ic" aria-hidden="true"><ArrowLeftRight /></span>
         <p>
-          <b>{counterKind === 'schedule' ? <>El cliente propuso <mark>otra hora</mark></> : counterKind === 'price' ? <>El cliente propuso <mark>otro precio</mark></> : <>El cliente respondió con una <mark>contrapropuesta</mark></>}</b>
+          <b>El cliente respondió con una <mark>contrapropuesta</mark></b>
           <span>Te toca responder. {summaryText}</span>
         </p>
       </div>}
