@@ -104,3 +104,35 @@
   .zipco-glass-blob, .zipco-glass-btn::after { animation: none; }
   .zipco-aurora-card.zipco-notification-target { animation: none; }
 }
+
+/* ===== Variante «contrapropuesta por responder» (solo tarjeta del negocio) =====
+   Todo cuelga de .zipco-aurora-card--bz / .zipco-aurora-bz: sin la variante, la tarjeta Aurora queda idéntica.
+   Sin animaciones infinitas ni desenfoque animado; los gestos de atención se limitan a 3 ciclos. */
+.zipco-aurora-card.zipco-aurora-card--bz { padding: 12px; }
+.zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after { animation: none; }
+.zipco-aurora-bz-eb { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 9.5px; font-weight: 800; line-height: 1.2; letter-spacing: .13em; text-transform: uppercase; color: #ddd6fe;
+  background: rgba(167, 139, 250, .14); box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .45); }
+.zipco-aurora-bz-eb .zipco-aurora-dot { animation: zipco-aurora-ping 1.9s ease-out 3; }
+.zipco-aurora-bz-id { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
+.zipco-aurora-bz-who { display: block; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #a5b4fc; }
+.zipco-aurora-bz-name { margin: 1px 0 0; font-size: 16px; line-height: 1.2; font-weight: 800; color: #fff; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.zipco-aurora-bz-price { margin: 0; font-size: clamp(20px, 5.6vw, 22px); line-height: 1; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+.zipco-aurora-bz-pl { margin: 3px 0 0; font-size: 8.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #c4b5fd; }
+.zipco-aurora-bz-note { display: flex; align-items: center; gap: 11px; margin-top: 10px; padding: 10px 12px; border-radius: 16px; background: rgba(167, 139, 250, .12);
+  box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .38); animation: zipco-aurora-bz-rise .4s cubic-bezier(.2, .8, .2, 1) both; }
+.zipco-aurora-bz-ic { position: relative; display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff;
+  background: linear-gradient(145deg, #8b5cf6, #4f46e5); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .35); }
+.zipco-aurora-bz-ic svg { width: 19px; height: 19px; }
+.zipco-aurora-bz-ic::after { content: ""; position: absolute; inset: -4px; border-radius: 15px; border: 2px solid rgba(167, 139, 250, .55); pointer-events: none; animation: zipco-aurora-bz-ring 2.2s ease-out 3; }
+.zipco-aurora-bz-note p { min-width: 0; margin: 0; font-size: 12px; line-height: 1.35; color: #cbd5e1; }
+.zipco-aurora-bz-note b { display: block; margin-bottom: 2px; font-size: 14.5px; line-height: 1.25; font-weight: 800; color: #fff; }
+.zipco-aurora-bz-note mark { padding: 1px 7px; border-radius: 7px; background: rgba(45, 212, 191, .18); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, .45); color: #5eead4; font-weight: 800; }
+.zipco-aurora-bz-note span { display: block; }
+.zipco-aurora-card--bz .zipco-glass-wrap { margin-top: 0; }
+.zipco-aurora-card--bz .zipco-glass-blob { animation: none; }
+.zipco-aurora-card--bz .zipco-glass-btn::after { animation-iteration-count: 2; }
+@keyframes zipco-aurora-bz-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes zipco-aurora-bz-ring { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(1.35); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-bz-ic::after { animation: none; }
+}

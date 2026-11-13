@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Diseño del negocio integrado: tarjeta de contrapropuesta, conversación con
+  línea de tiempo y revisiones aceptar/rechazar/renovar horario. Mantiene el
+  formulario final Glow y el cliente. Aviso genérico sin inventar counterKind.
+  43 unitarias, tres anchos negocio y cuatro recorridos de renovación aprobados;
+  build QA/PWA listo. Publicación por verificar y celulares físicos pendientes.
+  [Detalle y tiempos](frontend-business-counterproposal-redesign-qa.md).
+
 - Proponer alternativa final del negocio ahora selecciona el diseño Glow ya
   aprobado en PendingAlternativeActions. Tres anchos, revisión/envío simulado y
   build QA/PWA aprobados; QA `e5b9cb3`, Vercel success y prueba física pendiente.

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { User } from 'lucide-react';
+import { CalendarClock, MessageCircle, Tag, User } from 'lucide-react';
 import ProductPreviewControl from "../../../shared/product-preview/ProductPreviewControl";
 import { ImageWithFallback } from "../../../../../components/figma/ImageWithFallback";
 
@@ -8,10 +8,46 @@ import { ImageWithFallback } from "../../../../../components/figma/ImageWithFall
 
 // Cabecera "Aurora nocturna" compartida por todos los estados del pedido.
 // Solo presentación: el estado y las acciones siguen en ProcessOrderCard / ProposalNegotiation.
-export function AuroraProposalHeader({ name, image, price, statusLabel, summaryText, isUnread = false, priceLabel = 'Vigente', items }: {
+export function AuroraProposalHeader({ name, image, price, statusLabel, summaryText, isUnread = false, priceLabel = 'Vigente', items, variant = 'default', counterKind }: {
   name: string; image?: string | null; price: number | null; statusLabel: string; summaryText?: string; isUnread?: boolean;
   priceLabel?: string; items?: Array<{ name: string; quantity: number }>;
+  // Variante visual opcional. Sin ella el resultado es idéntico al de siempre. «counter»: solo la tarjeta del negocio con una contrapropuesta por responder.
+  variant?: 'default' | 'counter';
+  // Solo con variant="counter": qué cambió la contrapropuesta, únicamente si el dato ya viene en la orden. Sin dato, el aviso es genérico.
+  counterKind?: 'schedule' | 'price';
 }) {
+  if (variant === 'counter') {
+    const avatar = <span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>
+      {image ? <ImageWithFallback src={image} alt={name || 'Pedido'} className="h-full w-full object-cover" /> : <User className="h-[23px] w-[23px]" strokeWidth={1.8} />}
+    </span>;
+    return <div className="zipco-aurora-bz">
+      <span role="status" className="zipco-aurora-bz-eb"><span className="zipco-aurora-dot" aria-hidden="true" />{statusLabel}</span>
+      <div className="zipco-aurora-bz-id">
+        <ProductPreviewControl fallback={avatar} />
+        <div className="min-w-0 flex-1">
+          <small className="zipco-aurora-bz-who">Cliente</small>
+          <div className="flex items-center gap-1.5">
+            <h4 className="zipco-aurora-bz-name">{name || 'Pedido'}</h4>
+            {isUnread && <span className="rounded-full bg-sky-400 px-1.5 py-0.5 text-[9px] font-black text-slate-950">Nueva</span>}
+          </div>
+        </div>
+        <div className="zipco-aurora-pricebox min-w-0 text-right">
+          <p className="zipco-aurora-price zipco-aurora-bz-price">{price === null ? '—' : `$${price.toLocaleString('es-CL')}`}</p>
+          <p className="zipco-aurora-bz-pl">{priceLabel}</p>
+        </div>
+      </div>
+      {items && items.length > 0 && <div className="mt-3 space-y-1 text-xs text-slate-200">
+        {items.map((item, index) => <p key={index} className="break-words"><strong>{item.quantity}x</strong> {item.name}</p>)}
+      </div>}
+      {summaryText && <div className="zipco-aurora-bz-note">
+        <span className="zipco-aurora-bz-ic" aria-hidden="true">{counterKind === 'schedule' ? <CalendarClock /> : counterKind === 'price' ? <Tag /> : <MessageCircle />}</span>
+        <p>
+          <b>{counterKind === 'schedule' ? <>El cliente propuso <mark>otra hora</mark></> : counterKind === 'price' ? <>El cliente propuso <mark>otro precio</mark></> : <>El cliente respondió con una <mark>contrapropuesta</mark></>}</b>
+          <span>Te toca responder. {summaryText}</span>
+        </p>
+      </div>}
+    </div>;
+  }
   return <div>
     <div className="zipco-aurora-header">
       <ProductPreviewControl fallback={<span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>

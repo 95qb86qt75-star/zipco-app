@@ -10,6 +10,23 @@ const read = (sequence = 1) => { const value = proposalsFixture(sequence); retur
 const render = (value = read(), business = false, canCounter = true, turn: 'mine' | 'wait' | 'closed' = 'mine') => renderToStaticMarkup(
   React.createElement(ProposalChat, { read: value, business, canCounter, turn, closedText: 'El cliente rechazó la propuesta · Historial' }));
 
+it('business design preserves snapshot order, own message and comparison without changing data', () => {
+  const value = read(2); value.proposals[1].subjectSnapshot.proposalMessage = 'Ofrezco estas condiciones.';
+  const before = JSON.stringify(value);
+  const html = renderToStaticMarkup(React.createElement(ProposalChat, { read: value, business: true, businessDesign: true, turn: 'mine' }));
+  expect(html).toContain('zipco-bz-chat'); expect(html).toContain('El cliente pidió'); expect(html).toContain('El cliente contrapone');
+  expect(html).toContain('“Ofrezco estas condiciones.”');
+  expect(html.indexOf('data-proposal-sequence="0"')).toBeLessThan(html.indexOf('data-proposal-sequence="1"'));
+  expect(html.indexOf('data-proposal-sequence="1"')).toBeLessThan(html.indexOf('data-proposal-sequence="2"'));
+  expect(JSON.stringify(value)).toBe(before);
+});
+
+it('business design flag has no effect on the customer composition', () => {
+  const value = read(2);
+  const withFlag = renderToStaticMarkup(React.createElement(ProposalChat, { read: value, business: false, businessDesign: true, turn: 'mine', canCounter: true, closedText: 'El cliente rechazó la propuesta · Historial' }));
+  expect(withFlag).toBe(render(value));
+});
+
 it('places the customer plan after the turn and before counter guidance',()=>{
  const html=renderToStaticMarkup(React.createElement(ProposalChat,{read:read(),business:false,turn:'mine',canCounter:true,plan:React.createElement('p',null,'Condiciones vigentes')}));
  expect(html.indexOf('Te toca responder')).toBeLessThan(html.indexOf('Condiciones vigentes'));
