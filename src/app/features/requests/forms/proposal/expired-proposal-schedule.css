@@ -4,3 +4,52 @@
 .zipco-schedule-request button{min-height:44px;border:1px solid #a78bfa;border-radius:12px;padding:8px;background:white;font-weight:750;color:#4c1d95}
 .zipco-schedule-request button[aria-pressed=true]{background:#ede9fe;border-color:#6d28d9}.zipco-schedule-request input{display:block;width:100%;min-width:0;min-height:44px;background:white;border:1px solid #a78bfa;border-radius:10px;padding:6px}
 .zipco-schedule-request button:disabled{opacity:.5}.zipco-schedule-request :focus-visible{outline:3px solid #8b5cf6;outline-offset:2px}
+
+/* ===== Elegir nuevo horario (cliente) · ExpiredProposalSchedule =====
+   Estilos propios de .zipco-sched; las reglas .zipco-schedule-* de arriba siguen sirviendo al negocio. Solo transform/opacity en animaciones. */
+@keyframes zipco-sched-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes zipco-sched-pop{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.zipco-sched{margin:14px 0 0;padding:0;border:0;min-width:0;color:#334155;animation:zipco-sched-rise .3s .06s both}
+.zipco-sched legend{padding:0;margin:0 2px 6px;font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#64748b}
+.zipco-sched-tx{margin:0;font-size:13px;line-height:1.4;color:#334155}
+.zipco-sched-once{display:flex;gap:8px;margin:8px 0 0;padding:7px 10px;border-radius:12px;background:#fffbeb;box-shadow:inset 3px 0 0 #f59e0b;font-size:11.5px;line-height:1.38;color:#78350f}
+.zipco-sched-once svg{flex:none;width:14px;height:14px;margin-top:1px;color:#d97706}
+.zipco-sched-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.zipco-sched-opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:8px;border:0;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0;font-size:12.5px;line-height:1.2;font-weight:700;color:#475569;text-align:center;cursor:pointer;transition:box-shadow .2s,background .2s}
+.zipco-sched-opt .ci{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#ede9fe;color:#6d28d9;transition:background .2s,color .2s}
+.zipco-sched-opt .ci svg{width:15px;height:15px}
+.zipco-sched-opt[aria-pressed=true]{background:#f5f3ff;color:#1e1b4b;box-shadow:inset 0 0 0 2px #7c3aed,0 8px 18px rgba(124,58,237,.2)}
+.zipco-sched-opt[aria-pressed=true] .ci{background:linear-gradient(135deg,#8b5cf6,#4f46e5);color:#fff}
+.zipco-sched-opt[aria-pressed=true]::after{content:"✓";position:absolute;right:7px;top:7px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#7c3aed;color:#fff;font-size:11px;font-weight:900;animation:zipco-sched-pop .25s both}
+.zipco-sched-opt:disabled{opacity:.6;cursor:default}
+.zipco-sched-dt{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:10px;animation:zipco-sched-rise .22s both}
+.zipco-sched-dt label,.zipco-sched-dt .lb{display:block;min-width:0;font-size:12px;font-weight:800;color:#334155}
+.zipco-sched-dt input{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:48px;margin-top:4px;padding:0 12px;border:0;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #cbd5e1;font-family:inherit;font-size:16px;font-weight:600;color:#0f172a}
+.zipco-sched-dt input:focus{outline:none;box-shadow:inset 0 0 0 2px #7c3aed}
+.zipco-sched-today{display:flex;align-items:center;gap:8px;min-height:48px;margin-top:4px;padding:0 12px;border-radius:14px;background:#f5f3ff;box-shadow:inset 0 0 0 1.5px #ddd6fe;font-size:13.5px;font-weight:700;color:#5b21b6}
+.zipco-sched-today svg{flex:none;width:17px;height:17px;color:#7c3aed}
+.zipco-sched-imm{display:flex;align-items:flex-start;gap:7px;margin:10px 2px 0;font-size:11.5px;line-height:1.38;color:#64748b;animation:zipco-sched-rise .22s both}
+.zipco-sched-imm svg{flex:none;width:14px;height:14px;margin-top:1px;color:#7c3aed}
+/* Horario elegido + «Se mantiene», en la misma pantalla */
+.zipco-sched-sum{position:relative;margin-top:14px;padding:11px 12px 12px 15px;border-radius:18px;background:#fff;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(124,58,237,.22),0 6px 18px rgba(91,79,240,.1);animation:zipco-sched-rise .26s both}
+.zipco-sched-sum::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#8b5cf6,#14b8a6)}
+.zipco-sched-sum h4{margin:0;font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#6d28d9}
+.zipco-sched-sum .when{display:flex;align-items:center;gap:10px;margin:8px 0 0;font-size:21px;line-height:1.15;font-weight:900;color:#1e1b4b;overflow-wrap:anywhere}
+.zipco-sched-sum .ci{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#ede9fe,#ccfbf1);color:#6d28d9}
+.zipco-sched-sum .ci svg{width:19px;height:19px}
+.zipco-sched-sum .tx{min-width:0}
+.zipco-sched-sum small{display:block;margin-top:2px;font-size:11.5px;font-weight:700;color:#64748b}
+.zipco-sched-keep{margin-top:14px;animation:zipco-sched-rise .3s .06s both}
+.zipco-sched-keep .cap{display:block;margin:0 2px 6px;font-size:9.5px;font-weight:800;letter-spacing:.14em;color:#64748b}
+.zipco-sched-keep .ok{display:flex;align-items:flex-start;gap:9px;margin:0 0 7px;font-size:12.5px;line-height:1.4;color:#334155}
+.zipco-sched-keep .ok i{display:grid;place-items:center;flex:none;width:18px;height:18px;border-radius:50%;background:#ccfbf1;color:#0f766e}
+.zipco-sched-keep .ok i svg{width:11px;height:11px}
+.zipco-sched-keep .ok b{color:#0f766e;font-weight:800}
+/* Error de validación pegado sobre el botón */
+.zipco-sched-fb{position:sticky;bottom:66px;z-index:2;margin:10px 0 0;padding:8px 11px;border-radius:12px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af,0 -8px 12px #f6f4fd;font-size:12.5px;line-height:1.38;color:#9f1239;animation:zipco-sched-rise .2s both}
+/* Botón «Aceptar» siempre visible: pegado al borde inferior del único scroll */
+.zipco-sched-go{position:sticky;bottom:0;z-index:3;margin:0 -2px;padding:14px 2px 2px;background:linear-gradient(rgba(246,244,253,0),#f6f4fd 34%)}
+.zipco-sched-go button{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;padding:0 16px;border:0;border-radius:99px;color:#fff;font-size:14.5px;font-weight:800;text-shadow:0 1px 3px rgba(20,0,60,.35);background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.4),transparent 48%),linear-gradient(100deg,#a78bfa,#7c3aed 50%,#4f46e5);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),inset 0 -6px 10px rgba(49,20,140,.3),0 8px 18px rgba(91,60,220,.35);cursor:pointer}
+.zipco-sched-go button:disabled{background:#e9e6f7;color:#6b5fae;text-shadow:none;box-shadow:inset 0 0 0 1.5px #d4cff0;cursor:default}
+.zipco-sched button:focus-visible,.zipco-sched input:focus-visible{outline:3px solid #8b5cf6;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.zipco-sched,.zipco-sched *,.zipco-sched *::after{animation:none!important;transition:none!important}}

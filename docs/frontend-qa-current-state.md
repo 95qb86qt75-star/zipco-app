@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Diseño Claude integrado en conversación (CSS) y horario dentro de Aceptar
+  propuesta. Seleccionar/Aceptar horario vuelve a confirmación; solo Solicitar
+  nuevo horario envía counter. Urgente para hoy usa SCHEDULED, no cambia política
+  de cierre. Conserva origen de Volver y refresco seguro de versión. 50 unitarias,
+  cuatro recorridos y siete comprobaciones Chromium aprobados; build QA/PWA listo.
+  Publicación por verificar; pruebas físicas pendientes.
+  [Detalle y tiempos](frontend-inline-schedule-redesign-qa.md).
+
 - Seguimiento E205: captura física de 59a1242 reveló dos scrolls compitiendo por
   altura y Sí, confirmar obsoleto. Corregido dentro del diálogo canónico con fase
   Elegir nuevo horario, un solo scroll y sin aceptación en esa fase. Cuatro
