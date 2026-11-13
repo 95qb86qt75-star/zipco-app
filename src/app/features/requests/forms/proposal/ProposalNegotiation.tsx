@@ -94,6 +94,20 @@ export function ProposalComparison({ read }: { read: ProposalRead }) {
   </div>;
 }
 
+// Fecha del calendario del recuadro «Horario que pidió el cliente» (hora de Chile). Solo presentación.
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const WEEKDAYS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+function calendarParts(value: string | { date: string; time: string }) {
+  if (typeof value === 'string') {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date(value)).map(part => [part.type, part.value]));
+    return calendarParts({ date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` });
+  }
+  const [year, month, day] = value.date.split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
+  return { weekday, day, month: MONTHS[month - 1], time: value.time };
+}
+
 export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel, customerEntryActions = false }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string; customerEntryActions?:boolean }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<ProposalRead | null>(null);
@@ -348,11 +362,22 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             </div>;
           })()}
           <div key={`${client ? decision : `business:${decision ?? ''}`}:${currentScheduleExpired}:${Boolean(scheduleReview)}:${chooseNew}`} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
-            {scheduleReview && read && business ? <section className="zipco-schedule-request zipco-bz-rev">
-              <h4><CalendarCheck aria-hidden="true" />{business ? 'Sí, puedo para ese horario' : 'Solicitar nuevo horario'}</h4>
-              <p className="zipco-bz-when"><Calendar aria-hidden="true" /><b>{scheduleReview.schedule?.mode === 'IMMEDIATE' || business && read.proposals.at(-1)?.subjectSnapshot.needNow ? 'Lo antes posible' : scheduleReview.schedule?.mode === 'SCHEDULED' ? `${scheduleReview.schedule.date} · ${scheduleReview.schedule.time} (Chile)` : whenLong(read.proposals.at(-1)!)}</b></p>
-              <p className="zipco-bz-keep">Se mantienen los productos y el total: <b>{money(scheduleReview.totalPriceClp)}</b>.</p>
+            {scheduleReview && read && business ? <section className="zipco-schedule-request zipco-bz-rev" aria-label="Horario solicitado">
+              {(() => {
+                const latest = read.proposals.at(-1)!;
+                const immediate = scheduleReview.schedule?.mode === 'IMMEDIATE' || (scheduleReview.schedule?.mode !== 'SCHEDULED' && (latest.subjectSnapshot.needNow || !latest.scheduledFor));
+                const cal = !immediate ? calendarParts(scheduleReview.schedule?.mode === 'SCHEDULED' ? { date: scheduleReview.schedule.date, time: scheduleReview.schedule.time } : latest.scheduledFor!) : null;
+                return <>
+                  <h4>Horario que pidió el cliente</h4>
+                  <div className="zipco-bz-when">
+                    {cal ? <span className="cal" aria-hidden="true"><small>{cal.weekday}</small><b>{cal.day}</b></span>
+                      : <span className="cal now" aria-hidden="true"><Clock /></span>}
+                    <div className="tx"><b>{cal ? `${cal.day} ${cal.month} · ${cal.time}` : 'Lo antes posible'}</b><span>{cal ? 'Hora de Chile' : 'Sin hora fija'}</span></div>
+                  </div>
+                </>;
+              })()}
               <p className="zipco-bz-qt"><small>Tu mensaje al cliente</small>{scheduleReview.message}</p>
+              <p className="zipco-bz-keep">Se mantienen los productos y el total: <b>{money(scheduleReview.totalPriceClp)}</b>.</p>
               <p>El cliente debe revisar y aceptar la propuesta final. Solicitar otro horario no confirma la reserva.</p>
               {business && read.process.availability?.reservationOffer && <>
                 <BusinessResponseHoursNotice businessId={Number(session?.businessId)} {...chileSchedule(read.proposals.at(-1)?.scheduledFor)} />

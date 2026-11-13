@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Corrección visual de Confirmar horario solicitado: calendario en Chile y
+  opciones de reserva como tarjetas. Dos archivos de Claude, sin modificar
+  carga/envío/cliente. Tres variantes/ancho Chromium aprobadas (FREE, PREPAYMENT,
+  IMMEDIATE), monto editable y radios bloqueados conservados; build QA/PWA listo.
+  Publicación por verificar y comprobación física pendiente.
+  [Detalle, evidencias y tiempos](frontend-business-schedule-calendar-qa.md).
+
 - Diseño del negocio integrado: tarjeta de contrapropuesta, conversación con
   línea de tiempo y revisiones aceptar/rechazar/renovar horario. Mantiene el
   formulario final Glow y el cliente. Aviso genérico sin inventar counterKind.
