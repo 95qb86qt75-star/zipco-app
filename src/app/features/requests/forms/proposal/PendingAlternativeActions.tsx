@@ -84,10 +84,11 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const [sendError, setSendError] = useState('');
   const [checkMessage, setCheckMessage] = useState('');
   const sendLock = useRef(false);
-  // La alternativa inicial del negocio y la contrapropuesta comparten Glow.
+  // Alternativa inicial, final del negocio y contrapropuesta comparten Glow.
   // Solo la solicitud atrasada señala la nueva fecha que exige su contrato.
   const lateProcess = order.requestProcess?.lateInitialResponse;
-  const glowAlternative = Boolean(sourceOverride && onConfirm) && (counterProposal || canPrepareAlternative(order, 'customerName' in order));
+  const finalAlternative = 'customerName' in order && order.requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE' && order.requestProcess.allowedActions.includes('PROPOSE_FINAL');
+  const glowAlternative = Boolean(sourceOverride && onConfirm) && (counterProposal || finalAlternative || canPrepareAlternative(order, 'customerName' in order));
   const glowEdit = glowAlternative && !reviewing;
   const lateScheduleRequired = !counterProposal && lateProcess?.status === 'STILL_NEEDED' && lateProcess.requiresNewSchedule === true;
   const current = sourceOverride ? order.requestProcess?.id === source.processId && order.requestProcess.version <= source.expectedVersion

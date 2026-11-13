@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Proponer alternativa final del negocio ahora selecciona el diseño Glow ya
+  aprobado en PendingAlternativeActions. Tres anchos, revisión/envío simulado y
+  build QA/PWA aprobados; publicación por verificar y prueba física pendiente.
+  No cambia los archivos que Claude está rediseñando.
+  [Detalle](frontend-final-alternative-glow-qa.md).
+
 - Diseño Claude integrado en conversación (CSS) y horario dentro de Aceptar
   propuesta. Seleccionar/Aceptar horario vuelve a confirmación; solo Solicitar
   nuevo horario envía counter. Urgente para hoy usa SCHEDULED, no cambia política
