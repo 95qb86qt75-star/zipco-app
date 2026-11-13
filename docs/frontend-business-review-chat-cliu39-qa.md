@@ -65,3 +65,10 @@ en próximos bloques; conservar un proceso y su salida antes de lanzar otro.
 Unitarias: 2,37 s. Build/inspección 21 s, incluye Vite 11,40 s, no sumar de nuevo.
 Comprobación adicional cliente/cierre inicial 39 s. Documentación y publicación
 se registran al verificar SHA. Evitar interpretar estos intervalos como CPU.
+
+Publicado en rama qa, SHA 5fe451a1b07cee8f30891f235ee1429eeecfe76c.
+Vercel success verificado:
+https://vercel.com/zipco-s-projects/zipco-app/CyMCMu7DjgdrhGq6Mm81d8LZ95hV
+Documentación/preparación de publicación 68 s; publicación/verificación 52 s,
+incluye espera externa. Cierre documental local sin otro push/despliegue.
+No se inspeccionó por separado el bundle protegido ni un teléfono físico.

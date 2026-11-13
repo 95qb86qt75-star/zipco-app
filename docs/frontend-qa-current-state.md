@@ -10,7 +10,7 @@ ni convierte pruebas sintéticas en aprobación física.
 - Revisar propuesta del negocio CliU39: historial compacto y cambios solicitados,
   rechazo en pop-up con foco explícito, bloqueos y error recuperable.
   43 pruebas, seis escenarios negocio y control cliente aprobados; build QA/PWA
-  aprobado. Publicación en verificación; prueba física pendiente.
+  aprobado. QA 5fe451a, Vercel success verificado; prueba física pendiente.
   [Evidencias, límites y demoras](frontend-business-review-chat-cliu39-qa.md).
 
 - Contrapropuesta exterior negocio: aurora (3).css y cabecera con ArrowLeftRight;
