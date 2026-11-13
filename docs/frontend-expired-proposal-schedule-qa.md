@@ -99,3 +99,31 @@ No se verificó por separado el bundle remoto protegido: success acredita el est
 del despliegue asociado al commit, no una prueba física de esa versión.
 No hay nueva publicación Railway ni acciones reales de pedido.
 Main permanece 8295ab8c6024ab20851ebd371308d2f299b4668f; producción intacta.
+
+## Corrección de composición tras captura física del cliente
+
+El usuario mostró en QA 59a1242 los controles recortados y confusos. El nuevo
+fieldset era otro hijo flex con overflow-y-auto fuera del scroll principal;
+competía por altura con la oferta, el error y el pie de aceptación. El arnés
+anterior comprobaba hit testing mediante scrollIntoView, pero no exigía un solo
+scroll ni revisaba la captura de ese paso previo. No se atribuye a backend/Safari.
+
+Corrección exclusivamente frontend en ProposalNegotiation.tsx: el vencimiento
+abre una fase propia Elegir nuevo horario dentro del único scroll principal.
+Muestra resumen y borrador; conserva las opciones y sus callbacks. Elimina de
+esa fase el error redundante y Sí, confirmar; mantiene Volver. Los errores de
+validación de fecha aparecen dentro del cuerpo, y errores de envío/recuperación
+permanecen en la revisión. Cada fase abre el contenido desde arriba sin borrar
+nota/elección/contacto. No modifica execute, API, payloads, permisos ni backend.
+
+Reutilizadas las cuatro combinaciones Chromium 320/390/430, ahora también exige
+fieldset dentro de zipco-chat-scroll, scroll inicial cero y ausencia del botón
+de aceptación obsoleto. Revisada captura 320 del paso de selección. Todas pasaron;
+build QA/PWA: Vite 9,82 s, diez precaches. No se repiten las 75 unitarias previas:
+política/intenciones/almacenamiento no cambiaron. La evidencia física de la
+corrección sigue pendiente. No pedidos reales, pushes ni cambios Railway.
+
+Tiempos del seguimiento: análisis/implementación instrumentados como intervalo
+conjunto aproximado 1:46, sin desglose fiable entre fases; verificación/espera
+aproximadamente 0:48 en paralelo con build. Documentación y publicación se cierran
+después. No se confunden tiempos de desarrollo con fluidez de la app.

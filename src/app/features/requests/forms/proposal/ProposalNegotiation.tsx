@@ -104,6 +104,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [expired, setExpired] = useState(false);
   const [scheduleExpired, setScheduleExpired] = useState<ExpiredProposalEvidence | null>(null);
   const [scheduleReview, setScheduleReview] = useState<AlternativeReview | null>(null);
+  const [scheduleFeedback, setScheduleFeedback] = useState('');
   const [authCard, setAuthCard] = useState(false);
   const [fulfillmentOpen,setFulfillmentOpen]=useState(false);
   const [contactPreference,setContactPreference]=useState(true);
@@ -308,7 +309,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
           </div>
           {(() => {
             const heading = <>
-              <Dialog.Title className="text-[22px] font-extrabold leading-tight">{scheduleReview ? business ? 'Confirmar horario solicitado' : 'Revisar nuevo horario' : client && decision ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
+              <Dialog.Title className="text-[22px] font-extrabold leading-tight">{scheduleReview ? business ? 'Confirmar horario solicitado' : 'Revisar nuevo horario' : client && currentScheduleExpired && decision === 'ACCEPT_PROPOSAL' ? 'Elegir nuevo horario' : client && decision ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
               <Dialog.Description className={client && decision ? 'sr-only' : 'mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300'}>Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
             </>;
             return <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
@@ -318,7 +319,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               </div> : heading}
             </div>;
           })()}
-          <div key={client ? String(decision) : undefined} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
+          <div key={`${client ? decision : 'business'}:${currentScheduleExpired}:${Boolean(scheduleReview)}`} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
             {scheduleReview && read ? <section className="zipco-schedule-request">
               <h4 className="font-bold">{business ? 'Sí, puedo para ese horario' : 'Solicitar nuevo horario'}</h4>
               <p>{scheduleReview.schedule?.mode === 'IMMEDIATE' || business && read.proposals.at(-1)?.subjectSnapshot.needNow ? 'Lo antes posible' : scheduleReview.schedule?.mode === 'SCHEDULED' ? `${scheduleReview.schedule.date} · ${scheduleReview.schedule.time} (Chile)` : whenLong(read.proposals.at(-1)!)}</p>
@@ -331,7 +332,20 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 {read.process.availability.allowCustomerWhatsapp && <p>{BUSINESS_CONTACT_COPY}</p>}
               </>}
               {!business && <p>Tu elección de reserva, nota y permiso de contacto se mantienen para esta solicitud.</p>}
-            </section> : client && decision && read ? <div className="zipco-pz-decision">
+            </section> : client && decision === 'ACCEPT_PROPOSAL' && currentScheduleExpired && read ? <div>
+              <section className="zipco-schedule-request">
+                <h4 className="font-bold">La fecha de esta oferta ya pasó</h4>
+                <p>{proposalTitle(read.proposals.at(-1)!)} · {money(read.proposals.at(-1)!.totalPriceClp)}</p>
+                <p>Horario anterior: {whenLong(read.proposals.at(-1)!)}</p>
+                {reservationNote && <p className="whitespace-pre-wrap break-words">Tu nota: {reservationNote}</p>}
+                <p>Conservamos tu elección de reserva y tu permiso de contacto.</p>
+              </section>
+              {requestSchedule ? <ExpiredProposalSchedule busy={busy} onSelect={schedule => {
+                try { setScheduleReview(scheduleRequestReview(read, schedule, reservationNote)); setError(''); setScheduleFeedback(''); }
+                catch (e) { setScheduleFeedback(e instanceof Error ? e.message : 'Revisa el horario.'); }
+              }} /> : <p>Esta propuesta no permite otra contrapropuesta de horario. Puedes volver al historial o rechazarla; no cancelamos el pedido automáticamente.</p>}
+              {scheduleFeedback && <p role="alert" className="zipco-schedule-request">{scheduleFeedback}</p>}
+            </div> : client && decision && read ? <div className="zipco-pz-decision">
               {(() => {
                 const latest = read.proposals[read.proposals.length - 1];
                 const reject = decision.startsWith('REJECT_');
@@ -372,14 +386,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 plan={client && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal /> : undefined} />}
             </>}
           </div>
-          {requestSchedule && decision === 'ACCEPT_PROPOSAL' && !scheduleReview && <div className="min-h-0 overflow-y-auto px-4">
-            <ExpiredProposalSchedule busy={busy} onSelect={schedule => {
-              try { setScheduleReview(scheduleRequestReview(read!, schedule, reservationNote)); setError(''); }
-              catch (e) { setError(e instanceof Error ? e.message : 'Revisa el horario.'); }
-            }} />
-          </div>}
-          {currentScheduleExpired && !requestSchedule && !business && decision === 'ACCEPT_PROPOSAL' && <p className="px-4 text-sm">Esta propuesta no permite otra contrapropuesta de horario. Puedes revisar el historial o rechazarla; no cambiamos ni cancelamos el pedido automáticamente.</p>}
-          {error && <p role="alert" className={client ? 'zipco-pz-err' : 'px-5 pt-2 text-sm text-red-700'}>{client ? <>
+          {error && !(client && currentScheduleExpired && decision === 'ACCEPT_PROPOSAL' && !scheduleReview) && <p role="alert" className={client ? 'zipco-pz-err' : 'px-5 pt-2 text-sm text-red-700'}>{client ? <>
             <span>{error}</span>
             <button type="button" disabled={busy} onClick={() => void load()}><RefreshCw aria-hidden="true" />Actualizar propuestas</button>
           </> : error}</p>}
@@ -404,7 +411,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                     <button type="button" className="zipco-pz-back" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
                     {reject
                       ? <button type="button" className="zipco-chat-rej zipco-pz-solid" disabled={blocked} aria-busy={busy} onClick={confirm}>{busy && <i className="zipco-pz-sp" aria-hidden="true" />}{busy ? 'Guardando…' : 'Sí, rechazar'}</button>
-                      : <AcceptGlassButton size="compact" flush label={busy ? 'Guardando…' : 'Sí, confirmar'} disabled={blocked} onClick={confirm} />}
+                      : !currentScheduleExpired && <AcceptGlassButton size="compact" flush label={busy ? 'Guardando…' : 'Sí, confirmar'} disabled={blocked} onClick={confirm} />}
                   </div>
                 </>;
               })()}
