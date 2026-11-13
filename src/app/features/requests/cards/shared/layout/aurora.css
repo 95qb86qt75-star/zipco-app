@@ -106,10 +106,11 @@
 }
 
 /* ===== Variante «contrapropuesta por responder» (solo tarjeta del negocio) =====
-   Todo cuelga de .zipco-aurora-card--bz / .zipco-aurora-bz: sin la variante, la tarjeta Aurora queda idéntica.
-   Sin animaciones infinitas ni desenfoque animado; los gestos de atención se limitan a 3 ciclos. */
+   Todo cuelga de .zipco-aurora-card--bz / .zipco-aurora-bz-*: sin la variante, la tarjeta Aurora y el botón compartido quedan idénticos.
+   Sin bucles de blur, sombras ni fondos: los gestos de atención se limitan a 3 ciclos y «reducir movimiento» los apaga. */
 .zipco-aurora-card.zipco-aurora-card--bz { padding: 12px; }
-.zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after { animation: none; }
+.zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after { animation: none; opacity: .75; }
+.zipco-aurora-card--bz .zipco-aurora-price { text-shadow: none; }
 .zipco-aurora-bz-eb { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 9.5px; font-weight: 800; line-height: 1.2; letter-spacing: .13em; text-transform: uppercase; color: #ddd6fe;
   background: rgba(167, 139, 250, .14); box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .45); }
 .zipco-aurora-bz-eb .zipco-aurora-dot { animation: zipco-aurora-ping 1.9s ease-out 3; }
@@ -128,9 +129,13 @@
 .zipco-aurora-bz-note b { display: block; margin-bottom: 2px; font-size: 14.5px; line-height: 1.25; font-weight: 800; color: #fff; }
 .zipco-aurora-bz-note mark { padding: 1px 7px; border-radius: 7px; background: rgba(45, 212, 191, .18); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, .45); color: #5eead4; font-weight: 800; }
 .zipco-aurora-bz-note span { display: block; }
-.zipco-aurora-card--bz .zipco-glass-wrap { margin-top: 0; }
-.zipco-aurora-card--bz .zipco-glass-blob { animation: none; }
-.zipco-aurora-card--bz .zipco-glass-btn::after { animation-iteration-count: 2; }
+/* Botón «Revisar propuesta y responder» (ProposalDraftButton real): píldora limpia, sin brillos, capas ni desenfoque. Solo dentro de esta tarjeta. */
+.zipco-aurora-card--bz .zipco-glass-wrap { margin-top: 0; overflow: visible; background: none; box-shadow: none; }
+.zipco-aurora-card--bz .zipco-glass-blob { display: none; }
+.zipco-aurora-card--bz .zipco-glass-btn { min-height: 48px; background: linear-gradient(115deg, #7c3aed 0%, #6366f1 55%, #14b8a6 100%); -webkit-backdrop-filter: none; backdrop-filter: none;
+  text-shadow: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .38); transition: transform .15s ease, filter .15s ease; }
+.zipco-aurora-card--bz .zipco-glass-btn::before, .zipco-aurora-card--bz .zipco-glass-btn::after { content: none; animation: none; }
+.zipco-aurora-card--bz .zipco-glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 @keyframes zipco-aurora-bz-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes zipco-aurora-bz-ring { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(1.35); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {

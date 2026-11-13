@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Botón exterior de contrapropuesta del negocio: integrado aurora (1).css;
+  elimina capas glossy/desenfoque y resplandor del precio solo en la variante
+  business counter. Tres anchos y acceso real al chat sin POST aprobados;
+  build QA/PWA aprobado. Publicación en verificación; celulares pendientes.
+  [Evidencia y tiempos](frontend-business-counter-button-clean-qa.md).
+
 - Corrección visual de Confirmar horario solicitado: calendario en Chile y
   opciones de reserva como tarjetas. Dos archivos de Claude, sin modificar
   carga/envío/cliente. Tres variantes/ancho Chromium aprobadas (FREE, PREPAYMENT,
