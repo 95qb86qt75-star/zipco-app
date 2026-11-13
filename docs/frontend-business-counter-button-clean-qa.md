@@ -43,3 +43,11 @@ implementación 2 s, preparación 20 s, ejecución y ajuste del arnés 42 s,
 build/verificación 23 s (Vite CPU/pared informa 7,33 s, incluido; no sumar otra vez).
 Documentación/publicación se registran al verificar el SHA.
 Main y producción intactos. Handoff ajeno no incluido.
+
+Publicación: rama qa, commit 02100abd34c95bf6afc4225f3224f5157dc35e8e.
+Vercel success verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/AhYRkpeb8GZYYCzTzciKPhwYo2MB
+Sin verificación física ni inspección independiente del bundle protegido.
+Cierre documental local sin nuevo push para evitar otro despliegue.
+Documentación y preparación de publicación: 35 s. Publicación/verificación:
+46 s desde el push, incluida espera externa; cierre documental adicional 7 s.

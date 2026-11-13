@@ -10,7 +10,7 @@ ni convierte pruebas sintéticas en aprobación física.
 - Botón exterior de contrapropuesta del negocio: integrado aurora (1).css;
   elimina capas glossy/desenfoque y resplandor del precio solo en la variante
   business counter. Tres anchos y acceso real al chat sin POST aprobados;
-  build QA/PWA aprobado. Publicación en verificación; celulares pendientes.
+  build QA/PWA aprobado. QA 02100ab, Vercel success; celulares pendientes.
   [Evidencia y tiempos](frontend-business-counter-button-clean-qa.md).
 
 - Corrección visual de Confirmar horario solicitado: calendario en Chile y
