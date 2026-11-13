@@ -64,4 +64,10 @@ reintento de build y prueba en paralelo; no equivale a CPU de pruebas ni al
 rendimiento de la app. Build Vite 7,88 s más PWA; no sumar nuevamente ese tiempo.
 Captura adicional y cierre documental/publicación se registran al cierre.
 
-Publicación Vercel QA pendiente de verificar al escribir este informe.
+Captura adicional, documentación y preparación de publicación: 105 s medidos,
+incluye espera de navegador/Git. Publicación y verificación: 55 s desde el push,
+incluida espera externa. QA commit 59f92a094741a7618536d4144a4dc9612fde9dd4.
+Vercel success comprobado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/2pUfu9RzzuNpmvgqTxZEeBbntpBt
+No se verificó por separado el bundle protegido ni celular físico. Cierre
+documental local sin otro push/despliegue.
