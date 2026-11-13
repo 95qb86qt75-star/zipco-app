@@ -473,25 +473,25 @@
 .zipco-bz button:focus-visible,.zipco-bz input:focus-visible,.zipco-bz textarea:focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
 
 /* Línea de tiempo */
-.zipco-bz .zipco-chat{gap:14px}
+.zipco-bz .zipco-chat{gap:10px}
 .zipco-bz .zipco-bz-ev{position:relative;padding-left:26px;align-items:stretch}
-.zipco-bz .zipco-bz-ev::before{content:"";position:absolute;left:8px;top:26px;bottom:-16px;width:2px;border-radius:2px;background:linear-gradient(#c4b5fd,#99f6e4)}
+.zipco-bz .zipco-bz-ev::before{content:"";position:absolute;left:8px;top:24px;bottom:-12px;width:2px;border-radius:2px;background:linear-gradient(#c4b5fd,#99f6e4)}
 .zipco-bz .zipco-bz-ev.is-last::before{display:none}
-.zipco-bz-nd{position:absolute;left:0;top:8px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#8b5cf6,#4f46e5);box-shadow:0 0 0 3px #f6f4fd}
+.zipco-bz-nd{position:absolute;left:0;top:6px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#8b5cf6,#4f46e5);box-shadow:0 0 0 3px #f6f4fd}
 .zipco-bz-nd.c{background:linear-gradient(145deg,#64748b,#334155)}
 .zipco-bz-nd.t{background:linear-gradient(145deg,#8b5cf6,#14b8a6)}
 .zipco-bz-nd.f{background:linear-gradient(145deg,#f59e0b,#ef4444)}
 .zipco-bz-nd svg{width:10px;height:10px}
 /* Tú: tarjeta clara con borde violeta */
-.zipco-bz .zipco-chat-mine{max-width:none;min-width:0;border-radius:18px;padding:9px 11px 10px;color:#1e1b4b;background:#fff;box-shadow:inset 0 0 0 1.5px #ddd6fe,0 4px 12px rgba(91,79,240,.08)}
+.zipco-bz .zipco-chat-mine{max-width:none;min-width:0;border-radius:18px;padding:8px 11px 9px;color:#1e1b4b;background:#fff;box-shadow:inset 0 0 0 1.5px #ddd6fe,0 4px 12px rgba(91,79,240,.08)}
 .zipco-bz .zipco-chat-mine .zipco-chat-who{color:#6d28d9}
-.zipco-bz .zipco-chat-mine .zipco-chat-money{color:#4c1d95;font-size:19px;font-weight:800}
+.zipco-bz .zipco-chat-mine .zipco-chat-money{color:#4c1d95;font-size:18px;font-weight:800}
 .zipco-bz .zipco-chat-mine .zipco-chat-thumb{background:linear-gradient(135deg,#c4b5fd,#7dd3c8)}
 /* El cliente: pedido en tarjeta clara neutra; contrapropuesta en tarjeta oscura Aurora (la que hay que responder) */
-.zipco-bz .zipco-chat-theirs{max-width:none;border-radius:18px;padding:9px 11px 10px}
+.zipco-bz .zipco-chat-theirs{max-width:none;border-radius:18px;padding:8px 11px 9px}
 .zipco-bz .zipco-chat-theirs .zipco-chat-who{color:#c4b5fd;font-size:9.5px}
 .zipco-bz .zipco-chat-theirs .zipco-chat-offer{margin-top:6px;padding:0;background:none;box-shadow:none}
-.zipco-bz .zipco-chat-theirs .zipco-chat-price{font-size:23px}
+.zipco-bz .zipco-chat-theirs .zipco-chat-price{font-size:22px}
 .zipco-bz .zipco-chat-theirs .zipco-chat-pill{background:linear-gradient(115deg,#7c3aed,#6366f1 60%,#14b8a6)}
 .zipco-bz .zipco-chat-theirs .zipco-pz-dt span{color:#c4b5fd}
 .zipco-bz .zipco-chat-theirs.is-order{color:#0f172a;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0,0 4px 12px rgba(15,23,42,.06)}
@@ -500,7 +500,7 @@
 .zipco-bz .zipco-chat-theirs.is-order .zipco-chat-price{color:#0f172a;text-shadow:none}
 .zipco-bz .zipco-chat-theirs.is-order .zipco-chat-when{color:#64748b}
 /* Notas: cita con barra lateral */
-.zipco-bz .zipco-chat-mine .zipco-chat-quote,.zipco-bz .zipco-chat-theirs.is-order .zipco-chat-quote{margin:6px 0 0;padding:1px 0 1px 9px;border-left:3px solid #c4b5fd;font-size:12.5px;line-height:1.35;color:#334155}
+.zipco-bz .zipco-chat-mine .zipco-chat-quote,.zipco-bz .zipco-chat-theirs.is-order .zipco-chat-quote{margin:3px 0 0;padding:1px 0 1px 9px;border-left:3px solid #c4b5fd;font-size:12.5px;line-height:1.3;color:#334155}
 .zipco-bz .zipco-chat-theirs.is-order .zipco-chat-quote{border-left-color:#cbd5e1}
 /* «Ver detalle…» como enlace (el botón de vidrio sigue siendo el de las ventanas de detalle) */
 .zipco-bz .zipco-glassbtn{display:inline-flex;justify-content:flex-start;gap:7px;width:auto;min-height:36px;height:auto;margin:2px 0 -7px;padding:0 4px 0 0;border-radius:8px;background:none;box-shadow:none;text-shadow:none;font-size:12.5px;font-weight:800;color:#5b21b6;animation:none}
@@ -512,6 +512,36 @@
 .zipco-bz .zipco-glassbtn-arrow{position:static;margin:0;width:22px;height:22px;background:none;box-shadow:inset 0 0 0 1.6px currentColor}
 .zipco-bz .zipco-glassbtn-chev{width:12px;height:12px}
 .zipco-bz .zipco-chat-turn{margin-top:-2px}
+.zipco-bz .zipco-chat-who{justify-content:flex-start;align-items:center;gap:6px;row-gap:0}
+.zipco-bz .zipco-chat-who time{flex:none}
+.zipco-bz .zipco-chat-who .zipco-glassbtn{min-height:44px;margin:-11px -6px -11px auto;padding:0 6px;font-size:12px;letter-spacing:0;text-transform:none}
+.zipco-bz .zipco-chat-who .zipco-glassbtn-arrow{width:20px;height:20px}
+.zipco-bz .zipco-chat-who .zipco-glassbtn-chev{width:11px;height:11px}
+
+/* Fila «producto · título · total» (reemplaza la fila + el enlace al pie) */
+.zipco-bz-prow{display:flex;align-items:center;gap:9px;margin-top:5px}
+.zipco-bz-th{position:relative;display:block;flex:none;width:34px;height:34px}
+.zipco-bz-th>*{max-width:100%;max-height:100%}
+.zipco-bz-prow .zipco-chat-title{flex:1 1 0;min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:14px;line-height:1.2}
+.zipco-bz-prow .zipco-chat-money,.zipco-bz-prow .zipco-chat-price{flex:none;white-space:nowrap}
+
+/* Tarjeta «El cliente contrapone»: «El cliente está solicitando N cambios» + lista «Cambio solicitado» */
+.zipco-bz-hl{margin:7px 0 0;font-size:15px;line-height:1.25;font-weight:800;color:#fff}
+.zipco-bz-hl mark{margin-left:1px;padding:1px 7px;border-radius:7px;background:rgba(45,212,191,.18);box-shadow:inset 0 0 0 1px rgba(94,234,212,.45);color:#5eead4;font-weight:800}
+.zipco-bz-chg{margin-top:8px;padding:7px 10px 4px;border-radius:14px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(110,231,183,.3)}
+.zipco-bz-chg-h{margin:0 0 2px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#99f6e4}
+.zipco-bz-chg-r{display:flex;align-items:center;gap:9px;padding:5px 0}
+.zipco-bz-chg-r+.zipco-bz-chg-r{border-top:1px solid rgba(255,255,255,.1)}
+.zipco-bz-chg-r .ic{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:rgba(110,231,183,.16);box-shadow:inset 0 0 0 1px rgba(110,231,183,.4);color:#6ee7b7}
+.zipco-bz-chg-r .ic svg{width:13px;height:13px}
+.zipco-bz-chg-r .tx{min-width:0;flex:1}
+.zipco-bz-chg-r small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#c4b5fd}
+.zipco-bz-chg-r p{margin:1px 0 0;font-size:13px;line-height:1.25;overflow-wrap:anywhere}
+.zipco-bz-chg-r s,.zipco-bz-chg-r b{display:inline-block}
+.zipco-bz-chg-r s{color:#94a3b8;text-decoration-thickness:1px;font-variant-numeric:tabular-nums}
+.zipco-bz-chg-r i{margin:0 6px;font-style:normal;color:#6ee7b7}
+.zipco-bz-chg-r b{color:#6ee7b7;font-weight:800;font-variant-numeric:tabular-nums}
+.zipco-bz .zipco-chat-theirs .zipco-bz-chg+.zipco-chat-quote{margin-top:8px}
 
 /* Pie: acciones del negocio */
 .zipco-bz .zipco-chat-foot{padding-top:6px;background:linear-gradient(#f6f4fd00,#f1effc)}
@@ -519,7 +549,9 @@
   background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.42),transparent 48%),linear-gradient(105deg,#8b5cf6,#6366f1 52%,#0ea5e9);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 -6px 10px rgba(30,27,100,.28),0 8px 20px rgba(99,102,241,.38)}
 .zipco-bz-same .ck{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.75)}
 .zipco-bz-same .ck svg{width:17px;height:17px}
+.zipco-bz-same{min-height:56px;padding-top:6px;padding-bottom:6px}
 .zipco-bz-same .lb{flex:1;min-width:0}
+.zipco-bz-same .lb small{display:block;margin-top:1px;font-size:11px;font-weight:700;line-height:1.2;opacity:.92;text-shadow:none}
 .zipco-bz-same>svg{flex:none;width:17px;height:17px}
 .zipco-bz-same:active:not(:disabled),.zipco-bz-send:active:not(:disabled){transform:scale(.98)}
 .zipco-bz-same:disabled{opacity:.6}
@@ -530,7 +562,8 @@
 .zipco-bz .zipco-chat-foot .zipco-accept-btn{min-height:48px}
 .zipco-bz .zipco-chat-foot .zipco-glass-wrap{margin-top:0;overflow:visible;background:#fff;box-shadow:inset 0 0 0 1.5px #c4b5fd}
 .zipco-bz .zipco-chat-foot .zipco-glass-blob{display:none}
-.zipco-bz .zipco-chat-foot .zipco-glass-btn{min-height:46px;padding:0 12px;font-size:13px;color:#5b21b6;text-shadow:none;background:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.zipco-bz .zipco-chat-foot .zipco-glass-wrap{flex:1.8 1 0}
+.zipco-bz .zipco-chat-foot .zipco-glass-btn{min-height:46px;padding:0 8px;gap:5px;font-size:12.5px;color:#5b21b6;text-shadow:none;background:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 .zipco-bz .zipco-chat-foot .zipco-glass-btn::before,.zipco-bz .zipco-chat-foot .zipco-glass-btn::after{display:none}
 .zipco-bz .zipco-chat-foot .zipco-glass-wrap:hover{background:#f5f3ff}
 .zipco-bz .zipco-chat-foot .zipco-chat-rej:not(.zipco-pz-solid){min-height:46px;color:#be123c;text-shadow:none;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af}
@@ -538,6 +571,8 @@
 .zipco-bz .zipco-chat-foot .zipco-chat-rej:not(.zipco-pz-solid):hover{background:#fff1f2}
 .zipco-bz .zipco-chat-foot .zipco-chat-rej.zipco-pz-solid{flex:1.35;min-height:48px;font-size:14.5px}
 .zipco-bz .zipco-chat-rej::before{animation:none!important}
+.zipco-bz .zipco-chat-foot .zipco-chat-rej.zipco-bz-stk{min-height:48px}
+.zipco-bz-stk small{display:block;margin-top:2px;font-size:10px;font-weight:700;line-height:1.15;color:#be123c;opacity:.8;text-align:center}
 
 /* Confirmar horario / Aceptar / Rechazar */
 .zipco-bz-decision{display:grid;gap:0;padding:2px 0 4px;animation:zipco-bz-rise .26s cubic-bezier(.2,.8,.2,1) both}
@@ -597,12 +632,42 @@
 .zipco-bz :is(.zipco-accept-wrap,.zipco-accept-check,.zipco-glass-wrap,.zipco-glass-btn){animation-iteration-count:2!important}
 .zipco-bz :is(.zipco-accept-btn,.zipco-glass-btn)::after{animation-iteration-count:2!important}
 
+/* Pop-up «¿Rechazar la contrapropuesta?». Vive en otro portal; el posicionamiento no usa transform y solo se anima opacidad/transform del contenido interno. */
+@keyframes zipco-bz-fade{from{opacity:0}to{opacity:1}}
+.zipco-bz-pop-ov{position:fixed;inset:0;z-index:1100;background:rgba(12,8,38,.52);animation:zipco-bz-fade .2s both}
+.zipco-bz-pop{position:fixed;z-index:1101;inset:0;margin:auto;width:calc(100% - 2rem);max-width:22rem;height:fit-content;max-height:calc(100dvh - 2rem);overflow:hidden auto;box-sizing:border-box;border-radius:22px;background:#fff;color:#0f172a;box-shadow:0 20px 50px rgba(30,27,75,.4),0 0 0 1px rgba(225,29,72,.14);overscroll-behavior:contain}
+.zipco-bz-pop:focus{outline:none}
+.zipco-bz-pop-in{padding:18px 16px 8px;text-align:center;animation:zipco-bz-rise .26s cubic-bezier(.2,.8,.2,1) both}
+.zipco-bz-pop-ic{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 8px;border-radius:50%;background:#ffe4e6;color:#e11d48}
+.zipco-bz-pop-ic svg{width:20px;height:20px}
+.zipco-bz-pop-t{margin:0;font-size:17px;line-height:1.25;font-weight:800;color:#0f172a}
+.zipco-bz-pop-d{margin:6px 0 0;font-size:12.5px;line-height:1.4;color:#475569}
+.zipco-bz-pop-sum{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:8px 10px;border-radius:14px;background:#f8fafc;box-shadow:inset 0 0 0 1px #e2e8f0;text-align:left}
+.zipco-bz-pop-sum .t{min-width:0;flex:1;font-size:13.5px;overflow-wrap:anywhere}
+.zipco-bz-pop-sum em{flex:none;font-style:normal;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.zipco-bz-pop-er{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:8px 0 0;padding:8px 10px;border-radius:12px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;font-size:12px;line-height:1.35;color:#9f1239;text-align:left}
+.zipco-bz-pop-er span{flex:1 1 180px}
+.zipco-bz-pop-er button{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;border:0;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1.5px #fb7185;font-size:12px;font-weight:800;color:#be123c}
+.zipco-bz-pop-er svg{width:14px;height:14px}
+.zipco-bz-pop-r2{display:flex;gap:9px;margin-top:14px}
+.zipco-bz-pop-back,.zipco-bz-pop-rj{display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;border:0;border-radius:99px;font-size:14.5px;font-weight:800}
+.zipco-bz-pop-back{flex:1;background:#fff;color:#5b21b6;box-shadow:inset 0 0 0 1.5px #c4b5fd}
+.zipco-bz-pop-rj{flex:1.2;color:#fff;text-shadow:0 1px 3px rgba(20,0,60,.35);background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.5),transparent 48%),linear-gradient(100deg,#fda4af,#f43f5e 45%,#be123c);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 -6px 10px rgba(130,10,50,.3),0 6px 14px rgba(225,29,72,.3)}
+.zipco-bz-pop-alt{display:block;width:100%;min-height:44px;margin-top:2px;border:0;background:none;font-size:12.5px;font-weight:800;color:#5b21b6;text-decoration:underline;text-underline-offset:3px}
+.zipco-bz-pop button:disabled{opacity:.55}
+.zipco-bz-pop button:focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  .zipco-bz-pop-ov,.zipco-bz-pop,.zipco-bz-pop *{animation:none!important;transition:none!important}
+}
+
 @media (prefers-reduced-motion:reduce){
   .zipco-bz *,.zipco-bz *::before,.zipco-bz *::after{animation:none!important;transition:none!important}
   .zipco-bz .zipco-pz-sp{animation:zipco-pz-spin 1.6s linear infinite!important}
 }
 @media (max-width:360px){
+  .zipco-bz .zipco-pz-hd [class*="text-[22px]"]{font-size:18px}
   .zipco-bz .zipco-chat-foot .zipco-glass-btn>span{white-space:normal}
   .zipco-bz .zipco-chat-theirs .zipco-chat-price{font-size:21px}
   .zipco-bz-same,.zipco-bz-send{font-size:14px}
+  .zipco-bz-pop-in{padding:16px 12px 6px}
 }

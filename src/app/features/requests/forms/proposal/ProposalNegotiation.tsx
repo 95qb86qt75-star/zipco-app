@@ -17,7 +17,7 @@ import OrderReferencePhoto from "../../shared/photos/OrderReferencePhoto";
 import { isProposalRejected } from "../../domain/requestProcess";
 import { announceProposalSent } from "../../shared/feedback/proposalSentFeedback";
 import AcceptGlassButton from "../../cards/shared/coordination/AcceptGlassButton";
-import ProposalChat, { proposalTitle, whenLong } from "../../cards/shared/proposal/ProposalChat";
+import ProposalChat, { proposalTitle, whenLong, whenShort } from "../../cards/shared/proposal/ProposalChat";
 import AcceptAuthorizeCard from "../../cards/shared/coordination/AcceptAuthorizeCard";
 import { announceProposalAccepted } from "../../application/proposalAcceptance";
 import { beginStatusChange, completeStatusChange, failStatusChange, type StatusOrder } from "../../shared/feedback/statusChangePresentation";
@@ -110,6 +110,8 @@ function calendarParts(value: string | { date: string; time: string }) {
 
 export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel, customerEntryActions = false }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string; customerEntryActions?:boolean }) {
   const [open, setOpen] = useState(false);
+  const rejectBackRef = useRef<HTMLButtonElement>(null);
+  const rejectTriggerRef = useRef<HTMLButtonElement>(null);
   const [read, setRead] = useState<ProposalRead | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -222,6 +224,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const pendingSchedule = client && decision === 'ACCEPT_PROPOSAL' && Boolean(scheduleReview) && !chooseNew;
   const lateNotice = client && decision === 'ACCEPT_PROPOSAL' && currentScheduleExpired && !scheduleReview && !chooseNew;
   const lateError = client && currentScheduleExpired && /fecha/i.test(error);
+  // Negocio: «Rechazar» abre un pop-up sobre la conversación (misma acción y mismos callbacks que la pantalla anterior).
+  const rejectPopup = business && decision !== null && decision.startsWith('REJECT_');
 
   const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
     if (!active() || lock.current || !read || !choices.includes(action)) throw new ProposalError('Actualiza las condiciones antes de confirmar.', 0);
@@ -325,6 +329,11 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   };
   // Negocio: «Volver» desde la revisión del horario regresa a la conversación; desde Aceptar/Rechazar también (mismos efectos que antes).
   const businessBack = () => { if (scheduleReview) { setScheduleReview(null); return; } setDecision(null); setExpired(false); };
+  const confirmRejection = async () => {
+    if (!decision) return;
+    try { await execute(decision, undefined, null, expired, false); }
+    catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); }
+  };
   const chooseNewSchedule = async () => { setScheduleFeedback(''); if (await load(false, false, true) && active()) setChoosing(true); };
   const changeSchedule = () => { lastSchedule.current = scheduleReview?.schedule ?? null; setScheduleReview(null); setScheduleFeedback(''); setChoosing(true); };
   return <div className="mt-3" onClick={event => event.stopPropagation()}>
@@ -349,19 +358,19 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             <Dialog.Close asChild><button type="button" disabled={busy} aria-label="Cerrar propuestas" className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><X className="h-[17px] w-[17px]" /></button></Dialog.Close>
           </div>
           {(() => {
-            const titleText = scheduleReview && business ? 'Confirmar horario solicitado' : chooseNew ? 'Elegir nuevo horario' : decision ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta';
+            const titleText = scheduleReview && business ? 'Confirmar horario solicitado' : chooseNew ? 'Elegir nuevo horario' : decision && !rejectPopup ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta';
             const heading = <>
               <Dialog.Title className={`text-[22px] font-extrabold leading-tight${titleText.length > 18 ? ' zipco-pz-long' : ''}`}>{titleText}</Dialog.Title>
-              <Dialog.Description className={(client ? Boolean(decision) : Boolean(decision || scheduleReview)) ? 'sr-only' : 'mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300'}>Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
+              <Dialog.Description className={(client ? Boolean(decision) : Boolean((decision && !rejectPopup) || scheduleReview)) ? 'sr-only' : 'mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300'}>Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
             </>;
             return <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
               <div className="zipco-pz-hd">
-                {(client ? decision : (decision || scheduleReview)) && <button type="button" className="zipco-pz-bk" aria-label="Volver" disabled={busy} onClick={client ? goBack : businessBack}><span><ArrowLeft aria-hidden="true" /></span></button>}
+                {(client ? decision : ((decision && !rejectPopup) || scheduleReview)) && <button type="button" className="zipco-pz-bk" aria-label="Volver" disabled={busy} onClick={client ? goBack : businessBack}><span><ArrowLeft aria-hidden="true" /></span></button>}
                 <div className="min-w-0 flex-1">{heading}</div>
               </div>
             </div>;
           })()}
-          <div key={`${client ? decision : `business:${decision ?? ''}`}:${currentScheduleExpired}:${Boolean(scheduleReview)}:${chooseNew}`} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
+          <div key={`${client ? decision : `business:${rejectPopup ? '' : decision ?? ''}`}:${currentScheduleExpired}:${Boolean(scheduleReview)}:${chooseNew}`} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
             {scheduleReview && read && business ? <section className="zipco-schedule-request zipco-bz-rev" aria-label="Horario solicitado">
               {(() => {
                 const latest = read.proposals.at(-1)!;
@@ -437,7 +446,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                   </>}
                 </>;
               })()}
-            </div> : business && decision && read ? <div className="zipco-bz-decision">
+            </div> : business && decision && read && !rejectPopup ? <div className="zipco-bz-decision">
               {(() => {
                 const latest = read.proposals[read.proposals.length - 1];
                 const reject = decision.startsWith('REJECT_');
@@ -474,7 +483,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
             <span className="tx"><b>{requestedScheduleLabel(scheduleReview.schedule)}</b><br />{scheduleReview.schedule?.mode === 'SCHEDULED' ? 'Hora de Chile · ' : ''}Nuevo horario listo para solicitar. Tu reserva aún no está confirmada.</span>
             <div className="acts"><button type="button" className="go chg" disabled={busy} onClick={changeSchedule}>Cambiar horario</button></div>
           </div>}
-          {error && !(lateNotice && lateError) && <p role="alert" className={`zipco-pz-err${lateError ? ' late' : ''}`}>
+          {error && !(lateNotice && lateError) && !rejectPopup && <p role="alert" className={`zipco-pz-err${lateError ? ' late' : ''}`}>
             {lateError && <span className="ic" aria-hidden="true"><Clock /></span>}
             <span className="tx">{error}</span>
             <button type="button" disabled={busy} onClick={reload}><RefreshCw aria-hidden="true" />Actualizar propuestas</button>
@@ -489,7 +498,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                   catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Conservamos tu solicitud.'); }
                 }}>{busy && <i className="zipco-pz-sp" aria-hidden="true" />}{busy ? 'Guardando…' : business ? 'Confirmar y enviar' : 'Solicitar nuevo horario'}</button>
               </div>
-            </> : decision ? (client ? chooseNew ? <div className="zipco-pz-r2">
+            </> : decision && !rejectPopup ? (client ? chooseNew ? <div className="zipco-pz-r2">
               <button type="button" className="zipco-pz-back" disabled={busy} onClick={goBack}>Volver</button>
             </div> : <>
               {(() => {
@@ -533,12 +542,13 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                   else { acceptOrigin.current = 'chat'; setDecision(action); setExpired(false); }
                 };
                 const accepts = choices.filter(action => isAcceptAction(action) && !(renewSchedule && action === 'ACCEPT_COUNTER_PROPOSAL'));
+                const counter = read?.proposals.at(-1);
                 const others = choices.filter(action => !isAcceptAction(action));
                 return <>
                   {renewSchedule && <button type="button" className="zipco-bz-same" disabled={busy} onClick={() => { setFinalOffer(null); setScheduleReview(sameScheduleFinalReview(read!)); setError(''); }}>
-                    <span className="ck"><CalendarCheck aria-hidden="true" /></span><span className="lb">Sí, puedo para ese horario</span><ArrowRight aria-hidden="true" />
+                    <span className="ck"><CalendarCheck aria-hidden="true" /></span><span className="lb">Aceptar y confirmar{counter && <small>{money(counter.totalPriceClp)} · {whenShort(counter)}</small>}</span><ArrowRight aria-hidden="true" />
                   </button>}
-                  {renewSchedule && <p className="zipco-bz-hint">Renovarás la oferta mediante una propuesta final; la reserva requiere la aceptación del cliente. <b>Rechazar la contrapropuesta cierra la negociación.</b></p>}
+                  {renewSchedule && <p className="zipco-bz-hint">Renovarás la oferta mediante una propuesta final; la reserva requiere la aceptación del cliente.</p>}
                   {accepts.map(action => <AcceptGlassButton key={action} flush label={titles[action]} disabled={busy} onClick={() => go(action)}
                     price={read?.proposals.length ? read.proposals[read.proposals.length - 1].totalPriceClp : null} />)}
                   {others.length > 0 && <div className="flex gap-2.5">
@@ -546,12 +556,14 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                       const reject = action.startsWith('REJECT_');
                       if (!reject) return <ProposalDraftButton key={action} label={action === 'COUNTER_PROPOSAL' ? 'Contraponer' : titles[action]}
                         ariaLabel={titles[action]} once={action === 'COUNTER_PROPOSAL'} busy={busy} onClick={() => go(action)} />;
-                      return <button key={action} type="button" aria-label={titles[action]} disabled={busy} onClick={() => go(action)}
-                        className={`${reject ? 'zipco-chat-rej' : 'zipco-chat-ctr'} min-h-11 min-w-0 ${reject ? 'flex-1' : 'flex-[1.35] flex-col'} px-2 py-2 text-[13px]`}>
+                      const bzReject = business && reject;
+                      return <button key={action} ref={bzReject ? rejectTriggerRef : undefined} type="button" aria-label={titles[action]} aria-describedby={bzReject ? 'zipco-bz-reject-note' : undefined} disabled={busy} onClick={() => go(action)}
+                        className={`${reject ? 'zipco-chat-rej' : 'zipco-chat-ctr'} min-h-11 min-w-0 ${reject ? 'flex-1' : 'flex-[1.35] flex-col'} px-2 py-2 text-[13px]${bzReject ? ' zipco-bz-stk flex-col' : ''}`}>
                         <span className="flex min-w-0 items-center justify-center gap-1 text-center text-xs max-[360px]:text-[11px]">
                           {reject ? <X className="h-[13px] w-[13px] shrink-0" strokeWidth={2.6} aria-hidden="true" /> : <MessageCircle className="h-[13px] w-[13px] shrink-0" aria-hidden="true" />}
                           <span className="min-w-0 break-words">{action === 'COUNTER_PROPOSAL' ? 'Contraproponer' : reject ? 'Rechazar' : titles[action]}</span>
                         </span>
+                        {bzReject && <small id="zipco-bz-reject-note">Cierra la negociación</small>}
                         {action === 'COUNTER_PROPOSAL' && <span className="zipco-chat-once">1 vez</span>}
                       </button>;
                     })}
@@ -560,6 +572,34 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               })()}
             </>}
           </div>
+          {read && business && <Dialog.Root open={rejectPopup} onOpenChange={value => { if (!value && !busy) { setDecision(null); setExpired(false); } }}>
+            <Dialog.Portal>
+              <Dialog.Overlay className="zipco-bz-pop-ov" onPointerDown={event => { if (event.target === event.currentTarget && !busy) { event.preventDefault(); event.stopPropagation(); setDecision(null); setExpired(false); } }} />
+              <Dialog.Content className="zipco-bz-pop" aria-busy={busy} onOpenAutoFocus={event => { event.preventDefault(); rejectBackRef.current?.focus(); }} onCloseAutoFocus={event => { event.preventDefault(); rejectTriggerRef.current?.focus(); }} onEscapeKeyDown={event => { if (busy) event.preventDefault(); }} onPointerDownOutside={event => { if (busy) event.preventDefault(); }}>
+                <div className="zipco-bz-pop-in">
+                  <span className="zipco-bz-pop-ic" aria-hidden="true"><X /></span>
+                  <Dialog.Title className="zipco-bz-pop-t">¿Rechazar la contrapropuesta?</Dialog.Title>
+                  <Dialog.Description className="zipco-bz-pop-d">La negociación se cierra y la solicitud quedará en Historial.{choices.includes('PROPOSE_FINAL') ? ' Si prefieres seguir, puedes proponer una alternativa final.' : ''}</Dialog.Description>
+                  {(() => {
+                    const latest = read.proposals[read.proposals.length - 1];
+                    return <div className="zipco-bz-pop-sum">
+                      <span className="zipco-bz-th"><ProductPreviewControl preview={latest.productPreview ?? null} /></span>
+                      <b className="t">{proposalTitle(latest)}</b><em>{money(latest.totalPriceClp)}</em>
+                    </div>;
+                  })()}
+                  {error && rejectPopup && <p role="alert" className="zipco-bz-pop-er"><span>{error}</span>
+                    <button type="button" disabled={busy} onClick={reload}><RefreshCw aria-hidden="true" />Actualizar propuestas</button></p>}
+                  <div className="zipco-bz-pop-r2">
+                    <button ref={rejectBackRef} type="button" className="zipco-bz-pop-back" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
+                    <button type="button" className="zipco-bz-pop-rj" disabled={busy || !decision || !choices.includes(decision)} aria-busy={busy} onClick={() => void confirmRejection()}>
+                      {busy && <i className="zipco-pz-sp" aria-hidden="true" />}{busy ? 'Guardando…' : 'Sí, rechazar'}</button>
+                  </div>
+                  {choices.includes('PROPOSE_FINAL') && <button type="button" className="zipco-bz-pop-alt" disabled={busy}
+                    onClick={() => { chosenFulfillment.current = null; setFinalOffer(undefined); setDecision(null); setExpired(false); setDraftAction('PROPOSE_FINAL'); }}>Proponer alternativa final</button>}
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>}
           {read && <AcceptAuthorizeCard open={authCard} busy={busy} onClose={() => setAuthCard(false)}
             business={business} counterpartName={business
               ? 'customerName' in order ? order.customerName || 'el cliente' : 'el cliente'

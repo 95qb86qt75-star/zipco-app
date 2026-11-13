@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Revisar propuesta del negocio CliU39: historial compacto y cambios solicitados,
+  rechazo en pop-up con foco explícito, bloqueos y error recuperable.
+  43 pruebas, seis escenarios negocio y control cliente aprobados; build QA/PWA
+  aprobado. Publicación en verificación; prueba física pendiente.
+  [Evidencias, límites y demoras](frontend-business-review-chat-cliu39-qa.md).
+
 - Contrapropuesta exterior negocio: aurora (3).css y cabecera con ArrowLeftRight;
   círculo 38 px centrado, selector corregido y botón 50 px con flecha finita.
   Tres anchos, reduced-motion, disabled y acceso al chat sin POST aprobados.
