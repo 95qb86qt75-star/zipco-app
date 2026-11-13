@@ -1,11 +1,19 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-08, America/Santiago.
+Actualizado: 2026-11-13, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- E205: integrado acceso cliente de nuevo horario tras error de oferta vencida,
+  con COUNTER disponible, y negocio Sí, puedo para ese horario mediante final
+  renovada. Conserva nota/contacto como borrador y aceptación explícita final.
+  Backend QA e6a1d75; sin nuevas rutas/campos/flags. 75 unitarias y cuatro
+  recorridos Chromium con HTTP simulado aprobados; publicación frontend por
+  verificar y celulares físicos pendientes.
+  [Detalle, límites y tiempos](frontend-expired-proposal-schedule-qa.md).
 
 - Botones cliente ajustados directamente a las tres referencias del usuario:
   degradado limpio, check pequeño, Aceptar centrado, importe en cápsula cuando

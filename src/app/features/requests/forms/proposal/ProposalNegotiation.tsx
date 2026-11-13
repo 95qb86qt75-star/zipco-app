@@ -30,7 +30,10 @@ import AvailabilityPlanSummary from "../../cards/shared/availability/Availabilit
 import { reservationFlow, type ReservationChoice, type ReservationOfferInput } from "../../domain/reservationContract";
 import { simplifiedReservationFlow, isSimpleOffer } from "../../domain/simplifiedReservationContract";
 import SimpleReservationOfferFields from "../../shared/reservations/SimpleReservationOfferFields";
-import { readReservationOptions } from "../../api/reservationOptions";
+import { readReservationOptions, ReservationOptionsError } from "../../api/reservationOptions";
+import { canRequestProposalSchedule, needsReservationRenewal, scheduleRequestReview, sameScheduleFinalReview, type ExpiredProposalEvidence } from '../../domain/expiredProposalSchedule';
+import ExpiredProposalSchedule from './ExpiredProposalSchedule';
+import { readProposalScheduleDraft, saveProposalScheduleDraft } from '../../application/proposalScheduleDraft';
 import { startReservationPayment } from "../../application/startReservationPayment";
 import ReservationChoiceFields from "../../shared/reservations/ReservationChoiceFields";
 import ReservationOfferFields from "../../shared/reservations/ReservationOfferFields";
@@ -99,6 +102,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const [draftAction, setDraftAction] = useState<ProposalAction | null>(null);
   const [decision, setDecision] = useState<ProposalAction | null>(null);
   const [expired, setExpired] = useState(false);
+  const [scheduleExpired, setScheduleExpired] = useState<ExpiredProposalEvidence | null>(null);
+  const [scheduleReview, setScheduleReview] = useState<AlternativeReview | null>(null);
   const [authCard, setAuthCard] = useState(false);
   const [fulfillmentOpen,setFulfillmentOpen]=useState(false);
   const [contactPreference,setContactPreference]=useState(true);
@@ -127,7 +132,9 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const load = async (startDraft = false, acceptProposal = false) => {
     if (!process || !active() || lock.current) return;
     const controller = new AbortController(); controllers.current.add(controller); lock.current = true; setBusy(true); setError('');
-    try { const value = await readProposals(process.id, session!.token, controller.signal); if (active()) { setRead(value); setDecision(null); setExpired(false);
+    try { const value = await readProposals(process.id, session!.token, controller.signal); if (active()) { setRead(value); setDecision(null); setExpired(false); setScheduleReview(null);
+      const saved = !business && readProposalScheduleDraft(session!.userId, value);
+      if (saved) { setReservationNote(saved.note); setContactPreference(saved.contact); setReservationSelection(saved.choice); }
       if (startDraft) {
         if (proposalAllowed(value.process, business, 'PROPOSE_ALTERNATIVE')) {
           chosenFulfillment.current=null;setDraftAction('PROPOSE_ALTERNATIVE');
@@ -184,6 +191,9 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const exact = read && read.process.id === process.id && read.process.version >= process.version;
   const client = !business; // el rediseño de presentación aplica solo al cliente; el negocio conserva su markup
   const choices = exact ? (Object.keys(PROPOSAL_PATHS) as ProposalAction[]).filter(action => proposalAllowed(read.process, business, action)) : [];
+  const currentScheduleExpired = Boolean(exact && scheduleExpired?.version === read.process.version && scheduleExpired.proposalId === read.process.currentProposalId);
+  const requestSchedule = !business && exact && canRequestProposalSchedule(read, scheduleExpired);
+  const renewSchedule = business && exact && needsReservationRenewal(read);
 
   const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
     if (!active() || lock.current || !read || !choices.includes(action)) throw new ProposalError('Actualiza las condiciones antes de confirmar.', 0);
@@ -239,7 +249,12 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         }
         setRead(latest); setDraftAction(null); setOpen(true); refresh(); throw new ProposalError('El pedido cambió. Revisa su estado actualizado antes de responder.', 409, 'STALE_VERSION', true);
       }
-      if(simplifiedReservationFlow(captured.process)&&!business&&plan?.path==='LOCAL_PICKUP'&&['COUNTER_PROPOSAL','ACCEPT_PROPOSAL'].includes(action))await readReservationOptions(process.id,captured.process.version,session!.token,false,plan.availabilityConfirmationId,controller.signal);
+      // E205: requesting an explicit new schedule is not reserving the expired
+      // original offer. All actual acceptances retain the reservation preflight.
+      const scheduleCounter = action === 'COUNTER_PROPOSAL' && review?.schedule &&
+        !review.lineChanges?.length && review.totalPriceClp === captured.proposals.at(-1)?.totalPriceClp &&
+        canRequestProposalSchedule(captured, scheduleExpired);
+      if(simplifiedReservationFlow(captured.process)&&!business&&plan?.path==='LOCAL_PICKUP'&&['COUNTER_PROPOSAL','ACCEPT_PROPOSAL'].includes(action)&&!scheduleCounter)await readReservationOptions(process.id,captured.process.version,session!.token,false,plan.availabilityConfirmationId,controller.signal);
       let photo: string | null = null;
       if (file) {
         photo = uploaded.current.get(file) ?? await uploadProposalPhoto(file, controller.signal);
@@ -251,6 +266,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       const receipt = await proposalIntents().run(operationScope(session!, business), process.id, action, body,
         key => sendProposalAction(process.id, order.id!, action, body, session!.token, key, controller.signal,captured.process.flowContract,captured.process.availability?.availabilityConfirmationId));
       committed=true;
+      if (scheduleCounter && active() && plan?.reservationOffer && ['FREE', 'PREPAYMENT'].includes(plan.reservationOffer.mode))
+        saveProposalScheduleDraft(session!.userId, process.id, { counterId: receipt.requestProcess.currentProposalId, mode: plan.reservationOffer.mode as 'FREE' | 'PREPAYMENT', note: reservationNote, contact: contactPreference, choice: reservationSelection });
       // POST is final. A failed subsequent read must never send it again.
       let navigation:string|null=null;
       if(action==='ACCEPT_PROPOSAL'&&!business&&simplifiedReservationFlow(captured.process)&&reservationSelection==='REQUEST_RESERVATION'&&plan?.reservationOffer?.mode==='PREPAYMENT'){
@@ -259,6 +276,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       if(!active())return;
       if(flow){const current=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return;if(!current?.requestProcess||current.requestProcess.id!==process.id||current.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');finish(receipt,current);}else finish(receipt);if(navigation)window.location.assign(navigation);
     } catch (e) {
+      if (active() && (e instanceof ReservationOptionsError || e instanceof ProposalError) && e.status === 409 && e.code === 'RESERVATION_SCHEDULE_EXPIRED')
+        setScheduleExpired({ version: captured.process.version, proposalId: captured.process.currentProposalId });
       if(committed&&active()){setError('Tu respuesta se guard\u00f3; falta actualizar el pedido. Comprueba el estado antes de continuar.');refresh();}
       if (active() && e instanceof ProposalError && e.code === 'EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED') { setExpired(true); setAuthCard(false); setDecision(action); }
       if (active() && e instanceof ProposalError && e.status === 401) window.dispatchEvent(new Event('zipco-coordination-session-expired'));
@@ -279,7 +298,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       </div> : reviewButton;
     })()}
     {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
-    {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); } }}>
+    {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); setScheduleReview(null); } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
         <Dialog.Content aria-busy={busy} data-accept-overlay={authCard || undefined} className={`zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0${client ? ' zipco-pz' : ''}`}>
           {client && busy && <div className="zipco-pz-prog" aria-hidden="true"><i /></div>}
@@ -289,18 +308,30 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
           </div>
           {(() => {
             const heading = <>
-              <Dialog.Title className="text-[22px] font-extrabold leading-tight">{client && decision ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
+              <Dialog.Title className="text-[22px] font-extrabold leading-tight">{scheduleReview ? business ? 'Confirmar horario solicitado' : 'Revisar nuevo horario' : client && decision ? titles[decision] : initial ? 'Proponer alternativa' : reviewLabel ? 'Conversación del pedido' : 'Revisar propuesta'}</Dialog.Title>
               <Dialog.Description className={client && decision ? 'sr-only' : 'mt-0.5 text-[13px] leading-snug text-slate-500 dark:text-slate-300'}>Tu conversación con {business ? 'el cliente' : 'el negocio'}.</Dialog.Description>
             </>;
             return <div className="shrink-0 px-5 pb-1.5 pt-[18px] pr-[104px]">
               {client ? <div className="zipco-pz-hd">
-                {decision && <button type="button" className="zipco-pz-bk" aria-label="Volver" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}><span><ArrowLeft aria-hidden="true" /></span></button>}
+                {decision && <button type="button" className="zipco-pz-bk" aria-label="Volver" disabled={busy} onClick={() => { if (scheduleReview) setScheduleReview(null); else { setDecision(null); setExpired(false); } }}><span><ArrowLeft aria-hidden="true" /></span></button>}
                 <div className="min-w-0 flex-1">{heading}</div>
               </div> : heading}
             </div>;
           })()}
           <div key={client ? String(decision) : undefined} className="zipco-chat-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
-            {client && decision && read ? <div className="zipco-pz-decision">
+            {scheduleReview && read ? <section className="zipco-schedule-request">
+              <h4 className="font-bold">{business ? 'Sí, puedo para ese horario' : 'Solicitar nuevo horario'}</h4>
+              <p>{scheduleReview.schedule?.mode === 'IMMEDIATE' || business && read.proposals.at(-1)?.subjectSnapshot.needNow ? 'Lo antes posible' : scheduleReview.schedule?.mode === 'SCHEDULED' ? `${scheduleReview.schedule.date} · ${scheduleReview.schedule.time} (Chile)` : whenLong(read.proposals.at(-1)!)}</p>
+              <p>Se mantienen los productos y el total: {money(scheduleReview.totalPriceClp)}.</p>
+              <p>{scheduleReview.message}</p>
+              <p>El cliente debe revisar y aceptar la propuesta final. Solicitar otro horario no confirma la reserva.</p>
+              {business && read.process.availability?.reservationOffer && <>
+                <BusinessResponseHoursNotice businessId={Number(session?.businessId)} {...chileSchedule(read.proposals.at(-1)?.scheduledFor)} />
+                <SimpleReservationOfferFields initial={read.process.availability.reservationOffer} total={scheduleReview.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode />
+                {read.process.availability.allowCustomerWhatsapp && <p>{BUSINESS_CONTACT_COPY}</p>}
+              </>}
+              {!business && <p>Tu elección de reserva, nota y permiso de contacto se mantienen para esta solicitud.</p>}
+            </section> : client && decision && read ? <div className="zipco-pz-decision">
               {(() => {
                 const latest = read.proposals[read.proposals.length - 1];
                 const reject = decision.startsWith('REJECT_');
@@ -341,18 +372,34 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 plan={client && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal /> : undefined} />}
             </>}
           </div>
+          {requestSchedule && decision === 'ACCEPT_PROPOSAL' && !scheduleReview && <div className="min-h-0 overflow-y-auto px-4">
+            <ExpiredProposalSchedule busy={busy} onSelect={schedule => {
+              try { setScheduleReview(scheduleRequestReview(read!, schedule, reservationNote)); setError(''); }
+              catch (e) { setError(e instanceof Error ? e.message : 'Revisa el horario.'); }
+            }} />
+          </div>}
+          {currentScheduleExpired && !requestSchedule && !business && decision === 'ACCEPT_PROPOSAL' && <p className="px-4 text-sm">Esta propuesta no permite otra contrapropuesta de horario. Puedes revisar el historial o rechazarla; no cambiamos ni cancelamos el pedido automáticamente.</p>}
           {error && <p role="alert" className={client ? 'zipco-pz-err' : 'px-5 pt-2 text-sm text-red-700'}>{client ? <>
             <span>{error}</span>
             <button type="button" disabled={busy} onClick={() => void load()}><RefreshCw aria-hidden="true" />Actualizar propuestas</button>
           </> : error}</p>}
           <div className="zipco-chat-foot shrink-0 space-y-2 px-4 pb-4 pt-1.5">
-            {decision ? (client ? <>
+            {scheduleReview ? <>
+              <p className="text-xs">{business ? 'Enviarás una propuesta final con la oferta renovada. El cliente todavía debe aceptarla.' : 'El negocio debe confirmar el nuevo horario. Tu reserva aún no está confirmada.'}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className={button} disabled={busy} onClick={() => setScheduleReview(null)}>Volver</button>
+                <button type="button" className={button} disabled={busy || !(business ? renewSchedule && finalOffer : requestSchedule)} onClick={async () => {
+                  try { await execute(business ? 'PROPOSE_FINAL' : 'COUNTER_PROPOSAL', scheduleReview); }
+                  catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Conservamos tu solicitud.'); }
+                }}>{busy ? 'Guardando…' : business ? 'Confirmar y enviar' : 'Solicitar nuevo horario'}</button>
+              </div>
+            </> : decision ? (client ? <>
               {(() => {
                 const reject = decision.startsWith('REJECT_');
                 const confirm = async () => { try { await execute(decision, undefined, null, expired, isAcceptAction(decision) && authorizeChoice.current); } catch (e) { if (active()) setError(e instanceof Error ? e.message : 'No se pudo confirmar. Reintenta la misma operación.'); } };
-                const blocked = busy || !choices.includes(decision);
+                const blocked = busy || !choices.includes(decision) || Boolean(currentScheduleExpired && decision === 'ACCEPT_PROPOSAL');
                 return <>
-                  <p className={`zipco-pz-cap${reject ? ' rose' : ''}`}><Info aria-hidden="true" />{reject ? 'La solicitud finalizará y quedará en Historial.' : availabilityFlow(read?.process) ? 'Aceptar crea el acuerdo de esta propuesta. No representa un pago realizado.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
+                  <p className={`zipco-pz-cap${reject ? ' rose' : ''}`}><Info aria-hidden="true" />{reject ? 'La solicitud finalizará y quedará en Historial.' : currentScheduleExpired ? 'La fecha ofrecida venció. Solicitar otro horario no confirma la reserva.' : availabilityFlow(read?.process) ? 'Aceptar crea el acuerdo de esta propuesta. No representa un pago realizado.' : 'Las condiciones aceptadas pasarán a Por coordinar; falta autorizar el contacto.'}</p>
                   <div className="zipco-pz-r2">
                     <button type="button" className="zipco-pz-back" disabled={busy} onClick={() => { setDecision(null); setExpired(false); }}>Volver</button>
                     {reject
@@ -386,9 +433,11 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                   else if (isAcceptAction(action)) { if(availabilityFlow(read?.process))setDecision(action);else setAuthCard(true);setExpired(false);authorizeChoice.current = false; }
                   else { setDecision(action); setExpired(false); }
                 };
-                const accepts = choices.filter(isAcceptAction);
+                const accepts = choices.filter(action => isAcceptAction(action) && !(renewSchedule && action === 'ACCEPT_COUNTER_PROPOSAL'));
                 const others = choices.filter(action => !isAcceptAction(action));
                 return <>
+                  {renewSchedule && <button type="button" className={button} disabled={busy} onClick={() => { setFinalOffer(null); setScheduleReview(sameScheduleFinalReview(read!)); setError(''); }}>Sí, puedo para ese horario</button>}
+                  {renewSchedule && <p className="text-xs">Renovarás la oferta mediante una propuesta final; la reserva requiere la aceptación del cliente. Rechazar la contrapropuesta cierra la negociación.</p>}
                   {accepts.map(action => <AcceptGlassButton key={action} flush label={titles[action]} disabled={busy} onClick={() => go(action)}
                     price={read?.proposals.length ? read.proposals[read.proposals.length - 1].totalPriceClp : null} />)}
                   {others.length > 0 && <div className="flex gap-2.5">

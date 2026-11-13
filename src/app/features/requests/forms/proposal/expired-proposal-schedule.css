@@ -1,0 +1,6 @@
+.zipco-schedule-request{margin:12px 0;padding:14px;border:1px solid #c4b5fd;border-radius:18px;background:#f5f3ff;color:#241447;font-size:13px}
+.zipco-schedule-request legend{font-weight:800}.zipco-schedule-request p{margin:8px 0;line-height:1.45}
+.zipco-schedule-choices{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.zipco-schedule-choices>*{flex:1;min-width:110px}
+.zipco-schedule-request button{min-height:44px;border:1px solid #a78bfa;border-radius:12px;padding:8px;background:white;font-weight:750;color:#4c1d95}
+.zipco-schedule-request button[aria-pressed=true]{background:#ede9fe;border-color:#6d28d9}.zipco-schedule-request input{display:block;width:100%;min-width:0;min-height:44px;background:white;border:1px solid #a78bfa;border-radius:10px;padding:6px}
+.zipco-schedule-request button:disabled{opacity:.5}.zipco-schedule-request :focus-visible{outline:3px solid #8b5cf6;outline-offset:2px}

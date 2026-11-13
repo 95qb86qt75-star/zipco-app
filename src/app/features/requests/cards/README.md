@@ -1,5 +1,9 @@
 # Una fuente de diseño por tarjeta
 
+E205: el horario vencido se presenta dentro del diálogo canónico
+`forms/proposal/ProposalNegotiation.tsx`, con campos en `ExpiredProposalSchedule.tsx`.
+La política vive en `domain/expiredProposalSchedule.ts`; no es otra tarjeta de lista.
+
 La pantalla selecciona las tarjetas mediante
 `shared/layout/ProcessOrderCard.tsx`. Su lógica conserva el contrato existente.
 Los archivos de entrada y los controladores no son diseños alternativos: componen
