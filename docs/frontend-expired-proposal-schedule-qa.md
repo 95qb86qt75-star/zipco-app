@@ -90,6 +90,12 @@ registran al cierre. Este tiempo de desarrollo no mide rendimiento de la app.
 
 ## Publicación
 
-Pendiente al escribir este informe: commit/push frontend y verificación del SHA
-en Vercel QA. No hay nueva publicación Railway ni acciones reales de pedido.
+Publicado frontend QA `59a124232e50ccb0419cf98f1753a4f875a01d5c`, rama qa.
+Vercel devolvió success para el SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/Br7rHJrTKPLn443kDv469QNHQGB1
+Publicación y comprobación: 1 min 21 s medidos, incluida espera externa.
+El cierre documental es local para evitar otro despliegue exclusivamente Markdown.
+No se verificó por separado el bundle remoto protegido: success acredita el estado
+del despliegue asociado al commit, no una prueba física de esa versión.
+No hay nueva publicación Railway ni acciones reales de pedido.
 Main permanece 8295ab8c6024ab20851ebd371308d2f299b4668f; producción intacta.

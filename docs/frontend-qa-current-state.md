@@ -11,8 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   con COUNTER disponible, y negocio Sí, puedo para ese horario mediante final
   renovada. Conserva nota/contacto como borrador y aceptación explícita final.
   Backend QA e6a1d75; sin nuevas rutas/campos/flags. 75 unitarias y cuatro
-  recorridos Chromium con HTTP simulado aprobados; publicación frontend por
-  verificar y celulares físicos pendientes.
+  recorridos Chromium con HTTP simulado aprobados; frontend QA `59a1242`, Vercel
+  success del SHA exacto. Celulares físicos pendientes.
   [Detalle, límites y tiempos](frontend-expired-proposal-schedule-qa.md).
 
 - Botones cliente ajustados directamente a las tres referencias del usuario:
