@@ -127,3 +127,10 @@ Tiempos del seguimiento: análisis/implementación instrumentados como intervalo
 conjunto aproximado 1:46, sin desglose fiable entre fases; verificación/espera
 aproximadamente 0:48 en paralelo con build. Documentación y publicación se cierran
 después. No se confunden tiempos de desarrollo con fluidez de la app.
+
+Publicación del seguimiento: rama qa, commit 345c751c6bc9af469296123998ef27eb82e82183.
+Vercel success verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/EgeJdhiecSoXZaRjRfzR4V3yXB7C
+Verificación de publicación en aproximadamente 0:40 desde el push (incluye
+espera externa). Cierre documental local sin otro despliegue. Main y producción
+intactos; no se comprobó por separado el bundle protegido ni Safari físico.

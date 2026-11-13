@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Seguimiento E205: captura física de 59a1242 reveló dos scrolls compitiendo por
   altura y Sí, confirmar obsoleto. Corregido dentro del diálogo canónico con fase
   Elegir nuevo horario, un solo scroll y sin aceptación en esa fase. Cuatro
-  escenarios Chromium y build QA/PWA aprobados; versión publicada por verificar.
+  escenarios Chromium y build QA/PWA aprobados; QA `345c751`, Vercel success del
+  SHA exacto. Comprobación física de esta corrección pendiente.
   [Evidencia y límites](frontend-expired-proposal-schedule-qa.md).
 
 - E205: integrado acceso cliente de nuevo horario tras error de oferta vencida,
