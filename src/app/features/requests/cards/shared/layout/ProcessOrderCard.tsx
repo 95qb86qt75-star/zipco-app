@@ -74,7 +74,8 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
   const schedule = awaiting ? formatDeliverySchedule(order, business ? 'business' : 'customer') : null;
   const isExpanded = onToggle ? expanded ?? false : localExpanded;
   const responseMotionRef = useVisibleResponseMotion(Boolean(business && awaiting && isExpanded));
-  const stateLabel = business && awaiting ? 'Nuevo pedido' : processStatusLabel(order);
+  const customerCounter = !business && process?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE';
+  const stateLabel = business && awaiting ? 'Nuevo pedido' : processStatusLabel(order, business);
   const hasConditions = coordination || Boolean(process?.agreementPublicId);
   const unavailableText = awaiting ? 'Productos no disponibles. Actualiza el pedido.'
     : agreement.state.status === 'loading' ? 'Cargando condiciones aceptadas…'
@@ -104,7 +105,7 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
       <AcceptGlassButton label={isUpdating ? 'Guardando…' : 'Aceptar pedido'} price={isUpdating ? null : price} disabled={isUpdating}
         onClick={(event) => { event.stopPropagation(); onAccept?.(); }} />}
   </>;
-  const summary = negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : awaiting
+  const summary = customerCounter ? 'Enviaste tu contrapropuesta. Espera la respuesta del negocio.' : negotiating ? 'Revisa las nuevas condiciones de la propuesta.' : awaiting
     ? business ? 'Revisa la solicitud y responde al cliente.' : 'Esperando la primera respuesta del negocio.'
     : agreement.state.status === 'loading' ? 'Cargando condiciones aceptadas…'
     : process?.state === 'IN_PROGRESS' ? business ? 'Continúa con la preparación del pedido.' : 'El negocio está preparando tu pedido.'
@@ -228,7 +229,7 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
       <div className={business && awaiting ? 'zipco-pending-business-body' : undefined}>
       <div className={business && awaiting ? 'zipco-pending-business-content' : undefined}>
       {business && awaiting && pendingDetails}
-      {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} variant="aurora" />}
+      {(awaiting && business || negotiating) && <ProposalNegotiation key="proposal-negotiation" order={order} business={business} refresh={onRetry} variant="aurora" reviewLabel={customerCounter ? 'Ver conversación' : undefined} />}
       {business && awaiting && <PendingRejectionActions key="pending-rejection" order={order} refresh={onRetry} />}
       {business && awaiting && <button type="button" aria-expanded={isExpanded}
         onClick={(event) => { event.stopPropagation(); toggle(); }} className="zipco-hide-order-detail">

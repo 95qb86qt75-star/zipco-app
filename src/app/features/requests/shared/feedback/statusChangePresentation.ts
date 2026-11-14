@@ -51,7 +51,7 @@ export function projectStatusOrders<T extends StatusOrder>(orders:T[],business:b
 export function getStatusNotice(){return page?.session===readCoordinationSession()&&!statusOverlayVisible()?notice:null;}
 export function closeStatusNotice(){notice=null;pumpNotices();}
 export function statusResultCopy(result:StatusOrder,source?:StatusOrder,business=false){
-  const p=result.requestProcess,view=statusViewFor('orders',result.status,p,false,false);
+  const p=result.requestProcess,view=statusViewFor('orders',result.status,p,false,business);
   if(p?.localPickupInformation)return {title:business?'Disponibilidad informada':p.localPickupInformation.status==='ACKNOWLEDGED'?'Indicaciones recibidas':'Indicaciones para ir al local',description:business||p.localPickupInformation.status==='ACKNOWLEDGED'?'Ya puedes consultar las indicaciones en Historial.':'Lee las indicaciones del negocio y confirma que las recibiste.',amber:false};
   if(p?.lateInitialResponse?.status==='AWAITING_CUSTOMER')return {title:'Consulta enviada',description:'El cliente debe responder si a\u00fan lo necesita.',amber:false};
   if(p?.lateInitialResponse?.status==='STILL_NEEDED')return {title:'Respuesta enviada',description:'Falta acordar una nueva hora.',amber:true};
@@ -61,6 +61,7 @@ export function statusResultCopy(result:StatusOrder,source?:StatusOrder,business
   if(view==='active')return {title:p?.whatsappCoordination?'Coordinación lista':'Pedido en curso',description:'El pedido está En curso.',amber:false};
   if(view==='ready')return {title:'Pedido listo y notificado',description:'Ya lo encuentras en Listo y notificado.',amber:false};
   if(view==='waiting')return {title:'Respuesta enviada',description:'El pedido está en Esperando respuesta.',amber:false};
+  if(view==='awaiting-business')return {title:'Contrapropuesta enviada',description:'Está en En espera. El negocio debe responder.',amber:false};
   if(view==='history')return {title:result.status==='completed'?'Pedido completado':'Solicitud finalizada',description:'Ya la encuentras en Historial.',amber:false};
   return {title:'Respuesta guardada',description:'Revisa el estado actualizado del pedido.',amber:false};
 }

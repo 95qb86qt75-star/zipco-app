@@ -1,6 +1,6 @@
 import type { StatusView } from "../domain/requestStatusGrouping";
 
-const views: readonly string[] = ['pending', 'coordination', 'waiting', 'active', 'ready', 'history'];
+const views: readonly string[] = ['pending', 'coordination', 'waiting', 'awaiting-business', 'active', 'ready', 'history'];
 export function parseRequestStatusView(value: string | null): StatusView | undefined {
   return value !== null && views.includes(value) ? value as StatusView : undefined;
 }

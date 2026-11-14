@@ -42,7 +42,7 @@ describe("request status grouping", () => {
         ],
         "orders",
       ),
-    ).toEqual({ pending: 1, waiting: 0, active: 1, ready: 1, history: 1, coordination: 0 });
+    ).toEqual({ pending: 1, waiting: 0, 'awaiting-business': 0, active: 1, ready: 1, history: 1, coordination: 0 });
   });
 
   it("keeps archived requests out of normal history and exposes them in Eliminados", () => {

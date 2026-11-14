@@ -85,6 +85,7 @@ return (<div className="zipco-status-tabs mb-3">
                   label: "Por responder",
                   count: statusCounts.waiting,
                 },
+                ...(statusCounts['awaiting-business'] > 0 ? [{ key: 'awaiting-business', label: 'En espera', count: statusCounts['awaiting-business'] } as const] : []),
                 ...(statusCounts.coordination > 0 ? [{ key: 'coordination', label: 'Coordinación', count: statusCounts.coordination } as const] : []),
                 {
                   key: "active",

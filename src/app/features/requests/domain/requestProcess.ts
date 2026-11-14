@@ -211,7 +211,7 @@ export function canAcceptFixedOrder(order: ProcessOrder): boolean {
     order.requestProcess.allowedActions.includes('ACCEPT_FIXED_ORDER');
 }
 
-export function processStatusLabel(order: ProcessOrder): string {
+export function processStatusLabel(order: ProcessOrder, business = false): string {
   if(receiptPending(order.requestProcess))return 'Producto recibido · Pendiente de finalizar';
   const late=order.requestProcess?.lateInitialResponse;
   if(late)return late.status==='OUT_OF_TIME'?'Fuera de hora':late.status==='AWAITING_CUSTOMER'?'Esperando respuesta del cliente':late.status==='STILL_NEEDED'?'Falta acordar una nueva hora':late.status==='NO_LONGER_NEEDED'?'El cliente ya no necesita el pedido':'El negocio no podrá atender';
@@ -219,7 +219,7 @@ export function processStatusLabel(order: ProcessOrder): string {
   if (isAvailabilityClosed(order.requestProcess)) return 'Solicitud finalizada';
   if (order.requestProcess?.state === 'AWAITING_CUSTOMER_DECISION') return 'Alternativa por responder';
   if (order.requestProcess?.state === 'AWAITING_CUSTOMER_FINAL_DECISION') return 'Propuesta final por responder';
-  if (order.requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return 'Contrapropuesta por responder';
+  if (order.requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return business ? 'Contrapropuesta por responder' : 'Esperando respuesta del negocio';
   if (isProposalRejected(order.requestProcess)) return 'Propuesta rechazada';
   if (isPendingRequestCancelled(order.requestProcess)) return 'Anulada por el cliente';
   if (isPendingRequestRejected(order.requestProcess)) return 'Rechazada';

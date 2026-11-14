@@ -12,7 +12,7 @@ describe('alternatives-v1 strict representation and permissions', () => {
     const read = normalizeProposals(raw, 7)!;
     expect(read.proposals).toHaveLength(sequence + 1); expect(read.proposals[0].subjectSnapshot.items[0].nameSnapshot).toBe('Artículo sintético');
     expect(JSON.stringify(raw)).toBe(before);
-    expect(statusViewFor('orders', sequence ? 'alternative_proposed' : 'pending', read.process)).toBe(sequence ? 'waiting' : 'pending');
+    expect(statusViewFor('orders', sequence ? 'alternative_proposed' : 'pending', read.process)).toBe(sequence === 2 ? 'awaiting-business' : sequence ? 'waiting' : 'pending');
   });
   it.each([0, 1, 2, 3])('allows only the actor/state actions at sequence %s', sequence => {
     for (const business of [true, false]) {

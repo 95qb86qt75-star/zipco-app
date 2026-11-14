@@ -2,7 +2,7 @@ import {informationView} from "./localPickupInformation";
 import { receiptPending } from "./customerReceiptContract";
 import { hasRequestProcess, isPendingRequestCancelled, isPendingRequestRejected, isProposalRejected, isAvailabilityClosed, type RequestProcessSummary } from "./requestProcess";
 export type RequestKind = "orders" | "quotes";
-export type StatusView = "pending" | "waiting" | "active" | "ready" | "history" | "coordination";
+export type StatusView = "pending" | "waiting" | "awaiting-business" | "active" | "ready" | "history" | "coordination";
 export type HistoryFilter =
   "all" | "completed" | "cancelled" | "rejected" | "deleted";
 
@@ -18,7 +18,8 @@ export function statusViewFor(
   if (kind === "orders") {
     const information=informationView(requestProcess,business);if(information)return information;
     if(requestProcess?.state==='AWAITING_BUSINESS_RESPONSE'&&requestProcess.lateInitialResponse?.status==='AWAITING_CUSTOMER')return business?'pending':'waiting';
-    if (['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_BUSINESS_COUNTER_RESPONSE', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
+    if (requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return business ? 'waiting' : 'awaiting-business';
+    if (['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
     if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && (isPendingRequestCancelled(requestProcess) || isAvailabilityClosed(requestProcess))) ||
       (status === 'rejected' && (isPendingRequestRejected(requestProcess) || isProposalRejected(requestProcess))) ? 'history' : null;
     if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
@@ -57,7 +58,7 @@ export function countStatusViews(records: StatusRecord[], kind: RequestKind, bus
       if (view) counts[view] += 1;
       return counts;
     },
-    { pending: 0, waiting: 0, active: 0, ready: 0, history: 0, coordination: 0 },
+    { pending: 0, waiting: 0, 'awaiting-business': 0, active: 0, ready: 0, history: 0, coordination: 0 },
   );
 }
 

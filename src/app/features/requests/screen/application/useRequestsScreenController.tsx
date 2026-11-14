@@ -66,7 +66,7 @@ export function useRequestsScreenController({
   useEffect(()=>{
     const navigate=(event:Event)=>{
       const detail=(event as CustomEvent).detail;
-      if(!detail||typeof detail.business!=='boolean'||!['pending','waiting','active','coordination','history','ready'].includes(detail.view)||
+      if(!detail||typeof detail.business!=='boolean'||!['pending','waiting','awaiting-business','active','coordination','history','ready'].includes(detail.view)||
         (detail.business?'my-business':'my-orders')!==subTab)return;
       if (!detail.business && detail.view === 'history' && !detail.explicit) return;
       if(detail.explicit){setRequestType('orders');setAttentionFilter('browse');}
@@ -151,6 +151,12 @@ export function useRequestsScreenController({
   );
   const statusCountState = (requestType === 'orders' ? isLoading : quotes.loading)
     ? 'loading' : (requestType === 'orders' ? loadError : quotes.error) ? 'unavailable' : undefined;
+  useEffect(() => {
+    if (subTab !== 'my-orders' || requestType !== 'orders' || statusView !== 'awaiting-business' ||
+      !selectedRead.loaded || selectedRead.loading || selectedRead.error || statusCounts['awaiting-business'] > 0) return;
+    setAttentionFilter('browse');
+    setStatusViews(current => ({ ...current, [viewKey]: 'waiting' }));
+  }, [subTab, requestType, statusView, selectedRead.loaded, selectedRead.loading, selectedRead.error, statusCounts['awaiting-business'], viewKey]);
   const businessOrderStatusCounts = countStatusViews(
     requests.filter((record) => record.recordState === "available"),
     "orders",
@@ -304,6 +310,7 @@ export function useRequestsScreenController({
   const confirmedRejectionInHistory = requestType === 'orders' && statusView === 'history' &&
     (subTab === 'my-orders' ? filteredMyOrders : filteredBusinessOrders).some(order => order.status === 'rejected' && isPendingRequestRejected(order.requestProcess));
   const emptyCopy = {
+    'awaiting-business': { title: 'No tienes solicitudes en espera', description: 'Aquí aparecerán tus contrapropuestas mientras esperas al negocio.' },
     coordination: { title: 'No tienes pedidos en Coordinación', description: 'Los pedidos aceptados de esta etapa aparecerán aquí.' },
     pending: {
       title: "No tienes solicitudes pendientes",

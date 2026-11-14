@@ -57,6 +57,45 @@ function nodes(root: React.ReactNode): Node[] {
     ? [child as Node, ...nodes((child as Node).props.children)] : []);
 }
 const noop = () => {};
+it('shows En espera only for customer counters and moves the final back to Por responder', () => {
+  hooks.loading = false; session = true; window.location.search = '?open=requests-customer';
+  hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(2, false).process }]);
+  const result = render();
+  const tab = nodes(result).find(node => node.type === RequestStatusTab && node.props.item.key === 'awaiting-business')!;
+  expect(tab.props.item).toMatchObject({ label: 'En espera', count: 1 }); tab.props.onSelect();
+  const selected = render();
+  expect(nodes(selected).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('awaiting-business');
+  expect(nodes(selected).find(node => node.type === MyOrdersTab)?.props.myOrders.map((order: any) => order.id)).toEqual([rawOrder.id]);
+  hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(3, false).process }]);
+  const final = render();
+  expect(nodes(final).some(node => node.type === RequestStatusTab && node.props.item.key === 'awaiting-business')).toBe(false);
+  expect(nodes(final).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('waiting');
+  expect(nodes(final).find(node => node.type === MyOrdersTab)?.props.myOrders.map((order: any) => order.id)).toEqual([rawOrder.id]);
+  expect(hooks.action).not.toHaveBeenCalled();
+});
+it('opens a counter deep link in En espera and leaves it out of response alerts', () => {
+  hooks.loading = false; session = true; window.location.search = '?open=requests-customer&orderId=20';
+  hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(2, false).process }]);
+  const result = render();
+  expect(nodes(result).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('awaiting-business');
+  expect(nodes(result).some(node => typeof node.props.description === 'string' && node.props.description.includes('nueva respuesta'))).toBe(false);
+  expect(hooks.action).not.toHaveBeenCalled();
+});
+it('keeps En espera selected through a failed read and while other counters remain', () => {
+  hooks.loading = false; session = true; window.location.search = '?open=requests-customer&view=awaiting-business';
+  const counter = { ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(2, false).process };
+  hooks.orders = normalizeMyOrdersPayload([counter]); render();
+  hooks.error = 'Error temporal'; hooks.orders = [];
+  render();
+  // A failed read renders the error, not the empty-list copy. Keep the selected
+  // category internally until a successful read establishes that it is empty.
+  expect(hooks.slots.some(value => value?.['my-orders-orders'] === 'awaiting-business')).toBe(true);
+  hooks.error = ''; hooks.orders = normalizeMyOrdersPayload([counter, { ...counter, id: 21, requestProcess: { ...counter.requestProcess, id: 8 } }]);
+  render(); hooks.orders = normalizeMyOrdersPayload([{ ...counter, id: 21, requestProcess: { ...counter.requestProcess, id: 8 } }]);
+  const remaining = render();
+  expect(nodes(remaining).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item).toMatchObject({ key: 'awaiting-business', count: 1 });
+  expect(hooks.action).not.toHaveBeenCalled();
+});
 function render() {
   let result: React.ReactNode, count = 0;
   do {
