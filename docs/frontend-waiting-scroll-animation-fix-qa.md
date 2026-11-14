@@ -35,3 +35,10 @@ verificación/esperas de aprobación 399 s conjuntos (sin separar CPU y espera),
 build y preparación de comprobación adicional 58 s (incluye Vite 17,75 s;
 no sumar otra vez). Documentación/publicación al cierre.
 Main y producción intactos. Handoff ajeno conservado.
+
+Comprobación adicional/documentación/preparación de publicación 38 s;
+publicación/verificación 43 s con espera externa. QA rama qa,
+SHA 4a1702b02e80bfcb4c433e8349e55d5b30f0456e, Vercel success verificado:
+https://vercel.com/zipco-s-projects/zipco-app/Ge9p4RFrgr67vXx8Eob1JL3jAqVu
+Sin verificación independiente del bundle protegido ni prueba física. Cierre
+documental local sin otro push/despliegue.

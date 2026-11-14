@@ -10,7 +10,7 @@ ni convierte pruebas sintéticas en aprobación física.
 - Corrección del reinicio al desplazar en waiting: animation:none condicionado
   a scroll quitaba/recreaba las entradas. Ahora terminan una vez y solo los
   adornos se pausan conservando su línea de tiempo. Reproducción antes/después:
-  24/12 reinicios pasan a cero. Build QA/PWA aprobado; publicación en verificación.
+  24/12 reinicios pasan a cero. Build QA/PWA aprobado; QA 4a1702b, Vercel success.
   [Causa, pruebas y tiempos](frontend-waiting-scroll-animation-fix-qa.md).
 
 - Cliente en espera: variante visual canónica de contrapropuesta enviada,
