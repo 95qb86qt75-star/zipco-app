@@ -72,3 +72,10 @@ Ajustes visuales y repetición del arnés/builds 170 s hasta segunda inspección
 comprobación final/cierre se registra al publicar. No hay desglose fiable de cada
 subfase posterior: no sumar tiempos de herramientas otra vez a esos intervalos.
 No son mediciones del rendimiento de la app.
+
+Comprobación final y tercer build tras wbr: 228 s; documentación/preparación
+de publicación 15 s; publicación/verificación 480 s, incluye espera externa.
+Rama qa, commit c829616524c5c7654fa63ed71a8aaff04fc1851d, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/B56hC9TyypawfaYW33wW3wfykXj5
+Sin inspección independiente del bundle protegido ni teléfono físico. Cierre
+documental local sin otro push/despliegue.

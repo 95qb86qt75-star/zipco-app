@@ -11,7 +11,7 @@ ni convierte pruebas sintéticas en aprobación física.
   avance de cuatro pasos, Ver conversación, Enviada y cambios que pediste.
   Se conservan categorías, negocio y cliente que debe responder; contenido
   visible al pausar y miniatura real ajustada. 97 pruebas, tres anchos y build
-  QA/PWA aprobados. Publicación en verificación; celulares pendientes.
+  QA/PWA aprobados. QA c829616, Vercel success verificado; celulares pendientes.
   [Evidencias y tiempos](frontend-customer-counter-waiting-design-qa.md).
 
 - Cliente: nueva categoría local En espera para AWAITING_BUSINESS_COUNTER_RESPONSE,
