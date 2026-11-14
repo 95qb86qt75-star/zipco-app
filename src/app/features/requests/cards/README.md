@@ -84,6 +84,13 @@ permisos siguen en los hooks de `requests/application` y en la API.
 
 ## Negocio
 
+- **Agenda de En curso (lista):** screen/components/BusinessAgendaToolbar.tsx,
+  BusinessAgendaRow.tsx y business-agenda.css; reglas puras domain/businessAgenda.ts.
+  Solo Mi Negocio/Pedidos/active. Envuelve tarjetas reales sin duplicarlas;
+  screen/application/useAgreedScheduleResolver.ts obtiene horarios del acuerdo
+  con lectura compartida application/sharedAgreementRead.ts y useAgreement.
+  No usar fechas originales ni el resumen opcional de propuesta como acuerdo.
+
 - **Inicial, producto aceptado por WhatsApp antes de consultar coordinación:**
   `BusinessInitialCard` en `shared/coordination/InitialCoordinationCardView.tsx`.
   Cabecera `business-initial` de CoordinationCardShell; estilos B·Vidrio `.zipco-bi`

@@ -40,7 +40,7 @@ import LoadOrdersDiagnostics from "./diagnostics/LoadOrdersDiagnosticsPanel";
 
 import type {RequestsScreenModel} from './application/useRequestsScreenController';
 export default function RequestsScreenView({model}:{model:RequestsScreenModel}){
-const {acceptedBusinessQuotes,activeTransfer,attentionFilter,businessActivityCards,businessRoleBadge,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,customerAttentionCards,customerCoordinationItems,customerOrderAttention,customerQuoteAttention,customerReadyArrival,customerRoleBadge,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,historyFilterLabel,historyOptions,historyTransfer,isLoading,loadError,loadOrders,onBack,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,readyCustomerItems,refreshError,requestType,requests,responseCustomerItems,selectStatusView,selectedBusinessActivity,selectedRead,setActiveTransfer,setAttentionFilter,setHistoryFilters,setOrderArchived,setRequestType,setSelectedBusinessActivity,setShowHistoryFilter,setSortDirections,setStatusViews,setSubTab,setSummaryScrollPending,showHistoryFilter,sortDirection,statusCountState,statusCounts,statusView,subTab,suppressAttentionResults,unreadHistoryCount,updatingOrderIds,viewKey}=model;
+const {acceptedBusinessQuotes,activeTransfer,agendaActive,agreedScheduleOf,attentionFilter,businessActivityCards,businessRoleBadge,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,customerAttentionCards,customerCoordinationItems,customerOrderAttention,customerQuoteAttention,customerReadyArrival,customerRoleBadge,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,historyFilterLabel,historyOptions,historyTransfer,isLoading,loadError,loadOrders,onBack,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,readyCustomerItems,refreshError,requestType,requests,responseCustomerItems,selectStatusView,selectedBusinessActivity,selectedRead,setActiveTransfer,setAttentionFilter,setHistoryFilters,setOrderArchived,setRequestType,setSelectedBusinessActivity,setShowHistoryFilter,setSortDirections,setStatusViews,setSubTab,setSummaryScrollPending,showHistoryFilter,sortDirection,statusCountState,statusCounts,statusView,subTab,suppressAttentionResults,unreadHistoryCount,updatingOrderIds,viewKey}=model;
 return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       <StatusChangeHost business={subTab==='my-business'} view={statusView} orders={requestType==='orders'}/>
@@ -220,7 +220,7 @@ return (
             readyCustomerItems.length > 0) && (
             <CustomerAttentionSummary model={{attentionFilter,readyCustomerItems,requestType,responseCustomerItems,setAttentionFilter,setStatusViews,viewKey}}/>
           )}
-        {statusView !== "history" && (
+        {statusView !== "history" && !agendaActive && (
           <div className="mb-4 flex justify-end">
             <button
               onClick={() =>
@@ -275,7 +275,7 @@ return (
             </div>
           </div>
         )}
-        <RequestResults model={{attentionFilter,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,isLoading,loadError,loadOrders,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,refreshError,requestType,selectStatusView,selectedRead,setActiveTransfer,setOrderArchived,setStatusViews,statusView,subTab,suppressAttentionResults,updatingOrderIds,viewKey}}/>
+        <RequestResults model={{agendaActive,agreedScheduleOf,setSortDirections,sortDirection,attentionFilter,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,isLoading,loadError,loadOrders,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,refreshError,requestType,selectStatusView,selectedRead,setActiveTransfer,setOrderArchived,setStatusViews,statusView,subTab,suppressAttentionResults,updatingOrderIds,viewKey}}/>
         <div data-summary-scroll-space aria-hidden="true" />
       </div>
       <AnimatePresence>

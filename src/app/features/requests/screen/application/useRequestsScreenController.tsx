@@ -30,6 +30,8 @@ import { waitForNotificationCard } from "../../../../notifications/notificationN
 import { traceNotificationClick } from "../../../../notifications/notificationClickTrace";
 import { scrollToRequestResults } from "../../application/motion/requestSummaryScroll";
 import { isPendingRequestCancelled, isPendingRequestRejected, normalizeRequestProcess } from "../../domain/requestProcess";
+import type { AgendaSort } from "../../domain/businessAgenda";
+import useAgreedScheduleResolver from './useAgreedScheduleResolver';
 
 export function useRequestsScreenController({
   onBack,
@@ -60,7 +62,7 @@ export function useRequestsScreenController({
     Record<string, HistoryFilter>
   >({});
   const [sortDirections, setSortDirections] = useState<
-    Record<string, "newest" | "oldest">
+    Record<string, AgendaSort>
   >({});
   const [showHistoryFilter, setShowHistoryFilter] = useState(false);
   useEffect(()=>{
@@ -118,7 +120,11 @@ export function useRequestsScreenController({
   const viewKey = `${subTab}-${requestType}`;
   const statusView = statusViews[viewKey] ?? "pending";
   const historyFilter = historyFilters[viewKey] ?? "all";
-  const sortDirection = sortDirections[viewKey] ?? "newest";
+  const agendaActive = subTab === "my-business" && requestType === "orders" && statusView === "active";
+  const agreedScheduleOf = useAgreedScheduleResolver(requests, agendaActive);
+  const storedSort = sortDirections[agendaActive ? `${viewKey}:active` : viewKey];
+  // «Por atender» solo existe en la agenda de En curso; en cualquier otra vista se muestra como «Recientes».
+  const sortDirection: AgendaSort = storedSort === "attention" && !agendaActive ? "newest" : (storedSort ?? (agendaActive ? "attention" : "newest"));
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
   const customerReadyArrival = useReadyTransitions(myOrders, id => {
     if (!myOrders.some(order => order.id === id && order.requestProcess?.state === 'READY')) return;
@@ -253,9 +259,9 @@ export function useRequestsScreenController({
       const rightTime = new Date(
         right.updatedAt || right.createdAt || 0,
       ).getTime();
-      return sortDirection === "newest"
-        ? rightTime - leftTime
-        : leftTime - rightTime;
+      return sortDirection === "oldest"
+        ? leftTime - rightTime
+        : rightTime - leftTime;
     });
   const visualMyOrders=useStatusChangeRecords(myOrders,false),visualBusinessOrders=useStatusChangeRecords(requests,true);
   let filteredMyOrders = sortRecords(
@@ -639,6 +645,6 @@ export function useRequestsScreenController({
   }, [orderRecords, quoteRecords, subTab, isLoading, loadError, quotes.loading, quotes.error, onNotificationFocused]);
 
 
-return {acceptedBusinessQuotes,activeTransfer,attentionFilter,businessActivityCards,businessRoleBadge,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,customerAttentionCards,customerCoordinationItems,customerOrderAttention,customerQuoteAttention,customerReadyArrival,customerRoleBadge,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,historyFilterLabel,historyOptions,historyTransfer,isLoading,loadError,loadOrders,onBack,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,readyCustomerItems,refreshError,requestType,requests,responseCustomerItems,selectStatusView,selectedBusinessActivity,selectedRead,setActiveTransfer,setAttentionFilter,setHistoryFilters,setOrderArchived,setRequestType,setSelectedBusinessActivity,setShowHistoryFilter,setSortDirections,setStatusViews,setSubTab,setSummaryScrollPending,showHistoryFilter,sortDirection,statusCountState,statusCounts,statusView,subTab,suppressAttentionResults,unreadHistoryCount,updatingOrderIds,viewKey};
+return {acceptedBusinessQuotes,activeTransfer,agendaActive,agreedScheduleOf,attentionFilter,businessActivityCards,businessRoleBadge,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,customerAttentionCards,customerCoordinationItems,customerOrderAttention,customerQuoteAttention,customerReadyArrival,customerRoleBadge,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,historyFilterLabel,historyOptions,historyTransfer,isLoading,loadError,loadOrders,onBack,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,readyCustomerItems,refreshError,requestType,requests,responseCustomerItems,selectStatusView,selectedBusinessActivity,selectedRead,setActiveTransfer,setAttentionFilter,setHistoryFilters,setOrderArchived,setRequestType,setSelectedBusinessActivity,setShowHistoryFilter,setSortDirections,setStatusViews,setSubTab,setSummaryScrollPending,showHistoryFilter,sortDirection,statusCountState,statusCounts,statusView,subTab,suppressAttentionResults,unreadHistoryCount,updatingOrderIds,viewKey};
 }
 export type RequestsScreenModel=ReturnType<typeof useRequestsScreenController>;

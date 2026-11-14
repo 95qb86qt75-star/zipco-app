@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CalendarDays, ClipboardList, Sparkles } from "lucide-react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { NOTIFICATION_CARD_OPEN_EVENT } from "../../../../notifications/notificationNavigation";
 import BusinessOrderCard from "../../cards/business/order/BusinessOrderCard";
 import EmptyRequestsState from "./EmptyRequestsState";
@@ -8,6 +8,13 @@ import OrderActionModal from "../../forms/closure/OrderActionModal";
 import AlternativeProposalFields from "../../forms/proposal/AlternativeProposalFields";
 import useRequestListMotion from "../../application/motion/useRequestListMotion";
 import { hasRequestProcess } from "../../domain/requestProcess";
+import {
+  applyAgendaFilters, buildAgendaEntries, countAgendaOptions, DEFAULT_AGENDA_FILTERS, isDefaultAgendaFilters, sortByAttention,
+  type AgendaConfig, type AgendaFilters,
+} from "../../domain/businessAgenda";
+import BusinessAgendaToolbar from "./BusinessAgendaToolbar";
+import { AgendaGroupHeading, AgendaRequestDay, AgendaRow } from "./BusinessAgendaRow";
+import "./business-agenda.css";
 import type { BusinessRequest, ClosureReason, OrderAction } from "../../domain/types";
 import { interactionKey, useUnreadInteractions } from "../../../../notifications/unreadInteractions";
 
@@ -35,7 +42,21 @@ type Props = {
       message: string;
     },
   ) => Promise<void>;
+  /** Solo Mi Negocio → En curso, cuando el horario acordado está conectado. Sin esto la lista se comporta como siempre. */
+  agenda?: AgendaConfig;
 };
+
+/** Reloj de un minuto: regrupa Hoy/Mañana/pasado sin recargar datos. */
+function useMinuteClock(enabled: boolean) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!enabled) return;
+    setNow(Date.now());
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, [enabled]);
+  return now;
+}
 
 export default function BusinessOrdersTab({
   requests,
@@ -45,8 +66,23 @@ export default function BusinessOrdersTab({
   emptyTitle,
   emptyDescription,
   onProposeAlternative,
+  agenda,
 }: Props) {
-  const listRef = useRequestListMotion(requests);
+  const [agendaFilters, setAgendaFilters] = useState<AgendaFilters>(DEFAULT_AGENDA_FILTERS);
+  const nowMs = useMinuteClock(Boolean(agenda));
+  const agendaEntries = useMemo(
+    () => (agenda ? buildAgendaEntries(requests, agenda.resolve, nowMs) : []),
+    [agenda?.resolve, requests, nowMs],
+  );
+  const agendaShown = useMemo(() => {
+    if (!agenda) return [];
+    const filtered = applyAgendaFilters(agendaEntries, agendaFilters);
+    return agenda.sort === "attention" ? sortByAttention(filtered) : filtered;
+  }, [agenda?.sort, agendaEntries, agendaFilters]);
+  const agendaCounts = useMemo(() => countAgendaOptions(agendaEntries, agendaFilters), [agendaEntries, agendaFilters]);
+  const motionItems = useMemo(() => agenda ? agendaShown.map((entry) => entry.order) : requests,
+    [Boolean(agenda), agendaShown, requests]);
+  const listRef = useRequestListMotion(motionItems);
   const { unread, markRead } = useUnreadInteractions();
   const [selection, setSelection] = useState<{
     order: BusinessRequest;
@@ -67,7 +103,11 @@ export default function BusinessOrdersTab({
       const id = (event as CustomEvent).detail?.id;
       if (typeof id !== 'string' || !/^order-[1-9]\d*$/.test(id)) return;
       const orderId = Number(id.slice(6));
-      if (Number.isSafeInteger(orderId)) setExpandedOrderId(orderId);
+      if (Number.isSafeInteger(orderId)) {
+        // Un filtro activo no debe ocultar la tarjeta a la que lleva la notificación.
+        setAgendaFilters(DEFAULT_AGENDA_FILTERS);
+        setExpandedOrderId(orderId);
+      }
     };
     window.addEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
     return () => window.removeEventListener(NOTIFICATION_CARD_OPEN_EVENT, open);
@@ -88,9 +128,84 @@ export default function BusinessOrdersTab({
     setSelection(null);
   };
 
+  const renderCard = (order: BusinessRequest) => (
+    <BusinessOrderCard
+      request={order}
+      isUpdating={
+        order.recordState === "available" &&
+        updatingOrderIds.has(order.id)
+      }
+      onAction={(action) => setSelection({ order, action })}
+      onRetry={() => {
+        void onRetry();
+      }}
+      onProposeAlternative={() => {
+        setAlternative(order);
+        setAlternativeMessage("");
+        setAlternativeItem("");
+        setAlternativePrice("");
+        setAlternativeQuantity("");
+        setAlternativeDate("");
+        setAlternativeTime("");
+        setAlternativePhoto("");
+      }}
+      isUnread={
+        order.recordState === "available" &&
+        unread.has(interactionKey("order", order.id))
+      }
+      onOpen={() => {
+        if (order.recordState === "available")
+          markRead("order", order.id);
+      }}
+      expanded={
+        order.recordState === "available" &&
+        expandedOrderId === order.id
+      }
+      onToggle={() => {
+        if (order.recordState === "available")
+          setExpandedOrderId((current) =>
+            current === order.id ? null : order.id,
+          );
+      }}
+    />
+  );
+
   return (
     <>
-      {displayed.length > 0 ? (
+      {agenda && agendaEntries.length > 0 && (
+        <BusinessAgendaToolbar
+          filters={agendaFilters}
+          counts={agendaCounts}
+          sort={agenda.sort}
+          total={agendaEntries.length}
+          shown={agendaShown.length}
+          onFilters={setAgendaFilters}
+          onSort={agenda.onSort}
+        />
+      )}
+      {agenda && agendaEntries.length > 0 && agendaShown.length === 0 ? (
+        <div className="zipco-agenda-empty" role="status">
+          <b>No hay pedidos con estos filtros</b>
+          <span>Prueba con otra fecha u otro tipo.</span>
+          {!isDefaultAgendaFilters(agendaFilters) && (
+            <button type="button" onClick={() => setAgendaFilters(DEFAULT_AGENDA_FILTERS)}>Quitar filtros</button>
+          )}
+        </div>
+      ) : agenda && agendaShown.length > 0 ? (
+        <div ref={listRef} className="space-y-3">
+          {agendaShown.map((entry, index) => (
+            <Fragment key={entry.order.clientKey}>
+              {agenda.sort === "attention" && agendaShown[index - 1]?.group !== entry.group ? (
+                <AgendaGroupHeading group={entry.group} nowMs={nowMs} />
+              ) : null}
+              {agenda.sort !== "attention" ? <AgendaRequestDay date={entry.order.date} /> : null}
+              <AgendaRow schedule={entry.schedule} group={entry.group}>
+                {renderCard(entry.order)}
+              </AgendaRow>
+            </Fragment>
+          ))}
+        </div>
+      ) : displayed.length > 0 ? (
         <div ref={listRef} className="space-y-3">
           {displayed.map((order) => (
             <Fragment key={order.clientKey}>
@@ -99,45 +214,7 @@ export default function BusinessOrdersTab({
                 <span>{order.date}</span>
                 <span className="h-px flex-1 bg-slate-200" />
               </div>
-              <BusinessOrderCard
-                request={order}
-                isUpdating={
-                  order.recordState === "available" &&
-                  updatingOrderIds.has(order.id)
-                }
-                onAction={(action) => setSelection({ order, action })}
-                onRetry={() => {
-                  void onRetry();
-                }}
-                onProposeAlternative={() => {
-                  setAlternative(order);
-                  setAlternativeMessage("");
-                  setAlternativeItem("");
-                  setAlternativePrice("");
-                  setAlternativeQuantity("");
-                  setAlternativeDate("");
-                  setAlternativeTime("");
-                  setAlternativePhoto("");
-                }}
-                isUnread={
-                  order.recordState === "available" &&
-                  unread.has(interactionKey("order", order.id))
-                }
-                onOpen={() => {
-                  if (order.recordState === "available")
-                    markRead("order", order.id);
-                }}
-                expanded={
-                  order.recordState === "available" &&
-                  expandedOrderId === order.id
-                }
-                onToggle={() => {
-                  if (order.recordState === "available")
-                    setExpandedOrderId((current) =>
-                      current === order.id ? null : order.id,
-                    );
-                }}
-              />
+              {renderCard(order)}
             </Fragment>
           ))}
         </div>

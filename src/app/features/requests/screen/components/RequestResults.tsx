@@ -34,8 +34,8 @@ import { QuoteHistoryList } from "../../cards/shared/history/QuoteHistoryList";
 
 import type { RequestsScreenModel } from "../application/useRequestsScreenController";
 /** Canonical visual section; data and commands come from its screen controller. */
-export default function RequestResults({model}:{model:Pick<RequestsScreenModel,"attentionFilter"|"changeQuoteStatusAndFollow"|"completeCustomerOrder"|"confirmedCancellationInHistory"|"confirmedRejectionInHistory"|"deleteOrderPermanently"|"emptyCopy"|"filteredBusinessOrders"|"filteredMyOrders"|"filteredQuotes"|"hasBusiness"|"historyFilter"|"isLoading"|"loadError"|"loadOrders"|"performAction"|"prefersReducedMotion"|"proposeOrderAlternative"|"quotes"|"refreshError"|"requestType"|"selectStatusView"|"selectedRead"|"setActiveTransfer"|"setOrderArchived"|"setStatusViews"|"statusView"|"subTab"|"suppressAttentionResults"|"updatingOrderIds"|"viewKey">}){
-const {attentionFilter,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,isLoading,loadError,loadOrders,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,refreshError,requestType,selectStatusView,selectedRead,setActiveTransfer,setOrderArchived,setStatusViews,statusView,subTab,suppressAttentionResults,updatingOrderIds,viewKey}=model;
+export default function RequestResults({model}:{model:Pick<RequestsScreenModel,"agendaActive"|"agreedScheduleOf"|"setSortDirections"|"sortDirection"|"attentionFilter"|"changeQuoteStatusAndFollow"|"completeCustomerOrder"|"confirmedCancellationInHistory"|"confirmedRejectionInHistory"|"deleteOrderPermanently"|"emptyCopy"|"filteredBusinessOrders"|"filteredMyOrders"|"filteredQuotes"|"hasBusiness"|"historyFilter"|"isLoading"|"loadError"|"loadOrders"|"performAction"|"prefersReducedMotion"|"proposeOrderAlternative"|"quotes"|"refreshError"|"requestType"|"selectStatusView"|"selectedRead"|"setActiveTransfer"|"setOrderArchived"|"setStatusViews"|"statusView"|"subTab"|"suppressAttentionResults"|"updatingOrderIds"|"viewKey">}){
+const {agendaActive,agreedScheduleOf,setSortDirections,sortDirection,attentionFilter,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,isLoading,loadError,loadOrders,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,refreshError,requestType,selectStatusView,selectedRead,setActiveTransfer,setOrderArchived,setStatusViews,statusView,subTab,suppressAttentionResults,updatingOrderIds,viewKey}=model;
 return (<div data-request-results>
         {requestType === "quotes" && quotes.loading && (
           <div className="py-16 text-center text-sm font-semibold text-slate-500">
@@ -273,6 +273,11 @@ return (<div data-request-results>
                   requests={filteredBusinessOrders}
                   updatingOrderIds={updatingOrderIds}
                   onRetry={loadOrders}
+                  agenda={agendaActive && agreedScheduleOf ? {
+                    resolve: agreedScheduleOf,
+                    sort: sortDirection,
+                    onSort: (next) => setSortDirections((current) => ({ ...current, [`${viewKey}:active`]: next })),
+                  } : undefined}
                   onAction={async (order, action, reason, detail) => {
                     if (order.requestProcess !== undefined) {
                       const accepted = await performAction(order, 'business', action, reason, detail);

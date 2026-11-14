@@ -1,0 +1,107 @@
+/* Mi Negocio → En curso · agenda por horario acordado (solo presentación).
+   Se importa únicamente desde BusinessOrdersTab.tsx. Todas las clases empiezan con zipco-agenda-;
+   no modifica las tarjetas reales ni estilos globales. */
+.zipco-agenda-row.is-now{--ag-t1:#34d399;--ag-t2:#059669;--ag-tt:#022c22;--ag-ct:#065f46;--ag-ac:#10b981}
+.zipco-agenda-row.is-tomorrow{--ag-t1:#22d3ee;--ag-t2:#0891b2;--ag-tt:#083344;--ag-ct:#155e75;--ag-ac:#06b6d4}
+.zipco-agenda-row.is-upcoming{--ag-t1:#818cf8;--ag-t2:#6366f1;--ag-tt:#ffffff;--ag-ct:#3730a3;--ag-ac:#6366f1}
+.zipco-agenda-row.is-past{--ag-t1:#fbbf24;--ag-t2:#f97316;--ag-tt:#451a03;--ag-ct:#92400e;--ag-ac:#f59e0b}
+.zipco-agenda-row.is-unverified{--ag-t1:#cbd5e1;--ag-t2:#94a3b8;--ag-tt:#0f172a;--ag-ct:#475569;--ag-ac:#94a3b8}
+.zipco-agenda-heading.is-now{--ag-ct:#065f46;--ag-ac:#10b981}
+.zipco-agenda-heading.is-tomorrow{--ag-ct:#155e75;--ag-ac:#06b6d4}
+.zipco-agenda-heading.is-upcoming{--ag-ct:#3730a3;--ag-ac:#6366f1}
+.zipco-agenda-heading.is-past{--ag-ct:#92400e;--ag-ac:#f59e0b}
+.zipco-agenda-heading.is-unverified{--ag-ct:#475569;--ag-ac:#94a3b8}
+
+/* Encabezado de grupo */
+.zipco-agenda-heading{display:flex;align-items:center;gap:7px;margin:0;padding:8px 2px 0;color:var(--ag-ct);font:inherit}
+.zipco-agenda-heading svg{flex:none;color:var(--ag-ac)}
+.zipco-agenda-heading strong{font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;overflow-wrap:anywhere}
+.zipco-agenda-heading span{min-width:0;font-size:12px;font-weight:600;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zipco-agenda-heading i{flex:1;min-width:12px;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--ag-ac) 55%,transparent),transparent)}
+
+/* Fila: bloque de horario + tarjeta real */
+.zipco-agenda-row{position:relative;display:grid;grid-template-columns:58px minmax(0,1fr);overflow:hidden;border-radius:22px;background:#12143a;box-shadow:0 8px 20px rgba(30,27,75,.28)}
+.zipco-agenda-when{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8px 0;color:var(--ag-tt);background:linear-gradient(170deg,var(--ag-t1),var(--ag-t2));box-shadow:inset -1px 0 0 rgba(255,255,255,.25)}
+.zipco-agenda-when-short{display:flex;flex-direction:column;align-items:center;gap:1px;font-variant-numeric:tabular-nums}
+.zipco-agenda-when-short em{display:flex;font-style:normal;font-size:9.5px;font-weight:900;letter-spacing:.1em;line-height:1}
+.zipco-agenda-when-short b{font-size:24px;line-height:1.05;font-weight:900}
+.zipco-agenda-when-short i{font-style:normal;font-size:12px;font-weight:900;line-height:1.1}
+.zipco-agenda-when-full{display:none;font-size:13.5px;font-weight:900;letter-spacing:.01em}
+.zipco-agenda-card{min-width:0}
+/* La fila aporta el borde y la sombra; la tarjeta real queda intacta por dentro. */
+.zipco-agenda-card>*{margin:0!important;border-radius:0!important;box-shadow:none!important}
+
+/* Tarjeta desplegada: el bloque se convierte en banda superior y el detalle usa todo el ancho. */
+.zipco-agenda-row:has(.zipco-co-fb[data-folded="false"]){grid-template-columns:minmax(0,1fr)}
+.zipco-agenda-row:has(.zipco-co-fb[data-folded="false"]) .zipco-agenda-when{flex-direction:row;justify-content:flex-start;padding:9px 14px;box-shadow:inset 0 -1px 0 rgba(255,255,255,.25)}
+.zipco-agenda-row:has(.zipco-co-fb[data-folded="false"]) .zipco-agenda-when-short{display:none}
+.zipco-agenda-row:has(.zipco-co-fb[data-folded="false"]) .zipco-agenda-when-full{display:block}
+/* Pantallas muy angostas: siempre banda superior. */
+@media (max-width:359px){
+  .zipco-agenda-row{grid-template-columns:minmax(0,1fr)}
+  .zipco-agenda-when{flex-direction:row;justify-content:flex-start;padding:9px 14px;box-shadow:inset 0 -1px 0 rgba(255,255,255,.25)}
+  .zipco-agenda-when-short{display:none}
+  .zipco-agenda-when-full{display:block}
+}
+
+/* Barra de filtros */
+.zipco-agenda-toolbar{position:relative;z-index:40;margin-bottom:12px}
+.zipco-agenda-scrim{position:fixed;inset:0;z-index:0;background:rgba(15,23,42,.2)}
+.zipco-agenda-fields{position:relative;z-index:1;display:flex;gap:8px}
+.zipco-agenda-field,.zipco-agenda-sortbtn{display:flex;align-items:center;border:0;border-radius:18px;background:#fff;font-family:inherit;text-align:left;box-shadow:0 1px 2px rgba(15,23,42,.05),0 8px 20px rgba(15,23,42,.08),inset 0 0 0 1px #e6ebf3}
+.zipco-agenda-field{flex:1;min-width:0;gap:9px;height:58px;padding:0 10px 0 9px}
+.zipco-agenda-field[aria-expanded="true"],.zipco-agenda-sortbtn[aria-expanded="true"]{box-shadow:0 8px 20px rgba(15,23,42,.12),inset 0 0 0 2px #0f172a}
+.zipco-agenda-field-icon{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;color:#fff;transition:background .2s}
+.zipco-agenda-field-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.zipco-agenda-field-text small{font-size:9.5px;font-weight:800;line-height:1;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8}
+.zipco-agenda-field-text b{font-size:13px;line-height:1.15;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zipco-agenda-field-chev{display:none}
+.zipco-agenda-sortbtn{position:relative;flex:none;justify-content:center;width:58px;height:58px;color:#334155}
+.zipco-agenda-sortbtn i{position:absolute;top:14px;right:15px;width:9px;height:9px;border-radius:50%;background:#10b981;box-shadow:0 0 0 2px #fff}
+.zipco-agenda-toolbar button:focus-visible{outline:3px solid #7c3aed;outline-offset:2px}
+.zipco-agenda-summary{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;min-height:20px;padding:5px 4px 0;font-size:12px;font-weight:600;color:#64748b}
+.zipco-agenda-summary button{min-height:44px;margin:-14px -10px;padding:0 10px;border:0;background:none;font:inherit;font-weight:800;color:#047857}
+
+/* Paneles */
+.zipco-agenda-tray{position:absolute;z-index:1;left:0;right:0;top:66px;padding:8px 8px 10px;border-radius:22px;background:#fff;box-shadow:0 24px 48px rgba(15,23,42,.3),0 0 0 1px rgba(15,23,42,.06);animation:zipco-agenda-pop .2s cubic-bezier(.2,.8,.2,1) both}
+.zipco-agenda-tray-cap{padding:8px 10px 6px;font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8}
+.zipco-agenda-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:2px 2px 0}
+.zipco-agenda-tile{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 10px 0 12px;border:0;border-radius:15px;background:#f4f6fa;font-family:inherit;text-align:left}
+.zipco-agenda-tile i{flex:none;width:10px;height:10px;border-radius:50%}
+.zipco-agenda-tile span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.zipco-agenda-tile b{font-size:13px;line-height:1.2;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zipco-agenda-tile small{font-size:10.5px;line-height:1.2;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zipco-agenda-tile em,.zipco-agenda-opt em{flex:none;min-width:22px;padding:0 6px;border-radius:99px;font-style:normal;font-size:11px;font-weight:700;line-height:20px;text-align:center;background:#eef2f7;color:#475569;font-variant-numeric:tabular-nums}
+.zipco-agenda-tile[aria-checked="true"]{background:#0f172a;box-shadow:0 8px 16px rgba(15,23,42,.25)}
+.zipco-agenda-tile[aria-checked="true"] b{color:#fff}
+.zipco-agenda-tile[aria-checked="true"] small{color:#94a3b8}
+.zipco-agenda-tile[aria-checked="true"] em{background:rgba(255,255,255,.18);color:#fff}
+.zipco-agenda-opt{display:flex;align-items:center;gap:11px;width:100%;min-height:52px;padding:4px 10px;border:0;border-radius:13px;background:none;font-family:inherit;text-align:left}
+.zipco-agenda-opt-icon{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#f1f5f9;color:#475569}
+.zipco-agenda-opt[aria-checked="true"] .zipco-agenda-opt-icon{color:#fff;background:#059669}
+.zipco-agenda-opt-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.zipco-agenda-opt-text b{font-size:13.5px;line-height:1.2;font-weight:700;color:#0f172a;overflow-wrap:anywhere}
+.zipco-agenda-opt-text small{font-size:11px;line-height:1.2;color:#64748b}
+.zipco-agenda-opt-check{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;background:#059669;opacity:0;transform:scale(.5);transition:opacity .18s,transform .18s}
+.zipco-agenda-opt[aria-checked="true"]{background:#ecfdf5}
+.zipco-agenda-opt[aria-checked="true"] .zipco-agenda-opt-check{opacity:1;transform:none}
+.zipco-agenda-tile[data-empty],.zipco-agenda-opt[data-empty]{opacity:.42}
+@keyframes zipco-agenda-pop{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+
+/* Sin resultados con los filtros actuales */
+.zipco-agenda-empty{display:flex;flex-direction:column;align-items:center;gap:4px;padding:44px 20px;text-align:center;font-size:12.5px;color:#64748b}
+.zipco-agenda-empty b{font-size:15px;color:#0f172a}
+.zipco-agenda-empty button{min-height:44px;margin-top:10px;padding:0 18px;border:0;border-radius:99px;font-size:13px;font-weight:800;color:#fff;background:#0f172a}
+
+@media (prefers-reduced-motion:reduce){
+  .zipco-agenda-tray,.zipco-agenda-opt-check,.zipco-agenda-field-icon{animation:none!important;transition:none!important}
+}
+
+@media (max-width:350px){
+  .zipco-agenda-field{gap:6px;padding:0 7px}
+  .zipco-agenda-field-icon{width:26px;height:30px;border-radius:9px}
+  .zipco-agenda-field-icon svg{width:15px;height:15px}
+  .zipco-agenda-field-text b{font-size:12px}
+  .zipco-agenda-field-text small{font-size:9px}
+  .zipco-agenda-sortbtn{width:48px}
+}

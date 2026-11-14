@@ -1,4 +1,5 @@
 import {expandPresentationTree} from "../../../testing/renderPresentation";
+vi.mock('./application/useAgreedScheduleResolver', () => ({ default: () => () => ({ kind: 'unverified' }) }));
 vi.mock("../application/motion/useReadyTransitions", () => ({ default: () => ({ chipBump:false, tip:false }) }));
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
