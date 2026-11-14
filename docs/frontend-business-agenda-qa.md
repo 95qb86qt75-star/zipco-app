@@ -87,5 +87,15 @@ no rendimiento de la app. Build separado: 8,55 s Vite del intento incompleto
 y 6,03 s Vite del aprobado; el comando completo aprobado tardó 9,27 s.
 Documentación y publicación se completan al cierre con su evidencia.
 
+Publicación: commit 9eceb2a23a5cb643af1290db58e5c17d1c0be917 en origin/qa.
+Push confirmado 07:14:52 UTC; Vercel success verificado 07:15:48 UTC
+(56 s desde push confirmado, incluye espera externa y consulta de estado).
+https://vercel.com/zipco-s-projects/zipco-app/E75siqLrgDq22QpidHzHt8YzAniC
+Documentación/preparación de commit entre los puntos registrados 07:14:07 y
+07:14:52 UTC: 45 s, incluye Git/push; la redacción previa no tuvo cronómetro
+aislado. No sumar esos 45 s como tiempo de publicación adicional.
+El cierre documental posterior queda local sin push para no activar otro build.
+Sin inspección independiente del bundle protegido ni prueba física en celulares.
+
 Railway innecesario y sin cambios. main 8295ab8 conservado. El handoff ajeno
 docs/design-handoffs/claude-cliente-coordinacion-whatsapp-c5f3c85 se excluye.

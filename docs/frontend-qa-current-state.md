@@ -11,7 +11,7 @@ ni convierte pruebas sintéticas en aprobación física.
   y horario real del acuerdo mediante lectura compartida con las tarjetas.
   Fechas originales nunca sustituyen al acuerdo; errores quedan Por comprobar.
   81 pruebas y navegador real 320/390/430 con HTTP simulado aprobados, build
-  QA/PWA aprobado. Publicación se registra al cierre; celulares pendientes.
+  QA/PWA aprobado. QA 9eceb2a, Vercel success verificado; celulares pendientes.
   [Alcance, fuentes, evidencia y tiempos](frontend-business-agenda-qa.md).
 
 - Por petición del usuario, tres puntos de espera continuos solo en la tarjeta
