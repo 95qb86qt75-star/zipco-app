@@ -43,3 +43,10 @@ Análisis 64 s; implementación 4 s; preparación inicial 3 s. Verificación y e
 arranque del arnés y preparación del caso focalizado). Build Vite 212 s, incluido,
 no sumar dos veces. No hay desglose fiable de CPU vs esperas de esos intervalos.
 Documentación/publicación se registra al cierre. Handoff ajeno conservado.
+
+Documentación/preparación de publicación 11 s; publicación/verificación 56 s
+incluye espera externa. QA rama qa, SHA 18459e7e4f86706e3c88c46d08c3b037455ed161.
+Vercel success verificado:
+https://vercel.com/zipco-s-projects/zipco-app/AnnGLr1bzHXfvKJAS7AMhWq7HjGa
+Sin inspección independiente del bundle protegido ni teléfono físico. Cierre
+documental local sin otro push/despliegue.

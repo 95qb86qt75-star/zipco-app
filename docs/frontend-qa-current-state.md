@@ -11,7 +11,7 @@ ni convierte pruebas sintéticas en aprobación física.
   waiting visible; pausa en scroll/fuera de vista, misma línea de tiempo al
   reanudar y reduced motion estático. Entradas/textos/pasos siguen finitos.
   Verificación real y focalizada aprobada, build QA/PWA aprobado; publicación
-  en verificación. [Evidencia y tiempos](frontend-waiting-continuous-dots-qa.md).
+  QA 18459e7, Vercel success verificado. [Evidencia y tiempos](frontend-waiting-continuous-dots-qa.md).
 
 - Corrección del reinicio al desplazar en waiting: animation:none condicionado
   a scroll quitaba/recreaba las entradas. Ahora terminan una vez y solo los
