@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Agenda compacta CliV11: solo Row/CSS del negocio activo, lateral plegado 46 px
   desde 360, estado repetido oculto por marca local sin ciclos; detalle conserva
   banda/ancho completo y botón WhatsApp de 44 px. Navegador real con HTTP simulado
-  320/360/390/430 aprobado y build QA/PWA aprobado; celulares pendientes.
+  320/360/390/430 aprobado y build QA/PWA aprobado. QA e1731c5, Vercel success
+  verificado; celulares pendientes.
   [Evidencia, diferencias y fases](frontend-business-agenda-compact-qa.md).
 
 - Agenda solo Mi Negocio → En curso: entrega Claude integrada con grupos/filtros

@@ -77,3 +77,12 @@ de rendimiento de la app ni hay perfilado CPU/GPU del teléfono.
 Campos/endpoints: ninguno nuevo o modificado; siguen las lecturas de acuerdo
 de la agenda anterior. Railway innecesario. Rama qa, main 8295ab8 y producción
 intactos. Handoffs locales ajenos se conservan fuera del commit.
+
+Publicación: e1731c5e06514399fdae122a28738eddac79b68e en origin/qa.
+Push confirmado 18:39:58 UTC; Vercel success verificado 18:40:38 UTC
+(40 s desde push confirmado, incluye espera externa). Documentación/preparación
+desde 18:38:29 hasta 18:39:31: 62 s; commit/push terminó 18:39:58. No sumar los
+tiempos superpuestos del navegador y build como si fueran secuenciales.
+https://vercel.com/zipco-s-projects/zipco-app/9LExchhqqWC1JurwNrz5e27MvBYe
+Cierre documental local sin otro push; no se inspeccionó el bundle protegido
+independientemente ni se probó el teléfono físico.
