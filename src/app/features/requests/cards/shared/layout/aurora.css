@@ -147,7 +147,7 @@
 
 /* ===== Variante «esperando respuesta del negocio» (solo tarjeta del CLIENTE con contrapropuesta enviada) =====
    Todo cuelga de .zipco-aurora-card--wt / .zipco-aurora-wt-*: sin la variante, la tarjeta Aurora y el botón compartido quedan idénticos.
-   Solo transform/opacity; sin bucles de blur, sombras ni fondos. Los gestos de atención se limitan a ciclos finitos y «reducir movimiento» los apaga.
+   Solo transform/opacity; sin bucles de blur, sombras ni fondos. Entradas finitas y puntos de espera continuos mientras sea visible; «reducir movimiento» los apaga.
    Las entradas terminan una vez; solo los adornos se pausan al desplazar. */
 .zipco-aurora-card.zipco-aurora-card--wt { padding: 12px;
   background: radial-gradient(90% 80% at 100% 0%, rgba(99, 102, 241, .46), transparent 60%), radial-gradient(80% 70% at 0% 100%, rgba(14, 165, 233, .28), transparent 60%), linear-gradient(160deg, #1c1650 0%, #101434 62%, #0c1a2e 100%); }
@@ -182,7 +182,7 @@
 .zipco-aurora-wt-st li.is-now::after { content: ""; position: absolute; top: 7px; left: -50%; width: 100%; height: 6px; pointer-events: none; background: radial-gradient(circle at 3px 3px, #7dd3fc 0 3px, transparent 3.5px) no-repeat left; animation: zipco-aurora-wt-travel 1.3s ease-in-out 1s 3 backwards; }
 .zipco-aurora-wt-st li span { display: block; max-width: 100%; padding-inline: 2px; overflow-wrap: anywhere; }
 .zipco-aurora-wt-dots { display: flex; justify-content: center; gap: 2px; margin-top: 3px; font-style: normal; }
-.zipco-aurora-wt-dots u { width: 3px; height: 3px; border-radius: 50%; background: #7dd3fc; text-decoration: none; opacity: .7; animation: zipco-aurora-wt-dot 1.1s ease-in-out 0s 4; }
+.zipco-aurora-wt-dots u { width: 3px; height: 3px; border-radius: 50%; background: #7dd3fc; text-decoration: none; opacity: .7; animation: zipco-aurora-wt-dot 1.1s ease-in-out 0s infinite; }
 .zipco-aurora-wt-dots u:nth-child(2) { animation-delay: .15s; } .zipco-aurora-wt-dots u:nth-child(3) { animation-delay: .3s; }
 .zipco-aurora-wt-note { display: flex; align-items: flex-start; gap: 11px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: rgba(125, 211, 252, .08);
   box-shadow: inset 0 0 0 1px rgba(125, 211, 252, .3); animation: zipco-aurora-bz-rise .4s cubic-bezier(.2, .8, .2, 1) .25s backwards; }

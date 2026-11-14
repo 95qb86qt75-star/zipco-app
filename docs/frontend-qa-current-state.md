@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Por petición del usuario, tres puntos de espera continuos solo en la tarjeta
+  waiting visible; pausa en scroll/fuera de vista, misma línea de tiempo al
+  reanudar y reduced motion estático. Entradas/textos/pasos siguen finitos.
+  Verificación real y focalizada aprobada, build QA/PWA aprobado; publicación
+  en verificación. [Evidencia y tiempos](frontend-waiting-continuous-dots-qa.md).
+
 - Corrección del reinicio al desplazar en waiting: animation:none condicionado
   a scroll quitaba/recreaba las entradas. Ahora terminan una vez y solo los
   adornos se pausan conservando su línea de tiempo. Reproducción antes/después:
