@@ -12,7 +12,7 @@ ni convierte pruebas sintéticas en aprobación física.
   Al quedar vacía tras lectura correcta vuelve a Por responder. Tarjeta: espera
   al negocio y Ver conversación. Negocio/cotizaciones/contratos intactos.
   Pruebas dirigidas, tres anchos de pantalla real y build QA/PWA aprobados;
-  publicación en verificación, celulares pendientes.
+  QA c58c30c, Vercel success verificado; celulares pendientes.
   [Reglas, fuentes y evidencia](frontend-customer-awaiting-business-qa.md).
 
 - Revisar propuesta negocio: Outfit local 400–800 solo en ventana/pop-up y

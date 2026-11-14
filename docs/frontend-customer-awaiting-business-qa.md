@@ -74,3 +74,9 @@ corrección de aserción 57 s conjuntos. No hay separación fiable de todo el ti
 de preparación vs implementación posterior. Suites adicionales: 5,89 y 4,32 s;
 Vite 9,55 s, incluidos en esos intervalos, no sumar de nuevo. Documentación y
 publicación se registran al cierre; no son métricas del rendimiento de la app.
+
+Documentación/preparación de publicación 70 s; publicación/verificación 49 s
+con espera externa. QA c58c30c05b9e9391e7af0f4fe1f8dabd7b80f194, Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/qgXSnmiN1eV8tEuvwf5azBLxDotr
+Sin inspección independiente del bundle protegido ni prueba física. Cierre
+documental local sin otro push/despliegue.
