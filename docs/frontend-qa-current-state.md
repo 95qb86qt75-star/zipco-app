@@ -11,7 +11,7 @@ ni convierte pruebas sintéticas en aprobación física.
   paleta violeta/azul común para aceptación directa y renovación. Textos y
   acciones diferentes conservados; cliente/fuente global intactos. Seis
   escenarios visuales y control cliente aprobados; build QA/PWA aprobado.
-  Publicación en verificación; celulares pendientes.
+  QA 177cab8, Vercel success verificado; celulares pendientes.
   [Fuentes, evidencia y tiempos](frontend-business-review-outfit-qa.md).
 
 - Revisar propuesta del negocio CliU39: historial compacto y cambios solicitados,

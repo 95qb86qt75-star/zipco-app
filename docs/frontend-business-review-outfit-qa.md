@@ -53,3 +53,10 @@ Análisis/adquisición de assets 66 s; implementación 49 s; preparación inicia
 42 s; ejecución/corrección del arnés 42 s; build/verificación 22 s, incluye Vite
 8,66 s (no sumar otra vez). No son mediciones del rendimiento de la app.
 Documentación y publicación se registran al cierre.
+
+Documentación/preparación de publicación 53 s; publicación/verificación 44 s,
+incluye espera externa. Rama qa, commit 177cab80ef6e0e27f53fe3207f184a6ddd89dbba.
+Vercel success verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/A519SxzKQKBP55o9ijyqgNhj8Uyz
+Sin inspección independiente del bundle protegido ni teléfono físico. Cierre
+documental local sin push para evitar otro despliegue.
