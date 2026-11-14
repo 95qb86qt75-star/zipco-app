@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   transform/opacity; conserva pausas por scroll/fuera de vista/modales/reduced
   motion, sin activar detalle oculto o sombras continuas. Reproducción real
   antes/después, identidad de animación al reanudar y dos unitarias aprobadas;
-  build QA/PWA aprobado. [Evidencia y fases](frontend-business-agenda-closed-motion-qa.md).
+  build QA/PWA aprobado. QA 00e6a8e, Vercel success verificado; celular pendiente.
+  [Evidencia y fases](frontend-business-agenda-closed-motion-qa.md).
 
 - Capas de agenda: toolbar z40 superaba BottomNav z30 y tapaba sus controles
   al deslizar. Ahora z20; reproducción real 320/390/430 pasa de 0/4 a 4/4

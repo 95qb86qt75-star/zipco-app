@@ -54,3 +54,12 @@ no rendimiento del teléfono.
 
 Campos/endpoints ninguno nuevo o modificado. Railway innecesario; main y
 producción intactos. Handoffs locales ajenos conservados fuera del commit.
+
+Publicado en origin/qa: 00e6a8e4c7fec218d161d6975f4565773a7947cd.
+Push confirmado 19:52:50 UTC; Vercel success verificado 19:53:30 UTC
+(40 s desde push confirmado, incluye espera externa).
+https://vercel.com/zipco-s-projects/zipco-app/BeiiE9mAAUNPPuimhp459BtjDqjU
+Documentación/commit/push se cerró entre puntos 19:51:38 y 19:52:50 (72 s,
+incluye comprobación final PWA); sin sumar como ejecución del build otra vez.
+Cierre documental posterior local, sin otro push ni despliegue. No hubo
+inspección independiente del bundle protegido ni prueba física del teléfono.
