@@ -10,7 +10,7 @@ ni convierte pruebas sintéticas en aprobación física.
 - Capas de agenda: toolbar z40 superaba BottomNav z30 y tapaba sus controles
   al deslizar. Ahora z20; reproducción real 320/390/430 pasa de 0/4 a 4/4
   botones inferiores accesibles, incluso con filtro abierto. Build QA/PWA
-  aprobado; confirmación física pendiente.
+  aprobado. QA ecbf928, Vercel success verificado; confirmación física pendiente.
   [Causa, pruebas y fases](frontend-business-agenda-tabbar-qa.md).
 
 - Apertura/cierre de agenda: CSS local con detalle 360 ms, sin escala del texto

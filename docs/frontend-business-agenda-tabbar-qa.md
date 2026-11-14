@@ -47,3 +47,10 @@ arnés no son lentitud de la app. No hubo perfilado físico CPU/GPU/Safari.
 
 Campos/endpoints ninguno nuevo o modificado. Railway innecesario; main y
 producción intactos. Solo rama qa; handoffs ajenos quedan fuera del commit.
+
+Publicado en origin/qa: ecbf928e66c59df1cd79c95d338ee9cb06932a10.
+Push confirmado 19:43:31 UTC; Vercel success verificado 19:44:10 UTC
+(39 s desde push confirmado, incluye espera externa).
+https://vercel.com/zipco-s-projects/zipco-app/42GJuPyE7rq2dmDvDsTMwnNh7Jsp
+Documentación/Git: 19:42:45–19:43:31, 46 s. Cierre documental local sin
+otro push ni build. Sin inspección independiente del bundle protegido.
