@@ -142,3 +142,23 @@
   .zipco-agenda-field-text small{font-size:9px}
   .zipco-agenda-sortbtn{width:48px}
 }
+
+/* One short reveal in the agenda: no scaled text or delayed invitation.
+   Leave shared cards, slider feedback and operational timings untouched. */
+.zipco-agenda-row .zipco-co-dk .zipco-co-fb{
+  transform:none;
+  transition:grid-template-rows .36s cubic-bezier(.22,.61,.36,1),opacity .2s ease,visibility 0s;
+}
+.zipco-agenda-row .zipco-co-dk .zipco-co-fb[data-folded="true"]{
+  transform:none;
+  transition:grid-template-rows .36s cubic-bezier(.22,.61,.36,1),opacity .16s ease,visibility 0s .36s;
+}
+.zipco-agenda-row .zipco-co-dk .zipco-co-colrow[data-folded]{
+  transform:none;
+  transition:max-height .28s ease,opacity .16s ease,margin-top .2s ease,padding .2s ease,visibility 0s .28s;
+}
+.zipco-agenda-row .zipco-co-dk .zipco-co-colrow[data-folded="true"]{transition-delay:0s}
+@media (prefers-reduced-motion:reduce){
+  .zipco-agenda-row .zipco-co-dk .zipco-co-fb,
+  .zipco-agenda-row .zipco-co-dk .zipco-co-colrow[data-folded]{transition:none!important}
+}

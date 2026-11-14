@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Apertura/cierre de agenda: CSS local con detalle 360 ms, sin escala del texto
+  ni retraso de invitación. Medición antes/después y regresión real con HTTP
+  simulado 320/360/390/430 aprobadas; build QA/PWA aprobado. No cambia slider,
+  acciones ni otras pantallas; sensación física pendiente.
+  [Evidencia y fases](frontend-business-agenda-motion-qa.md).
+
 - Agenda compacta CliV11: solo Row/CSS del negocio activo, lateral plegado 46 px
   desde 360, estado repetido oculto por marca local sin ciclos; detalle conserva
   banda/ancho completo y botón WhatsApp de 44 px. Navegador real con HTTP simulado
