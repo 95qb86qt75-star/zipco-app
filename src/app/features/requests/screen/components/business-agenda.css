@@ -97,6 +97,43 @@
   .zipco-agenda-tray,.zipco-agenda-opt-check,.zipco-agenda-field-icon{animation:none!important;transition:none!important}
 }
 
+/* ===== Agenda compacta (tarjeta plegada, pantallas ≥ 360 px) =====
+   Columna de fecha de 46 px (antes 58) y tarjeta real más baja. Solo CSS de la envoltura: no se modifica ninguna tarjeta.
+   Con la tarjeta desplegada o por debajo de 360 px se mantiene la banda superior y la tarjeta usa todo su ancho. */
+@media (min-width:360px){
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])){grid-template-columns:46px minmax(0,1fr)}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-agenda-when-short em{font-size:8.5px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-agenda-when-short b{font-size:19px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-agenda-when-short i{font-size:10.5px}
+
+  /* Retiro en el local (cabecera estándar) */
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp){padding:12px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) .zipco-co-av{width:40px;height:40px;border-radius:12px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) .zipco-co-av svg{width:20px;height:20px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) .truncate{white-space:normal;overflow:visible;text-overflow:clip;font-size:16px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) [style*="min-width: 88px"]{min-width:0!important}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) .zipco-co-colrow{margin-top:10px;padding:8px 8px 8px 9px;gap:9px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) .zipco-co-colrow .tx b{font-size:13.5px}
+  /* La píldora de estado se oculta solo si repite el título de la fila de estado (lo marca BusinessAgendaRow). */
+  .zipco-agenda-row[data-redundant-status]:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-co-dk:not(.zipco-bp) div:has(> .zipco-co-pill){display:none}
+
+  /* WhatsApp: etiqueta y «Ver detalle» en una sola fila pegada arriba */
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-h{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding-top:2px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-h>.zipco-bp-r{grid-column:1/-1}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-mod{min-width:0;gap:5px;padding:2px 0 0 10px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-mod b{min-width:0;font-size:9.5px;line-height:1.7;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-tp{padding:0 4px 0 0}
+  .zipco-agenda-row:not([data-redundant-status]):not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-tp{grid-column:1/-1;padding:0 8px 0 12px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-toggle{gap:3px;font-size:12px;min-height:44px;margin-left:0;padding:0 2px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-fg svg{width:20px;height:22px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-chv{display:none}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-fb{width:44px;height:44px;border-radius:13px}
+  .zipco-agenda-row[data-redundant-status]:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-pill{display:none}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp .zipco-bp-next{margin:10px;width:calc(100% - 20px);padding:8px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp .zipco-bp-next .nd{width:30px;height:30px}
+  .zipco-agenda-row:not(:has(.zipco-co-fb[data-folded="false"])) .zipco-bp-go{width:30px;height:30px}
+}
+
 @media (max-width:350px){
   .zipco-agenda-field{gap:6px;padding:0 7px}
   .zipco-agenda-field-icon{width:26px;height:30px;border-radius:9px}
