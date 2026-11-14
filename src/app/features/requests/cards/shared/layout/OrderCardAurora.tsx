@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowLeftRight, User } from 'lucide-react';
+import { ArrowLeftRight, Check, Clock, Send, User } from 'lucide-react';
 import ProductPreviewControl from "../../../shared/product-preview/ProductPreviewControl";
 import { ImageWithFallback } from "../../../../../components/figma/ImageWithFallback";
 
@@ -12,7 +12,8 @@ export function AuroraProposalHeader({ name, image, price, statusLabel, summaryT
   name: string; image?: string | null; price: number | null; statusLabel: string; summaryText?: string; isUnread?: boolean;
   priceLabel?: string; items?: Array<{ name: string; quantity: number }>;
   // Variante visual opcional. Sin ella el resultado es idéntico al de siempre. «counter»: solo la tarjeta del negocio con una contrapropuesta por responder (aviso genérico: el tipo de cambio no está conectado a esta tarjeta).
-  variant?: 'default' | 'counter';
+  // «waiting»: solo la tarjeta del CLIENTE que ya envió su contrapropuesta y espera al negocio (no muestra acciones de responder).
+  variant?: 'default' | 'counter' | 'waiting';
 }) {
   if (variant === 'counter') {
     const avatar = <span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>
@@ -44,6 +45,41 @@ export function AuroraProposalHeader({ name, image, price, statusLabel, summaryT
           <span>Te toca responder. {summaryText}</span>
         </p>
       </div>}
+    </div>;
+  }
+  if (variant === 'waiting') {
+    const avatar = <span className="zipco-aurora-avatar" aria-hidden={image ? undefined : true}>
+      {image ? <ImageWithFallback src={image} alt={name || 'Negocio'} className="h-full w-full object-cover" /> : <User className="h-[23px] w-[23px]" strokeWidth={1.8} />}
+    </span>;
+    const steps = ['Pediste', 'Negocio propuso', 'Contrapropusiste'];
+    return <div className="zipco-aurora-wt">
+      <span className="zipco-aurora-wt-rim" aria-hidden="true" />
+      <span role="status" className="zipco-aurora-wt-eb"><Clock aria-hidden="true" />{statusLabel}</span>
+      <div className="zipco-aurora-wt-id">
+        <ProductPreviewControl fallback={avatar} />
+        <div className="min-w-0 flex-1">
+          <small className="zipco-aurora-wt-who">Negocio</small>
+          <div className="flex items-center gap-1.5">
+            <h4 className="zipco-aurora-wt-name">{name || 'Negocio'}</h4>
+            {isUnread && <span className="rounded-full bg-sky-400 px-1.5 py-0.5 text-[9px] font-black text-slate-950">Nueva</span>}
+          </div>
+        </div>
+        <div className="zipco-aurora-pricebox min-w-0 text-right">
+          <p className="zipco-aurora-price zipco-aurora-wt-price">{price === null ? '—' : `$${price.toLocaleString('es-CL')}`}</p>
+          <p className="zipco-aurora-wt-pl">{priceLabel}</p>
+        </div>
+      </div>
+      <ol className="zipco-aurora-wt-st" aria-label="Avance de la negociación">
+        {steps.map(step => <li key={step}><i aria-hidden="true"><Check /></i><span>{step === 'Contrapropusiste' ? <>Contra<wbr />propusiste</> : step}</span></li>)}
+        <li className="is-now"><i aria-hidden="true"><Clock /></i><span>Negocio responde<span className="sr-only"> (pendiente)</span><em className="zipco-aurora-wt-dots" aria-hidden="true"><u /><u /><u /></em></span></li>
+      </ol>
+      <div className="zipco-aurora-wt-note">
+        <span className="zipco-aurora-wt-ic" aria-hidden="true"><Send /></span>
+        <p>
+          <b>Enviaste tu <mark>contrapropuesta</mark></b>
+          <span>Espera la respuesta del negocio. No tienes que responder otra vez.</span>
+        </p>
+      </div>
     </div>;
   }
   return <div>

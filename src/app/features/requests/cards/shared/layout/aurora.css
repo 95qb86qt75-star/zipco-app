@@ -144,3 +144,83 @@
 @media (prefers-reduced-motion: reduce) {
   .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-card--bz .zipco-glass-btn > svg { animation: none; }
 }
+
+/* ===== Variante «esperando respuesta del negocio» (solo tarjeta del CLIENTE con contrapropuesta enviada) =====
+   Todo cuelga de .zipco-aurora-card--wt / .zipco-aurora-wt-*: sin la variante, la tarjeta Aurora y el botón compartido quedan idénticos.
+   Solo transform/opacity; sin bucles de blur, sombras ni fondos. Los gestos de atención se limitan a ciclos finitos y «reducir movimiento» los apaga.
+   Las reglas de pausa al final evitan que las entradas con retraso oculten contenido. */
+.zipco-aurora-card.zipco-aurora-card--wt { padding: 12px;
+  background: radial-gradient(90% 80% at 100% 0%, rgba(99, 102, 241, .46), transparent 60%), radial-gradient(80% 70% at 0% 100%, rgba(14, 165, 233, .28), transparent 60%), linear-gradient(160deg, #1c1650 0%, #101434 62%, #0c1a2e 100%); }
+.zipco-aurora-card--wt::before, .zipco-aurora-card--wt::after { animation: none; }
+.zipco-aurora-card--wt .zipco-aurora-price { text-shadow: none; }
+.zipco-aurora-wt { position: relative; }
+/* Borde de luz estático (sin animación) */
+.zipco-aurora-wt-rim { position: absolute; inset: -12px; border-radius: 24px; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(125, 211, 252, .75), rgba(99, 102, 241, .12) 50%, rgba(167, 139, 250, .65));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.zipco-aurora-wt-eb { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 9.5px; font-weight: 800; line-height: 1.2; letter-spacing: .12em; text-transform: uppercase; color: #bae6fd;
+  background: rgba(125, 211, 252, .12); box-shadow: inset 0 0 0 1px rgba(125, 211, 252, .42); }
+.zipco-aurora-wt-eb svg { flex: none; width: 13px; height: 13px; color: #7dd3fc; }
+.zipco-aurora-wt-id { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.zipco-aurora-wt-who { display: block; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #a5b4fc; }
+.zipco-aurora-wt-name { margin: 1px 0 0; font-size: 16px; line-height: 1.2; font-weight: 800; color: #fff; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.zipco-aurora-wt-price { margin: 0; font-size: clamp(20px, 5.6vw, 22px); line-height: 1; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+.zipco-aurora-wt-pl { margin: 3px 0 0; font-size: 8.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #a5b4fc; }
+/* Avance: Pediste → Negocio propuso → Contrapropusiste → Negocio responde (pendiente) */
+.zipco-aurora-wt-st { display: grid; grid-template-columns: repeat(4, 1fr); margin: 12px 0 0; padding: 0; list-style: none; }
+.zipco-aurora-wt-st li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; text-align: center; font-size: 9.5px; line-height: 1.15; font-weight: 700; color: #cbd5e1; }
+.zipco-aurora-wt-st li::before { content: ""; position: absolute; top: 9px; right: 50%; width: 100%; height: 2px; background: rgba(153, 246, 228, .55); transform-origin: right center; animation: zipco-aurora-wt-line .35s ease-out backwards; }
+.zipco-aurora-wt-st li:first-child::before { display: none; }
+.zipco-aurora-wt-st li:nth-child(2)::before { animation-delay: .15s; } .zipco-aurora-wt-st li:nth-child(3)::before { animation-delay: .3s; } .zipco-aurora-wt-st li:nth-child(4)::before { animation-delay: .45s; background: linear-gradient(90deg, rgba(153, 246, 228, .55), rgba(125, 211, 252, .25)); }
+.zipco-aurora-wt-st i { position: relative; z-index: 1; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #0f172a; background: #5eead4; box-shadow: 0 0 0 3px #12143a; animation: zipco-aurora-wt-pop .35s cubic-bezier(.3, 1.4, .5, 1) backwards; }
+.zipco-aurora-wt-st li:nth-child(1) i { animation-delay: .05s; } .zipco-aurora-wt-st li:nth-child(2) i { animation-delay: .2s; } .zipco-aurora-wt-st li:nth-child(3) i { animation-delay: .35s; } .zipco-aurora-wt-st li:nth-child(4) i { animation-delay: .5s; }
+.zipco-aurora-wt-st i svg { width: 11px; height: 11px; stroke-width: 3; }
+.zipco-aurora-wt-st li.is-now { color: #fff; font-weight: 800; }
+.zipco-aurora-wt-st li.is-now i { color: #e0f2fe; background: linear-gradient(145deg, #0ea5e9, #6366f1); box-shadow: 0 0 0 3px #12143a, 0 0 0 4.5px rgba(125, 211, 252, .55); }
+.zipco-aurora-wt-st li.is-now i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #7dd3fc; pointer-events: none; animation: zipco-aurora-wt-ring 1.5s ease-out .9s 2 backwards; }
+/* Punto que viaja por la línea hacia el paso pendiente (3 pasadas) */
+.zipco-aurora-wt-st li.is-now::after { content: ""; position: absolute; top: 7px; left: -50%; width: 100%; height: 6px; pointer-events: none; background: radial-gradient(circle at 3px 3px, #7dd3fc 0 3px, transparent 3.5px) no-repeat left; animation: zipco-aurora-wt-travel 1.3s ease-in-out 1s 3 backwards; }
+.zipco-aurora-wt-st li span { display: block; max-width: 100%; padding-inline: 2px; overflow-wrap: anywhere; }
+.zipco-aurora-wt-dots { display: flex; justify-content: center; gap: 2px; margin-top: 3px; font-style: normal; }
+.zipco-aurora-wt-dots u { width: 3px; height: 3px; border-radius: 50%; background: #7dd3fc; text-decoration: none; opacity: .7; animation: zipco-aurora-wt-dot 1.1s ease-in-out 0s 4; }
+.zipco-aurora-wt-dots u:nth-child(2) { animation-delay: .15s; } .zipco-aurora-wt-dots u:nth-child(3) { animation-delay: .3s; }
+.zipco-aurora-wt-note { display: flex; align-items: flex-start; gap: 11px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: rgba(125, 211, 252, .08);
+  box-shadow: inset 0 0 0 1px rgba(125, 211, 252, .3); animation: zipco-aurora-bz-rise .4s cubic-bezier(.2, .8, .2, 1) .25s backwards; }
+.zipco-aurora-wt-ic { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: #fff; background: linear-gradient(145deg, #0ea5e9, #6366f1); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .3); }
+.zipco-aurora-wt-ic svg { display: block; width: 19px; height: 19px; animation: zipco-aurora-wt-fly .9s ease-in-out .8s 1; }
+.zipco-aurora-wt-note p { min-width: 0; margin: 0; font-size: 12px; line-height: 1.38; color: #cbd5e1; }
+.zipco-aurora-wt-note b { display: block; margin-bottom: 2px; font-size: 14.5px; line-height: 1.25; font-weight: 800; color: #fff; }
+.zipco-aurora-wt-note mark { padding: 1px 7px; border-radius: 7px; background: rgba(125, 211, 252, .16); box-shadow: inset 0 0 0 1px rgba(125, 211, 252, .45); color: #bae6fd; font-weight: 800; }
+.zipco-aurora-wt-note p > span { display: block; }
+/* Botón «Ver conversación» (ProposalDraftButton real): píldora secundaria de contorno, sin brillos, capas ni desenfoque. Solo dentro de esta tarjeta. */
+.zipco-aurora-card--wt .zipco-glass-wrap { margin-top: 0; overflow: visible; background: none; box-shadow: none; }
+.zipco-aurora-card--wt .zipco-glass-blob { display: none; }
+.zipco-aurora-card--wt .zipco-glass-btn { min-height: 48px; padding: 0 14px; font-size: 14.5px; background: rgba(255, 255, 255, .08); -webkit-backdrop-filter: none; backdrop-filter: none;
+  text-shadow: none; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .5); transition: transform .15s ease, background-color .15s ease; }
+.zipco-aurora-card--wt .zipco-glass-btn::before, .zipco-aurora-card--wt .zipco-glass-btn::after { content: none; animation: none; }
+.zipco-aurora-card--wt .zipco-glass-btn:hover:not(:disabled) { filter: none; background: rgba(255, 255, 255, .14); }
+.zipco-aurora-card--wt .zipco-glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.zipco-aurora-card--wt .zipco-glass-btn > svg { order: -1; width: 17px; height: 17px; }
+@keyframes zipco-aurora-wt-pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes zipco-aurora-wt-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes zipco-aurora-wt-ring { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.9); } }
+@keyframes zipco-aurora-wt-travel { 0% { opacity: 0; transform: translateX(0); } 15%, 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(calc(100% - 6px)); } }
+@keyframes zipco-aurora-wt-dot { 0%, 100% { opacity: .25; transform: none; } 40% { opacity: 1; transform: translateY(-2px); } }
+@keyframes zipco-aurora-wt-fly { 0%, 100% { transform: none; } 45% { transform: translate(3px, -6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .zipco-aurora-wt-st li::before, .zipco-aurora-wt-st i, .zipco-aurora-wt-st li.is-now i::after, .zipco-aurora-wt-dots u, .zipco-aurora-wt-note, .zipco-aurora-wt-ic svg { animation: none; }
+  .zipco-aurora-wt-st li.is-now::after { display: none; }
+}
+@media (max-width: 360px) { .zipco-aurora-wt-st li { font-size: 8.5px; letter-spacing: -.01em; } .zipco-aurora-wt-st li span { overflow-wrap: break-word; } .zipco-aurora-wt-price { font-size: 20px; } }
+
+/* A paused entrance must expose its final state, including during its delay. */
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+  :is(.zipco-aurora-wt-note, .zipco-aurora-wt-st i),
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+  .zipco-aurora-wt-st li::before { animation: none !important; }
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+  :is(.zipco-aurora-wt-dots u, .zipco-aurora-wt-ic svg),
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+  .zipco-aurora-wt-st li.is-now::after,
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+  .zipco-aurora-wt-st li.is-now i::after { animation-play-state: paused !important; }

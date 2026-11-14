@@ -48,12 +48,12 @@ const labels = ['Solicitud original', 'Propuesta del negocio', 'Contrapropuesta 
 const button = 'min-h-12 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-800 disabled:opacity-50 dark:bg-violet-950/30 dark:text-violet-200';
 const isAcceptAction = (action: ProposalAction) => action === 'ACCEPT_PROPOSAL' || action === 'ACCEPT_COUNTER_PROPOSAL';
 
-function ProposalDraftButton({ label, busy, onClick, once = false, ariaLabel = label }: { label: string; busy: boolean; onClick: () => void; once?: boolean; ariaLabel?: string }) {
+function ProposalDraftButton({ label, busy, onClick, once = false, ariaLabel = label, icon = 'arrow' }: { label: string; busy: boolean; onClick: () => void; once?: boolean; ariaLabel?: string; icon?: 'arrow' | 'chat' }) {
   return <span className="zipco-glass-wrap min-w-0 flex-[1.35]">
     <i className="zipco-glass-blob zipco-glass-b1" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b2" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b3" aria-hidden="true" />
     <button type="button" aria-label={ariaLabel} className="zipco-glass-btn" disabled={busy} aria-busy={busy} onClick={onClick}>
       <span className="min-w-0 break-words">{label}{once && <span className="zipco-chat-once ml-1">1 vez</span>}</span>
-      <ArrowRight className="h-[18px] w-[18px] shrink-0" strokeWidth={2.3} aria-hidden="true" />
+      {icon === 'chat' ? <MessageCircle className="h-[18px] w-[18px] shrink-0" strokeWidth={2.3} aria-hidden="true" /> : <ArrowRight className="h-[18px] w-[18px] shrink-0" strokeWidth={2.3} aria-hidden="true" />}
     </button>
   </span>;
 }
@@ -226,6 +226,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const lateError = client && currentScheduleExpired && /fecha/i.test(error);
   // Negocio: «Rechazar» abre un pop-up sobre la conversación (misma acción y mismos callbacks que la pantalla anterior).
   const rejectPopup = business && decision !== null && decision.startsWith('REJECT_');
+  // Cliente que ya envió su contrapropuesta y espera al negocio: solo cambia la presentación (botón «Ver conversación» y conversación); no hay acciones nuevas.
+  const waiting = client && process.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE';
 
   const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
     if (!active() || lock.current || !read || !choices.includes(action)) throw new ProposalError('Actualiza las condiciones antes de confirmar.', 0);
@@ -341,7 +343,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? initialLabel : isProposalRejected(process) ? 'Ver propuestas e historial' : reviewLabel ?? 'Revisar propuesta y responder';
       const openProposals = async () => { await load(initial); };
       const reviewButton = variant === 'aurora'
-        ? <ProposalDraftButton label={label} busy={busy} onClick={openProposals} />
+        ? <ProposalDraftButton label={label} busy={busy} onClick={openProposals} icon={waiting ? 'chat' : 'arrow'} />
         : <button type="button" className={`${button} w-full`} disabled={busy} aria-busy={busy} onClick={openProposals}>{label}</button>;
       return customerEntryActions && !business ? <div className="zipco-proposal-entry-actions">
         {proposalAllowed(process, false, 'ACCEPT_PROPOSAL') && <AcceptGlassButton size="compact" flush label="Aceptar" disabled={busy} onClick={() => void load(false, true)}/>}
@@ -464,7 +466,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 </>;
               })()}
             </div> : <>
-              {read && <ProposalChat read={read} business={business} businessDesign={business}
+              {read && <ProposalChat read={read} business={business} businessDesign={business} waitingDesign={client && read.process.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE'}
                 turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
                 closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
                 canCounter={!business && choices.includes('COUNTER_PROPOSAL')}

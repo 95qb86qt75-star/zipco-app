@@ -27,6 +27,23 @@ it('business design flag has no effect on the customer composition', () => {
   expect(withFlag).toBe(render(value));
 });
 
+it('marks the waiting customer counter as sent without changing proposal data', () => {
+  const value = read(2), before = JSON.stringify(value);
+  const html = renderToStaticMarkup(React.createElement(ProposalChat, { read: value, business: false, waitingDesign: true, turn: 'wait' }));
+  expect(html).toContain('zipco-wt-chat'); expect(html).toContain('Enviada');
+  expect(html).toContain('Esperando respuesta del negocio');
+  expect(html).not.toContain('Te toca responder');
+  expect(html).not.toContain('Esperando la respuesta de la otra parte');
+  expect(html).toContain('data-proposal-sequence="2"');
+  expect(JSON.stringify(value)).toBe(before);
+});
+
+it.each([true, false])('does not activate waiting styling for another turn or the business (%s)', business => {
+  const value = read(2), props = { read: value, business, businessDesign: business, turn: 'mine' as const };
+  const original = renderToStaticMarkup(React.createElement(ProposalChat, props));
+  expect(renderToStaticMarkup(React.createElement(ProposalChat, { ...props, waitingDesign: true }))).toBe(original);
+});
+
 it('places the customer plan after the turn and before counter guidance',()=>{
  const html=renderToStaticMarkup(React.createElement(ProposalChat,{read:read(),business:false,turn:'mine',canCounter:true,plan:React.createElement('p',null,'Condiciones vigentes')}));
  expect(html.indexOf('Te toca responder')).toBeLessThan(html.indexOf('Condiciones vigentes'));
