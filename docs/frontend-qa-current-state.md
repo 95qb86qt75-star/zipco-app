@@ -7,11 +7,19 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Tarjetas cerradas de agenda: excepción CSS solo para adornos visibles de
+  transform/opacity; conserva pausas por scroll/fuera de vista/modales/reduced
+  motion, sin activar detalle oculto o sombras continuas. Reproducción real
+  antes/después, identidad de animación al reanudar y dos unitarias aprobadas;
+  build QA/PWA aprobado. [Evidencia y fases](frontend-business-agenda-closed-motion-qa.md).
+
 - Capas de agenda: toolbar z40 superaba BottomNav z30 y tapaba sus controles
   al deslizar. Ahora z20; reproducción real 320/390/430 pasa de 0/4 a 4/4
   botones inferiores accesibles, incluso con filtro abierto. Build QA/PWA
   aprobado. QA ecbf928, Vercel success verificado; confirmación física pendiente.
   [Causa, pruebas y fases](frontend-business-agenda-tabbar-qa.md).
+  Usuario confirma que el solapamiento quedó arreglado; no extiende esa aprobación
+  a todas las variantes ni sustituye las pruebas pendientes de otros bloques.
 
 - Apertura/cierre de agenda: CSS local con detalle 360 ms, sin escala del texto
   ni retraso de invitación. Medición antes/después y regresión real con HTTP
