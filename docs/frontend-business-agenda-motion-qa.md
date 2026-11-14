@@ -65,3 +65,11 @@ build/navegador hasta 19:31:07, ambos aprobados al verificar a 19:31:32. Vite
 Documentación empieza 19:31:32; publicación/verificación se registra al cierre.
 No son tiempos de rendimiento del producto. No se inventan duraciones aisladas
 de implementación/preparación cuando no quedaron cronometradas individualmente.
+
+QA publicado: 1b327f7a938c6accc5d8b51979afa845166d9e3a, origin/qa.
+Push confirmado 19:32:27 UTC; Vercel success verificado 19:33:06 UTC
+(39 s desde push confirmado, incluye espera externa).
+https://vercel.com/zipco-s-projects/zipco-app/39JqED5dKLcdWCxV2znUNPmEr7jB
+Documentación/Git hasta push: 19:31:32–19:32:27 (55 s). Cierre documental
+posterior local sin push adicional. No se inspeccionó el bundle protegido
+independientemente; prueba física sigue pendiente.
