@@ -148,7 +148,7 @@
 /* ===== Variante «esperando respuesta del negocio» (solo tarjeta del CLIENTE con contrapropuesta enviada) =====
    Todo cuelga de .zipco-aurora-card--wt / .zipco-aurora-wt-*: sin la variante, la tarjeta Aurora y el botón compartido quedan idénticos.
    Solo transform/opacity; sin bucles de blur, sombras ni fondos. Los gestos de atención se limitan a ciclos finitos y «reducir movimiento» los apaga.
-   Las reglas de pausa al final evitan que las entradas con retraso oculten contenido. */
+   Las entradas terminan una vez; solo los adornos se pausan al desplazar. */
 .zipco-aurora-card.zipco-aurora-card--wt { padding: 12px;
   background: radial-gradient(90% 80% at 100% 0%, rgba(99, 102, 241, .46), transparent 60%), radial-gradient(80% 70% at 0% 100%, rgba(14, 165, 233, .28), transparent 60%), linear-gradient(160deg, #1c1650 0%, #101434 62%, #0c1a2e 100%); }
 .zipco-aurora-card--wt::before, .zipco-aurora-card--wt::after { animation: none; }
@@ -213,11 +213,8 @@
 }
 @media (max-width: 360px) { .zipco-aurora-wt-st li { font-size: 8.5px; letter-spacing: -.01em; } .zipco-aurora-wt-st li span { overflow-wrap: break-word; } .zipco-aurora-wt-price { font-size: 20px; } }
 
-/* A paused entrance must expose its final state, including during its delay. */
-:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
-  :is(.zipco-aurora-wt-note, .zipco-aurora-wt-st i),
-:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
-  .zipco-aurora-wt-st li::before { animation: none !important; }
+/* Never remove/reapply entrance animations on scroll: that restarts them.
+   Short entrances finish once; decorative effects retain their paused timeline. */
 :is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
   :is(.zipco-aurora-wt-dots u, .zipco-aurora-wt-ic svg),
 :is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)

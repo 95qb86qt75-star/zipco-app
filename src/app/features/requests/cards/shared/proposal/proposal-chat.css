@@ -681,7 +681,7 @@
    Solo aplica con .zipco-wt-chat (ProposalChat waitingDesign, estado AWAITING_BUSINESS_COUNTER_RESPONSE y turno «wait»), dentro de .zipco-pz.
    El cliente que debe responder (.zipco-pz sin .zipco-wt-chat), el negocio (.zipco-bz) y las ventanas de detalle (.zipco-sheet) no cambian.
    Animaciones: solo transform/opacity, ciclos finitos y «reducir movimiento» las apaga.
-   Las reglas de pausa al final exponen el contenido incluso durante un retraso. */
+   Las entradas terminan una vez; los adornos conservan su línea de tiempo al pausar. */
 @keyframes zipco-wt-pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
 @keyframes zipco-wt-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes zipco-wt-slide{from{transform:translateY(100%)}to{transform:none}}
@@ -760,9 +760,7 @@
 .zipco-pz .zipco-chat.zipco-wt-chat>section[aria-label="Camino de esta propuesta"]>p:first-child{gap:9px;font-size:14px}
 .zipco-pz .zipco-chat.zipco-wt-chat>section[aria-label="Camino de esta propuesta"]>p:first-child::before{width:26px;height:26px;background-size:15px}
 .zipco-pz .zipco-chat.zipco-wt-chat>section[aria-label="Camino de esta propuesta"]>p:not(:first-child){padding-left:35px;font-size:12px}
-/* Do not freeze meaningful content at opacity:0 or outside its clipped card. */
-:is([data-request-motion="idle"], [data-request-list-scrolling]) .zipco-wt-chat
-  :is(.zipco-chat-mine,.zipco-chat-theirs,.zipco-wt-sent,.zipco-wt-chg-r,.zipco-wt-chg-r b,.zipco-wt-ws){animation:none!important}
+/* Entrances finish once without reacting to scroll flags or hiding content. */
 :is([data-request-motion="idle"], [data-request-list-scrolling]) .zipco-wt-chat
   :is(.zipco-wt-ws svg,.zipco-chat-mine.is-sent)::before{animation-play-state:paused!important}
 :is([data-request-motion="idle"], [data-request-list-scrolling]) .zipco-wt-chat .zipco-wt-ws svg{animation-play-state:paused!important}

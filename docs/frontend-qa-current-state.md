@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Corrección del reinicio al desplazar en waiting: animation:none condicionado
+  a scroll quitaba/recreaba las entradas. Ahora terminan una vez y solo los
+  adornos se pausan conservando su línea de tiempo. Reproducción antes/después:
+  24/12 reinicios pasan a cero. Build QA/PWA aprobado; publicación en verificación.
+  [Causa, pruebas y tiempos](frontend-waiting-scroll-animation-fix-qa.md).
+
 - Cliente en espera: variante visual canónica de contrapropuesta enviada,
   avance de cuatro pasos, Ver conversación, Enviada y cambios que pediste.
   Se conservan categorías, negocio y cliente que debe responder; contenido
