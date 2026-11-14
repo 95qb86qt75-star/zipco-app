@@ -1,3 +1,5 @@
+@import './fonts/proposal-outfit.css';
+
 /* ===== ZIPCO · Revisar propuesta (chat H) =====
    REEMPLAZAR por completo el bloque anterior "Revisar propuesta como chat" de src/styles/index.css
    (desde el comentario "===== ZIPCO · Revisar propuesta como chat" hasta su @media reduced-motion).
@@ -467,6 +469,8 @@
    Se reutilizan, sin modificarlas, las clases genéricas del cliente que no dependen de .zipco-pz
    (zipco-pz-hd, -bk, -prog, -sum, -sr, -th, -cap, -r2, -back, -err, -sp, -dt).
    Animaciones: solo transform/opacity, gestos de atención limitados y «reducir movimiento» respetado. */
+.zipco-bz,.zipco-bz-pop{font-family:'Zipco Proposal Outfit',system-ui,sans-serif}
+.zipco-bz{--zipco-bz-primary-background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.42),transparent 48%),linear-gradient(105deg,#8b5cf6,#6366f1 52%,#0ea5e9)}
 @keyframes zipco-bz-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .zipco-bz .zipco-pz-hd [class*="text-[22px]"]{font-size:20px;letter-spacing:-.01em}
 .zipco-bz .zipco-pz-hd .zipco-pz-long{font-size:18px}
@@ -546,7 +550,7 @@
 /* Pie: acciones del negocio */
 .zipco-bz .zipco-chat-foot{padding-top:6px;background:linear-gradient(#f6f4fd00,#f1effc)}
 .zipco-bz-same,.zipco-bz-send{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;box-sizing:border-box;width:100%;min-height:52px;padding:0 14px;border:0;border-radius:999px;color:#fff;font-size:15px;font-weight:800;text-align:left;text-shadow:0 1px 3px rgba(20,0,60,.35);
-  background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.42),transparent 48%),linear-gradient(105deg,#8b5cf6,#6366f1 52%,#0ea5e9);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 -6px 10px rgba(30,27,100,.28),0 8px 20px rgba(99,102,241,.38)}
+  background:var(--zipco-bz-primary-background);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 -6px 10px rgba(30,27,100,.28),0 8px 20px rgba(99,102,241,.38)}
 .zipco-bz-same .ck{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.75)}
 .zipco-bz-same .ck svg{width:17px;height:17px}
 .zipco-bz-same{min-height:56px;padding-top:6px;padding-bottom:6px}
@@ -618,15 +622,15 @@
 .zipco-bz-rev fieldset[aria-label="Condiciones de reserva"] input[inputmode="numeric"]{box-sizing:border-box;width:100%;min-height:44px;margin-top:4px;padding:0 12px;border:0;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1.5px #99f6e4;font-size:15px;font-weight:700}
 .zipco-bz-rev fieldset[aria-label="Condiciones de reserva"] button{min-height:44px;padding:0 4px}
 
-/* Botón «Aceptar contrapropuesta» (AcceptGlassButton real): mismas píldoras limpias del cliente, sin parpadeos permanentes */
-.zipco-bz .zipco-accept-wrap{border-radius:999px;overflow:hidden;isolation:isolate;clip-path:inset(0 round 999px);background:linear-gradient(110deg,#70ddb0 0%,#13b8ac 48%,#04afd0 100%);box-shadow:inset 0 0 0 1.5px #ffffff8c,0 5px 12px #0d948829;animation:none!important}
+/* Aceptación directa y renovación comparten paleta; conservan acciones y textos distintos. */
+.zipco-bz .zipco-accept-wrap{border-radius:999px;overflow:hidden;isolation:isolate;clip-path:inset(0 round 999px);background:var(--zipco-bz-primary-background);box-shadow:inset 0 0 0 1.5px #ffffff8c,0 5px 12px #6366f129;animation:none!important}
 .zipco-bz .zipco-accept-blob{display:none}
 .zipco-bz .zipco-accept-btn{min-height:48px;justify-content:center;gap:9px;padding:7px 11px;background:linear-gradient(180deg,#ffffff16,#ffffff00);text-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;filter:none;box-shadow:inset 0 1px 1px #ffffff73,inset 0 -1px 1px #ffffff38}
 .zipco-bz .zipco-accept-btn::before,.zipco-bz .zipco-accept-btn::after{display:none}
 .zipco-bz .zipco-accept-check{width:27px;height:27px;background:#ffffff14;border:1px solid #ffffffe6;box-shadow:none;animation:none!important}
 .zipco-bz .zipco-accept-check svg{width:17px;height:17px}
 .zipco-bz .zipco-accept-label{flex:0 1 auto;font-size:14px;line-height:1.15;text-align:left}
-.zipco-bz .zipco-accept-price{margin-left:auto;padding:5px 10px;background:#087b8b73;box-shadow:inset 0 0 0 1px #ffffff59;font-size:13px;line-height:1.2}
+.zipco-bz .zipco-accept-price{margin-left:auto;padding:5px 10px;background:#4c1d9573;box-shadow:inset 0 0 0 1px #ffffff59;font-size:13px;line-height:1.2}
 .zipco-bz .zipco-accept-btn:focus-visible{outline-offset:-3px}
 .zipco-bz :is(.zipco-accept-blob,.zipco-glass-blob){animation:none!important}
 .zipco-bz :is(.zipco-accept-wrap,.zipco-accept-check,.zipco-glass-wrap,.zipco-glass-btn){animation-iteration-count:2!important}
