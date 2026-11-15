@@ -241,7 +241,8 @@ function useAgendaSwipe(ref: React.RefObject<HTMLDivElement | null>) {
  * también se pliega al primer toque sobre una tarjeta. Se muestra solo la primera vez (localStorage, con try/catch).
  * No renderiza nada si ninguna fila tiene la opción disponible.
  */
-const HINT_KEY = 'zipco:agenda-swipe-hint:v1';
+// v1 could be consumed without being seen. Reintroduce this corrected help once.
+const HINT_KEY = 'zipco:agenda-swipe-hint:v2';
 const HINT_MS = 5000;
 const hintSeen = () => { try { return window.localStorage.getItem(HINT_KEY) === '1'; } catch { return false; } };
 const markHintSeen = () => { try { window.localStorage.setItem(HINT_KEY, '1'); } catch { /* sin almacenamiento: puede repetirse */ } };
@@ -250,22 +251,53 @@ export function AgendaSwipeHint() {
   const rows = React.useSyncExternalStore(swipeStore.subscribe, swipeStore.get, () => 0);
   const [phase, setPhase] = React.useState<'show' | 'fade' | 'fold' | 'gone'>(() => (hintSeen() ? 'gone' : 'show'));
   const ref = React.useRef<HTMLDivElement>(null);
+  const remaining = React.useRef(HINT_MS);
 
   React.useEffect(() => {
     if (phase !== 'show' || rows === 0) return;
     const node = ref.current;
-    let timer = 0;
-    const fold = () => { window.clearTimeout(timer); markHintSeen(); setPhase('fold'); };
-    const start = () => { window.clearTimeout(timer); timer = window.setTimeout(fold, HINT_MS); };
+    let visible = false;
+    let last = performance.now();
+    let finished = false;
+    const paused = () => !visible || document.visibilityState !== 'visible' ||
+      !!node?.closest('[data-request-list-scrolling]') || !!document.querySelector('[role="dialog"],[role="alertdialog"]');
+    const fold = () => { if (finished) return; finished = true; markHintSeen(); setPhase('fold'); };
+    const tick = () => {
+      const now = performance.now(), elapsed = now - last;
+      last = now;
+      if (!observer && node) {
+        const box = node.getBoundingClientRect();
+        visible = box.height > 0 && Math.max(0, Math.min(innerHeight, box.bottom) - Math.max(0, box.top)) >= box.height * 0.6;
+      }
+      const stopped = paused();
+      node?.toggleAttribute('data-hint-paused', stopped);
+      if (finished || stopped) return;
+      remaining.current = Math.max(0, remaining.current - elapsed);
+      if (remaining.current === 0) fold();
+    };
     let observer: IntersectionObserver | null = null;
     if (node && 'IntersectionObserver' in window) {
-      observer = new IntersectionObserver(entries => { if (entries.some(entry => entry.isIntersecting)) { start(); observer?.disconnect(); } }, { threshold: 0.6 });
+      observer = new IntersectionObserver(entries => {
+        visible = entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.6);
+        last = performance.now();
+      }, { threshold: [0, 0.6] });
       observer.observe(node);
-    } else start();
+    } else if (node) {
+      // Fail safe on old WebViews too: do not consume help outside the viewport.
+      const box = node.getBoundingClientRect();
+      visible = box.height > 0 && Math.max(0, Math.min(innerHeight, box.bottom) - Math.max(0, box.top)) >= box.height * 0.6;
+    }
+    const timer = window.setInterval(tick, 100);
+    const onVisibility = () => { last = performance.now(); };
+    document.addEventListener('visibilitychange', onVisibility);
     // Al tocar una tarjeta solo se desvanece; el espacio se recoge cuando el dedo ya se levantó (nada se mueve bajo el dedo).
-    const onDown = (event: PointerEvent) => { if ((event.target as Element | null)?.closest('.zipco-agenda-row')) { window.clearTimeout(timer); markHintSeen(); setPhase('fade'); } };
+    const onDown = (event: PointerEvent) => {
+      if (!finished && !paused() && (event.target as Element | null)?.closest('.zipco-agenda-row')) {
+        finished = true; markHintSeen(); setPhase('fade');
+      }
+    };
     document.addEventListener('pointerdown', onDown, true);
-    return () => { window.clearTimeout(timer); observer?.disconnect(); document.removeEventListener('pointerdown', onDown, true); };
+    return () => { window.clearInterval(timer); observer?.disconnect(); document.removeEventListener('visibilitychange', onVisibility); document.removeEventListener('pointerdown', onDown, true); };
   }, [phase, rows]);
 
   React.useEffect(() => {

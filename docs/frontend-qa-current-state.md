@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Ayuda del swipe: fallo reproducido que marcaba v1 vista al tocar una tarjeta
+  aunque el aviso estuviera fuera de pantalla. Ahora exige60% visible y acumula
+  cinco segundos sin scroll/diálogo/documento oculto; v2 permite verla una vez
+  tras la corrección. Swipe, cierres y backend intactos. Escenario real con HTTP
+  simulado y build QA/PWA aprobados; publicación y teléfonos pendientes.
+  [Causa y evidencia](frontend-agenda-swipe-hint-visibility-qa.md).
+
 - Cerrar solicitud de Mi Negocio → En curso: diseño CliV12 conectado al contrato
   E207 de backend QA cc17287. Entrega declarada archiva solo gestión del negocio;
   cliente conserva recepción/finalización. No se concretó exige motivo y conserva

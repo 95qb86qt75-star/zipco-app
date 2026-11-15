@@ -225,6 +225,7 @@
 @media (prefers-reduced-motion:no-preference){
   .zipco-agenda-hint-fr{animation:zipco-ag-hint 2.5s cubic-bezier(.45,0,.2,1) infinite}
   [data-request-list-scrolling] .zipco-agenda-hint-fr,
+  .zipco-agenda-hint[data-hint-paused] .zipco-agenda-hint-fr,
   html:has([role="dialog"],[role="alertdialog"]) .zipco-agenda-hint-fr{animation-play-state:paused}
 }
 @keyframes zipco-ag-hint{0%,18%{transform:translate3d(0,0,0)}48%,72%{transform:translate3d(-112px,0,0)}100%{transform:translate3d(0,0,0)}}
