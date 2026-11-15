@@ -10,7 +10,8 @@ ni convierte pruebas sintéticas en aprobación física.
 - Cerrar solicitud con reserva bloqueada: agrupa Ya entregué deshabilitado,
   explicación y Revisar reserva en un bloque, separando No se concretó. La causa
   depende de la reserva, no de Fecha pasada. Sin cambios de contrato/acciones.
-  Navegador320/390/430 y build QA/PWA aprobados; publicación y móvil pendientes.
+  Navegador320/390/430 y build QA/PWA aprobados; QA0d8c076, Vercel success
+  verificado. Confirmación física en móvil pendiente.
   [Detalle y validación](frontend-closure-reservation-layout-qa.md).
 
 - Producto En curso de negocio: retiro local reutiliza BusinessInProgressCard

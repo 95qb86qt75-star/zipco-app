@@ -42,5 +42,9 @@ dominio/API no se repite su suite. Revisión física Android/iPhone pendiente.
 
 Análisis/aplicación35s; preparación54s; ejecución/comprobación61s. Build en paralelo
 con la prueba visual: no sumar dos veces su tiempo. Documentación/publicación al cierre.
-Rama qa. SHA/Vercel pendientes de registrar. Railway no necesario; main8295ab8 y
+Documentación36s; preparación/publicación/verificación43s, incluida espera externa.
+Rama qa. Publicado0d8c07620fb896c4b382bb7b66856919d45e0f49, Vercel success del SHA
+exacto observado mediante GitHub:
+https://vercel.com/zipco-s-projects/zipco-app/8abpFYxxEiKHf1qWWY4f1m6mSenK
+Railway no necesario; main8295ab8 y
 producción intactos. No cambia el contrato E207 ya publicado por backend.
