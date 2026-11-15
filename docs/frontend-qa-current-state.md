@@ -11,7 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   aunque el aviso estuviera fuera de pantalla. Ahora exige60% visible y acumula
   cinco segundos sin scroll/diálogo/documento oculto; v2 permite verla una vez
   tras la corrección. Swipe, cierres y backend intactos. Escenario real con HTTP
-  simulado y build QA/PWA aprobados; publicación y teléfonos pendientes.
+  simulado y build QA/PWA aprobados; QA 0dd6a6f, Vercel success verificado.
+  Confirmación física en teléfonos pendiente.
   [Causa y evidencia](frontend-agenda-swipe-hint-visibility-qa.md).
 
 - Cerrar solicitud de Mi Negocio → En curso: diseño CliV12 conectado al contrato

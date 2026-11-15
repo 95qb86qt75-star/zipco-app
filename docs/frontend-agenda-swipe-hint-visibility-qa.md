@@ -67,5 +67,13 @@ fases exclusivas. Hubo reparación/repetición de fixture y build en paralelo co
 la validación de visibilidad. No atribuir esos tiempos a rendimiento de la app.
 Documentación y publicación se registran separadamente al cierre.
 
-Rama qa; SHA y Vercel pendientes de registrar tras publicar. Railway no necesario.
+Intervalos observados adicionales: preparación2min40s; ventana de verificación y
+reparación de fixture4min59s, con build superpuesto (no sumar dos veces). Aplicación
+del cierre documental/preparación Git8s registrados; redacción sin timer exclusivo.
+Publicación/verificación40s desde el push hasta observar success.
+
+Rama qa; publicado 0dd6a6fbdfe0a423845fd2838e27f765960e43f1. Vercel success del
+SHA exacto verificado por estado GitHub:
+https://vercel.com/zipco-s-projects/zipco-app/Ci1x6NzK98s533YSYq4JUpxgygbg
+Railway no necesario. El cierre documental se guarda localmente sin otro push.
 Main/producción intactos. No se publican mocks ni capturas del arnés.
