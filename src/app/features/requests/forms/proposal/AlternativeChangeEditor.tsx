@@ -128,6 +128,8 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
   const [immediate, setImmediate] = useState(schedule.immediate);
   const [date, setDate] = useState(schedule.date);
   const [time, setTime] = useState(schedule.time);
+  const [scheduleEdited,setScheduleEdited]=useState(false);
+  const [pastScheduleNotice,setPastScheduleNotice]=useState(false);
   const dateInput = useRef<HTMLInputElement>(null);
   const [quick] = useState(() => (late ? quickTimes() : []));
 
@@ -136,6 +138,15 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
   const custom = selected.has('item') || originalLine.customTotal !== undefined;
   const priceBaseline = custom ? customBasePrice : String(originalLine.price);
   const scheduledInstant = kind === 'schedule' && !immediate ? santiagoDraftTime(date, time) : null;
+  // Local guidance only; reuse the Chile conversion and keep server validation authoritative.
+  useEffect(()=>{
+    if(!scheduleEdited||kind!=='schedule'||immediate||scheduledInstant===null||scheduledInstant>Date.now()){
+      setPastScheduleNotice(false);return;
+    }
+    setPastScheduleNotice(true);
+    const timer=setTimeout(()=>setPastScheduleNotice(false),4000);
+    return()=>clearTimeout(timer);
+  },[scheduleEdited,kind,immediate,date,time,scheduledInstant]);
   const scheduleChanged = immediate !== originalScheduleValue.immediate || (!immediate && (date !== originalScheduleValue.date || time !== originalScheduleValue.time));
   const valid =
     kind === "price" ? priceOk && price !== priceBaseline
@@ -228,7 +239,7 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
             <div className="zipco-la-chips" role="group" aria-label="Horarios rápidos">
               {quick.map(option => (
                 <button key={option.label} type="button" aria-pressed={date === option.date && time === option.time}
-                  onClick={() => { setDate(option.date); setTime(option.time); }} className="zipco-la-chip">{option.label}</button>
+                  onClick={() => { setScheduleEdited(true);setDate(option.date); setTime(option.time); }} className="zipco-la-chip">{option.label}</button>
               ))}
               <button type="button" onClick={() => { setDate(""); setTime(""); dateInput.current?.focus(); }} className="zipco-la-chip">Otra fecha…</button>
             </div>
@@ -237,16 +248,17 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
             <div className="grid grid-cols-2 gap-2">
               <label className="min-w-0 text-xs font-bold">
                 Fecha
-                <input ref={dateInput} type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`zipco-ed-in mt-1 min-w-0 ${field}`} />
+                <input ref={dateInput} type="date" value={date} onChange={(e) => {setScheduleEdited(true);setDate(e.target.value);}} className={`zipco-ed-in mt-1 min-w-0 ${field}`} />
                 {!date && <span className="font-normal">Selecciona fecha</span>}
               </label>
               <label className="min-w-0 text-xs font-bold">
                 Hora de Chile
-                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={`zipco-ed-in mt-1 min-w-0 ${field}`} />
+                <input type="time" value={time} onChange={(e) => {setScheduleEdited(true);setTime(e.target.value);}} className={`zipco-ed-in mt-1 min-w-0 ${field}`} />
                 {!time && <span className="font-normal">Selecciona hora</span>}
               </label>
             </div>
           )}
+          {pastScheduleNotice&&<p role="status" aria-live="polite" className="rounded-xl border border-amber-300 bg-amber-50 p-2 text-xs font-semibold text-amber-900">Esa fecha y hora ya pasaron. Elige un horario futuro.</p>}
           <SaveButton valid={valid} onClick={save} className="w-full" />
           {!valid && <p className="zipco-ed-help text-xs text-slate-500">Elige un horario diferente, futuro y válido en Chile. Para conservar el original, quita el cambio.</p>}
         </>

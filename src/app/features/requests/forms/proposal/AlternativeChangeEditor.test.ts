@@ -2,7 +2,9 @@ import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as any[], cursor: 0 }));
 vi.mock('react', async original => ({ ...await original<typeof import('react')>(),
-  useState: (initial: any) => { const i = hooks.cursor++; if (!(i in hooks.slots)) hooks.slots[i] = initial;
+  useRef: (current:unknown)=>({current}),
+  useEffect: vi.fn(),
+  useState: (initial: any) => { const i = hooks.cursor++; if (!(i in hooks.slots)) hooks.slots[i] = typeof initial==='function'?initial():initial;
     return [hooks.slots[i], (value: any) => { hooks.slots[i] = typeof value === 'function' ? value(hooks.slots[i]) : value; }]; },
 }));
 import AlternativeChangeEditor, { ChangeEditor } from "./AlternativeChangeEditor";
