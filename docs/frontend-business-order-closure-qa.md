@@ -137,6 +137,13 @@ Build Vite: 7,29 s y 6,64 s; se repitió por cambios posteriores justificados de
 semántica/avisos/validación. La generación PWA también aprobó, sin timer aislado.
 Documentación y publicación/verificación se registran al cierre, por separado.
 
-Rama qa. Publicación frontend y SHA exacto: pendientes de completar tras push y
-verificación Vercel. Backend no requiere otro despliegue en este bloque.
+Documentación inicial: intervalo separado de 2 min 00 s. Preparación de Git,
+publicación y verificación: 1 min 26 s medidos hasta observar success; incluye
+espera externa. El cierre documental posterior no repite build ni publicación.
+
+Rama qa. Commit funcional publicado: 39eabf765e041a1388100acb1820874096193747.
+Vercel success del SHA exacto observado mediante estado GitHub:
+https://vercel.com/zipco-s-projects/zipco-app/DKP5nCSZaY8zz3Kmw5Z1WbLfn7gr
+Esto verifica publicación; no acredita una sesión autenticada en QA ni teléfonos.
+Backend no requiere otro despliegue en este bloque.
 Main de frontend permanece 8295ab8c6024ab20851ebd371308d2f299b4668f.

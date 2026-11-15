@@ -12,8 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   cliente conserva recepción/finalización. No se concretó exige motivo y conserva
   aclaraciones de pago. Recuperación por UUID original y GET dedicado; sin borrar
   solicitudes ni sustituir MARK_READY. Pruebas dirigidas, navegador 320/360/390/430
-  con HTTP simulado y build QA/PWA aprobados. Publicación frontend pendiente de
-  verificar; pruebas físicas pendientes. [Contrato, archivos y evidencia](frontend-business-order-closure-qa.md).
+  con HTTP simulado y build QA/PWA aprobados. Frontend QA 39eabf7, Vercel success
+  del SHA exacto verificado; pruebas físicas pendientes. [Contrato, archivos y evidencia](frontend-business-order-closure-qa.md).
 
 - Tarjetas cerradas de agenda: excepción CSS solo para adornos visibles de
   transform/opacity; conserva pausas por scroll/fuera de vista/modales/reduced
