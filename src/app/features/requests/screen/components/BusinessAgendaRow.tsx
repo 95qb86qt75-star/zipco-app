@@ -33,7 +33,7 @@ const norm = (text?: string | null) => (text ?? '').replace(/\s+/g, ' ').trim().
 
 /**
  * Marca la fila con `data-redundant-status` cuando la píldora de estado de la tarjeta no aporta nada nuevo:
- * en retiro, cuando repite el título de la fila de estado; en WhatsApp, cuando solo dice «En curso» (la pestaña ya lo dice).
+ * cuando repite el título de la fila de estado, o solo dice «En curso» (la pestaña ya lo dice).
  * Solo lee el DOM de la tarjeta; el CSS usa la marca para ganar altura en la agenda compacta.
  */
 function useRedundantStatusMark(ref: React.RefObject<HTMLDivElement | null>) {
@@ -45,7 +45,7 @@ function useRedundantStatusMark(ref: React.RefObject<HTMLDivElement | null>) {
       const pickup = row.querySelector('.zipco-co-pill');
       const title = row.querySelector('.zipco-co-colrow .tx b');
       const redundant = whatsapp
-        ? norm(whatsapp.textContent) === 'en curso'
+        ? norm(whatsapp.textContent) === 'en curso' || Boolean(title && norm(whatsapp.textContent) === norm(title.textContent))
         : Boolean(pickup && title && norm(pickup.textContent) !== '' && norm(pickup.textContent) === norm(title.textContent));
       if (row.hasAttribute('data-redundant-status') !== redundant) row.toggleAttribute('data-redundant-status', redundant);
     };

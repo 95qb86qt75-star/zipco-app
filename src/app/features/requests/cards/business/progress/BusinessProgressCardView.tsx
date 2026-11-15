@@ -39,9 +39,9 @@ export default function BusinessProgressCardView({model}:{model:BusinessProgress
 function BusinessProgressContent({model}:{model:BusinessProgressCardModel}){
 const {accepted,acceptedAt,ack,allowed,client,colSub,colTitle,conditionsSubtitle,conditionsSummary,conditionsTitle,conditionsWhen,embedded,explanation,folded,image,isUnread,motionRef,negotiated,noteId,notify,onInspect,operation,order,pending,phase,price,process,ready,received,recoveryOnly,refresh,service,setFolded,setSheet,sheet,statusLabel,title}=model;
 const closeAvailable=useCloseRequestAvailable(embedded);
-// Diseño nuevo («Preparando el pedido», WhatsApp): solo mientras el pedido se prepara. READY, producto recibido, servicios,
-// retiro en local y la tarjeta embebida conservan su presentación anterior.
-if(process?.state==='IN_PROGRESS'&&!ready&&!received&&!service&&!embedded&&process.availability?.path==='WHATSAPP')return <BusinessInProgressCard model={model}/>;
+// Una composición para el producto en curso, con textos y controles propios de cada modalidad.
+// Listo, recibido, servicios, pedidos sin modalidad y tarjetas embebidas conservan su composición.
+if(process?.state==='IN_PROGRESS'&&!ready&&!received&&!service&&!embedded&&['WHATSAPP','LOCAL_PICKUP'].includes(process.availability?.path??''))return <BusinessInProgressCard model={model}/>;
 return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} data-close-request={closeAvailable.available||undefined} aria-label={`${client}: ${ready ? 'pedido notificado' : 'pedido en curso'}`} className="zipco-co-dk zipco-ec-dk scroll-mb-36" onClick={event => event.stopPropagation()}>
     <span className="zipco-co-a1" aria-hidden="true" /><span className="zipco-co-a2" aria-hidden="true" />
     <div style={{ position: 'relative' }}>
@@ -125,18 +125,19 @@ return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${ord
 
 }
 
-/** Tarjeta «Preparando el pedido» del negocio (WhatsApp). Mismos datos, callbacks y componentes reales; solo cambia la presentación. */
+/** Producto en curso del negocio, WhatsApp/retiro. Una composición, datos y acciones originales. */
 function BusinessInProgressCard({model}:{model:BusinessProgressCardModel}){
 const {accepted,acceptedAt,allowed,client,colSub,colTitle,conditionsSubtitle,conditionsSummary,conditionsTitle,conditionsWhen,explanation,folded,image,isUnread,motionRef,negotiated,noteId,notify,onInspect,operation,order,pending,phase,price,process,recoveryOnly,refresh,setFolded,setSheet,sheet,statusLabel,title}=model;
 const detailId=`business-progress-detail-${order.id}`;
 const toggle=()=>{onInspect?.();setFolded(value=>!value);};
 const recovery=!!(recoveryOnly||pending||operation.message);
 const closeAvailable=useCloseRequestAvailable(false);
+const pickup=process?.availability?.path==='LOCAL_PICKUP';
 return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-close-request={closeAvailable.available||undefined} data-bp-recovery={recovery||undefined} aria-label={`${client}: pedido en curso`} className="zipco-co-dk zipco-ec-dk zipco-bp scroll-mb-36"
     onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); toggle(); } }}
     onClick={event => event.stopPropagation()}>
     <div style={{ position: 'relative' }}>
-      <ProgressCardHeader variant="business-progress" business name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread} folded={folded} detailId={detailId} onToggle={toggle} />
+      <ProgressCardHeader variant="business-progress" channel={pickup?'LOCAL_PICKUP':'WHATSAPP'} business name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread} folded={folded} detailId={detailId} onToggle={toggle} />
 
       <div id={detailId} className="zipco-co-fb zipco-bp-fold" data-folded={folded} aria-hidden={folded} ref={element=>{if(element)element.inert=folded;}}><div className="zipco-co-fb-in"><div className="zipco-bp-dt">
         <section className="zipco-bp-panel" aria-label="Estado del pedido">
@@ -173,7 +174,7 @@ return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-close
           <span className="zipco-co-strip2-go"><ChevronRight size={15} strokeWidth={2.8} aria-hidden="true" /></span>
         </button>
 
-        {availabilityFlow(process) && <div className="zipco-bp-opts"><AvailabilityPostActions order={order} business refresh={refresh} /></div>}
+        {availabilityFlow(process) && <div className={pickup?undefined:'zipco-bp-opts'}><AvailabilityPostActions order={order} business refresh={refresh} /></div>}
         <CloseRequest model={model} />
         <p className="zipco-bp-legal">ZIPCO no procesa ni verifica pagos.</p>
         <button type="button" className="zipco-co-fold zipco-bp-hide" aria-expanded={!folded} onClick={() => setFolded(true)}><ChevronUp size={14} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>

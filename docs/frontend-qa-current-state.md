@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Producto En curso de negocio: retiro local reutiliza BusinessInProgressCard
+  y cabecera business-progress de WhatsApp, con franja/icono y textos reales del
+  retiro. Reserva/acciones reales conservadas, sin aplanar sus formularios. Estado
+  redundante oculto solo si repite título; marcador de reserva también en negocio.
+  Navegador320/360/390/430 y build QA/PWA aprobados; publicación y teléfono pendientes.
+  [Alcance y evidencia](frontend-business-progress-shared-design-qa.md).
+
 - Ayuda del swipe: fallo reproducido que marcaba v1 vista al tocar una tarjeta
   aunque el aviso estuviera fuera de pantalla. Ahora exige60% visible y acumula
   cinco segundos sin scroll/diálogo/documento oculto; v2 permite verla una vez

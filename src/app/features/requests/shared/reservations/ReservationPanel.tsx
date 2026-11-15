@@ -49,7 +49,7 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
     {p.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
     {operation.error&&<div role="alert"><p className="text-rose-400">{operation.error}</p><button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.update()}>Reintentar actualización</button></div>}
   </section>;
-  return <section data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
+  return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
     <p className="font-bold">{statusText}</p>{advisory?<ReservationOfferSummary offer={offer}/>:simple&&r.timing?<><p>{status==='CONFIRMED'?'Reservado hasta':'Retiro acordado hasta'}: {reservationWhen(r.timing.pickupBy)}.</p>{r.timing.paymentDueAt&&!r.confirmedAt&&<p>Plazo para coordinar el pago: {reservationWhen(r.timing.paymentDueAt)}. Si ya transferiste, acláralo con el negocio por WhatsApp.</p>}</>:<ReservationOfferSummary offer={offer}/>}
     {p?.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
     {status==='CONFIRMED'&&r.confirmedAt&&<p>{r.confirmationSource==='AUTO_BUSINESS_OFFER'?'Reserva registrada automáticamente según las condiciones ofrecidas por el negocio.':`El negocio confirmó el apartado el ${reservationWhen(r.confirmedAt)}.`}</p>}

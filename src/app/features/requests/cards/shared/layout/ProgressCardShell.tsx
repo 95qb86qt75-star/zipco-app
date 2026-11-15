@@ -13,11 +13,12 @@ export function ProgressTapHand() {
 }
 
 
-export function ProgressCardHeader({ business, name, image, price, statusLabel, isUnread = false, ready = false, variant, folded, detailId, onToggle }: {
+export function ProgressCardHeader({ business, name, image, price, statusLabel, isUnread = false, ready = false, variant, folded, detailId, onToggle, channel = 'WHATSAPP' }: {
   business: boolean; name: string; image?: string; price: number | null; statusLabel: string; isUnread?: boolean; ready?: boolean;
-  /** 'business-progress': cabecera de la tarjeta del negocio en curso (WhatsApp, preparando el pedido). Usa `folded`, `detailId` y `onToggle`.
+  /** 'business-progress': cabecera de la tarjeta del negocio en curso. Usa `folded`, `detailId` y `onToggle`.
    *  Sin variante la cabecera conserva su apariencia actual. */
   variant?: 'business-progress'; folded?: boolean; detailId?: string; onToggle?: () => void;
+  channel?: 'WHATSAPP' | 'LOCAL_PICKUP';
 }) {
   if (variant === 'business-progress') {
     // Tocar la cabecera pliega/despliega, salvo botones, enlaces, campos, pestañas, diálogos o texto seleccionado.
@@ -28,7 +29,7 @@ export function ProgressCardHeader({ business, name, image, price, statusLabel, 
       onToggle?.();
     };
     return <div className="zipco-bp-h" data-folded={folded} onClick={onHeader}>
-      <div className="zipco-bp-mod"><span className="zipco-bp-mi" aria-hidden="true"><WhatsAppMark className="h-3 w-3" /></span><b>COORDINACIÓN POR WHATSAPP</b></div>
+      <div className="zipco-bp-mod"><span className="zipco-bp-mi" aria-hidden="true">{channel==='LOCAL_PICKUP'?<Store className="h-3 w-3"/>:<WhatsAppMark className="h-3 w-3" />}</span><b>{channel==='LOCAL_PICKUP'?'RETIRO EN EL LOCAL':'COORDINACIÓN POR WHATSAPP'}</b></div>
       <div className="zipco-bp-tp">
         <span className="zipco-bp-pill"><i aria-hidden="true" /><b>{statusLabel}</b></span>
         <button type="button" className={`zipco-bp-toggle${folded ? '' : ' open'}`} aria-expanded={!folded} aria-controls={detailId}>

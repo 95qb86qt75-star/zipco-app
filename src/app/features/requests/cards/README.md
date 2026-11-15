@@ -116,10 +116,13 @@ permisos siguen en los hooks de `requests/application` y en la API.
   La variante inicial del cliente producto se separa en su carpeta indicada arriba.
 - **Preparando / notificar listo:**
   `business/progress/BusinessProgressCardView.tsx` y sus CSS.
-  Opción A: BusinessInProgressCard solo para producto IN_PROGRESS por WhatsApp,
-  no embedded. Cabecera business-progress de ProgressCardShell, estilos .zipco-bp.
+  BusinessInProgressCard compartida por producto IN_PROGRESS por WhatsApp o retiro
+  local, no embedded. Cabecera business-progress de ProgressCardShell con channel
+  real para franja/icono; estilos .zipco-bp compartidos.
   SlideToNotify y controlador permanecen reales; READY/recibido, servicios,
-  retiro y embebidos conservan su composición.
+  pedidos sin modalidad y embebidos conservan su composición. Retiro mantiene
+  AvailabilityPostActions y ReservationPanel reales sin el aplanado visual del pie
+  exclusivo de WhatsApp. No confundir con localPickupInformation.
 - **Fuera de hora:** `shared/late-initial/LateInitialCard.tsx` y su CSS.
   Cliente AWAITING_CUSTOMER: `CustomerQuery` (CliU28), estilos exclusivos
   `.zipco-late-card--query` / `.zipco-lq-*`. Negocio y STILL_NEEDED conservados.
