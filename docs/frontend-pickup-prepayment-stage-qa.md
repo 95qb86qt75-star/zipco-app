@@ -85,3 +85,16 @@ No se inventan mediciones por fase; la ejecución incluye diagnóstico del fixtu
 Build y navegador parcialmente paralelos: no sumar dos veces sus intervalos.
 Publicación/verificación se registran al cierre. Solo rama qa; main/producción
 intactos. Rediseño fino con Claude pendiente, sin bloquear integración funcional.
+
+Publicado7528bf49a70b01996424013c090f715cb3600f1a en origin/qa. Vercel success
+verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/3aXXtcfbu9pPUuj6qCNQ68w9nQtG
+Main8295ab8c6024ab20851ebd371308d2f299b4668f intacto. Cierre documental local
+sin push ni otro despliegue. Railway no fue modificado desde frontend.
+
+Ventana cronometrada hasta verificar despliegue942s, incluidos análisis,
+implementación, preparación, esperas del fixture y documentación. Ventana de
+navegador449s incluye diagnóstico y documentación solapada; no es duración
+exclusiva de ejecución ni medida de rendimiento de la app. Build11,80s y10,53s
+por separado. Ventana documental141s hasta verificar, parcialmente solapada;
+no sumar estos intervalos. Publicación/verificación registrada al cierre.

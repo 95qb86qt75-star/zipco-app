@@ -11,7 +11,9 @@ ni convierte pruebas sintéticas en aprobación física.
   respuesta negocio / En espera cliente; confirmación existente y relectura
   preparable llevan a En curso ambos. Capacidad/contrato reconocidos; mensaje y
   confirmación dentro de tarjeta, sin recordatorio flotante automático en esa
-  etapa. [Integración, fuentes y validación](frontend-pickup-prepayment-stage-qa.md).
+  etapa. QA7528bf4, Vercel success del SHA exacto;168 pruebas y build QA/PWA
+  aprobados, navegador320/390/430 con HTTP simulado. Flujo autenticado Railway y
+  teléfonos pendientes. [Integración, fuentes y validación](frontend-pickup-prepayment-stage-qa.md).
 
 - Cerrar solicitud: acceso solo lateral mediante swipe en tarjeta plegada;
   retirado el botón del detalle por decisión del usuario. La hoja real y los
