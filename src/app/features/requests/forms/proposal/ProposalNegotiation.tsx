@@ -35,6 +35,7 @@ import { canRequestProposalSchedule, needsReservationRenewal, scheduleRequestRev
 import ExpiredProposalSchedule, { requestedScheduleLabel } from './ExpiredProposalSchedule';
 import { readProposalScheduleDraft, saveProposalScheduleDraft } from '../../application/proposalScheduleDraft';
 import { startReservationPayment } from "../../application/startReservationPayment";
+import {offerReservationWhatsapp} from '../../application/reservationWhatsappNavigation';
 import ReservationChoiceFields from "../../shared/reservations/ReservationChoiceFields";
 import ReservationOfferFields from "../../shared/reservations/ReservationOfferFields";
 import { RequestProcessError } from "../../domain/requestProcessErrors";
@@ -303,12 +304,13 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
       if (scheduleCounter && active() && plan?.reservationOffer && ['FREE', 'PREPAYMENT'].includes(plan.reservationOffer.mode))
         saveProposalScheduleDraft(session!.userId, process.id, { counterId: receipt.requestProcess.currentProposalId, mode: plan.reservationOffer.mode as 'FREE' | 'PREPAYMENT', note: reservationNote, contact: contactPreference, choice: reservationSelection });
       // POST is final. A failed subsequent read must never send it again.
-      let navigation:string|null=null;
+      let navigation:string|null=null,navigationVersion=receipt.requestProcess.version;
       if(action==='ACCEPT_PROPOSAL'&&!business&&simplifiedReservationFlow(captured.process)&&reservationSelection==='REQUEST_RESERVATION'&&plan?.reservationOffer?.mode==='PREPAYMENT'){
-        try{const payment=await startReservationPayment(order.id!,session!,controller.signal);navigation=payment.navigation;}catch{/* Acceptance is final; the reservation card offers recovery. */}
+        try{const payment=await startReservationPayment(order.id!,session!,controller.signal);navigation=payment.navigation;navigationVersion=payment.latest?.requestProcess?.version??navigationVersion;}catch{/* Acceptance is final; the reservation card offers recovery. */}
       }
       if(!active())return;
-      if(flow){const current=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return;if(!current?.requestProcess||current.requestProcess.id!==process.id||current.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');finish(receipt,current);}else finish(receipt);if(navigation)window.location.assign(navigation);
+      if(flow){const current=await refreshCoordinationOrder(order.id!,business,session!.token,session!.businessId,controller.signal);if(!active())return;if(!current?.requestProcess||current.requestProcess.id!==process.id||current.requestProcess.version<receipt.requestProcess.version)throw Error('read pending');finish(receipt,current);}else finish(receipt);
+      if(navigation)offerReservationWhatsapp({url:navigation,orderId:order.id!,business,session:session!,processId:process.id,minVersion:navigationVersion,receipt:true});
     } catch (e) {
       if (active() && (e instanceof ReservationOptionsError || e instanceof ProposalError) && e.status === 409 && e.code === 'RESERVATION_SCHEDULE_EXPIRED')
         setScheduleExpired({ version: captured.process.version, proposalId: captured.process.currentProposalId });

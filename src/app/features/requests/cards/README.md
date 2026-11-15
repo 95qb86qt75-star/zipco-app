@@ -18,6 +18,12 @@ real, sin slider de preparación ni cierre por swipe de En curso. Selección por
 Al confirmar y releer READY_FOR_PREPARATION se usa la tarjeta de progreso vigente.
 El rediseño con Claude debe partir de esta unidad y sus dependencias reales.
 
+E211: la espera de PREPAYMENT se ubica en Por responder cliente / Esperando
+respuesta negocio. El acceso a WhatsApp se prepara en los controladores existentes
+y se presenta mediante `shared/reservations/ReservationWhatsappNavigationHost.tsx`
+montado en AppShell. `application/reservationWhatsappNavigation.ts` mantiene solo
+estado UI temporal y relectura GET al regresar; no es otra tarjeta ni otro comando.
+
 ## Retiro directo informativo (contrato E200)
 
 `shared/local-pickup-information/LocalPickupInformationCard.tsx` y su CSS poseen

@@ -11,6 +11,8 @@ import { simplifiedReservationFlow } from "../domain/simplifiedReservationContra
 import { startReservationPayment } from "./startReservationPayment";
 import { showAppToast } from "../../../shared/notifications/Toast";
 import {statusViewFor} from '../domain/requestStatusGrouping';
+import {offerReservationWhatsapp} from './reservationWhatsappNavigation';
+import {pickupPrepaymentFor} from '../domain/pickupPrepayment';
 
 export default function useAvailability(order:BusinessRequest|MyOrder,business:boolean,refresh:()=>void){
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[expired,setExpired]=useState(false);
@@ -65,12 +67,15 @@ export default function useAvailability(order:BusinessRequest|MyOrder,business:b
       publish(finalReceipt);setExpired(false);
       if(!flow&&action!=='REVOKE_CONTACT_CONSENT')window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business,
         view:statusViewFor('orders',finalReceipt.orderStatus,finalReceipt.requestProcess,false,business)}}));
-      const text=finalReceipt.requestProcess.localPickupInformation?{title:business?'Disponibilidad informada':'Indicaciones para ir al local',description:business?'Ya está en Historial. No necesitas preparar ni enviar otro aviso.':'Conservamos las indicaciones. Confirma cuando las hayas recibido.'}:action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
+      const paymentStage=pickupPrepaymentFor(finalReceipt.requestProcess);
+      const text=action==='CONTINUE_REQUEST'&&paymentStage&&paymentStage.phase!=='READY_FOR_PREPARATION'?{title:'Reserva solicitada',description:'El negocio debe confirmar el pago recibido y el pedido apartado.'}:finalReceipt.requestProcess.localPickupInformation?{title:business?'Disponibilidad informada':'Indicaciones para ir al local',description:business?'Ya está en Historial. No necesitas preparar ni enviar otro aviso.':'Conservamos las indicaciones. Confirma cuando las hayas recibido.'}:action==='CONFIRM_AVAILABILITY'?{title:'Disponibilidad confirmada',description:'El cliente debe decidir si continúa con la compra.'}
         :action==='CONTINUE_REQUEST'?{title:'Solicitud confirmada',description:receipt.requestProcess.availability?.path==='LOCAL_PICKUP'?'El pedido quedó en curso, pendiente de retiro en el local.':'Ya puedes revisar el contacto e iniciar la coordinación.'}
         :action==='REVOKE_CONTACT_CONSENT'?{title:'Permiso de contacto retirado',description:'Se retiró tu propio permiso para futuras entregas de contacto.'}
         :{title:action==='DECLINE_REQUEST'?'Solicitud finalizada':action==='WITHDRAW_AVAILABILITY'?'Disponibilidad retirada':'Retiro cancelado',description:'La solicitud quedó en Historial.'};
       announceAction(action==='CONTINUE_REQUEST'?'accepted':action==='CONFIRM_AVAILABILITY'?'requestSent':action==='REVOKE_CONTACT_CONSENT'?'annulled':'annulled',{
-        ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});if(flow)completeStatusChange(flow,verified);if(navigation)window.location.assign(navigation);return true;
+        ...text,key:`availability:${process.id}:${receipt.requestProcess.version}:${action}`});if(flow)completeStatusChange(flow,verified);
+      if(navigation)offerReservationWhatsapp({url:navigation,orderId:order.id!,business,session:session!,processId:process.id,minVersion:finalReceipt.requestProcess.version,receipt:true});
+      return true;
     }catch(e){if(active()){setError(confirmed?'Tu respuesta se guard\u00f3; falta actualizar el pedido. Pulsa Comprobar pedido antes de continuar.':e instanceof AvailabilityError?e.message:CHECK_AVAILABILITY_MESSAGE);
       if(e instanceof AvailabilityError&&e.code==='EXPIRED_SCHEDULE_CONFIRMATION_REQUIRED')setExpired(true);
       if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}

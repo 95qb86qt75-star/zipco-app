@@ -1,4 +1,5 @@
 import * as React from 'react';
+import ReservationWhatsappNavigationHost from '../features/requests/shared/reservations/ReservationWhatsappNavigationHost';
 
 
 import ActionHologramHost from "../features/requests/shared/feedback/ActionHologram";
@@ -19,6 +20,7 @@ import type {AppModel} from './application/useAppController';
 export default function AppShell({model,children:content}:{model:Pick<AppModel,"closeToast"|"handleLogout"|"hasStoredSession"|"openNotificationTarget"|"toast">;children:ReactNode}){const {closeToast,handleLogout,hasStoredSession,openNotificationTarget,toast}=model;return (<div className="zipco-theme-surface contents">
       <ActionHologramHost />
       <StatusToast />
+      <ReservationWhatsappNavigationHost />
       {toast && !noticeWasPresented(toast) && (
         <Toast
           key={toast.dedupeKey}

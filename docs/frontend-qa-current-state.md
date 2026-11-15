@@ -7,14 +7,21 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- E211 sustituye categoría cliente E209: PREPAYMENT no preparable queda en Por
+  responder cliente y Esperando respuesta negocio; enums backend sin cambios,
+  otras contrapropuestas siguen En espera. Navegación de reservas ofrece enlace
+  nativo Abrir WhatsApp separado, conserva documento ZIPCO y consulta GET al volver,
+  sin repetir aceptación/reserva/apertura. Rediseño Claude aún pendiente.
+  [Fuentes, pruebas y límites físicos](frontend-prepayment-customer-tab-whatsapp-return-qa.md).
+
 - Proponer alternativa/Disponibilidad: aviso local de fecha y hora pasadas durante
   cuatro segundos al editar; corregir lo quita y no altera el bloqueo Guardar ni
   validación del servidor. QA889bf6c, Vercel success verificado;38 pruebas, build y
   navegador320/390/430 aprobados. Teléfonos nativos pendientes.
   [Fuentes y pruebas](frontend-alternative-past-time-notice-qa.md).
 
-- E209: retiro con reserva PREPAYMENT no preparable se presenta en Esperando
-  respuesta negocio / En espera cliente; confirmación existente y relectura
+- E209 (categoría cliente sustituida por E211): retiro con reserva PREPAYMENT no preparable se presenta en Esperando
+  respuesta negocio / Por responder cliente; confirmación existente y relectura
   preparable llevan a En curso ambos. Capacidad/contrato reconocidos; mensaje y
   confirmación dentro de tarjeta, sin recordatorio flotante automático en esa
   etapa. QA7528bf4, Vercel success del SHA exacto;168 pruebas y build QA/PWA

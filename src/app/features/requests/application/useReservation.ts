@@ -1,4 +1,5 @@
 import { beginStatusChange, completeStatusChange, failStatusChange } from "../shared/feedback/statusChangePresentation";
+import {offerReservationWhatsapp} from './reservationWhatsappNavigation';
 import {useEffect,useRef,useState} from 'react';
 import type { BusinessRequest, MyOrder } from "../domain/types";
 import { readCoordinationSession, subscribeCoordinationSession, operationScope } from "./intents/coordinationSession";
@@ -34,7 +35,8 @@ export default function useReservation(order:BusinessRequest|MyOrder,business:bo
       if(action==='OPEN_RESERVATION_WHATSAPP'){
         const allowed=reservationAllowed(latest.requestProcess,business,action),validPurpose=body.purpose!=='RECEIPT'||!business&&latest.requestProcess?.state==='IN_PROGRESS';
         if(!navigation||!allowed||!validPurpose){setError('El acceso a WhatsApp ya no está disponible. Revisa los permisos de contacto.');return false;}
-        window.location.assign(navigation);
+        offerReservationWhatsapp({url:navigation,orderId:order.id!,business,session:session!,processId:p.id,
+          minVersion:latest.requestProcess!.version,receipt:body.purpose==='RECEIPT'});
       }
       return true;
     }catch(e){if(active()){setError(e instanceof Error?e.message:'No se pudo confirmar el resultado. Reintenta los mismos datos.');if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}

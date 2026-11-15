@@ -28,7 +28,7 @@ export function statusViewFor(
     if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
     if (receiptPending(requestProcess)) return 'active';
     const prepayment=pickupPrepaymentFor(requestProcess);
-    if(prepayment)return prepayment.phase==='READY_FOR_PREPARATION'?'active':business?'waiting':'awaiting-business';
+    if(prepayment)return prepayment.phase==='READY_FOR_PREPARATION'?'active':'waiting';
     if (requestProcess?.state === 'IN_PROGRESS') return 'active';
     if (requestProcess?.state === 'READY') return 'ready';
     if (hasRequestProcess({ requestProcess, requestProcessInvalid }) && !['completed', 'rejected', 'cancelled'].includes(status)) {

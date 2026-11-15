@@ -19,9 +19,9 @@ it.each(PREPAYMENT_PHASES)('maps server phase %s consistently for list, counts a
   const process=pending(phase),ready=phase==='READY_FOR_PREPARATION';
   expect(normalizePickupPrepayment(projection(phase))).toEqual(projection(phase));
   expect(statusViewFor('orders','accepted',process,false,true)).toBe(ready?'active':'waiting');
-  expect(statusViewFor('orders','accepted',process,false,false)).toBe(ready?'active':'awaiting-business');
+  expect(statusViewFor('orders','accepted',process,false,false)).toBe(ready?'active':'waiting');
   const rows=[{status:'accepted',requestProcess:process}];
-  expect(countStatusViews(rows,'orders',false)[ready?'active':'awaiting-business']).toBe(1);
+  expect(countStatusViews(rows,'orders',false)[ready?'active':'waiting']).toBe(1);
   expect(filterByStatusView(rows,'orders',ready?'active':'waiting','all',undefined,true)).toHaveLength(1);
 });
 it('preserves the additive projection through the real process normalizer and accepts old receipts without it',()=>{

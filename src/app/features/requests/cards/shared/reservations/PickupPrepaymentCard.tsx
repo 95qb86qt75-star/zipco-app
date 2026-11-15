@@ -24,7 +24,7 @@ export default function PickupPrepaymentCard({order,business,accepted,name,image
   return <article id={`order-${order.id}`} tabIndex={0} data-pickup-prepayment={stage.phase}
     data-unread={isUnread} className="zipco-co-dk zipco-ec-dk scroll-mb-36 p-4">
     <ProgressCardHeader business={business} name={name} image={image} price={accepted.totalPriceClp}
-      statusLabel={business?businessLabel:'En espera'} isUnread={isUnread}/>
+      statusLabel={business?businessLabel:'Por responder'} isUnread={isUnread}/>
     <p className="mt-3 text-sm font-bold">{business?awaitingPayment?'Pendiente de confirmar pago y apartado':'Revisa la incidencia de esta reserva':PREPAYMENT_WAITING_MESSAGE}</p>
     <p className="mt-2 text-xs">Reserva con pago previo de <b>${stage.requiredAmountClp.toLocaleString('es-CL')}</b>. ZIPCO no verifica transferencias.</p>
     <AvailabilityPostActions order={order} business={business} refresh={refresh} render={parts=><>
