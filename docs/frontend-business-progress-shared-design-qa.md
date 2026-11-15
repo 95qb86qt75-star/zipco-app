@@ -62,5 +62,9 @@ escenario business-progress-shared-design.mjs, con APIs simuladas únicamente al
 Intervalos medidos: análisis/aplicación43s; preparación68s; ejecución y corrección
 del marcador187s. El build corre superpuesto al tramo final de pruebas: no sumar
 dos veces. Documentación y publicación se registran al cierre por separado.
-Rama qa; SHA y verificación Vercel pendientes de registrar. Railway no necesario.
+Documentación63s y preparación/publicación/verificación49s medidos por separado.
+Publicado en qa1a9152d791562227d840efc8477999b1a093032b; Vercel success del SHA
+exacto observado por estado GitHub:
+https://vercel.com/zipco-s-projects/zipco-app/51bnZSjtHgHA4UTv3JGUFGnCqAct
+Railway no necesario. Cierre documental local sin otro push.
 Main8295ab8 y producción intactos. No publicar mocks ni capturas.
