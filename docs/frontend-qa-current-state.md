@@ -12,7 +12,9 @@ ni convierte pruebas sintéticas en aprobación física.
   otras contrapropuestas siguen En espera. Navegación de reservas ofrece enlace
   nativo Abrir WhatsApp separado, conserva documento ZIPCO y consulta GET al volver,
   sin repetir aceptación/reserva/apertura. Rediseño Claude aún pendiente.
-  [Fuentes, pruebas y límites físicos](frontend-prepayment-customer-tab-whatsapp-return-qa.md).
+  QA43bffa4, Vercel success verificado;175 pruebas y build QA/PWA aprobados.
+  Navegador320/390/430 con HTTP y destino simulados. Safari/WhatsApp físico y
+  flujo autenticado pendientes. [Fuentes, pruebas y límites físicos](frontend-prepayment-customer-tab-whatsapp-return-qa.md).
 
 - Proponer alternativa/Disponibilidad: aviso local de fecha y hora pasadas durante
   cuatro segundos al editar; corregir lo quita y no altera el bloqueo Guardar ni

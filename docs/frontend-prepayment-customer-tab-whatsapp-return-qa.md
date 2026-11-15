@@ -104,3 +104,15 @@ reparto. Ventanas de navegador/build/documentación se solapan: no sumarlas dos
 veces. Mediciones de ejecución de pruebas y Vite registradas arriba; publicación
 y cierre documental se añaden tras verificar SHA. No es medida de FPS/app.
 Solo frontend qa. Railway, main y producción no modificados.
+
+Publicado43bffa4b5622c198e8f24a2e742e52f54b14ef58 en origin/qa. Vercel success
+verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/9fgSy8KsfZMkRfrjrpJhHutgdvEU
+Main8295ab8c6024ab20851ebd371308d2f299b4668f intacto. Cierre documental local
+sin push/despliegue adicional. No modificación de Railway ni contratos.
+
+Ventana medida hasta primera comprobación1040s; desde preparación/ejecución de
+navegador654s; documentación309s parcialmente solapada con pruebas/implementación.
+No son duraciones exclusivas ni medidas de rendimiento de app. Build final7,14s
+por separado; publicación/verificación70s incluida espera externa. No sumar
+intervalos solapados ni inventar desglose de análisis/implementación ausente.
