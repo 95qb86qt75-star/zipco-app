@@ -169,7 +169,16 @@ function useAgendaSwipe(ref: React.RefObject<HTMLDivElement | null>) {
         if (!dragged) settle(false);
       }
     };
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && row.dataset.swipe === 'open') settle(false); };
+    const onKey = (event: KeyboardEvent) => {
+      // Keyboard users reveal the same lateral action; no duplicate control in the detail.
+      if (event.key === 'ArrowLeft' && swipeable() && event.target === row.querySelector('[data-close-request]')) {
+        event.preventDefault();settle(true);
+        requestAnimationFrame(() => row.querySelector<HTMLButtonElement>('.zipco-agenda-act')?.focus({preventScroll:true}));
+      } else if (event.key === 'Escape' && row.dataset.swipe === 'open') {
+        event.preventDefault();settle(false);
+        row.querySelector<HTMLElement>('[data-close-request]')?.focus({preventScroll:true});
+      }
+    };
     const onOtherOpen = (event: Event) => { if ((event as CustomEvent).detail !== row && row.dataset.swipe === 'open') settle(false); };
     const onOutside = (event: PointerEvent) => { if (row.dataset.swipe === 'open' && !row.contains(event.target as Node)) settle(false); };
     const onSheetClosed = () => settle(false);

@@ -62,10 +62,6 @@ export function CloseRequest({model}:{model:BusinessProgressCardModel}){
   const heading=step==='pick'?'Cerrar solicitud':step==='notDone'?'¿No se concretó?':step==='saving'?'Guardando…':
     step==='failed'||step==='unknown'?'No pudimos confirmar el resultado':'Finalizar solicitud';
   return <>
-    <button type="button" className="zipco-cr-open" aria-haspopup="dialog" onClick={show}>
-      <span className="zipco-cr-open-ic" aria-hidden="true"><ClipboardCheck size={18}/></span>
-      <span className="zipco-cr-open-tx"><b>Cerrar solicitud</b><small>Ya entregué · No se concretó</small></span><ChevronRight size={15}/>
-    </button>
     <Dialog.Root open={open} onOpenChange={value=>{if(!value&&!saving)leave();}}>
       <Dialog.Portal>
         <Dialog.Overlay className="zipco-cr-ov"/>
@@ -74,7 +70,7 @@ export function CloseRequest({model}:{model:BusinessProgressCardModel}){
           onCloseAutoFocus={event=>{
             event.preventDefault();
             const previous=trigger.current;
-            const fallback=motionRef.current?.querySelector<HTMLElement>('.zipco-co-colrow[data-folded="true"],.zipco-cr-open');
+            const fallback=motionRef.current?.querySelector<HTMLElement>('.zipco-bp-toggle,.zipco-co-colrow[data-folded="true"]');
             (previous?.isConnected&&previous.getClientRects().length&&!previous.closest('[inert]')?previous:fallback)?.focus({preventScroll:true});
           }}
           onEscapeKeyDown={event=>{if(saving)event.preventDefault();}}
