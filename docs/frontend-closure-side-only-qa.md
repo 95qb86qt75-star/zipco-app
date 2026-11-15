@@ -42,3 +42,14 @@ registrado después de verificar resultados. Rama qa; main y producción intacto
 Resultados: táctil320/390/430 aprobado; repetición dirigida teclado390 aprobada,
 cero excepciones JS y cero comandos enviados. Sin repetir suites API porque no
 se modificaron las acciones ni sus contratos.
+
+Publicado en qa:7ed6f54edabb259c29544a52dbe1e35b97087028. Vercel success
+verificado para el SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/Hx3tkgiUT76txMYdMbeXmqLSqWkR
+Main8295ab8 sin cambios; producción intacta. Confirmación física pendiente.
+El cierre documental se guarda localmente sin nuevo push/despliegue.
+
+Ventana de ejecución hasta preparar publicación: aproximadamente9min30s,
+incluye dos esperas de timeout, revisión del fixture y documentación solapada;
+no equivale a tiempo de app ni a suma exclusiva de fases. Documentación sin
+cronómetro exclusivo. Publicación/verificación alrededor de40s incluida espera.

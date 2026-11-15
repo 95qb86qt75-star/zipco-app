@@ -10,7 +10,9 @@ ni convierte pruebas sintéticas en aprobación física.
 - Cerrar solicitud: acceso solo lateral mediante swipe en tarjeta plegada;
   retirado el botón del detalle por decisión del usuario. La hoja real y los
   controles de reserva permanecen. Flecha izquierda revela la misma acción con
-  teclado y Escape devuelve el foco. [Alcance](frontend-closure-side-only-qa.md).
+  teclado y Escape devuelve el foco. QA7ed6f54, Vercel success verificado;
+  navegador320/390/430 y build aprobados, móvil físico pendiente.
+  [Alcance](frontend-closure-side-only-qa.md).
 
 - Cerrar solicitud con reserva bloqueada: agrupa Ya entregué deshabilitado,
   explicación y Revisar reserva en un bloque, separando No se concretó. La causa
