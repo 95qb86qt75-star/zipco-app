@@ -85,11 +85,15 @@ export function CloseRequest({model}:{model:BusinessProgressCardModel}){
           <p className="zipco-cr-sum"><b>{client}</b>{conditionsSummary?` · ${conditionsSummary}`:''}{price!==null?` · $${price.toLocaleString('es-CL')}`:''}</p>
           {contract.message&&<p className="zipco-cr-note is-err" role="alert">{contract.message}</p>}
           {step==='pick'&&<>
-            <button type="button" className="zipco-cr-opt is-ok" disabled={!contract.canDeliver||!!contract.deliveryBlock||saving} onClick={()=>choose('DELIVERED')}>
+            <div className={contract.blockMessage?'zipco-cr-delivery-block':undefined}
+              role={contract.blockMessage?'group':undefined} aria-label={contract.blockMessage?'Entrega bloqueada por la reserva':undefined}>
+            <button type="button" className="zipco-cr-opt is-ok" disabled={!contract.canDeliver||!!contract.deliveryBlock||saving}
+              aria-describedby={contract.blockMessage?`closure-reservation-block-${order.id}`:undefined} onClick={()=>choose('DELIVERED')}>
               <span className="zipco-cr-opt-ic" aria-hidden="true"><PackageCheck size={20}/></span>
               <span className="zipco-cr-opt-tx"><b>Ya entregué el pedido</b><small>El cliente vino y lo recibió, aunque no avisé que estaba listo.</small></span><ChevronRight size={16}/>
             </button>
-            {contract.blockMessage&&<><p className="zipco-cr-note is-warn">{contract.blockMessage}</p><button className="zipco-cr-ghost" type="button" onClick={openReservation}>Revisar reserva</button></>}
+            {contract.blockMessage&&<><p id={`closure-reservation-block-${order.id}`} className="zipco-cr-note is-warn">{contract.blockMessage}</p><button className="zipco-cr-ghost zipco-cr-reserve" type="button" onClick={openReservation}>Revisar reserva</button></>}
+            </div>
             <button type="button" className="zipco-cr-opt is-no" disabled={!contract.canClose||saving} onClick={()=>choose('NOT_COMPLETED')}>
               <span className="zipco-cr-opt-ic" aria-hidden="true"><CircleX size={20}/></span><span className="zipco-cr-opt-tx"><b>No se concretó</b><small>El pedido no se entregó y quiero cerrar la solicitud.</small></span><ChevronRight size={16}/>
             </button><button type="button" className="zipco-cr-ghost" onClick={()=>leave()}>Volver</button>

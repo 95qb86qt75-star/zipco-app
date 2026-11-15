@@ -1,11 +1,17 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-14, America/Santiago.
+Actualizado: 2026-11-15, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- Cerrar solicitud con reserva bloqueada: agrupa Ya entregué deshabilitado,
+  explicación y Revisar reserva en un bloque, separando No se concretó. La causa
+  depende de la reserva, no de Fecha pasada. Sin cambios de contrato/acciones.
+  Navegador320/390/430 y build QA/PWA aprobados; publicación y móvil pendientes.
+  [Detalle y validación](frontend-closure-reservation-layout-qa.md).
 
 - Producto En curso de negocio: retiro local reutiliza BusinessInProgressCard
   y cabecera business-progress de WhatsApp, con franja/icono y textos reales del

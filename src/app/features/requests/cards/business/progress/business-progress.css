@@ -247,5 +247,9 @@
 @keyframes zipco-cr-fade{from{opacity:0}}
 
 .zipco-cr-opt:disabled{opacity:.5;cursor:default}
+.zipco-cr-delivery-block{margin-top:10px;overflow:hidden;border:1px solid rgba(45,212,191,.35);border-radius:16px;background:rgba(20,184,166,.08)}
+.zipco-cr-delivery-block .zipco-cr-opt{margin-top:0;border:0;border-radius:0;background:none}
+.zipco-cr-delivery-block .zipco-cr-note{margin:0 12px;padding:10px 12px;overflow-wrap:anywhere}
+.zipco-cr-delivery-block .zipco-cr-reserve{width:calc(100% - 24px);min-height:44px;margin:8px 12px 12px;padding:8px 12px;border:1px solid rgba(251,191,36,.35);border-radius:12px;background:rgba(245,158,11,.1);color:#fde68a;font-size:13px}
 .zipco-cr-reason{display:block;margin-top:12px;font-size:13px}
 .zipco-cr-reason textarea{display:block;width:100%;min-height:88px;margin-top:6px;padding:10px;border:1px solid #c4b5fd;border-radius:12px;background:#201c48;color:#fff;resize:vertical}
