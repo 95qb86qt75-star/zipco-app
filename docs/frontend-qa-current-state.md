@@ -9,7 +9,9 @@ ni convierte pruebas sintéticas en aprobación física.
 
 - Proponer alternativa/Disponibilidad: aviso local de fecha y hora pasadas durante
   cuatro segundos al editar; corregir lo quita y no altera el bloqueo Guardar ni
-  validación del servidor. [Fuentes y pruebas](frontend-alternative-past-time-notice-qa.md).
+  validación del servidor. QA889bf6c, Vercel success verificado;38 pruebas, build y
+  navegador320/390/430 aprobados. Teléfonos nativos pendientes.
+  [Fuentes y pruebas](frontend-alternative-past-time-notice-qa.md).
 
 - E209: retiro con reserva PREPAYMENT no preparable se presenta en Esperando
   respuesta negocio / En espera cliente; confirmación existente y relectura

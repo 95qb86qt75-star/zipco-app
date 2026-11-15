@@ -39,3 +39,11 @@ Análisis/implementación/preparación sin cronómetros exclusivos; no se invent
 reparto. Ejecución unitaria inicial/final y navegador dirigido registrados arriba.
 Build y navegador paralelos: no sumar dos veces su intervalo. Documentación y
 publicación/verificación registrados al cierre, incluidas esperas externas.
+
+Ventana medida hasta push/verificación inicial229s, ejecución/comprobación desde
+inicio de navegador85s (incluye documentación solapada), build8,81s aparte.
+Publicación/verificación45s incluida espera Vercel; no sumar intervalos solapados.
+Publicado en rama qa como889bf6c89fb0e77e3d715e4e0d12dda770f26d9d. Vercel success
+del SHA exacto verificado:
+https://vercel.com/zipco-s-projects/zipco-app/82euqve99MgVBByrBCxkCqUhLfUp
+Main8295ab8 intacto. Cierre documental local sin push ni despliegue adicional.
