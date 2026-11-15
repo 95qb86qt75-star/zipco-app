@@ -13,8 +13,12 @@ beforeEach(()=>{
   vi.stubGlobal('localStorage',storage(values));vi.stubGlobal('sessionStorage',storage(markers));vi.stubGlobal('window',new EventTarget());doc=Object.assign(new EventTarget(),{hidden:false,querySelector:vi.fn(()=>null)});vi.stubGlobal('document',doc);
 });
 afterEach(()=>{state.cleanups.forEach(f=>f());vi.clearAllTimers();vi.useRealTimers();vi.unstubAllGlobals();});
-function setup(p=simplePaidPending,business=true){const open=vi.fn(),update=vi.fn().mockResolvedValue(order(p)),invalidate=vi.fn();const release=usePaymentConfirmationReminder({order:order(p),business,blocked:false,update,onOpen:open,onInvalidate:invalidate});return {open,update,invalidate,release};}
+function setup(p=simplePaidPending,business=true,blocked=false){const open=vi.fn(),update=vi.fn().mockResolvedValue(order(p)),invalidate=vi.fn();const release=usePaymentConfirmationReminder({order:order(p),business,blocked,update,onOpen:open,onInvalidate:invalidate});return {open,update,invalidate,release};}
 const depart=()=>{doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('pageshow'));};
+it('does not auto-open the reminder when the pending stage presents confirmation inside its card',async()=>{
+  const t=setup(simplePaidPending,true,true);depart();await vi.advanceTimersByTimeAsync(10000);
+  expect(t.open).not.toHaveBeenCalled();expect(t.update).not.toHaveBeenCalled();
+});
 it('does not show on initial render; rereads once after a real return without a POST',async()=>{
   const t=setup();await vi.advanceTimersByTimeAsync(5000);expect(t.update).not.toHaveBeenCalled();depart();await vi.advanceTimersByTimeAsync(3999);expect(t.open).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(1);expect(t.update).toHaveBeenCalledOnce();expect(t.open).toHaveBeenCalledOnce();expect([...markers.values()].join('')).not.toContain('synthetic');
 });

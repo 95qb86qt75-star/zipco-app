@@ -1,4 +1,5 @@
 import {businessClosureHeaders,knownBusinessClosureHeaders} from './businessClosureCapabilities';
+import {rememberPickupPrepaymentCapability} from '../domain/pickupPrepayment';
 import {API_BASE_URL} from '../../../api/apiConfig';
 import {isRecord} from '../domain/orderValueParsers';
 import {customerReceiptHeaders,knownCustomerReceiptHeaders} from '../domain/customerReceiptContract';
@@ -10,6 +11,7 @@ async function informationHeaders(token:string,probe:boolean){
  if(cache?.token!==token){
   const request=fetch(`${API_BASE_URL}/request-process-capabilities`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store',signal:AbortSignal.timeout(5000)}).then(async r=>{
    if(!r.ok)throw Error('Capability unavailable');const body:unknown=await r.json();
+   rememberPickupPrepaymentCapability(token,body);
    const cap=isRecord(body)?body.localPickupInformation:null;
    const supported=isRecord(cap)&&cap.contract===LOCAL_PICKUP_INFORMATION_CONTRACT&&cap.enabled===true&&typeof cap.creationEnabled==='boolean';
    if(cache?.request===request)cache.supported=supported;return supported;

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {pickupPrepaymentFor} from '../../domain/pickupPrepayment';
 import {useEffect,useState} from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import type { BusinessRequest, MyOrder } from "../../domain/types";
@@ -13,8 +14,9 @@ import { CONTACT_COPY } from "../../domain/availabilityContract";
 
 export default function ReservationPanel({order,business,refresh}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void}){
   const operation=useReservation(order,business,refresh),p=order.requestProcess,r=p?.reservation,offer=p?.availability?.reservationOffer;
+  const stage=pickupPrepaymentFor(p),waitingStage=!!stage&&stage.phase!=='READY_FOR_PREPARATION';
   const [dialog,setDialog]=useState<ReservationAction|null>(null),[reason,setReason]=useState(''),[held,setHeld]=useState(false),[received,setReceived]=useState(false),[issueReceived,setIssueReceived]=useState(false);
-  const releaseReminder=usePaymentConfirmationReminder({order,business,blocked:dialog!==null,update:operation.update,onOpen:()=>setDialog('CONFIRM_PICKUP_RESERVATION'),onInvalidate:()=>setDialog(null)});
+  const releaseReminder=usePaymentConfirmationReminder({order,business,blocked:dialog!==null||waitingStage,update:operation.update,onOpen:()=>setDialog('CONFIRM_PICKUP_RESERVATION'),onInvalidate:()=>setDialog(null)});
   useEffect(()=>{if(dialog==='CONFIRM_PICKUP_RESERVATION'&&simplifiedReservationFlow(p)&&!reservationAllowed(p,business,'CONFIRM_PICKUP_RESERVATION')&&!operation.busy){setDialog(null);releaseReminder();}},[p?.version,p?.reservationFollowUp?.paymentConfirmationReminder?.eligible,operation.busy]);
   useEffect(()=>{
     if(!p?.serverNow||!r||!offer||offer.mode==='NONE'||isAdvisoryOffer(offer))return;
@@ -25,7 +27,7 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
   if(!reservationFlow(p)||!r||!offer||offer.mode==='NONE')return null;
   const advisory=isAdvisoryOffer(offer);
   const simple=simplifiedReservationFlow(p),paid=r.mode==='PREPAYMENT',status=r.effectiveStatus,closed=!!p?.reservationFollowUp?.ownFollowUpClosedAt;
-  const allowed=(a:ReservationAction)=>reservationAllowed(p,business,a);
+  const allowed=(a:ReservationAction)=>reservationAllowed(p,business,a)&&(a!=='CONFIRM_PICKUP_RESERVATION'||!stage||stage.canConfirmPaymentAndHold);
   const button='w-full rounded-xl border border-teal-300/50 px-3 py-2.5 text-left text-xs font-bold disabled:opacity-50';
   const open=(a:ReservationAction)=>{setHeld(false);setReceived(false);setIssueReceived(false);setReason('');setDialog(a);};
   const submit=async()=>{
@@ -38,7 +40,7 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
   };
   const blocked=operation.busy||dialog==='CONFIRM_PICKUP_RESERVATION'&&(!held||paid&&!received)||['DECLINE_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','CANCEL_PICKUP_RESERVATION'].includes(dialog??'')&&(Array.from(reason.trim()).length<3||Array.from(reason.trim()).length>1000);
   const statusText=r.continuedWithoutReservationAt?'Continuarás sin reserva, sujeto a disponibilidad al llegar.':status==='CONFIRMED'?'Reserva confirmada · Pendiente de retiro':status==='REQUESTED'?'Reserva solicitada · Esperando confirmación del negocio':status==='AWAITING_BUSINESS_CONFIRMATION'?'Reserva pendiente de confirmación del negocio':status==='NEEDS_CLARIFICATION'?'Pendiente de aclaración entre cliente y negocio':status==='FULFILLED'?'Pedido recibido':status==='EXPIRED'?'La reserva venció':status==='DECLINED'?'El negocio no pudo apartar el pedido':'Reserva cancelada';
-  const compactCustomer=simple&&!business&&['IN_PROGRESS','READY'].includes(p.state)&&!r.pickupCancellation&&!['EXPIRED','DECLINED','CANCELLED','FULFILLED'].includes(status);
+  const compactCustomer=simple&&!business&&!waitingStage&&['IN_PROGRESS','READY'].includes(p.state)&&!r.pickupCancellation&&!['EXPIRED','DECLINED','CANCELLED','FULFILLED'].includes(status);
   if(compactCustomer)return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
     <p className="font-bold">{statusText}</p>
     <p>{offer.mode==='PREPAYMENT'?`Reserva con pago previo de $${offer.requiredAmountClp.toLocaleString('es-CL')}`:'Reserva sin pago previo'}</p>
@@ -50,6 +52,7 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
     {operation.error&&<div role="alert"><p className="text-rose-400">{operation.error}</p><button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.update()}>Reintentar actualización</button></div>}
   </section>;
   return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
+    {waitingStage&&business&&<p className="text-base font-bold">{stage?.canConfirmPaymentAndHold?'¿Recibiste el pago y apartaste el pedido?':'Revisa el estado de la reserva'}</p>}
     <p className="font-bold">{statusText}</p>{advisory?<ReservationOfferSummary offer={offer}/>:simple&&r.timing?<><p>{status==='CONFIRMED'?'Reservado hasta':'Retiro acordado hasta'}: {reservationWhen(r.timing.pickupBy)}.</p>{r.timing.paymentDueAt&&!r.confirmedAt&&<p>Plazo para coordinar el pago: {reservationWhen(r.timing.paymentDueAt)}. Si ya transferiste, acláralo con el negocio por WhatsApp.</p>}</>:<ReservationOfferSummary offer={offer}/>}
     {p?.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
     {status==='CONFIRMED'&&r.confirmedAt&&<p>{r.confirmationSource==='AUTO_BUSINESS_OFFER'?'Reserva registrada automáticamente según las condiciones ofrecidas por el negocio.':`El negocio confirmó el apartado el ${reservationWhen(r.confirmedAt)}.`}</p>}

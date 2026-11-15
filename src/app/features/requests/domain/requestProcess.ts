@@ -1,4 +1,5 @@
 import { normalizeBusinessClosure, normalizeClosureOptions, type BusinessClosure, type BusinessClosureOptions } from './businessClosure';
+import {normalizePickupPrepayment,type PickupPrepayment} from './pickupPrepayment';
 import {normalizeLocalPickupInformation,type LocalPickupInformation} from "./localPickupInformation";
 import { normalizeWhatsappInitialDecline, type WhatsappInitialDecline } from "./whatsappInitialDeclineContract";
 import { normalizeCustomerReceipt, type CustomerReceipt, receiptPending } from "./customerReceiptContract";
@@ -28,6 +29,7 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 
 export type RequestProcessSummary = {
   businessClosure?:BusinessClosure;
+  pickupPrepayment?:PickupPrepayment;
   businessClosureOptions?:BusinessClosureOptions;
   localPickupInformation?:LocalPickupInformation;
   customerReceipt?:CustomerReceipt;
@@ -85,6 +87,8 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
    const businessClosureOptions=value.businessClosureOptions===undefined?undefined:normalizeClosureOptions(value.businessClosureOptions);
    if(businessClosure===null||businessClosureOptions===null||businessClosure&&!value.agreementPublicId||
      businessClosure&&(value.localPickupInformation||businessClosureOptions)||businessClosureOptions&&(!value.agreementPublicId||value.localPickupInformation||!['IN_PROGRESS','READY'].includes(value.state)))return null;
+   const pickupPrepayment=value.pickupPrepayment===undefined?undefined:normalizePickupPrepayment(value.pickupPrepayment);
+   if(pickupPrepayment===null)return null;
    const customerReceipt=value.customerReceipt===undefined?undefined:normalizeCustomerReceipt(value.customerReceipt,value.state);
    if(customerReceipt===null)return null;
    const whatsappCoordination=value.whatsappCoordination===undefined?undefined:normalizeWhatsappCoordination(value.whatsappCoordination);
@@ -107,6 +111,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     choice?.choice==='REQUEST_RESERVATION'&&!reservation||reservation&&(!value.serverNow||!value.agreementPublicId)||
     reservation?.mode==='PREPAYMENT'&&(!followUp||reservation.paymentReceiptDeclaration&&availability?.reservationOffer?.mode==='PREPAYMENT'&&reservation.paymentReceiptDeclaration.amountClp!==availability.reservationOffer.requiredAmountClp))return null;
    const information=value.localPickupInformation===undefined?undefined:normalizeLocalPickupInformation(value.localPickupInformation,value,availability);
+   if(pickupPrepayment&&(pickupPrepayment.reservationId!==reservation?.id||availability?.reservationOffer?.mode!=='PREPAYMENT'||pickupPrepayment.requiredAmountClp!==availability.reservationOffer.requiredAmountClp))return null;
    if(information===null||value.allowedActions.includes("ACK_LOCAL_PICKUP_INFORMATION")&&!information)return null;
    const simple=simplifiedReservationFlow(value),offer=availability?.reservationOffer;
    if(simple&&reservation?.timing&&(isAdvisoryOffer(offer)?reservation.timing.pickupBy!==null||reservation.timing.paymentDueAt!==null:reservation.timing.pickupBy===null))return null;
@@ -185,6 +190,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
    return {
     id: value.id, state: value.state, version: value.version,
     ...(businessClosure?{businessClosure}:{}),...(businessClosureOptions?{businessClosureOptions}:{}),
+    ...(pickupPrepayment?{pickupPrepayment}:{}),
      ...(information?{localPickupInformation:information}:{}),
      ...(customerReceipt?{customerReceipt}:{}),
     currentProposalId: value.currentProposalId,

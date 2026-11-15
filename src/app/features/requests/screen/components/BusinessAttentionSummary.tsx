@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {pickupPrepaymentFor} from '../../domain/pickupPrepayment';
 
 
 
@@ -35,6 +36,7 @@ import type { RequestsScreenModel } from "../application/useRequestsScreenContro
 /** Canonical visual section; data and commands come from its screen controller. */
 export default function BusinessAttentionSummary({model}:{model:Pick<RequestsScreenModel,"businessActivityCards"|"isLoading"|"loadError"|"prefersReducedMotion"|"requests"|"selectedBusinessActivity"|"setAttentionFilter"|"setRequestType"|"setSelectedBusinessActivity"|"setStatusViews"|"setSummaryScrollPending">}){
 const {businessActivityCards,isLoading,loadError,prefersReducedMotion,requests,selectedBusinessActivity,setAttentionFilter,setRequestType,setSelectedBusinessActivity,setStatusViews,setSummaryScrollPending}=model;
+const hasPrepaymentWaiting=requests.some(order=>{const stage=pickupPrepaymentFor(order.requestProcess);return stage&&stage.phase!=='READY_FOR_PREPARATION';});
 return (<div className="mb-3 space-y-2">
             {businessActivityCards.map((item) => {
               const activityKey = `${item.kind}-${item.view}`;
@@ -63,7 +65,7 @@ return (<div className="mb-3 space-y-2">
                     ? `${item.count} ${singular ? "Nuevo Pedido" : "Nuevos Pedidos"}`
                     : `${item.count} ${noun} ${singular ? "nueva" : "nuevas"}`
                   : item.view === "waiting"
-                    ? `${item.count} ${noun} esperando al cliente`
+                    ? `${item.count} ${noun} ${item.kind==='orders'&&hasPrepaymentWaiting?'esperando respuesta o confirmación':'esperando al cliente'}`
                     : item.view === "active"
                       ? `${item.count} ${noun} en curso`
                       : `${item.count} ${noun} ${
@@ -79,7 +81,7 @@ return (<div className="mb-3 space-y-2">
                 item.view === "pending"
                   ? "Toca para revisar y responder."
                   : item.view === "waiting"
-                    ? "Tu respuesta fue enviada; falta la decisión del cliente."
+                    ? item.kind==='orders'&&hasPrepaymentWaiting?'Revisa las respuestas y confirmaciones de reserva pendientes.':"Tu respuesta fue enviada; falta la decisión del cliente."
                     : item.view === "active"
                       ? item.kind === "orders"
                         ? requests.some((order) => order.requestProcess?.state === 'IN_PROGRESS')

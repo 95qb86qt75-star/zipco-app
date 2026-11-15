@@ -9,6 +9,15 @@ La pantalla selecciona las tarjetas mediante
 Los archivos de entrada y los controladores no son diseños alternativos: componen
 la única vista correspondiente.
 
+## Retiro con pago previo pendiente (contrato E209)
+
+E209 reserva con pago pendiente: `shared/reservations/PickupPrepaymentCard.tsx`
+es la composición funcional de espera para ambos roles. Usa ReservationPanel
+real, sin slider de preparación ni cierre por swipe de En curso. Selección por
+`pickupPrepaymentFor`, contrato/capacidad/fase del servidor, antes de progreso.
+Al confirmar y releer READY_FOR_PREPARATION se usa la tarjeta de progreso vigente.
+El rediseño con Claude debe partir de esta unidad y sus dependencias reales.
+
 ## Retiro directo informativo (contrato E200)
 
 `shared/local-pickup-information/LocalPickupInformationCard.tsx` y su CSS poseen

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import {pickupPrepaymentFor} from '../../../domain/pickupPrepayment';
+import PickupPrepaymentCard from '../reservations/PickupPrepaymentCard';
 import LocalPickupInformationCard from '../local-pickup-information/LocalPickupInformationCard';
 import { CoordinationWaitingCard } from "../coordination/CoordinationWaitingCard";
 import { type CoordinationCardModel } from "../coordination/coordinationCardModel";
@@ -139,6 +141,15 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
 
   if (!business && awaiting) return <CustomerPendingCard order={order} expanded={isExpanded}
     onToggle={toggle} refresh={onRetry} isUnread={isUnread} />;
+
+  const prepayment=pickupPrepaymentFor(process);
+  if(prepayment&&prepayment.phase!=='READY_FOR_PREPARATION'&&!coordinationView){
+    if(!accepted)return <ProgressCardShell id={order.id!} business={business} name={name} image={image}
+      statusLabel="Pago y apartado pendientes" isUnread={isUnread} retry={agreement.retry}
+      error={agreement.state.status==='error'?agreement.state.message:undefined}/>;
+    return <PickupPrepaymentCard order={order} business={business} accepted={accepted} name={name} image={image}
+      isUnread={isUnread} expanded={isExpanded} onToggle={toggle} refresh={onRetry}/>;
+  }
 
   if (process && ['COORDINATION_PENDING', 'COORDINATING'].includes(process.state)) {
     if (!accepted) return <CoordinationCardShell id={order.id} name={name || (business ? 'Cliente' : 'Negocio')} image={image}

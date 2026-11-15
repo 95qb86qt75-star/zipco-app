@@ -316,7 +316,7 @@ export function useRequestsScreenController({
   const confirmedRejectionInHistory = requestType === 'orders' && statusView === 'history' &&
     (subTab === 'my-orders' ? filteredMyOrders : filteredBusinessOrders).some(order => order.status === 'rejected' && isPendingRequestRejected(order.requestProcess));
   const emptyCopy = {
-    'awaiting-business': { title: 'No tienes solicitudes en espera', description: 'Aquí aparecerán tus contrapropuestas mientras esperas al negocio.' },
+    'awaiting-business': { title: 'No tienes solicitudes en espera', description: 'Aquí aparecerán las solicitudes que esperan una respuesta o confirmación del negocio.' },
     coordination: { title: 'No tienes pedidos en Coordinación', description: 'Los pedidos aceptados de esta etapa aparecerán aquí.' },
     pending: {
       title: "No tienes solicitudes pendientes",

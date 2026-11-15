@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- E209: retiro con reserva PREPAYMENT no preparable se presenta en Esperando
+  respuesta negocio / En espera cliente; confirmación existente y relectura
+  preparable llevan a En curso ambos. Capacidad/contrato reconocidos; mensaje y
+  confirmación dentro de tarjeta, sin recordatorio flotante automático en esa
+  etapa. [Integración, fuentes y validación](frontend-pickup-prepayment-stage-qa.md).
+
 - Cerrar solicitud: acceso solo lateral mediante swipe en tarjeta plegada;
   retirado el botón del detalle por decisión del usuario. La hoja real y los
   controles de reserva permanecen. Flecha izquierda revela la misma acción con
