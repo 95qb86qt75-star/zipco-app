@@ -180,3 +180,59 @@
     animation-play-state:running!important;
   }
 }
+
+/* ===== «Cerrar solicitud» · swipe (solo aparece si la tarjeta declara data-close-request) =====
+   El swipe solo descubre el botón. Sin data-swipe no cambia nada del layout anterior. */
+.zipco-agenda-row[data-swipe]{touch-action:pan-y}
+.zipco-agenda-row[data-swipe] > .zipco-agenda-when,
+.zipco-agenda-row[data-swipe] > .zipco-agenda-card{position:relative;z-index:1;transition:transform .26s cubic-bezier(.22,.61,.36,1)}
+.zipco-agenda-row[data-swipe="drag"] > .zipco-agenda-when,
+.zipco-agenda-row[data-swipe="drag"] > .zipco-agenda-card{transform:translate3d(var(--ag-sx,0px),0,0);transition:none}
+.zipco-agenda-row[data-swipe="open"] > .zipco-agenda-when,
+.zipco-agenda-row[data-swipe="open"] > .zipco-agenda-card{transform:translate3d(-108px,0,0)}
+.zipco-agenda-row[data-swipe="drag"]{user-select:none;-webkit-user-select:none}
+
+.zipco-agenda-act{
+  position:absolute;top:0;right:0;bottom:0;width:108px;z-index:0;display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:0 8px;
+  border:0;margin:0;cursor:pointer;color:#fff;font:inherit;font-size:12.5px;font-weight:800;line-height:1.15;text-align:center;
+  background:linear-gradient(160deg,#7c3aed,#5b21b6);
+}
+.zipco-agenda-act i{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.42)}
+.zipco-agenda-act:focus-visible{outline:3px solid #fff;outline-offset:-5px}
+.zipco-agenda-row[data-swipe="drag"] > .zipco-agenda-act,
+.zipco-agenda-row[data-swipe="open"] > .zipco-agenda-act{display:flex}
+/* Con la tarjeta desplegada el botón del detalle ya existe; el swipe no se ofrece. */
+.zipco-agenda-row:has(.zipco-co-fb[data-folded="false"]) > .zipco-agenda-act{display:none}
+
+/* Salida tras respuesta exitosa del servidor: vuela hacia Historial y la fila se pliega. */
+.zipco-agenda-row.is-leaving{pointer-events:none;transition:height .34s cubic-bezier(.4,0,.2,1) .2s,margin-bottom .34s cubic-bezier(.4,0,.2,1) .2s,margin-top .34s cubic-bezier(.4,0,.2,1) .2s,opacity .3s ease .24s}
+.zipco-agenda-row.is-leaving > .zipco-agenda-when,
+.zipco-agenda-row.is-leaving > .zipco-agenda-card{transform:none;transition:none}
+.zipco-agenda-row.is-leaving > .zipco-agenda-act{display:none}
+.zipco-agenda-row.is-leaving > .zipco-agenda-when,
+.zipco-agenda-row.is-leaving > .zipco-agenda-card{animation:zipco-ag-fly .46s cubic-bezier(.5,0,.75,.4) forwards}
+.zipco-agenda-row.is-gone{height:0!important;margin-top:0;margin-bottom:calc(var(--ag-gap,0px) * -1);opacity:0}
+@keyframes zipco-ag-fly{to{transform:translate3d(var(--ag-fx,48px),var(--ag-fy,0px),0) scale(.22);opacity:.2}}
+
+/* Aviso de ayuda (una vez, ~5 s): mini tarjeta que se desliza y deja ver «Cerrar solicitud». */
+.zipco-agenda-hint{position:relative;display:block;height:54px;margin:2px 0 10px;overflow:hidden;border-radius:16px;background:#12143a;transition:height .4s ease,margin .4s ease,opacity .35s ease}
+.zipco-agenda-hint.is-fade{opacity:0;pointer-events:none}
+.zipco-agenda-hint.is-off{height:0;margin:0;opacity:0}
+.zipco-agenda-hint-bk{position:absolute;inset:0 0 0 auto;width:112px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;color:#fff;font-size:11.5px;font-weight:800;line-height:1.1;background:linear-gradient(160deg,#7c3aed,#5b21b6)}
+.zipco-agenda-hint-bk i{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:50%;background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.42)}
+.zipco-agenda-hint-fr{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px;color:#e0e7ff;font-size:13px;font-weight:700;background:#1e1b4b;border-radius:16px;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
+@media (prefers-reduced-motion:no-preference){
+  .zipco-agenda-hint-fr{animation:zipco-ag-hint 2.5s cubic-bezier(.45,0,.2,1) infinite}
+  [data-request-list-scrolling] .zipco-agenda-hint-fr,
+  html:has([role="dialog"],[role="alertdialog"]) .zipco-agenda-hint-fr{animation-play-state:paused}
+}
+@keyframes zipco-ag-hint{0%,18%{transform:translate3d(0,0,0)}48%,72%{transform:translate3d(-112px,0,0)}100%{transform:translate3d(0,0,0)}}
+@media (prefers-reduced-motion:reduce){
+  .zipco-agenda-row[data-swipe] > .zipco-agenda-when,
+  .zipco-agenda-row[data-swipe] > .zipco-agenda-card,
+  .zipco-agenda-hint,
+  .zipco-agenda-row.is-leaving{transition:none!important}
+  .zipco-agenda-row.is-leaving > .zipco-agenda-when,
+  .zipco-agenda-row.is-leaving > .zipco-agenda-card{animation:none!important;opacity:0}
+}

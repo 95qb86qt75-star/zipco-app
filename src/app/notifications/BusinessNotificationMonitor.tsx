@@ -234,10 +234,10 @@ export default function BusinessNotificationMonitor({
           "ready",
         ]);
         publishActiveRequestCount(
-          orders.filter((record) => informationView(record.requestProcess,true)!=='history'&&activeOrderStatuses.has(record.status))
+          orders.filter((record) => record.requestProcess?.businessClosure?.businessCategory!=='HISTORY'&&informationView(record.requestProcess,true)!=='history'&&activeOrderStatuses.has(record.status))
             .length +
             customerOrders.filter((record) =>
-              informationView(record.requestProcess,false)!=='history'&&activeOrderStatuses.has(record.status),
+              record.requestProcess?.businessClosure?.customerCategory!=='HISTORY'&&informationView(record.requestProcess,false)!=='history'&&activeOrderStatuses.has(record.status),
             ).length +
             businessQuotes.filter((record) =>
               activeQuoteStatuses.has(record.status),

@@ -23,6 +23,7 @@ export default function RequestStatusTab({ item, selected, reducedMotion, onSele
           : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white ring-2 ring-orange-300/40 shadow-orange-500/20'
           : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white ring-2 ring-emerald-300/40 shadow-emerald-500/20';
   return <motion.button type="button" className="zipco-status-tab" aria-pressed={selected} aria-busy={countState === 'loading'}
+    data-history-target={item.key==='history'||undefined}
     style={{ flexGrow: item.label.length + 6 }}
     whileTap={reducedMotion ? undefined : { scale: 0.96 }} onClick={onSelect}>
     <span className={`zipco-status-tab-surface shadow-sm transition-all ${color}`}>

@@ -1,9 +1,10 @@
+import {businessClosureHeaders,knownBusinessClosureHeaders} from './businessClosureCapabilities';
 import {API_BASE_URL} from '../../../api/apiConfig';
 import {isRecord} from '../domain/orderValueParsers';
 import {customerReceiptHeaders,knownCustomerReceiptHeaders} from '../domain/customerReceiptContract';
 import {LOCAL_PICKUP_INFORMATION_CONTRACT,LOCAL_PICKUP_INFORMATION_HEADERS} from '../domain/localPickupInformation';
 let cache:{token:string;request:Promise<boolean>;supported?:boolean}|undefined;
-export const knownParticipantHeaders=(token:string):Record<string,string>=>({...knownCustomerReceiptHeaders(token),...(cache?.token===token&&cache.supported?LOCAL_PICKUP_INFORMATION_HEADERS:{})});
+export const knownParticipantHeaders=(token:string):Record<string,string>=>({...knownBusinessClosureHeaders(token),...knownCustomerReceiptHeaders(token),...(cache?.token===token&&cache.supported?LOCAL_PICKUP_INFORMATION_HEADERS:{})});
 async function informationHeaders(token:string,probe:boolean){
  if(!probe&&cache?.token!==token)return {};
  if(cache?.token!==token){
@@ -18,6 +19,6 @@ async function informationHeaders(token:string,probe:boolean){
 }
 /** Negotiation only: creationEnabled is never written, and false does not hide already admitted requests. */
 export async function participantHeaders(token:string,probe=false):Promise<Record<string,string>>{
- const [receipt,information]=await Promise.all([customerReceiptHeaders(token,probe),informationHeaders(token,probe)]);
- return {...receipt,...information};
+ const [receipt,information,closure]=await Promise.all([customerReceiptHeaders(token,probe),informationHeaders(token,probe),businessClosureHeaders(token,probe)]);
+ return {...receipt,...information,...closure};
 }

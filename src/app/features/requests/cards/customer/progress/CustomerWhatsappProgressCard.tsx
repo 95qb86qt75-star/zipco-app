@@ -85,12 +85,12 @@ return (<article ref={card} id={'order-' + id} tabIndex={-1} className={"zipco-a
       onClick: toggle
     }}>
         <h3>{name}</h3>
-        {<span className="zipco-own-st">{itemsText} · <b>{!readyModel ? preparing ? 'preparando' : OWN_STATE.waiting : railStage === 'ready' ? OWN_STATE.ready : OWN_STATE.received}</b></span>}
+        {<span className="zipco-own-st">{itemsText} · <b>{!readyModel ? preparing ? 'preparando' : OWN_STATE.waiting : railStage === 'ready' ? readyModel.deliveryDeclared ? 'Entrega declarada' : OWN_STATE.ready : OWN_STATE.received}</b></span>}
         {!readyModel && <span className="sr-only">{preparing ? 'El negocio está preparando tu pedido.' : OWN_SR_WAITING}</span>}
       </div>
       {<><div className="zipco-avw-customer-total"><b>{total}</b><small>ACORDADO</small></div>{chevron}</>}
     </div>}
-    {<StatusRail theme="dark" stage={railStage} copy={preparing ? {
+    {<StatusRail theme="dark" stage={railStage} copy={readyModel?.deliveryDeclared ? {...OWN_RAIL,business:{...OWN_RAIL.business,ready:'Entregado'}} : preparing ? {
     ...OWN_RAIL,
     business: {
       ...OWN_RAIL.business,

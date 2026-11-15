@@ -8,6 +8,7 @@ import {Bell,Check} from 'lucide-react';
 export type ReadyStage='ready'|'received'|'finishing';
 
 export type ReadyModel={
+  deliveryDeclared?:boolean;
   /** ready = campana + «Confirmar recepción» · received = check + «Finalizar esta solicitud» · finishing = la tarjeta se está yendo a Historial */
   stage:ReadyStage;
   /** true mientras la acción viaja al servidor: deshabilita el botón y muestra «Guardando…». */

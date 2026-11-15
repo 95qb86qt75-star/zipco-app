@@ -4,7 +4,9 @@ import AvailabilityPostActions from "../../shared/availability/AvailabilityPostA
 import { availabilityFlow } from "../../../domain/availabilityContract";
 
 
-import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Hourglass, Package, PackageCheck } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, CircleX, ClipboardCheck, Hourglass, Package, PackageCheck } from 'lucide-react';
+import {CloseRequestContext, CloseRequest, useCloseRequestAvailable} from './CloseRequest';
+import useBusinessClosure from '../../../application/useBusinessClosure';
 
 
 
@@ -31,16 +33,21 @@ import SlideToNotify from "./SlideToNotify";
  */
 import type {BusinessProgressCardModel} from './application/useBusinessProgressCardController';
 export default function BusinessProgressCardView({model}:{model:BusinessProgressCardModel}){
+ const closure=useBusinessClosure(model);
+ return <CloseRequestContext.Provider value={closure}><BusinessProgressContent model={model}/></CloseRequestContext.Provider>;
+}
+function BusinessProgressContent({model}:{model:BusinessProgressCardModel}){
 const {accepted,acceptedAt,ack,allowed,client,colSub,colTitle,conditionsSubtitle,conditionsSummary,conditionsTitle,conditionsWhen,embedded,explanation,folded,image,isUnread,motionRef,negotiated,noteId,notify,onInspect,operation,order,pending,phase,price,process,ready,received,recoveryOnly,refresh,service,setFolded,setSheet,sheet,statusLabel,title}=model;
+const closeAvailable=useCloseRequestAvailable(embedded);
 // Diseño nuevo («Preparando el pedido», WhatsApp): solo mientras el pedido se prepara. READY, producto recibido, servicios,
 // retiro en local y la tarjeta embebida conservan su presentación anterior.
 if(process?.state==='IN_PROGRESS'&&!ready&&!received&&!service&&!embedded&&process.availability?.path==='WHATSAPP')return <BusinessInProgressCard model={model}/>;
-return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} aria-label={`${client}: ${ready ? 'pedido notificado' : 'pedido en curso'}`} className="zipco-co-dk zipco-ec-dk scroll-mb-36" onClick={event => event.stopPropagation()}>
+return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${order.id}`} data-coordination-embedded={embedded||undefined} data-close-request={closeAvailable.available||undefined} aria-label={`${client}: ${ready ? 'pedido notificado' : 'pedido en curso'}`} className="zipco-co-dk zipco-ec-dk scroll-mb-36" onClick={event => event.stopPropagation()}>
     <span className="zipco-co-a1" aria-hidden="true" /><span className="zipco-co-a2" aria-hidden="true" />
     <div style={{ position: 'relative' }}>
       <ProgressCardHeader business name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread} ready={ready} />
 
-      <div className="zipco-co-fb" data-folded={folded} aria-hidden={folded} {...(folded ? { inert: '' } : {})}><div className="zipco-co-fb-in">
+      <div className="zipco-co-fb" data-folded={folded} aria-hidden={folded} ref={element=>{if(element)element.inert=folded;}}><div className="zipco-co-fb-in">
         <button type="button" className="zipco-co-strip2" aria-haspopup="dialog" style={{ marginTop: 12 }} onClick={() => setSheet('cond')}>
           <span className="zipco-co-strip2-ic"><CircleCheck size={16} strokeWidth={2.3} aria-hidden="true" /></span>
           <span style={{ minWidth: 0 }}><div className="zipco-co-strip2-l">Condiciones aceptadas</div><div className="zipco-co-strip2-v">{conditionsSummary}</div></span>
@@ -80,7 +87,7 @@ return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${ord
             <p className="zipco-co-co2-p" style={{ margin: 0 }}>Hay una operación pendiente de confirmación. Reintenta con las mismas condiciones antes de realizar otra acción.</p>
             <button type="button" className="zipco-co-go2" style={{ marginTop: 10 }} disabled={operation.busy} onClick={() => void operation.retry()}>Reintentar operación pendiente</button>
           </div> : !ready ? <>
-            <SlideToNotify phase={phase} disabled={!allowed || operation.busy} onComplete={() => void notify()} describedBy={noteId} />
+            <SlideToNotify phase={phase} disabled={!allowed || operation.busy || closeAvailable.busy} onComplete={() => void notify()} describedBy={noteId} />
             <div className="zipco-ec-note" id={noteId}>{allowed ? (service ? 'El cliente recibirá un aviso de que el servicio está listo.' : 'El cliente recibirá un aviso para coordinar el retiro.') : 'Actualiza el pedido para continuar.'}</div>
           </> : <div className="zipco-ec-st" role="status">
             {service || ack === true
@@ -97,6 +104,7 @@ return <article ref={motionRef} tabIndex={0} id={embedded?undefined:`order-${ord
         </section>
 
         {availabilityFlow(process)&&<AvailabilityPostActions order={order} business refresh={refresh}/>}
+        <CloseRequest model={model} />
         <button type="button" className="zipco-co-fold" style={{ marginTop: 12 }} aria-expanded={!folded} onClick={() => setFolded(true)}><ChevronUp size={16} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
       </div></div>
 
@@ -123,7 +131,8 @@ const {accepted,acceptedAt,allowed,client,colSub,colTitle,conditionsSubtitle,con
 const detailId=`business-progress-detail-${order.id}`;
 const toggle=()=>{onInspect?.();setFolded(value=>!value);};
 const recovery=!!(recoveryOnly||pending||operation.message);
-return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-bp-recovery={recovery||undefined} aria-label={`${client}: pedido en curso`} className="zipco-co-dk zipco-ec-dk zipco-bp scroll-mb-36"
+const closeAvailable=useCloseRequestAvailable(false);
+return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-close-request={closeAvailable.available||undefined} data-bp-recovery={recovery||undefined} aria-label={`${client}: pedido en curso`} className="zipco-co-dk zipco-ec-dk zipco-bp scroll-mb-36"
     onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); toggle(); } }}
     onClick={event => event.stopPropagation()}>
     <div style={{ position: 'relative' }}>
@@ -144,7 +153,7 @@ return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-bp-re
             <button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={() => void operation.retry()}>Reintentar operación pendiente</button>
           </div> : <>
             <div className="zipco-bp-q"><b>¿Ya está listo el pedido?</b><span>Desliza para avisar a <em>{client}</em></span></div>
-            <SlideToNotify phase={phase} disabled={!allowed || operation.busy} onComplete={() => void notify()} describedBy={noteId} />
+            <SlideToNotify phase={phase} disabled={!allowed || operation.busy || closeAvailable.busy} onComplete={() => void notify()} describedBy={noteId} />
             <div className="zipco-ec-note" id={noteId}>{allowed ? 'El cliente recibirá un aviso para coordinar el retiro.' : 'Actualiza el pedido para continuar.'}</div>
           </>}
 
@@ -165,6 +174,7 @@ return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-bp-re
         </button>
 
         {availabilityFlow(process) && <div className="zipco-bp-opts"><AvailabilityPostActions order={order} business refresh={refresh} /></div>}
+        <CloseRequest model={model} />
         <p className="zipco-bp-legal">ZIPCO no procesa ni verifica pagos.</p>
         <button type="button" className="zipco-co-fold zipco-bp-hide" aria-expanded={!folded} onClick={() => setFolded(true)}><ChevronUp size={14} strokeWidth={2.8} aria-hidden="true" />Ocultar tarjeta</button>
       </div></div></div>

@@ -13,7 +13,7 @@ import {
   type AgendaConfig, type AgendaFilters,
 } from "../../domain/businessAgenda";
 import BusinessAgendaToolbar from "./BusinessAgendaToolbar";
-import { AgendaGroupHeading, AgendaRequestDay, AgendaRow } from "./BusinessAgendaRow";
+import { AgendaGroupHeading, AgendaRequestDay, AgendaRow, AgendaSwipeHint } from "./BusinessAgendaRow";
 import "./business-agenda.css";
 import type { BusinessRequest, ClosureReason, OrderAction } from "../../domain/types";
 import { interactionKey, useUnreadInteractions } from "../../../../notifications/unreadInteractions";
@@ -193,6 +193,7 @@ export default function BusinessOrdersTab({
         </div>
       ) : agenda && agendaShown.length > 0 ? (
         <div ref={listRef} className="space-y-3">
+          {agenda && <AgendaSwipeHint/>}
           {agendaShown.map((entry, index) => (
             <Fragment key={entry.order.clientKey}>
               {agenda.sort === "attention" && agendaShown[index - 1]?.group !== entry.group ? (

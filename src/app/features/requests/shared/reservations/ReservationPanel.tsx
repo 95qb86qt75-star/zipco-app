@@ -39,7 +39,7 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
   const blocked=operation.busy||dialog==='CONFIRM_PICKUP_RESERVATION'&&(!held||paid&&!received)||['DECLINE_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','CANCEL_PICKUP_RESERVATION'].includes(dialog??'')&&(Array.from(reason.trim()).length<3||Array.from(reason.trim()).length>1000);
   const statusText=r.continuedWithoutReservationAt?'Continuarás sin reserva, sujeto a disponibilidad al llegar.':status==='CONFIRMED'?'Reserva confirmada · Pendiente de retiro':status==='REQUESTED'?'Reserva solicitada · Esperando confirmación del negocio':status==='AWAITING_BUSINESS_CONFIRMATION'?'Reserva pendiente de confirmación del negocio':status==='NEEDS_CLARIFICATION'?'Pendiente de aclaración entre cliente y negocio':status==='FULFILLED'?'Pedido recibido':status==='EXPIRED'?'La reserva venció':status==='DECLINED'?'El negocio no pudo apartar el pedido':'Reserva cancelada';
   const compactCustomer=simple&&!business&&['IN_PROGRESS','READY'].includes(p.state)&&!r.pickupCancellation&&!['EXPIRED','DECLINED','CANCELLED','FULFILLED'].includes(status);
-  if(compactCustomer)return <section data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
+  if(compactCustomer)return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
     <p className="font-bold">{statusText}</p>
     <p>{offer.mode==='PREPAYMENT'?`Reserva con pago previo de $${offer.requiredAmountClp.toLocaleString('es-CL')}`:'Reserva sin pago previo'}</p>
     {advisory?<ReservationOfferSummary offer={offer}/>:r.timing&&<>

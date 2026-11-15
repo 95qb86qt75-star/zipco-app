@@ -16,6 +16,8 @@ export function statusViewFor(
   business = false,
 ): StatusView | null {
   if (kind === "orders") {
+    const closure=requestProcess?.businessClosure;
+    if(closure)return (business?closure.businessCategory:closure.customerCategory)==='HISTORY'?'history':'active';
     const information=informationView(requestProcess,business);if(information)return information;
     if(requestProcess?.state==='AWAITING_BUSINESS_RESPONSE'&&requestProcess.lateInitialResponse?.status==='AWAITING_CUSTOMER')return business?'pending':'waiting';
     if (requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return business ? 'waiting' : 'awaiting-business';

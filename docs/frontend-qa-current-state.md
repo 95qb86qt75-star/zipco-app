@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Cerrar solicitud de Mi Negocio → En curso: diseño CliV12 conectado al contrato
+  E207 de backend QA cc17287. Entrega declarada archiva solo gestión del negocio;
+  cliente conserva recepción/finalización. No se concretó exige motivo y conserva
+  aclaraciones de pago. Recuperación por UUID original y GET dedicado; sin borrar
+  solicitudes ni sustituir MARK_READY. Pruebas dirigidas, navegador 320/360/390/430
+  con HTTP simulado y build QA/PWA aprobados. Publicación frontend pendiente de
+  verificar; pruebas físicas pendientes. [Contrato, archivos y evidencia](frontend-business-order-closure-qa.md).
+
 - Tarjetas cerradas de agenda: excepción CSS solo para adornos visibles de
   transform/opacity; conserva pausas por scroll/fuera de vista/modales/reduced
   motion, sin activar detalle oculto o sombras continuas. Reproducción real

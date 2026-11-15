@@ -5,6 +5,10 @@ import { availabilityNotice } from "./availabilityNotice";
 import { whatsappCoordinationNotice } from "./whatsappCoordinationNotice";
 
 export function customerOrderNotice(order: { status: string } & ProcessOrder): readonly [string, string] | null {
+  const closure=order.requestProcess?.businessClosure;
+  if(closure)return closure.status==='DELIVERY_DECLARED'
+    ? ['El negocio indicó que entregó tu pedido','Confirma si lo recibiste y revisa la solicitud en ZIPCO.']
+    : ['El negocio cerró la solicitud sin entrega','Revisa el motivo en Historial. Si hay asuntos pendientes, conserva su seguimiento.'];
   if (hasRequestProcess(order)) {
     if (order.status === 'rejected' && isPendingRequestRejected(order.requestProcess)) return ['El negocio no pudo aceptar tu solicitud', 'Revisa el motivo en ZIPCO.'];
     if (order.requestProcess?.state === 'READY') return ['Tu pedido está listo', 'El negocio marcó tu pedido como listo.'];
@@ -32,6 +36,13 @@ export function createCustomerOrderNotices(
       const state = orderNotificationState(order);
       const changed = hasBaseline && previous.has(order.id) && previous.get(order.id) !== state;
       if (!changed && !pushedOrderIds.has(order.id)) continue;
+      const closure=order.requestProcess?.businessClosure;
+      if(closure){
+        const key=`business-closure:${order.id}:${closure.eventId}`;
+        const notice=customerOrderNotice(order);
+        if(notice&&!announced.has(key)){announced.add(key);emit(`order-${order.id}-availability-${order.requestProcess!.version}`,notice,order.id);firstNotifiedId??=order.id;}
+        continue;
+      }
       const coordination=whatsappCoordinationNotice(order,false);
       if(coordination){if(!announced.has(coordination.key)){announced.add(coordination.key);emit(coordination.key,coordination.notice,order.id);firstNotifiedId??=order.id;}continue;}
       if((order.requestProcess?.whatsappCoordination||order.requestProcess?.whatsappCoordinationInitialDecline)&&['IN_PROGRESS','COORDINATING'].includes(order.requestProcess.state))continue;

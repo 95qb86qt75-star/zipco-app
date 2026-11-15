@@ -1,3 +1,4 @@
+import { normalizeBusinessClosure, normalizeClosureOptions, type BusinessClosure, type BusinessClosureOptions } from './businessClosure';
 import {normalizeLocalPickupInformation,type LocalPickupInformation} from "./localPickupInformation";
 import { normalizeWhatsappInitialDecline, type WhatsappInitialDecline } from "./whatsappInitialDeclineContract";
 import { normalizeCustomerReceipt, type CustomerReceipt, receiptPending } from "./customerReceiptContract";
@@ -9,7 +10,7 @@ import { simplifiedReservationFlow, isSimpleOffer, isAdvisoryOffer } from "./sim
 import { LATE_INITIAL_PATHS, normalizeLateInitial, type LateInitialView } from "./lateInitialContract";
 import { RESERVATION_PATHS, reservationFlow, normalizeReservationChoice, normalizeReservation, normalizeReservationFollowUp, type Reservation, type ReservationChoice, type ReservationFollowUp } from "./reservationContract";
 
-export const PROCESS_ACTIONS = ['ACK_LOCAL_PICKUP_INFORMATION','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
+export const PROCESS_ACTIONS = ['BUSINESS_DECLARE_DELIVERY','BUSINESS_CLOSE_WITHOUT_DELIVERY','ACK_LOCAL_PICKUP_INFORMATION','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number]|keyof typeof RESERVATION_PATHS|keyof typeof LATE_INITIAL_PATHS|'CONFIRM_WHATSAPP_COORDINATION'|'RESPOND_WHATSAPP_COORDINATION';
 
 export const PENDING_REJECTION_REASONS = {
@@ -26,6 +27,8 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  businessClosure?:BusinessClosure;
+  businessClosureOptions?:BusinessClosureOptions;
   localPickupInformation?:LocalPickupInformation;
   customerReceipt?:CustomerReceipt;
   whatsappCoordinationInitialDecline?:WhatsappInitialDecline;
@@ -50,7 +53,8 @@ export type RequestProcessSummary = {
   allowedActions: ProcessAction[];
   proposalSummary?: { type: string; subjectSchemaVersion: 2; totalPriceClp: number; scheduledFor: string | null };
   readyNoticeAcknowledged?: boolean;
-  closure?: { reasonCode: 'CUSTOMER_CANCELLED_BEFORE_RESPONSE'; reasonDetail: null; actor: 'CUSTOMER'; actorUserId: number; closedAt: string }
+  closure?: { reasonCode: 'BUSINESS_CLOSED_WITHOUT_DELIVERY'; reasonDetail:string|null; actor:'BUSINESS'; actorUserId:number; closedAt:string }
+    | { reasonCode: 'CUSTOMER_CANCELLED_BEFORE_RESPONSE'; reasonDetail: null; actor: 'CUSTOMER'; actorUserId: number; closedAt: string }
     | { reasonCode: PendingRejectionReason; reasonDetail: string | null; actor: 'BUSINESS'; actorUserId: number; closedAt: string }
     | { reasonCode: 'CUSTOMER_REJECTED_PROPOSAL' | 'BUSINESS_REJECTED_COUNTER_PROPOSAL'; reasonDetail: null; actor: 'CUSTOMER' | 'BUSINESS'; actorUserId: number; closedAt: string }
     | { reasonCode: AvailabilityClosureReason; reasonDetail: string | null; actor: 'CUSTOMER' | 'BUSINESS'; actorUserId: number; closedAt: string };
@@ -77,6 +81,10 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
         (typeof value.agreementPublicId === 'string' && value.agreementPublicId.trim())) ||
       !Array.isArray(value.allowedActions) ||
       !value.allowedActions.every((action) => PROCESS_ACTIONS.includes(action as typeof PROCESS_ACTIONS[number])||Object.hasOwn(RESERVATION_PATHS,String(action))||Object.hasOwn(LATE_INITIAL_PATHS,String(action))||['CONFIRM_WHATSAPP_COORDINATION','RESPOND_WHATSAPP_COORDINATION'].includes(String(action)))) return null;
+   const businessClosure=value.businessClosure===undefined?undefined:normalizeBusinessClosure(value.businessClosure,value.state);
+   const businessClosureOptions=value.businessClosureOptions===undefined?undefined:normalizeClosureOptions(value.businessClosureOptions);
+   if(businessClosure===null||businessClosureOptions===null||businessClosure&&!value.agreementPublicId||
+     businessClosure&&(value.localPickupInformation||businessClosureOptions)||businessClosureOptions&&(!value.agreementPublicId||value.localPickupInformation||!['IN_PROGRESS','READY'].includes(value.state)))return null;
    const customerReceipt=value.customerReceipt===undefined?undefined:normalizeCustomerReceipt(value.customerReceipt,value.state);
    if(customerReceipt===null)return null;
    const whatsappCoordination=value.whatsappCoordination===undefined?undefined:normalizeWhatsappCoordination(value.whatsappCoordination);
@@ -160,6 +168,10 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
     closure = { reasonCode: c.reasonCode as AvailabilityClosureReason, reasonDetail: c.reasonDetail as string | null,
       actor: c.actor as 'CUSTOMER' | 'BUSINESS', actorUserId: c.actorUserId, closedAt: c.closedAt };
   }
+   if(isRecord(value.closure)&&value.closure.reasonCode==='BUSINESS_CLOSED_WITHOUT_DELIVERY'){
+    if(businessClosure?.status!=='CLOSED_WITHOUT_DELIVERY'||value.closure.actor!=='BUSINESS'||value.closure.actorUserId!==businessClosure.actorUserId||value.closure.closedAt!==businessClosure.declaredAt||value.closure.reasonDetail!==businessClosure.reasonDetail)return null;
+    closure={reasonCode:'BUSINESS_CLOSED_WITHOUT_DELIVERY',reasonDetail:businessClosure.reasonDetail,actor:'BUSINESS',actorUserId:businessClosure.actorUserId,closedAt:businessClosure.declaredAt};
+   }
    const late=value.lateInitialResponse===undefined?undefined:normalizeLateInitial(value.lateInitialResponse);
    if(late===null||late&&(value.flowContract!=='AVAILABILITY_V3'||value.agreementPublicId!==null||availability||reservation||proposalSummary||
      !['AWAITING_BUSINESS_RESPONSE','CLOSED'].includes(value.state)||
@@ -172,6 +184,7 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
    const requestedProductPreview=normalizeProductPreview(value.requestedProductPreview);
    return {
     id: value.id, state: value.state, version: value.version,
+    ...(businessClosure?{businessClosure}:{}),...(businessClosureOptions?{businessClosureOptions}:{}),
      ...(information?{localPickupInformation:information}:{}),
      ...(customerReceipt?{customerReceipt}:{}),
     currentProposalId: value.currentProposalId,
@@ -237,6 +250,8 @@ export const COORDINATION_ACCEPTED_MESSAGE =
   'El negocio aceptó tu pedido. Falta coordinar los siguientes pasos.';
 
 export function orderNotificationState(order: { status: string } & ProcessOrder): string {
+  const closure=order.requestProcess?.businessClosure;
+  if(closure)return `business-closure:${closure.eventId}:${closure.status}:${order.requestProcess?.version}`;
   const receipt=order.requestProcess?.customerReceipt;
   if(receipt&&receipt.status!=='AWAITING_RECEIPT')return `customer-receipt:${receipt.declarationId}:${receipt.status}:${order.requestProcess?.version}`;
   const initialDecline=order.requestProcess?.whatsappCoordinationInitialDecline;

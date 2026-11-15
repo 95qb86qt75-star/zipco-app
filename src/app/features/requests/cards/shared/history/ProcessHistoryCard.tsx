@@ -1,3 +1,4 @@
+import {BUSINESS_CLOSURE_REASONS} from '../../../domain/businessClosure';
 import * as React from 'react';
 import LocalPickupInformationCard from '../local-pickup-information/LocalPickupInformationCard';
 import { AcceptedConditionsPanel } from "../../../shared/conditions/AcceptedConditions";
@@ -28,7 +29,8 @@ export function ProcessHistoryCardContent({ order }: { order: MyOrder | Business
     ? order.requestProcess.proposalSummary?.totalPriceClp ?? null
     : proposalRejected ? order.requestProcess?.proposalSummary?.totalPriceClp ?? null : originalRequest ? order.total : null);
   const closure = pendingRejected || availabilityClosed ? order.requestProcess?.closure : null;
-  const label = pendingRejected ? 'Rechazada' : pendingCancelled ? 'Anulada por el cliente' : order.requestProcess?.state === 'COORDINATION_CANCELLED' ? 'Anulada' : order.requestProcess?.state === 'COMPLETED' || order.status === 'completed' ? 'Completado'
+  const businessClosure=order.requestProcess?.businessClosure;
+  const label = businessClosure?.status==='CLOSED_WITHOUT_DELIVERY'?'No se concretó · Declarado por el negocio':businessClosure?.status==='DELIVERY_DECLARED'?'Entrega declarada':pendingRejected ? 'Rechazada' : pendingCancelled ? 'Anulada por el cliente' : order.requestProcess?.state === 'COORDINATION_CANCELLED' ? 'Anulada' : order.requestProcess?.state === 'COMPLETED' || order.status === 'completed' ? 'Completado'
     : order.status === 'cancelled' ? 'Cancelado' : order.status === 'rejected' ? 'Rechazado' : 'Estado no disponible';
   return <article id={`order-${order.id}`} data-aurora-state={order.requestProcess?.state ?? 'history'} className="zipco-aurora-card scroll-mb-36 rounded-[24px] p-4">
     {order.requestProcess?.lateInitialResponse&&<p className="mb-3 text-sm font-bold">{order.requestProcess.lateInitialResponse.status==='NO_LONGER_NEEDED'?'El cliente indicó que ya no necesita este pedido.':'El negocio avisó que no podrá atender esta solicitud.'}</p>}
@@ -37,6 +39,7 @@ export function ProcessHistoryCardContent({ order }: { order: MyOrder | Business
       priceLabel={originalRequest ? 'Solicitado' : proposalRejected ? 'Última propuesta' : 'Acordado'}
       summaryText={order.date} items={accepted ? accepted.subjectSnapshot.items.map(item => ({ name: item.nameSnapshot, quantity: item.quantity }))
         : originalRequest && order.products.state === 'available' ? order.products.items : undefined} />
+    {businessClosure&&<div className="mt-3 text-sm"><p>{businessClosure.status==='DELIVERY_DECLARED'?'El negocio declaró la entrega. La recepción y finalización del cliente se conservan por separado.':BUSINESS_CLOSURE_REASONS[businessClosure.reasonCode!]}</p>{businessClosure.reasonDetail&&<p className="whitespace-pre-wrap break-words">{businessClosure.reasonDetail}</p>}</div>}
     {proposalRejected && <ProposalNegotiation order={order} business={'customerName' in order} variant="aurora" refresh={() => window.dispatchEvent(new CustomEvent('zipco-requests-refresh'))} />}
     {closure && <div className="mt-2 text-sm"><p className="font-bold">Motivo: {closure.reasonCode === 'PICKUP_CANCELLED' ? `Retiro cancelado por ${closure.actor === 'CUSTOMER' ? 'el cliente' : 'el negocio'}`
       : closure.reasonCode === 'CUSTOMER_DECLINED_CONTINUATION' ? 'El cliente decidió no continuar' : closure.reasonCode === 'BUSINESS_WITHDREW_AVAILABILITY' ? 'El negocio retiró la disponibilidad'
