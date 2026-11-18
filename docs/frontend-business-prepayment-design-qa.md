@@ -1,5 +1,51 @@
 # Negocio: pago y apartado pendientes — diseño Claude
 
+## Ajuste contra referencias visuales del usuario — 2026-11-18
+
+Clasificación solo frontend: ajuste del acabado entregado a las imágenes de
+Más opciones, Cancelar retiro y Seguimiento. Se mantienen acciones y contratos.
+
+Fuentes modificadas:
+- PickupPrepaymentCard.tsx: el panel de opciones permite una altura menor que
+  la tarjeta cerrada; el margen opuesto conserva el pie y las filas siguientes.
+  Identificador CSS propio zipco-bpp-options-panel, sin depender del texto ARIA.
+- pickup-prepayment.css: filas e iconos compactos, sin espacio blanco del cuerpo
+  cerrado; pie sin margen superior redundante. overflow:clip evita scroll oculto
+  del contenedor al enfocar, manteniendo scroll interno de los paneles.
+- ReservationPanel.tsx: retirado el círculo grande bajo la etiqueta del diálogo.
+- AvailabilityPostActionsView.tsx: lo mismo en cancelar/revocar; cancelar del
+  negocio añade el icono pequeño CircleX en la fila. Otros consumidores intactos.
+
+No se agregan motivos de seguimiento ejecutables: el contrato solo recibe
+confirmationAccepted:true. La imagen con motivos y aviso de no persistencia era
+una maqueta; no se obliga una selección para descartarla silenciosamente.
+Cancelar retiro sí guarda reasonDetail; no muestra un aviso falso de motivos
+pendientes. Campos/endpoints existentes, sin cambios de backend.
+
+Pruebas por layout y presentación afectados: 10 pruebas de la vista compartida
+aprobadas(2,29s), nueve paridades SSR idénticas. Chromium con API simulada y
+toques físicos: ventanas sin círculo grande a320/390/430, motivos/teclado/foco,
+Volver/X/Escape, busy/error503/recuperación, modo oscuro, reducir movimiento y
+ventana de pago real conservados. Se revisaron capturas de las ventanas y del
+panel compacto; una captura detectó desplazamiento interno del contenedor y se
+repitió el escenario tras aplicar overflow:clip. Sin nuevas dependencias.
+
+Mediciones del panel de tres opciones: alto cerrado374,19px → compacto243px
+a320;326,28→243 a360;326,28→230 a390/430. Desplazamiento del pie inferior
+menor a0,3px. Cerrar restaura la altura original sin mover la base ni las filas
+siguientes. La compacidad depende del número real de acciones y errores.
+Scripts compact-options-check-browser/aurora-actions-browser en caché ignorada.
+No se prueban operaciones reales de backend ni teléfonos físicos.
+
+Build final, SHA y estado de Vercel se completan al cerrar. No hay tsc/lint
+independiente configurado; no se los declara ejecutados. Railway, main y
+producción no modificados. Motivos de seguimiento requieren contrato separado.
+
+Build QA/PWA final aprobado: Vite12,50s, advertencia de chunks grandes ya
+existente. Ventanas medidas hasta cierre funcional:387s desde inicio de edición,
+341s desde preparación/ejecución y42s desde documentación. Son intervalos
+solapados, no sumables; análisis inicial sin cronómetro exclusivo.
+
 ## Publicación recuperada tras captura Android antigua — 2026-11-18
 
 Clasificación solo frontend, diagnóstico/publicación. La captura del usuario

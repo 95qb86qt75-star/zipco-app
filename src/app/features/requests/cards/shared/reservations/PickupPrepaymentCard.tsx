@@ -87,7 +87,9 @@ function BusinessPrepaymentView({order,accepted,stage,name,image,isUnread,refres
       const scroller=card.closest<HTMLElement>('[data-requests-scroll]');
       const top=Math.max(scroller?.getBoundingClientRect().top??0,window.visualViewport?.offsetTop??0);
       roomRef.current=Math.max(0,card.getBoundingClientRect().bottom-base-top-8);
-      const grow=Math.min(Math.max(0,need-base),roomRef.current);
+      // Options size to their contents instead of keeping the closed card's empty
+      // body. Opposite margin keeps the footer and following requests anchored.
+      const grow=Math.min(panel==='options'?need-base:Math.max(0,need-base),roomRef.current);
       const height=`${base+grow}px`,margin=`${-grow}px`;
       if(card.style.height!==height)card.style.height=height;
       if(card.style.marginTop!==margin)card.style.marginTop=margin;
@@ -201,7 +203,7 @@ function BusinessPrepaymentView({order,accepted,stage,name,image,isUnread,refres
             </div></div>
           </div></div>
         </div>
-        <div className="zipco-bpp-pn" id={ids.options} role="region" aria-label="Más opciones" aria-hidden={panel!=='options'} data-on={panel==='options'}>
+        <div className="zipco-bpp-pn zipco-bpp-options-panel" id={ids.options} role="region" aria-label="Más opciones" aria-hidden={panel!=='options'} data-on={panel==='options'}>
           <div className="zipco-bpp-pi" ref={node=>{piRef.current.options=node;}}><div className="zipco-bpp-ops">
             {rp.options}
             {parts?.cancel}

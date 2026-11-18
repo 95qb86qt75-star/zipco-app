@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Ajuste visual posterior de la espera PREPAYMENT negocio: Más opciones compacto,
+  sin círculo grande bajo etiquetas de ventanas y con icono pequeño de cancelar.
+  Pie conservado al abrir/cerrar. Seguimiento sin motivos ejecutables hasta
+  contrato backend; cancelar sí mantiene reasonDetail. Pruebas/publicación en
+  [informe canónico](frontend-business-prepayment-design-qa.md).
+
 - Segunda entrega Aurora recibida e integrada para las acciones del negocio
   con render + proyección válida + AWAITING_PAYMENT_AND_HOLD. Cliente y otras
   fases conservan ventanas anteriores. Foco retorna a la fila; cancelar/declinar
