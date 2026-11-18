@@ -8,6 +8,7 @@ import { reservationAllowed, sendReservationAction, type ReservationBody } from 
 import { reservationIntents } from "./intents/reservationIntent";
 import type { ReservationAction } from "../domain/reservationContract";
 import { AvailabilityError } from "../api/availabilityApi";
+import {pickupPrepaymentFor} from '../domain/pickupPrepayment';
 export default function useReservation(order:BusinessRequest|MyOrder,business:boolean,refresh:()=>void){
   const [busy,setBusy]=useState(false),[error,setError]=useState('');
   const alive=useRef(true),lock=useRef(false),controllers=useRef(new Set<AbortController>());
@@ -25,6 +26,8 @@ export default function useReservation(order:BusinessRequest|MyOrder,business:bo
   const update=async()=>{if(!active()||lock.current||order.id===null)return null;lock.current=true;setBusy(true);setError('');const c=new AbortController();controllers.current.add(c);try{return await read(c.signal);}catch(e){if(active())setError(e instanceof Error?e.message:'No se pudo actualizar la reserva.');return null;}finally{controllers.current.delete(c);lock.current=false;if(active())setBusy(false);}};
   const run=async(action:ReservationAction,details:Omit<ReservationBody,'expectedVersion'|'reservationId'>={})=>{
     const p=order.requestProcess;if(!active()||lock.current||order.id===null||!p?.reservation||!reservationAllowed(p,business,action))return false;
+    // Capture the trigger before busy disables it. Presentation-only, memory-only.
+    const returnFocus=typeof document!=='undefined'&&document.activeElement instanceof HTMLElement?document.activeElement:undefined;
     lock.current=true;setBusy(true);setError('');const c=new AbortController();controllers.current.add(c);
     const flow=action==='CANCEL_PICKUP_RESERVATION'?beginStatusChange(order,business):null;
     try{const body:ReservationBody={expectedVersion:p.version,reservationId:p.reservation.id,...details};let navigation:string|null=null;
@@ -36,7 +39,8 @@ export default function useReservation(order:BusinessRequest|MyOrder,business:bo
         const allowed=reservationAllowed(latest.requestProcess,business,action),validPurpose=body.purpose!=='RECEIPT'||!business&&latest.requestProcess?.state==='IN_PROGRESS';
         if(!navigation||!allowed||!validPurpose){setError('El acceso a WhatsApp ya no está disponible. Revisa los permisos de contacto.');return false;}
         offerReservationWhatsapp({url:navigation,orderId:order.id!,business,session:session!,processId:p.id,
-          minVersion:latest.requestProcess!.version,receipt:body.purpose==='RECEIPT'});
+          minVersion:latest.requestProcess!.version,receipt:body.purpose==='RECEIPT',
+          ...(business&&pickupPrepaymentFor(latest.requestProcess)?.phase==='AWAITING_PAYMENT_AND_HOLD'?{appearance:'business-prepayment' as const,returnFocus}:{})});
       }
       return true;
     }catch(e){if(active()){setError(e instanceof Error?e.message:'No se pudo confirmar el resultado. Reintenta los mismos datos.');if(e instanceof AvailabilityError&&e.status===401)window.dispatchEvent(new Event('zipco-coordination-session-expired'));}return false;}

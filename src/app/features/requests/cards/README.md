@@ -27,6 +27,9 @@ respuesta negocio. El acceso a WhatsApp se prepara en los controladores existent
 y se presenta mediante `shared/reservations/ReservationWhatsappNavigationHost.tsx`
 montado en AppShell. `application/reservationWhatsappNavigation.ts` mantiene solo
 estado UI temporal y relectura GET al regresar; no es otra tarjeta ni otro comando.
+El host usa el acabado Aurora para Aclarar reserva únicamente desde la tarjeta
+del negocio con pago/apartado pendientes; otros accesos mantienen su presentación.
+appearance/returnFocus son metadatos locales efímeros, no un contrato de servidor.
 
 ## Retiro directo informativo (contrato E200)
 

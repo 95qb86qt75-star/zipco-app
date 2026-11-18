@@ -1,5 +1,57 @@
 # Negocio: pago y apartado pendientes — diseño Claude
 
+## Aclarar reserva por WhatsApp con Aurora — 2026-11-18
+
+Clasificación solo frontend: ventana de navegación local sobre acceso autorizado
+existente. ReservationWhatsappNavigationHost usa Aurora únicamente cuando
+useReservation la ofrece desde negocio + pickupPrepaymentFor válido + fase
+AWAITING_PAYMENT_AND_HOLD. No cambia la modalidad LOCAL_PICKUP ni crea una
+cancelación de coordinación.
+
+Archivos:
+- application/useReservation.ts: transmite apariencia y disparador de foco al
+  ofrecer el enlace, después del recibo y relectura autorizados existentes.
+  Captura el disparador antes de que busy deshabilite el botón.
+- application/reservationWhatsappNavigation.ts: tipos opcionales appearance y
+  returnFocus, solo memoria de presentación; nunca forman parte del cuerpo API,
+  contrato de servidor, intención persistida ni almacenamiento del navegador.
+- shared/reservations/ReservationWhatsappNavigationHost.tsx: estilo Aurora,
+  etiqueta Aclarar la reserva, título, cerrar44px, explicación y pie Abrir
+  WhatsApp/Volver48px. Conserva enlace HTTPS nativo target=_blank y noopener,
+  callbacks existentes, listeners de retorno, errores y Comprobar estado.
+- cards/shared/reservations/pickup-prepayment.css: nota informativa y foco
+  visible para enlaces dentro del diálogo Aurora. Reutiliza estilos canónicos.
+
+No cambian payloads, endpoints, permisos, idempotencia, autenticación, estados
+ni categorías. OPEN_RESERVATION_WHATSAPP conserva purpose:CLARIFICATION,
+expectedVersion/reservationId y encabezados actuales; regreso únicamente GET.
+El contacto por WhatsApp no declara recibido el pago ni apartado el pedido.
+
+Validación seleccionada por navegación compartida afectada:
+- 12 pruebas reservationWhatsappNavigation aprobadas(820ms): sesión, destino,
+  relectura, fallo/red, reintento explícito, ausencia de replay y HTTP401.
+- Chromium con RequestsScreen y componentes reales, API y destino WhatsApp
+  simulados, clics por coordenadas a320/390/430: estilo/centro/alto, foco inicial
+  y retorno, X/Volver sin POST extra, modo oscuro390 y movimiento reducido.
+- Enlace abre otro target conservando documento y URL de ZIPCO. Regreso solo GET
+  en tres anchos; error de red320 muestra Aurora y Comprobar estado sin repetir
+  apertura ni reserva. Cliente y negocio NEEDS_CLARIFICATION conservan diseño
+  anterior. No hubo excepciones JS ni desborde horizontal.
+- Una comprobación de foco falló inicialmente porque se capturaba después de
+  busy; se corrigió capturándolo antes y se repitió el escenario afectado.
+  Script whatsapp-aurora-browser.mjs y captura whatsapp-business-aurora.png
+  ignorados en node_modules/.cache. Ningún envío o contacto real.
+
+Pendientes iPhone/Android físicos, Safari/PWA y WhatsApp real. No hay tsc/lint
+independiente configurado; no se declara comprobación de tipos independiente.
+Build final y publicación se registran al cierre. Railway/main/producción
+intactos. Se reutilizó el arnés; sin herramientas/dependencias nuevas.
+
+Build final QA/PWA aprobado(Vite8,71s); advertencia de chunks grandes ya
+existente. Ventana de edición/preparación/ejecución276s, incluida ventana de
+pruebas188s, ambas solapadas con documentación; análisis inicial sin cronómetro
+exclusivo. No sumar subfases ni confundir estas duraciones con fluidez de app.
+
 ## Ajuste contra referencias visuales del usuario — 2026-11-18
 
 Clasificación solo frontend: ajuste del acabado entregado a las imágenes de

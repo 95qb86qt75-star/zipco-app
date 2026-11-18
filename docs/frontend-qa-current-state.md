@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Aclarar la reserva por WhatsApp adopta Aurora solo desde la tarjeta pendiente
+  del negocio. Host compartido conserva enlace HTTPS en otra pestaña y regreso
+  GET sin replay; cliente y otras fases sin cambio visual. Metadatos internos
+  de apariencia/foco no son campos API. Validación y publicación en
+  [informe canónico](frontend-business-prepayment-design-qa.md).
+
 - Ajuste visual posterior de la espera PREPAYMENT negocio: Más opciones compacto,
   sin círculo grande bajo etiquetas de ventanas y con icono pequeño de cancelar.
   Pie conservado al abrir/cerrar. Seguimiento sin motivos ejecutables hasta

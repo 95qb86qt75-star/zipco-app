@@ -164,12 +164,13 @@
 .zipco-business-prepayment .zipco-bpp-dchks{display:grid;gap:10px;margin-top:12px}
 .zipco-business-prepayment .zipco-bpp-dchk{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.35;color:#1e293b}
 .zipco-business-prepayment .zipco-bpp-derr{margin:10px 0 0;font-size:13px;line-height:1.35;text-align:center;color:#be123c}
+.zipco-business-prepayment .zipco-bpp-wa-note{margin:16px 0 0;padding:12px;border:1px solid #ccfbf1;border-radius:14px;background:#f0fdfa;color:#475569;font-size:13px;line-height:1.45;text-align:center}
 .zipco-business-prepayment .zipco-bpp-dyn{position:sticky;bottom:-16px;display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin:16px -4px -4px;padding:8px 4px 4px;background:linear-gradient(180deg,rgba(247,245,255,0),#f7f5ff 28%)}
 .zipco-business-prepayment .zipco-bpp-dy,.zipco-business-prepayment .zipco-bpp-dn{min-height:48px;padding:0 12px;border-radius:999px;font-family:inherit;font-size:13.5px;font-weight:800;line-height:1.15;cursor:pointer}
 .zipco-business-prepayment .zipco-bpp-dy{border:0;color:#fff;background:linear-gradient(100deg,#10b981,#0d9488 52%,#06b6d4)}
 .zipco-business-prepayment .zipco-bpp-dy[data-tone=danger]{background:linear-gradient(100deg,#e11d48,#be123c)}
 .zipco-business-prepayment .zipco-bpp-dn{border:1.5px solid #cbd5e1;background:#fff;color:#334155}
-.zipco-business-prepayment.zipco-bpp-dialog button:focus-visible{outline:3px solid #059669;outline-offset:3px}
+.zipco-business-prepayment.zipco-bpp-dialog :is(button,a):focus-visible{outline:3px solid #059669;outline-offset:3px}
 .zipco-business-prepayment.zipco-bpp-dialog button:disabled{opacity:.5;cursor:not-allowed}
 .zipco-business-prepayment.zipco-bpp-dialog fieldset{min-width:0;margin:12px 0 0;padding:0;border:0}
 .zipco-business-prepayment.zipco-bpp-dialog fieldset .zipco-bpp-rl{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

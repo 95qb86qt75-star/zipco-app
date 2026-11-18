@@ -3,7 +3,7 @@ import {readCoordinationSession,type CoordinationSession} from './intents/coordi
 import {statusViewFor} from '../domain/requestStatusGrouping';
 import {RequestProcessError} from '../domain/requestProcessErrors';
 
-type Input={orderId:number;business:boolean;session:CoordinationSession;url:string;processId:number;minVersion:number;receipt?:boolean};
+type Input={orderId:number;business:boolean;session:CoordinationSession;url:string;processId:number;minVersion:number;receipt?:boolean;appearance?:'business-prepayment';returnFocus?:HTMLElement};
 export type ReservationWhatsappNavigation=Input&{attempted:boolean;departed:boolean;resumed:boolean;status:'ready'|'checking'|'failed';error:string};
 let current:ReservationWhatsappNavigation|null=null;
 let controller:AbortController|undefined;
