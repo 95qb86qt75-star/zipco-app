@@ -16,7 +16,11 @@ es la composición funcional de espera para ambos roles. Usa ReservationPanel
 real, sin slider de preparación ni cierre por swipe de En curso. Selección por
 `pickupPrepaymentFor`, contrato/capacidad/fase del servidor, antes de progreso.
 Al confirmar y releer READY_FOR_PREPARATION se usa la tarjeta de progreso vigente.
-El rediseño con Claude debe partir de esta unidad y sus dependencias reales.
+La variante negocio AWAITING_PAYMENT_AND_HOLD usa el diseño blanco canónico y
+`shared/reservations/pickup-prepayment.css`, importado por el manifiesto de tarjetas.
+ReservationPanel expone piezas con render opcional y conserva sus ventanas reales.
+`requests/shared/reservations/ReservationReasonChoices.tsx` presenta motivos en el
+reasonDetail existente. Cliente y otras fases conservan su composición vigente.
 
 E211: la espera de PREPAYMENT se ubica en Por responder cliente / Esperando
 respuesta negocio. El acceso a WhatsApp se prepara en los controladores existentes

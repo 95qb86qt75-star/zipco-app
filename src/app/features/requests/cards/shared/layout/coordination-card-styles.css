@@ -11,3 +11,4 @@
 @import "../../customer/local-pickup/customer-pickup.css";
 @import "../../../application/motion/customer-receipt-motion.css";
 @import "../../customer/progress/customer-receipt-details.css";
+@import "../reservations/pickup-prepayment.css";

@@ -10,6 +10,8 @@ import { CONTACT_COPY } from "../../../domain/availabilityContract";
 
 import ReservationPanel from "../../../shared/reservations/ReservationPanel";
 import PickupInstructions from './PickupInstructions';
+import {pickupPrepaymentFor} from '../../../domain/pickupPrepayment';
+import ReservationReasonChoices,{PICKUP_CANCEL_REASONS} from '../../../shared/reservations/ReservationReasonChoices';
 import type {AvailabilityPostActionsModel} from './application/useAvailabilityPostActionsController';
 
 /** Piezas ya armadas (con su lógica, permisos y `disabled` intactos) para quien quiera colocarlas en otra composición.
@@ -27,6 +29,7 @@ export type AvailabilityPostActionParts={
 export default function AvailabilityPostActionsView({model,render}:{model:AvailabilityPostActionsModel;render?:(parts:AvailabilityPostActionParts)=>ReactNode}){
 const {business,canAuthorize,canCancel,canRevoke,contact,dialog,hasContact,operation,order,process,reason,refresh,setDialog,setReason,showContactControls,submit}=model;
 const availability=process?.availability,pickup=availability?.path==='LOCAL_PICKUP';
+const selectedReasons=business&&!!render&&pickupPrepaymentFor(process)?.phase==='AWAITING_PAYMENT_AND_HOLD';
 const reservation=process?.reservation?<ReservationPanel order={order} business={business} refresh={refresh}/>:null;
 const instructions=pickup?<PickupInstructions variant={render?'customer':'default'} message={availability?.customerMessage} scheduleOrAddress={availability?.scheduleOrAddress} notReservation={!process?.reservation}/>:null;
 const contactCopy=hasContact?<p className={render?'zipco-pickup-consent':undefined}>{CONTACT_COPY}</p>:null;
@@ -41,7 +44,7 @@ const dialogs=<Dialog.Root open={dialog!==null} onOpenChange={value=>{if(!value&
       <Dialog.Content className="zipco-action-dialog fixed left-1/2 top-1/2 z-[1001] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-5 text-slate-950 dark:bg-slate-900 dark:text-white">
         <Dialog.Title className="text-xl font-bold">{dialog==='cancel'?'¿Cancelar el retiro?':'¿Retirar tu permiso de contacto?'}</Dialog.Title>
         <Dialog.Description className="mt-2 text-sm">{dialog==='cancel'?'Indica el motivo. Se avisará a la otra parte y la solicitud quedará en Historial.':'Solo se retirará tu permiso para futuras entregas de contacto. No cancela el pedido ni puede retirar números ya vistos o mensajes externos.'}</Dialog.Description>
-        {dialog==='cancel'&&<label className="mt-3 block text-sm">Motivo<textarea disabled={operation.busy} value={reason} onChange={e=>setReason(Array.from(e.target.value).slice(0,1000).join(''))} className="mt-1 min-h-24 w-full rounded-xl border p-3"/><span>Entre 3 y 1000 caracteres.</span></label>}
+        {dialog==='cancel'&&(selectedReasons?<ReservationReasonChoices options={PICKUP_CANCEL_REASONS} value={reason} onChange={setReason} disabled={operation.busy}/>:<label className="mt-3 block text-sm">Motivo<textarea disabled={operation.busy} value={reason} onChange={e=>setReason(Array.from(e.target.value).slice(0,1000).join(''))} className="mt-1 min-h-24 w-full rounded-xl border p-3"/><span>Entre 3 y 1000 caracteres.</span></label>)}
         {operation.error&&<p role="alert">{operation.error}</p>}
         <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" className="rounded-xl border p-3" disabled={operation.busy} onClick={()=>setDialog(null)}>Volver</button><button type="button" className="rounded-xl bg-rose-700 p-3 font-bold text-white" disabled={operation.busy||(dialog==='cancel'&&Array.from(reason.trim()).length<3)} onClick={()=>void submit()}>{operation.busy?'Guardando…':'Confirmar'}</button></div>
       </Dialog.Content></Dialog.Portal></Dialog.Root>;

@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Rediseño de pago/apartado pendiente del negocio integrado sobre E209/E211:
+  tarjeta blanca, detalle/opciones superiores, confirmación real y recuperación
+  visible. Solo LOCAL_PICKUP + AWAITING_PAYMENT_AND_HOLD; cliente y otras fases
+  conservados. Motivos de cancelación usan reasonDetail vigente; motivo para
+  finalizar seguimiento requiere contrato separado y no se implementó.
+  [Fuentes, validación y estado de publicación](frontend-business-prepayment-design-qa.md).
+
 - E211 sustituye categoría cliente E209: PREPAYMENT no preparable queda en Por
   responder cliente y Esperando respuesta negocio; enums backend sin cambios,
   otras contrapropuestas siguen En espera. Navegación de reservas ofrece enlace

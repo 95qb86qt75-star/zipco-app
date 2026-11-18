@@ -11,8 +11,26 @@ import { simplifiedReservationFlow, isSimpleOffer, isAdvisoryOffer } from "../..
 import usePaymentConfirmationReminder from "../../application/usePaymentConfirmationReminder";
 import { PaymentConfirmationSheet } from "../conditions/CoordinationSheets";
 import { CONTACT_COPY } from "../../domain/availabilityContract";
+import { Check, User, UserX, X } from "lucide-react";
+import WhatsAppMark from "../icons/WhatsAppMark";
+import ReservationReasonChoices,{PICKUP_CANCEL_REASONS,PICKUP_DECLINE_REASONS} from './ReservationReasonChoices';
 
-export default function ReservationPanel({order,business,refresh}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void}){
+/** Piezas que ReservationPanel entrega a la tarjeta «Pago y apartado pendientes» del negocio (solo con `render`).
+ *  Sin `render` el panel se ve y se comporta igual que siempre. Los diálogos (incluida la ventana real
+ *  «¿Recibiste el pago y apartaste el pedido?») se mantienen aquí, montados, fuera de la composición. */
+export type ReservationPanelParts={
+  /** Acción principal real (abre PaymentConfirmationSheet). null si el servidor no la permite ahora. */
+  confirm:{label:string;busy:boolean;onClick:()=>void}|null;
+  /** Avisos reales de la reserva (estado, plazos, declaración de pago, WhatsApp, motivos). Excluye la nota del cliente. */
+  notices:React.ReactNode;
+  /** Filas de «Más opciones» realmente permitidas por el servidor (cada una con su `key`). */
+  options:React.ReactNode[];
+  /** Error de la operación: debe quedar siempre visible, aunque la tarjeta esté plegada. */
+  error:React.ReactNode;
+  busy:boolean;
+};
+
+export default function ReservationPanel({order,business,refresh,render}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void;render?:(parts:ReservationPanelParts)=>React.ReactNode}){
   const operation=useReservation(order,business,refresh),p=order.requestProcess,r=p?.reservation,offer=p?.availability?.reservationOffer;
   const stage=pickupPrepaymentFor(p),waitingStage=!!stage&&stage.phase!=='READY_FOR_PREPARATION';
   const [dialog,setDialog]=useState<ReservationAction|null>(null),[reason,setReason]=useState(''),[held,setHeld]=useState(false),[received,setReceived]=useState(false),[issueReceived,setIssueReceived]=useState(false);
@@ -51,38 +69,64 @@ export default function ReservationPanel({order,business,refresh}:{order:Busines
     {p.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
     {operation.error&&<div role="alert"><p className="text-rose-400">{operation.error}</p><button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.update()}>Reintentar actualización</button></div>}
   </section>;
-  return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
-    {waitingStage&&business&&<p className="text-base font-bold">{stage?.canConfirmPaymentAndHold?'¿Recibiste el pago y apartaste el pedido?':'Revisa el estado de la reserva'}</p>}
+  const choiceReasons=render&&dialog==='CANCEL_PICKUP_RESERVATION'?PICKUP_CANCEL_REASONS:render&&dialog==='DECLINE_PICKUP_RESERVATION'?PICKUP_DECLINE_REASONS:null;
+  const waLabel=!business&&p?.state==='IN_PROGRESS'&&!r.confirmedAt?'Enviar comprobante / Volver a WhatsApp':'Aclarar la reserva por WhatsApp';
+  const waNotice=!allowed('OPEN_RESERVATION_WHATSAPP')&&paid&&p?.state!=='COMPLETED'?<p>WhatsApp requiere teléfonos válidos y ambos permisos vigentes. Cada participante autoriza únicamente su propio número.</p>:null;
+  const lines=<>
     <p className="font-bold">{statusText}</p>{advisory?<ReservationOfferSummary offer={offer}/>:simple&&r.timing?<><p>{status==='CONFIRMED'?'Reservado hasta':'Retiro acordado hasta'}: {reservationWhen(r.timing.pickupBy)}.</p>{r.timing.paymentDueAt&&!r.confirmedAt&&<p>Plazo para coordinar el pago: {reservationWhen(r.timing.paymentDueAt)}. Si ya transferiste, acláralo con el negocio por WhatsApp.</p>}</>:<ReservationOfferSummary offer={offer}/>}
-    {p?.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
+    {!render&&p?.reservationChoice?.note&&<p className="whitespace-pre-wrap break-words">Nota de reserva: {p.reservationChoice.note}</p>}
     {status==='CONFIRMED'&&r.confirmedAt&&<p>{r.confirmationSource==='AUTO_BUSINESS_OFFER'?'Reserva registrada automáticamente según las condiciones ofrecidas por el negocio.':`El negocio confirmó el apartado el ${reservationWhen(r.confirmedAt)}.`}</p>}
     {r.paymentReceiptDeclaration&&<p>El negocio declaró recibido ${r.paymentReceiptDeclaration.amountClp.toLocaleString('es-CL')}. ZIPCO no verificó la transferencia.</p>}
     {paid&&!r.paymentReceiptDeclaration&&<p>Abrir WhatsApp no acredita pago ni envío del comprobante. Adjunta el archivo manualmente en la conversación.</p>}
     {r.reasonDetail&&<p className="whitespace-pre-wrap break-words">Motivo: {r.reasonDetail}</p>}
     {r.pickupCancellation&&<p>Retiro cancelado el {reservationWhen(r.pickupCancellation.cancelledAt)}. La aclaración de dinero permanece separada.</p>}
     {closed&&<p>Finalizaste tu propio seguimiento. Esto no confirma devolución ni conformidad de la otra persona.</p>}
-    {allowed('CONFIRM_PICKUP_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('CONFIRM_PICKUP_RESERVATION')}>{paid?simple?'Recibí el pago y aparté el pedido':'Confirmar pago recibido y apartado':'Confirmar que aparté todo el pedido'}</button>}
-    {allowed('CANCEL_PICKUP_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('CANCEL_PICKUP_RESERVATION')}>Cancelar solo la reserva</button>}
-    {allowed('DECLINE_PICKUP_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('DECLINE_PICKUP_RESERVATION')}>No puedo reservar el pedido</button>}
-    {allowed('CONTINUE_WITHOUT_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('CONTINUE_WITHOUT_RESERVATION')}>Continuar sin reserva</button>}
-    {allowed('OPEN_RESERVATION_WHATSAPP')?<button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.run('OPEN_RESERVATION_WHATSAPP',{purpose:!business&&p?.state==='IN_PROGRESS'&&!r.confirmedAt?'RECEIPT':'CLARIFICATION'})}>{!business&&p?.state==='IN_PROGRESS'&&!r.confirmedAt?'Enviar comprobante / Volver a WhatsApp':'Aclarar la reserva por WhatsApp'}</button>:paid&&p?.state!=='COMPLETED'&&<p>WhatsApp requiere teléfonos válidos y ambos permisos vigentes. Cada participante autoriza únicamente su propio número.</p>}
-    {allowed('AUTHORIZE_RESERVATION_CONTACT')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('AUTHORIZE_RESERVATION_CONTACT')}>Permitir contacto para esta reserva</button>}
-    {allowed('REVOKE_RESERVATION_CONTACT')&&p?.state!=='READY'&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('REVOKE_RESERVATION_CONTACT')}>Retirar mi permiso para esta reserva</button>}
-    {allowed('REPORT_RESERVATION_ISSUE')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('REPORT_RESERVATION_ISSUE')}>Registrar una aclaración</button>}
-    {allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('FINISH_OWN_RESERVATION_FOLLOW_UP')}>Finalizar mi seguimiento</button>}
-    <button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar reserva</button>
-    {operation.error&&<p role="alert" className="text-rose-400">{operation.error}</p>}
+</>;
+  const dialogs=<>
     <Dialog.Root open={dialog!==null&&!(simple&&paid&&dialog==='CONFIRM_PICKUP_RESERVATION')} onOpenChange={v=>{if(!v&&!operation.busy)setDialog(null);}}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-sm"/>
       <Dialog.Content className="zipco-action-dialog fixed left-1/2 top-1/2 z-[1101] max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-5 text-slate-950 dark:bg-slate-900 dark:text-white">
         <Dialog.Title className="text-lg font-bold">{dialog==='CONFIRM_PICKUP_RESERVATION'?'Confirmar el apartado':dialog==='FINISH_OWN_RESERVATION_FOLLOW_UP'?'¿Finalizar tu seguimiento?':dialog==='AUTHORIZE_RESERVATION_CONTACT'?'Autorizar tu propio teléfono':dialog==='REVOKE_RESERVATION_CONTACT'?'Retirar tu permiso':dialog==='CONTINUE_WITHOUT_RESERVATION'?'¿Ir sin reserva?':'Registrar decisión de reserva'}</Dialog.Title>
         <Dialog.Description className="mt-2 text-sm">{dialog==='FINISH_OWN_RESERVATION_FOLLOW_UP'?'Cerrarás solo tu indicador. No cancela el pedido, no confirma devolución ni cierra el seguimiento del otro. El detalle se conserva.':dialog==='AUTHORIZE_RESERVATION_CONTACT'?CONTACT_COPY:dialog==='REVOKE_RESERVATION_CONTACT'?'Se retira solo tu permiso para próximas entregas de contacto. No puede retirar números ya vistos.':dialog==='CONTINUE_WITHOUT_RESERVATION'?'El pedido seguirá activo, sujeto a disponibilidad al llegar. No se renueva la reserva.':'Confirma únicamente hechos reales de este pedido. ZIPCO no procesa ni verifica pagos.'}</Dialog.Description>
         {dialog==='CONFIRM_PICKUP_RESERVATION'&&<div className="mt-3 space-y-3 text-sm"><label className="flex gap-2"><input type="checkbox" checked={held} onChange={e=>setHeld(e.target.checked)} disabled={operation.busy}/>{advisory?'Confirmo que aparté todo el pedido.':`Confirmo que aparté todo el pedido hasta ${reservationWhen(r.timing?.pickupBy??(!isSimpleOffer(offer)?offer.pickupBy:offer.simplified.closesAt))}.`}</label>{paid&&offer.mode==='PREPAYMENT'&&<label className="flex gap-2"><input type="checkbox" checked={received} onChange={e=>setReceived(e.target.checked)} disabled={operation.busy}/>Declaro que recibí ${offer.requiredAmountClp.toLocaleString('es-CL')} requeridos para esta reserva.</label>}</div>}
-        {['DECLINE_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','CANCEL_PICKUP_RESERVATION'].includes(dialog??'')&&<label className="mt-3 block text-sm">Motivo<textarea aria-label="Motivo de reserva" className="mt-1 min-h-24 w-full rounded-xl border bg-white p-3 text-slate-950" disabled={operation.busy} value={reason} onChange={e=>setReason(Array.from(e.target.value).slice(0,1000).join(''))}/><small>Entre 3 y 1000 caracteres.</small></label>}
+        {choiceReasons&&<ReservationReasonChoices options={choiceReasons} value={reason} onChange={setReason} disabled={operation.busy}/>}
+        {!choiceReasons&&['DECLINE_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','CANCEL_PICKUP_RESERVATION'].includes(dialog??'')&&<label className="mt-3 block text-sm">Motivo<textarea aria-label="Motivo de reserva" className="mt-1 min-h-24 w-full rounded-xl border bg-white p-3 text-slate-950" disabled={operation.busy} value={reason} onChange={e=>setReason(Array.from(e.target.value).slice(0,1000).join(''))}/><small>Entre 3 y 1000 caracteres.</small></label>}
         {dialog==='REPORT_RESERVATION_ISSUE'&&business&&!r.paymentReceiptDeclaration&&offer.mode==='PREPAYMENT'&&<label className="mt-3 flex gap-2 text-sm"><input type="checkbox" checked={issueReceived} onChange={e=>setIssueReceived(e.target.checked)} disabled={operation.busy}/>Declaro que recibí ${offer.requiredAmountClp.toLocaleString('es-CL')}, aunque no pueda confirmar el apartado.</label>}
         {operation.error&&<p role="alert" className="mt-2 text-sm text-rose-600">{operation.error}</p>}
         <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" className="rounded-xl border p-3" disabled={operation.busy} onClick={()=>setDialog(null)}>Volver</button><button type="button" className="rounded-xl bg-teal-700 p-3 font-bold text-white" disabled={blocked} onClick={()=>void submit()}>{operation.busy?'Guardando…':'Confirmar'}</button></div>
       </Dialog.Content>
     </Dialog.Portal></Dialog.Root>
     {simple&&paid&&offer.mode==='PREPAYMENT'&&r.timing&&<PaymentConfirmationSheet open={dialog==='CONFIRM_PICKUP_RESERVATION'} busy={operation.busy} amount={offer.requiredAmountClp} until={advisory?null:reservationWhen(r.timing.pickupBy!)} error={operation.error} onClose={()=>{setDialog(null);releaseReminder();}} onConfirm={()=>void submit()}/>}
+</>;
+  if(render){
+    const row=(key:string,icon:React.ReactNode,label:string,hint:string|null,onClick:()=>void,tone?:'danger')=><button key={key} type="button" className="zipco-bpp-op" data-tone={tone} disabled={operation.busy} onClick={onClick}>
+      <span className="zipco-bpp-opi" aria-hidden="true">{icon}</span><span className="zipco-bpp-opt"><b>{label}</b>{hint&&<small>{hint}</small>}</span></button>;
+    const options:React.ReactNode[]=[
+      allowed('OPEN_RESERVATION_WHATSAPP')?row('wa',<WhatsAppMark className="h-4 w-4"/>,waLabel,null,()=>void operation.run('OPEN_RESERVATION_WHATSAPP',{purpose:!business&&p?.state==='IN_PROGRESS'&&!r.confirmedAt?'RECEIPT':'CLARIFICATION'})):null,
+      allowed('AUTHORIZE_RESERVATION_CONTACT')?row('authorize',<User size={16}/>,'Permitir contacto para esta reserva',null,()=>open('AUTHORIZE_RESERVATION_CONTACT')):null,
+      allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')?row('finish',<Check size={16}/>,'Finalizar mi seguimiento','Solo cierra tu propio indicador. No finaliza el pedido.',()=>open('FINISH_OWN_RESERVATION_FOLLOW_UP')):null,
+      allowed('DECLINE_PICKUP_RESERVATION')?row('decline',<UserX size={16}/>,'No puedo reservar el pedido',null,()=>open('DECLINE_PICKUP_RESERVATION')):null,
+      allowed('CANCEL_PICKUP_RESERVATION')?row('cancel',<X size={16}/>,'Cancelar solo la reserva',null,()=>open('CANCEL_PICKUP_RESERVATION'),'danger'):null,
+    ].filter((node):node is React.ReactElement=>node!==null);
+    return <>{render({
+      confirm:allowed('CONFIRM_PICKUP_RESERVATION')?{label:'Confirmo recepción del pago',busy:operation.busy,onClick:()=>open('CONFIRM_PICKUP_RESERVATION')}:null,
+      notices:<>{lines}{waNotice}</>,options,
+      error:operation.error?<div role="alert" className="zipco-bpp-err"><p>{operation.error}</p><button type="button" className="zipco-bpp-recover" disabled={operation.busy} onClick={()=>void operation.update()}>Comprobar estado de la reserva</button></div>:null,busy:operation.busy,
+    })}{dialogs}</>;
+  }
+  return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
+    {waitingStage&&business&&<p className="text-base font-bold">{stage?.canConfirmPaymentAndHold?'¿Recibiste el pago y apartaste el pedido?':'Revisa el estado de la reserva'}</p>}
+    {lines}
+    {allowed('CONFIRM_PICKUP_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('CONFIRM_PICKUP_RESERVATION')}>{paid?simple?'Recibí el pago y aparté el pedido':'Confirmar pago recibido y apartado':'Confirmar que aparté todo el pedido'}</button>}
+    {allowed('CANCEL_PICKUP_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('CANCEL_PICKUP_RESERVATION')}>Cancelar solo la reserva</button>}
+    {allowed('DECLINE_PICKUP_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('DECLINE_PICKUP_RESERVATION')}>No puedo reservar el pedido</button>}
+    {allowed('CONTINUE_WITHOUT_RESERVATION')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('CONTINUE_WITHOUT_RESERVATION')}>Continuar sin reserva</button>}
+    {allowed('OPEN_RESERVATION_WHATSAPP')?<button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.run('OPEN_RESERVATION_WHATSAPP',{purpose:!business&&p?.state==='IN_PROGRESS'&&!r.confirmedAt?'RECEIPT':'CLARIFICATION'})}>{waLabel}</button>:waNotice}
+    {allowed('AUTHORIZE_RESERVATION_CONTACT')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('AUTHORIZE_RESERVATION_CONTACT')}>Permitir contacto para esta reserva</button>}
+    {allowed('REVOKE_RESERVATION_CONTACT')&&p?.state!=='READY'&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('REVOKE_RESERVATION_CONTACT')}>Retirar mi permiso para esta reserva</button>}
+    {allowed('REPORT_RESERVATION_ISSUE')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('REPORT_RESERVATION_ISSUE')}>Registrar una aclaración</button>}
+    {allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')&&<button type="button" className={button} disabled={operation.busy} onClick={()=>open('FINISH_OWN_RESERVATION_FOLLOW_UP')}>Finalizar mi seguimiento</button>}
+    <button type="button" className={button} disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar reserva</button>
+    {operation.error&&<p role="alert" className="text-rose-400">{operation.error}</p>}
+    {dialogs}
   </section>;
 }
