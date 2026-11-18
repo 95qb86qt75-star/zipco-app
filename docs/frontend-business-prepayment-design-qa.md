@@ -58,6 +58,17 @@ Ventanas anidadas medidas hasta cierre funcional de esta segunda entrega:
 15s desde documentación. No sumar esos intervalos; incluyen esperas y trabajo
 solapado. Publicación y verificación se registran tras el despliegue.
 
+Segunda entrega guardada y enviada a origin/qa en
+`d7e2963e05bd6fd1d996204701cb215bf708bc4f` (ls-remote confirma el SHA).
+Vercel todavía sin estado registrado para ese commit al cerrar la revisión.
+Consulta de metadatos del proyecto con credencial existente: HTTP403; no se
+imprimieron secretos ni se cambiaron credenciales/protecciones/configuración.
+No se afirma despliegue fallido ni exitoso, ni disponibilidad del código en el
+alias QA. Último despliegue confirmado anterior:1f8fa0c. Ventana de publicación
+y consulta 211s incluida espera externa; no sumar con las otras fases.
+Verificar Vercel antes de dar esta segunda entrega por publicada en teléfonos.
+Cierre documental local sin otro push. Railway/main/producción intactos.
+
 ## Corrección de ventanas — 2026-11-18
 
 Solo frontend. Finalizar seguimiento y Cancelar retiro seguían abriendo Dialog

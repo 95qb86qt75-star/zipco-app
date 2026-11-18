@@ -11,6 +11,8 @@ ni convierte pruebas sintéticas en aprobación física.
   con render + proyección válida + AWAITING_PAYMENT_AND_HOLD. Cliente y otras
   fases conservan ventanas anteriores. Foco retorna a la fila; cancelar/declinar
   conserva reasonDetail, seguimiento sigue confirmationAccepted sin motivo.
+  Código d7e2963 enviado a origin/qa; publicación Vercel sin confirmar (sin
+  status GitHub y lectura API Vercel403). Último despliegue confirmado1f8fa0c.
   [Integración y publicación](frontend-business-prepayment-design-qa.md).
   [Diagnóstico previo y dependencia pendiente de motivos](frontend-prepayment-aurora-second-delivery-audit-qa.md).
 
