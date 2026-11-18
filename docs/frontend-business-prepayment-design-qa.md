@@ -52,6 +52,14 @@ existente. Ventana de edición/preparación/ejecución276s, incluida ventana de
 pruebas188s, ambas solapadas con documentación; análisis inicial sin cronómetro
 exclusivo. No sumar subfases ni confundir estas duraciones con fluidez de app.
 
+Publicado origin/qa `ca9ee1b7112e08823757db84bf8ed6b7692e0f92`, Vercel success
+verificado para el SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/JBuA6Tj5NUTG5x2mz5i7m5fBfknp
+Ventana de publicación/verificación 62s, incluida espera externa.
+En móvil comprobar QAca9ee1b; Safari/PWA/WhatsApp físicos pendientes. Main
+8295ab8c6024ab20851ebd371308d2f299b4668f y Railway intactos. Cierre documental
+local sin otro push ni despliegue.
+
 ## Ajuste contra referencias visuales del usuario — 2026-11-18
 
 Clasificación solo frontend: ajuste del acabado entregado a las imágenes de

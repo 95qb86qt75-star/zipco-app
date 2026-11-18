@@ -12,6 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   GET sin replay; cliente y otras fases sin cambio visual. Metadatos internos
   de apariencia/foco no son campos API. Validación y publicación en
   [informe canónico](frontend-business-prepayment-design-qa.md).
+  QAca9ee1b publicado, Vercel success exacto;12 pruebas, navegador320/390/430
+  y build QA/PWA aprobados. Prueba física pendiente; Railway sin cambios.
 
 - Ajuste visual posterior de la espera PREPAYMENT negocio: Más opciones compacto,
   sin círculo grande bajo etiquetas de ventanas y con icono pequeño de cancelar.
