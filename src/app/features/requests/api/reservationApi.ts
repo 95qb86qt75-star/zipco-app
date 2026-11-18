@@ -28,7 +28,7 @@ export async function sendReservationAction(p:RequestProcessSummary,orderId:numb
   const raw=action==='OPEN_RESERVATION_WHATSAPP'&&isRecord(value)?value.result:value;
   const next=isRecord(raw)?normalizeRequestProcess(raw.requestProcess):null;
   const expectedStatus=p.state==='CLOSED'?'cancelled':p.state==='READY'?'ready':'accepted';
-  if(!isRecord(raw)||raw.orderId!==orderId||raw.orderStatus!==expectedStatus||!next||next.flowContract!==p.flowContract||next.id!==p.id||next.version!==p.version+1||next.state!==p.state||next.currentProposalId!==p.currentProposalId||next.agreementPublicId!==p.agreementPublicId||next.availability?.availabilityConfirmationId!==p.availability?.availabilityConfirmationId||next.allowedActions.length)
+  if(!isRecord(raw)||raw.orderId!==orderId||raw.orderStatus!==expectedStatus||!next||next.flowContract!==p.flowContract||next.id!==p.id||next.version!==p.version+1||next.state!==p.state||next.currentProposalId!==p.currentProposalId||next.agreementPublicId!==p.agreementPublicId||next.availability?.availabilityConfirmationId!==p.availability?.availabilityConfirmationId||next.allowedActions.some(action=>action!=='DECLARE_PAYMENT_PROOF_SENT'))
     throw new AvailabilityError('No se pudo verificar la respuesta. Reintenta la misma operación.',502);
   const receipt:ReservationReceipt={orderId,orderStatus:expectedStatus,requestProcess:next};
   let navigation:string|null=null;

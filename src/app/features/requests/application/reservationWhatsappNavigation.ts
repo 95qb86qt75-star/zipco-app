@@ -37,6 +37,7 @@ export async function refreshReservationWhatsappReturn(manual=false){
     if(readCoordinationSession()!==captured.session){dismissReservationWhatsappNavigation();return;}
     if(!latest?.requestProcess||latest.id!==captured.orderId||latest.requestProcess.id!==captured.processId||latest.requestProcess.version<captured.minVersion)throw Error('Unverified read');
     window.dispatchEvent(new CustomEvent('zipco-process-receipt',{detail:{orderId:latest.id,orderStatus:latest.status,requestProcess:latest.requestProcess}}));
+    if(captured.receipt&&!captured.business)window.dispatchEvent(new CustomEvent('zipco-reservation-receipt-return',{detail:{orderId:captured.orderId,processId:captured.processId}}));
     window.dispatchEvent(new Event('zipco-requests-refresh'));
     window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business:captured.business,
       view:statusViewFor('orders',latest.status,latest.requestProcess,false,captured.business),explicit:true}}));

@@ -1,3 +1,4 @@
+import {rememberPaymentProofCapability,knownPaymentProofHeaders} from '../domain/customerPaymentProof';
 import {businessClosureHeaders,knownBusinessClosureHeaders} from './businessClosureCapabilities';
 import {rememberPickupPrepaymentCapability} from '../domain/pickupPrepayment';
 import {API_BASE_URL} from '../../../api/apiConfig';
@@ -5,13 +6,14 @@ import {isRecord} from '../domain/orderValueParsers';
 import {customerReceiptHeaders,knownCustomerReceiptHeaders} from '../domain/customerReceiptContract';
 import {LOCAL_PICKUP_INFORMATION_CONTRACT,LOCAL_PICKUP_INFORMATION_HEADERS} from '../domain/localPickupInformation';
 let cache:{token:string;request:Promise<boolean>;supported?:boolean}|undefined;
-export const knownParticipantHeaders=(token:string):Record<string,string>=>({...knownBusinessClosureHeaders(token),...knownCustomerReceiptHeaders(token),...(cache?.token===token&&cache.supported?LOCAL_PICKUP_INFORMATION_HEADERS:{})});
+export const knownParticipantHeaders=(token:string):Record<string,string>=>({...knownPaymentProofHeaders(token),...knownBusinessClosureHeaders(token),...knownCustomerReceiptHeaders(token),...(cache?.token===token&&cache.supported?LOCAL_PICKUP_INFORMATION_HEADERS:{})});
 async function informationHeaders(token:string,probe:boolean){
  if(!probe&&cache?.token!==token)return {};
  if(cache?.token!==token){
   const request=fetch(`${API_BASE_URL}/request-process-capabilities`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store',signal:AbortSignal.timeout(5000)}).then(async r=>{
    if(!r.ok)throw Error('Capability unavailable');const body:unknown=await r.json();
    rememberPickupPrepaymentCapability(token,body);
+   rememberPaymentProofCapability(token,body);
    const cap=isRecord(body)?body.localPickupInformation:null;
    const supported=isRecord(cap)&&cap.contract===LOCAL_PICKUP_INFORMATION_CONTRACT&&cap.enabled===true&&typeof cap.creationEnabled==='boolean';
    if(cache?.request===request)cache.supported=supported;return supported;
@@ -22,5 +24,5 @@ async function informationHeaders(token:string,probe:boolean){
 /** Negotiation only: creationEnabled is never written, and false does not hide already admitted requests. */
 export async function participantHeaders(token:string,probe=false):Promise<Record<string,string>>{
  const [receipt,information,closure]=await Promise.all([customerReceiptHeaders(token,probe),informationHeaders(token,probe),businessClosureHeaders(token,probe)]);
- return {...receipt,...information,...closure};
+ return {...receipt,...information,...closure,...knownPaymentProofHeaders(token)};
 }

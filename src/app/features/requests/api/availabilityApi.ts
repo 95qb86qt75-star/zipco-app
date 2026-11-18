@@ -45,7 +45,7 @@ export async function sendAvailabilityAction(process: RequestProcessSummary, ord
   const expectedStatus = confirming ? 'pending' : continuing ? 'accepted' : revoking ? process.state === 'READY' ? 'ready' : 'accepted' : 'cancelled';
   const closeReason = action === 'DECLINE_REQUEST' ? 'CUSTOMER_DECLINED_CONTINUATION' : action === 'WITHDRAW_AVAILABILITY' ? 'BUSINESS_WITHDREW_AVAILABILITY' : action === 'CANCEL_PICKUP' ? 'PICKUP_CANCELLED' : null;
   if (!isRecord(raw) || raw.orderId !== orderId || raw.orderStatus !== expectedStatus || !p || !availabilityFlow(p) || p.id !== process.id ||
-    p.currentProposalId !== process.currentProposalId || p.version !== process.version + (continuing ? 2 : 1) || p.state !== expectedState || p.allowedActions.length ||
+    p.currentProposalId !== process.currentProposalId || p.version !== process.version + (continuing ? 2 : 1) || p.state !== expectedState || p.allowedActions.some(action=>action!=='DECLARE_PAYMENT_PROOF_SENT') ||
     (continuing ? !p.agreementPublicId : confirming || action === 'DECLINE_REQUEST' || action === 'WITHDRAW_AVAILABILITY' ? p.agreementPublicId !== null : p.agreementPublicId !== process.agreementPublicId) ||
     (confirming ? !p.availability || p.availability.path !== body.fulfillment?.path : p.availability?.availabilityConfirmationId !== process.availability?.availabilityConfirmationId) ||
     (closeReason && (p.closure?.reasonCode !== closeReason || p.closure.actor !== (business ? 'BUSINESS' : 'CUSTOMER'))) ||

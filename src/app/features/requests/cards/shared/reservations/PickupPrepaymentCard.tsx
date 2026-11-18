@@ -1,3 +1,4 @@
+import CustomerPrepaymentView from './CustomerPrepaymentView';
 import * as React from 'react';
 import {Calendar,Check,ChevronDown,ChevronRight,MapPin,Package,User} from 'lucide-react';
 import type {BusinessRequest,MyOrder} from '../../../domain/types';
@@ -225,6 +226,7 @@ export default function PickupPrepaymentCard({order,business,accepted,name,image
   if(!stage)return null;
   const awaitingPayment=stage.phase==='AWAITING_PAYMENT_AND_HOLD';
   // Variante nueva: solo negocio + proyección válida + fase AWAITING_PAYMENT_AND_HOLD. El resto de los casos queda igual que siempre.
+  if(!business&&stage.phase==='AWAITING_PAYMENT_AND_HOLD')return <CustomerPrepaymentView order={order} accepted={accepted} stage={stage} name={name} image={image} isUnread={isUnread} refresh={refresh} expanded={expanded} onToggle={onToggle}/>;
   if(business&&awaitingPayment)return <BusinessPrepaymentView order={order} accepted={accepted} stage={stage} name={name} image={image} isUnread={isUnread} refresh={refresh} expanded={expanded} onToggle={onToggle}/>;
   const businessLabel=awaitingPayment?'Pago y apartado pendientes':'Reserva por revisar';
   const subject=accepted.subjectSnapshot;

@@ -61,7 +61,7 @@ export async function sendProposalAction(processId: number, orderId: number, act
     throw new ProposalError('No se pudo verificar el plan de esta propuesta. Actualiza el pedido sin repetir otra acción.',502);
   if (!isRecord(value) || value.orderId !== orderId || value.orderStatus !== status || !p || p.id !== processId || p.state !== acceptedState ||
     p.version !== body.expectedVersion + (accepts ? 2 : 1) || (accepts ? !p.agreementPublicId : p.agreementPublicId !== null) ||
-    p.allowedActions.length !== 0 ||
+    p.allowedActions.some(action=>action!=='DECLARE_PAYMENT_PROOF_SENT') ||
     (rejects && p.closure?.reasonCode !== (action === 'REJECT_PROPOSAL' ? 'CUSTOMER_REJECTED_PROPOSAL' : 'BUSINESS_REJECTED_COUNTER_PROPOSAL')) ||
     ((accepts || rejects) ? p.currentProposalId !== body.proposalId : p.currentProposalId === body.proposalId))
     throw new ProposalError('No se pudo verificar el recibo. Reintenta la misma operación.', 502);

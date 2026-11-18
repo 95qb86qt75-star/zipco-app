@@ -22,6 +22,13 @@ ReservationPanel expone piezas con render opcional y conserva sus ventanas reale
 `requests/shared/reservations/ReservationReasonChoices.tsx` presenta motivos en el
 reasonDetail existente. Cliente y otras fases conservan su composición vigente.
 
+E214: cliente AWAITING_PAYMENT_AND_HOLD usa `CustomerPrepaymentView.tsx` y
+`customer-pickup-prepayment.css` (Aurora Pro). `useCustomerPaymentProof` posee la
+declaración explícita y recuperación por UUID, separadas de `useReservation` y
+del regreso WhatsApp. `customer-payment-proof-v1` es opt-in por capacidad de sesión;
+el agrupador compartido presenta En espera solo tras declaración canónica.
+La composición del negocio y las demás fases conservan sus propietarios.
+
 E211: la espera de PREPAYMENT se ubica en Por responder cliente / Esperando
 respuesta negocio. El acceso a WhatsApp se prepara en los controladores existentes
 y se presenta mediante `shared/reservations/ReservationWhatsappNavigationHost.tsx`

@@ -1,3 +1,4 @@
+import {paymentProofFor} from './customerPaymentProof';
 import {informationView} from "./localPickupInformation";
 import {pickupPrepaymentFor} from './pickupPrepayment';
 import { receiptPending } from "./customerReceiptContract";
@@ -27,6 +28,9 @@ export function statusViewFor(
       (status === 'rejected' && (isPendingRequestRejected(requestProcess) || isProposalRejected(requestProcess))) ? 'history' : null;
     if (requestProcess?.state === 'COMPLETED' || requestProcess?.state === 'COORDINATION_CANCELLED') return 'history';
     if (receiptPending(requestProcess)) return 'active';
+    const proof=paymentProofFor(requestProcess);
+    const category=requestProcess?.state==='IN_PROGRESS'?proof?.categories?.[business?'business':'customer']:null;
+    if(category)return category==='IN_PROGRESS'?'active':category==='AWAITING_BUSINESS'?'awaiting-business':'waiting';
     const prepayment=pickupPrepaymentFor(requestProcess);
     if(prepayment)return prepayment.phase==='READY_FOR_PREPARATION'?'active':'waiting';
     if (requestProcess?.state === 'IN_PROGRESS') return 'active';

@@ -16,13 +16,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Dependencias frontend ↔ backend abiertas
 
-1. Cliente declara envío de comprobante: respuesta backend recibida2026-11-18,
-   propuesta E214 customer-payment-proof-v1 revisada. Nueva acción propuesta
-   DECLARE_PAYMENT_PROOF_SENT, cuerpo proofSentDeclared:true con versión/reserva;
-   categorías aditivas opt-in, recibo y recuperación por UUID. Solo documentación
-   local backend, sin implementar/probar/publicar. Contrato aún propuesto, pendiente
-   aprobación/implementación QA. Mantener receiptSentAction sin activar. Texto
-   aprobado: «¿Enviaste el comprobante por WhatsApp?».
+1. Cliente declara envío de comprobante: contrato definitivo E214 recibido y leído
+   2026-11-18. Backend publicado Railway QA2a2e5f2 según entrega y verificación
+   documentada (1110 pruebas/5 omitidas). Frontend integrado localmente con acción
+   DECLARE_PAYMENT_PROOF_SENT, proofSentDeclared:true, capacidad/cabecera opt-in,
+   categorías y recuperación GET por UUID. Publicación frontend y validación
+   física/autenticada pendientes. Texto: «¿Enviaste el comprobante por WhatsApp?».
+   [Informe canónico E214](frontend-customer-payment-proof-aurora-qa.md).
 2. Motivos de Finalizar mi seguimiento del negocio: respuesta backend recibida
    2026-11-18, propuesta E215 business-reservation-follow-up-v1 revisada. POST/acción
    existentes; nuevo reasonCode obligatorio para negocio opt-in y reasonDetail solo
@@ -37,11 +37,12 @@ backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo 
 
 ## Continuidad de funcionalidades
 
-- Entrega cliente Aurora Pro recibida, sin integrar: la declaración de envío de
-  comprobante y cliente Por responder → En espera requieren contrato backend.
-  receiptSentAction devuelve null; WhatsApp RECEIPT no declara envío. CLARIFICATION
-  ya contemplado para cliente según permisos. Conservar rutas de aclaración formal
-  y revocación al revisar las opciones que Claude omitió.
+- Cliente Aurora Pro integrado con contrato E214 publicado en backend QA. La
+  declaración explícita lleva Por responder → En espera; WhatsApp RECEIPT y su
+  regreso no declaran envío. CLARIFICATION, aclaración formal y revocación se
+  conservan según permisos. Nueve paridades negocio/otras fases, pruebas de
+  contrato y navegador con HTTP simulado aprobadas; publicación y teléfonos
+  pendientes en el informe canónico. E215 no se considera resuelto por E214.
   [Diagnóstico de contrato](frontend-customer-prepayment-aurora-contract-review-qa.md).
 
 - Aclarar la reserva por WhatsApp adopta Aurora solo desde la tarjeta pendiente
