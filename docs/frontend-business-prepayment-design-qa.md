@@ -1,5 +1,32 @@
 # Negocio: pago y apartado pendientes — diseño Claude
 
+## Publicación recuperada tras captura Android antigua — 2026-11-18
+
+Clasificación solo frontend, diagnóstico/publicación. La captura del usuario
+mostraba QA1f8fa0c y el panel Vercel la misma publicación Ready. No acreditaba
+que Aurora estuviera servido ni un problema específico de Android/CSS.
+origin/qa sí tenía d7e2963, pero no tenía status Vercel. La consulta directa de
+metadatos devolvió403 forbidden; no se conoce la causa del disparo ausente.
+
+Se hizo un solo reintento: enviar el cierre pendiente a078d7c desde qa, con el
+mismo código de aplicación (git diff d7e2963 a078d7c -- src vacío). Sin cambios
+de herramientas, API, credenciales, protección, main ni backend.
+
+Vercel success verificado para `a078d7c0bdfa821426f4ae38e3d43ed730a098a8`:
+https://vercel.com/zipco-s-projects/zipco-app/7UTEPFAjH57uFEKHoNfbakVgWN9w
+
+Lectura pública del alias QA devuelve200 pero sin índices de assets del bundle
+de la app reconocibles por el verificador; por ello no se afirma SHA servido
+verificado en alias ni teléfono. Se confirma despliegue por status exacto de
+Vercel. En teléfono comprobar la etiqueta QAa078d7c al actualizar, sin limpiar
+almacenamiento ni perder intenciones pendientes. Aurora debe mostrar etiqueta
+superior, X e icono; motivo de seguimiento continúa pendiente de backend.
+
+No se repitieron pruebas de aplicación porque src no cambió; se reutilizan las
+10 pruebas, nueve paridades, build y navegador de esta entrega. Reintento y
+verificación medidos 117s, incluyendo esperas externas; diagnóstico sin
+cronómetro exclusivo. Cierre documental local sin nuevo push/despliegue.
+
 ## Segunda entrega Aurora integrada — 2026-11-18
 
 Clasificación solo frontend. Recibidas ahora las cuatro fuentes actualizadas:

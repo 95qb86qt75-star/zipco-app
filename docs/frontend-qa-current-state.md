@@ -11,8 +11,10 @@ ni convierte pruebas sintéticas en aprobación física.
   con render + proyección válida + AWAITING_PAYMENT_AND_HOLD. Cliente y otras
   fases conservan ventanas anteriores. Foco retorna a la fila; cancelar/declinar
   conserva reasonDetail, seguimiento sigue confirmationAccepted sin motivo.
-  Código d7e2963 enviado a origin/qa; publicación Vercel sin confirmar (sin
-  status GitHub y lectura API Vercel403). Último despliegue confirmado1f8fa0c.
+  Código d7e2963 publicado finalmente mediante reintento QAa078d7c, Vercel
+  success del SHA exacto verificado. Sin diferencias src entre ambos commits.
+  Las capturas Android anteriores mostraban1f8fa0c. Validación física de Aurora
+  tras actualizar sigue pendiente; no borrar almacenamiento de operaciones.
   [Integración y publicación](frontend-business-prepayment-design-qa.md).
   [Diagnóstico previo y dependencia pendiente de motivos](frontend-prepayment-aurora-second-delivery-audit-qa.md).
 
