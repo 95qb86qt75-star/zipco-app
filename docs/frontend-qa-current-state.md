@@ -12,6 +12,8 @@ ni convierte pruebas sintéticas en aprobación física.
   Pie conservado al abrir/cerrar. Seguimiento sin motivos ejecutables hasta
   contrato backend; cancelar sí mantiene reasonDetail. Pruebas/publicación en
   [informe canónico](frontend-business-prepayment-design-qa.md).
+  QAb3090f8 publicado; Vercel success exacto verificado.10 pruebas,nueve
+  paridades, navegador320/360/390/430 y build QA/PWA aprobados. Teléfono pendiente.
 
 - Segunda entrega Aurora recibida e integrada para las acciones del negocio
   con render + proyección válida + AWAITING_PAYMENT_AND_HOLD. Cliente y otras

@@ -46,6 +46,13 @@ existente. Ventanas medidas hasta cierre funcional:387s desde inicio de edición
 341s desde preparación/ejecución y42s desde documentación. Son intervalos
 solapados, no sumables; análisis inicial sin cronómetro exclusivo.
 
+Ajuste publicado en origin/qa: `b3090f80de3a5d693875b77907d539053634fcf6`.
+Vercel success verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/3MSkbe9hAdyQVgnoPvLi65KoRRiS
+Publicación/verificación 71s incluida espera externa. En el teléfono
+comprobar QAb3090f8; no se verificó la sesión móvil física. Main conserva
+8295ab8c6024ab20851ebd371308d2f299b4668f. Cierre documental local sin otro push.
+
 ## Publicación recuperada tras captura Android antigua — 2026-11-18
 
 Clasificación solo frontend, diagnóstico/publicación. La captura del usuario
