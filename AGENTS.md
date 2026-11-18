@@ -105,6 +105,37 @@ Puede proceder directamente cuando el cambio sea solamente de:
 
 ## Cambios coordinados con backend
 
+### Regla de cierre completo — acuerdo del usuario, 2026-11-18
+
+Una dependencia de backend no queda resuelta por documentarla, preparar un
+mensaje, recibir una maqueta de Claude o dejar un botón desactivado.
+
+- Identificar y registrar cada dependencia antes de integrar el comportamiento.
+  Preparar el mensaje concreto para backend y entregarlo al usuario, salvo que
+  exista autorización explícita para otro canal. No afirmar que se envió o que
+  backend lo recibió sin evidencia.
+- Esperar y revisar la respuesta de backend. Confirmar contrato, campos, acción,
+  permisos, compatibilidad, persistencia y recuperación. Una respuesta de diseño
+  no equivale a implementación, publicación ni verificación de API.
+- Verificar implementación/pruebas y publicación Railway QA del contrato requerido
+  antes de conectar frontend; después integrar/probar/publicar frontend QA y
+  comprobar el flujo completo. Registrar qué se verificó y qué sigue pendiente.
+- No declarar «listo», «todo OK» ni «flujo completo» mientras quede una dependencia
+  necesaria sin resolver o una verificación requerida pendiente. Se puede informar
+  un avance acotado («diseño integrado; comportamiento pendiente de backend»),
+  distinguiendo con claridad el estado de cada parte.
+- No dar por terminada una entrega de Claude con funciones null, flags apagados,
+  datos simulados o motivos seleccionables que el servidor no guarda. Tampoco
+  ocultar o descartar la selección para aparentar integración completa.
+- Mantener en la memoria vigente una lista de dependencias abiertas y su estado:
+  mensaje preparado/entregado, respuesta recibida, contrato acordado, backend
+  probado/publicado/verificado, frontend integrado/publicado y flujo validado.
+  No cerrar una dependencia por haber terminado otra del mismo diseño.
+
+Esta regla aplica cuando existe una dependencia nueva o no verificada de backend.
+Un cambio exclusivamente visual que conserva un contrato vigente y comprobado
+puede avanzar sin pedir nuevamente una respuesta de backend.
+
 Seguir este orden:
 
 1. Definir el contrato.

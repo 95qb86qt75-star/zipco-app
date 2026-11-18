@@ -110,6 +110,19 @@ integración. Tampoco autoriza por sí sola publicaciones o cambios de backend.
 
 ## Método confirmado por el usuario: integración completa CliU17
 
+### Dependencias backend y cierre de una entrega
+
+Acuerdo2026-11-18: antes de declarar terminada una entrega visual, auditar sus
+botones, datos nuevos, funciones null, flags desactivados y cambios de categoría.
+Si requieren backend, registrar cada dependencia, entregar el mensaje al usuario
+y revisar la respuesta de backend antes de conectar el comportamiento. Seguir la
+regla de cierre completo de AGENTS.md: contrato, implementación/pruebas y Railway
+QA verificados; después integración/publicación frontend y prueba del flujo.
+Una maqueta aprobada, un control visible o un diseño publicado no acreditan que
+la acción guarde datos ni que el flujo esté completo. No decir «listo/todo OK»
+con dependencias necesarias pendientes; describir el avance como parcial.
+No afirmar que se comunicó a backend si solo se dejó anotado localmente.
+
 El usuario confirmó que el diseño de retiro local publicado en QA `604cb93`
 quedó igual al diseño aprobado y pidió aplicar este método a los siguientes
 rediseños de frontend. Consultar este apartado antes de preparar o integrar una

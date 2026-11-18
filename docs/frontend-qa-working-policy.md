@@ -111,6 +111,15 @@ existente, sin imprimir credenciales ni cambiar la protección.
 
 ## Memoria y cierre
 
+Acuerdo del usuario2026-11-18: aplicar la regla de cierre completo de AGENTS.md.
+Las dependencias de backend deben comunicarse y tener respuesta/contrato
+revisados, implementación y publicación QA verificadas; luego frontend debe
+integrarse y probarse antes de declarar el flujo listo. Documentar una necesidad
+o redactar el mensaje no prueba su entrega ni su resolución. Conservar el estado
+de cada dependencia en frontend-qa-current-state.md, sin mezclar pendientes de
+distintas acciones. Las entregas parciales se reportan como parciales.
+No exigir coordinación nueva para cambios solo visuales sobre contratos vigentes.
+
 Mantener [estado actual](frontend-qa-current-state.md) e informes enlazados.
 Conservar notas antiguas como antecedentes con su fecha/versión; no convertir
 una propuesta histórica en API disponible o autorización actual. Registrar

@@ -7,6 +7,36 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Regla de cierre completo acordada2026-11-18: toda dependencia de backend debe
+  comunicarse, tener respuesta/contrato revisados y backend QA probado/publicado/
+  verificado; después frontend integrado/publicado y flujo validado. Registrar
+  evidencia de cada paso, no confundir mensaje preparado con envío confirmado.
+  No declarar listo/todo OK un flujo con dependencias necesarias pendientes.
+  Instrucción permanente en AGENTS.md, política de trabajo y entrega a Claude.
+
+## Dependencias frontend ↔ backend abiertas
+
+1. Cliente declara envío de comprobante: mensaje entregado al usuario; el usuario
+   indica que espera respuesta de backend. Sin respuesta recibida en este chat,
+   contrato nuevo, publicación o integración confirmados. Mantener receiptSentAction
+   sin activar. Texto aprobado: «¿Enviaste el comprobante por WhatsApp?».
+2. Motivos de Finalizar mi seguimiento del negocio: mensaje preparado y entregado
+   al usuario; envío/recepción por backend no confirmados. Contrato consultado solo
+   admite confirmationAccepted:true. Motivos sin implementar/persistir. No cerrar
+   este pendiente al resolver la declaración del cliente.
+
+Estado: mensaje preparado/entregado ≠ respuesta recibida ≠ contrato acordado ≠
+backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo validado.
+
+## Continuidad de funcionalidades
+
+- Entrega cliente Aurora Pro recibida, sin integrar: la declaración de envío de
+  comprobante y cliente Por responder → En espera requieren contrato backend.
+  receiptSentAction devuelve null; WhatsApp RECEIPT no declara envío. CLARIFICATION
+  ya contemplado para cliente según permisos. Conservar rutas de aclaración formal
+  y revocación al revisar las opciones que Claude omitió.
+  [Diagnóstico de contrato](frontend-customer-prepayment-aurora-contract-review-qa.md).
+
 - Aclarar la reserva por WhatsApp adopta Aurora solo desde la tarjeta pendiente
   del negocio. Host compartido conserva enlace HTTPS en otra pestaña y regreso
   GET sin replay; cliente y otras fases sin cambio visual. Metadatos internos
