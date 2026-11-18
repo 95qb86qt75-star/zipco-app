@@ -12,13 +12,17 @@ ni convierte pruebas sintéticas en aprobación física.
   visible. Solo LOCAL_PICKUP + AWAITING_PAYMENT_AND_HOLD; cliente y otras fases
   conservados. Motivos de cancelación usan reasonDetail vigente; motivo para
   finalizar seguimiento requiere contrato separado y no se implementó.
+  QA6186fa5, Vercel success verificado;61 pruebas, nueve paridades HTML y build
+  QA/PWA aprobados. Navegador320/360/390/430 con HTTP simulado; móvil físico
+  y flujo autenticado pendientes. No requiere modificación de Railway.
   [Fuentes, validación y estado de publicación](frontend-business-prepayment-design-qa.md).
 
 - E211 sustituye categoría cliente E209: PREPAYMENT no preparable queda en Por
   responder cliente y Esperando respuesta negocio; enums backend sin cambios,
   otras contrapropuestas siguen En espera. Navegación de reservas ofrece enlace
   nativo Abrir WhatsApp separado, conserva documento ZIPCO y consulta GET al volver,
-  sin repetir aceptación/reserva/apertura. Rediseño Claude aún pendiente.
+  sin repetir aceptación/reserva/apertura. Rediseño del negocio pendiente de pago
+  integrado en QA6186fa5, según el informe anterior.
   QA43bffa4, Vercel success verificado;175 pruebas y build QA/PWA aprobados.
   Navegador320/390/430 con HTTP y destino simulados. Safari/WhatsApp físico y
   flujo autenticado pendientes. [Fuentes, pruebas y límites físicos](frontend-prepayment-customer-tab-whatsapp-return-qa.md).

@@ -124,6 +124,15 @@ No son mediciones de FPS ni se atribuye rendimiento de app al tiempo de desarrol
 Estado de commit/publicación y pruebas adicionales se registra al cierre.
 Main y producción no modificados.
 
+Publicado en origin/qa: `6186fa5155b635a506cbbfccd9a5c97dfa1c7777`.
+Vercel success verificado para ese SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/3TYXoMqR3mGo2nEHr5uuAip6iJkN
+App QA: https://zipco-app-git-qa-zipco-s-projects.vercel.app
+Main conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`. Railway no modificado.
+No tsc/lint independiente disponible, sin afirmarlo aprobado. Cierre documental
+local sin otro push/despliegue. Datos reales y teléfonos pendientes.
+Ventana de publicación/verificación: 82 s, incluye espera externa.
+
 Ventana medida hasta cierre funcional: 2.045 s desde análisis, 1.746 s desde
 implementación, 1.430 s desde preparación/ejecución y 123 s desde documentación.
 Son intervalos anidados y solapados, no sumables; incluyen esperas de navegador
