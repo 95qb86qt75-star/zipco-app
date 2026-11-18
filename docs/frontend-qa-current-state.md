@@ -11,6 +11,7 @@ ni convierte pruebas sintéticas en aprobación física.
   Corrección posterior: ventanas de seguimiento y cancelación adoptan el mismo
   tema blanco también en portales y modo oscuro. Contratos y pago sin cambios;
   10 pruebas, nueve paridades, navegador320/390/430 y build QA aprobados.
+  Corrección QA1f8fa0c publicada, Vercel success del SHA exacto verificado.
   tarjeta blanca, detalle/opciones superiores, confirmación real y recuperación
   visible. Solo LOCAL_PICKUP + AWAITING_PAYMENT_AND_HOLD; cliente y otras fases
   conservados. Motivos de cancelación usan reasonDetail vigente; motivo para

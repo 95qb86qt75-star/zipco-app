@@ -30,6 +30,13 @@ Se reutilizó el arnés anterior, repitiendo solo estas ventanas y compatibilida
 afectada. Análisis/edición/preparación/ejecución solapados sin cronómetro exclusivo;
 duración de tests y build separadas arriba. Publicación se registra al cierre.
 
+Corrección publicada en origin/qa: `1f8fa0c203360115734067aa77d09162da4106c0`,
+Vercel success verificado para ese SHA:
+https://vercel.com/zipco-s-projects/zipco-app/8FRpoUqdWwm6fDkz9k8YMFTLVUGg
+Ventana total medida 228 s; publicación/verificación 62 s incluida en
+ella. No sumar el total con subfases ni atribuirlo a rendimiento de la app.
+Cierre documental local sin otro despliegue. Main y producción intactos.
+
 Fecha: 2026-11-18. Clasificación: solo frontend QA, presentación e interacción
 local sobre el contrato E209/E211 publicado. No cambia estados ni permisos.
 
