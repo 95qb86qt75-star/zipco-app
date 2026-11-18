@@ -1,5 +1,63 @@
 # Negocio: pago y apartado pendientes — diseño Claude
 
+## Segunda entrega Aurora integrada — 2026-11-18
+
+Clasificación solo frontend. Recibidas ahora las cuatro fuentes actualizadas:
+ReservationPanel.tsx, AvailabilityPostActionsView.tsx, ReservationReasonChoices.tsx
+y pickup-prepayment.css. Sustituyen el acabado blanco provisional por el Aurora
+aprobado CliV13: degradado verde/lila, etiqueta, cerrar44px, icono circular,
+contenido centrado y pie primario/Volver48px con scroll interno y fade0,22s.
+PickupPrepaymentCard.tsx no cambia; tampoco PaymentConfirmationSheet.
+
+Alcance estricto: business + render + pickupPrepaymentFor válido +
+AWAITING_PAYMENT_AND_HOLD. No habilita WhatsApp como modalidad ni cambia
+estados, categorías, permisos o contratos. Motivos de cancelación/declinación
+siguen por reasonDetail existente; seguimiento solo confirmationAccepted:true.
+No hay flag ni motivos de seguimiento ejecutables. Tone ok queda como capacidad
+de presentación opcional, sin activar flujo de backend.
+
+Integración adicional necesaria: mover openerRef antes de las salidas
+condicionales para conservar el orden de hooks. La prueba existente llamaba a
+AvailabilityPostActionsView como función: se corrigió para montarla mediante
+React SSR, porque ahora posee useRef real. No es un mock del hook.
+
+Validación por vistas compartidas y navegación cambiadas:
+- 10 pruebas AvailabilityPostActionsView aprobadas,1,30s.
+- Nueve casos de HTML clásico idénticos al original mediante SSR.
+- Build QA/PWA aprobado, Vite16,14s; advertencia de chunks>500k preexistente.
+  No hay tsc/lint independiente configurado/disponible; no se afirma ejecutado.
+- RequestsScreen/controladores/ventanas reales en Chromium, API simulada y
+  toques por coordenadas: seguimiento y cancelar retiro a320/390/430; cancelar
+  solo reserva, declinar y permitir contacto también a390 cuando permitidos por
+  la respuesta simulada. No se amplían permisos reales.
+- Sin desborde ni recortes: radios nativos, selección única, teclado, bloqueo
+  hasta elegir, cierre44px y CTA48px; centro real mediante Tailwind, Outfit real.
+- Volver/X/Escape no hacen POST, mantienen opciones abiertas y devuelven foco a
+  la fila disparadora. Fallo503 visible, todos los botones/X bloqueados mientras
+  busy y Escape no cierra durante envío. Error también visible fuera del panel.
+- Modo oscuro390 mantiene Aurora; reducir movimiento desactiva fade. Ventana de
+  confirmación de pago conserva su composición original.
+- Ventanas abiertas de seguimiento del cliente pendiente y negocio en
+  NEEDS_CLARIFICATION verificadas como zipco-action-dialog, sin Aurora.
+  Selección visual única comprobada tras la transición de180ms.
+
+Scripts aurora-actions-browser.mjs y aurora-legacy-browser.mjs y capturas
+aurora-* ignorados en node_modules/.cache/business-closure/. Un error inicial al
+recortar el módulo del arnés se corrigió en el fixture antes de ejecutar; no fue
+un fallo del producto. La transición de selección se captura tras finalizarla.
+No se enviaron pagos/pedidos/mensajes reales. Quedan pendientes teléfonos,
+backend autenticado y evaluación táctil física. No fue necesario cambiar Railway.
+Los endpoints/campos existentes se enumeran en Datos y acciones conservados.
+
+Análisis, edición, reparación/preparación y ejecución solapados sin cronómetro
+exclusivo. Se mide aparte build y test arriba; ventanas y publicación al cierre.
+Main y producción no modificados.
+
+Ventanas anidadas medidas hasta cierre funcional de esta segunda entrega:
+315s desde análisis,300s desde implementación,214s desde preparación/ejecución,
+15s desde documentación. No sumar esos intervalos; incluyen esperas y trabajo
+solapado. Publicación y verificación se registran tras el despliegue.
+
 ## Corrección de ventanas — 2026-11-18
 
 Solo frontend. Finalizar seguimiento y Cancelar retiro seguían abriendo Dialog

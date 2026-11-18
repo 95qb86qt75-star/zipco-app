@@ -35,7 +35,7 @@ function capture(input) {
     parts = value;
     return /* @__PURE__ */ React.createElement("div", { "data-custom": true });
   });
-  const output = AvailabilityPostActionsView({ model: input, render: callback });
+  const output = html(React.createElement(AvailabilityPostActionsView, { model: input, render: callback }));
   return { parts, callback, output };
 }
 describe("availability presentation compatibility and pickup slots", () => {

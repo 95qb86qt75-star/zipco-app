@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- Segunda entrega Aurora recibida e integrada para las acciones del negocio
+  con render + proyección válida + AWAITING_PAYMENT_AND_HOLD. Cliente y otras
+  fases conservan ventanas anteriores. Foco retorna a la fila; cancelar/declinar
+  conserva reasonDetail, seguimiento sigue confirmationAccepted sin motivo.
+  [Integración y publicación](frontend-business-prepayment-design-qa.md).
+  [Diagnóstico previo y dependencia pendiente de motivos](frontend-prepayment-aurora-second-delivery-audit-qa.md).
+
 - Rediseño de pago/apartado pendiente del negocio integrado sobre E209/E211:
   Corrección posterior: ventanas de seguimiento y cancelación adoptan el mismo
   tema blanco también en portales y modo oscuro. Contratos y pago sin cambios;
