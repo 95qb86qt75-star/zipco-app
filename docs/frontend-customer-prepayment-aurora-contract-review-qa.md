@@ -1,5 +1,40 @@
 # Cliente Aurora Pro: revisión de dependencia de backend
 
+## Respuestas backend recibidas — 2026-11-18
+
+Revisadas las dos propuestas locales de docs/testing en backend:
+- customer-payment-proof-declaration-contract-proposal-qa.md(E214).
+- business-reservation-follow-up-reason-contract-proposal-qa.md(E215), separado.
+
+Todavía son documentos: no implementación, pruebas, commit/push ni publicación.
+La recepción de estos documentos resuelve la falta de respuesta, no implementa
+las dependencias ni autoriza a declarar disponible el recorrido.
+
+E214 propone capacidad customerPaymentProof/contrato customer-payment-proof-v1,
+acción DECLARE_PAYMENT_PROOF_SENT y POST declare-payment-proof-sent. Cuerpo
+expectedVersion/reservationId/proofSentDeclared:true; el placeholder de Claude
+con confirmationAccepted:true deberá adaptarse. Lectura aditiva opt-in separada
+del parser estricto E209, categorías antes/después y GET payment-proof-result
+para recuperación por UUID original; aviso al negocio por outbox. No certifica
+transferencia ni apartado, no exige apertura previa de WhatsApp ni bloquea una
+confirmación válida del negocio porque falte la declaración cliente.
+
+E215 propone capacidad businessReservationFollowUpReasons/contrato
+business-reservation-follow-up-v1, POST/acción actuales y cabecera opt-in.
+Negocio nuevo envía confirmationAccepted:true, reasonCode y reasonDetail solo
+si OTHER(3–1000). No enviar una etiqueta libre como sustituto del código.
+Motivo privado en evento propio, visible solo al negocio, sin aviso/entrega/
+pago/cierre bilateral. Primer motivo no reemplazable, legacy sin motivo respetado,
+recibos antiguos recuperables y GET business-follow-up-result propuesto.
+El bloqueo de seguimiento tras ciertos cierres globales continúa separado.
+
+Siguiente etapa: usuario acuerda/reenvía autorización del alcance backend,
+implementación y pruebas por separado, publicación Railway QA con commit/estado
+verificados y contrato definitivo. Luego adaptar los dos frentes, publicar y
+validar flujo completo. No activar las funciones null de Claude ni copiar sus
+payloads de prueba como si fueran definitivos. No cambios funcionales frontend
+en esta revisión, ni llamadas de mutación, pruebas/build o despliegues nuevos.
+
 2026-11-18. Clasificación: frontend + backend para declarar envío del comprobante
 y modificar categoría del cliente. El rediseño sin esa función es solo frontend.
 No se integran ni activan todavía las fuentes entregadas hasta acordar alcance

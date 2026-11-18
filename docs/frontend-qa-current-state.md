@@ -16,14 +16,21 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Dependencias frontend ↔ backend abiertas
 
-1. Cliente declara envío de comprobante: mensaje entregado al usuario; el usuario
-   indica que espera respuesta de backend. Sin respuesta recibida en este chat,
-   contrato nuevo, publicación o integración confirmados. Mantener receiptSentAction
-   sin activar. Texto aprobado: «¿Enviaste el comprobante por WhatsApp?».
-2. Motivos de Finalizar mi seguimiento del negocio: mensaje preparado y entregado
-   al usuario; envío/recepción por backend no confirmados. Contrato consultado solo
-   admite confirmationAccepted:true. Motivos sin implementar/persistir. No cerrar
-   este pendiente al resolver la declaración del cliente.
+1. Cliente declara envío de comprobante: respuesta backend recibida2026-11-18,
+   propuesta E214 customer-payment-proof-v1 revisada. Nueva acción propuesta
+   DECLARE_PAYMENT_PROOF_SENT, cuerpo proofSentDeclared:true con versión/reserva;
+   categorías aditivas opt-in, recibo y recuperación por UUID. Solo documentación
+   local backend, sin implementar/probar/publicar. Contrato aún propuesto, pendiente
+   aprobación/implementación QA. Mantener receiptSentAction sin activar. Texto
+   aprobado: «¿Enviaste el comprobante por WhatsApp?».
+2. Motivos de Finalizar mi seguimiento del negocio: respuesta backend recibida
+   2026-11-18, propuesta E215 business-reservation-follow-up-v1 revisada. POST/acción
+   existentes; nuevo reasonCode obligatorio para negocio opt-in y reasonDetail solo
+   OTHER, motivo privado, primer motivo inmutable y sin aviso al cliente. Solo
+   documentación local backend; pendiente aprobación/implementación/pruebas/
+   publicación QA. Contrato vigente sigue confirmationAccepted:true, sin motivos.
+   No cerrar este pendiente al resolver E214. Incompatibilidad tras ciertos cierres
+   globales permanece separada, no resuelta por E215.
 
 Estado: mensaje preparado/entregado ≠ respuesta recibida ≠ contrato acordado ≠
 backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo validado.
