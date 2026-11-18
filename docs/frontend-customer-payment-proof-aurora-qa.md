@@ -82,7 +82,8 @@ Finalizar seguimiento conserva `confirmationAccepted:true`, sin motivos.
   HTTP simulado: 320/390/430, detalle, declaración exacta, guardado bloqueado,
   categoría actual y recuperación por UUID sin segundo POST. Regreso desde
   enlace nativo a destino simulado, pregunta sin envío, «No» abre opciones,
-  ventanas de seguimiento y cancelación cliente. Evidencia local ignorada en
+  ventanas de seguimiento y cancelación cliente; movimiento reducido y texto
+  legible en modo oscuro de la aplicación. Evidencia local ignorada en
   `node_modules/.cache/e214-browser/`.
 - Build QA/Vite y PWA aprobados; advertencia existente de chunk >500 kB.
   No se ejecutaron `tsc` o lint independientes: este workspace no dispone de
@@ -97,9 +98,14 @@ se corrigió el fixture, sin cambiar el flujo para satisfacer la prueba.
 
 ## Publicación y pendientes
 
-Frontend QA: pendiente de commit/publicación/verificación del SHA exacto al escribir
-este informe. Main `8295ab8c6024ab20851ebd371308d2f299b4668f` y producción intactos.
-Railway no se modifica desde frontend.
+Frontend publicado en origin/qa:
+`ca153f469c703e322ff3fb012836c6296d4f68ca`. GitHub combined status del SHA exacto
+devolvió Vercel **success**:
+https://vercel.com/zipco-s-projects/zipco-app/H1s166CzmoUXG8WR7jaYy3e5SGnK.
+Alias QA: https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+No se acredita inspección autenticada del bundle desde el teléfono con ese status.
+Main `8295ab8c6024ab20851ebd371308d2f299b4668f` y producción intactos; Railway no se
+modifica desde frontend. Los directorios ajenos no versionados quedaron intactos.
 
 Pendiente de validación física/autenticada: capacidad en Railway, iPhone y Android,
 WhatsApp real, envío manual del comprobante, declaración cliente y confirmación
@@ -113,4 +119,7 @@ fixtures y ejecuciones se intercalaron; no hay cronómetro exclusivo por activid
 para repartir esos minutos sin inventarlos. Análisis anterior sin medición propia.
 Vitest registró 0,812 s, 0,924 s y 1,01 s en sus tres ejecuciones. Vite final
 registró 8,18 s; PWA posterior sin timer separado. No sumar fases solapadas como
-si fueran exclusivas. Publicación/verificación se registrarán al finalizar.
+si fueran exclusivas. Push observado a las23:55:48 UTC; Vercel pasó de pending a
+success en la consulta posterior, antes del cierre. No hay timer de duración
+exclusiva del despliegue; no se inventa uno. El cierre documental local no hace
+push ni provoca otro despliegue.
