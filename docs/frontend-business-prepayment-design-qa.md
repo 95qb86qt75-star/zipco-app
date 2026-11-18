@@ -1,5 +1,35 @@
 # Negocio: pago y apartado pendientes — diseño Claude
 
+## Corrección de ventanas — 2026-11-18
+
+Solo frontend. Finalizar seguimiento y Cancelar retiro seguían abriendo Dialog
+genéricos; la entrega de Claude también conservaba ese markup, sin diseño propio
+para el contenedor portal. Las clases de la tarjeta no llegan a ese contenedor,
+que se monta fuera de ella. Se aplicó el mismo ámbito visual en Dialog.Content
+únicamente para la composición render del negocio y para su cancelación de retiro.
+Las variantes tradicionales mantienen clases/markup. No cambió ningún payload,
+endpoint, permiso, validación ni texto contractual; seguimiento no recibe motivo.
+
+Fuentes corregidas: ReservationPanel.tsx, AvailabilityPostActionsView.tsx y
+pickup-prepayment.css (rutas en el apartado de fuentes). Contenedor blanco,
+botones de 46px, footer accesible y colores explícitos que no heredan el tema
+oscuro genérico. El transform de centrado no se anima. La ventana de pago real
+permanece intacta.
+
+Validación adicional por modificación de estos contenedores compartidos:
+10 pruebas de AvailabilityPostActionsView aprobadas (3,72s), nueve paridades HTML
+idénticas y build QA/PWA aprobado (Vite19,81s). Chromium con HTTP simulado y
+coordenadas físicas: ambas ventanas a320/390/430, sin desborde, dentro de viewport,
+foco dentro de ventana, motivos habilitan confirmar, Volver no hace POST. Modo
+oscuro390 mantiene texto/fondo correctos; confirmación de pago sin clase nueva.
+Capturas ignoradas prepayment-followup-dialog-fixed.png y
+prepayment-cancel-dialog-fixed.png en node_modules/.cache/business-closure/.
+Pendiente teléfono físico. No requiere Railway ni cambios de contrato.
+
+Se reutilizó el arnés anterior, repitiendo solo estas ventanas y compatibilidad
+afectada. Análisis/edición/preparación/ejecución solapados sin cronómetro exclusivo;
+duración de tests y build separadas arriba. Publicación se registra al cierre.
+
 Fecha: 2026-11-18. Clasificación: solo frontend QA, presentación e interacción
 local sobre el contrato E209/E211 publicado. No cambia estados ni permisos.
 
