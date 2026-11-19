@@ -102,7 +102,12 @@ el reloj de Railway. No declarar validado el flujo físico con estas pruebas.
 
 ## Publicación y medición
 
-Frontend: pendiente de commit/publicación/verificación al escribir este informe.
+Frontend origin/qa publicado:8f6a1edea8a9a48ede447e8235ff0ec45ec7ff49. GitHub
+combined status del SHA exacto devuelve Vercel success:
+https://vercel.com/zipco-s-projects/zipco-app/2t2tF8bnDSi2q61TkLqZboF8DKop.
+Alias QA: https://zipco-app-git-qa-zipco-s-projects.vercel.app.
+Para la prueba física comprobar QA8f6a1ed en pantalla. El status del despliegue
+no acredita la sesión autenticada ni el bundle que ya tiene abierto el teléfono.
 Backend existente739c5a4, sin intervención adicional desde frontend. Main
 8295ab8c6024ab20851ebd371308d2f299b4668f y producción intactos; archivos ajenos
 no versionados preservados.
@@ -111,4 +116,7 @@ Primer reloj registrado01:18:42UTC. Análisis/implementación/preparación/prueb
 se intercalaron; hubo petición del usuario de continuar tras límite, sin timer
 exclusivo de esa espera. No repartir ni sumar minutos solapados como exclusivos.
 Vitest final2,98s; Vite final11,46s, PWA sin timer propio. Inicio de revisión/
-documentación final registrado01:40:42UTC. Publicación se registra al cierre.
+documentación final registrado01:40:42UTC. Push completado antes del reloj
+01:43:24UTC; consulta posterior verificó success. Sin timer exclusivo de espera
+de Vercel. Cierre documental local sin push/redeploy; no sumar ese intervalo a
+ejecuciones que ya están incluidas ni inventar tiempo de la interrupción.
