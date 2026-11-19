@@ -214,7 +214,8 @@ export function ProcessOrderCardContent({ order, business = false, isUpdating, o
     className={`zipco-aurora-card scroll-mb-36 rounded-[24px] p-4${businessCounter ? ' zipco-aurora-card--bz' : ''}${customerCounter ? ' zipco-aurora-card--wt' : ''}`}>
     <AuroraProposalHeader name={name} image={image} price={price} statusLabel={stateLabel} isUnread={isUnread}
       priceLabel={awaiting ? 'Solicitado' : customerCounter ? 'Tu contrapropuesta' : negotiating ? 'Propuesto' : 'Acordado'} summaryText={summary}
-      items={headerProducts.state === 'available' ? headerProducts.items : undefined} variant={businessCounter ? 'counter' : customerCounter ? 'waiting' : undefined} />
+      items={headerProducts.state === 'available' ? headerProducts.items : undefined} variant={businessCounter ? 'counter' : customerCounter ? 'waiting' : undefined}
+      detail={businessCounter ? { schedule: formatDeliverySchedule(order, 'business'), note: order.note, reference: order.referencePhoto && safePhoto(order.referencePhoto) ? <OrderReferencePhoto src={order.referencePhoto} business={business} /> : null, expanded: isExpanded, onToggle: toggle } : undefined} />
     {schedule && <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
       {order.needNow ? <Zap className="h-3.5 w-3.5 shrink-0" /> : <Calendar className="h-3.5 w-3.5 shrink-0" />}{schedule}
     </p>}

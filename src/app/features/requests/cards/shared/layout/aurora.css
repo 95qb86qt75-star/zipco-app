@@ -105,44 +105,109 @@
   .zipco-aurora-card.zipco-notification-target { animation: none; }
 }
 
-/* ===== Variante «contrapropuesta por responder» (solo tarjeta del negocio) =====
+/* ===== Variante «contrapropuesta por responder» (solo tarjeta del negocio) · Aurora Pro, variante A «Pulso» =====
    Todo cuelga de .zipco-aurora-card--bz / .zipco-aurora-bz-*: sin la variante, la tarjeta Aurora y el botón compartido quedan idénticos.
-   Sin bucles de blur, sombras ni fondos: los gestos de atención se limitan a 2 ciclos y «reducir movimiento» los apaga. */
-.zipco-aurora-card.zipco-aurora-card--bz { padding: 12px; }
-.zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after { animation: none; }
+   Sin bucles de blur, sombras ni fondos: los gestos de atención se limitan a 2–3 ciclos y «reducir movimiento» los apaga. Ningún contenido parte de opacidad 0. */
+@keyframes zipco-aurora-bz-drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-14px, 10px) scale(1.08); } }
+@keyframes zipco-aurora-bz-ring { 0% { transform: scale(.8); opacity: .75; } 100% { transform: scale(1.55); opacity: 0; } }
+@keyframes zipco-aurora-bz-bell { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-14deg); } 40% { transform: rotate(12deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(5deg); } }
+@keyframes zipco-aurora-bz-dot { 0%, 100% { box-shadow: 0 0 0 3px rgba(16, 185, 129, .28); } 50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); } }
+.zipco-aurora-card.zipco-aurora-card--bz { padding: 12px; color: #0f172a; font-family: 'Zipco Proposal Outfit', Outfit, system-ui, sans-serif; background: #fff; overflow: clip;
+  box-shadow: 0 0 0 1px #a7f3d0, 0 16px 34px rgba(15, 23, 42, .09), 0 4px 12px rgba(16, 185, 129, .12); }
+.zipco-aurora-card--bz * { box-sizing: border-box; }
+/* luces suaves de fondo (finitas, sin blur): detrás del contenido */
+.zipco-aurora-card.zipco-aurora-card--bz::before { right: -62px; top: -72px; left: auto; bottom: auto; width: 230px; height: 230px; filter: none;
+  background: radial-gradient(closest-side, #d1fae5, rgba(209, 250, 229, 0)); animation: zipco-aurora-bz-drift 9s ease-in-out 2; }
+.zipco-aurora-card.zipco-aurora-card--bz::after { left: -72px; bottom: -84px; right: auto; top: auto; width: 240px; height: 240px; filter: none;
+  background: radial-gradient(closest-side, #cffafe, rgba(207, 250, 254, 0)); animation: zipco-aurora-bz-drift 11s ease-in-out 2 reverse; }
 .zipco-aurora-card--bz .zipco-aurora-price { text-shadow: none; }
-.zipco-aurora-bz-eb { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 9.5px; font-weight: 800; line-height: 1.2; letter-spacing: .13em; text-transform: uppercase; color: #ddd6fe;
-  background: rgba(167, 139, 250, .14); box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .45); }
-.zipco-aurora-bz-eb .zipco-aurora-dot { animation: zipco-aurora-ping 1.9s ease-out 2; }
-.zipco-aurora-bz-id { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
-.zipco-aurora-bz-who { display: block; font-size: 9px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #a5b4fc; }
-.zipco-aurora-bz-name { margin: 1px 0 0; font-size: 16px; line-height: 1.2; font-weight: 800; color: #fff; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.zipco-aurora-bz-price { margin: 0; font-size: clamp(20px, 5.6vw, 22px); line-height: 1; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
-.zipco-aurora-bz-pl { margin: 3px 0 0; font-size: 8.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #c4b5fd; }
-.zipco-aurora-bz-note { display: flex; align-items: center; gap: 11px; margin-top: 10px; padding: 10px 12px; border-radius: 16px; background: rgba(167, 139, 250, .12);
-  box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .38); animation: zipco-aurora-bz-rise .4s cubic-bezier(.2, .8, .2, 1) both; }
-.zipco-aurora-bz-ic { display: grid; flex: none; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: #fff;
-  background: linear-gradient(145deg, #8b5cf6, #4f46e5); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .3); }
-.zipco-aurora-bz-ic svg { display: block; width: 19px; height: 19px; }
-.zipco-aurora-bz-note p { min-width: 0; margin: 0; font-size: 12px; line-height: 1.35; color: #cbd5e1; }
-.zipco-aurora-bz-note b { display: block; margin-bottom: 2px; font-size: 14.5px; line-height: 1.25; font-weight: 800; color: #fff; }
-.zipco-aurora-bz-note mark { padding: 1px 7px; border-radius: 7px; background: rgba(45, 212, 191, .18); box-shadow: inset 0 0 0 1px rgba(94, 234, 212, .45); color: #5eead4; font-weight: 800; }
+.zipco-aurora-bz-pa { display: flex; align-items: center; gap: 11px; }
+/* radar de respuesta pendiente alrededor de la miniatura real */
+.zipco-aurora-bz-radar { position: relative; flex: none; width: 70px; height: 70px; display: grid; place-items: center; }
+.zipco-aurora-bz-radar::before { content: ""; position: absolute; inset: 2px; border-radius: 24px; background: conic-gradient(from 20deg, #d1fae5, #a5f3fc, #a7f3d0, #d1fae5); box-shadow: 0 8px 20px rgba(16, 185, 129, .22); }
+.zipco-aurora-bz-radar u { position: absolute; inset: 4px; border-radius: 24px; border: 2px solid #2dd4bf; opacity: 0; text-decoration: none; pointer-events: none; animation: zipco-aurora-bz-ring 3s ease-out 3; }
+.zipco-aurora-bz-radar u:nth-child(2) { animation-delay: 1s; } .zipco-aurora-bz-radar u:nth-child(3) { animation-delay: 2s; }
+.zipco-aurora-bz-th { position: relative; z-index: 1; flex: none; display: flex; width: 50px; height: 50px; }
+.zipco-aurora-bz-th .zipco-aurora-avatar { width: 50px; height: 50px; border-radius: 16px; color: #fff; background: linear-gradient(145deg, #fb7185, #fbbf24); box-shadow: 0 0 0 3px #fff, 0 4px 10px rgba(16, 185, 129, .3); }
+.zipco-aurora-bz-th .zipco-product-preview, .zipco-aurora-bz-th .zipco-product-neutral { width: 50px; height: 50px; border-radius: 16px; display: flex; }
+.zipco-aurora-bz-th .zipco-product-thumbs { width: 50px; max-width: 50px; padding: 0; overflow: visible; }
+.zipco-aurora-bz-th .zipco-product-thumb { width: 50px; height: 50px; border-radius: 16px; border: 0; box-shadow: 0 0 0 3px #fff, 0 4px 10px rgba(16, 185, 129, .3); overflow: hidden; }
+.zipco-aurora-bz-th .zipco-product-thumb > img, .zipco-aurora-bz-th .zipco-product-image-fallback { border-radius: 16px; }
+.zipco-aurora-bz-th .zipco-product-neutral, .zipco-aurora-bz-th .zipco-product-image-fallback { background: linear-gradient(145deg, #fb7185, #fbbf24); color: #fff; border: 0; }
+.zipco-aurora-bz-th .zipco-product-thumb:not(:first-child) { display: none; }
+.zipco-aurora-bz-th .zipco-product-thumb { overflow: visible; }
+.zipco-aurora-bz-th .zipco-product-quantity { display: block; left: -5px; right: auto; bottom: -4px; background: #0f172a; color: #fff; box-shadow: 0 0 0 2px #fff; }
+.zipco-aurora-bz-q { position: absolute; left: -6px; bottom: -4px; z-index: 2; padding: 1px 5px; border-radius: 7px; background: #0f172a; color: #fff; font-size: 9.5px; font-weight: 800; font-style: normal; line-height: 1.3; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
+.zipco-aurora-bz-badge { position: absolute; z-index: 2; right: -1px; bottom: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: #fff; pointer-events: none;
+  background: linear-gradient(145deg, #2dd4bf, #0d9488); box-shadow: 0 0 0 2.5px #fff, 0 4px 10px rgba(13, 148, 136, .4); }
+.zipco-aurora-bz-badge svg { animation: zipco-aurora-bz-bell 1.6s ease-in-out 2; }
+.zipco-aurora-bz-t { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.zipco-aurora-bz-who { display: block; font-size: 8.5px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; color: #0f766e; }
+.zipco-aurora-bz-name { margin: 1px 0 0; font-size: 16.5px; line-height: 1.15; font-weight: 800; letter-spacing: -.03em; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  background: linear-gradient(100deg, #0f172a, #047857 55%, #0d9488); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.zipco-aurora-bz-eb { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; margin-top: 5px; padding: 4px 10px 4px 8px; border-radius: 999px; font-size: 10px; font-weight: 900; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; color: #047857;
+  background: linear-gradient(135deg, #ecfdf5, #ecfeff); box-shadow: inset 0 0 0 1.5px #6ee7b7, 0 4px 14px rgba(16, 185, 129, .18); }
+.zipco-aurora-bz-eb .zipco-aurora-dot { width: 9px; height: 9px; border-radius: 50%; background: #10b981; animation: zipco-aurora-bz-dot 1.9s ease-in-out 3; }
+.zipco-aurora-bz-pr { flex: none; max-width: 38%; align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; text-align: right; }
+.zipco-aurora-bz-price { margin: 0; font-size: 20px; line-height: 1; font-weight: 900; color: #0f172a; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.zipco-aurora-bz-pl { margin: 4px 0 0; font-size: 8.5px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: #5b6b80; }
+/* botón de detalle: 44 px, bajo el monto (no agranda la tarjeta plegada) */
+.zipco-aurora-bz-cb { margin-top: auto; margin-right: -6px; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: #f0fdfa; color: #0f766e; box-shadow: inset 0 0 0 1px #99f6e4; cursor: pointer; transition: background .2s; }
+.zipco-aurora-bz-cb:focus-visible { outline: 3px solid #0d9488; outline-offset: 2px; }
+.zipco-aurora-bz-cb[aria-expanded="true"] { background: #ccfbf1; }
+.zipco-aurora-bz-chv { transition: transform .42s cubic-bezier(.22, 1, .36, 1); }
+.zipco-aurora-bz-cb[aria-expanded="true"] .zipco-aurora-bz-chv { transform: rotate(180deg); }
+/* detalle: pedido para · nota del cliente · foto de referencia real (recibe toques aunque el pliegue base los bloquee) */
+.zipco-aurora-bz-dt { display: grid; gap: 8px; padding-top: 9px; pointer-events: auto; }
+.zipco-aurora-bz-rows { margin: 0; padding: 3px 11px; border-radius: 17px; background: #f8fafc; box-shadow: inset 0 0 0 1px #e2e8f0; }
+.zipco-aurora-bz-rows > div { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; }
+.zipco-aurora-bz-rows .i { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; color: #0f766e; background: #ccfbf1; }
+.zipco-aurora-bz-rows span:last-child { min-width: 0; }
+.zipco-aurora-bz-rows dt { font-size: 8.5px; font-weight: 800; letter-spacing: .12em; line-height: 1.25; color: #5b6b80; text-transform: uppercase; }
+.zipco-aurora-bz-rows dd { margin: 1px 0 0; font-size: 12.5px; line-height: 1.3; font-weight: 800; color: #0f172a; overflow-wrap: anywhere; }
+.zipco-aurora-bz-dnote { margin: 0; padding: 8px 11px; border-radius: 14px; font-size: 12px; line-height: 1.35; color: #5b6b80; overflow-wrap: anywhere; white-space: pre-wrap; background: #f8fafc; box-shadow: inset 0 0 0 1px #e2e8f0; }
+.zipco-aurora-bz-dnote b { color: #0f172a; }
+.zipco-aurora-bz-ref > button { margin-top: 0 !important; min-height: 48px; }
+.zipco-aurora-bz-lines { margin: 8px 2px 0; font-size: 12px; line-height: 1.35; color: #475569; }
+.zipco-aurora-bz-lines p { margin: 0 0 2px; overflow-wrap: anywhere; } .zipco-aurora-bz-lines strong { color: #0f172a; }
+/* aviso genérico: no indica qué cambió en la contrapropuesta */
+.zipco-aurora-bz-note { display: flex; align-items: center; gap: 9px; margin-top: 8px; padding: 8px 10px; border-radius: 14px; background: linear-gradient(150deg, #ecfdf5, #fff 72%);
+  box-shadow: inset 0 0 0 1.5px #a7f3d0; animation: zipco-aurora-bz-rise .4s cubic-bezier(.2, .8, .2, 1) both; }
+.zipco-aurora-bz-ic { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 11px; color: #fff;
+  background: linear-gradient(145deg, #34d399, #0d9488 60%, #0891b2); box-shadow: 0 8px 18px rgba(16, 185, 129, .4), inset 1.5px 1.5px 1px rgba(255, 255, 255, .6); }
+.zipco-aurora-bz-ic svg { display: block; width: 17px; height: 17px; }
+.zipco-aurora-bz-note p { min-width: 0; margin: 0; font-size: 11.5px; line-height: 1.35; color: #475569; }
+.zipco-aurora-bz-note b { display: block; margin-bottom: 2px; font-size: 13px; line-height: 1.25; font-weight: 800; color: #0f172a; }
+.zipco-aurora-bz-note mark { padding: 0 6px; border-radius: 7px; background: #ccfbf1; box-shadow: inset 0 0 0 1px #5eead4; color: #0f766e; font-weight: 800; }
 .zipco-aurora-bz-note p > span { display: block; }
-/* Botón «Revisar propuesta y responder» (ProposalDraftButton real): píldora limpia, sin brillos, capas ni desenfoque. Solo dentro de esta tarjeta. */
-.zipco-aurora-card--bz .zipco-glass-wrap { margin-top: 0; overflow: visible; background: none; box-shadow: none; }
+/* Botón «Revisar propuesta y responder» (ProposalDraftButton real): píldora esmeralda limpia, sin brillos, capas ni desenfoque. Solo dentro de esta tarjeta. */
+.zipco-aurora-card--bz .zipco-glass-wrap { margin-top: 9px; overflow: visible; background: none; box-shadow: none; }
 .zipco-aurora-card--bz .zipco-glass-blob { display: none; }
-.zipco-aurora-card--bz .zipco-glass-btn { min-height: 50px; padding: 12px 52px; background: linear-gradient(115deg, #7c3aed 0%, #6366f1 72%, #0d9488 100%); -webkit-backdrop-filter: none; backdrop-filter: none;
-  text-shadow: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .38); transition: transform .15s ease, filter .15s ease; }
+.zipco-aurora-card--bz .zipco-glass-btn { min-height: 48px; padding: 12px 52px; background: linear-gradient(100deg, #059669, #047857 55%, #0f766e); -webkit-backdrop-filter: none; backdrop-filter: none;
+  text-shadow: 0 1px 2px rgba(4, 47, 46, .5); box-shadow: 0 10px 22px rgba(16, 185, 129, .38), 0 0 0 1px rgba(167, 243, 208, .55), inset 0 1.5px 0 rgba(255, 255, 255, .45), inset 0 -2px 6px rgba(4, 47, 46, .18); transition: transform .15s ease, filter .15s ease; }
 .zipco-aurora-card--bz .zipco-glass-btn::before, .zipco-aurora-card--bz .zipco-glass-btn::after { content: none; animation: none; }
-.zipco-aurora-card--bz .zipco-glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.zipco-aurora-card--bz .zipco-glass-btn:focus-visible { outline: 3px solid #0d9488; outline-offset: 3px; }
 /* La flecha real queda dentro de una pastilla a la derecha; el texto sigue centrado. */
-.zipco-aurora-card--bz .zipco-glass-btn > svg { position: absolute; right: 10px; top: 50%; box-sizing: border-box; width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: rgba(255, 255, 255, .22);
+.zipco-aurora-card--bz .zipco-glass-btn > svg { position: absolute; right: 10px; top: 50%; box-sizing: border-box; width: 32px; height: 32px; padding: 7px; border-radius: 50%; background: rgba(255, 255, 255, .26);
   transform: translateY(-50%); animation: zipco-aurora-bz-nudge .9s ease-in-out .6s 2; }
 .zipco-aurora-card--bz .zipco-glass-btn:disabled > svg { animation: none; }
 @keyframes zipco-aurora-bz-nudge { 0%, 100% { transform: translate(0, -50%); } 50% { transform: translate(4px, -50%); } }
-@keyframes zipco-aurora-bz-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes zipco-aurora-bz-rise { from { transform: translateY(8px); } to { transform: none; } }
+@media (max-width: 350px) { .zipco-aurora-bz-radar { width: 58px; height: 58px; }
+  .zipco-aurora-bz-th, .zipco-aurora-bz-th .zipco-aurora-avatar, .zipco-aurora-bz-th .zipco-product-preview, .zipco-aurora-bz-th .zipco-product-neutral, .zipco-aurora-bz-th .zipco-product-thumbs, .zipco-aurora-bz-th .zipco-product-thumb { width: 40px; height: 40px; max-width: 40px; }
+  .zipco-aurora-bz-name { font-size: 15px; } .zipco-aurora-bz-price { font-size: 18px; }
+  .zipco-aurora-bz-eb { font-size: 8.5px; letter-spacing: .02em; padding: 4px 6px; gap: 4px; }
+  .zipco-aurora-bz-eb .zipco-aurora-dot { flex: none; width: 7px; height: 7px; }
+  .zipco-aurora-card--bz .zipco-glass-btn { font-size: 13.5px; padding-inline: 48px; } }
+@media (forced-colors: active) { .zipco-aurora-bz-name { background: none; color: CanvasText; -webkit-text-fill-color: currentColor; } }
+/* Pausas con la lista quieta o en scroll (incluye pseudo-elementos); nada queda invisible al pausar. */
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz),
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz)::before,
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz)::after,
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz) :is(.zipco-aurora-bz-radar u, .zipco-aurora-bz-badge svg, .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-glass-btn > svg) { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
-  .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-card--bz .zipco-glass-btn > svg { animation: none; }
+  .zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after, .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-bz-badge svg, .zipco-aurora-card--bz .zipco-glass-btn > svg { animation: none; }
+  .zipco-aurora-bz-radar u { display: none; } .zipco-aurora-bz-chv { transition: none; }
 }
 
 /* ===== Variante «esperando respuesta del negocio» (solo tarjeta del CLIENTE con contrapropuesta enviada) =====

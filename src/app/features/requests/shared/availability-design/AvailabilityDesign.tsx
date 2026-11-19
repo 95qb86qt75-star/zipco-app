@@ -3,7 +3,7 @@ import BusinessResponseHoursNotice from "../hours/BusinessResponseHoursNotice";
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { ArrowLeft, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, LockKeyhole, MapPin, Pencil, Phone, Plus, Send, ShieldCheck, Store, UserRound, X, Zap } from 'lucide-react';
+import { ArrowLeft, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, LockKeyhole, MapPin, Pencil, Phone, Plus, Send, ShieldCheck, Store, Undo2, UserRound, X, Zap } from 'lucide-react';
 import AcceptGlassButton from "../../cards/shared/coordination/AcceptGlassButton";
 import WhatsAppMark from "../icons/WhatsAppMark";
 import "./availability-design.css";
@@ -137,14 +137,17 @@ function Modal({ open, onOpenChange, title, description, children, sheet = false
 
 export function DesignConfirmation({ open, onOpenChange, title, description, confirmLabel, onConfirm, children, cancelLabel = 'Volver', variant }: {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; confirmLabel: string;
-  onConfirm: () => void; children?: ReactNode; cancelLabel?: string; variant?: 'decline';
+  onConfirm: () => void; children?: ReactNode; cancelLabel?: string; variant?: 'decline' | 'withdraw';
 }) {
-  // Explicit visual variant: unrelated confirmations keep their existing presentation.
+  // Explicit visual variants: unrelated confirmations keep their existing presentation.
+  // «decline»: «No, gracias» del cliente. «withdraw»: «¿Retirar la disponibilidad?» del negocio (se pasa explícito desde AvailabilityFlowCard, nunca se deduce del título).
   const decline = variant === 'decline';
+  const withdraw = variant === 'withdraw';
   return <AlertDialog.Root open={open} onOpenChange={onOpenChange}><AlertDialog.Portal>
     <AlertDialog.Overlay className="zipco-av-overlay zipco-av-alert-overlay" />
-    <AlertDialog.Content className={`zipco-av-dialog zipco-av-alert${decline ? ' zipco-av-alert-decline' : ''}`}>
+    <AlertDialog.Content className={`zipco-av-dialog zipco-av-alert${decline ? ' zipco-av-alert-decline' : ''}${withdraw ? ' zipco-av-alert-withdraw' : ''}`}>
       {decline && <span className="zipco-av-decline-ic" aria-hidden="true"><X /></span>}
+      {withdraw && <span className="zipco-av-withdraw-ic" aria-hidden="true"><Undo2 /></span>}
       <AlertDialog.Title className="zipco-av-dialog-title">{title}</AlertDialog.Title>
       <AlertDialog.Description className="zipco-av-dialog-description">{description}</AlertDialog.Description>
       {children}<div className="zipco-av-button-row">

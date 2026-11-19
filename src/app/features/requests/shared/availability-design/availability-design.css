@@ -410,6 +410,19 @@
 .zipco-av-alert-decline .zipco-av-primary{color:#fff;background:linear-gradient(100deg,#10b981,#0d9488 52%,#06b6d4);box-shadow:0 8px 20px #06b6d459,inset 0 1.5px 2px #ffffff66;text-shadow:0 1px 2px #042f2e99}
 .zipco-av-alert-decline :focus-visible{outline:3px solid #a78bfa;outline-offset:3px}
 
+/* ---------- Confirmación «¿Retirar la disponibilidad?» (negocio, Aurora Pro; solo cuando variant = "withdraw") ---------- */
+.zipco-av-dialog.zipco-av-alert-withdraw{text-align:center;color:#0f172a;background:#fff;font-family:'Zipco Proposal Outfit',Outfit,system-ui,sans-serif;box-shadow:0 24px 70px #0f172a66,0 0 0 1px #fecdd3}
+.zipco-av-alert-withdraw .zipco-av-dialog-title{margin-top:13px;font-size:20px;letter-spacing:-.02em;color:#0f172a}
+.zipco-av-alert-withdraw .zipco-av-dialog-description{margin-top:8px;font-size:13.5px;line-height:1.5;color:#475569}
+.zipco-av-withdraw-ic{display:grid;place-items:center;width:56px;height:56px;margin:0 auto;border-radius:18px;color:#fff;background:linear-gradient(145deg,#fbbf24,#f43f5e);box-shadow:0 0 0 4px #ffe4e6,0 8px 20px #f43f5e59}
+.zipco-av-withdraw-ic svg{width:26px;height:26px;stroke-width:2.6;animation:zipco-avw-wob 1.6s ease-in-out .5s 2}
+.zipco-av-alert-withdraw .zipco-av-button-row{margin-top:18px}
+.zipco-av-alert-withdraw .zipco-av-button-row>*{min-height:48px;border-radius:15px;font-size:14px;font-weight:700}
+.zipco-av-alert-withdraw .zipco-av-secondary{border:1.5px solid #fecdd3;color:#be123c;background:#fff1f2}
+.zipco-av-alert-withdraw .zipco-av-primary{border:0;color:#fff;background:linear-gradient(100deg,#047857,#0f766e 52%,#0e7490);box-shadow:0 8px 20px #06b6d44d,inset 0 1.5px 2px #ffffff66;text-shadow:0 1px 2px #042f2e99}
+.zipco-av-alert-withdraw :focus-visible{outline:3px solid #0d9488;outline-offset:3px}
+@keyframes zipco-avw-wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}}
+
 /* ---------- Keyframes ---------- */
 @keyframes zipco-avwa-jelly{0%{transform:scale(.4);opacity:0}45%{transform:scale(1.14);opacity:1}62%{transform:scale(.94)}80%{transform:scale(1.04)}100%{transform:scale(1)}}
 @keyframes zipco-avwa-bump{0%,78%,100%{transform:scale(1)}86%{transform:scale(1.06)}93%{transform:scale(.99)}}
