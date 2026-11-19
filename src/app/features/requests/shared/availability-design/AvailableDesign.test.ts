@@ -18,9 +18,20 @@ describe('complete availability design variants',()=>{
  });
  it.each([simpleFree,simplePaid,freeOffer,paidOffer])('renders real offer modes without replacing the summary',offer=>{
   const simplified='simplified' in offer,output=html({pickup:{message:'Texto real',scheduleOrAddress:'Local 19',allowsContact:true,reservationOffer:offer},simplified,onReserve:simplified?undefined:()=>{},onReservationNote:()=>{}});
-  expect(output).toContain('zipco-av-available-pk');expect(output).toContain('RETIRO');expect(output).toContain('Texto real');expect(output).toContain('Local 19');
+  if(simplified&&offer.mode==='PREPAYMENT'){
+   expect(output).toContain('zipco-avpro');expect(output).toContain('Tienen tu producto');expect(output).not.toContain('zipco-avwa-rail');
+  }else{
+   expect(output).toContain('zipco-av-available-pk');expect(output).toContain('RETIRO');
+  }
+  expect(output).toContain('Texto real');expect(output).toContain('Local 19');
   expect(output).toContain('Oferta de reserva');expect(output.includes('role="switch"')).toBe(!simplified);
   expect(output.includes('Agregar nota para la reserva')).toBe(!simplified);
+ });
+ it('separates the requested total from the proposed deposit and formats the offer date in Santiago',()=>{
+  const offer={...simplePaid,requiredAmountClp:2500,simplified:{...simplePaid.simplified,hoursPolicy:'ADVISORY_ONLY' as const,opensAt:null,closesAt:null,holdMinutes:null,scheduledFor:'2026-11-20T02:10:00.000Z'}};
+  const output=html({expanded:false,simplified:true,pickup:{message:'Mensaje',allowsContact:true,reservationOffer:offer}});
+  expect(output).toContain('$5.000');expect(output).toContain('SOLICITADO');expect(output).toContain('PAGO PREVIO · $2.500');
+  expect(output).toContain('19 nov · 23:10');expect(output).toContain('Sí, continuar con la compra');expect(output).toContain('No, gracias');
  });
  it('keeps errors and recovery outside the inert folded details',()=>{
   const output=html({expanded:false,error:'Error real',recovery:React.createElement('button',null,'Actualizar estado'),pickup:{message:'Mensaje',allowsContact:false}});

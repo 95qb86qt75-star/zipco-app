@@ -1,6 +1,6 @@
 import * as React from 'react';
 import BusinessResponseHoursNotice from "../hours/BusinessResponseHoursNotice";
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { ArrowLeft, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, LockKeyhole, MapPin, Pencil, Phone, Plus, Send, ShieldCheck, Store, UserRound, X, Zap } from 'lucide-react';
@@ -13,6 +13,7 @@ import type { ReservationOffer, ReservationOfferInput } from "../../domain/reser
 import SimpleReservationOfferFields from "../reservations/SimpleReservationOfferFields";
 import ReservationOfferFields from "../reservations/ReservationOfferFields";
 import ReservationOfferSummary from "../reservations/ReservationOfferSummary";
+import { isSimpleOffer } from "../../domain/simplifiedReservationContract";
 
 // Presentation only. These props are not proposed API fields or server receipts.
 
@@ -354,6 +355,79 @@ function AvailableWhatsappDesign({ data, expanded, onToggle, contact, onContactC
   </article>;
 }
 
+/** «Retiro 20 nov · 10:10» (hora de Chile). Solo formato; el dato viene de la oferta real. */
+const shortWhen = (iso: string) => {
+  const date = new Date(iso), timeZone = 'America/Santiago';
+  const day = new Intl.DateTimeFormat('es-CL', { timeZone, day: 'numeric', month: 'short' }).format(date).replace(/\./g, '');
+  const time = new Intl.DateTimeFormat('es-CL', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
+  return `${day} · ${time}`;
+};
+
+/** «Aurora Pro» (diseño A aprobado en el tablero CliW3): retiro en el local con oferta de reserva PREPAYMENT del contrato simplificado.
+ *  Solo presentación: mismos datos, permisos y callbacks que AvailablePickupDesign. No muestra el monto de reserva como pagado.
+ *  El resto de las variantes (reserva gratis, sin reserva, contrato antiguo, WhatsApp) conservan su diseño original. */
+function AvailablePickupPro({ data, expanded, onToggle, pickup, offer, amount, onContinue, onDecline, busy, error, extraDetails, leaving, recovery }: {
+  data: RequestDesignData; expanded: boolean; onToggle: () => void; pickup: Omit<PickupDesign, 'reservationOffer'> & { reservationOffer?: ReservationOffer };
+  offer: ReservationOffer; amount: string; onContinue: () => void; onDecline: () => void; busy: boolean; error?: string; extraDetails?: ReactNode; leaving: boolean; recovery?: ReactNode;
+}) {
+  const detailsId = useId();
+  // `inert` por propiedad DOM: funciona igual en React 18 y 19 (en 19, inert="" se interpreta como falso).
+  const cardRef = useRef<HTMLElement>(null), foldRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (cardRef.current) cardRef.current.inert = leaving; }, [leaving]);
+  useEffect(() => { if (foldRef.current) foldRef.current.inert = !expanded; }, [expanded]);
+  const scheduledFor = isSimpleOffer(offer) ? offer.simplified.scheduledFor : null;
+  const pickupWhen = scheduledFor ? shortWhen(scheduledFor) : data.immediate ? 'Lo antes posible' : data.schedule && data.schedule !== 'Sin horario solicitado' ? data.schedule : '';
+  const many = data.items.length > 1, first = data.items[0];
+  return <article ref={cardRef} className="zipco-avpro" data-expanded={expanded} data-leaving={leaving ? 'true' : undefined} aria-busy={busy}
+    aria-label={`${data.counterpart}: disponibilidad confirmada, reserva con pago previo`}>
+    <i className="zipco-avpro-glow zipco-avpro-glow-a" aria-hidden="true" /><i className="zipco-avpro-glow zipco-avpro-glow-b" aria-hidden="true" />
+    {/* 1 · La noticia: quién confirma, «Tienen tu producto» y el estado DISPONIBLE (animación conservada). */}
+    <div className="zipco-avpro-banner">
+      <i className="zipco-avpro-spark" aria-hidden="true" /><i className="zipco-avpro-spark zipco-avpro-spark-b" aria-hidden="true" /><i className="zipco-avpro-spark zipco-avpro-spark-c" aria-hidden="true" />
+      <div className="zipco-avpro-bt">
+        <small className="zipco-avpro-biz">{data.counterpart}</small>
+        <p className="zipco-avpro-head">Tienen tu producto</p>
+        <h2 className="zipco-avpro-pill"><i aria-hidden="true"><Check /></i><span className="zipco-avwa-sr">Disponible</span><b aria-hidden="true">{DISPONIBLE.map((letter, index) => <span key={index} style={{ animationDelay: `${(index * 0.09).toFixed(2)}s` }}>{letter}</span>)}</b></h2>
+        <p className="zipco-avwa-sr">Confirmaron que lo tienen. ¿Quieres continuar con la compra?</p>
+      </div>
+      <ProductPreviewControl className="zipco-avpro-thumb" fallback={<span className="zipco-avpro-ticon"><Store aria-hidden="true" /></span>} />
+    </div>
+    {/* 2 · Qué es y cómo se retira. El total viene del pedido; el monto de reserva (requiredAmountClp) es aparte y no se presenta como pagado. */}
+    <p className="zipco-avpro-prod"><span><b>{many ? `${data.items.length} productos` : first?.name}</b>{!many && first ? <> · {first.quantity}×</> : null} · {money(data.total)} <small>SOLICITADO</small></span>
+      <span className="zipco-avpro-mode"><Store aria-hidden="true" />Retiro en el local</span></p>
+    {/* 3 · La oferta, siempre visible. */}
+    <section className="zipco-avpro-offer" aria-label="Oferta de reserva"><div className="zipco-avpro-hero">
+      <span className="zipco-avpro-bm" aria-hidden="true"><u /><u /><em><BookmarkCheck /></em><s /><s /></span>
+      <div><h3>Puedes reservar este producto</h3>
+        <div className="zipco-avpro-meta"><span className="zipco-avpro-chip"><Zap aria-hidden="true" />{`PAGO PREVIO${amount ? ` · ${amount}` : ''}`}</span>
+          {pickupWhen && <span className="zipco-avpro-fact"><CalendarDays aria-hidden="true" />Retiro {pickupWhen}</span>}</div></div></div></section>
+    {/* Los errores y la recuperación nunca quedan ocultos por el pliegue. */}
+    {error && <p role="alert" className="zipco-avpro-error">{error}</p>}
+    {recovery}
+    {/* 4 · Detalle plegable: producto(s) si son varios, nota/horario/foto, ficha de retiro real y condiciones reales (ReservationOfferSummary). */}
+    <div ref={foldRef} id={detailsId} className="zipco-avwa-fold zipco-avpro-fold" data-open={expanded} aria-hidden={!expanded}><div><div className="zipco-avpro-detail">
+      {many && <Items data={data} showPrice />}
+      {extraDetails && <div className="zipco-avpro-extra">{extraDetails}</div>}
+      <section className="zipco-avpro-pick" aria-label="Retiro en el local">
+        <div className="zipco-avpro-pkh"><span aria-hidden="true"><Store /></span><h3>El negocio te espera en el local</h3></div>
+        <div className="zipco-avpro-tk"><blockquote className="zipco-avpro-msg">{pickup.message || DEFAULT_PICKUP_MESSAGE}</blockquote>
+          {pickup.scheduleOrAddress && <><div className="zipco-avpro-perf" aria-hidden="true"><i /><span /><i /></div>
+            <div className="zipco-avpro-stub"><span aria-hidden="true"><MapPin /></span><div><small>DIRECCIÓN Y HORARIO</small><b>{pickup.scheduleOrAddress}</b></div></div></>}</div>
+      </section>
+      <div className="zipco-avpro-cond"><ReservationOfferSummary offer={offer} compact />
+        <p className="zipco-avpro-fine"><ShieldCheck aria-hidden="true" />Esto no representa un pago realizado.</p></div>
+    </div></div></div>
+    {/* 5 · Acciones siempre visibles: la decisión sigue abriendo ReservationDecisionDialog (onContinue) y «No, gracias» la confirmación existente (onDecline). */}
+    <div className="zipco-avpro-actions">
+      <AcceptGlassButton label={busy ? 'Guardando…' : 'Sí, continuar con la compra'} flush disabled={busy} onClick={onContinue} />
+      <div className="zipco-avpro-row">
+        <button type="button" className="zipco-avpro-decline" disabled={busy} onClick={onDecline}><X aria-hidden="true" />No, gracias</button>
+        <button type="button" className="zipco-avpro-dis" disabled={busy || leaving} aria-expanded={expanded} aria-controls={detailsId} onClick={onToggle}>{expanded ? 'Ocultar detalle' : 'Ver detalle'}<ChevronDown aria-hidden="true" /></button>
+      </div>
+    </div>
+  </article>;
+}
+
 /** Camino «Retiro en el local» (diseño CliU19, mismo lenguaje que WhatsApp pero más compacto). Única implementación de esta variante.
  *  Solo presentación: los datos, permisos, reservas y callbacks vienen de AvailabilityFlowCard. La clase «-wa» es la base compartida del
  *  diseño aprobado (nombre histórico); «-pk» agrega lo propio del retiro. */
@@ -370,6 +444,8 @@ function AvailablePickupDesign({ data, expanded, onToggle, pickup, contact, onCo
   const hero = simplified && canReserve;                 // contrato simplificado con reserva: el aviso «Puedes reservar» va siempre visible
   const legacyOffer = !simplified && !!offer;            // contrato antiguo: la oferta real se ve dentro de la ficha de retiro
   const hasNote = !simplified && canReserve && !!onReservationNote;
+  // Aurora Pro: solo retiro local con contrato simplificado y reserva con pago previo. Las demás variantes siguen abajo, sin cambios.
+  if (simplified && paid && canReserve && offer) return <AvailablePickupPro data={data} expanded={expanded} onToggle={onToggle} pickup={pickup} offer={offer} amount={amount} onContinue={onContinue} onDecline={onDecline} busy={busy} error={error} extraDetails={extraDetails} leaving={leaving} recovery={recovery} />;
   return <article className="zipco-av-ticket zipco-av-available zipco-av-available-wa zipco-av-available-pk" data-offer={offer?.mode ?? 'NONE'} data-leaving={leaving ? 'true' : undefined} data-expanded={expanded} aria-busy={busy}
     aria-label={`${data.counterpart}: disponibilidad confirmada`} {...(leaving ? { inert: '' } : {})}>
     <div className="zipco-av-ticket-inner"><TicketHeader data={data} kind="available" />
