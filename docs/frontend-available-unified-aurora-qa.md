@@ -60,12 +60,16 @@ HTTP simulados; nunca crea pedidos ni envía mensajes WhatsApp en QA.
   el diseño oscuro eliminado por la petición del usuario.
 
 Build QA/PWA aprobado: 2435 módulos, advertencia de tamaño de chunk ya existente.
-Publicación pendiente hasta verificar el SHA exacto de QA. No hay comando
+Publicado en la rama qa: `5ba68dd3c15c2bb578f03c2ec835d4a8d23ff8bc`.
+GitHub confirmó Vercel success para ese SHA exacto:
+https://vercel.com/zipco-s-projects/zipco-app/4qMRMPCp518SxQnsAgo91GSCAeVS .
+El cierre documental se guarda localmente sin otro despliegue. No hay comando
 tsc ni compilador TypeScript instalado en este frontend; Vite no acredita typecheck.
 No se ejecuta lint sin configuración. Pendiente iPhone/Android físicos, sesión real
 y aceptación visual del usuario. Una prueba Chrome con HTTP simulado no cierra esos casos.
 
-main y producción fuera de alcance; verificar su ausencia de cambios al publicar QA.
+main no fue modificado: conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`.
+Producción y Railway no fueron modificados.
 
 ## Tiempos medidos y límites
 
@@ -77,3 +81,5 @@ main y producción fuera de alcance; verificar su ausencia de cambios al publica
   tienen cronómetros independientes: no se inventan tiempos de esas fases.
 - Revisión adicional de controles: 32,979s incluyendo preparación de Vite/Chrome,
   ejecución y esperas; resultado aprobado. Publicación se verifica por SHA exacto.
+- Publicación/verificación sin cronómetro independiente. No se atribuye a gráficos
+  ni al rendimiento del producto la duración del trabajo de integración.

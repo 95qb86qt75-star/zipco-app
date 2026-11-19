@@ -42,7 +42,8 @@ backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo 
   única composición para WhatsApp y retiro sin reserva/FREE/PREPAYMENT, también
   con contrato antiguo. Reutiliza el diseño publicado en QA cf15f75 y conserva
   las ventanas y callbacks de AvailabilityFlowCard. No modifica pago pendiente,
-  En curso, Listo ni contratos. Integración y revisión QA registradas en
+  En curso, Listo ni contratos. Publicado QA5ba68dd, Vercel success del SHA exacto;
+  70 unitarias, Chrome320/390/430 y build QA/PWA aprobados. Revisión registrada en
   [informe canónico](frontend-available-unified-aurora-qa.md); teléfonos pendientes.
 
 - E219 contrato definitivo recibido: backend Railway QA739c5a4. Frontend integra
