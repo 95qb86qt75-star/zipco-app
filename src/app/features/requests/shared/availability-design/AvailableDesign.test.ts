@@ -9,23 +9,36 @@ const data={counterpart:'Negocio de prueba',items:[{name:'Producto',quantity:2,u
 const base={data,expanded:true,contact:true,onToggle:()=>{},onContactChange:()=>{},onContinue:()=>{},onDecline:()=>{}};
 const html=(props={})=>renderToStaticMarkup(React.createElement(AvailableRequestDesign,{...base,...props}));
 describe('complete availability design variants',()=>{
- it.each([false,true])('keeps WhatsApp presentation and full contact copy when expanded=%s',expanded=>{
-  const output=html({expanded});expect(output).toContain('zipco-av-available-wa');expect(output).not.toContain('zipco-av-available-pk');
-  expect(output).toContain('Permitir que este negocio me escriba por WhatsApp');expect(output).toContain('WHATSAPP');
+ it.each([false,true])('uses the shared design and full WhatsApp contact copy when expanded=%s',expanded=>{
+  const output=html({expanded});expect(output).toContain('zipco-avpro');expect(output).toContain('data-channel="WHATSAPP"');
+  expect(output).toContain('Permitir que este negocio me escriba por WhatsApp');expect(output).toContain('Coordinarán por WhatsApp');
+  expect(output).not.toContain('Retiro en el local');expect(output).not.toContain('zipco-avwa-rail');
  });
  it('preserves the initial consultation component outside the redesign',()=>{
   expect(()=>renderToStaticMarkup(React.createElement(ConsultationDesignSheet,{data,open:false,contact:true,onOpenChange:()=>{},onContactChange:()=>{},onSend:()=>{}}))).not.toThrow();
  });
  it.each([simpleFree,simplePaid,freeOffer,paidOffer])('renders real offer modes without replacing the summary',offer=>{
   const simplified='simplified' in offer,output=html({pickup:{message:'Texto real',scheduleOrAddress:'Local 19',allowsContact:true,reservationOffer:offer},simplified,onReserve:simplified?undefined:()=>{},onReservationNote:()=>{}});
-  if(simplified&&offer.mode==='PREPAYMENT'){
-   expect(output).toContain('zipco-avpro');expect(output).toContain('Tienen tu producto');expect(output).not.toContain('zipco-avwa-rail');
-  }else{
-   expect(output).toContain('zipco-av-available-pk');expect(output).toContain('RETIRO');
-  }
+  expect(output).toContain('zipco-avpro');expect(output).toContain('Tienen tu producto');expect(output).not.toContain('zipco-avwa-rail');
+  expect(output).toContain('data-channel="LOCAL_PICKUP"');
   expect(output).toContain('Texto real');expect(output).toContain('Local 19');
   expect(output).toContain('Oferta de reserva');expect(output.includes('role="switch"')).toBe(!simplified);
   expect(output.includes('Agregar nota para la reserva')).toBe(!simplified);
+ });
+ it.each([undefined,{mode:'NONE'}])('shows first-come instructions without presenting a reservation offer for %s',offer=>{
+  const output=html({expanded:false,simplified:true,pickup:{message:'Retira en el local',allowsContact:false,reservationOffer:offer}});
+  expect(output).toContain('SIN RESERVA');expect(output).toContain('Atención por orden de llegada. El producto no se guarda y podría agotarse.');
+  expect(output).not.toContain('Oferta de reserva');expect(output).not.toContain('Puedes reservar');expect(output).not.toContain('PAGO PREVIO');
+ });
+ it('keeps free reservation distinct from prepayment in the common presentation',()=>{
+  const output=html({simplified:true,pickup:{message:'Mensaje',allowsContact:true,reservationOffer:simpleFree}});
+  expect(output).toContain('RESERVA GRATIS');expect(output).not.toContain('PAGO PREVIO');expect(output).not.toContain('role="switch"');
+  expect(output).not.toContain('Solicitar reserva</span>');
+ });
+ it.each([false,true])('retains pickup contact permissions and legacy reserve action when allowsContact=%s',allowsContact=>{
+  const output=html({expanded:false,pickup:{message:'Mensaje',allowsContact,reservationOffer:paidOffer},onReserve:()=>{},onReservationNote:()=>{}});
+  expect(output.includes('role="switch"')).toBe(allowsContact);expect(output).toContain('Solicitar reserva con pago previo');expect(output).toContain('Iré sin reserva');
+  expect(output).toContain('Pagar hasta:');expect(output).toContain('Agregar nota para la reserva');
  });
  it('separates the requested total from the proposed deposit and formats the offer date in Santiago',()=>{
   const offer={...simplePaid,requiredAmountClp:2500,simplified:{...simplePaid.simplified,hoursPolicy:'ADVISORY_ONLY' as const,opensAt:null,closesAt:null,holdMinutes:null,scheduledFor:'2026-11-20T02:10:00.000Z'}};

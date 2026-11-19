@@ -60,14 +60,16 @@ sus propietarios actuales.
   a NONE. Presupuesto decorativo acotado.
 
 - **Pendiente:** `customer/pending/CustomerPendingCard.tsx`.
-- **Disponible, antes de continuar por WhatsApp:** `AvailableWhatsappDesign` en
-  `../shared/availability-design/AvailabilityDesign.tsx`; estilos CliU18 en
-  `availability-design.css`, acotados a `.zipco-av-available-wa`. Su conexión real
-  vive en `shared/availability/AvailabilityFlowCard.tsx`.
-- **Disponible, antes de continuar con retiro local:** `AvailablePickupDesign`
-  en el mismo `AvailabilityDesign.tsx`, estilos `.zipco-av-available-pk` / `.zipco-avpk-*`.
-  `AvailableRequestDesign` selecciona ambas modalidades; comparten estado, permiso
-  y control de detalle. La decisión de reserva mantiene su diálogo real.
+- **Disponible, antes de continuar (WhatsApp y retiro local):** una composición
+  canónica `AvailableRequestDesign` en `../shared/availability-design/AvailabilityDesign.tsx`.
+  Aurora Pro claro, estilos `.zipco-avpro*` en `availability-design.css`: misma
+  cabecera, producto/total, oferta/modalidad, detalle y acciones siempre visibles.
+  Distingue WhatsApp, sin reserva, FREE y PREPAYMENT con datos y controles reales.
+  El contrato antiguo conserva nota, condiciones completas y acción de reserva;
+  el simplificado mantiene la elección en ReservationDecisionDialog. Contacto
+  visible antes de continuar cuando no lo recoge ese diálogo. Conexión real en
+  `shared/availability/AvailabilityFlowCard.tsx`, sin cambios de contratos o callbacks.
+  No contiene diseños anteriores alternativos. Otros estados conservan sus tarjetas.
 - **Aceptado, antes de abrir WhatsApp:**
   `customer/whatsapp/initial/CustomerInitialCoordinationCard.tsx`.
   Su CSS y `CustomerStepsSheet.tsx` están en esa misma carpeta.

@@ -1,6 +1,6 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-15, America/Santiago.
+Actualizado: 2026-11-19, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
@@ -37,6 +37,13 @@ Estado: mensaje preparado/entregado ≠ respuesta recibida ≠ contrato acordado
 backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo validado.
 
 ## Continuidad de funcionalidades
+
+- Disponible del cliente unificado en Aurora Pro: `AvailableRequestDesign` es la
+  única composición para WhatsApp y retiro sin reserva/FREE/PREPAYMENT, también
+  con contrato antiguo. Reutiliza el diseño publicado en QA cf15f75 y conserva
+  las ventanas y callbacks de AvailabilityFlowCard. No modifica pago pendiente,
+  En curso, Listo ni contratos. Integración y revisión QA registradas en
+  [informe canónico](frontend-available-unified-aurora-qa.md); teléfonos pendientes.
 
 - E219 contrato definitivo recibido: backend Railway QA739c5a4. Frontend integra
   request-submission-advisory-v2 en pedidos, servicios y cotizaciones: Hoy/
