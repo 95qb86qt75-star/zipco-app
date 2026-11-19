@@ -43,7 +43,8 @@ backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo 
   de selección obsoleto tras corregir campos y lo corrigió solo en checkout de
   producto. Conserva errores de red/servidor e intención UUID; valida selección
   antes del aviso horario actual.74 pruebas, navegador320/390/430 y build QA/PWA
-  aprobados; publicación y validación física pendientes.
+  aprobados; publicado QAc34c307, Vercel success del SHA exacto verificado.
+  Validación física/autenticada pendiente; Railway no requirió cambio.
   [Informe de corrección](frontend-checkout-selection-error-fix-qa.md).
 
 - Cliente Aurora Pro integrado con contrato E214 publicado en backend QA. La

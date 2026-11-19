@@ -63,11 +63,19 @@ Pendiente iPhone/Android reales y sesión autenticada; no se mutaron pedidos QA.
 
 ## Publicación y tiempo
 
-Publicación frontend QA pendiente al escribir; Railway no requiere cambio.
-Main8295ab8c6024ab20851ebd371308d2f299b4668f y producción intactos.
+Publicado frontend origin/qa `c34c30717ef7705ff43f635edd8da8f5d3800131`.
+GitHub combined status del SHA exacto: Vercel success, observado00:38:14UTC.
+https://vercel.com/zipco-s-projects/zipco-app/7C7b7G7RPBf1ANeqMBCrmokib2RL.
+Alias https://zipco-app-git-qa-zipco-s-projects.vercel.app; el teléfono debe mostrar
+QAc34c307 para probar esta corrección. No se verificó una sesión real en Railway
+ni se acredita el bundle del teléfono por el status del despliegue.
+Railway no requiere cambio. Main8295ab8c6024ab20851ebd371308d2f299b4668f y
+producción intactos. Directorios ajenos no versionados preservados.
 
 Primer reloj conservado00:31:58UTC; análisis previo sin timer exclusivo.
 Reproducción Vitest1,43s; ejecución final2,13s (la intermedia falló por el fixture).
 Vite final12,10s, PWA sin timer separado. Implementación y preparación/pruebas
 intercaladas, sin medición exclusiva que permita repartir minutos sin inventar.
-Documentación/publicación se registran al cierre; no sumar fases superpuestas.
+Publicación verificada a00:38:14UTC; sin timer exclusivo de espera Vercel o
+documentación. No sumar fases superpuestas. Respaldo documental de cierre solo
+local, sin push ni despliegue adicional.
