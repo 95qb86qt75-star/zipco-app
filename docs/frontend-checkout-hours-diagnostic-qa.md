@@ -1,5 +1,9 @@
 # Diagnóstico de aviso horario y selección de fecha
 
+Actualización posterior: respuesta backend E217 recibida y defecto local de error
+obsoleto reproducido/corregido. Ver frontend-checkout-selection-error-fix-qa.md;
+este diagnóstico conserva las evidencias y límites de su primera revisión.
+
 2026-11-18, America/Santiago. Clasificación: requiere diagnóstico antes de decidir.
 Sin cambios funcionales ni solicitud de cambio de contrato.
 

@@ -38,6 +38,14 @@ backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo 
 
 ## Continuidad de funcionalidades
 
+- E217 diagnóstico backend recibido: calendario QA02:00–17:30 todos los días;
+  horas20nov11:10/11:30 válidas en sus pruebas locales. Frontend reprodujo error
+  de selección obsoleto tras corregir campos y lo corrigió solo en checkout de
+  producto. Conserva errores de red/servidor e intención UUID; valida selección
+  antes del aviso horario actual.74 pruebas, navegador320/390/430 y build QA/PWA
+  aprobados; publicación y validación física pendientes.
+  [Informe de corrección](frontend-checkout-selection-error-fix-qa.md).
+
 - Cliente Aurora Pro integrado con contrato E214 publicado en backend QA. La
   declaración explícita lleva Por responder → En espera; WhatsApp RECEIPT y su
   regreso no declaran envío. CLARIFICATION, aclaración formal y revocación se

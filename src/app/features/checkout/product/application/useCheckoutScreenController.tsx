@@ -9,7 +9,7 @@ import { getCloudinarySecureImageUrl } from "../../../profile/business-config/ca
 import type { CatalogItem } from "../../../profile/business-config/domain/types";
 import { nextOrderQuantity } from "../../domain/checkoutOrderState";
 
-import { selectOrderMoment, type OrderMoment } from "../../domain/orderMoment";
+import { resolveOrderDelivery, selectOrderMoment, type OrderMoment } from "../../domain/orderMoment";
 import { createOrderCreationIntent, OrderSelectionError } from "../../application/orderCreationIntent";
 
 import { announceAction } from "../../../requests/shared/feedback/ActionHologram";
@@ -51,6 +51,11 @@ export function useCheckoutScreenController({
   const [selectedHour, setSelectedHour] = useState(savedDraft?.time?.slice(0,2)??"");
   const [selectedMinute, setSelectedMinute] = useState(savedDraft?.time?.slice(3,5)??"");
   const [orderMoment, setOrderMoment] = useState<OrderMoment>(savedDraft?.moment??'schedule');
+  const selectionSignature=JSON.stringify([orderMoment,selectedDate,selectedTime]);
+  const selectionErrorFor=useRef<string|null>(null);
+  // Only local selection errors expire when those fields change. Network/server
+  // errors and uncertain creation intents must remain recoverable.
+  const visibleSubmissionError=selectionErrorFor.current===null||selectionErrorFor.current===selectionSignature?submissionError:undefined;
   const needNow = orderMoment === 'now';
   const [referencePhoto, setReferencePhoto] = useState<string | null>(savedDraft?.photo??null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -206,8 +211,13 @@ export function useCheckoutScreenController({
 
     submissionLock.current=true;
     setSubmissionError(undefined);
+    selectionErrorFor.current=null;
     setIsSubmitting(true);
     try {
+      if(!creationIntent.current.pendingPayload()){
+        try{resolveOrderDelivery({moment:orderMoment,date:selectedDate,time:selectedTime});}
+        catch(error){throw new OrderSelectionError(error instanceof Error?error.message:'Selecciona cuándo lo necesitas.');}
+      }
       if(!creationIntent.current.pendingPayload()&&!await submissionHours.check(business.id,token))return;
       if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)return;
       if(!creationFlow.current){const capability=await readReservationCapabilities(token);if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)throw new Error('La sesión cambió. Vuelve a abrir la solicitud.');creationFlow.current=capability.simplifiedReservationCreationEnabled?'AVAILABILITY_V3':capability.reservationCreationEnabled?'AVAILABILITY_V2':'AVAILABILITY_V1';}
@@ -239,6 +249,7 @@ export function useCheckoutScreenController({
         error instanceof CreateOrderError || error instanceof OrderSelectionError
           ? error.message
           : GENERIC_CREATE_ORDER_MESSAGE;
+      selectionErrorFor.current=error instanceof OrderSelectionError?selectionSignature:null;
       setSubmissionError(message);
       showAppToast(message, error instanceof OrderSelectionError ? 'warning' : 'error');
       if (error instanceof CreateOrderError && error.status === 409 && error.outcome === 'not-created')
@@ -258,6 +269,6 @@ export function useCheckoutScreenController({
   });
 
 
-return {availableHours,availableMinutes,business,calculateTotal,consultationOpen,contactAllowed,creationIntent,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,handleReferencePhotoChange,handleSubmitOrder,isNoteOpen,isPhotoOpen,isPhotoViewerOpen,isSubmitting,isUploadingPhoto,needNow,note,onBack,orderMoment,pendingPayload,photoZoom,quantities,referencePhoto,referencePhotoInputRef,reviewItems,selectedDate,selectedHour,selectedItems,selectedMinute,selectedTime,setConsultationOpen,setContactAllowed,setIsNoteOpen,setIsPhotoOpen,setIsPhotoViewerOpen,setNote,setPhotoZoom,setReferencePhoto,setSelectedHour,setSelectedMinute,setSelectedTime,submissionError,submissionHours,updateQuantity,updateSelectedTime};
+return {availableHours,availableMinutes,business,calculateTotal,consultationOpen,contactAllowed,creationIntent,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,handleReferencePhotoChange,handleSubmitOrder,isNoteOpen,isPhotoOpen,isPhotoViewerOpen,isSubmitting,isUploadingPhoto,needNow,note,onBack,orderMoment,pendingPayload,photoZoom,quantities,referencePhoto,referencePhotoInputRef,reviewItems,selectedDate,selectedHour,selectedItems,selectedMinute,selectedTime,setConsultationOpen,setContactAllowed,setIsNoteOpen,setIsPhotoOpen,setIsPhotoViewerOpen,setNote,setPhotoZoom,setReferencePhoto,setSelectedHour,setSelectedMinute,setSelectedTime,submissionError:visibleSubmissionError,submissionHours,updateQuantity,updateSelectedTime};
 }
 export type CheckoutScreenModel=ReturnType<typeof useCheckoutScreenController>;

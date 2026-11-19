@@ -3,7 +3,7 @@ import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CatalogItem } from "../../profile/business-config/domain/types";
 
-const state = vi.hoisted(() => ({ values: [] as unknown[], cursor: 0, create: vi.fn(), toast: vi.fn(),capabilities:vi.fn() }));
+const state = vi.hoisted(() => ({ values: [] as unknown[], cursor: 0, create: vi.fn(), toast: vi.fn(),capabilities:vi.fn(),hours:vi.fn() }));
 vi.mock('react', async (importOriginal) => ({
   ...await importOriginal<typeof import('react')>(),
   useState: (initial: unknown) => {
@@ -28,7 +28,7 @@ vi.mock("../../requests/shared/feedback/ActionHologram", () => ({ announceAction
 vi.mock("../../requests/api/reservationCapabilities",()=>({readReservationCapabilities:state.capabilities}));
 vi.mock("../../requests/application/useSubmissionHoursAdvisory",async importOriginal=>({
   ...await importOriginal<typeof import("../../requests/application/useSubmissionHoursAdvisory")>(),
-  default:()=>({check:()=>Promise.resolve(true),dialog:null}),
+  default:()=>({check:state.hours,dialog:null}),
 }));
 import { ConsultationDesignSheet } from "../../requests/shared/availability-design/AvailabilityDesign";
 import CheckoutScreen from "../product/CheckoutScreen";
@@ -63,6 +63,7 @@ const noop = () => undefined;
 beforeEach(() => {
   state.values = []; state.cursor = 0; state.create.mockReset().mockResolvedValue({ id: 1, total: 1000 }); state.toast.mockReset();
   state.capabilities.mockReset().mockResolvedValue({reservationCreationEnabled:false});
+  state.hours.mockReset().mockResolvedValue(true);
   vi.stubGlobal('React', React);
   vi.stubGlobal('localStorage', { getItem: () => 'test' });
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ secure_url: photo }))));
@@ -91,6 +92,45 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
   };
 
   if (kind === 'product') {
+    it('clears an obsolete selection error from the review after correcting the date and time',async()=>{
+      await submit();
+      expect(sheet().error).toBe('Selecciona una fecha y hora.');
+      expect(state.create).not.toHaveBeenCalled();
+      sheet().onOpenChange(false);
+      input('date').props.onChange!({target:{value:'2026-11-20'}});
+      button('11:00').props.onClick!();button('11:10').props.onClick!();
+      button('Requiero este producto').props.onClick!();
+      expect(sheet().data.schedule).toBe('2026-11-20 · 11:10');
+      expect(sheet().error).toBeUndefined();
+      await submit();
+      expect(state.create).toHaveBeenCalledWith(expect.objectContaining({payload:expect.objectContaining({deliveryDate:'2026-11-20',deliveryTime:'11:10',needNow:false})}));
+    });
+    it('validates missing selection before consulting the business opening hours',async()=>{
+      await submit();
+      expect(state.hours).not.toHaveBeenCalled();
+      expect(state.capabilities).not.toHaveBeenCalled();
+      expect(state.create).not.toHaveBeenCalled();
+    });
+    it.each(['11:10','11:30'])('preserves the future requested time %s after the current-hours confirmation',async time=>{
+      vi.setSystemTime(new Date('2026-11-19T00:03:00Z'));
+      input('date').props.onChange!({target:{value:'2026-11-20'}});
+      button('11:00').props.onClick!();button(time).props.onClick!();
+      await submit();
+      expect(state.hours).toHaveBeenCalledOnce();
+      expect(state.create.mock.calls[0][0].payload).toMatchObject({deliveryDate:'2026-11-20',deliveryTime:time,needNow:false});
+    });
+    it('keeps a server or network error visible when the editable selection changes',async()=>{
+      state.create.mockRejectedValueOnce(new CreateOrderError('No se pudo conectar. Intenta nuevamente.',null));
+      button('Ahora').props.onClick!();await submit();
+      const message=sheet().error,key=state.create.mock.calls[0][0].idempotencyKey;
+      sheet().onOpenChange(false);button('Programar').props.onClick!();
+      input('date').props.onChange!({target:{value:'2026-11-20'}});
+      button('11:00').props.onClick!();button('11:30').props.onClick!();
+      expect(sheet().error).toBe(message);
+      button('Reintentar envío').props.onClick!();
+      await submit();expect(state.create.mock.calls[1][0].idempotencyKey).toBe(key);
+      expect(state.create.mock.calls[1][0].payload.needNow).toBe(true);
+    });
     it('selects V3 only with its own flag and never falls back after an uncertain creation',async()=>{
       state.capabilities.mockResolvedValue({reservationCreationEnabled:true,simplifiedReservationCreationEnabled:true});state.create.mockRejectedValueOnce(new TypeError('network'));
       button('Ahora').props.onClick!();await submit();const first=state.create.mock.calls[0][0];expect(first.expectedFlow).toBe('AVAILABILITY_V3');expect(first.url).toMatch(/availability-reservation-v3-requests$/);
