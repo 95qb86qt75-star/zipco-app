@@ -1,4 +1,5 @@
-import useSubmissionHoursAdvisory, { hoursDraftKey, readHoursDraft, saveHoursDraft, clearHoursDraft } from "../../../requests/application/useSubmissionHoursAdvisory";
+import useSubmissionHoursAdvisory, { hoursDraftKey, readHoursDraft, clearHoursDraft,focusSubmissionSchedule } from "../../../requests/application/useSubmissionHoursAdvisory";
+import {requestedMoment} from '../../../requests/api/requestedMomentAdvisory';
 import React, { useRef, useState } from "react";
 
 
@@ -8,7 +9,7 @@ import { createOrder, CreateOrderError } from "../../api/createOrderApi";
 import { getCloudinarySecureImageUrl } from "../../../profile/business-config/catalog/catalogValidation";
 import { showAppToast } from "../../../../shared/notifications/Toast";
 
-import { selectOrderMoment, type OrderMoment } from "../../domain/orderMoment";
+import { resolveOrderDelivery,resolvedOrderSelection,selectOrderMoment, type OrderMoment } from "../../domain/orderMoment";
 import { createOrderCreationIntent, OrderSelectionError } from "../../application/orderCreationIntent";
 
 export function useServiceCheckoutScreenController({
@@ -40,9 +41,16 @@ export function useServiceCheckoutScreenController({
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const creationIntent = useRef(createOrderCreationIntent());
+  const reviewedSelection=useRef<{key:string;value:Parameters<typeof resolveOrderDelivery>[0]}|null>(null);
+  const selectionSignature=JSON.stringify([scheduleOption,deliveryDate,deliveryTime]);
+  const submissionContext=JSON.stringify([provider.id,provider.userId,selectionSignature]);
+  const submissionContextRef=useRef(submissionContext);submissionContextRef.current=submissionContext;
 
   const submitLock=useRef(false);
-  const submissionHours=useSubmissionHoursAdvisory(()=>{saveHoursDraft(draftKey,{date:deliveryDate,time:deliveryTime,moment:scheduleOption,message,photo:uploadedImage});(onFindAlternative??onBack)();},()=>onSessionExpired?.());
+  const scheduleRef=useRef<HTMLDivElement>(null);
+  const submissionHours=useSubmissionHoursAdvisory(()=>focusSubmissionSchedule(scheduleRef.current),()=>onSessionExpired?.(),{
+    businessId:Number(provider.id),key:selectionSignature,
+    selection:()=>requestedMoment(resolveOrderDelivery({moment:scheduleOption,date:deliveryDate,time:deliveryTime}))});
   const handleMomentSelection = (moment: OrderMoment) => {
     if (moment === scheduleOption) return;
     const selection = selectOrderMoment(moment);
@@ -87,11 +95,19 @@ export function useServiceCheckoutScreenController({
     submitLock.current=true;
     setIsSubmitting(true);
     try {
-      if(!creationIntent.current.pendingPayload()&&!await submissionHours.check(Number(provider.id),token))return;
-      if(localStorage.getItem('zipco-token')!==token)return;
+      let selection:Parameters<typeof resolveOrderDelivery>[0]=creationIntent.current.pendingPayload()&&reviewedSelection.current?.key===selectionSignature
+        ?reviewedSelection.current.value:{moment:scheduleOption,date:deliveryDate,time:deliveryTime};
+      if(!creationIntent.current.pendingPayload()){
+        let delivery:ReturnType<typeof resolveOrderDelivery>;
+        try{delivery=resolveOrderDelivery(selection);selection=resolvedOrderSelection(delivery);}
+        catch(error){throw new OrderSelectionError(error instanceof Error?error.message:'Selecciona cuándo lo necesitas.');}
+        if(!await submissionHours.check(Number(provider.id),token,requestedMoment(delivery)))return;
+        reviewedSelection.current={key:selectionSignature,value:selection};
+      }
+      if(localStorage.getItem('zipco-token')!==token||submissionContextRef.current!==submissionContext)return;
       const created = await creationIntent.current.submit({
         identity: JSON.stringify([localStorage.getItem('zipco-user-id'), provider.id, provider.userId]),
-        selection: { moment: scheduleOption, date: deliveryDate, time: deliveryTime },
+        selection,
         details: { businessId: Number(provider.id), items: [{ catalogItemId: Number(service.id), quantity: 1 }],
           note: message, referencePhoto: uploadedImage },
       }, (payload, idempotencyKey) => createOrder({
@@ -124,6 +140,6 @@ export function useServiceCheckoutScreenController({
   };
 
 
-return {activeTab,creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,onBack,provider,scheduleOption,service,setActiveTab,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,showNotification,submissionHours,uploadedImage};
+return {scheduleRef,activeTab,creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,onBack,provider,scheduleOption,service,setActiveTab,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,showNotification,submissionHours,uploadedImage};
 }
 export type ServiceCheckoutScreenModel=ReturnType<typeof useServiceCheckoutScreenController>;

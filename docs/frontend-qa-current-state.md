@@ -38,6 +38,14 @@ backend probado/publicado/verificado ≠ frontend integrado/publicado ≠ flujo 
 
 ## Continuidad de funcionalidades
 
+- E219 contrato definitivo recibido: backend Railway QA739c5a4. Frontend integra
+  request-submission-advisory-v2 en pedidos, servicios y cotizaciones: Hoy/
+  Programar comprueban la selección; Ahora usa reloj servidor. Buscar otro
+  horario conserva formulario y foco; no usa el aviso del momento del envío.
+ 122 pruebas, Chrome320/390/430 y build QA/PWA aprobados; publicación y prueba
+  física/autenticada pendientes. E215 sigue separado.
+  [Informe E219](frontend-requested-moment-hours-advisory-qa.md).
+
 - E217 diagnóstico backend recibido: calendario QA02:00–17:30 todos los días;
   horas20nov11:10/11:30 válidas en sus pruebas locales. Frontend reprodujo error
   de selección obsoleto tras corregir campos y lo corrigió solo en checkout de

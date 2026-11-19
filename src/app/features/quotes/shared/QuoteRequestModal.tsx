@@ -1,5 +1,6 @@
 import * as React from 'react';
-import useSubmissionHoursAdvisory, { hoursDraftKey, readHoursDraft, saveHoursDraft, clearHoursDraft } from "../../requests/application/useSubmissionHoursAdvisory";
+import useSubmissionHoursAdvisory, { hoursDraftKey, readHoursDraft, clearHoursDraft,focusSubmissionSchedule } from "../../requests/application/useSubmissionHoursAdvisory";
+import {requestedMoment} from '../../requests/api/requestedMomentAdvisory';
 import { type ChangeEvent, useRef, useState } from "react";
 import { Calendar, Camera, Check, Clock, Send, Trash2, X } from "lucide-react";
 import type { CatalogItem } from "../../profile/business-config/domain/types";
@@ -34,8 +35,11 @@ export default function QuoteRequestModal({
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const submitLock=useRef(false);
-  const submissionHours=useSubmissionHoursAdvisory(()=>{saveHoursDraft(draftKey,{message,needNow,date,time,photo});(onFindAlternative??onClose)();},()=>onSessionExpired?.());
+  const scheduleRef=useRef<HTMLDivElement>(null);
+  const submissionHours=useSubmissionHoursAdvisory(()=>focusSubmissionSchedule(scheduleRef.current),()=>onSessionExpired?.(),{
+    businessId,key:JSON.stringify([needNow,date,time]),selection:()=>requestedMoment({needNow,deliveryDate:date,deliveryTime:time})});
   const key = useRef(crypto.randomUUID());
+  const pending=useRef<{user:string|null;payload:Parameters<typeof createQuote>[0]}|null>(null);
 
   const uploadPhoto = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -80,11 +84,11 @@ export default function QuoteRequestModal({
       onSessionExpired?.();
       return;
     }
-    if (!message.trim()) {
+    if (!pending.current&&!message.trim()) {
       setError("Describe lo que necesitas.");
       return;
     }
-    if (!needNow && (!date || !time)) {
+    if (!pending.current&&!needNow && (!date || !time)) {
       setError("Selecciona fecha y hora.");
       return;
     }
@@ -93,17 +97,17 @@ export default function QuoteRequestModal({
     setSubmitting(true);
     setError("");
     try {
-      if(!await submissionHours.check(businessId,token)||localStorage.getItem('zipco-token')!==token)return;
+      const user=localStorage.getItem('zipco-user-id');
+      if(pending.current&&(pending.current.user!==user||pending.current.payload.businessId!==businessId||pending.current.payload.catalogItemId!==item.id))throw Error('Hay un envío pendiente de otra sesión o negocio. Vuelve a la solicitud original.');
+      if(!pending.current){
+        const payload={businessId,catalogItemId:item.id,message:message.trim(),needNow,
+          requestedDate:needNow?undefined:date,requestedTime:needNow?undefined:time,referencePhoto:photo.trim()||undefined};
+        const selection=requestedMoment({needNow,deliveryDate:date,deliveryTime:time});
+        if(!await submissionHours.check(businessId,token,selection)||localStorage.getItem('zipco-token')!==token||localStorage.getItem('zipco-user-id')!==user)return;
+        pending.current={user,payload:Object.freeze(payload)};
+      }
       const created = await createQuote(
-        {
-          businessId,
-          catalogItemId: item.id,
-          message: message.trim(),
-          needNow,
-          requestedDate: needNow ? undefined : date,
-          requestedTime: needNow ? undefined : time,
-          referencePhoto: photo.trim() || undefined,
-        },
+        pending.current.payload,
         token,
         key.current,
       );
@@ -119,6 +123,7 @@ export default function QuoteRequestModal({
       onCreated();
       onClose();
     } catch (cause: any) {
+      if([400,401,403,404,422].includes(cause?.status)&&pending.current){pending.current=null;key.current=crypto.randomUUID();}
       if (cause?.status === 401) onSessionExpired?.();
       setError(
         cause?.message || "No se pudo enviar la solicitud de cotización.",
@@ -167,7 +172,7 @@ export default function QuoteRequestModal({
             placeholder="Describe el trabajo, medidas o detalles importantes"
           />
         </label>
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div ref={scheduleRef} tabIndex={-1} aria-label="Fecha y hora de la solicitud" className="mt-4 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setNeedNow(true)}

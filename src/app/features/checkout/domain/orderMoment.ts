@@ -38,3 +38,9 @@ export function resolveOrderDelivery(selection: OrderMomentSelection, now = new 
   if (today && selection.time <= today.time) throw new Error(PAST_SCHEDULE_MESSAGE);
   return delivery;
 }
+
+// Bind a reviewed "Hoy" to the exact Chilean date that was checked, even if
+// midnight passes while the advisory is open. The server still validates time.
+export function resolvedOrderSelection(delivery:ReturnType<typeof resolveOrderDelivery>):OrderMomentSelection&{moment:OrderMoment}{
+  return delivery.needNow?{moment:'now',date:'',time:''}:{moment:'schedule',date:delivery.deliveryDate,time:delivery.deliveryTime};
+}

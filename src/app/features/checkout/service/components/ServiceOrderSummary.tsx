@@ -13,8 +13,8 @@ import OrderMomentSelector from "../../shared/OrderMomentSelector";
 
 import type { ServiceCheckoutScreenModel } from "../application/useServiceCheckoutScreenController";
 /** Canonical visual section; data and commands come from its screen controller. */
-export default function ServiceOrderSummary({model}:{model:Pick<ServiceCheckoutScreenModel,"creationIntent"|"deliveryDate"|"deliveryTime"|"handleImageUpload"|"handleMomentSelection"|"handleSubmit"|"isSubmitting"|"isUploading"|"message"|"provider"|"scheduleOption"|"service"|"setDeliveryDate"|"setDeliveryTime"|"setMessage"|"setUploadedImage"|"uploadedImage">}){
-const {creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,provider,scheduleOption,service,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,uploadedImage}=model;
+export default function ServiceOrderSummary({model}:{model:Pick<ServiceCheckoutScreenModel,"scheduleRef"|"creationIntent"|"deliveryDate"|"deliveryTime"|"handleImageUpload"|"handleMomentSelection"|"handleSubmit"|"isSubmitting"|"isUploading"|"message"|"provider"|"scheduleOption"|"service"|"setDeliveryDate"|"setDeliveryTime"|"setMessage"|"setUploadedImage"|"uploadedImage">}){
+const {scheduleRef,creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,provider,scheduleOption,service,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,uploadedImage}=model;
 return (<div className="flex-1 overflow-auto px-4 pt-4 pb-28">
         {/* Provider Info */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-md mb-4">
@@ -41,7 +41,7 @@ return (<div className="flex-1 overflow-auto px-4 pt-4 pb-28">
         </div>
 
         {/* Schedule Options */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-md mb-4">
+        <div ref={scheduleRef} tabIndex={-1} aria-label="Fecha y hora de la solicitud" className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-white/50 shadow-md mb-4">
           <h4 className="font-bold text-gray-900 mb-3">
             ¿Cuándo lo necesitas?
           </h4>

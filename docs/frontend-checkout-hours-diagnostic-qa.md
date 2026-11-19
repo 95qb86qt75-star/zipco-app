@@ -3,6 +3,9 @@
 Actualización posterior: respuesta backend E217 recibida y defecto local de error
 obsoleto reproducido/corregido. Ver frontend-checkout-selection-error-fix-qa.md;
 este diagnóstico conserva las evidencias y límites de su primera revisión.
+E219 modifica después la regla de horario: ver
+frontend-requested-moment-hours-advisory-qa.md. La evaluación v1 de envío descrita
+abajo no es el comportamiento nuevo del formulario migrado a v2.
 
 2026-11-18, America/Santiago. Clasificación: requiere diagnóstico antes de decidir.
 Sin cambios funcionales ni solicitud de cambio de contrato.

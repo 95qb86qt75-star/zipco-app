@@ -1,4 +1,5 @@
-import useSubmissionHoursAdvisory, { hoursDraftKey, readHoursDraft, saveHoursDraft, clearHoursDraft } from "../../../requests/application/useSubmissionHoursAdvisory";
+import useSubmissionHoursAdvisory, { hoursDraftKey, readHoursDraft, clearHoursDraft,focusSubmissionSchedule } from "../../../requests/application/useSubmissionHoursAdvisory";
+import {requestedMoment} from '../../../requests/api/requestedMomentAdvisory';
 import { type ChangeEvent, useEffect,useRef, useState } from "react";
 
 import { API_BASE_URL } from "../../../../api/apiConfig";
@@ -9,7 +10,7 @@ import { getCloudinarySecureImageUrl } from "../../../profile/business-config/ca
 import type { CatalogItem } from "../../../profile/business-config/domain/types";
 import { nextOrderQuantity } from "../../domain/checkoutOrderState";
 
-import { resolveOrderDelivery, selectOrderMoment, type OrderMoment } from "../../domain/orderMoment";
+import { resolveOrderDelivery, resolvedOrderSelection, selectOrderMoment, type OrderMoment } from "../../domain/orderMoment";
 import { createOrderCreationIntent, OrderSelectionError } from "../../application/orderCreationIntent";
 
 import { announceAction } from "../../../requests/shared/feedback/ActionHologram";
@@ -52,6 +53,8 @@ export function useCheckoutScreenController({
   const [selectedMinute, setSelectedMinute] = useState(savedDraft?.time?.slice(3,5)??"");
   const [orderMoment, setOrderMoment] = useState<OrderMoment>(savedDraft?.moment??'schedule');
   const selectionSignature=JSON.stringify([orderMoment,selectedDate,selectedTime]);
+  const submissionContext=JSON.stringify([currentUserId,business.id,business.userId,selectionSignature]);
+  const submissionContextRef=useRef(submissionContext);submissionContextRef.current=submissionContext;
   const selectionErrorFor=useRef<string|null>(null);
   // Only local selection errors expire when those fields change. Network/server
   // errors and uncertain creation intents must remain recoverable.
@@ -65,15 +68,18 @@ export function useCheckoutScreenController({
   const [isPhotoViewerOpen, setIsPhotoViewerOpen] = useState(false);
   const [photoZoom, setPhotoZoom] = useState(1);
   const creationIntent = useRef(createOrderCreationIntent());
+  const reviewedSelection=useRef<{key:string;value:Parameters<typeof resolveOrderDelivery>[0]}|null>(null);
   const creationFlow=useRef<'AVAILABILITY_V1'|'AVAILABILITY_V2'|'AVAILABILITY_V3'|null>(null);
   const checkoutAlive=useRef(true);
   useEffect(()=>{checkoutAlive.current=true;return()=>{checkoutAlive.current=false;};},[]);
   const referencePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const submissionLock=useRef(false);
+  const scheduleRef=useRef<HTMLDivElement>(null);
   const submissionHours=useSubmissionHoursAdvisory(()=>{
-    saveHoursDraft(draftKey,{quantities,note,date:selectedDate,time:selectedTime,moment:orderMoment,photo:referencePhoto,contact:contactAllowed});(onFindAlternative??onBack)();
-  },onSessionExpired);
+    setConsultationOpen(false);focusSubmissionSchedule(scheduleRef.current);
+  },onSessionExpired,{businessId:business.id,key:selectionSignature,
+    selection:()=>requestedMoment(resolveOrderDelivery({moment:orderMoment,date:selectedDate,time:selectedTime}))});
   const availableHours = Array.from({ length: 14 }, (_, index) =>
     String(index + 9).padStart(2, "0"),
   );
@@ -214,17 +220,21 @@ export function useCheckoutScreenController({
     selectionErrorFor.current=null;
     setIsSubmitting(true);
     try {
+      let selection:Parameters<typeof resolveOrderDelivery>[0]=creationIntent.current.pendingPayload()&&reviewedSelection.current?.key===selectionSignature
+        ?reviewedSelection.current.value:{moment:orderMoment,date:selectedDate,time:selectedTime};
       if(!creationIntent.current.pendingPayload()){
-        try{resolveOrderDelivery({moment:orderMoment,date:selectedDate,time:selectedTime});}
+        let delivery:ReturnType<typeof resolveOrderDelivery>;
+        try{delivery=resolveOrderDelivery(selection);selection=resolvedOrderSelection(delivery);}
         catch(error){throw new OrderSelectionError(error instanceof Error?error.message:'Selecciona cuándo lo necesitas.');}
+        if(!await submissionHours.check(business.id,token,requestedMoment(delivery)))return;
+        reviewedSelection.current={key:selectionSignature,value:selection};
       }
-      if(!creationIntent.current.pendingPayload()&&!await submissionHours.check(business.id,token))return;
-      if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)return;
-      if(!creationFlow.current){const capability=await readReservationCapabilities(token);if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token)throw new Error('La sesión cambió. Vuelve a abrir la solicitud.');creationFlow.current=capability.simplifiedReservationCreationEnabled?'AVAILABILITY_V3':capability.reservationCreationEnabled?'AVAILABILITY_V2':'AVAILABILITY_V1';}
+      if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token||submissionContextRef.current!==submissionContext)return;
+      if(!creationFlow.current){const capability=await readReservationCapabilities(token);if(!checkoutAlive.current||localStorage.getItem('zipco-token')!==token||submissionContextRef.current!==submissionContext)return;creationFlow.current=capability.simplifiedReservationCreationEnabled?'AVAILABILITY_V3':capability.reservationCreationEnabled?'AVAILABILITY_V2':'AVAILABILITY_V1';}
       const flow=creationFlow.current;
       const created = await creationIntent.current.submit({
         identity: JSON.stringify([currentUserId, business.id, business.userId, flow]),
-        selection: { moment: orderMoment, date: selectedDate, time: selectedTime },
+        selection,
         details: {
           businessId: business.id,
           items: selectedItems.map((product) => ({ catalogItemId: product.id, quantity: quantities[product.id] || 1 })),
@@ -269,6 +279,6 @@ export function useCheckoutScreenController({
   });
 
 
-return {availableHours,availableMinutes,business,calculateTotal,consultationOpen,contactAllowed,creationIntent,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,handleReferencePhotoChange,handleSubmitOrder,isNoteOpen,isPhotoOpen,isPhotoViewerOpen,isSubmitting,isUploadingPhoto,needNow,note,onBack,orderMoment,pendingPayload,photoZoom,quantities,referencePhoto,referencePhotoInputRef,reviewItems,selectedDate,selectedHour,selectedItems,selectedMinute,selectedTime,setConsultationOpen,setContactAllowed,setIsNoteOpen,setIsPhotoOpen,setIsPhotoViewerOpen,setNote,setPhotoZoom,setReferencePhoto,setSelectedHour,setSelectedMinute,setSelectedTime,submissionError:visibleSubmissionError,submissionHours,updateQuantity,updateSelectedTime};
+return {scheduleRef,availableHours,availableMinutes,business,calculateTotal,consultationOpen,contactAllowed,creationIntent,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,handleReferencePhotoChange,handleSubmitOrder,isNoteOpen,isPhotoOpen,isPhotoViewerOpen,isSubmitting,isUploadingPhoto,needNow,note,onBack,orderMoment,pendingPayload,photoZoom,quantities,referencePhoto,referencePhotoInputRef,reviewItems,selectedDate,selectedHour,selectedItems,selectedMinute,selectedTime,setConsultationOpen,setContactAllowed,setIsNoteOpen,setIsPhotoOpen,setIsPhotoViewerOpen,setNote,setPhotoZoom,setReferencePhoto,setSelectedHour,setSelectedMinute,setSelectedTime,submissionError:visibleSubmissionError,submissionHours,updateQuantity,updateSelectedTime};
 }
 export type CheckoutScreenModel=ReturnType<typeof useCheckoutScreenController>;

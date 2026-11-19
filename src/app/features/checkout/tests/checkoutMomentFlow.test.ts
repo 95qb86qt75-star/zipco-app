@@ -111,6 +111,15 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
       expect(state.capabilities).not.toHaveBeenCalled();
       expect(state.create).not.toHaveBeenCalled();
     });
+    it('does not send if selection changes after advisory while capabilities are loading',async()=>{
+      let finish!:(value:unknown)=>void;
+      state.capabilities.mockReturnValueOnce(new Promise(resolve=>{finish=resolve;}));
+      button('Ahora').props.onClick!();const sending=submit();
+      await vi.waitFor(()=>expect(state.capabilities).toHaveBeenCalledOnce());
+      button('Programar').props.onClick!();render();
+      finish({reservationCreationEnabled:false});await sending;
+      expect(state.create).not.toHaveBeenCalled();
+    });
     it.each(['11:10','11:30'])('preserves the future requested time %s after the current-hours confirmation',async time=>{
       vi.setSystemTime(new Date('2026-11-19T00:03:00Z'));
       input('date').props.onChange!({target:{value:'2026-11-20'}});
@@ -214,6 +223,7 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
     expect(state.create).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({
       needNow: true, deliveryDate: null, deliveryTime: null,
     }) }));
+    expect(state.hours).toHaveBeenCalledWith(5,'test',{mode:'IMMEDIATE'});
   });
 
   it('submits Programar using the existing date/time controls', async () => {
@@ -225,6 +235,7 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
     expect(state.create).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({
       needNow: false, deliveryDate: '2026-12-20', deliveryTime: '15:10',
     }) }));
+    expect(state.hours).toHaveBeenCalledWith(5,'test',{mode:'SCHEDULED',requestedDate:'2026-12-20',requestedTime:'15:10'});
   });
 
   it.each(['2026-10-16T02:31:00Z', '2026-10-16T03:01:00Z'])('retries exactly the same intent after network loss at %s', async (instant) => {
@@ -240,6 +251,7 @@ describe.each(['product', 'service'] as const)('%s checkout moment integration',
     expect(JSON.stringify(retry.payload)).toBe(JSON.stringify(original.payload));
     expect(retry.idempotencyKey).toBe(original.idempotencyKey);
     expect(retry.payload.deliveryDate).toBe('2026-10-15');
+    expect(state.toast).not.toHaveBeenCalledWith(RETRY_ORIGINAL_ORDER_MESSAGE,'warning');
   });
 
   it('resolves the original before edits can create another order', async () => {

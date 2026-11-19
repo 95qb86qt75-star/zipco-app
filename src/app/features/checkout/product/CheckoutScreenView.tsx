@@ -21,7 +21,7 @@ import { ConsultationDesignSheet } from "../../requests/shared/availability-desi
 
 import type {CheckoutScreenModel} from './application/useCheckoutScreenController';
 export default function CheckoutScreenView({model}:{model:CheckoutScreenModel}){
-const {availableHours,availableMinutes,business,calculateTotal,consultationOpen,contactAllowed,creationIntent,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,handleReferencePhotoChange,handleSubmitOrder,isNoteOpen,isPhotoOpen,isPhotoViewerOpen,isSubmitting,isUploadingPhoto,needNow,note,onBack,orderMoment,pendingPayload,photoZoom,quantities,referencePhoto,referencePhotoInputRef,reviewItems,selectedDate,selectedHour,selectedItems,selectedMinute,selectedTime,setConsultationOpen,setContactAllowed,setIsNoteOpen,setIsPhotoOpen,setIsPhotoViewerOpen,setNote,setPhotoZoom,setReferencePhoto,setSelectedHour,setSelectedMinute,setSelectedTime,submissionError,submissionHours,updateQuantity,updateSelectedTime}=model;
+const {scheduleRef,availableHours,availableMinutes,business,calculateTotal,consultationOpen,contactAllowed,creationIntent,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,handleReferencePhotoChange,handleSubmitOrder,isNoteOpen,isPhotoOpen,isPhotoViewerOpen,isSubmitting,isUploadingPhoto,needNow,note,onBack,orderMoment,pendingPayload,photoZoom,quantities,referencePhoto,referencePhotoInputRef,reviewItems,selectedDate,selectedHour,selectedItems,selectedMinute,selectedTime,setConsultationOpen,setContactAllowed,setIsNoteOpen,setIsPhotoOpen,setIsPhotoViewerOpen,setNote,setPhotoZoom,setReferencePhoto,setSelectedHour,setSelectedMinute,setSelectedTime,submissionError,submissionHours,updateQuantity,updateSelectedTime}=model;
 return (
     <div className="zipco-theme-surface size-full min-h-0 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       {submissionHours.dialog}
@@ -63,7 +63,7 @@ return (
         <ProductSelectionCard model={{quantities,selectedItems,updateQuantity}}/>
 
         {/* Delivery Date & Time Selection */}
-        <ScheduleSelectionPanel model={{availableHours,availableMinutes,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,needNow,orderMoment,selectedDate,selectedHour,selectedMinute,selectedTime,setSelectedHour,setSelectedMinute,setSelectedTime,updateSelectedTime}}/>
+        <div ref={scheduleRef} tabIndex={-1} aria-label="Fecha y hora de la solicitud"><ScheduleSelectionPanel model={{availableHours,availableMinutes,dateOptions,formatDate,getDateValue,handleDateSelection,handleHourSelection,handleMomentSelection,needNow,orderMoment,selectedDate,selectedHour,selectedMinute,selectedTime,setSelectedHour,setSelectedMinute,setSelectedTime,updateSelectedTime}}/></div>
 
         {/* Personal Note */}
         <div className="mb-3 rounded-2xl border border-slate-200 bg-white/70 p-3">

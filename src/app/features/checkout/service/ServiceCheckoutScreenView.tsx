@@ -14,7 +14,7 @@ import BottomNav from "../../../shared/navigation/BottomNav";
 
 import type {ServiceCheckoutScreenModel} from './application/useServiceCheckoutScreenController';
 export default function ServiceCheckoutScreenView({model}:{model:ServiceCheckoutScreenModel}){
-const {activeTab,creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,onBack,provider,scheduleOption,service,setActiveTab,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,showNotification,submissionHours,uploadedImage}=model;
+const {scheduleRef,activeTab,creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,onBack,provider,scheduleOption,service,setActiveTab,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,showNotification,submissionHours,uploadedImage}=model;
 return (
     <div className="zipco-theme-surface size-full bg-gradient-to-b from-white via-blue-50/30 to-blue-100/40 flex flex-col">
       {submissionHours.dialog}
@@ -37,7 +37,7 @@ return (
       </div>
 
       {/* Content */}
-      <ServiceOrderSummary model={{creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,provider,scheduleOption,service,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,uploadedImage}}/>
+      <ServiceOrderSummary model={{scheduleRef,creationIntent,deliveryDate,deliveryTime,handleImageUpload,handleMomentSelection,handleSubmit,isSubmitting,isUploading,message,provider,scheduleOption,service,setDeliveryDate,setDeliveryTime,setMessage,setUploadedImage,uploadedImage}}/>
 
       {/* Success Notification */}
       {showNotification && (
