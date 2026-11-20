@@ -172,7 +172,19 @@
 .zipco-final-alt .zipco-final-keep .cl{margin:0 0 8px;font-size:10px;font-weight:800;line-height:1.4;letter-spacing:.09em;text-transform:uppercase;color:#475569}
 .zipco-final-alt .zipco-final-locked{display:flex;align-items:center;gap:5px;margin:0 0 6px;color:#6d28d9;font-size:11px;font-weight:700;line-height:1.35}
 .zipco-final-alt .zipco-final-locked svg{width:13px;height:13px;flex:none}
-.zipco-final-alt .zipco-final-reservation>fieldset{margin-top:8px}
+.zipco-final-alt .zipco-final-reservation>fieldset{margin:8px 0 0;padding:0;border:0;border-radius:0;background:none;color:#0f172a}
+.zipco-final-alt .zipco-final-reservation>fieldset>legend{padding:0;font-size:13px;font-weight:800;color:#1e1b4b}
+.zipco-final-alt .zipco-final-reservation label:has(input[type=radio]){min-height:44px;font-size:13px;color:#475569;opacity:.55}
+.zipco-final-alt .zipco-final-reservation label:has(input[type=radio]:checked){font-weight:800;color:#0f172a;opacity:1}
+.zipco-final-alt .zipco-final-reservation input[type=radio]{width:18px;height:18px;accent-color:#0f766e}
+.zipco-final-alt .zipco-final-reservation fieldset .text-xs{font-size:11.5px;line-height:1.4;color:#64748b}
+.zipco-final-alt .zipco-final-reservation fieldset [role=alert]{color:#be123c}
+.dark .zipco-final-alt .zipco-final-reservation>fieldset{color:#f1f5f9}
+.dark .zipco-final-alt .zipco-final-reservation>fieldset>legend{color:#ede9fe}
+.dark .zipco-final-alt .zipco-final-reservation label:has(input[type=radio]){color:#94a3b8}
+.dark .zipco-final-alt .zipco-final-reservation label:has(input[type=radio]:checked){color:#f1f5f9}
+.dark .zipco-final-alt .zipco-final-reservation fieldset .text-xs{color:#94a3b8}
+.dark .zipco-final-alt .zipco-final-reservation fieldset [role=alert]{color:#fda4af}
 .zipco-final-alt .zipco-final-plan-error{display:flex;align-items:flex-start;gap:9px;padding:12px;border:1px solid #fda4af;border-radius:16px;background:#fff1f2;color:#9f1239;font-size:12px;font-weight:700;line-height:1.45}
 .zipco-final-alt .zipco-final-plan-error>svg{width:20px;height:20px;flex:none}
 .dark .zipco-final-alt .zipco-final-path,.dark .zipco-final-alt .zipco-final-previous,.dark .zipco-final-alt .zipco-final-reservation{border-color:#475569}
