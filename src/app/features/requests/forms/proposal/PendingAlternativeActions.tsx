@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { CalendarClock, Check, ImagePlus, Trash2, X } from 'lucide-react';
+import { CalendarClock, Check, Flag, ImagePlus, Send, Trash2, X } from 'lucide-react';
 import type { ChangeKey } from "./AlternativeProposalFields";
 import AlternativeChangeEditor, { type ChangeValues } from "./AlternativeChangeEditor";
 import AlternativeReviewPanel from "../../cards/shared/proposal/AlternativeReviewPanel";
@@ -63,8 +63,11 @@ export function LocalAlternativePhoto({ onFile, onPreview, late = false }: { onF
   </div>;
 }
 
-export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, onCheck, counterProposal = false, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields }: {
+/** `variant="final"` (solo la propuesta final del negocio, la pasa ProposalNegotiation): aviso de última propuesta, mensajes sugeridos propios,
+ *  revisión en tarjeta ticket y aclaración al pie. `ticketTitle` / `ticketThumb` encabezan el ticket. Sin `variant` el diálogo se comporta como siempre. */
+export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm, onCheck, counterProposal = false, title = 'Proponer una alternativa', baselineLabel = 'Solicitud original', extraFields, reviewFields, variant, ticketTitle, ticketThumb }: {
   order: Order; close: () => void; sourceOverride?: AlternativeSource;
+  variant?: 'final'; ticketTitle?: string; ticketThumb?: import('react').ReactNode;
   onCheck?: () => Promise<string>;
   counterProposal?: boolean;
   onConfirm?: (review: AlternativeReview, file: File | null) => Promise<void | boolean>; title?: string; baselineLabel?: string; extraFields?: import('react').ReactNode; reviewFields?: import('react').ReactNode|((review:AlternativeReview)=>import('react').ReactNode);
@@ -90,6 +93,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const finalAlternative = 'customerName' in order && order.requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE' && order.requestProcess.allowedActions.includes('PROPOSE_FINAL');
   const glowAlternative = Boolean(sourceOverride && onConfirm) && (counterProposal || finalAlternative || canPrepareAlternative(order, 'customerName' in order));
   const glowEdit = glowAlternative && !reviewing;
+  const isFinal = variant === 'final';
   const lateScheduleRequired = !counterProposal && lateProcess?.status === 'STILL_NEEDED' && lateProcess.requiresNewSchedule === true;
   const current = sourceOverride ? order.requestProcess?.id === source.processId && order.requestProcess.version <= source.expectedVersion
     : alternativeSourceCurrent(source, order, true);
@@ -147,15 +151,23 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const preparationHint = !changeCount ? 'Elige al menos un cambio.' : draft.message.trim().length < 3
     ? 'Explica el cambio (mínimo 3 caracteres).' : validation.review
       ? `${changeCount} ${changeCount === 1 ? 'cambio listo' : 'cambios listos'} para revisar` : validation.error;
+  const shownOriginalSchedule = isFinal && !source.needNow && /^\d{4}-\d{2}-\d{2}$/.test(source.date)
+    ? `${new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${source.date}T12:00:00Z`)).replace(/\./g, '')} · ${source.time}` : originalSchedule;
+  const heading = <>
+    {(glowEdit || isFinal) && <div className="zipco-la-step"><span className="zipco-la-bars" aria-hidden="true"><i /><i /></span>{reviewing ? 'PASO 2 DE 2 · REVISIÓN' : 'PASO 1 DE 2 · PREPARAR'}</div>}
+    <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}${glowEdit ? ' zipco-la-title' : ''}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
+    <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}${glowEdit ? ' zipco-la-sub' : ''}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : isFinal ? 'Elige qué cambia. La propuesta vigente se conserva y nada se envía todavía.' : glowEdit ? 'Elige qué cambia. El pedido original se conserva y nada se envía todavía.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+  </>;
   return <Dialog.Root open onOpenChange={value => { if (!value && !sendLock.current) close(); }}>
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-      <Dialog.Content className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900${glowEdit ? ' zipco-late-alternative' : ''}`}>
+      <Dialog.Content aria-busy={sending} className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'}${isFinal ? reviewing ? ' zipco-final-review' : ' zipco-final-prepare' : ''} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900${glowEdit ? ' zipco-late-alternative' : ''}`}>
+        {isFinal && sending && <div className="zipco-pz-prog" aria-hidden="true"><i /></div>}
         <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className={`zipco-la-x absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full ${reviewing ? '' : 'bg-slate-100 dark:bg-slate-800'}`}><X className="h-5 w-5" /></button></Dialog.Close>
+        {isFinal && <header className="zipco-final-heading">{heading}</header>}
         <div ref={body} data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
-          {glowEdit && <div className="zipco-la-step"><span className="zipco-la-bars" aria-hidden="true"><i /><i /></span>PASO 1 DE 2 · PREPARAR</div>}
-          <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}${glowEdit ? ' zipco-la-title' : ''}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
-          <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}${glowEdit ? ' zipco-la-sub' : ''}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : glowEdit ? 'Elige qué cambia. El pedido original se conserva y nada se envía todavía.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+          {!isFinal && heading}
+          {isFinal && !reviewing && <p className="zipco-final-last"><Flag aria-hidden="true" /><span>Será tu última propuesta. El cliente decide después.</span></p>}
           {glowEdit && lateScheduleRequired && <div className="zipco-la-req" role="note"><CalendarClock className="h-[18px] w-[18px] shrink-0" aria-hidden="true" /><span>Ya pasó de hora: elige una <b>nueva fecha y hora</b>.</span></div>}
           {extraFields}
           {!current && <p role="alert" className="mt-3 text-sm font-bold text-red-700">La solicitud cambió. Cierra y actualiza su estado antes de preparar otra alternativa.</p>}
@@ -169,8 +181,8 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               baselineLabel={baselineLabel}
               original={`${source.items.map(item => `${item.quantity}x ${item.name}`).join(' · ')}${source.total === null ? ' · Total no disponible' : ''}`}
               originalTotal={source.total}
-              originalNote={`Horario original: ${originalSchedule}.${source.orderType === 'service' ? ' Servicio: cantidad 1.' : ''}`}
-              originalLine={originalLine} originalSchedule={originalSchedule} line={line}
+              originalNote={`Horario original: ${shownOriginalSchedule}.${source.orderType === 'service' ? ' Servicio: cantidad 1.' : ''}`}
+              originalLine={originalLine} originalSchedule={shownOriginalSchedule} line={line}
               schedule={{ immediate: draft.scheduleChanged ? draft.immediate : source.needNow, date: draft.scheduleChanged ? draft.date : source.date, time: draft.scheduleChanged ? draft.time : source.time }}
               originalScheduleValue={{ immediate: source.needNow, date: source.date, time: source.time }}
               customBasePrice={line.selected.has('item') ? priceModes[index].custom : String(originalLine.customTotal ?? originalLine.price)}
@@ -180,16 +192,18 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
               message={draft.message} setMessage={updateMessage} messageMaxLength={1000}
               explanationHint="Obligatorio: explica los cambios en 3 a 1000 caracteres. Si cambia el precio, explica el motivo."
               photoFields={null}
-              late={glowAlternative ? { scheduleRequired: lateScheduleRequired, changeCount, counterProposal } : undefined} />}
+              late={glowAlternative ? { scheduleRequired: lateScheduleRequired, changeCount, counterProposal, final: isFinal } : undefined} />}
             {line && <div className={glowAlternative ? '' : 'mt-4'} hidden={glowAlternative && changeCount === 0}><LocalAlternativePhoto late={glowAlternative} onFile={onConfirm ? file => setFile(file) : undefined} onPreview={setPreview} /></div>}
           </fieldset>
           {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
-            photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel} />}
+            photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel}
+            ticket={isFinal && ticketTitle ? { title: ticketTitle, thumb: ticketThumb } : undefined} />}
           {reviewing&&validation.review&&(typeof reviewFields==='function'?reviewFields(validation.review):reviewFields)}
         </div>
         <div data-alternative-footer className={`shrink-0 border-t border-slate-200 dark:border-slate-700 ${reviewing ? 'px-5 py-3' : 'bg-white px-[18px] pb-4 pt-2.5 dark:bg-slate-900'}`}>
           {!reviewing && !editing && (!glowAlternative || validation.review || (changeCount > 0 && draft.message.trim().length >= 3)) && <p className="zipco-la-hint-foot mb-2 text-center text-xs font-semibold text-violet-700 dark:text-violet-200" data-late-missing={glowAlternative && lateScheduleRequired && changeCount > 0 && (!draft.scheduleChanged || draft.immediate) ? 'true' : undefined}>{preparationHint}{glowAlternative && lateScheduleRequired && changeCount > 0 && (!draft.scheduleChanged || draft.immediate) ? ' · falta una fecha y hora programadas' : ''}</p>}
           {editing && <p className="mb-2 text-xs text-slate-500">Guarda o cierra la edición antes de revisar la alternativa.</p>}
+          {isFinal && reviewing && <p className="zipco-final-fcap"><Send aria-hidden="true" /><span><b>Se envía como propuesta final.</b> El cliente debe aceptarla; no confirma reserva, entrega ni pago.</span></p>}
           {showErrors && validation.error && <p role="alert" className="mb-2 text-sm text-red-700">{validation.error}</p>}
           {sendError && <p role="alert" className="zipco-la-err mb-2 text-sm text-red-700">{sendError}</p>}
           {checkMessage && <p role="status" className="mb-2 text-sm text-slate-700 dark:text-slate-200">{checkMessage}</p>}

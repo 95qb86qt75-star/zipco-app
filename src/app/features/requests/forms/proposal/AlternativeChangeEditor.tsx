@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { CalendarClock, Check, DollarSign, Hash, Package } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { CalendarClock, Check, ChevronDown, ChevronRight, Clock, DollarSign, Hash, Moon, Package, Sun } from "lucide-react";
 import type { ChangeKey } from "./AlternativeProposalFields";
 import type { DraftLine, AlternativeSource } from "../../domain/alternativeDraft";
 
@@ -47,7 +48,7 @@ type Props = {
   explanationHint: string;
   photoFields: ReactNode;
   /** Presentación Glow compartida; scheduleRequired solo señala el contrato atrasado. */
-  late?: { scheduleRequired: boolean; changeCount: number; counterProposal?: boolean };
+  late?: { scheduleRequired: boolean; changeCount: number; counterProposal?: boolean; final?: boolean };
 };
 
 const field = "zipco-readable-field w-full rounded-xl border p-3 text-sm";
@@ -69,6 +70,12 @@ const suggestedMessages = [
   { label: "Te propongo una nueva hora", text: "Te propongo una nueva hora para tu pedido." },
   { label: "Puedo ofrecerte esta alternativa", text: "Puedo ofrecerte esta alternativa para tu pedido." },
 ];
+// Propuesta final: sin «alta demanda» (ya hubo una contrapropuesta; no aplica a una respuesta atrasada).
+const finalMessages = [
+  { label: "Te propongo una nueva hora", text: "Te propongo una nueva hora para tu pedido." },
+  { label: "Puedo ofrecerte esta alternativa", text: "Puedo ofrecerte esta alternativa para tu pedido." },
+  { label: "Es la mejor que puedo ofrecer", text: "Esta es la mejor alternativa que puedo ofrecerte." },
+];
 const customerMessages = [
   { label: 'Ajustar la cantidad', text: 'Me gustaría ajustar la cantidad de mi pedido.' },
   { label: 'Proponer otro horario', text: 'Me acomoda más este horario para mi pedido.' },
@@ -88,6 +95,81 @@ const editorTitles: Record<ChangeKey, string> = {
   schedule: "Nueva disponibilidad",
   item: "Producto o servicio alternativo",
 };
+
+// ===== Hora: selector propio (reemplaza <input type="time"> en la presentación Glow) y confirmación «¿Proponer esta hora?» =====
+// El valor sigue siendo «HH:MM» en 24 h, el mismo que ya validaba santiagoDraftTime; solo cambia cómo se elige y se confirma.
+const two = (n: number) => String(n).padStart(2, "0");
+const parseTime = (value: string) => { const m = /^(\d{2}):(\d{2})$/.exec(value); return m ? { h: Number(m[1]), m: Number(m[2]) } : null; };
+// Espacios duros: «7:00 p. m.» nunca se parte en dos líneas.
+const clock12 = (value: string) => { const t = parseTime(value); return t ? `${t.h % 12 || 12}:${two(t.m)}\u00A0${t.h < 12 ? "a.\u00A0m." : "p.\u00A0m."}` : value; };
+const dayPart = (value: string) => { const t = parseTime(value); if (!t) return ""; return t.h < 6 ? "de la madrugada" : t.h < 12 ? "de la mañana" : t.h === 12 && t.m === 0 ? "del mediodía" : t.h < 20 ? "de la tarde" : "de la noche"; };
+const shortDay = (date: string) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return date;
+  return new Intl.DateTimeFormat("es-CL", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
+    .format(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12))).replace(/\./g, "");
+};
+
+function TimePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const t = parseTime(value);
+  const set = (h: number, m: number) => onChange(`${two(h)}:${two(m)}`);
+  // Horas de 1 en 1; minutos de 5 en 5. Si aún no hay hora, el primer toque propone 09:00.
+  const step = (part: "h" | "m", dir: 1 | -1) => {
+    if (!t) { set(9, 0); return; }
+    if (part === "h") set((t.h + dir + 24) % 24, t.m);
+    else set(t.h, dir > 0 ? ((Math.floor(t.m / 5) + 1) * 5) % 60 : ((Math.ceil(t.m / 5) - 1 + 12) % 12) * 5);
+  };
+  const spin = (part: "h" | "m") => {
+    const now = t ? (part === "h" ? t.h : t.m) : null;
+    const label = part === "h" ? "Hora" : "Minutos";
+    return <div className="zipco-tp-s">
+      <button type="button" className="zipco-tp-b" aria-label={part === "h" ? "Una hora menos" : "Cinco minutos menos"} onClick={() => step(part, -1)}>−</button>
+      <div role="spinbutton" tabIndex={0} aria-label={label} aria-valuemin={0} aria-valuemax={part === "h" ? 23 : 59} aria-valuenow={now ?? undefined}
+        aria-valuetext={now === null ? "Sin elegir" : part === "h" ? `${now} horas` : `${now} minutos`} className="zipco-tp-v" data-empty={now === null || undefined}
+        onKeyDown={event => { const d = event.key === "ArrowUp" ? 1 : event.key === "ArrowDown" ? -1 : 0; if (d) { event.preventDefault(); step(part, d); } }}>
+        <b>{now === null ? "––" : two(now)}</b><em>{part === "h" ? "hora" : "min"}</em>
+      </div>
+      <button type="button" className="zipco-tp-b zipco-tp-pl" aria-label={part === "h" ? "Una hora más" : "Cinco minutos más"} onClick={() => step(part, 1)}>+</button>
+    </div>;
+  };
+  return <div className="zipco-tp" role="group" aria-label="Hora de Chile">
+    <span className="zipco-tp-l" aria-hidden="true">Hora de Chile</span>
+    <div className="zipco-tp-r">{spin("h")}<b className="zipco-tp-c" aria-hidden="true">:</b>{spin("m")}</div>
+  </div>;
+}
+
+// Al guardar una hora: muestra cómo quedará (24 h y 12 h) y, si la hora es de 1 a 11, ofrece la misma hora de la tarde. Nada se envía aquí.
+function TimeConfirm({ date, time, before, onUse, onBack, onOk }: { date: string; time: string; before: string; onUse: (value: string) => void; onBack: () => void; onOk: () => void }) {
+  const t = parseTime(time);
+  const night = t ? t.h < 6 || t.h >= 20 : false;
+  const alt = t && t.h >= 1 && t.h <= 11 ? `${two(t.h + 12)}:${two(t.m)}` : null;
+  return <Dialog.Root open onOpenChange={value => { if (!value) onBack(); }}>
+    <Dialog.Portal>
+      <Dialog.Overlay className="zipco-tpop-ov" />
+      <Dialog.Content className="zipco-tpop" aria-describedby={undefined} onOpenAutoFocus={event => { event.preventDefault(); (event.currentTarget as HTMLElement).querySelector<HTMLElement>("[data-tpop-ok]")?.focus(); }}>
+        <div className="zipco-tpop-in">
+          <span className="zipco-tpop-ic" aria-hidden="true"><Clock /></span>
+          <Dialog.Title className="zipco-tpop-t">¿Proponer esta hora?</Dialog.Title>
+          <div className="zipco-tpop-sum">
+            <p className="zipco-tpop-d">{shortDay(date)}</p>
+            <p className="zipco-tpop-h">{time}</p>
+            <p className="zipco-tpop-p">{night ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}<span>{clock12(time)} · {dayPart(time)}</span></p>
+          </div>
+          <p className="zipco-tpop-was">Antes: <s>{before}</s></p>
+          {alt && <div className="zipco-tpop-alt" role="group" aria-label="Hora alternativa">
+            <span>¿Querías decir las {alt} ({clock12(alt)})?</span>
+            <button type="button" onClick={() => onUse(alt)}>Usar {alt}</button>
+          </div>}
+          <p className="zipco-tpop-note">Hora de Chile. El cliente la verá tal como aparece aquí.</p>
+          <div className="zipco-tpop-r">
+            <button type="button" className="zipco-tpop-back" onClick={onBack}>Cambiar hora</button>
+            <button type="button" className="zipco-tpop-ok" data-tpop-ok onClick={onOk}>Sí, proponer</button>
+          </div>
+        </div>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>;
+}
 
 function SaveButton({ valid, onClick, className = "" }: { valid: boolean; onClick: () => void; className?: string }) {
   return (
@@ -130,6 +212,7 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
   const [time, setTime] = useState(schedule.time);
   const [scheduleEdited,setScheduleEdited]=useState(false);
   const [pastScheduleNotice,setPastScheduleNotice]=useState(false);
+  const [confirmTime, setConfirmTime] = useState(false);
   const dateInput = useRef<HTMLInputElement>(null);
   const [quick] = useState(() => (late ? quickTimes() : []));
 
@@ -164,6 +247,9 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
     close();
   };
 
+  // Presentación Glow: una hora programada se confirma antes de guardarla (24 h + a. m./p. m.). «Lo antes posible» no necesita hora.
+  const requestSave = () => { if (!valid) return; if (late && kind === "schedule" && !immediate) { setConfirmTime(true); return; } save(); };
+  const originalWhen = originalScheduleValue.immediate ? "Lo antes posible" : `${shortDay(originalScheduleValue.date)} · ${originalScheduleValue.time}`;
   const priceWarning = price !== "" && !priceOk && (
     <p role="alert" className="mt-1 text-xs text-red-700">Usa solo números enteros, sin puntos ni comas.</p>
   );
@@ -245,21 +331,23 @@ export function ChangeEditor({ kind, line, originalLine, schedule, originalSched
             </div>
           )}
           {!immediate && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className={late ? "grid gap-2" : "grid grid-cols-2 gap-2"}>
               <label className="min-w-0 text-xs font-bold">
                 Fecha
                 <input ref={dateInput} type="date" value={date} onChange={(e) => {setScheduleEdited(true);setDate(e.target.value);}} className={`zipco-ed-in mt-1 min-w-0 ${field}`} />
                 {!date && <span className="font-normal">Selecciona fecha</span>}
               </label>
-              <label className="min-w-0 text-xs font-bold">
+              {late ? <TimePicker value={time} onChange={(value) => { setScheduleEdited(true); setTime(value); }} /> : <label className="min-w-0 text-xs font-bold">
                 Hora de Chile
                 <input type="time" value={time} onChange={(e) => {setScheduleEdited(true);setTime(e.target.value);}} className={`zipco-ed-in mt-1 min-w-0 ${field}`} />
                 {!time && <span className="font-normal">Selecciona hora</span>}
-              </label>
+              </label>}
             </div>
           )}
           {pastScheduleNotice&&<p role="status" aria-live="polite" className="rounded-xl border border-amber-300 bg-amber-50 p-2 text-xs font-semibold text-amber-900">Esa fecha y hora ya pasaron. Elige un horario futuro.</p>}
-          <SaveButton valid={valid} onClick={save} className="w-full" />
+          <SaveButton valid={valid} onClick={requestSave} className="w-full" />
+          {confirmTime && <TimeConfirm date={date} time={time} before={originalWhen} onUse={(value) => { setScheduleEdited(true); setTime(value); }}
+            onBack={() => setConfirmTime(false)} onOk={() => { setConfirmTime(false); save(); }} />}
           {!valid && <p className="zipco-ed-help text-xs text-slate-500">Elige un horario diferente, futuro y válido en Chile. Para conservar el original, quita el cambio.</p>}
         </>
       )}
@@ -341,7 +429,7 @@ export default function AlternativeChangeEditor(props: Props) {
     const after: Record<ChangeKey, string> = {
       price: `${money(line.price)} ${custom ? "total" : "por unidad"}`,
       quantity: `${line.quantity}×`,
-      schedule: schedule.immediate ? "Lo antes posible" : `${schedule.date || "—"} · ${schedule.time || "—"}`,
+      schedule: schedule.immediate ? "Lo antes posible" : `${late.final && schedule.date ? shortDay(schedule.date) : schedule.date || "—"} · ${schedule.time || "—"}`,
       item: line.name.trim(),
     };
     const idle: Record<ChangeKey, string> = {
@@ -362,7 +450,7 @@ export default function AlternativeChangeEditor(props: Props) {
           {props.originalTotal != null && <p className="zipco-la-orig-price">{pesos(props.originalTotal)}</p>}
         </div>
 
-        <h4 className="zipco-la-q">Haz clic en lo que cambiarías de esta propuesta</h4>
+        <h4 className="zipco-la-q">{late.final ? 'Toca lo que cambiarías de esta propuesta' : 'Haz clic en lo que cambiarías de esta propuesta'}</h4>
         <div className="zipco-la-list">
           {order.map((key) => {
             const { label, icon: Icon } = tiles.find((tile) => tile.key === key)!;
@@ -387,6 +475,7 @@ export default function AlternativeChangeEditor(props: Props) {
                     <b>{label}</b>
                     <em>{active ? <><s>{before[key]}</s><span>{after[key]}</span></> : <span>{idle[key]}</span>}</em>
                   </span>
+                  {late.final && <span className="zipco-final-row-indicator" aria-hidden="true">{isOpen ? <ChevronDown /> : active ? <Check /> : <ChevronRight />}</span>}
                 </button>
                 {isOpen && (
                   <div className="zipco-la-editor">
@@ -428,7 +517,7 @@ export default function AlternativeChangeEditor(props: Props) {
           </label>
           {props.message.trim() === "" && (
             <div className="zipco-la-chips" role="group" aria-label="Frases sugeridas">
-              {(late.counterProposal ? customerMessages : suggestedMessages).map((suggestion) => (
+              {(late.counterProposal ? customerMessages : late.final ? finalMessages : suggestedMessages).map((suggestion) => (
                 <button key={suggestion.label} type="button" onClick={() => props.setMessage(suggestion.text)} className="zipco-la-chip">{suggestion.label}</button>
               ))}
             </div>

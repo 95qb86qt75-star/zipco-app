@@ -152,3 +152,80 @@
   .zipco-late-alternative,.zipco-late-alternative *,.zipco-late-alternative::before,.zipco-late-alternative::after { animation:none !important; transition:none !important }
 }
 @media (max-width:350px) { .zipco-la-tile { padding-right:54px }.zipco-la-tile-tx b { font-size:12px }.zipco-la-orig-price { font-size:17px } }
+
+/* ===== Hora de la disponibilidad: selector propio y confirmación «¿Proponer esta hora?» (AlternativeChangeEditor, presentación Glow) =====
+   El valor sigue siendo «HH:MM» en 24 h. Los estilos son propios (zipco-tp*, zipco-tpop*) y no tocan el resto del archivo. */
+.zipco-tp { margin-top: 2px }
+.zipco-tp-l { display: block; font-size: 11.5px; font-weight: 800; color: #334155 }
+.zipco-tp-r { display: flex; align-items: center; gap: 6px; margin-top: 6px }
+.zipco-tp-c { flex: none; font-size: 24px; font-weight: 800; color: #a5b4fc }
+.zipco-tp-s { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 2px; padding: 4px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px #c7d2fe }
+.zipco-tp-b { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #e0e7ff; color: #3730a3; font-size: 19px; font-weight: 800; line-height: 1; transition: transform .15s }
+.zipco-tp-b.zipco-tp-pl { color: #fff; background: linear-gradient(115deg,#7c3aed,#4f46e5 55%,#0e9f98); box-shadow: 0 4px 10px rgba(91,79,240,.28) }
+.zipco-tp-b:active:not(:disabled) { transform: scale(.92) }
+.zipco-tp-v { min-width: 0; min-height: 44px; flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; border-radius: 10px; line-height: 1 }
+.zipco-tp-v b { display: block; font-size: 26px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: #1e1b4b }
+.zipco-tp-v em { display: block; margin-top: 2px; font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8 }
+.zipco-tp-v[data-empty] b { color: #cbd5e1 }
+.zipco-tp-v:focus-visible, .zipco-tp-b:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px }
+.dark .zipco-tp-l { color: #cbd5e1 }
+.dark .zipco-tp-s { background: #0f172a; box-shadow: inset 0 0 0 1px #4338ca }
+.dark .zipco-tp-b:not(.zipco-tp-pl) { background: #1e1b4b; color: #c7d2fe }
+.dark .zipco-tp-v b { color: #f1f5f9 }
+
+@keyframes zipco-tpop-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes zipco-tpop-rise { from { opacity: 0; transform: translateY(10px) scale(.97) } to { opacity: 1; transform: none } }
+.zipco-tpop-ov { position: fixed; inset: 0; z-index: 1100; background: rgba(12,8,38,.52); animation: zipco-tpop-fade .2s both }
+.zipco-tpop { position: fixed; z-index: 1101; inset: 0; margin: auto; width: calc(100% - 2rem); max-width: 22rem; height: fit-content; max-height: calc(100dvh - 2rem); overflow: hidden auto; box-sizing: border-box; border-radius: 22px; background: #fff; color: #0f172a; box-shadow: 0 20px 50px rgba(30,27,75,.4),0 0 0 1px rgba(124,58,237,.16); overscroll-behavior: contain }
+.zipco-tpop:focus { outline: none }
+.zipco-tpop-in { padding: 18px 16px 14px; text-align: center; animation: zipco-tpop-rise .26s cubic-bezier(.2,.8,.2,1) both }
+.zipco-tpop-ic { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 50%; background: #ede9fe; color: #5b21b6 }
+.zipco-tpop-ic svg { width: 20px; height: 20px }
+.zipco-tpop-t { margin: 0; font-size: 17px; line-height: 1.25; font-weight: 800; color: #0f172a }
+.zipco-tpop-sum { margin: 10px 0 0; padding: 10px 12px 12px; border-radius: 16px; background: linear-gradient(135deg,#f5f3ff,#ecfeff); box-shadow: inset 0 0 0 1px #ddd6fe }
+.zipco-tpop-d { margin: 0; font-size: 13px; font-weight: 700; color: #475569 }
+.zipco-tpop-h { margin: 2px 0 0; font-size: 42px; line-height: 1; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: #1e1b4b }
+.zipco-tpop-p { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 0; padding: 3px 11px 3px 8px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px #c7d2fe; font-size: 12px; font-weight: 800; color: #3730a3 }
+.zipco-tpop-p svg { flex: none; width: 14px; height: 14px; color: #d97706 }
+.zipco-tpop-was { margin: 8px 0 0; font-size: 11.5px; color: #64748b }
+.zipco-tpop-alt { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 8px 8px 11px; border-radius: 14px; background: #fffbeb; box-shadow: inset 0 0 0 1px #fde68a; font-size: 12px; line-height: 1.3; color: #78350f; text-align: left }
+.zipco-tpop-alt span { flex: 1; min-width: 0 }
+.zipco-tpop-alt button { flex: none; min-height: 44px; padding: 0 13px; border: 0; border-radius: 999px; background: linear-gradient(135deg,#f59e0b,#ea580c); color: #fff; font-size: 12px; font-weight: 800; box-shadow: 0 4px 10px rgba(234,88,12,.3) }
+.zipco-tpop-note { margin: 8px 0 0; font-size: 11px; line-height: 1.3; color: #64748b }
+.zipco-tpop-r { display: flex; gap: 9px; margin-top: 14px }
+.zipco-tpop-back, .zipco-tpop-ok { display: flex; align-items: center; justify-content: center; min-height: 48px; border: 0; border-radius: 99px; font-size: 14.5px; font-weight: 800 }
+.zipco-tpop-back { flex: 1; background: #fff; color: #5b21b6; box-shadow: inset 0 0 0 1.5px #c4b5fd }
+.zipco-tpop-ok { flex: 1.2; color: #fff; background: linear-gradient(115deg,#7c3aed,#4f46e5 55%,#0e9f98); box-shadow: 0 8px 18px rgba(91,79,240,.35) }
+.zipco-tpop button:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px }
+.dark .zipco-tpop { background: #0f172a; color: #f1f5f9 }
+.dark .zipco-tpop-t, .dark .zipco-tpop-h { color: #f1f5f9 }
+.dark .zipco-tpop-sum { background: rgba(124,58,237,.16); box-shadow: inset 0 0 0 1px #5b21b6 }
+.dark .zipco-tpop-back { background: #0f172a; color: #ddd6fe }
+@media (prefers-reduced-motion: reduce) { .zipco-tpop-ov, .zipco-tpop-in { animation: none } .zipco-tp-b { transition: none } }
+@media (max-width: 340px) { .zipco-tpop-in { padding: 16px 12px 12px } .zipco-tpop-h { font-size: 38px } }
+/* Keep the four 44 px controls inside the inline editor on narrow phones. */
+@media (max-width: 380px) {
+  .zipco-tp-s { display: grid; grid-template-columns: 44px 44px; justify-content: center; gap: 3px }
+  .zipco-tp-v { grid-column: 1 / -1; grid-row: 1 }
+  .zipco-tp-b { grid-row: 2 }
+}
+
+/* NegW5 reference: text-only current proposal, with the total at the right. */
+.zipco-final-prepare .zipco-la-orig{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid #e5ddff;border-radius:20px;background:linear-gradient(110deg,#fff,#faf8ff);box-shadow:none}
+.zipco-final-prepare .zipco-la-orig-label{font-size:9px;letter-spacing:.1em}
+.zipco-final-prepare .zipco-la-orig-main{margin-top:3px;font-size:13px;line-height:1.3}
+.zipco-final-prepare .zipco-la-orig-note{margin-top:3px;font-size:10px;line-height:1.35}
+.zipco-final-prepare .zipco-la-orig-price{align-self:center;font-size:22px;white-space:nowrap}
+.dark .zipco-final-prepare .zipco-la-orig{border-color:#475569;background:#172033}
+.zipco-final-prepare .zipco-la-q{font-size:12px;margin-top:12px}
+.zipco-final-prepare .zipco-la-tile{min-height:46px;padding:7px 31px 7px 9px;border-radius:15px}
+.zipco-final-prepare .zipco-la-tile::after{content:none}
+.zipco-final-prepare .zipco-la-tile-tx b{font-size:12px}
+.zipco-final-prepare .zipco-la-tile-tx em{font-size:10.5px}
+.zipco-final-prepare .zipco-final-row-indicator{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:#94a3b8;pointer-events:none}
+.zipco-final-prepare .zipco-final-row-indicator svg{width:16px;height:16px}
+.zipco-final-prepare .zipco-la-tile[data-active=true] .zipco-final-row-indicator,.zipco-final-prepare .zipco-la-tile[data-open=true] .zipco-final-row-indicator{color:#4f46e5}
+.zipco-final-prepare .zipco-la-tile[data-active=true]:not([data-open=true]) .zipco-final-row-indicator svg{width:24px;height:24px;stroke-width:3}
+.zipco-final-prepare .zipco-la-tile[data-active=true]{padding-right:38px}
+@media(min-width:351px) and (max-width:380px){.zipco-final-prepare .zipco-tp-s{display:flex;gap:0;padding:3px}.zipco-final-prepare .zipco-tp-r{gap:3px}.zipco-final-prepare .zipco-tp-v b{font-size:24px}}
+@media(max-width:350px){.zipco-final-prepare .zipco-la-orig-price{font-size:20px}}

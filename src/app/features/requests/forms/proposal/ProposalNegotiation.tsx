@@ -4,7 +4,7 @@ import BusinessResponseHoursNotice from "../../shared/hours/BusinessResponseHour
 import { chileSchedule } from "../../api/serviceHoursAdvisory";
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowLeft, ArrowRight, Calendar, CalendarCheck, Clock, Info, MessageCircle, Phone, RefreshCw, ShieldCheck, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, Calendar, CalendarCheck, ChevronDown, Clock, Info, Lock, MessageCircle, Phone, RefreshCw, ShieldCheck, X } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from "../../domain/types";
 import { AlternativeDraftDialog } from "./PendingAlternativeActions";
 import { proposalDraftSource, type AlternativeReview } from "../../domain/alternativeDraft";
@@ -38,6 +38,7 @@ import { startReservationPayment } from "../../application/startReservationPayme
 import {offerReservationWhatsapp} from '../../application/reservationWhatsappNavigation';
 import ReservationChoiceFields from "../../shared/reservations/ReservationChoiceFields";
 import ReservationOfferFields from "../../shared/reservations/ReservationOfferFields";
+import ReservationOfferSummary from "../../shared/reservations/ReservationOfferSummary";
 import { RequestProcessError } from "../../domain/requestProcessErrors";
 import ProductPreviewControl from "../../shared/product-preview/ProductPreviewControl";
 
@@ -49,14 +50,44 @@ const labels = ['Solicitud original', 'Propuesta del negocio', 'Contrapropuesta 
 const button = 'min-h-12 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-800 disabled:opacity-50 dark:bg-violet-950/30 dark:text-violet-200';
 const isAcceptAction = (action: ProposalAction) => action === 'ACCEPT_PROPOSAL' || action === 'ACCEPT_COUNTER_PROPOSAL';
 
-function ProposalDraftButton({ label, busy, onClick, once = false, ariaLabel = label, icon = 'arrow' }: { label: string; busy: boolean; onClick: () => void; once?: boolean; ariaLabel?: string; icon?: 'arrow' | 'chat' }) {
+// `note` (opcional): línea pequeña bajo la etiqueta, p. ej. «El cliente decide después». Sin `note` el botón queda igual que antes.
+function ProposalDraftButton({ label, busy, onClick, once = false, ariaLabel = label, icon = 'arrow', note }: { label: string; busy: boolean; onClick: () => void; once?: boolean; ariaLabel?: string; icon?: 'arrow' | 'chat'; note?: string }) {
   return <span className="zipco-glass-wrap min-w-0 flex-[1.35]">
     <i className="zipco-glass-blob zipco-glass-b1" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b2" aria-hidden="true" /><i className="zipco-glass-blob zipco-glass-b3" aria-hidden="true" />
     <button type="button" aria-label={ariaLabel} className="zipco-glass-btn" disabled={busy} aria-busy={busy} onClick={onClick}>
-      <span className="min-w-0 break-words">{label}{once && <span className="zipco-chat-once ml-1">1 vez</span>}</span>
+      <span className="min-w-0 break-words">{label}{once && <span className="zipco-chat-once ml-1">1 vez</span>}{note && <small className="zipco-bz-dn">{note}</small>}</span>
       {icon === 'chat' ? <MessageCircle className="h-[18px] w-[18px] shrink-0" strokeWidth={2.3} aria-hidden="true" /> : <ArrowRight className="h-[18px] w-[18px] shrink-0" strokeWidth={2.3} aria-hidden="true" />}
     </button>
   </span>;
+}
+
+// Revisión de la propuesta final: «Se conserva de la propuesta anterior» plegable y cerrado por defecto.
+// El contenido SIEMPRE queda montado (solo se oculta con `hidden`): SimpleReservationOfferFields / ReservationOfferFields entregan `finalOffer` al montarse.
+function FinalKeep({ summary, warn = false, path, previous, children }: { summary: string; warn?: boolean; path: React.ReactNode; previous?: React.ReactNode; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return <section className="zipco-final-keep" data-open={open} aria-label="Se conserva de la propuesta anterior">
+    <button type="button" aria-expanded={open} aria-controls="zipco-final-keep-body" onClick={() => setOpen(value => !value)}>
+      <span className="ki" aria-hidden="true"><Lock /></span>
+      <span className="ktx"><b>Se conserva de la propuesta anterior</b><em style={warn ? { color: '#be123c', fontWeight: 700 } : undefined}>{warn ? 'Revisa las condiciones de reserva' : summary}</em></span>
+      <span className="kc" aria-hidden="true"><ChevronDown /></span>
+    </button>
+    <div id="zipco-final-keep-body" className="kbody" hidden={!open}>
+      <p className="kn">Enviar esto no cambia el camino ni la reserva.</p>
+      <section className="zipco-final-path" aria-label="Camino conservado">
+        <p className="cl">Camino</p>
+        {path}
+      </section>
+      {previous && <section className="zipco-final-previous" aria-label="Condición de reserva anterior">
+        <p className="cl">Condición de reserva anterior</p>
+        {previous}
+      </section>}
+      {children && <section className="zipco-final-reservation" aria-label="Reserva en esta propuesta final">
+        <p className="cl">Reserva en esta propuesta final</p>
+        <p className="zipco-final-locked"><Lock aria-hidden="true" />Modalidad bloqueada: se conserva</p>
+        {children}
+      </section>}
+    </div>
+  </section>;
 }
 
 export function ProposalSnapshotCard({ proposal }: { proposal: Proposal }) {
@@ -471,7 +502,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
               {read && <ProposalChat read={read} business={business} businessDesign={business} waitingDesign={client && read.process.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE'}
                 turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
                 closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
-                canCounter={!business && choices.includes('COUNTER_PROPOSAL')}
+                canCounter={!business && choices.includes('COUNTER_PROPOSAL')} canFinal={business && choices.includes('PROPOSE_FINAL')}
                 plan={client && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal /> : undefined} />}
             </>}
           </div>
@@ -550,7 +581,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 const others = choices.filter(action => !isAcceptAction(action));
                 return <>
                   {renewSchedule && <button type="button" className="zipco-bz-same" disabled={busy} onClick={() => { setFinalOffer(null); setScheduleReview(sameScheduleFinalReview(read!)); setError(''); }}>
-                    <span className="ck"><CalendarCheck aria-hidden="true" /></span><span className="lb">Aceptar y confirmar{counter && <small>{money(counter.totalPriceClp)} · {whenShort(counter)}</small>}</span><ArrowRight aria-hidden="true" />
+                    <span className="ck"><CalendarCheck aria-hidden="true" /></span><span className="lb">Aceptar y confirmar{counter && <small>{money(counter.totalPriceClp)} · {whenShort(counter, true)}</small>}</span><ArrowRight aria-hidden="true" />
                   </button>}
                   {renewSchedule && <p className="zipco-bz-hint">Renovarás la oferta mediante una propuesta final; la reserva requiere la aceptación del cliente.</p>}
                   {accepts.map(action => <AcceptGlassButton key={action} flush label={titles[action]} disabled={busy} onClick={() => go(action)}
@@ -559,7 +590,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                     {others.map(action => {
                       const reject = action.startsWith('REJECT_');
                       if (!reject) return <ProposalDraftButton key={action} label={action === 'COUNTER_PROPOSAL' ? 'Contraponer' : titles[action]}
-                        ariaLabel={titles[action]} once={action === 'COUNTER_PROPOSAL'} busy={busy} onClick={() => go(action)} />;
+                        ariaLabel={titles[action]} once={action === 'COUNTER_PROPOSAL'} note={business && action === 'PROPOSE_FINAL' ? 'El cliente decide después' : undefined} busy={busy} onClick={() => go(action)} />;
                       const bzReject = business && reject;
                       return <button key={action} ref={bzReject ? rejectTriggerRef : undefined} type="button" aria-label={titles[action]} aria-describedby={bzReject ? 'zipco-bz-reject-note' : undefined} disabled={busy} onClick={() => go(action)}
                         className={`${reject ? 'zipco-chat-rej' : 'zipco-chat-ctr'} min-h-11 min-w-0 ${reject ? 'flex-1' : 'flex-[1.35] flex-col'} px-2 py-2 text-[13px]${bzReject ? ' zipco-bz-stk flex-col' : ''}`}>
@@ -619,6 +650,9 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     </Dialog.Root>}
     {draftAction && read && <AlternativeDraftDialog key={`${read.process.version}-${draftAction}`} order={order}
       counterProposal={!business && draftAction === 'COUNTER_PROPOSAL'}
+      variant={business && draftAction === 'PROPOSE_FINAL' ? 'final' : undefined}
+      ticketTitle={proposalTitle(read.proposals[read.proposals.length - 1])}
+      ticketThumb={<ProductPreviewControl preview={read.proposals[read.proposals.length - 1].productPreview ?? null} />}
       sourceOverride={proposalDraftSource(read)} title={draftAction==='COUNTER_PROPOSAL'?'Contraponer · 1 vez':titles[draftAction]}
       baselineLabel={draftAction === 'PROPOSE_ALTERNATIVE' ? 'Solicitud original' : 'Propuesta vigente'}
       onCheck={business && draftAction === 'PROPOSE_ALTERNATIVE' && read.process.lateInitialResponse?.status === 'STILL_NEEDED' ? checkLateAlternative : undefined}
@@ -629,14 +663,22 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         });
         return execute(draftAction,review,file);
       } : undefined}
-      reviewFields={review=><>
+      reviewFields={review=>{
+        const finalBusiness=business&&draftAction==='PROPOSE_FINAL';
+        const plan=read.process.availability;
+        const content=<>
         {business&&<BusinessResponseHoursNotice businessId={Number(session?.businessId)} {...(review.schedule?.mode==='SCHEDULED'?{date:review.schedule.date,time:review.schedule.time}:review.schedule?.mode==='IMMEDIATE'?undefined:chileSchedule(read.proposals.at(-1)?.scheduledFor))}/>}
-        {availabilityFlow(read.process)&&business&&draftAction==='PROPOSE_FINAL'&&<div className="my-3 rounded-xl border p-3 text-xs">
-          {read.process.availability?<><p className="mb-2 font-bold">Se conserva la opción de la propuesta anterior</p><AvailabilityPlanSummary plan={read.process.availability}/>{reservationFlow(read.process)&&read.process.availability.reservationOffer&&(simplifiedReservationFlow(read.process)?<SimpleReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>:<ReservationOfferFields initial={read.process.availability.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>)}{read.process.availability.allowCustomerWhatsapp&&<p className="mt-2">{BUSINESS_CONTACT_COPY}</p>}</>:<p role="alert">No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p>}
-        </div>}
+        {availabilityFlow(read.process)&&finalBusiness&&(plan?<>
+          <FinalKeep summary={plan.path==='LOCAL_PICKUP'?'Retiro en el local':'Coordinar por WhatsApp'} warn={reservationFlow(read.process)&&Boolean(plan.reservationOffer)&&finalOffer===null}
+            path={<AvailabilityPlanSummary plan={plan} showReservation={false}/>} previous={plan.reservationOffer ? <ReservationOfferSummary offer={plan.reservationOffer}/> : undefined}>
+            {reservationFlow(read.process)&&plan.reservationOffer&&(simplifiedReservationFlow(read.process)?<SimpleReservationOfferFields initial={plan.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>:<ReservationOfferFields initial={plan.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>)}
+          </FinalKeep>
+          {plan.allowCustomerWhatsapp&&<p className="zipco-final-ct"><MessageCircle aria-hidden="true"/><span>{BUSINESS_CONTACT_COPY}</span></p>}
+        </>:<div role="alert" className="zipco-final-plan-error"><AlertTriangle aria-hidden="true" /><p>No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p></div>)}
         {!business&&reservationFlow(read.process)&&read.process.availability?.reservationOffer&&<ReservationChoiceFields offer={read.process.availability.reservationOffer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy}/>}
         {availabilityFlow(read.process)&&!business&&(read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>)}
-      </>} />}
+      </>;
+        return finalBusiness?<div className="zipco-final-alt">{content}</div>:content;}} />}
     <ConfirmAvailabilityDesign responseSchedule={{businessId:Number(session?.businessId),...pendingFulfillment.current?.schedule}} open={fulfillmentOpen} onOpenChange={value=>{
       if(!value&&!busy){setFulfillmentOpen(false);const pending=pendingFulfillment.current;pendingFulfillment.current=null;pending?.resolve(false);}
     }} purpose="proposal" busy={busy} reservationContract={reservationFlow(read?.process??process)} simplified={simplifiedReservationFlow(read?.process??process)} reservationTotal={pendingFulfillment.current?.total??order.total??0} onChoose={async choice=>{

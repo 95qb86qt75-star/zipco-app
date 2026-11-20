@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { ArrowRight, Check, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowRight, Check, Equal, TrendingDown, TrendingUp } from 'lucide-react';
 import type { AlternativeDraft, AlternativeReview, AlternativeSource } from "../../../domain/alternativeDraft";
 
 const pesos = (value: number) => `$${value.toLocaleString('es-CL')}`;
@@ -13,6 +13,8 @@ const dayLabel = (date: string) => {
   return new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
     .format(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12))).replace(/\./g, '');
 };
+const ticketWhen = (date: string, time: string, immediate: boolean) => immediate ? 'Lo antes posible' :
+  `${/^\d{4}-\d{2}-\d{2}$/.test(date) ? new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`)).replace(/\./g, '') : date} · ${time}`;
 
 // Cuenta desde 0 hasta el total propuesto. Sin animación si el usuario pidió menos movimiento.
 function useCountUp(target: number, ms = 850) {
@@ -66,10 +68,26 @@ function GroupTitle({ children, count, tone }: { children: ReactNode; count: num
   </div>;
 }
 
+// ===== Propuesta final: tarjeta ticket única (solo cuando el panel recibe `ticket`) =====
+// Cambió: fila con icono, valor anterior tachado → nuevo. Se mantuvo: chips compactos con el valor.
+function TicketChanged({ row }: { row: Row }) {
+  return <div className="zipco-tk-cr">
+    <span className="zipco-tk-ci" aria-hidden="true"><ArrowRight className="h-3.5 w-3.5" strokeWidth={2.8} /></span>
+    <div className="min-w-0 flex-1">
+      <p className="zipco-tk-cl">{row.label}{row.sub && <span className="zipco-tk-cs"> · {row.sub}</span>}</p>
+      <p className="zipco-tk-cv"><s>{row.before}</s><ArrowRight className="zipco-tk-ca" aria-hidden="true" /><b>{row.after}</b></p>
+      {row.detail && <p className="zipco-tk-cd">{row.detail}</p>}
+    </div>
+  </div>;
+}
+function TicketKept({ row }: { row: Row }) {
+  return <span className="zipco-tk-kp"><Check strokeWidth={3} aria-hidden="true" /><span className="zipco-tk-kl">{row.label}{row.sub ? ` · ${row.sub}` : ''}</span><b>{row.after}</b></span>;
+}
+
 // Prepared local preview. The accent is decorative; upload still happens only at confirmation.
-function AttachedPhoto({ photo, willSend }: { photo: string; willSend: boolean }) {
+function AttachedPhoto({ photo, willSend, compact = false }: { photo: string; willSend: boolean; compact?: boolean }) {
   const [open, setOpen] = useState(false);
-  return <div className="zipco-review-rise overflow-hidden rounded-[18px] bg-emerald-50 p-3 ring-[1.5px] ring-inset ring-emerald-300 dark:bg-emerald-950/30" data-alternative-photo>
+  return <div className={compact ? 'zipco-tk-photo' : 'zipco-review-rise overflow-hidden rounded-[18px] bg-emerald-50 p-3 ring-[1.5px] ring-inset ring-emerald-300 dark:bg-emerald-950/30'} data-alternative-photo>
     <div className="zipco-review-photo-head">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_5px_12px_rgba(16,185,129,0.4)]">
         <Check className="zipco-review-check h-5 w-5" strokeWidth={3.2} aria-hidden="true" />
@@ -91,8 +109,10 @@ function AttachedPhoto({ photo, willSend }: { photo: string; willSend: boolean }
   </div>;
 }
 
-export default function AlternativeReviewPanel({ source, draft, review, photo = null, photoWillSend = false, baselineLabel = 'Solicitud original' }: {
-  source: AlternativeSource; draft: AlternativeDraft; review: AlternativeReview; photo?: string | null; photoWillSend?: boolean; baselineLabel?: string;
+/** `ticket` (solo propuesta final del negocio): muestra el resumen como una tarjeta ticket compacta, con los mismos datos de siempre.
+ *  `title` y `thumb` encabezan el ticket; si no hay `ticket`, el panel se ve exactamente como antes. */
+export default function AlternativeReviewPanel({ source, draft, review, photo = null, photoWillSend = false, baselineLabel = 'Solicitud original', ticket }: {
+  source: AlternativeSource; draft: AlternativeDraft; review: AlternativeReview; photo?: string | null; photoWillSend?: boolean; baselineLabel?: string; ticket?: { title: string; thumb?: ReactNode };
 }) {
   const animated = useCountUp(review.totalPriceClp);
   const delta = source.total === null ? null : review.totalPriceClp - source.total;
@@ -133,6 +153,54 @@ export default function AlternativeReviewPanel({ source, draft, review, photo = 
     ? { key: 'schedule', label: 'Disponibilidad', before: originalSchedule, after: proposedSchedule, changed: true }
     : { key: 'schedule', label: 'Disponibilidad', after: proposedSchedule, changed: false });
   const changedRows = rows.filter(row => row.changed), keptRows = rows.filter(row => !row.changed);
+
+  if (ticket) {
+    const tone = delta === null ? null : delta === 0 ? 'eq' : delta < 0 ? 'down' : 'up';
+    const displayRow = (row: Row): Row => row.key === 'schedule' ? { ...row,
+      ...(row.before ? { before: ticketWhen(source.date, source.time, source.needNow) } : {}),
+      after: ticketWhen(date, time, immediate) } : row;
+    return <div data-alternative-review data-final-ticket className="mt-2">
+      <div className="zipco-tk" aria-label="Resumen de tu propuesta final" role="group">
+        <div className="zipco-tk-h">
+          {ticket.thumb && <span className="zipco-bz-th">{ticket.thumb}</span>}
+          <b>{ticket.title}</b><span className="zipco-tk-pill">Propuesta final</span>
+        </div>
+        <section className="zipco-tk-tot" aria-label="Totales">
+          <div className="zipco-tk-tr">
+            <div className="min-w-0"><p className="zipco-tk-tl">Total propuesto</p>
+              <p className="zipco-tk-t1"><span aria-hidden="true">{pesos(animated)}</span><span className="sr-only">{pesos(review.totalPriceClp)}</span></p></div>
+            <div className="zipco-tk-side">
+              <span className="zipco-tk-was">{originalBaseline ? 'Original' : 'Vigente'} <s>{source.total === null ? '—' : pesos(source.total)}</s></span>
+              {delta !== null && <p className="zipco-tk-dl" data-tone={tone}>
+                {delta === 0 ? <><Equal className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />Mismo total</>
+                  : delta < 0 ? <><TrendingDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{pesos(-delta)} menos</>
+                    : <><TrendingUp className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{pesos(delta)} más</>}
+                <span className="sr-only"> que {comparisonSubject}</span>
+              </p>}
+            </div>
+          </div>
+          <p className="zipco-tk-tn">Total del pedido. No es un pago recibido ni una reserva.</p>
+        </section>
+        <div className="zipco-tk-perf" aria-hidden="true" />
+        <section className="zipco-tk-cmp" aria-label={originalBaseline ? 'Original frente a propuesta' : 'Vigente frente a propuesta'}>
+          {changedRows.length > 0 && <>
+            <p className="zipco-tk-gt" data-tone="changed">Cambió <i>{changedRows.length}</i></p>
+            {changedRows.map(row => <TicketChanged key={row.key} row={displayRow(row)} />)}
+          </>}
+          {keptRows.length > 0 && <>
+            <p className="zipco-tk-gt" data-tone="kept">Se mantuvo</p>
+            <div className="zipco-tk-kept">{keptRows.map(row => <TicketKept key={row.key} row={displayRow(row)} />)}</div>
+          </>}
+        </section>
+        <div className="zipco-tk-perf" aria-hidden="true" />
+        <section className="zipco-tk-msg" aria-label="Tu mensaje al cliente">
+          <p className="zipco-tk-cl">Tu mensaje</p>
+          <p className="zipco-tk-mt">{review.message}</p>
+        </section>
+        {photo && <AttachedPhoto photo={photo} willSend={photoWillSend} compact />}
+      </div>
+    </div>;
+  }
 
   return <div data-alternative-review className="mt-3 space-y-3">
     <div>

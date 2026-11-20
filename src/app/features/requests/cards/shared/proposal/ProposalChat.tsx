@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, type ReactNode } from 'react';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowRight, Calendar, Check, Clock, DollarSign, FileText, Hash, Image as ImageIcon, Maximize2, MessageCircle, Package, ShoppingBag, Sparkles, Store, StickyNote, X } from 'lucide-react';
+import { ArrowRight, Calendar, Check, Clock, DollarSign, FileText, Hash, Image as ImageIcon, Info, Maximize2, MessageCircle, Package, ShoppingBag, Sparkles, Store, StickyNote, X } from 'lucide-react';
 import type { Proposal, ProposalRead } from "../../../domain/proposalContract";
 import OrderReferencePhoto from "../../../shared/photos/OrderReferencePhoto";
 import ProductPreviewControl from "../../../shared/product-preview/ProductPreviewControl";
@@ -10,10 +10,12 @@ import AvailabilityPlanSummary from "../availability/AvailabilityPlanSummary";
 
 const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
 const TZ = 'America/Santiago';
-const time = (iso: string) => new Date(iso).toLocaleTimeString('es-CL', { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
+const time = (iso: string, h24 = false) => new Date(iso).toLocaleTimeString('es-CL', h24 ? { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } : { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
 const day = (iso: string) => new Date(iso).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'long' });
 // Disponibilidad corta para la tabla ("Ahora" / "22 oct · 12:00") y larga para el detalle.
-export const whenShort = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Ahora'
+// `h24` (solo negocio rediseñado): hora en 24 h con el día de la semana, para que «6:00» no se confunda con «18:00».
+export const whenShort = (p: Proposal, h24 = false) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Ahora'
+  : h24 ? `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')} · ${time(p.scheduledFor, true)}`
   : `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} · ${time(p.scheduledFor)}`;
 export const whenLong = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Lo antes posible'
   : new Intl.DateTimeFormat('es-CL', { timeZone: TZ, dateStyle: 'medium', timeStyle: 'short' }).format(new Date(p.scheduledFor));
@@ -26,7 +28,7 @@ export const proposalTitle = (p: Proposal) => {
 
 type Row = { key: string; label: string; value: string; basis?: 'unit' | 'line'; signature?: string };
 // Filas comparables. Un solo producto: cantidad, precio, disponibilidad, producto, descripción. Varios: total, disponibilidad, productos.
-function rowsOf(p: Proposal): Row[] {
+function rowsOf(p: Proposal, h24 = false): Row[] {
   const s = p.subjectSnapshot;
   return [...s.items.flatMap((it, index): Row[] => {
     const prefix = s.items.length > 1 ? `${index + 1}. ` : '';
@@ -37,12 +39,12 @@ function rowsOf(p: Proposal): Row[] {
       { key: `desc:${index}`, label: `${prefix}Descripción`, value: it.descriptionSnapshot || 'Sin descripción' },
       ...(s.items.length > 1 ? [{ key: `total:${index}`, label: `${prefix}Total línea`, value: money(it.subtotalClp) }] : []),
     ];
-  }), { key: 'when', label: 'Cuándo', value: whenShort(p), signature: p.subjectSnapshot.needNow ? 'IMMEDIATE' : p.scheduledFor! }];
+  }), { key: 'when', label: 'Cuándo', value: whenShort(p, h24), signature: p.subjectSnapshot.needNow ? 'IMMEDIATE' : p.scheduledFor! }];
 }
 
-export function comparisonRows(current: Proposal, previous: Proposal) {
-  const before = rowsOf(previous);
-  return rowsOf(current).map(row => {
+export function comparisonRows(current: Proposal, previous: Proposal, h24 = false) {
+  const before = rowsOf(previous, h24);
+  return rowsOf(current, h24).map(row => {
     const old = before.find(r => r.key === row.key);
     return { ...row, old: old?.value ?? '—', oldBasis: old?.basis,
       changed: !old || old.value !== row.value || old.basis !== row.basis || old.signature !== row.signature };
@@ -190,6 +192,17 @@ const changeLabel = (row: DiffRow, orderType: string) => {
   return prefix + (kind === 'name' ? (orderType === 'service' ? 'Servicio' : 'Producto') : CHANGE_LABELS[kind] ?? row.label);
 };
 const basisText = (basis?: 'unit' | 'line') => basis === 'unit' ? 'unitario' : 'total línea';
+// Solo negocio (businessDesign): lista compacta «campo · antes → ahora» de la tarjeta nueva. Mismas filas que comparisonRows; no interpreta texto libre.
+function NcList({ rows, label, orderType }: { rows: DiffRow[]; label: string; orderType: string }) {
+  if (rows.length === 0) return null;
+  return <ul className="zipco-bz-ncl" aria-label={label}>
+    {rows.map(row => {
+      const moved = Boolean(row.basis && row.oldBasis !== row.basis);
+      return <li key={row.key}><span className="k">{changeLabel(row, orderType)}</span>
+        <span className="v"><span className="sr-only">Antes: </span><s>{row.old}{moved && row.oldBasis ? ` · ${basisText(row.oldBasis)}` : ''}</s><span className="n"><i aria-hidden="true">→</i><span className="sr-only">Ahora: </span><b>{row.value}{moved ? ` · ${basisText(row.basis)}` : ''}</b></span></span></li>;
+    })}
+  </ul>;
+}
 // Solo cliente que espera al negocio (waitingDesign): lista «Cambio(s) que pediste» con las mismas filas de comparisonRows; no interpreta texto libre.
 function WaitingChanges({ rows, orderType }: { rows: DiffRow[]; orderType: string }) {
   if (rows.length === 0) return null;
@@ -222,14 +235,21 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
   const btnLabel = isOrder ? 'detalle del pedido' : 'detalle de la propuesta';
   const kind = isOrder ? 'gp' : 'gt';
   const message = isOrder ? s.note : s.proposalMessage;
-  const at = time(proposal.createdAt);
-  const detailButton = <DetailButton kind={kind} label={btnLabel} compact={bz || wt} />;
+  const at = time(proposal.createdAt, bz);
+  const detailButton = <DetailButton kind={kind} label={btnLabel} compact={wt} />;
   // Cliente que espera al negocio: la última tarjeta propia es la contrapropuesta ya enviada.
   const wtSent = wt && mine && last;
   // Negocio y cliente en espera: «Ver detalle» va en la cabecera de la tarjeta. Cliente y demás usos: al pie, como antes.
   const who = <p className="zipco-chat-who"><span>{label}</span><time dateTime={proposal.createdAt}>{at}</time>
     {wtSent && <><i className="zipco-wt-br" aria-hidden="true" /><span className="zipco-wt-sent"><Check strokeWidth={3} aria-hidden="true" />Enviada</span></>}
-    {(bz || wt) && detailButton}</p>;
+    {wt && detailButton}</p>;
+  // Negocio rediseñado: cabecera de la tarjeta nueva con «Ver detalle» como botón de icono (44 px de área táctil).
+  const ncDetail = <Dialog.Trigger asChild>
+    <button type="button" className="zipco-bz-ncd" aria-haspopup="dialog" aria-label={`Ver ${btnLabel}`} title="Ver detalle"><span><Maximize2 strokeWidth={2.8} aria-hidden="true" /></span></button>
+  </Dialog.Trigger>;
+  const ncHead = <div className="zipco-bz-nch"><span className="w">{label}</span><time dateTime={proposal.createdAt}>{at}</time>{ncDetail}</div>;
+  const ncRow = (price: ReactNode) => <div className="zipco-bz-npr">{product && <span className="zipco-bz-th">{product}</span>}
+    <b className="t">{title}</b>{photo && <span className="ph" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}{price}</div>;
   const pic = photo && <PhotoBox src={photo} proposal={proposal} own={own} business={business} />;
   // Cliente: `zipco-pz-*` (aprobado). Negocio con el rediseño (`bz`, solo desde ProposalNegotiation): `zipco-bz-*`. Cualquier otro uso del negocio queda como antes.
   const evClass = bz ? ` zipco-bz-ev${last ? ' is-last' : ''}` : business ? '' : ` zipco-pz-ev${wt ? ' zipco-wt-ev' : ''}${last ? ' is-last' : ''}`;
@@ -240,23 +260,23 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
   // Cliente en espera: fila compacta «producto · título · total».
   const wtRow = (price: ReactNode) => <div className="zipco-wt-prow">{product && <span className="zipco-wt-th">{product}</span>}
     <b className="zipco-chat-title">{title}</b>{price}{photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}</div>;
-  // Negocio: fila única «producto · título · total».
-  const bzRow = (price: ReactNode) => <div className="zipco-bz-prow">{product && <span className="zipco-bz-th">{product}</span>}
-    <b className="zipco-chat-title">{title}</b>{price}{photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}</div>;
 
   if (mine) {
     const rows = detailRows(proposal, isOrder ? 'Tu nota' : 'Tu mensaje');
-    const mineDiff = !wt && (!business || bz) && previous ? comparisonRows(proposal, previous).filter(r => r.changed && MINI_KEYS.test(r.key)).slice(0, 4) : [];
+    const mineDiff = !wt && (!business || bz) && previous ? comparisonRows(proposal, previous, bz).filter(r => r.changed && MINI_KEYS.test(r.key)).slice(0, 4) : [];
     const sentChanges = wtSent && previous ? comparisonRows(proposal, previous).filter(r => r.changed) : [];
     return <div data-proposal-sequence={proposal.sequence} className={`flex flex-col items-end${evClass}`}>
       {node}
       <Dialog.Root open={open} onOpenChange={setOpen}>
-        <div className={`zipco-chat-mine${wtSent ? ' is-sent' : ''}`}>
-          {who}
+        <div className={bz ? 'zipco-bz-nc mine' : `zipco-chat-mine${wtSent ? ' is-sent' : ''}`}>
           {bz ? <>
-            {message && <p className="zipco-chat-quote">“{message}”</p>}
-            {bzRow(<b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>)}
-          </> : wt ? <>
+            {ncHead}
+            {ncRow(<b className="p">{money(proposal.totalPriceClp)}</b>)}
+            <NcList rows={mineDiff} label="Cambios respecto a la propuesta anterior" orderType={s.orderType} />
+            {message && <p className="zipco-bz-nq">“{message}”</p>}
+          </> : <>
+          {who}
+          {wt ? <>
             <WaitingChanges rows={sentChanges} orderType={s.orderType} />
             {message && <p className="zipco-chat-quote">“{message}”</p>}
             {wtRow(<b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>)}
@@ -269,7 +289,8 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
             </div>
           </>}
           <MiniDiff rows={mineDiff} />
-          {!(bz || wt) && detailButton}
+          {!wt && detailButton}
+          </>}
         </div>
         {isOrder
           ? <PedidoSheet proposal={proposal} label={label} at={at} title={title} pic={pic} dismiss={() => setOpen(false)} />
@@ -285,7 +306,7 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
   }
 
   const rows = detailRows(proposal, isOrder ? 'Nota del cliente' : 'Mensaje');
-  const diff = previous && comparisonRows(proposal, previous).filter(r => r.changed);
+  const diff = previous && comparisonRows(proposal, previous, bz).filter(r => r.changed);
   // Cliente: precio/cantidad/cuándo van en la mini tabla; el resto de cambios sigue como etiquetas.
   const tableRows = (!business || bz) && diff ? diff.filter(r => MINI_KEYS.test(r.key)).slice(0, 4) : [];
   const chipRows = diff ? diff.filter(r => !tableRows.includes(r)) : [];
@@ -294,27 +315,16 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
   return <div data-proposal-sequence={proposal.sequence} className={`flex flex-col items-start${evClass}`}>
     {node}
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <div className={`zipco-chat-theirs${proposal.sequence === 3 && !business ? ' is-final' : ''}${bz && isOrder ? ' is-order' : ''}`}>
-        {who}
+      <div className={bz ? `zipco-bz-nc theirs${isOrder ? ' ord' : ''}` : `zipco-chat-theirs${proposal.sequence === 3 && !business ? ' is-final' : ''}`}>
         {bz ? <>
-          {changes.length > 0 && <>
-            <p className="zipco-bz-hl">El cliente está solicitando <mark>{changes.length} {changes.length === 1 ? 'cambio' : 'cambios'}</mark></p>
-            <div className="zipco-bz-chg" role="group" aria-label={changes.length === 1 ? 'Cambio solicitado' : 'Cambios solicitados'}>
-              <p className="zipco-bz-chg-h" aria-hidden="true">{changes.length === 1 ? 'Cambio solicitado' : 'Cambios solicitados'}</p>
-              {changes.map(row => {
-                const moved = Boolean(row.basis && row.oldBasis !== row.basis);
-                return <div key={row.key} className="zipco-bz-chg-r">
-                  <span className="ic" aria-hidden="true">{ICONS[row.key.split(':')[0]]}</span>
-                  <div className="tx"><small>{changeLabel(row, s.orderType)}</small>
-                    <p><span className="sr-only">Antes: </span><s>{row.old}{moved && row.oldBasis ? ` · ${basisText(row.oldBasis)}` : ''}</s><i aria-hidden="true">→</i><span className="sr-only">Ahora: </span><b>{row.value}{moved ? ` · ${basisText(row.basis)}` : ''}</b></p>
-                  </div>
-                </div>;
-              })}
-            </div>
-          </>}
-          {message && <p className="zipco-chat-quote">“{message}”</p>}
-          {bzRow(<span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span>)}
-        </> : wt ? <>
+          {ncHead}
+          {ncRow(<b className="p">{money(proposal.totalPriceClp)}</b>)}
+          {changes.length > 0 && <p className="zipco-bz-npill"><Sparkles aria-hidden="true" />{changes.length} {changes.length === 1 ? 'cambio solicitado' : 'cambios solicitados'}</p>}
+          <NcList rows={changes} label={changes.length === 1 ? 'Cambio solicitado' : 'Cambios solicitados'} orderType={s.orderType} />
+          {message && <p className="zipco-bz-nq">“{message}”</p>}
+        </> : <>
+        {who}
+        {wt ? <>
           {message && <p className="zipco-chat-quote">“{message}”</p>}
           {wtRow(<span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span>)}
           <MiniDiff rows={tableRows} />
@@ -331,7 +341,8 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
             <MiniDiff rows={tableRows} />
           </div>
         </>}
-        {!(bz || wt) && detailButton}
+        {!wt && detailButton}
+        </>}
       </div>
       <Sheet tone="theirs" label={label} time={at} dismiss={() => setOpen(false)}>
         {product}
@@ -351,8 +362,9 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
 
 export type ChatTurn = 'mine' | 'wait' | 'closed';
 
-/** `plan` (solo cliente): resumen del camino de la propuesta; se ubica entre «Te toca responder» y el aviso de contrapropuesta. */
-export default function ProposalChat({ read, business, turn, closedText, canCounter, plan, businessDesign = false, waitingDesign = false }: { read: ProposalRead; business: boolean; turn: ChatTurn; closedText?: string; canCounter?: boolean; plan?: ReactNode; businessDesign?: boolean; waitingDesign?: boolean }) {
+/** `plan` (solo cliente): resumen del camino de la propuesta; se ubica entre «Te toca responder» y el aviso de contrapropuesta.
+ *  `canFinal` (solo negocio rediseñado): avisa que la alternativa final es la última propuesta. */
+export default function ProposalChat({ read, business, turn, closedText, canCounter, canFinal = false, plan, businessDesign = false, waitingDesign = false }: { read: ProposalRead; business: boolean; turn: ChatTurn; closedText?: string; canCounter?: boolean; canFinal?: boolean; plan?: ReactNode; businessDesign?: boolean; waitingDesign?: boolean }) {
   const bz = business && businessDesign; // rediseño del negocio: solo lo activa ProposalNegotiation
   const wt = !business && waitingDesign && turn === 'wait'; // cliente que ya envió su contrapropuesta y espera al negocio: solo lo activa ProposalNegotiation
   const list = read.proposals;
@@ -372,6 +384,7 @@ export default function ProposalChat({ read, business, turn, closedText, canCoun
         : <>Esperando la respuesta de la otra parte<ArrowRight className="ml-1 inline h-3 w-3" aria-hidden="true" /></>}</span><i />
     </div>}
     {plan}
+    {turn === 'mine' && bz && canFinal && <p className="zipco-chat-ghost zipco-bz-final-notice"><Info aria-hidden="true" /><span>Si propones una <b>alternativa final</b>, será tu última propuesta: el cliente la acepta o la rechaza.</span></p>}
     {turn === 'mine' && !business && canCounter && <p className="zipco-chat-ghost">Si haces una contrapropuesta, el negocio podrá hacer <b>1 propuesta final</b>.</p>}
   </div>;
 }

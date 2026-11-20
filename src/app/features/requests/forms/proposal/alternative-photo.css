@@ -1,4 +1,4 @@
-/* ===== Revisar alternativa: ticket verde de "imagen adjunta" (pegar al final de src/styles/index.css) =====
+/* ===== Review photo styles, imported by src/styles/index.css. =====
    Requiere que ya existan .zipco-review-rise / .zipco-review-fill (paso anterior) y .zipco-aurora-card / .zipco-aurora-price (tarjeta Aurora). */
 @keyframes zipco-review-barfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes zipco-review-hide { from { opacity: 1; } to { opacity: 0; } }
@@ -17,3 +17,13 @@
   .zipco-review-photo-head { grid-template-columns: 40px minmax(0, 1fr); }
   .zipco-review-photo-head > button { grid-column: 2; justify-self: start; }
 }
+
+/* Revisión final (ticket): fila de «Imagen adjunta» compacta dentro de la tarjeta, sin marco propio. Mismo marcado y animaciones de arriba. */
+.zipco-tk-photo{padding:8px 14px;background:#f0fdf8;border-top:1px solid #d1fae5}
+.zipco-tk-photo .zipco-review-photo-head{grid-template-columns:32px minmax(0,1fr) auto;gap:10px}
+.zipco-tk-photo .zipco-review-photo-head>span:first-child{width:32px;height:32px}
+.zipco-tk-photo .zipco-review-check{width:16px;height:16px}
+.zipco-tk-photo .zipco-review-photo-head>div>p:first-child{font-size:12px;line-height:1.3}
+.zipco-tk-photo .zipco-review-photo-head>div>p:nth-child(2){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.zipco-tk-photo .zipco-review-done{font-size:10px;line-height:1.3}
+.zipco-tk-photo img{border-radius:10px}
