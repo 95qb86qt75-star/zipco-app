@@ -138,23 +138,23 @@
 .zipco-final-fcap b{font-weight:800}
 
 /* «Se conserva de la propuesta anterior»: bloque plegable (FinalKeep en ProposalNegotiation). Cerrado por defecto. */
-.zipco-final-keep{margin-top:8px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px #e0e7ff,0 8px 20px rgba(79,70,229,.08)}
-.zipco-final-keep>button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;border:0;background:none;text-align:left;color:#1e1b4b;cursor:pointer}
+.zipco-final-keep{margin-top:8px;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px #e0e7ff}
+.zipco-final-keep>button{display:flex;align-items:center;gap:9px;width:100%;min-height:58px;padding:10px 12px;border:0;background:none;text-align:left;color:#1e1b4b;cursor:pointer}
 .zipco-final-keep>button:focus-visible{outline:2px solid #4f46e5;outline-offset:-3px}
-.zipco-final-keep .ki{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:10px;background:#eef2ff;color:#4f46e5}
+.zipco-final-keep .ki{display:grid;place-items:center;flex:none;width:26px;height:30px;border-radius:10px;background:none;color:#21164d}
 .zipco-final-keep .ki svg,.zipco-final-keep .kc svg{width:16px;height:16px}
 .zipco-final-keep .ktx{min-width:0;flex:1}
-.zipco-final-keep .ktx b{display:block;font-size:13.5px;font-weight:800}
-.zipco-final-keep .ktx em{display:block;margin-top:1px;font-style:normal;font-size:11.5px;line-height:1.3;color:#64748b;overflow-wrap:anywhere}
+.zipco-final-keep .ktx b{display:block;font-size:13px;font-weight:800;line-height:1.25}
+.zipco-final-keep .ktx em{display:block;margin-top:3px;font-style:normal;font-size:10.5px;line-height:1.35;color:#64748b;overflow-wrap:anywhere}
 .zipco-final-keep .kc{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:#eef2ff;color:#4f46e5;transition:transform .2s}
 .zipco-final-keep[data-open=true] .kc{transform:rotate(180deg)}
 .zipco-final-keep .kbody{padding:0 12px 12px}
-.zipco-final-keep .kn{margin:0 0 6px;font-size:11.5px;color:#64748b}
+.zipco-final-keep .kn{margin:0 0 6px;font-size:10.5px;line-height:1.4;color:#64748b}
 @media (prefers-reduced-motion:reduce){.zipco-final-keep .kc{transition:none}}
 
 /* Aviso de contacto al pie de la revisión final (copy BUSINESS_CONTACT_COPY, sin cambios) */
-.zipco-final-ct{display:flex;gap:8px;align-items:flex-start;margin:10px 0 0;font-size:12px;line-height:1.4;color:#334155}
-.zipco-final-ct svg{flex:none;width:15px;height:15px;margin-top:1px;color:#047857}
+.zipco-final-ct{display:flex;gap:9px;align-items:flex-start;margin:10px 0 0;padding:11px;border:1px solid #a7f3d0;border-radius:16px;background:#f0fdf4;font-size:11.5px;line-height:1.45;color:#334155}
+.zipco-final-ct svg{flex:none;width:17px;height:17px;margin-top:1px;color:#047857}
 
 /* Contenido real de revisión (hora de atención, camino, reserva) dentro de la variante final: se compacta con CSS, sin tocar sus componentes. */
 .zipco-final-alt>*{margin-top:8px}
@@ -170,8 +170,16 @@
 .zipco-final-review .zipco-tk-mt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere}
 .zipco-final-alt .zipco-final-path,.zipco-final-alt .zipco-final-previous,.zipco-final-alt .zipco-final-reservation{margin-top:10px;padding:10px 0 0;border-top:1px solid #e2e8f0}
 .zipco-final-alt .zipco-final-keep .cl{margin:0 0 8px;font-size:10px;font-weight:800;line-height:1.4;letter-spacing:.09em;text-transform:uppercase;color:#475569}
-.zipco-final-alt .zipco-final-locked{display:flex;align-items:center;gap:5px;margin:0 0 6px;color:#6d28d9;font-size:11px;font-weight:700;line-height:1.35}
-.zipco-final-alt .zipco-final-locked svg{width:13px;height:13px;flex:none}
+.zipco-final-alt .zipco-final-plan{display:flex;align-items:flex-start;gap:9px}
+.zipco-final-alt .zipco-final-plan>section{flex:1;min-width:0}
+.zipco-final-alt .zipco-final-plan-icon{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:10px;background:#ecfdf5;color:#047857}
+.zipco-final-alt .zipco-final-plan-icon svg{width:17px;height:17px}
+.zipco-final-alt .zipco-final-plan section>p:first-child{font-weight:800;color:#0f172a}
+.zipco-final-alt .zipco-final-plan section>p:not(:first-child){color:#475569;font-size:11.5px;line-height:1.45}
+.zipco-final-alt .zipco-final-previous>section[aria-label="Oferta de reserva"]{padding:10px;margin:0;border:1px solid #99f6e4;border-radius:14px;background:#f0fdfa;color:#334155;font-size:11.5px;line-height:1.45}
+.zipco-final-alt .zipco-final-previous>section>p:first-child{font-weight:800;color:#115e59}
+.zipco-final-alt .zipco-final-locked{display:flex;width:fit-content;max-width:100%;align-items:center;gap:4px;margin:0 0 6px;padding:2px 7px;border-radius:999px;background:#f1f5f9;color:#475569;font-size:10px;font-weight:700;line-height:1.4}
+.zipco-final-alt .zipco-final-locked svg{width:11px;height:11px;flex:none}
 .zipco-final-alt .zipco-final-reservation>fieldset{margin:8px 0 0;padding:0;border:0;border-radius:0;background:none;color:#0f172a}
 .zipco-final-alt .zipco-final-reservation>fieldset>legend{padding:0;font-size:13px;font-weight:800;color:#1e1b4b}
 .zipco-final-alt .zipco-final-reservation label:has(input[type=radio]){min-height:44px;font-size:13px;color:#475569;opacity:.55}
@@ -190,6 +198,15 @@
 .dark .zipco-final-alt .zipco-final-path,.dark .zipco-final-alt .zipco-final-previous,.dark .zipco-final-alt .zipco-final-reservation{border-color:#475569}
 .dark .zipco-final-alt .zipco-final-keep .cl{color:#ede9fe}
 .dark .zipco-final-alt .zipco-final-locked{color:#c4b5fd}
+.dark .zipco-final-keep{background:#172033;box-shadow:0 0 0 1px #475569}
+.dark .zipco-final-keep>button,.dark .zipco-final-keep .ki{color:#ede9fe}
+.dark .zipco-final-alt .zipco-final-locked{background:#293348}
+.dark .zipco-final-alt .zipco-final-plan section>p:first-child{color:#f1f5f9}
+.dark .zipco-final-alt .zipco-final-plan section>p:not(:first-child){color:#cbd5e1}
+.dark .zipco-final-alt .zipco-final-previous>section[aria-label="Oferta de reserva"]{background:#123438;border-color:#0f766e;color:#ccfbf1}
+.dark .zipco-final-alt .zipco-final-previous>section>p:first-child{color:#99f6e4}
+.dark .zipco-final-ct{background:#123438;border-color:#0f766e;color:#ccfbf1}
+.dark .zipco-final-ct svg{color:#6ee7b7}
 .dark .zipco-final-review .zipco-la-err,.dark .zipco-final-alt .zipco-final-plan-error{border-color:#9f1239;background:#4c162b;color:#fecdd3}
 
 /* NegW5: fixed heading and pill actions across preparation and final review. */

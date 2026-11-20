@@ -4,7 +4,8 @@ import BusinessResponseHoursNotice from "../../shared/hours/BusinessResponseHour
 import { chileSchedule } from "../../api/serviceHoursAdvisory";
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { AlertTriangle, ArrowLeft, ArrowRight, Calendar, CalendarCheck, ChevronDown, Clock, Info, Lock, MessageCircle, Phone, RefreshCw, ShieldCheck, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, Calendar, CalendarCheck, ChevronDown, Clock, Info, Lock, MessageCircle, Phone, RefreshCw, ShieldCheck, Store, X } from 'lucide-react';
+import WhatsAppMark from "../../shared/icons/WhatsAppMark";
 import type { BusinessRequest, MyOrder } from "../../domain/types";
 import { AlternativeDraftDialog } from "./PendingAlternativeActions";
 import { proposalDraftSource, type AlternativeReview } from "../../domain/alternativeDraft";
@@ -74,7 +75,6 @@ function FinalKeep({ summary, warn = false, path, previous, children }: { summar
     <div id="zipco-final-keep-body" className="kbody" hidden={!open}>
       <p className="kn">Enviar esto no cambia el camino ni la reserva.</p>
       <section className="zipco-final-path" aria-label="Camino conservado">
-        <p className="cl">Camino</p>
         {path}
       </section>
       {previous && <section className="zipco-final-previous" aria-label="Condición de reserva anterior">
@@ -669,11 +669,11 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         const content=<>
         {business&&<BusinessResponseHoursNotice businessId={Number(session?.businessId)} {...(review.schedule?.mode==='SCHEDULED'?{date:review.schedule.date,time:review.schedule.time}:review.schedule?.mode==='IMMEDIATE'?undefined:chileSchedule(read.proposals.at(-1)?.scheduledFor))}/>}
         {availabilityFlow(read.process)&&finalBusiness&&(plan?<>
-          <FinalKeep summary={plan.path==='LOCAL_PICKUP'?'Retiro en el local':'Coordinar por WhatsApp'} warn={reservationFlow(read.process)&&Boolean(plan.reservationOffer)&&finalOffer===null}
-            path={<AvailabilityPlanSummary plan={plan} showReservation={false}/>} previous={plan.reservationOffer ? <ReservationOfferSummary offer={plan.reservationOffer}/> : undefined}>
+          <FinalKeep summary={`${plan.path==='LOCAL_PICKUP'?'Retiro en el local':'Coordinar por WhatsApp'}${plan.reservationOffer ? ` · ${plan.reservationOffer.mode==='FREE'?'Reserva sin pago previo':plan.reservationOffer.mode==='PREPAYMENT'?'Reserva con pago previo':'Sin reserva'}` : ''}`} warn={reservationFlow(read.process)&&Boolean(plan.reservationOffer)&&finalOffer===null}
+            path={<div className="zipco-final-plan"><span className="zipco-final-plan-icon" aria-hidden="true">{plan.path==='LOCAL_PICKUP'?<Store/>:<WhatsAppMark/>}</span><AvailabilityPlanSummary plan={plan} showReservation={false}/></div>} previous={plan.reservationOffer ? <ReservationOfferSummary offer={plan.reservationOffer}/> : undefined}>
             {reservationFlow(read.process)&&plan.reservationOffer&&(simplifiedReservationFlow(read.process)?<SimpleReservationOfferFields initial={plan.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>:<ReservationOfferFields initial={plan.reservationOffer} total={review.totalPriceClp} onChange={setFinalOffer} disabled={busy} lockMode/>)}
           </FinalKeep>
-          {plan.allowCustomerWhatsapp&&<p className="zipco-final-ct"><MessageCircle aria-hidden="true"/><span>{BUSINESS_CONTACT_COPY}</span></p>}
+          {plan.allowCustomerWhatsapp&&<p className="zipco-final-ct"><WhatsAppMark/><span>{BUSINESS_CONTACT_COPY}</span></p>}
         </>:<div role="alert" className="zipco-final-plan-error"><AlertTriangle aria-hidden="true" /><p>No se pudo recuperar el camino de la propuesta. Actualiza sus condiciones antes de enviar.</p></div>)}
         {!business&&reservationFlow(read.process)&&read.process.availability?.reservationOffer&&<ReservationChoiceFields offer={read.process.availability.reservationOffer} value={reservationSelection} note={reservationNote} onChange={setReservationSelection} onNote={setReservationNote} disabled={busy}/>}
         {availabilityFlow(read.process)&&!business&&(read.process.availability?.allowCustomerWhatsapp?<label className="my-3 flex gap-2 text-xs"><input type="checkbox" checked={contactPreference} disabled={busy} onChange={e=>setContactPreference(e.target.checked)}/><span>Permitir que este negocio me escriba por WhatsApp<br/>Compartiremos tu teléfono con este negocio para coordinar este pedido si se confirma la compra.</span></label>:<p className="my-3 text-xs">Esta propuesta es para retiro en el local sin compartir teléfonos.</p>)}
