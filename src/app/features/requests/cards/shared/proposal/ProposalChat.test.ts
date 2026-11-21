@@ -4,11 +4,28 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import ProposalChat, { comparisonRows } from "./ProposalChat";
 import { normalizeProposals } from "../../../domain/proposalContract";
 import { proposalsFixture } from "../../../fixtures/proposalFixtures";
+import { availabilityConversation, pickupPlan } from "../../../fixtures/availabilityFixtures";
 
 beforeEach(() => { vi.stubGlobal('React', React); });
 const read = (sequence = 1) => { const value = proposalsFixture(sequence); return normalizeProposals(value, value.process.id)!; };
 const render = (value = read(), business = false, canCounter = true, turn: 'mine' | 'wait' | 'closed' = 'mine') => renderToStaticMarkup(
   React.createElement(ProposalChat, { read: value, business, canCounter, turn, closedText: 'El cliente rechazó la propuesta · Historial' }));
+
+it('shows confirmed availability in the same business timeline without inventing a negotiated proposal', () => {
+  const value = normalizeProposals({ ...availabilityConversation, process: { ...availabilityConversation.process, availability: pickupPlan },
+    proposals: availabilityConversation.proposals.map(p => ({ ...p, availability: pickupPlan })) }, availabilityConversation.process.id)!;
+  const html = renderToStaticMarkup(React.createElement(ProposalChat, { read: value, business: true, businessDesign: true, turn: 'wait' }));
+  expect(html).toContain('data-availability-confirmation');
+  expect(html).toContain('zipco-bz-nc mine');
+  expect(html).toContain('Confirmaste disponibilidad');
+  expect(html).toContain(`dateTime="${pickupPlan.confirmedAt}"`);
+  expect(html).toContain(pickupPlan.customerMessage);
+  expect(html).toContain('Aún sin acuerdo');
+  expect(html).not.toContain('Te toca responder');
+  expect(value.proposals).toHaveLength(1);
+  const customer = render(value, false, false, 'wait');
+  expect(customer).not.toContain('data-availability-confirmation');
+});
 
 it('business design preserves snapshot order, own message and comparison without changing data', () => {
   const value = read(2); value.proposals[1].subjectSnapshot.proposalMessage = 'Ofrezco estas condiciones.';

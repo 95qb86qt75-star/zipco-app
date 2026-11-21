@@ -362,6 +362,35 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
 
 export type ChatTurn = 'mine' | 'wait' | 'closed';
 
+/** Availability is a confirmed response, not a negotiated proposal or an agreement. */
+function AvailabilityConfirmation({ read }: { read: ProposalRead }) {
+  const [open, setOpen] = useState(false);
+  const plan = read.process.availability!;
+  const original = read.proposals[0];
+  const label = 'Confirmaste disponibilidad';
+  const at = time(plan.confirmedAt, true);
+  return <div className="zipco-bz-ev is-last flex flex-col items-end" data-availability-confirmation>
+    <span className="zipco-bz-nd" aria-hidden="true"><Store /></span>
+    {day(plan.confirmedAt) !== day(original.createdAt) && <p className="text-center"><span className="zipco-chat-date">{day(plan.confirmedAt)}</span></p>}
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <div className="zipco-bz-nc mine">
+        <div className="zipco-bz-nch"><span className="w">{label}</span><time dateTime={plan.confirmedAt}>{at}</time>
+          <Dialog.Trigger asChild><button type="button" className="zipco-bz-ncd" aria-label="Ver detalle de la disponibilidad" title="Ver detalle"><span><Maximize2 strokeWidth={2.8} aria-hidden="true" /></span></button></Dialog.Trigger>
+        </div>
+        <div className="zipco-bz-npr">
+          {original.subjectSnapshot.orderType === 'product' && <span className="zipco-bz-th"><ProductPreviewControl preview={original.productPreview ?? null} caption="PRODUCTO SOLICITADO" /></span>}
+          <b className="t">{proposalTitle(original)}</b><b className="p">{money(original.totalPriceClp)}</b>
+        </div>
+        <p className="zipco-bz-confirmation-caption">Total solicitado · Aún sin acuerdo</p>
+        <div className="zipco-bz-confirmation-plan"><AvailabilityPlanSummary plan={plan}/></div>
+      </div>
+      <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
+        <AvailabilityPlanSummary plan={plan}/><CloseButton kind="gt" />
+      </Sheet>
+    </Dialog.Root>
+  </div>;
+}
+
 /** `plan` (solo cliente): resumen del camino de la propuesta; se ubica entre «Te toca responder» y el aviso de contrapropuesta.
  *  `canFinal` (solo negocio rediseñado): avisa que la alternativa final es la última propuesta. */
 export default function ProposalChat({ read, business, turn, closedText, canCounter, canFinal = false, plan, businessDesign = false, waitingDesign = false }: { read: ProposalRead; business: boolean; turn: ChatTurn; closedText?: string; canCounter?: boolean; canFinal?: boolean; plan?: ReactNode; businessDesign?: boolean; waitingDesign?: boolean }) {
@@ -378,6 +407,7 @@ export default function ProposalChat({ read, business, turn, closedText, canCoun
   return <div ref={root} data-proposal-comparison className={`zipco-chat${bz ? ' zipco-bz-chat' : ''}${wt ? ' zipco-wt-chat' : ''}`}>
     <p className="text-center"><span className="zipco-chat-date">{day(list[0].createdAt)}</span></p>
     {list.map((proposal, index) => <Bubble key={proposal.id} proposal={proposal} previous={index > 0 ? list[index - 1] : undefined} business={business} bz={bz} wt={wt} last={index === list.length - 1} />)}
+    {bz && read.process.state === 'AWAITING_CUSTOMER_CONTINUATION' && read.process.availability && <AvailabilityConfirmation read={read}/>}
     {!wt && <div className="zipco-chat-turn" role="status">
       <i /><span data-turn={turn}>{turn === 'mine' ? <><b className="zipco-chat-dot" aria-hidden="true" />Te toca responder</>
         : turn === 'closed' ? (closedText ?? 'La negociación finalizó')

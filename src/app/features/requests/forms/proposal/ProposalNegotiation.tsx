@@ -504,7 +504,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
                 closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
                 canCounter={!business && choices.includes('COUNTER_PROPOSAL')} canFinal={business && choices.includes('PROPOSE_FINAL')}
-                plan={(client || availabilityWaiting) && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal={client} /> : undefined} />}
+                plan={client && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal /> : undefined} />}
             </>}
           </div>
           {lateNotice && <div className="zipco-pz-err late nl" role="alert">

@@ -818,6 +818,8 @@
 .zipco-bz-nc.theirs:not(.ord) .zipco-bz-nq{border-left-color:#5eead4;color:#e2e8f0}
 @media (max-width:340px){.zipco-bz-nch{gap:5px}.zipco-bz-nch .w{letter-spacing:.05em;font-size:9.5px}.zipco-bz-npr .p{font-size:19px}}
 @media (forced-colors:active){.zipco-bz .zipco-bz-nc{border:1px solid CanvasText}.zipco-bz-ncd>span{box-shadow:none;border:1px solid ButtonText}}
+.zipco-bz .zipco-bz-confirmation-caption{margin:4px 0 0;font-size:10px;font-weight:600;color:#64748b}
+.zipco-bz .zipco-bz-confirmation-plan>section{margin:8px 0 0;padding:8px 0 0;border:0;border-top:1px solid #e4defa;border-radius:0}
 
 /* Aviso «alternativa final» al pie de la conversación del negocio (reusa .zipco-chat-ghost, solo dentro de .zipco-bz) */
 .zipco-bz .zipco-chat-ghost{position:relative;display:block;align-self:stretch;max-width:none;margin:0;padding:8px 11px 8px 34px;border-radius:12px;background:#f5f3ff;text-align:left;font-size:12px;line-height:1.35;color:#5b21b6}
