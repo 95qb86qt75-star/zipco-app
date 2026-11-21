@@ -3,7 +3,7 @@ import BusinessResponseHoursNotice from "../hours/BusinessResponseHoursNotice";
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { ArrowLeft, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, LockKeyhole, MapPin, Pencil, Phone, Plus, Send, ShieldCheck, Store, Undo2, UserRound, X, Zap } from 'lucide-react';
+import { ArrowLeft, Bell, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, Image as ImageIcon, LockKeyhole, MapPin, Pencil, Phone, Plus, Quote, Send, ShieldCheck, ShoppingBag, Store, Undo2, UserRound, X, Zap } from 'lucide-react';
 import AcceptGlassButton from "../../cards/shared/coordination/AcceptGlassButton";
 import WhatsAppMark from "../icons/WhatsAppMark";
 import "./availability-design.css";
@@ -39,9 +39,11 @@ export function ContactSwitch({ checked, onChange, label = 'Autorizar contacto p
     className="zipco-av-switch" disabled={disabled} onClick={onChange}><span /></button>;
 }
 
-function Disclosure({ open, onToggle, controls }: { open: boolean; onToggle: () => void; controls: string }) {
-  return <button type="button" className="zipco-av-disclosure" aria-expanded={open} aria-controls={controls} onClick={onToggle}>
-    {open ? 'Ocultar detalle' : 'Ver detalle'}{open ? <ChevronUp /> : <ChevronDown />}
+function Disclosure({ open, onToggle, controls, openLabel = 'Ocultar detalle', closedLabel = 'Ver detalle', className = '' }: {
+  open: boolean; onToggle: () => void; controls: string; openLabel?: string; closedLabel?: string; className?: string;
+}) {
+  return <button type="button" className={`zipco-av-disclosure${className ? ` ${className}` : ''}`} aria-expanded={open} aria-controls={controls} onClick={onToggle}>
+    {open ? openLabel : closedLabel}{open ? <ChevronUp /> : <ChevronDown />}
   </button>;
 }
 
@@ -79,10 +81,57 @@ function ContactIntent({ allowed, business = false }: { allowed: boolean; busine
     : business ? 'Sin autorización de WhatsApp todavía. El cliente podrá darla al confirmar la compra.' : 'Sin autorizar el contacto por WhatsApp. Podrás darlo cuando el negocio confirme disponibilidad.'}</span></p>;
 }
 
+// «Nuevo pedido» del NEGOCIO (AWAITING_BUSINESS_RESPONSE). Solo presentación: mismos datos, callbacks y botones reales
+// (`actions` y `detail` llegan de AvailabilityFlowCard). Todo el estilo vive bajo `.zipco-nv`.
+function BusinessNewRequestCard({ data, expanded, onToggle, contactIntent, actions, detail, detailsId }: {
+  data: RequestDesignData; expanded: boolean; onToggle: () => void; contactIntent?: boolean; actions?: ReactNode; detail?: ReactNode; detailsId: string;
+}) {
+  const first = data.items[0];
+  const summary = first ? `${first.quantity}× ${first.name}${data.items.length > 1 ? ` · +${data.items.length - 1} más` : ''}` : '';
+  return <article className="zipco-av-ticket zipco-av-business zipco-nv" data-open={expanded} aria-label={`${data.counterpart}: Nuevo pedido`}>
+    <header className="zipco-nv-hero">
+      <i className="zipco-nv-glow zipco-nv-glow-a" aria-hidden="true" /><i className="zipco-nv-glow zipco-nv-glow-b" aria-hidden="true" />
+      <i className="zipco-nv-spark zipco-nv-spark-a" aria-hidden="true" /><i className="zipco-nv-spark zipco-nv-spark-b" aria-hidden="true" /><i className="zipco-nv-spark zipco-nv-spark-c" aria-hidden="true" />
+      <div className="zipco-nv-top">
+        <ProductPreviewControl fallback={<span className="zipco-av-ticket-icon"><UserRound aria-hidden="true" /></span>} />
+        <div className="zipco-nv-id"><small>SOLICITUD DE CLIENTE</small><b>{data.counterpart}</b></div>
+        <div className="zipco-nv-price"><b>{money(data.total)}</b><small>SOLICITADO</small></div>
+      </div>
+      <div className="zipco-nv-tt">
+        <span className="zipco-nv-pill"><i aria-hidden="true"><Bell /></i>
+          <h2 aria-label="Nuevo pedido">{Array.from('Nuevo pedido').map((letter, index) => <span key={index} aria-hidden="true">{letter}</span>)}</h2>
+        </span>
+        <span className="zipco-nv-wait"><i aria-hidden="true" />Esperando tu respuesta</span>
+      </div>
+      <p className="zipco-nv-sub">Revisa la solicitud y responde al cliente.</p>
+    </header>
+    <div className="zipco-nv-body">
+      <div className="zipco-nv-sum">
+        {summary && <span className="zipco-nv-chip zipco-nv-chip-p"><ShoppingBag aria-hidden="true" />{summary}</span>}
+        <span className={`zipco-nv-chip ${data.immediate ? 'zipco-nv-chip-n' : 'zipco-nv-chip-t'}`}>{data.immediate ? <Zap aria-hidden="true" /> : <CalendarDays aria-hidden="true" />}{data.schedule}</span>
+        {data.note && <span className="zipco-nv-chip zipco-nv-chip-x"><Quote aria-hidden="true" />Con nota</span>}
+        {data.referencePhoto && <span className="zipco-nv-chip zipco-nv-chip-x"><ImageIcon aria-hidden="true" />Con foto</span>}
+      </div>
+      <div id={detailsId} hidden={!expanded} className="zipco-nv-fold">
+        <div className="zipco-nv-detail" data-immediate={data.immediate}>
+          <div className="zipco-nv-total"><span>Total solicitado<small>Aún sin confirmar ni pagar</small></span><b>{money(data.total)}</b></div>
+          {detail ?? <OriginalDetail data={data} compact />}
+        </div>
+        {contactIntent !== undefined && <ContactIntent allowed={contactIntent} business />}
+        {actions}
+      </div>
+    </div>
+    <footer className="zipco-nv-foot">
+      <Disclosure open={expanded} onToggle={onToggle} controls={detailsId} openLabel="Ocultar detalle" closedLabel="Abrir solicitud" className="zipco-nv-dis" />
+    </footer>
+  </article>;
+}
+
 export function PendingRequestDesign({ data, expanded, onToggle, contactIntent, business = false, actions, detail }: {
   data: RequestDesignData; expanded: boolean; onToggle: () => void; contactIntent?: boolean; business?: boolean; actions?: ReactNode; detail?: ReactNode;
 }) {
   const detailsId = useId();
+  if (business) return <BusinessNewRequestCard data={data} expanded={expanded} onToggle={onToggle} contactIntent={contactIntent} actions={actions} detail={detail} detailsId={detailsId} />;
   return <article className={`zipco-av-ticket ${business ? 'zipco-av-business' : 'zipco-av-waiting'}`} aria-label={`${data.counterpart}: ${business ? 'Nuevo pedido' : 'Pendiente de respuesta'}`}>
     <div className="zipco-av-ticket-inner"><TicketHeader data={data} kind={business ? 'business' : 'waiting'} />
       <h2 className="zipco-av-neon">{business ? 'NUEVO PEDIDO' : 'EN ESPERA'}</h2>
