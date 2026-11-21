@@ -28,6 +28,15 @@
 .zipco-agenda-when-short i{font-style:normal;font-size:12px;font-weight:900;line-height:1.1}
 .zipco-agenda-when-full{display:none;font-size:13.5px;font-weight:900;letter-spacing:.01em}
 .zipco-agenda-card{min-width:0}
+/* Pending reads are skeletons; only completed, unverifiable reads use COMPROBAR. */
+.zipco-agenda-row.is-loading{--ag-t1:#e2e8f0;--ag-t2:#f1f5f9;background:#fff;box-shadow:0 6px 16px #0f172a14}
+.zipco-agenda-row:has(.zipco-progress-loading){background:#fff}
+.zipco-agenda-loading-heading{height:18px;margin-top:8px}
+.zipco-agenda-loading-heading>i{display:block;height:10px;width:140px;border-radius:6px;background:#e2e8f0}
+.zipco-agenda-loading-when{display:flex;flex-direction:column;align-items:center;gap:7px;width:100%}
+.zipco-agenda-loading-when i,.zipco-agenda-loading-when b{display:block;width:65%;height:9px;border-radius:5px;background:#cbd5e1}
+.zipco-agenda-loading-when b{height:23px;width:55%}
+@media(max-width:359px){.zipco-agenda-loading-when{flex-direction:row;justify-content:flex-start}.zipco-agenda-loading-when i{width:50px}.zipco-agenda-loading-when b{width:35px;height:10px}}
 /* La fila aporta el borde y la sombra; la tarjeta real queda intacta por dentro. */
 .zipco-agenda-card>*{margin:0!important;border-radius:0!important;box-shadow:none!important}
 

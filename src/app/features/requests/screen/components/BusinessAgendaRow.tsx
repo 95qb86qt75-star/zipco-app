@@ -3,11 +3,12 @@ import { CalendarDays, CircleHelp, ClipboardCheck, Hand, TriangleAlert, Zap } fr
 import { agendaHeading, describeSchedule, type AgendaGroup, type AgreedSchedule } from '../../domain/businessAgenda';
 
 const TONE: Record<AgendaGroup, string> = {
-  asap: 'is-now', today: 'is-now', tomorrow: 'is-tomorrow', upcoming: 'is-upcoming', past: 'is-past', unverified: 'is-unverified',
+  asap: 'is-now', today: 'is-now', tomorrow: 'is-tomorrow', upcoming: 'is-upcoming', past: 'is-past', loading: 'is-loading', unverified: 'is-unverified',
 };
 
 /** Encabezado de grupo: no interactivo; solo organiza la lista. */
 export function AgendaGroupHeading({ group, nowMs }: { group: AgendaGroup; nowMs: number }) {
+  if (group === 'loading') return <div className="zipco-agenda-loading-heading" role="status"><span className="sr-only">Cargando horarios acordados…</span><i aria-hidden="true" /></div>;
   const { title, hint } = agendaHeading(group, nowMs);
   const Icon = group === 'asap' ? Zap : group === 'past' ? TriangleAlert : group === 'unverified' ? CircleHelp : CalendarDays;
   return (
@@ -345,7 +346,7 @@ export function AgendaRow({ schedule, group, children }: { schedule: AgreedSched
   useRedundantStatusMark(rowRef);
   const swipe = useAgendaSwipe(rowRef);
   return (
-    <div ref={rowRef} className={`zipco-agenda-row ${TONE[group]}`}>
+    <div ref={rowRef} className={`zipco-agenda-row ${TONE[group]}`} aria-busy={schedule.kind === 'loading' || undefined}>
       {swipe.enabled && (
         <button type="button" className="zipco-agenda-act" tabIndex={swipe.revealed ? 0 : -1} aria-hidden={!swipe.revealed}
           onClick={swipe.openSheet}>
@@ -354,12 +355,14 @@ export function AgendaRow({ schedule, group, children }: { schedule: AgreedSched
         </button>
       )}
       <div className="zipco-agenda-when">
+        {schedule.kind === 'loading' ? <><span className="sr-only">Cargando horario acordado</span><span className="zipco-agenda-loading-when" aria-hidden="true"><i /><b /><i /></span></> : <>
         <span className="sr-only">Servicio acordado: {when.full}</span>
         <span className="zipco-agenda-when-short" aria-hidden="true">
           {group === 'asap' ? <em><Zap size={14} strokeWidth={2.6} /></em> : <em>{when.top || ' '}</em>}
           <b>{when.big}</b><i>{when.bottom}</i>
         </span>
         <span className="zipco-agenda-when-full" aria-hidden="true">{when.full}</span>
+        </>}
       </div>
       <div className="zipco-agenda-card">{children}</div>
     </div>

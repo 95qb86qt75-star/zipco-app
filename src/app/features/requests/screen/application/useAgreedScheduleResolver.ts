@@ -26,10 +26,10 @@ export default function useAgreedScheduleResolver(orders: BusinessRequest[], ena
         const process = order.requestProcess;
         if (!process?.agreementPublicId) continue;
         await fetchAgreementState(process, token, controller.signal, state => {
-          if (state.status !== 'loaded') return;
-          const agreement = state.agreement;
-          const schedule: AgreedSchedule = agreement.subjectSnapshot.needNow === true ? { kind: 'asap' }
-            : agreement.scheduledFor ? { kind: 'scheduled', at: agreement.scheduledFor } : { kind: 'unverified' };
+          if (state.status === 'loading') return;
+          const agreement = state.status === 'loaded' ? state.agreement : null;
+          const schedule: AgreedSchedule = agreement?.subjectSnapshot.needNow === true ? { kind: 'asap' }
+            : agreement?.scheduledFor ? { kind: 'scheduled', at: agreement.scheduledFor } : { kind: 'unverified' };
           setResult(current => ({ token, schedules: { ...(current.token === token ? current.schedules : {}), [processKey(order)]: schedule } }));
         }, readSharedAgreement);
       }
@@ -37,6 +37,8 @@ export default function useAgreedScheduleResolver(orders: BusinessRequest[], ena
     void Promise.all(Array.from({ length: Math.min(4, queue.length) }, worker));
     return () => controller.abort();
   }, [enabled, active, token]);
-  return useCallback<AgreedScheduleResolver>((order: BusinessRequest) => result.token === token
-    ? result.schedules[processKey(order)] ?? { kind: 'unverified' } : { kind: 'unverified' }, [result, token]);
+  return useCallback<AgreedScheduleResolver>((order: BusinessRequest) => {
+    if (!order.requestProcess?.agreementPublicId) return { kind: 'unverified' };
+    return result.token === token ? result.schedules[processKey(order)] ?? { kind: 'loading' } : { kind: 'loading' };
+  }, [result, token]);
 }

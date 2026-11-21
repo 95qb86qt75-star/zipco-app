@@ -7,6 +7,15 @@ import type { AgreedSchedule } from './businessAgenda';
 const now = Date.parse('2026-11-14T03:15:00Z'); // 00:15 Santiago; server/host timezone is irrelevant.
 const order = normalizeBusinessOrdersPayload([{ ...rawOrder, customerName: 'Prueba' }])[0];
 describe('business agenda from agreed conditions', () => {
+  it('distinguishes pending reads from unverifiable schedules without inventing a date', () => {
+    expect(validSchedule({kind:'loading'})).toEqual({kind:'loading'});
+    expect(agendaGroupOf({kind:'loading'},now)).toBe('loading');
+    expect(describeSchedule({kind:'loading'},'loading')).toEqual({top:'',big:'',bottom:'',full:'Cargando horario acordado'});
+    const entries=buildAgendaEntries([order],()=>({kind:'loading'}),now);
+    expect(applyAgendaFilters(entries,{date:'today',type:'all'})).toHaveLength(1);
+    expect(entries[0].at).toBeNull();
+    expect(agendaGroupOf({kind:'unverified'},now)).toBe('unverified');
+  });
   it.each([
     [{ kind: 'asap' }, 'asap'], [{ kind: 'unverified' }, 'unverified'],
     [{ kind: 'scheduled', at: '2026-11-14T02:59:00Z' }, 'past'],

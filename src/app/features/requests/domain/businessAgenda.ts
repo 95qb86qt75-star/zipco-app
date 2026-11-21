@@ -10,6 +10,7 @@ export const AGENDA_TIME_ZONE = 'America/Santiago';
 
 /** Horario acordado de un pedido. `scheduled.at` es un instante ISO 8601 (p. ej. AgreementReadDto.scheduledFor). */
 export type AgreedSchedule =
+  | { kind: 'loading' }
   | { kind: 'asap' }
   | { kind: 'scheduled'; at: string }
   | { kind: 'unverified' };
@@ -22,8 +23,8 @@ export type AgendaConfig = {
   onSort: (sort: AgendaSort) => void;
 };
 
-export type AgendaGroup = 'asap' | 'today' | 'tomorrow' | 'upcoming' | 'past' | 'unverified';
-export const AGENDA_GROUP_ORDER: readonly AgendaGroup[] = ['asap', 'today', 'tomorrow', 'upcoming', 'past', 'unverified'];
+export type AgendaGroup = 'asap' | 'today' | 'tomorrow' | 'upcoming' | 'past' | 'loading' | 'unverified';
+export const AGENDA_GROUP_ORDER: readonly AgendaGroup[] = ['asap', 'today', 'tomorrow', 'upcoming', 'past', 'loading', 'unverified'];
 
 export type AgendaDateFilter = 'all' | 'late' | 'today' | 'tomorrow' | 'upcoming' | 'unverified';
 export type AgendaTypeFilter = 'all' | 'pickup' | 'reserved' | 'whatsapp';
@@ -53,6 +54,7 @@ const dayNumber = (ms: number): number => {
 export function validSchedule(value: unknown): AgreedSchedule {
   if (value && typeof value === 'object') {
     const candidate = value as { kind?: unknown; at?: unknown };
+    if (candidate.kind === 'loading') return { kind: 'loading' };
     if (candidate.kind === 'asap') return { kind: 'asap' };
     if (candidate.kind === 'scheduled' && typeof candidate.at === 'string' && Number.isFinite(Date.parse(candidate.at))) {
       return { kind: 'scheduled', at: candidate.at };
@@ -62,6 +64,7 @@ export function validSchedule(value: unknown): AgreedSchedule {
 }
 
 export function agendaGroupOf(schedule: AgreedSchedule, nowMs: number): AgendaGroup {
+  if (schedule.kind === 'loading') return 'loading';
   if (schedule.kind === 'asap') return 'asap';
   if (schedule.kind === 'unverified') return 'unverified';
   const difference = dayNumber(Date.parse(schedule.at)) - dayNumber(nowMs);
@@ -111,7 +114,7 @@ export function sortByAttention(entries: AgendaEntry[]): AgendaEntry[] {
 }
 
 const dateMatches = (entry: AgendaEntry, filter: AgendaDateFilter) =>
-  filter === 'all' || (filter === 'late' && entry.group === 'past') || (filter === 'today' && (entry.group === 'asap' || entry.group === 'today'))
+  entry.group === 'loading' || filter === 'all' || (filter === 'late' && entry.group === 'past') || (filter === 'today' && (entry.group === 'asap' || entry.group === 'today'))
   || (filter === 'tomorrow' && entry.group === 'tomorrow') || (filter === 'upcoming' && entry.group === 'upcoming')
   || (filter === 'unverified' && entry.group === 'unverified');
 const typeMatches = (entry: AgendaEntry, filter: AgendaTypeFilter) => filter === 'all' || entry.modality === filter;
@@ -142,6 +145,7 @@ const longDate = fmt({ weekday: 'long', day: 'numeric', month: 'long' });
 
 export type AgendaWhen = { top: string; big: string; bottom: string; full: string };
 export function describeSchedule(schedule: AgreedSchedule, group: AgendaGroup): AgendaWhen {
+  if (schedule.kind === 'loading') return { top: '', big: '', bottom: '', full: 'Cargando horario acordado' };
   if (schedule.kind === 'asap') return { top: '', big: 'YA', bottom: 'AHORA', full: 'Lo antes posible' };
   if (schedule.kind === 'unverified') return { top: '', big: '?', bottom: 'SIN HORA', full: 'Horario por comprobar' };
   const date = new Date(Date.parse(schedule.at));
@@ -157,6 +161,7 @@ export type AgendaHeading = { title: string; hint: string };
 export function agendaHeading(group: AgendaGroup, nowMs: number): AgendaHeading {
   const today = longDate.format(new Date(nowMs));
   switch (group) {
+    case 'loading': return { title: 'Cargando horarios', hint: '' };
     case 'asap': return { title: 'Lo antes posible', hint: 'Sin hora fija' };
     case 'today': return { title: 'Hoy', hint: today };
     case 'tomorrow': return { title: 'Mañana', hint: longDate.format(new Date((dayNumber(nowMs) + 1) * 86_400_000 + 43_200_000)) };

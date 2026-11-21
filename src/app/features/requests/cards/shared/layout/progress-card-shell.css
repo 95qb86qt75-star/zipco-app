@@ -1,0 +1,19 @@
+/* Neutral load state, not an unverified agreement or an old card design. */
+.zipco-progress-loading{min-width:0;min-height:154px;padding:14px;border-radius:24px;background:linear-gradient(135deg,#fff,#f0fdfa);color:#0f172a;border:1px solid #d1fae5}
+.zipco-progress-placeholder{display:flex;flex-direction:column;gap:15px}
+.zipco-progress-placeholder i,.zipco-progress-placeholder b,.zipco-progress-loading-bar{display:block;border-radius:7px;background:#e2e8f0}
+.zipco-progress-loading-kicker{width:58%;height:11px}
+.zipco-progress-loading-header{display:flex;align-items:center;gap:10px;min-width:0}
+.zipco-progress-loading-header>.zipco-progress-loading-avatar{width:42px;height:42px;flex:none;border-radius:13px;background:#ccfbf1}
+.zipco-progress-loading-header>div{min-width:0;flex:1}
+.zipco-progress-loading-header>div i{height:12px;width:85%}
+.zipco-progress-loading-header>div i+i{height:9px;width:63%;margin-top:9px}
+.zipco-progress-loading-header>b{width:65px;height:22px;flex:none}
+.zipco-progress-loading-action{height:44px;border-radius:15px;background:#ccfbf1}
+.zipco-progress-load-error{font-size:13px;line-height:1.45}
+.zipco-progress-load-error p{margin:8px 0;color:#475569}
+.zipco-progress-load-error button{min-height:44px;margin-top:6px;padding:8px 12px;border:1px solid #5eead4;border-radius:12px;background:#fff;font-weight:700;color:#0f766e}
+.zipco-progress-load-error button:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+@keyframes zipco-progress-load-pulse{50%{opacity:.48}}
+@media(prefers-reduced-motion:no-preference){.zipco-progress-placeholder{animation:zipco-progress-load-pulse 1.5s ease-in-out infinite}}
+[data-request-motion=idle] .zipco-progress-placeholder,[data-request-list-hidden] .zipco-progress-placeholder{animation-play-state:paused}

@@ -3,6 +3,7 @@ import { ChevronDown, Package, Store, User } from 'lucide-react';
 import ProductPreviewControl from "../../../shared/product-preview/ProductPreviewControl";
 import { ImageWithFallback } from "../../../../../components/figma/ImageWithFallback";
 import WhatsAppMark from "../../../shared/icons/WhatsAppMark";
+import './progress-card-shell.css';
 
 /** Elementos propios que NO deben plegar la tarjeta al tocar la cabecera (solo variante business-progress). */
 const OWN_CLICK='button,a,input,textarea,select,summary,[role="button"],[role="tab"],[role="dialog"]';
@@ -74,6 +75,18 @@ export function ProgressCardHeader({ business, name, image, price, statusLabel, 
 export default function ProgressCardShell({ id, business, name, image, statusLabel, isUnread, retry, error }: {
   id: number; business: boolean; name: string; image?: string; statusLabel: string; isUnread?: boolean; retry: () => void; error?: string;
 }) {
+  if (business) return <article id={`order-${id}`} className="zipco-progress-loading scroll-mb-36"
+    aria-label={`${name}: ${error ? 'no se pudieron cargar las condiciones' : 'cargando pedido'}`} aria-busy={!error}>
+    {error ? <div role="alert" className="zipco-progress-load-error"><b>No pudimos cargar el pedido</b><p>{error}</p>
+      <button type="button" onClick={retry}>Reintentar condiciones</button></div> : <>
+      <span role="status" className="sr-only">Cargando condiciones del pedido…</span>
+      <div className="zipco-progress-placeholder" aria-hidden="true">
+        <span className="zipco-progress-loading-bar zipco-progress-loading-kicker" />
+        <div className="zipco-progress-loading-header"><i className="zipco-progress-loading-avatar" /><div><i /><i /></div><b /></div>
+        <span className="zipco-progress-loading-bar zipco-progress-loading-action" />
+      </div>
+    </>}
+  </article>;
   return <article id={`order-${id}`} tabIndex={0} aria-label={`${name}: verificando condiciones aceptadas`} aria-busy={!error}
     className={`${business ? 'zipco-co-dk zipco-ec-dk' : 'zipco-cp'} scroll-mb-36`} data-coordination-motion="idle">
     <ProgressCardHeader business={business} name={name} image={image} statusLabel={statusLabel} isUnread={isUnread} price={null} />

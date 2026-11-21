@@ -7,6 +7,12 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-21: En curso del negocio presenta un skeleton claro mientras se carga
+  el acuerdo y su horario. `loading` es un estado local de presentación, distinto
+  de `unverified`: no mostrar COMPROBAR/SIN HORA durante una lectura pendiente.
+  Si la lectura falla, conservar aviso real y Reintentar condiciones. Cliente
+  conserva su shell vigente. [Verificación](frontend-business-agenda-skeleton-qa.md).
+
 - 2026-11-21: las animaciones visibles de Solicitudes continúan durante el
   desplazamiento, para ambos roles y categorías. `data-request-list-scrolling`
   queda para ayuda de swipe e inclinación táctil; `data-request-list-hidden`
