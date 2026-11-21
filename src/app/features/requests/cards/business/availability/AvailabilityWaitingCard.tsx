@@ -23,10 +23,10 @@ type Item={name:string;quantity:number;unitPrice:number};
  * Orden del detalle: modalidad · pedido · nota · foto de referencia · respuesta del negocio (ticket de retiro o aviso de WhatsApp) · retirar.
  */
 export default function AvailabilityWaitingCard({name,price,items,schedule,note,reference,path,customerMessage,scheduleOrAddress,
-  expanded,onToggle,canRetire,busy,onRetire,error,isUnread=false}:{
+  expanded,onToggle,canRetire,busy,onRetire,error,isUnread=false,conversation}:{
   name:string;price:number|null;items:Item[];schedule:string;note?:string|null;reference?:ReactNode;
   path?:string;customerMessage?:string|null;scheduleOrAddress?:string|null;
-  expanded:boolean;onToggle:()=>void;canRetire:boolean;busy:boolean;onRetire:()=>void;error?:ReactNode;isUnread?:boolean;
+  expanded:boolean;onToggle:()=>void;canRetire:boolean;busy:boolean;onRetire:()=>void;error?:ReactNode;isUnread?:boolean;conversation?:ReactNode;
 }){
   const local=path==='LOCAL_PICKUP';
   const quantity=items.reduce((sum,i)=>sum+i.quantity,0);
@@ -84,6 +84,7 @@ export default function AvailabilityWaitingCard({name,price,items,schedule,note,
             {hours&&<div className="zipco-aw-tk-s"><span className="si" aria-hidden="true"><MapPin size={15} strokeWidth={2.4}/></span><div><small>HORARIO O DIRECCIÓN DE RETIRO</small><b>{hours}</b></div></div>}
           </div>
         </section>}
+        {conversation&&<div className="zipco-aw-conversation">{conversation}</div>}
         {canRetire&&<div className="zipco-aw-foot">
           <button type="button" className="zipco-avw-withdraw zipco-aw-wd" disabled={busy} onClick={onRetire}><X size={14} strokeWidth={2.6}/>Retirar disponibilidad</button>
           <p className="zipco-aw-fine">Mientras el cliente decide, puedes retirar la disponibilidad.</p>

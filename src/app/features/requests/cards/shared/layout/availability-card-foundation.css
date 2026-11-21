@@ -6,6 +6,11 @@
 .zipco-avw-toggle{position:absolute;inset:0;z-index:0;width:100%;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .zipco-avw-toggle:focus-visible{outline:2px solid #c4b5fd;outline-offset:-3px;border-radius:24px}
 .zipco-avw-body{position:relative;z-index:1;pointer-events:none}
+.zipco-aw .zipco-aw-conversation{pointer-events:auto;margin-top:12px}
+.zipco-aw .zipco-aw-conversation [role=alert]{padding:8px 10px;border-radius:12px;background:#fff1f2;color:#9f1239}
+.zipco-aw .zipco-aw-conversation .zipco-glass-btn{-webkit-backdrop-filter:none;backdrop-filter:none;filter:none}
+.zipco-aw .zipco-aw-conversation .zipco-glass-blob{filter:none;animation-iteration-count:2;animation-duration:1.5s}
+.zipco-aw .zipco-aw-conversation .zipco-glass-btn::after{animation-iteration-count:2;animation-duration:1.5s}
 .zipco-avw-head{display:flex;align-items:center;gap:11px;min-height:88px}
 .zipco-avw-ring{position:relative;flex:none;width:62px;height:62px;margin-right:3px;display:grid;place-items:center;border-radius:50%;pointer-events:auto;
   background:conic-gradient(from 0deg,#6ee7b7,#a78bfa,#f9a8d4,#a78bfa,#6ee7b7);box-shadow:0 0 20px rgba(167,139,250,.55);animation:zipco-avw-spin 3.5s linear infinite}

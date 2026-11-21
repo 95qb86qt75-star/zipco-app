@@ -243,7 +243,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   }, [read, draftAction, business]);
   if (!process || order.recordState !== 'available') return null;
   const initial = proposalAllowed(process, business, 'PROPOSE_ALTERNATIVE');
-  const relevant = initial || NEGOTIATION_STATES.includes(process.state) || isProposalRejected(process);
+  const availabilityWaiting = business && availabilityFlow(process) && process.state === 'AWAITING_CUSTOMER_CONTINUATION';
+  const relevant = initial || NEGOTIATION_STATES.includes(process.state) || isProposalRejected(process) || availabilityWaiting;
   if (!relevant && !open && !draftAction) return null;
   const exact = read && read.process.id === process.id && read.process.version >= process.version;
   const client = !business; // el rediseño de presentación aplica solo al cliente; el negocio conserva su markup
@@ -503,7 +504,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
                 closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
                 canCounter={!business && choices.includes('COUNTER_PROPOSAL')} canFinal={business && choices.includes('PROPOSE_FINAL')}
-                plan={client && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal /> : undefined} />}
+                plan={(client || availabilityWaiting) && read.process.availability ? <AvailabilityPlanSummary plan={read.process.availability} customerProposal={client} /> : undefined} />}
             </>}
           </div>
           {lateNotice && <div className="zipco-pz-err late nl" role="alert">
