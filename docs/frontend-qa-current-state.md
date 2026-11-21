@@ -1,6 +1,6 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-19, America/Santiago.
+Actualizado: 2026-11-21, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
@@ -13,6 +13,10 @@ ni convierte pruebas sintéticas en aprobación física.
   sobre la tarjeta, con instrucciones y acciones reales. Los errores se mantienen
   fuera de la hoja. Se conservan swipe, skeleton y las otras variantes.
   [Verificación y límites](frontend-business-pickup-negw10-qa.md).
+  Acabados posteriores: contacto separado en texto/acciones con orden DOM real,
+  recuadros azules, reserva verde, WhatsApp con degradado, cancelar centrado y
+  fondo menta. Tres adjuntos completos aplicados; no se modifica PickupInstructions
+  ni ReservationPanel. Tipos de fecha, errores y foco anteriores conservados.
 
 - 2026-11-21: En curso del negocio presenta un skeleton claro mientras se carga
   el acuerdo y su horario. `loading` es un estado local de presentación, distinto

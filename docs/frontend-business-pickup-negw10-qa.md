@@ -93,3 +93,47 @@ sumar duraciones como tiempo total.
 
 Publicación solo en qa/Vercel QA con verificación del SHA exacto. Main, producción
 y Railway quedan fuera de alcance. La revisión física permanece pendiente.
+
+## Acabados de las dos hojas · segunda entrega
+
+El usuario entregó BusinessProgressCardView (4).tsx, business-progress (4).css y
+AvailabilityPostActionsView (4).tsx sobre QA 9e08a3d. Se reemplazaron completos,
+idénticos a los adjuntos según SHA-256, sin tocar PickupInstructions ni
+ReservationPanel. Se mantiene pickupLabel y el acceso real de CloseRequest.
+
+Los cambios son de presentación: contacto separado en contactText/contactActions
+opcionales (props locales, no API), orden del DOM texto/Ver más/botón con icono,
+hechos en línea, recuadros azules, reserva verde, WhatsApp degradado, cancelar
+centrado al fondo, fondo menta y título de instrucciones integrado. El aviso azul
+depende del p.mt-1 real de PickupInstructions default; si cambia ese marcado,
+debe revisarse el selector acotado de zipco-pk.
+
+Validación específica por el riesgo del cambio:
+
+- 37 pruebas focalizadas de AvailabilityPostActionsView, pickupDetailVariant,
+  reservationTermsErrors y processPresentation. No se repitió la suite de contratos
+  o comandos porque no cambiaron esas dependencias.
+- A y B a 320/360/390/430 con RequestsScreen y piezas reales: sin desborde,
+  fondos y resaltados calculados correctos, valores inline, cancelación centrada,
+  icono y orden DOM de contacto; foco de hoja y Escape conservados. Sin POST.
+- En el primer escenario B no se ofrecía OPEN_WHATSAPP, por lo que el controlador
+  no mostraba el consentimiento. Se corrigió el fixture para representar ese
+  permiso y se repitieron solo los cuatro casos B; no se alteraron los permisos
+  del producto. El permiso retirado conserva su confirmación real.
+- Comparación de capturas A-reference-390 y B-reference-390 con las referencias
+  entregadas. Ventanas reales de seguimiento y retirar contacto: Escape vuelve
+  a la hoja y devuelve el foco; luego Escape cierra la hoja. Reduced motion sin
+  animaciones activas. No se repitieron escrituras de cierre o pago no afectadas.
+- Build QA y diff check correctos. Sin tsc/lint disponibles en el proyecto.
+- Evidencia ignorada: node_modules/.cache/pickup-negw10-finish/. Los casos A se
+  completaron antes de corregir el fixture B. El JSON final de matrix-evidence
+  contiene los cuatro B; las capturas A y el guion conservan el bloque A comprobado.
+
+Tiempos medidos: suite 4,10 s; build Vite 15,10 s (PWA posterior sin medición
+independiente). Análisis, edición, preparación del arnés, documentación y espera
+de Vercel no se cronometraron por separado. Build y navegador se solaparon; no
+sumar sus duraciones. Sin conclusiones de rendimiento físico.
+
+Solo frontend QA; sin endpoints, datos persistidos o payloads nuevos. Railway,
+main y producción intactos. Pendiente comprobar ambos detalles en los teléfonos
+con el SHA publicado y confirmar visualmente con el usuario.

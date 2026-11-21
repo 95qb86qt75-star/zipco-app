@@ -220,12 +220,16 @@ return <>
 }
 
 /** Bloque de contacto del negocio: usa las piezas reales (texto de consentimiento, Autorizo…, Retirar mi permiso…). */
-function PickupContactBox({children}:{children:React.ReactNode}){
+function PickupContactBox({text,actions}:{text:React.ReactNode;actions:React.ReactNode}){
 const [open,setOpen]=useState(false);
+// Orden real del DOM = orden visual: texto de consentimiento → «Ver más» → botones (autorizar / retirar permiso).
 return <section className="zipco-pk-ct" aria-label="Contacto" data-c={open?undefined:'true'}>
-  <span className="zipco-pk-ct-ic" aria-hidden="true"><ShieldCheck size={17} strokeWidth={2.3} /></span>
-  <div className="zipco-pk-ct-in"><span className="zipco-pk-lab">CONTACTO · TU TELÉFONO PARA ESTE PEDIDO</span>{children}
-    <button type="button" className="zipco-pk-lm" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>{open?'Ver menos':'Ver más'}</button></div>
+  <div className="zipco-pk-ct-h">
+    <span className="zipco-pk-ct-ic" aria-hidden="true"><ShieldCheck size={17} strokeWidth={2.3} /></span>
+    <div className="zipco-pk-ct-in"><span className="zipco-pk-lab">CONTACTO · TU TELÉFONO PARA ESTE PEDIDO</span>{text}
+      {text&&<button type="button" className="zipco-pk-lm" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>{open?'Ver menos':'Ver más'}</button>}</div>
+  </div>
+  {actions}
 </section>;
 }
 
@@ -250,7 +254,7 @@ return <>
     </div>
     <ul className="zipco-pk-fx">
       {pk.pickupBy&&<li><i aria-hidden="true"><Clock size={14} strokeWidth={2.4} /></i><span>{pk.pickupLabel} <b>{pk.pickupBy}</b></span></li>}
-      {pk.confirmedAt&&<li><i aria-hidden="true"><Check size={14} strokeWidth={2.6} /></i><span>{pk.confirmedAutomatically?'Registrada automáticamente':'Apartado confirmado'}<b>{pk.confirmedAt}</b></span></li>}
+      {pk.confirmedAt&&<li><i aria-hidden="true"><Check size={14} strokeWidth={2.6} /></i><span>{pk.confirmedAutomatically?'Registrada automáticamente':'Apartado confirmado'}{' '}<b>{pk.confirmedAt}</b></span></li>}
       {pk.declaredAmountClp!=null&&<li className="zipco-pk-decl"><i aria-hidden="true"><Receipt size={14} strokeWidth={2.4} /></i><span>Declaraste recibido <b>{clp(pk.declaredAmountClp)}</b><em>ZIPCO no verificó la transferencia.</em></span></li>}
     </ul>
     {pk.note&&<blockquote className="zipco-pk-nq"><small><Quote size={12} strokeWidth={2.4} aria-hidden="true" />NOTA DE RESERVA DEL CLIENTE</small><ClampText text={pk.note} /></blockquote>}
@@ -312,8 +316,8 @@ const summary=A?(reserved!=null?`Reserva confirmada · ${clp(reserved)} · pago 
 // Piezas reales que se colocan en la hoja. Alertas y errores salen SIEMPRE fuera de la hoja (pie de la tarjeta), plegada o no.
 const renderParts=(parts:AvailabilityPostActionParts|null)=>{
   if(!parts)return null;
-  const instructions=parts.has.instructions?<section className="zipco-pk-pi" aria-label="Instrucciones de retiro"><i aria-hidden="true"><Store size={17} strokeWidth={2.3} /></i><div className="zipco-pk-pi-in"><span className="zipco-pk-lab">INSTRUCCIONES DE RETIRO</span>{parts.instructions}</div></section>:null;
-  const contact=parts.has.contact?<PickupContactBox>{parts.contact}</PickupContactBox>:null;
+  const instructions=parts.has.instructions?<section className="zipco-pk-pi" aria-label="Instrucciones de retiro"><i aria-hidden="true"><Store size={17} strokeWidth={2.3} /></i><div className="zipco-pk-pi-in"><span className="zipco-pk-lab">INSTRUCCIONES DE RETIRO · RETIRO EN EL LOCAL</span>{parts.instructions}</div></section>:null;
+  const contact=parts.has.contact?<PickupContactBox text={parts.contactText??null} actions={parts.contactText!==undefined?parts.contactActions:parts.contact}/>:null;
   const cancel=parts.has.cancel?<div className="zipco-pk-cz">{parts.cancel}</div>:null;
   const body=A
     ?<ReservationPanel order={order} business refresh={refresh} render={rp=><PickupConfirmedDetail rp={rp} total={total} instructions={instructions} contact={contact} cancel={cancel} alertsHost={alertsHost} />} />

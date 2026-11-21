@@ -35,6 +35,8 @@ function CustomerReasonChoices({options,value,onChange,disabled}:{options:readon
  *    «Reintentar mi autorización pendiente», y el error de disponibilidad con «Actualizar estado»). */
 export type AvailabilityPostActionParts={
   reservation:ReactNode;instructions:ReactNode;contact:ReactNode;cancel:ReactNode;alerts:ReactNode;
+  /** Opcionales (solo presentación): `contact` separado en texto de consentimiento y botones, para ordenar «texto → Ver más → botón» sin reordenar con CSS. */
+  contactText?:ReactNode;contactActions?:ReactNode;
   has:{reservation:boolean;instructions:boolean;contact:boolean;cancel:boolean;alerts:boolean};
 };
 
@@ -52,11 +54,11 @@ const customerPrepayment=!business&&!!render&&pickupPrepaymentFor(process)?.phas
 const reservation=process?.reservation?<ReservationPanel order={order} business={business} refresh={refresh}/>:null;
 const instructions=pickup?<PickupInstructions variant={render&&!pk?'customer':'default'} message={availability?.customerMessage} scheduleOrAddress={availability?.scheduleOrAddress} notReservation={!process?.reservation}/>:null;
 const contactCopy=hasContact?<p className={(render?'zipco-pickup-consent':'')+(pk?' zipco-pk-consent':'')||undefined}>{CONTACT_COPY}</p>:null;
-const authorizeBtn=canAuthorize?<button type="button" className={'w-full rounded-xl border p-3 font-bold'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-pri':'')} disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>Autorizo compartir mi teléfono para este pedido</button>:null;
+const authorizeBtn=canAuthorize?<button type="button" className={'w-full rounded-xl border p-3 font-bold'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-pri':'')} disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>{pk&&<span className="zipco-pk-obi" aria-hidden="true"><User size={16}/></span>}Autorizo compartir mi teléfono para este pedido</button>:null;
 const contactMsg=contact.message?<p role="alert" className={pk?'zipco-pk-msg':undefined}>{contact.message}</p>:null;
 const restoreBtn=(contact.restored()||contact.storageWarning())?<button type="button" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} disabled={contact.busy} onClick={()=>void contact.update()}>Actualizar permiso de contacto</button>:null;
 const retryBtn=contact.pending()?.action==='AUTHORIZE_CONTACT'&&!contact.restored()&&!contact.busy?<button type="button" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} onClick={()=>void contact.retry()}>Reintentar mi autorización pendiente</button>:null;
-const revokeBtn=canRevoke?<button type="button" data-action="revoke-contact" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-revoke':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('revoke');}}>Retirar mi permiso de contacto</button>:null;
+const revokeBtn=canRevoke?<button type="button" data-action="revoke-contact" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-revoke':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('revoke');}}>{pk&&<span className="zipco-pk-obi" aria-hidden="true"><User size={16}/></span>}Retirar mi permiso de contacto</button>:null;
 const cancelBtn=canCancel?<button type="button" className={'w-full rounded-xl border border-rose-300 p-3 font-bold'+(render?' zipco-pickup-cancel':'')+(pk?' zipco-pk-cx':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('cancel');}}>{pk&&<span className="zipco-pk-cxi" aria-hidden="true"><CircleX size={16}/></span>}{selectedReasons&&<span className="zipco-bpp-opi" aria-hidden="true"><CircleX size={16}/></span>}{customerPrepayment&&<span className="zipco-cpp-opi" aria-hidden="true"><CircleX size={16}/></span>}Cancelar retiro</button>:null;
 const opError=operation.error?<div role="alert" className={pk?'zipco-pk-er':undefined}><p>{operation.error}</p><button type="button" className={'rounded-xl border p-2'+(pk?' zipco-pk-erb':'')} disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button></div>:null;
 const legacyDialogs=<Dialog.Root open={dialog!==null} onOpenChange={value=>{if(!value&&!operation.busy)setDialog(null);}}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-slate-950/60 backdrop-blur-sm"/>
@@ -96,6 +98,7 @@ if(render){
   return <>{render({
     reservation,instructions,
     contact:showContactControls?<>{contactCopy}{authorizeBtn}{revokeBtn}</>:null,
+    contactText:showContactControls?contactCopy:null,contactActions:showContactControls?<>{authorizeBtn}{revokeBtn}</>:null,
     cancel:cancelBtn,
     alerts:alertsVisible?<>{showContactControls&&<>{contactMsg}{restoreBtn}{retryBtn}</>}{opError}</>:null,
     has:{reservation:!!reservation,instructions:pickup,contact:contactVisible,cancel:!!cancelBtn,alerts:alertsVisible},
