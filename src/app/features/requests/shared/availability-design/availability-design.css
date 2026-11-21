@@ -938,6 +938,25 @@ textarea.zipco-pk-in{min-height:56px}
   .zipco-nv .zipco-accept-label{font-size:14px}.zipco-nv .zipco-av-live-secondary .zipco-glass-btn,.zipco-nv .zipco-av-live-secondary .zipco-reject-btn{font-size:12px}
   .zipco-nv-hero .zipco-product-thumbs{max-width:62px}
 }
+/* Continue lightweight gestures while visible; keep entrance animations finite.
+   Pausing preserves the timeline instead of replaying it after every scroll. */
+.zipco-nv-pill{animation-iteration-count:1,infinite}
+.zipco-nv-spark,
+.zipco-nv-hero .zipco-product-thumb,
+.zipco-nv-pill>i svg,
+.zipco-nv-pill>h2>span,
+.zipco-nv-wait>i,
+.zipco-nv .zipco-accept-check,
+.zipco-nv[data-open=false] .zipco-nv-dis svg,
+.zipco-nv-pill::before,
+.zipco-nv-pill::after,
+.zipco-nv .zipco-accept-btn::after{animation-iteration-count:infinite}
+:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-nv *,
+:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-nv *::before,
+:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-nv *::after,
+body:has([role=dialog],[role=alertdialog]) .zipco-nv *,
+body:has([role=dialog],[role=alertdialog]) .zipco-nv *::before,
+body:has([role=dialog],[role=alertdialog]) .zipco-nv *::after{animation-play-state:paused!important}
 @media(prefers-reduced-motion:reduce){
   .zipco-nv *,.zipco-nv *::before,.zipco-nv *::after{animation:none!important;transition:none!important}
 }
