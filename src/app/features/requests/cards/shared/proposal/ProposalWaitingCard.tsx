@@ -138,7 +138,7 @@ function useCountUp(from: number, to: number, delay = 500, ms = 1000) {
     if (!element || from === to) { setV(to); return; }
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     let raf = 0, elapsed = 0, last = 0, done = false;
-    const paused = () => document.hidden || !!element.closest('[data-request-motion="idle"], [data-request-list-scrolling="true"]');
+    const paused = () => document.hidden || !!element.closest('[data-request-motion="idle"], [data-request-list-hidden="true"]');
     const step = (t: number) => {
       if (paused()) { raf = 0; last = 0; return; }
       if (last) elapsed += t - last;
@@ -155,7 +155,7 @@ function useCountUp(from: number, to: number, delay = 500, ms = 1000) {
     };
     const observer = new MutationObserver(sync);
     for (let parent: HTMLElement | null = element.parentElement; parent; parent = parent.parentElement)
-      observer.observe(parent, { attributes: true, attributeFilter: ['data-request-motion', 'data-request-list-scrolling'] });
+      observer.observe(parent, { attributes: true, attributeFilter: ['data-request-motion', 'data-request-list-hidden'] });
     setV(from);
     sync();
     media.addEventListener('change', sync);

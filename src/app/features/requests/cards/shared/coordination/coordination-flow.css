@@ -345,7 +345,7 @@
 .zipco-co-fold.zipco-bi-hide{width:auto;min-height:40px;height:auto;margin:0 auto;padding:0 14px;background:none;box-shadow:none;color:#94a3b8;font-weight:700;font-size:12px}
 @media (max-width:350px){.zipco-bi-id b{font-size:14.5px}.zipco-bi-pr b{font-size:17px}.zipco-bi-fg{display:none}.zipco-bi-toggle{padding-left:8px;font-size:12px}.zipco-bi-pill b{font-size:9.5px}.zipco-bi-steps{grid-template-columns:1fr}}
 [data-request-motion="idle"] .zipco-bi *,[data-request-motion="idle"] .zipco-bi *::before,[data-request-motion="idle"] .zipco-bi *::after,
-[data-request-list-scrolling="true"] .zipco-bi *,[data-request-list-scrolling="true"] .zipco-bi *::before,[data-request-list-scrolling="true"] .zipco-bi *::after{animation-play-state:paused!important}
+[data-request-list-hidden="true"] .zipco-bi *,[data-request-list-hidden="true"] .zipco-bi *::before,[data-request-list-hidden="true"] .zipco-bi *::after{animation-play-state:paused!important}
 @media (prefers-reduced-motion:reduce){.zipco-bi *,.zipco-bi *::before,.zipco-bi *::after{animation:none!important}.zipco-bi-fold,.zipco-bi-chv,.zipco-bi .zipco-bi-next{transition:none!important}}
 
 /* Native idle gate also covers the new decorative accents. */

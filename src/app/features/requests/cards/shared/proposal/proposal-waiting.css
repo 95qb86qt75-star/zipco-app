@@ -204,9 +204,9 @@
 @media(prefers-reduced-motion:reduce){.zipco-bf,.zipco-bf *,.zipco-bf *::before,.zipco-bf *::after,.zipco-bf::after{animation:none!important;transition:none!important}.zipco-bf-lk b,.zipco-bf-lk u,.zipco-bf-sp{display:none}}
 
 /* Use the list's existing pause flags without restarting finite effects or action spinners. */
-:is(.zipco-bf[data-request-motion="idle"], [data-request-list-scrolling="true"] .zipco-bf)::after,
-:is(.zipco-bf[data-request-motion="idle"], [data-request-list-scrolling="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *),
-:is(.zipco-bf[data-request-motion="idle"], [data-request-list-scrolling="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *)::before,
-:is(.zipco-bf[data-request-motion="idle"], [data-request-list-scrolling="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *)::after{animation-play-state:paused!important}
-:is(.zipco-bf[data-request-motion="idle"], [data-request-list-scrolling="true"] .zipco-bf) .zipco-bf-conv .zipco-glass-blob,
-:is(.zipco-bf[data-request-motion="idle"], [data-request-list-scrolling="true"] .zipco-bf) .zipco-bf-conv .zipco-glass-btn::after{animation-play-state:paused!important}
+:is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf)::after,
+:is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *),
+:is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *)::before,
+:is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *)::after{animation-play-state:paused!important}
+:is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) .zipco-bf-conv .zipco-glass-blob,
+:is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) .zipco-bf-conv .zipco-glass-btn::after{animation-play-state:paused!important}

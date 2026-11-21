@@ -169,13 +169,13 @@
    Changing play-state preserves the timeline when scrolling resumes. */
 @media (prefers-reduced-motion:no-preference){
   html:not(:has([role="dialog"],[role="alertdialog"]))
-  .zipco-agenda-row:not([data-request-list-scrolling] .zipco-agenda-row)
+  .zipco-agenda-row:not([data-request-list-hidden] .zipco-agenda-row)
   .zipco-ec-dk[data-request-motion="active"]:has(.zipco-co-colrow[data-folded="true"])
   :is(.zipco-bp-fg,.zipco-bp-w1,.zipco-bp-w2,.zipco-bp-mi,.zipco-co-colrow[data-folded="true"] .chev svg){
     animation-play-state:running!important;
   }
   html:not(:has([role="dialog"],[role="alertdialog"]))
-  .zipco-agenda-row:not([data-request-list-scrolling] .zipco-agenda-row)
+  .zipco-agenda-row:not([data-request-list-hidden] .zipco-agenda-row)
   .zipco-ec-dk[data-request-motion="active"] .zipco-co-colrow[data-folded="true"]::after{
     animation-play-state:running!important;
   }

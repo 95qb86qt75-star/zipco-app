@@ -62,7 +62,7 @@
 .zipco-wa-w.zipco-avw-customer[data-mode=ownPending] .zipco-wa-w-body{padding:0 12px 8px;background:none}
 @media(max-width:350px){.zipco-wa-w-id h3{font-size:14.5px}.zipco-wa-w-total b{font-size:17px}.zipco-wa-w-fg{display:none}.zipco-wa-w-toggle{padding:0 4px 0 8px;font-size:12px}.zipco-wa-w-pill b{font-size:9.5px}}
 /* Pausas existentes y movimiento reducido */
-[data-request-motion=idle] .zipco-wa-w *,[data-request-list-scrolling=true] .zipco-wa-w *,[data-coordination-motion=idle] .zipco-wa-w *{animation-play-state:paused!important}
+[data-request-motion=idle] .zipco-wa-w *,[data-request-list-hidden=true] .zipco-wa-w *,[data-coordination-motion=idle] .zipco-wa-w *{animation-play-state:paused!important}
 @media(prefers-reduced-motion:reduce){.zipco-wa-w *,.zipco-wa-w *::before,.zipco-wa-w *::after{animation:none!important}.zipco-wa-w-chv{transition:none!important}}
 
 /* Real preview supplies its own quantities; preserve one total badge. */

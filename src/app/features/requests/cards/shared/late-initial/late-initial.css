@@ -86,7 +86,7 @@
 @keyframes zipco-lq-spin{to{transform:rotate(360deg)}}
 @keyframes zipco-lq-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.12)}85%{transform:translateY(1px) scale(.92)}}
 /* El gesto solo se anima con la lista quieta y a la vista; en pausa queda estático y visible. */
-@media(prefers-reduced-motion:no-preference){.zipco-late-card--query .zipco-lq-hand{animation:zipco-lq-tap 1.8s ease-in-out infinite}:is([data-request-motion="idle"],[data-request-list-scrolling]) .zipco-late-card--query .zipco-lq-hand,.zipco-late-card--query[data-request-motion="idle"] .zipco-lq-hand{animation-play-state:paused}}
+@media(prefers-reduced-motion:no-preference){.zipco-late-card--query .zipco-lq-hand{animation:zipco-lq-tap 1.8s ease-in-out infinite}:is([data-request-motion="idle"],[data-request-list-hidden]) .zipco-late-card--query .zipco-lq-hand,.zipco-late-card--query[data-request-motion="idle"] .zipco-lq-hand{animation-play-state:paused}}
 @media(prefers-reduced-motion:reduce){.zipco-lq-sp{animation:none}}
 @media(max-width:350px){.zipco-lq-yes,.zipco-lq-no{font-size:12px;padding:0 6px}.zipco-lq-q h4{font-size:15px}}
 .zipco-late-card--query{overflow:clip;display:flow-root}

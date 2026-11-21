@@ -11,7 +11,7 @@
 
 /* ---------- Pausa con la lista quieta / en scroll, y movimiento reducido (mismo criterio que el resto del archivo) ---------- */
 [data-request-motion=idle] .zipco-own-node,[data-request-motion=idle] .zipco-own-node svg,[data-request-motion=idle] .zipco-own-tile svg,[data-request-motion=idle] .zipco-own-cta::after,[data-request-motion=idle] .zipco-pickup-c-tile::after,
-[data-request-list-scrolling=true] .zipco-own-node,[data-request-list-scrolling=true] .zipco-own-node svg,[data-request-list-scrolling=true] .zipco-own-tile svg,[data-request-list-scrolling=true] .zipco-own-cta::after,[data-request-list-scrolling=true] .zipco-pickup-c-tile::after{animation-play-state:paused!important}
+[data-request-list-hidden=true] .zipco-own-node,[data-request-list-hidden=true] .zipco-own-node svg,[data-request-list-hidden=true] .zipco-own-tile svg,[data-request-list-hidden=true] .zipco-own-cta::after,[data-request-list-hidden=true] .zipco-pickup-c-tile::after{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-identity h3{font-size:14.5px}.zipco-avw-customer[data-mode=ownPending] .zipco-avw-customer-total{font-size:17px}.zipco-own-steptx b{font-size:11px}.zipco-own-step{gap:5px}.zipco-own-line{margin:0 4px}.zipco-own-rail{padding:0 8px}}
 @media(prefers-reduced-motion:reduce){
   .zipco-own-node,.zipco-own-node svg,.zipco-own-tile,.zipco-own-tile svg,.zipco-own-cta,.zipco-own-cta::after,.zipco-own-spin,.zipco-pickup-c-tile::after,.zipco-tab-bump{animation:none!important}

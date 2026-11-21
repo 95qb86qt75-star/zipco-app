@@ -196,9 +196,9 @@
 .zipco-customer-prepayment[data-request-motion="idle"] *,
 .zipco-customer-prepayment[data-request-motion="idle"] *::before,
 .zipco-customer-prepayment[data-request-motion="idle"] *::after,
-[data-request-list-scrolling="true"] .zipco-customer-prepayment *,
-[data-request-list-scrolling="true"] .zipco-customer-prepayment *::before,
-[data-request-list-scrolling="true"] .zipco-customer-prepayment *::after{animation-play-state:paused!important}
+[data-request-list-hidden="true"] .zipco-customer-prepayment *,
+[data-request-list-hidden="true"] .zipco-customer-prepayment *::before,
+[data-request-list-hidden="true"] .zipco-customer-prepayment *::after{animation-play-state:paused!important}
 
 @media (prefers-reduced-motion:reduce){
   .zipco-customer-prepayment.zipco-cpp-dialog{animation:none!important}

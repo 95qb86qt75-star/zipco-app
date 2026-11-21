@@ -32,4 +32,4 @@
 .zipco-toast{left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 24px);max-width:480px;z-index:85;bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 .zipco-toast-close{width:44px;min-height:44px}
 @keyframes zipco-toast-in{from{opacity:0;transform:translate(-50%,24px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
-[data-request-list-scrolling=true] .zipco-chip-count,[data-request-list-scrolling=true] .zipco-spark{animation:none!important}
+[data-request-list-hidden=true] .zipco-chip-count,[data-request-list-hidden=true] .zipco-spark{animation:none!important}

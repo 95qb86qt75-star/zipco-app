@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-21: las animaciones visibles de Solicitudes continúan durante el
+  desplazamiento, para ambos roles y categorías. `data-request-list-scrolling`
+  queda para ayuda de swipe e inclinación táctil; `data-request-list-hidden`
+  pausa decoración cuando la app está en segundo plano. Se conservan las pausas
+  fuera de pantalla, diálogos y movimiento reducido, y la duración original de
+  las animaciones finitas. Validación física Android/iPhone pendiente.
+  [Verificación del ajuste compartido](frontend-request-scroll-motion-qa.md).
+
 - Regla de cierre completo acordada2026-11-18: toda dependencia de backend debe
   comunicarse, tener respuesta/contrato revisados y backend QA probado/publicado/
   verificado; después frontend integrado/publicado y flujo validado. Registrar

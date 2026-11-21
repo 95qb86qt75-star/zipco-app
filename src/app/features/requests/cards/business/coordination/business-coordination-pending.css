@@ -109,12 +109,12 @@
 @keyframes zipco-bp-wiggle{0%,60%,100%{transform:rotate(0) scale(1)}68%{transform:rotate(-14deg) scale(1.12)}76%{transform:rotate(12deg) scale(1.12)}84%{transform:rotate(-6deg)}}
 @keyframes zipco-bp-spin{to{transform:rotate(360deg)}}
 @keyframes zipco-bp-pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-business-pending *{animation-play-state:paused!important}
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-business-pending *{animation-play-state:paused!important}
 .zipco-business-pending:has(.zipco-business-pending-detail[data-coordination-motion=idle]) *,
 .zipco-business-pending:has(.zipco-business-pending-detail[data-coordination-motion=idle]) *::before,
 .zipco-business-pending:has(.zipco-business-pending-detail[data-coordination-motion=idle]) *::after{animation-play-state:paused!important}
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-business-pending *::before,
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-business-pending *::after,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-business-pending *::before,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-business-pending *::after,
 [data-coordination-motion=idle] .zipco-business-pending *{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-business-pending-title{font-size:9.5px}.zipco-business-pending .zipco-avw-query-copy>h4{font-size:13.5px}.zipco-business-pending-price{font-size:16px}.zipco-business-pending-actions .zipco-business-pending-open{font-size:12.5px}.zipco-business-pending-track b{font-size:9.5px}}
 @media(prefers-reduced-motion:reduce){.zipco-business-pending-pill i,.zipco-business-pending-pill i svg,.zipco-business-pending-track li.on i svg,.zipco-business-pending-open::after,.zipco-business-pending-open>svg:first-child,.zipco-business-pending-spin,.zipco-business-pending-options{animation:none!important}.zipco-business-pending-band .zipco-avw-query-detail svg,.zipco-business-pending-more svg:last-child{transition:none}}

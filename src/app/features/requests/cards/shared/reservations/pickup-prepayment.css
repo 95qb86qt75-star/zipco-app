@@ -197,9 +197,9 @@
 .zipco-business-prepayment[data-request-motion="idle"] *,
 .zipco-business-prepayment[data-request-motion="idle"] *::before,
 .zipco-business-prepayment[data-request-motion="idle"] *::after,
-[data-request-list-scrolling] .zipco-business-prepayment *,
-[data-request-list-scrolling] .zipco-business-prepayment *::before,
-[data-request-list-scrolling] .zipco-business-prepayment *::after{animation-play-state:paused!important}
+[data-request-list-hidden] .zipco-business-prepayment *,
+[data-request-list-hidden] .zipco-business-prepayment *::before,
+[data-request-list-hidden] .zipco-business-prepayment *::after{animation-play-state:paused!important}
 
 @media (prefers-reduced-motion:reduce){
   .zipco-business-prepayment.zipco-bpp-dialog{animation:none!important}

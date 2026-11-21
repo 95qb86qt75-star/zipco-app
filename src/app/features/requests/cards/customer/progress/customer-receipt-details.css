@@ -55,5 +55,5 @@
 .zipco-wa-w button:focus-visible{outline:3px solid #a78bfa;outline-offset:2px}
 .zipco-wa-w .zipco-avw-reveal[data-folded=false] :is(.zipco-wa-w-state,.zipco-wa-w-tile,.zipco-wa-w-opts){animation:zipco-wa-w-rise .36s cubic-bezier(.22,1,.36,1) both}
 @media(max-width:350px){.zipco-wa-w-tile{padding:8px 6px;gap:5px}.zipco-wa-w-tile .zipco-wa-w-ico{width:24px;height:24px}.zipco-wa-w-ey{letter-spacing:.03em}}
-[data-request-motion=idle] .zipco-wa-w-det *,[data-request-list-scrolling=true] .zipco-wa-w-det *,[data-coordination-motion=idle] .zipco-wa-w-det *{animation-play-state:paused!important}
+[data-request-motion=idle] .zipco-wa-w-det *,[data-request-list-hidden=true] .zipco-wa-w-det *,[data-coordination-motion=idle] .zipco-wa-w-det *{animation-play-state:paused!important}
 @media(prefers-reduced-motion:reduce){.zipco-wa-w-det *,.zipco-wa-w-det *::before,.zipco-wa-w-det *::after,.zipco-wa-w .zipco-avw-reveal :is(.zipco-wa-w-state,.zipco-wa-w-tile,.zipco-wa-w-opts){animation:none!important}.zipco-wa-w-tile{transition:none!important}}

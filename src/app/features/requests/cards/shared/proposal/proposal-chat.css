@@ -761,9 +761,9 @@
 .zipco-pz .zipco-chat.zipco-wt-chat>section[aria-label="Camino de esta propuesta"]>p:first-child::before{width:26px;height:26px;background-size:15px}
 .zipco-pz .zipco-chat.zipco-wt-chat>section[aria-label="Camino de esta propuesta"]>p:not(:first-child){padding-left:35px;font-size:12px}
 /* Entrances finish once without reacting to scroll flags or hiding content. */
-:is([data-request-motion="idle"], [data-request-list-scrolling]) .zipco-wt-chat
+:is([data-request-motion="idle"], [data-request-list-hidden]) .zipco-wt-chat
   :is(.zipco-wt-ws svg,.zipco-chat-mine.is-sent)::before{animation-play-state:paused!important}
-:is([data-request-motion="idle"], [data-request-list-scrolling]) .zipco-wt-chat .zipco-wt-ws svg{animation-play-state:paused!important}
+:is([data-request-motion="idle"], [data-request-list-hidden]) .zipco-wt-chat .zipco-wt-ws svg{animation-play-state:paused!important}
 @media (prefers-reduced-motion:reduce){
   .zipco-pz .zipco-wt-chat *,.zipco-pz .zipco-wt-chat *::before,.zipco-pz .zipco-wt-chat *::after{animation:none!important}
 }

@@ -201,10 +201,10 @@
   .zipco-aurora-card--bz .zipco-glass-btn { font-size: 13.5px; padding-inline: 48px; } }
 @media (forced-colors: active) { .zipco-aurora-bz-name { background: none; color: CanvasText; -webkit-text-fill-color: currentColor; } }
 /* Pausas con la lista quieta o en scroll (incluye pseudo-elementos); nada queda invisible al pausar. */
-:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz),
-:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz)::before,
-:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz)::after,
-:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--bz) :is(.zipco-aurora-bz-radar u, .zipco-aurora-bz-badge svg, .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-glass-btn > svg) { animation-play-state: paused !important; }
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--bz),
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--bz)::before,
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--bz)::after,
+:is(.zipco-aurora-card--bz[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--bz) :is(.zipco-aurora-bz-radar u, .zipco-aurora-bz-badge svg, .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-glass-btn > svg) { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   .zipco-aurora-card--bz::before, .zipco-aurora-card--bz::after, .zipco-aurora-bz-eb .zipco-aurora-dot, .zipco-aurora-bz-note, .zipco-aurora-bz-badge svg, .zipco-aurora-card--bz .zipco-glass-btn > svg { animation: none; }
   .zipco-aurora-bz-radar u { display: none; } .zipco-aurora-bz-chv { transition: none; }
@@ -280,9 +280,9 @@
 
 /* Never remove/reapply entrance animations on scroll: that restarts them.
    Short entrances finish once; decorative effects retain their paused timeline. */
-:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--wt)
   :is(.zipco-aurora-wt-dots u, .zipco-aurora-wt-ic svg),
-:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--wt)
   .zipco-aurora-wt-st li.is-now::after,
-:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-scrolling] .zipco-aurora-card--wt)
+:is(.zipco-aurora-card--wt[data-request-motion="idle"], [data-request-list-hidden] .zipco-aurora-card--wt)
   .zipco-aurora-wt-st li.is-now i::after { animation-play-state: paused !important; }

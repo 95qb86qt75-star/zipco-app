@@ -380,8 +380,8 @@
 @keyframes zipco-avpk-tilt{0%,70%,100%{transform:scale(1)}80%{transform:scale(1.18)}90%{transform:scale(.96)}}
 @keyframes zipco-avpk-ring{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.55);opacity:0}}
 @keyframes zipco-avpk-tw{0%,100%{transform:scale(0);opacity:0}50%{transform:scale(1);opacity:1}}
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpk-bm,
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpk-bm *{animation-play-state:paused!important}
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-avpk-bm,
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-avpk-bm *{animation-play-state:paused!important}
 @media(prefers-reduced-motion:reduce){.zipco-avpk-bm,.zipco-avpk-bm *{animation:none!important}.zipco-avpk-bm u,.zipco-avpk-bm s{display:none}.zipco-avpk-nt svg:last-child{transition:none}}
 @media(max-width:350px){.zipco-avpk-hero h3{font-size:12.5px}.zipco-avpk-msg{font-size:12px}}
 
@@ -430,7 +430,7 @@
 
 /* ---------- Pausa con la lista quieta / en scroll, pantallas angostas y movimiento reducido ---------- */
 [data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-motion=idle] .zipco-av-available-wa .zipco-avwa-rail>li>span::after,
-[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-list-scrolling=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::after{animation-play-state:paused!important}
+[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-pill,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-pill::before,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-pill::after,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-pill>i,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-pill>b>span,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-rail>li>span,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::before,[data-request-list-hidden=true] .zipco-av-available-wa .zipco-avwa-rail>li>span::after{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-av-available-wa .zipco-av-identity b{font-size:14px}.zipco-av-available-wa .zipco-av-price b{font-size:17px}.zipco-avwa-pill>b{font-size:18px}.zipco-avwa-rail b{font-size:11px}.zipco-avwa-decisions .zipco-accept-label{font-size:14.5px}.zipco-av-available-wa .zipco-product-thumbs{max-width:56px}.zipco-avpk-msg{font-size:12.5px}.zipco-av-available-pk .zipco-avpk-offer>section p.font-bold{font-size:12.5px}}
 @media(prefers-reduced-motion:reduce){
   .zipco-avwa-pill,.zipco-avwa-pill::before,.zipco-avwa-pill::after,.zipco-avwa-pill>i,.zipco-avwa-pill>b>span,.zipco-avwa-rail>li>span,.zipco-avwa-rail>li>span::before,.zipco-avwa-rail>li>span::after,.zipco-avwa-state,.zipco-av-decline-ic,.zipco-av-dialog.zipco-av-alert-decline{animation:none!important}
@@ -440,9 +440,9 @@
 }
 
 /* Respect the actual visibility gate used by request cards, including pseudo-elements. */
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *,
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *::before,
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-av-available-wa *::after{animation-play-state:paused!important}
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-av-available-wa *,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-av-available-wa *::before,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-av-available-wa *::after{animation-play-state:paused!important}
 
 /* ===== ConfirmAvailabilityDesign · «¿Cómo seguirá este pedido?» + «Retiro en el local» (prefijo exclusivo zipco-pk-) ===== */
 @keyframes zipco-pk-fade{from{opacity:0}to{opacity:1}}
@@ -772,9 +772,9 @@ textarea.zipco-pk-in{min-height:56px}
 /* Salida (la activa leaving=true desde el flujo existente, igual que las otras variantes) */
 .zipco-avpro[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-avpro-leave .9s ease-in forwards}
 /* Pausas ya usadas por la lista de solicitudes: sin movimiento en reposo ni mientras se desplaza */
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpro *,
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpro *::before,
-:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-avpro *::after{animation-play-state:paused!important}
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-avpro *,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-avpro *::before,
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-avpro *::after{animation-play-state:paused!important}
 @media(max-width:350px){.zipco-avpro-head{font-size:21px}.zipco-avpro-hero h3{font-size:13.5px}.zipco-avpro .zipco-accept-label{font-size:14.5px}.zipco-avpro-banner .zipco-product-thumb,.zipco-avpro-ticon{width:54px;height:54px}}
 @media(prefers-reduced-motion:reduce){.zipco-avpro,.zipco-avpro *,.zipco-avpro *::before,.zipco-avpro *::after{animation:none!important;transition:none!important}.zipco-avpro-bm u,.zipco-avpro-bm s,.zipco-avpro-spark,.zipco-avpro-pill::before{display:none}}
 
@@ -951,9 +951,9 @@ textarea.zipco-pk-in{min-height:56px}
 .zipco-nv-pill::before,
 .zipco-nv-pill::after,
 .zipco-nv .zipco-accept-btn::after{animation-iteration-count:infinite}
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-nv *,
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-nv *::before,
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-nv *::after,
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-nv *,
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-nv *::before,
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-nv *::after,
 body:has([role=dialog],[role=alertdialog]) .zipco-nv *,
 body:has([role=dialog],[role=alertdialog]) .zipco-nv *::before,
 body:has([role=dialog],[role=alertdialog]) .zipco-nv *::after{animation-play-state:paused!important}

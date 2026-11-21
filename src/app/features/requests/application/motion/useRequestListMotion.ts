@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import "./request-list-motion.css";
 
-/** One observer per list. Scrolling updates DOM flags, never React/order state. */
+/** Keep visibility and scroll independent: visible decoration continues during
+ * scroll; gesture hints still use the scroll flag. No React/order state updates. */
 export default function useRequestListMotion(items: unknown) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -12,8 +13,10 @@ export default function useRequestListMotion(items: unknown) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let scrolling = false;
     const update = () => {
-      if (scrolling || document.hidden) list.dataset.requestListScrolling = 'true';
+      if (scrolling) list.dataset.requestListScrolling = 'true';
       else delete list.dataset.requestListScrolling;
+      if (document.hidden) list.dataset.requestListHidden = 'true';
+      else delete list.dataset.requestListHidden;
     };
     const settled = () => { clearTimeout(timer); scrolling = false; update(); };
     const scroll = () => {
@@ -41,6 +44,7 @@ export default function useRequestListMotion(items: unknown) {
       scroller.removeEventListener('scrollend', settled);
       document.removeEventListener('visibilitychange', update);
       delete list.dataset.requestListScrolling;
+      delete list.dataset.requestListHidden;
       cards.forEach(card => delete card.dataset.requestMotion);
     };
   }, [items]);

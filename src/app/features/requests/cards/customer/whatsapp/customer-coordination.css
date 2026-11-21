@@ -43,7 +43,7 @@
 .zipco-customer-declined .zipco-avw-query-recovery{margin:8px 12px 0;padding:9px 11px;border-radius:13px;background:rgba(244,63,94,.14);box-shadow:inset 0 0 0 1.5px rgba(251,113,133,.6);color:#fecdd3}
 .zipco-customer-declined .zipco-avw-query-body,.zipco-avw-customer.zipco-customer-declined[data-mode=declined] .zipco-avw-query-body{padding:0;background:none}
 @media(max-width:350px){.zipco-customer-declined-pill h4{font-size:9.5px}.zipco-customer-declined-head{padding:0 10px;gap:8px}.zipco-customer-declined-id h3{font-size:13.5px}.zipco-customer-declined-total b{font-size:16px}}
-:is([data-request-motion=idle],[data-request-list-scrolling=true]) .zipco-customer-declined *{animation-play-state:paused!important}
+:is([data-request-motion=idle],[data-request-list-hidden=true]) .zipco-customer-declined *{animation-play-state:paused!important}
 @media(prefers-reduced-motion:reduce){.zipco-customer-declined *,.zipco-customer-declined *::before{animation:none!important;transition:none!important}}
 @keyframes zipco-cd-halo{0%,100%{box-shadow:0 0 0 3px rgba(251,191,36,.22),0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 0 5px rgba(251,191,36,.06),0 0 14px 3px rgba(251,191,36,.6)}}
 @keyframes zipco-cd-flip{0%,72%{transform:rotate(0)}86%,100%{transform:rotate(180deg)}}

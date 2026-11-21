@@ -80,7 +80,7 @@
 @media (prefers-reduced-motion:reduce){.zipco-avw-ring,.zipco-avw-ring>*:first-child,.zipco-avw-quantity,.zipco-avw-check,.zipco-avw-dot,.zipco-avw-hint svg{animation:none}.zipco-avw-wave1,.zipco-avw-wave2{animation:none;opacity:.9}}
 @media (prefers-reduced-motion:reduce){.zipco-avw-reveal,.zipco-avw-reveal[data-folded=true]{transition:none}}
 /* Reuse the list's existing motion gates; the diagnostic incident remains paused. */
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"]) .zipco-avw *{animation-play-state:paused!important}
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"]) .zipco-avw *{animation-play-state:paused!important}
 
 /* ===== UI-AVAILABILITY-WAITING-02 · Aurora Pro, variante A «Pulso» =====
  * Tarjeta del negocio «Esperando al cliente» (Solicitudes → Mi Negocio → Esperando respuesta). Todo bajo `.zipco-aw`
@@ -190,9 +190,9 @@
 @media (max-width:350px){.zipco-aw-radar{width:58px;height:58px}.zipco-aw-th,.zipco-aw-th .zipco-product-preview,.zipco-aw-th .zipco-product-neutral,.zipco-aw-th .zipco-product-thumbs,.zipco-aw-th .zipco-product-thumb,.zipco-aw-fb{width:40px;height:40px;max-width:40px}.zipco-aw-t h4{font-size:15px}.zipco-aw-amt b{font-size:18px}.zipco-aw-pill b{font-size:9.5px}}
 @media (forced-colors:active){.zipco-aw-t h4{background:none;color:CanvasText;-webkit-text-fill-color:currentColor}}
 /* movimiento: el contenido siempre es visible (solo los adornos parten de opacidad 0). Pausas heredadas de `.zipco-avw` arriba, incluidos los pseudo-elementos. */
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"],[data-request-list-scrolling="true"]) .zipco-aw::before,
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"],[data-request-list-scrolling="true"]) .zipco-aw::after,
-:is([data-request-motion="idle"],[data-request-list-scrolling] [id^="order-"],[data-request-list-scrolling="true"]) .zipco-aw *::before{animation-play-state:paused!important}
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"],[data-request-list-hidden="true"]) .zipco-aw::before,
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"],[data-request-list-hidden="true"]) .zipco-aw::after,
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"],[data-request-list-hidden="true"]) .zipco-aw *::before{animation-play-state:paused!important}
 @media (prefers-reduced-motion:reduce){.zipco-aw,.zipco-aw *,.zipco-aw::before,.zipco-aw::after,.zipco-aw *::before{animation:none!important}.zipco-aw-radar u{display:none}.zipco-aw-chv{transition:none}}
 /* Keep focus from scrolling the card itself. */
 .zipco-avw.zipco-aw{overflow:clip;display:flow-root}
