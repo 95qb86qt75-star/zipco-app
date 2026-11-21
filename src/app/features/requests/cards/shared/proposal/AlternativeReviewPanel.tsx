@@ -85,9 +85,9 @@ function TicketKept({ row }: { row: Row }) {
 }
 
 // Prepared local preview. The accent is decorative; upload still happens only at confirmation.
-function AttachedPhoto({ photo, willSend, compact = false }: { photo: string; willSend: boolean; compact?: boolean }) {
+function AttachedPhoto({ photo, willSend, compact = false, initial = false }: { photo: string; willSend: boolean; compact?: boolean; initial?: boolean }) {
   const [open, setOpen] = useState(false);
-  return <div className={compact ? 'zipco-tk-photo' : 'zipco-review-rise overflow-hidden rounded-[18px] bg-emerald-50 p-3 ring-[1.5px] ring-inset ring-emerald-300 dark:bg-emerald-950/30'} data-alternative-photo>
+  return <div className={compact ? 'zipco-tk-photo' : initial ? 'zipco-ar-photo' : 'zipco-review-rise overflow-hidden rounded-[18px] bg-emerald-50 p-3 ring-[1.5px] ring-inset ring-emerald-300 dark:bg-emerald-950/30'} data-alternative-photo>
     <div className="zipco-review-photo-head">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_5px_12px_rgba(16,185,129,0.4)]">
         <Check className="zipco-review-check h-5 w-5" strokeWidth={3.2} aria-hidden="true" />
@@ -111,8 +111,10 @@ function AttachedPhoto({ photo, willSend, compact = false }: { photo: string; wi
 
 /** `ticket` (solo propuesta final del negocio): muestra el resumen como una tarjeta ticket compacta, con los mismos datos de siempre.
  *  `title` y `thumb` encabezan el ticket; si no hay `ticket`, el panel se ve exactamente como antes. */
-export default function AlternativeReviewPanel({ source, draft, review, photo = null, photoWillSend = false, baselineLabel = 'Solicitud original', ticket }: {
+export default function AlternativeReviewPanel({ source, draft, review, photo = null, photoWillSend = false, baselineLabel = 'Solicitud original', ticket, initial = false }: {
   source: AlternativeSource; draft: AlternativeDraft; review: AlternativeReview; photo?: string | null; photoWillSend?: boolean; baselineLabel?: string; ticket?: { title: string; thumb?: ReactNode };
+  /** Solo la alternativa INICIAL del negocio (PROPOSE_ALTERNATIVE): presentación «Original vs. propuesta» Aurora Pro. Sin `ticket`. */
+  initial?: boolean;
 }) {
   const animated = useCountUp(review.totalPriceClp);
   const delta = source.total === null ? null : review.totalPriceClp - source.total;
@@ -199,6 +201,59 @@ export default function AlternativeReviewPanel({ source, draft, review, photo = 
         </section>
         {photo && <AttachedPhoto photo={photo} willSend={photoWillSend} compact />}
       </div>
+    </div>;
+  }
+
+  if (initial && !ticket) {
+    const tone = delta === null ? null : delta === 0 ? 'eq' : delta < 0 ? 'down' : 'up';
+    return <div data-alternative-review data-initial-review className="zipco-ar">
+      <section className="zipco-ar-tot" aria-label="Totales">
+        <div className="zipco-ar-tr">
+          <div className="min-w-0">
+            <p className="zipco-ar-tl">{originalBaseline ? 'Solicitud original' : 'Propuesta vigente'}</p>
+            <p className="zipco-ar-t0">{source.total === null ? '—' : pesos(source.total)}</p>
+          </div>
+          <span className="zipco-ar-arr" aria-hidden="true"><ArrowRight className="h-4 w-4" strokeWidth={2.4} /></span>
+          <div className="zipco-ar-tp min-w-0">
+            <p className="zipco-ar-tl" data-proposed="true">Tu propuesta</p>
+            <p className="zipco-ar-t1"><span aria-hidden="true">{pesos(animated)}</span><span className="sr-only">{pesos(review.totalPriceClp)}</span></p>
+          </div>
+        </div>
+        {delta !== null && <p className="zipco-ar-dl" data-tone={tone}>
+          {delta === 0 ? <><Equal aria-hidden="true" />Mismo total que {comparisonSubject}</>
+            : delta < 0 ? <><TrendingDown aria-hidden="true" />{pesos(-delta)} menos que {comparisonSubject}</>
+              : <><TrendingUp aria-hidden="true" />{pesos(delta)} más que {comparisonSubject}</>}
+        </p>}
+        <p className="zipco-ar-tn">Total del pedido. No es un pago recibido, una reserva ni un acuerdo.</p>
+      </section>
+
+      <section className="zipco-ar-cmp" aria-label={originalBaseline ? 'Original vs. propuesta' : 'Vigente vs. propuesta'}>
+        <h3>{originalBaseline ? 'Original vs. propuesta' : 'Vigente vs. propuesta'}</h3>
+        {changedRows.length > 0 && <>
+          <p className="zipco-ar-gt" data-tone="changed">Cambió <i>{changedRows.length}</i></p>
+          {changedRows.map(row => <div className="zipco-ar-cr" key={row.key}>
+            <span className="zipco-ar-ci" aria-hidden="true"><ArrowRight strokeWidth={2.8} /></span>
+            <div className="zipco-ar-cb">
+              <p className="zipco-ar-cl">{row.label}{row.sub && <span> · {row.sub}</span>}</p>
+              <p className="zipco-ar-cv"><s>{row.before}</s><ArrowRight aria-hidden="true" /><b>{row.after}</b></p>
+              {row.detail && <p className="zipco-ar-cd">{row.detail}</p>}
+            </div>
+          </div>)}
+        </>}
+        {keptRows.length > 0 && <>
+          <p className="zipco-ar-gt" data-tone="kept">Se mantuvo <i>{keptRows.length}</i></p>
+          <div className="zipco-ar-kept">{keptRows.map(row => <span className="zipco-ar-kp" key={row.key}>
+            <Check strokeWidth={3} aria-hidden="true" /><em>{row.label}{row.sub ? ` · ${row.sub}` : ''}</em><b>{row.after}</b>
+          </span>)}</div>
+        </>}
+      </section>
+
+      <section className="zipco-ar-msg" aria-label="Tu mensaje al cliente">
+        <header><p>Tu mensaje al cliente</p><small>Lo verá el cliente</small></header>
+        <p>{review.message}</p>
+      </section>
+
+      {photo && <AttachedPhoto photo={photo} willSend={photoWillSend} initial />}
     </div>;
   }
 

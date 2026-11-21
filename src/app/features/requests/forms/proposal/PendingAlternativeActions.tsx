@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { CalendarClock, Check, Flag, ImagePlus, Send, Trash2, X } from 'lucide-react';
+import { CalendarClock, Check, Flag, ImagePlus, Pencil, Send, Trash2, X } from 'lucide-react';
 import type { ChangeKey } from "./AlternativeProposalFields";
 import AlternativeChangeEditor, { type ChangeValues } from "./AlternativeChangeEditor";
 import AlternativeReviewPanel from "../../cards/shared/proposal/AlternativeReviewPanel";
@@ -94,6 +94,8 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const glowAlternative = Boolean(sourceOverride && onConfirm) && (counterProposal || finalAlternative || canPrepareAlternative(order, 'customerName' in order));
   const glowEdit = glowAlternative && !reviewing;
   const isFinal = variant === 'final';
+  // Revisión de la alternativa INICIAL (PROPOSE_ALTERNATIVE sobre la solicitud original). No es la final ni la contrapropuesta.
+  const initialReview = reviewing && !isFinal && !counterProposal && baselineLabel === 'Solicitud original';
   const lateScheduleRequired = !counterProposal && lateProcess?.status === 'STILL_NEEDED' && lateProcess.requiresNewSchedule === true;
   const current = sourceOverride ? order.requestProcess?.id === source.processId && order.requestProcess.version <= source.expectedVersion
     : alternativeSourceCurrent(source, order, true);
@@ -154,19 +156,21 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
   const shownOriginalSchedule = isFinal && !source.needNow && /^\d{4}-\d{2}-\d{2}$/.test(source.date)
     ? `${new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${source.date}T12:00:00Z`)).replace(/\./g, '')} · ${source.time}` : originalSchedule;
   const heading = <>
-    {(glowEdit || isFinal) && <div className="zipco-la-step"><span className="zipco-la-bars" aria-hidden="true"><i /><i /></span>{reviewing ? 'PASO 2 DE 2 · REVISIÓN' : 'PASO 1 DE 2 · PREPARAR'}</div>}
+    {(glowEdit || isFinal || initialReview) && <div className="zipco-la-step"><span className="zipco-la-bars" aria-hidden="true"><i /><i /></span>{reviewing ? 'PASO 2 DE 2 · REVISIÓN' : 'PASO 1 DE 2 · PREPARAR'}</div>}
     <Dialog.Title className={`pr-7 ${reviewing ? 'text-lg font-black' : 'text-[22px] font-extrabold leading-tight'}${glowEdit ? ' zipco-la-title' : ''}`}>{reviewing ? 'Revisar alternativa' : title}</Dialog.Title>
-    <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}${glowEdit ? ' zipco-la-sub' : ''}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : isFinal ? 'Elige qué cambia. La propuesta vigente se conserva y nada se envía todavía.' : glowEdit ? 'Elige qué cambia. El pedido original se conserva y nada se envía todavía.' : 'Elige qué cambia. La solicitud original se conserva.'}</Dialog.Description>
+    <Dialog.Description className={`mt-0.5 dark:text-slate-300 ${reviewing ? 'text-sm text-slate-600' : 'text-[13px] text-slate-500'}${glowEdit ? ' zipco-la-sub' : ''}`}>{reviewing ? 'Revisa cómo quedó tu propuesta antes de enviarla.' : isFinal ? 'Elige qué cambia. La propuesta vigente se conserva y nada se envía todavía.' : glowEdit ? 'Elige qué cambia. El pedido original se conserva y nada se envía todavía.' : 'Elige qué cambia. La solicitud original se conserva.'}{initialReview && <span className="zipco-ar-np"><Pencil aria-hidden="true" />Aún no enviada</span>}</Dialog.Description>
   </>;
   return <Dialog.Root open onOpenChange={value => { if (!value && !sendLock.current) close(); }}>
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-      <Dialog.Content aria-busy={sending} className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'}${isFinal ? reviewing ? ' zipco-final-review' : ' zipco-final-prepare' : ''} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900${glowEdit ? ' zipco-late-alternative' : ''}`}>
+      <Dialog.Content aria-busy={sending} className={`zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden ${reviewing ? 'rounded-2xl' : 'rounded-[26px]'}${isFinal ? reviewing ? ' zipco-final-review' : ' zipco-final-prepare' : ''} bg-white shadow-2xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 dark:bg-slate-900${glowEdit ? ' zipco-late-alternative' : ''}${initialReview ? ' zipco-ar-review' : ''}`}>
         {isFinal && sending && <div className="zipco-pz-prog" aria-hidden="true"><i /></div>}
+        {initialReview && sending && <div className="zipco-ar-prog" aria-hidden="true"><i /></div>}
         <Dialog.Close asChild><button type="button" aria-label="Cerrar alternativa" className={`zipco-la-x absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full ${reviewing ? '' : 'bg-slate-100 dark:bg-slate-800'}`}><X className="h-5 w-5" /></button></Dialog.Close>
         {isFinal && <header className="zipco-final-heading">{heading}</header>}
+        {initialReview && <header className="zipco-ar-heading">{heading}</header>}
         <div ref={body} data-alternative-body className="min-h-0 flex-1 overflow-y-auto p-5 pb-3">
-          {!isFinal && heading}
+          {!isFinal && !initialReview && heading}
           {isFinal && !reviewing && <p className="zipco-final-last"><Flag aria-hidden="true" /><span>Será tu última propuesta. El cliente decide después.</span></p>}
           {glowEdit && lateScheduleRequired && <div className="zipco-la-req" role="note"><CalendarClock className="h-[18px] w-[18px] shrink-0" aria-hidden="true" /><span>Ya pasó de hora: elige una <b>nueva fecha y hora</b>.</span></div>}
           {extraFields}
@@ -197,7 +201,8 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
           </fieldset>
           {reviewing && validation.review && <AlternativeReviewPanel source={source} draft={draft} review={validation.review}
             photo={preview || null} photoWillSend={Boolean(onConfirm)} baselineLabel={baselineLabel}
-            ticket={isFinal && ticketTitle ? { title: ticketTitle, thumb: ticketThumb } : undefined} />}
+            ticket={isFinal && ticketTitle ? { title: ticketTitle, thumb: ticketThumb } : undefined}
+            initial={initialReview} />}
           {reviewing&&validation.review&&(typeof reviewFields==='function'?reviewFields(validation.review):reviewFields)}
         </div>
         <div data-alternative-footer className={`shrink-0 border-t border-slate-200 dark:border-slate-700 ${reviewing ? 'px-5 py-3' : 'bg-white px-[18px] pb-4 pt-2.5 dark:bg-slate-900'}`}>
@@ -224,7 +229,7 @@ export function AlternativeDraftDialog({ order, close, sourceOverride, onConfirm
                 try { if(await onConfirm(validation.review, file)!==false)close(); }
                 catch (error) { setSendError(error instanceof Error ? error.message : 'No se pudo confirmar el envío. Reintenta la misma operación.'); }
                 finally { sendLock.current = false; setSending(false); }
-              } : undefined} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">{sending ? 'Enviando…' : 'Confirmar y enviar'}</button>
+              } : undefined} className="zipco-confirm-action min-h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 py-3 font-bold text-white disabled:opacity-50">{initialReview && sending && <span className="zipco-ar-sp" aria-hidden="true" />}{sending ? 'Enviando…' : 'Confirmar y enviar'}</button>
               : <div className="min-w-0 flex-[1.5]"><button type="button" disabled={!current || editing || !validation.review} onClick={() => { setShowErrors(true); if (current && !editing && validation.review) setReviewing(true); }} className="zipco-alt-go" data-wait={glowAlternative && !validation.review ? 'true' : undefined}>{glowAlternative ? <>{reviewLabel}{validation.review && !editing && <i className="zipco-la-bdg" aria-hidden="true">{changeCount}</i>}</> : 'Revisar alternativa'}</button></div>}
           </div>
         </div>
