@@ -136,12 +136,13 @@ const pickup=process?.availability?.path==='LOCAL_PICKUP';
 return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-close-request={closeAvailable.available||undefined} data-bp-recovery={recovery||undefined} aria-label={`${client}: pedido en curso`} className="zipco-co-dk zipco-ec-dk zipco-bp scroll-mb-36"
     onKeyDown={event => { if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) { event.preventDefault(); toggle(); } }}
     onClick={event => event.stopPropagation()}>
+    <span className="zipco-bp-glow zipco-bp-ga" aria-hidden="true" /><span className="zipco-bp-glow zipco-bp-gb" aria-hidden="true" />
     <div style={{ position: 'relative' }}>
       <ProgressCardHeader variant="business-progress" channel={pickup?'LOCAL_PICKUP':'WHATSAPP'} business name={client} image={image} price={price} statusLabel={statusLabel} isUnread={isUnread} folded={folded} detailId={detailId} onToggle={toggle} />
 
       <div id={detailId} className="zipco-co-fb zipco-bp-fold" data-folded={folded} aria-hidden={folded} ref={element=>{if(element)element.inert=folded;}}><div className="zipco-co-fb-in"><div className="zipco-bp-dt">
         <section className="zipco-bp-panel" aria-label="Estado del pedido">
-          <div className="zipco-bp-top"><span className="zipco-bp-orb" aria-hidden="true"><i /><span><Package size={14} strokeWidth={2.1} /></span></span><div className="zipco-bp-t">{title}</div></div>
+          <div className="zipco-bp-t zipco-bp-sr">{title}</div>
 
           {operation.message && <p role="alert" className="zipco-co-co2-p zipco-bp-alert">{operation.message}</p>}
 
@@ -153,7 +154,7 @@ return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-close
             <p className="zipco-co-co2-p" style={{ margin: 0 }}>Hay una operación pendiente de confirmación. Reintenta con las mismas condiciones antes de realizar otra acción.</p>
             <button type="button" className="zipco-co-go2" disabled={operation.busy} onClick={() => void operation.retry()}>Reintentar operación pendiente</button>
           </div> : <>
-            <div className="zipco-bp-q"><b>¿Ya está listo el pedido?</b><span>Desliza para avisar a <em>{client}</em></span></div>
+            <div className="zipco-bp-q"><span className="zipco-bp-orb" aria-hidden="true"><i /><span><Package size={14} strokeWidth={2.1} /></span></span><div className="zipco-bp-qt"><b>¿Ya está listo el pedido?</b><span>Desliza para avisar a <em>{client}</em></span></div></div>
             <SlideToNotify phase={phase} disabled={!allowed || operation.busy || closeAvailable.busy} onComplete={() => void notify()} describedBy={noteId} />
             <div className="zipco-ec-note" id={noteId}>{allowed ? 'El cliente recibirá un aviso para coordinar el retiro.' : 'Actualiza el pedido para continuar.'}</div>
           </>}
@@ -183,7 +184,7 @@ return <article ref={motionRef} tabIndex={0} id={`order-${order.id}`} data-close
       <button type="button" className="zipco-co-colrow zipco-bp-next" data-folded={folded} data-cta={recovery ? undefined : true} data-recovery={recovery || undefined} aria-expanded={!folded} aria-controls={detailId} aria-hidden={!folded} tabIndex={folded ? 0 : -1}
         onClick={() => { onInspect?.(); setFolded(false); }} style={{ ['--att' as string]: 1 }}>
         <span className="nd" aria-hidden="true">{recovery ? '!' : <Package size={17} strokeWidth={2.4} />}</span>
-        <span className="tx"><b>{recovery ? 'Operación por resolver' : colTitle}</b><small>{recovery ? 'Toca aquí para actualizar o reintentar' : colSub}</small></span>
+        <span className="tx"><b>{recovery ? 'Operación por resolver' : colTitle}</b><small>{recovery ? 'Toca aquí para actualizar o reintentar' : colSub}</small>{!recovery && <span className="zipco-bp-sg" aria-hidden="true"><i className="d" /><i className="d" /><i className="a" /><i /></span>}</span>
         <span className="chev"><span className="zipco-bp-go" aria-hidden="true"><ProgressTapHand /></span><span className="sr-only">Mostrar estado del pedido</span></span>
       </button>
     </div>

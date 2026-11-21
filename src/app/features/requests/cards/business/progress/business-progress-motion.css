@@ -25,19 +25,24 @@ a.zipco-ag-ph{text-decoration:none}
 .zipco-ag-details{margin-top:8px;font-size:12px;color:#475569;overflow-wrap:anywhere}.zipco-ag-details summary{cursor:pointer;min-height:32px;align-content:center}.zipco-ag-details p{padding:5px 0}
 
 /* ===== UI-BUSINESS-PROGRESS-01 · movimiento y adaptación (solo `.zipco-bp`) ===== */
-/* El diseño nuevo no usa las luces violeta ni el degradado radial anteriores. */
-.zipco-co-dk.zipco-ec-dk.zipco-bp{background:linear-gradient(155deg,#1e293b 0%,#0f172a 42%,#0b1220 100%)}
+/* Aurora Pro claro: sin las luces violeta ni el degradado radial anteriores. */
+.zipco-co-dk.zipco-ec-dk.zipco-bp{background:#fff}
 /* Pausas: fuera de pantalla / lista en scroll / tarjeta inactiva. El contenido sigue visible en el primer fotograma. */
 [data-request-motion="idle"] .zipco-bp *,[data-request-motion="idle"] .zipco-bp *::before,[data-request-motion="idle"] .zipco-bp *::after,
 [data-request-list-scrolling="true"] .zipco-bp *,[data-request-list-scrolling="true"] .zipco-bp *::before,[data-request-list-scrolling="true"] .zipco-bp *::after{animation-play-state:paused!important}
-@media (max-width:350px){.zipco-bp-id b{font-size:14.5px}.zipco-bp-pr b{font-size:17px}.zipco-bp-fg{display:none}.zipco-bp-toggle{padding-left:8px;font-size:12px}.zipco-bp-pill b{font-size:9.5px}.zipco-bp-q b{font-size:17px}.zipco-bp-lbl{font-size:9.5px}.zipco-bp .zipco-ec-slt span.l{font-size:12px}}
+@media (max-width:350px){.zipco-bp-id b{font-size:14.5px}.zipco-bp-pr b{font-size:17px}.zipco-bp-toggle{padding-left:8px;font-size:12px}.zipco-bp-pill b{font-size:9.5px}.zipco-bp-q b{font-size:15px}.zipco-bp-lbl{font-size:9px}.zipco-bp .zipco-ec-slt span.l{font-size:12px}}
 @media (prefers-reduced-motion:reduce){
-  .zipco-bp *,.zipco-bp *::before,.zipco-bp *::after{animation:none!important}
+  .zipco-bp *,.zipco-bp *::before,.zipco-bp *::after,.zipco-bp::after{animation:none!important}
+  .zipco-bp::after,.zipco-bp-panel::after{display:none}
   .zipco-bp-fold,.zipco-bp-chv,.zipco-bp .zipco-ec-hd,.zipco-bp .zipco-ec-slf{transition:none!important}
   .zipco-bp .zipco-ec-slw:has(.zipco-ec-sent>svg) .zipco-ec-hd>svg{opacity:0}
   .zipco-bp .zipco-ec-slw:has(.zipco-ec-sent>svg) .zipco-ec-hd::after{opacity:1}
   .zipco-bp .zipco-ec-slw:has(.zipco-ec-sent>svg) .zipco-ec-tr::before{display:none}
 }
+/* Pseudo-elemento propio de la tarjeta (cometa): mismas pausas que el resto. */
+.zipco-bp::after{animation-play-state:paused}
+.zipco-bp[data-coordination-motion="active"]::after{animation-play-state:running}
+.zipco-bp[data-request-motion="idle"]::after,.zipco-bp:has(.zipco-ec-tr.drag)::after,[data-request-list-scrolling="true"] .zipco-bp::after{animation-play-state:paused!important}
 /* A single clipped reveal; text stays at its final size throughout the fold. */
 .zipco-bp .zipco-bp-fold{transform:none;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s}
 .zipco-bp .zipco-bp-fold[data-folded=true]{transform:none;transition-delay:0s,0s,.42s}

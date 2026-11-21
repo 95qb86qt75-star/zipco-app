@@ -33,7 +33,7 @@ export function ProgressCardHeader({ business, name, image, price, statusLabel, 
       <div className="zipco-bp-tp">
         <span className="zipco-bp-pill"><i aria-hidden="true" /><b>{statusLabel}</b></span>
         <button type="button" className={`zipco-bp-toggle${folded ? '' : ' open'}`} aria-expanded={!folded} aria-controls={detailId}>
-          <span className="zipco-bp-fg" aria-hidden="true"><ProgressTapHand /></span>{folded ? 'Ver detalle' : 'Ocultar'}
+          {folded ? 'Ver detalle' : 'Ocultar'}
           <span className="zipco-bp-chv" aria-hidden="true"><ChevronDown size={14} strokeWidth={2.4} /></span>
         </button>
       </div>
