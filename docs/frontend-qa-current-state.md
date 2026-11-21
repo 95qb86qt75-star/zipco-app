@@ -935,3 +935,44 @@ El piloto ya autorizado estabilizó únicamente los dos escenarios indicados y
 el verificador QA de lectura. Reutilizarlos según dependencias; cualquier
 ampliación requiere definir alcance. No hay push ni publicación de herramientas.
 Las pruebas físicas pendientes requieren al usuario y sus teléfonos.
+
+
+## Cliente: propuestas inicial y final ? NegW11 (2026-11-21)
+
+Clasificaci?n: solo frontend QA, presentaci?n e interacci?n local. El usuario
+confirm? expresamente aplicar Aurora Pro a AMBAS propuestas del cliente,
+inicial y final. Se reemplazaron completos ProposalWaitingCard.tsx y
+proposal-waiting.css por los adjuntos (3). No se cambian otros archivos de
+aplicaci?n. Helpers y ramas del negocio, CSS base y CSS business-final
+comparados con la base: id?nticos. Sin dividir esta composici?n coherente
+(archivo TSX menor de 400 l?neas).
+
+La comparaci?n distingue importe propuesto y total de productos originales;
+los productos originales quedan rotulados. Aceptar abre la confirmaci?n real;
+historial abre ProposalNegotiation real. Se conservan permisos y recuperaci?n.
+Campos existentes: proposalSummary.totalPriceClp/scheduledFor, productos
+price/quantity, note, referencePhoto. Lectura existente GET
+/request-processes/:id/proposals; sin endpoints ni payloads nuevos.
+
+Validaci?n: 39 pruebas de proposalContract, proposalAcceptance y proposalApi
+aprobadas (950 ms); build QA aprobado (Vite 11,43 s; PWA posterior sin
+medici?n independiente). No hay scripts typecheck/lint ni TypeScript instalado:
+no se declara tsc/lint aprobado. Navegador Chromium con RequestsScreen y
+componentes reales, HTTP sint?tico: 20 casos finales a 320/360/390/430,
+plegada/desplegada, nombre/nota largos, foto, sin hora/importe y permiso de
+aceptaci?n ausente, sin desborde; inicial tambi?n recibe el dise?o aprobado.
+Aceptaci?n, historial, visor real de producto, carga/error, foco por teclado y
+movimiento reducido comprobados. Sin POST en estos recorridos de lectura.
+El fixture inicial ten?a un importe de contrapropuesta incompatible con sus
+l?neas; se corrigi? el fixture y se repitieron solo interacciones pendientes,
+sin debilitar normalizadores del producto ni repetir toda la matriz aprobada.
+Evidencias locales ignoradas: node_modules/.cache/customer-final-negw11/.
+
+An?lisis, implementaci?n, preparaci?n de navegador, documentaci?n y publicaci?n
+no se cronometraron por separado; no se inventa un total ni se suman tiempos
+solapados. Railway no necesario. Pendiente validaci?n f?sica Android/iPhone
+con SHA QA publicado; pruebas sint?ticas no acreditan backend real ni tel?fono.
+Main y producci?n intactos.
+
+Comprobaciones adicionales completadas: propuesta inicial a los cuatro anchos
+y apertura/cierre del visor real de foto de referencia.

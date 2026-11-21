@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowDown, ArrowRight, ArrowUp, Banknote, Check, ChevronDown, ChevronUp, Clock3, Hand, Hourglass, Calendar, Info, Tag, UserRound } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp, Banknote, Check, ChevronDown, ChevronUp, Clock3, Hand, Hourglass, Calendar, Info, ListChecks, Quote, Tag, UserRound } from 'lucide-react';
 import type { BusinessRequest, MyOrder } from "../../../domain/types";
 import OrderReferencePhoto from "../../../shared/photos/OrderReferencePhoto";
 import { safePhoto } from "../../../domain/agreement";
@@ -37,44 +37,57 @@ export default function ProposalWaitingCard({ order, business = true, expanded, 
   const stillNeeded = late?.status === 'STILL_NEEDED';
   const pt = valid(proposed) ? parts(proposed) : null;
   if (!business) {
-    // Presentación del CLIENTE (rediseño). El markup del negocio queda intacto más abajo.
-    const sub = valid(proposed)
+    // Presentación del CLIENTE · PROPUESTA FINAL / POR RESPONDER (Aurora Pro, tablero NegW11).
+    // El markup del negocio (más abajo) y la propuesta inicial del cliente no cambian.
+    const money = (n: number) => `$${n.toLocaleString('es-CL')}`;
+    const items = order.products.state === 'available' ? order.products.items : [];
+    // Total de la SOLICITUD ORIGINAL (productos pedidos). No es el monto propuesto.
+    const originalTotal = items.length ? items.reduce((sum, item) => sum + item.price * item.quantity, 0) : null;
+    const hasHour = valid(proposed);
+    const sub = hasHour
       ? (final ? 'El negocio propone esta fecha y hora final' : 'El negocio te propone esta fecha y hora')
       : final ? 'El negocio te envió su propuesta final' : 'El negocio te envió una propuesta';
+    const showCompare = (!!original || originalTotal !== null) && (hasHour || price !== null);
     return <article id={`order-${order.id}`} tabIndex={0} data-proposal-waiting={p.state} data-unread={isUnread}
-      className="zipco-wait-card zipco-pw scroll-mb-36" data-proposal-role="customer" aria-label={`${name}: propuesta por responder`}>
+      className="zipco-wait-card zipco-pw scroll-mb-36" data-proposal-role="customer" data-open={expanded} aria-label={`${name}: propuesta por responder`}>
+      <i className="zipco-pw-g zipco-pw-ga" aria-hidden="true" /><i className="zipco-pw-g zipco-pw-gb" aria-hidden="true" />
       <div className="zipco-pw-top">
         <span className="zipco-pw-eyebrow"><i aria-hidden="true" />PROPUESTA DEL NEGOCIO</span>
         <button type="button" className="zipco-pw-toggle" aria-expanded={expanded} onClick={onToggle}>
-          <span className="zipco-pw-hand" aria-hidden="true"><Hand size={20} strokeWidth={2} /></span>
-          {expanded ? 'Ocultar detalle' : 'Ver detalle'}
+          <span className="zipco-pw-hand" aria-hidden="true"><Hand size={16} strokeWidth={2.2} /></span>
+          {expanded ? <>Ocultar<span className="zipco-pw-tx2"> detalle</span></> : <>Ver<span className="zipco-pw-tx2"> detalle</span></>}
           <span className="zipco-pw-chev" aria-hidden="true"><ChevronDown size={16} /></span>
         </button>
       </div>
       <div className="zipco-pw-id">
         <span className="zipco-pw-th"><ProductPreviewControl /></span>
         <div className="zipco-pw-nm"><small>NEGOCIO</small><h3>{name}</h3></div>
-        {price !== null && <div className="zipco-pw-pr"><strong>${price.toLocaleString('es-CL')}</strong><small>PROPUESTO</small></div>}
+        {price !== null && <div className="zipco-pw-pr"><strong>{money(price)}</strong><small>PROPUESTO</small></div>}
       </div>
       <div className="zipco-pw-panel">
-        {pt ? <span className="zipco-wait-cal" aria-hidden="true"><small>{pt.wd.toUpperCase()}</small><b>{pt.day}</b><i>{pt.mon.toUpperCase()}</i></span>
-          : <span className="zipco-pw-ring" aria-hidden="true"><Tag size={22} /></span>}
+        {pt ? <span className="zipco-wait-cal" aria-hidden="true"><small>{pt.wd.toUpperCase()}</small><b>{pt.day}</b></span>
+          : <span className="zipco-pw-ring" aria-hidden="true">{price !== null ? <span><b>{money(price)}</b><small>PROPUESTO</small></span> : <Tag size={24} />}</span>}
         <div className="zipco-pw-info">
           <strong className="zipco-pw-badge" data-final={final || undefined}>{final ? 'PROPUESTA FINAL' : 'POR RESPONDER'}</strong>
-          {valid(proposed) && <p className="zipco-pw-time"><b>{hour(proposed)}</b><em>nueva hora</em></p>}
+          <span className="zipco-pw-lb">{hasHour ? 'NUEVA HORA' : 'NUEVA CONDICIÓN'}</span>
+          {hasHour && <p className="zipco-pw-time"><b>{hour(proposed)}</b></p>}
           <p className="zipco-pw-sub">{sub}</p>
-          {valid(proposed) && original && <p className="zipco-pw-before">Antes <s>{original}</s></p>}
+          {hasHour && original && <p className="zipco-pw-before">Antes <s>{original}</s></p>}
         </div>
       </div>
-      {expanded && <div className="zipco-wait-details">
-        {order.products.state === 'available' && order.products.items.map((item, i) => <p className="zipco-wait-product" key={i}>
-          <span><b>{item.quantity}×</b> {item.name}</span><strong>${(item.price * item.quantity).toLocaleString('es-CL')}</strong></p>)}
-        {order.note && <p className="zipco-wait-note">{order.note}</p>}
-        {order.referencePhoto && safePhoto(order.referencePhoto) && <OrderReferencePhoto src={order.referencePhoto} business={false} />}
-        <dl>
-          {original && <div><dt><Clock3 size={14} />Hora original</dt><dd>{original}</dd></div>}
-          {valid(proposed) && <div><dt><Calendar size={14} />Nueva hora propuesta</dt><dd>{dateTime(proposed)}</dd></div>}
-        </dl>
+      {expanded && <div className="zipco-pw-dt">
+        {showCompare && <div className="zipco-pw-cmp">
+          <div className="zipco-pw-co"><small>ORIGINAL</small>{original && <b>{original}</b>}{originalTotal !== null && <span>{money(originalTotal)}</span>}</div>
+          <span className="zipco-pw-ar" aria-hidden="true"><ArrowRight size={18} /></span>
+          <div className="zipco-pw-cn"><small>{final ? 'PROPUESTA FINAL' : 'PROPUESTA'}</small>{hasHour && <b>{dateTime(proposed)}</b>}{price !== null && <span>{money(price)}</span>}</div>
+        </div>}
+        {items.length > 0 && <section className="zipco-pw-orig" aria-label="Solicitud original">
+          <small><ListChecks size={13} aria-hidden="true" />SOLICITUD ORIGINAL · LO QUE PEDISTE</small>
+          <ul>{items.map((item, i) => <li key={i}><span>{item.quantity}× {item.name}</span><em>{money(item.price * item.quantity)}</em></li>)}</ul>
+          {originalTotal !== null && <div className="zipco-pw-tt"><span>Total de la solicitud original</span><b>{money(originalTotal)}</b></div>}
+        </section>}
+        {order.note && <div className="zipco-pw-nt"><Quote size={15} aria-hidden="true" /><span><small>TU NOTA</small>{order.note}</span></div>}
+        {order.referencePhoto && safePhoto(order.referencePhoto) && <div className="zipco-pw-ph"><OrderReferencePhoto src={order.referencePhoto} business={false} /></div>}
         <p className="zipco-wait-help">Revisa la solicitud original y las condiciones propuestas antes de responder.</p>
       </div>}
       <ProposalNegotiation order={order} refresh={refresh} variant="aurora" reviewLabel="Revisar historial y responder" customerEntryActions/>
