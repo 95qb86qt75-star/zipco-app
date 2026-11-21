@@ -9,7 +9,7 @@ import { CONTACT_COPY } from "../../../domain/availabilityContract";
 
 
 
-import ReservationPanel from "../../../shared/reservations/ReservationPanel";
+import ReservationPanel,{pickupDetailVariant} from "../../../shared/reservations/ReservationPanel";
 import PickupInstructions from './PickupInstructions';
 import {pickupPrepaymentFor} from '../../../domain/pickupPrepayment';
 import ReservationReasonChoices,{PICKUP_CANCEL_REASONS} from '../../../shared/reservations/ReservationReasonChoices';
@@ -43,22 +43,24 @@ export type AvailabilityPostActionParts={
 export default function AvailabilityPostActionsView({model,render}:{model:AvailabilityPostActionsModel;render?:(parts:AvailabilityPostActionParts)=>ReactNode}){
 const {business,canAuthorize,canCancel,canRevoke,contact,dialog,hasContact,operation,order,process,reason,refresh,setDialog,setReason,showContactControls,submit}=model;
 const openerRef=React.useRef<HTMLElement|null>(null);
+// Detalle rediseñado del negocio · En curso · retiro local (A reserva confirmada / B sin reserva). Exige negocio + `render` + estado + modalidad.
+const pk=business&&!!render?pickupDetailVariant(order.requestProcess):null;
 const availability=process?.availability,pickup=availability?.path==='LOCAL_PICKUP';
 const selectedReasons=business&&!!render&&pickupPrepaymentFor(process)?.phase==='AWAITING_PAYMENT_AND_HOLD';
 // Aurora Pro (cliente): solo cliente + render + fase exacta AWAITING_PAYMENT_AND_HOLD. El resto de consumidores conserva el diálogo anterior.
 const customerPrepayment=!business&&!!render&&pickupPrepaymentFor(process)?.phase==='AWAITING_PAYMENT_AND_HOLD';
 const reservation=process?.reservation?<ReservationPanel order={order} business={business} refresh={refresh}/>:null;
-const instructions=pickup?<PickupInstructions variant={render?'customer':'default'} message={availability?.customerMessage} scheduleOrAddress={availability?.scheduleOrAddress} notReservation={!process?.reservation}/>:null;
-const contactCopy=hasContact?<p className={render?'zipco-pickup-consent':undefined}>{CONTACT_COPY}</p>:null;
-const authorizeBtn=canAuthorize?<button type="button" className={'w-full rounded-xl border p-3 font-bold'+(render?' zipco-pickup-act':'')} disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>Autorizo compartir mi teléfono para este pedido</button>:null;
-const contactMsg=contact.message?<p role="alert">{contact.message}</p>:null;
-const restoreBtn=(contact.restored()||contact.storageWarning())?<button type="button" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-act':'')} disabled={contact.busy} onClick={()=>void contact.update()}>Actualizar permiso de contacto</button>:null;
-const retryBtn=contact.pending()?.action==='AUTHORIZE_CONTACT'&&!contact.restored()&&!contact.busy?<button type="button" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-act':'')} onClick={()=>void contact.retry()}>Reintentar mi autorización pendiente</button>:null;
-const revokeBtn=canRevoke?<button type="button" data-action="revoke-contact" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-revoke':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('revoke');}}>Retirar mi permiso de contacto</button>:null;
-const cancelBtn=canCancel?<button type="button" className={'w-full rounded-xl border border-rose-300 p-3 font-bold'+(render?' zipco-pickup-cancel':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('cancel');}}>{selectedReasons&&<span className="zipco-bpp-opi" aria-hidden="true"><CircleX size={16}/></span>}{customerPrepayment&&<span className="zipco-cpp-opi" aria-hidden="true"><CircleX size={16}/></span>}Cancelar retiro</button>:null;
-const opError=operation.error?<div role="alert"><p>{operation.error}</p><button type="button" className="rounded-xl border p-2" disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button></div>:null;
+const instructions=pickup?<PickupInstructions variant={render&&!pk?'customer':'default'} message={availability?.customerMessage} scheduleOrAddress={availability?.scheduleOrAddress} notReservation={!process?.reservation}/>:null;
+const contactCopy=hasContact?<p className={(render?'zipco-pickup-consent':'')+(pk?' zipco-pk-consent':'')||undefined}>{CONTACT_COPY}</p>:null;
+const authorizeBtn=canAuthorize?<button type="button" className={'w-full rounded-xl border p-3 font-bold'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-pri':'')} disabled={contact.busy||!!contact.pending()||contact.needsUpdate||contact.restored()||!!contact.storageWarning()} onClick={()=>void contact.run('AUTHORIZE_CONTACT')}>Autorizo compartir mi teléfono para este pedido</button>:null;
+const contactMsg=contact.message?<p role="alert" className={pk?'zipco-pk-msg':undefined}>{contact.message}</p>:null;
+const restoreBtn=(contact.restored()||contact.storageWarning())?<button type="button" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} disabled={contact.busy} onClick={()=>void contact.update()}>Actualizar permiso de contacto</button>:null;
+const retryBtn=contact.pending()?.action==='AUTHORIZE_CONTACT'&&!contact.restored()&&!contact.busy?<button type="button" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-act':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} onClick={()=>void contact.retry()}>Reintentar mi autorización pendiente</button>:null;
+const revokeBtn=canRevoke?<button type="button" data-action="revoke-contact" className={'w-full rounded-xl border p-3'+(render?' zipco-pickup-revoke':'')+(pk?' zipco-pk-ob zipco-pk-ob-sec':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('revoke');}}>Retirar mi permiso de contacto</button>:null;
+const cancelBtn=canCancel?<button type="button" className={'w-full rounded-xl border border-rose-300 p-3 font-bold'+(render?' zipco-pickup-cancel':'')+(pk?' zipco-pk-cx':'')} disabled={operation.busy} onClick={event=>{openerRef.current=event.currentTarget;setDialog('cancel');}}>{pk&&<span className="zipco-pk-cxi" aria-hidden="true"><CircleX size={16}/></span>}{selectedReasons&&<span className="zipco-bpp-opi" aria-hidden="true"><CircleX size={16}/></span>}{customerPrepayment&&<span className="zipco-cpp-opi" aria-hidden="true"><CircleX size={16}/></span>}Cancelar retiro</button>:null;
+const opError=operation.error?<div role="alert" className={pk?'zipco-pk-er':undefined}><p>{operation.error}</p><button type="button" className={'rounded-xl border p-2'+(pk?' zipco-pk-erb':'')} disabled={operation.busy} onClick={()=>void operation.update()}>Actualizar estado</button></div>:null;
 const legacyDialogs=<Dialog.Root open={dialog!==null} onOpenChange={value=>{if(!value&&!operation.busy)setDialog(null);}}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-slate-950/60 backdrop-blur-sm"/>
-      <Dialog.Content className="zipco-action-dialog fixed left-1/2 top-1/2 z-[1001] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-5 text-slate-950 dark:bg-slate-900 dark:text-white">
+      <Dialog.Content onCloseAutoFocus={pk?event=>{const target=openerRef.current;if(target?.isConnected){event.preventDefault();target.focus({preventScroll:true});}}:undefined} className="zipco-action-dialog fixed left-1/2 top-1/2 z-[1001] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-5 text-slate-950 dark:bg-slate-900 dark:text-white">
         <Dialog.Title className="text-xl font-bold">{dialog==='cancel'?'¿Cancelar el retiro?':'¿Retirar tu permiso de contacto?'}</Dialog.Title>
         <Dialog.Description className="mt-2 text-sm">{dialog==='cancel'?'Indica el motivo. Se avisará a la otra parte y la solicitud quedará en Historial.':'Solo se retirará tu permiso para futuras entregas de contacto. No cancela el pedido ni puede retirar números ya vistos o mensajes externos.'}</Dialog.Description>
         {dialog==='cancel'&&<label className="mt-3 block text-sm">Motivo<textarea disabled={operation.busy} value={reason} onChange={e=>setReason(Array.from(e.target.value).slice(0,1000).join(''))} className="mt-1 min-h-24 w-full rounded-xl border p-3"/><span>Entre 3 y 1000 caracteres.</span></label>}

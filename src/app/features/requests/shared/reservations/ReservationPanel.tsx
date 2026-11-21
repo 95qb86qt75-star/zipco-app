@@ -12,7 +12,7 @@ import { simplifiedReservationFlow, isSimpleOffer, isAdvisoryOffer } from "../..
 import usePaymentConfirmationReminder from "../../application/usePaymentConfirmationReminder";
 import { PaymentConfirmationSheet } from "../conditions/CoordinationSheets";
 import { CONTACT_COPY } from "../../domain/availabilityContract";
-import { Check, User, UserX, X } from "lucide-react";
+import { Check, Flag, User, UserX, X } from "lucide-react";
 import WhatsAppMark from "../icons/WhatsAppMark";
 import ReservationReasonChoices,{PICKUP_CANCEL_REASONS,PICKUP_DECLINE_REASONS} from './ReservationReasonChoices';
 
@@ -38,7 +38,42 @@ export type ReservationPanelParts={
   waNotice?:React.ReactNode;
   /** Declaración E214 independiente de las acciones de reserva; null sin permiso del servidor. */
   receipt?:{busy:boolean;error:string|null;confirm:(onSaved?:()=>void)=>Promise<boolean>}|null;
+  /** Solo negocio · retiro local · reserva confirmada con pago previo (ver `confirmedPrepaymentPickup`). Opcional: el resto de consumidores no cambia. */
+  pickup?:ReservationPickupParts;
 };
+/** Datos ya calculados para el detalle «Retiro con reserva confirmada y pago previo» (negocio · En curso · retiro local).
+ *  Solo existen con `render` + negocio + las condiciones exactas de `confirmedPrepaymentPickup`. Nada se inventa: cada campo sale del contrato actual. */
+export type ReservationPickupParts={
+  title:string;subtitle:string;
+  /** Monto de la reserva (offer.requiredAmountClp). null si el contrato no lo trae. */
+  reservedAmountClp:number|null;
+  /** Horario de retiro ya formateado con reservationWhen. null si el contrato no lo trae (p. ej. oferta informativa). */
+  pickupBy:string|null;
+  pickupLabel:string;
+  confirmedAt:string|null;confirmedAutomatically:boolean;
+  /** Monto de la declaración del negocio (r.paymentReceiptDeclaration.amountClp). ZIPCO NO lo verificó. */
+  declaredAmountClp:number|null;
+  /** Nota de reserva del cliente (p.reservationChoice.note). */
+  note:string|null;
+  /** Resumen original de la oferta (ReservationOfferSummary real). Describe condiciones, no tareas pendientes. */
+  offer:React.ReactNode;
+  whatsapp:{label:string;busy:boolean;onClick:()=>void}|null;
+  refresh:{busy:boolean;onClick:()=>void};
+  waNotice:React.ReactNode;
+};
+/** Negocio · IN_PROGRESS · LOCAL_PICKUP · reserva CONFIRMED con pago previo, ya fuera de «Pago y apartado pendientes».
+ *  Misma condición que usan la tarjeta y esta pieza; no depende solo de recibir `render`. */
+export function confirmedPrepaymentPickup(p:BusinessRequest['requestProcess']|MyOrder['requestProcess']|null|undefined):boolean{
+  const r=p?.reservation,offer=p?.availability?.reservationOffer,stage=pickupPrepaymentFor(p);
+  return !!p&&p.state==='IN_PROGRESS'&&p.availability?.path==='LOCAL_PICKUP'&&reservationFlow(p)&&!!r&&!!offer&&offer.mode==='PREPAYMENT'&&r.mode==='PREPAYMENT'
+    &&r.effectiveStatus==='CONFIRMED'&&!r.continuedWithoutReservationAt&&!r.pickupCancellation&&!(stage&&stage.phase!=='READY_FOR_PREPARATION');
+}
+/** A = reserva confirmada con pago previo · B = sin reserva activa (no existe `reservation`) · null = se conserva la presentación actual. */
+export function pickupDetailVariant(p:BusinessRequest['requestProcess']|MyOrder['requestProcess']|null|undefined):'A'|'B'|null{
+  if(!p||p.state!=='IN_PROGRESS'||p.availability?.path!=='LOCAL_PICKUP')return null;
+  if(confirmedPrepaymentPickup(p))return 'A';
+  return !p.reservation?'B':null;
+}
 export default function ReservationPanel({order,business,refresh,render}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void;render?:(parts:ReservationPanelParts)=>React.ReactNode}){
   const proofOperation=useCustomerPaymentProof(order,business,refresh);
   const operation=useReservation(order,business,refresh),p=order.requestProcess,r=p?.reservation,offer=p?.availability?.reservationOffer;
@@ -84,6 +119,8 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
   const prepaymentVariant=!!render&&business&&!!stage&&stage.phase==='AWAITING_PAYMENT_AND_HOLD';
   // Aurora Pro (cliente): solo cliente + render + fase exacta. `render` solo no basta.
   const customerVariant=!!render&&!business&&!!stage&&stage.phase==='AWAITING_PAYMENT_AND_HOLD';
+  // Detalle del negocio «Retiro con reserva confirmada»: exige `render`, negocio y las condiciones exactas del contrato.
+  const confirmedPickup=!!render&&business&&confirmedPrepaymentPickup(p);
   const auroraVariant=prepaymentVariant||customerVariant;
   const px=customerVariant?'cpp':'bpp',root=customerVariant?'customer':'business';
   const choiceReasons=prepaymentVariant&&dialog==='CANCEL_PICKUP_RESERVATION'?PICKUP_CANCEL_REASONS:prepaymentVariant&&dialog==='DECLINE_PICKUP_RESERVATION'?PICKUP_DECLINE_REASONS:null;
@@ -117,7 +154,7 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
         {dialog==='REPORT_RESERVATION_ISSUE'&&business&&!r.paymentReceiptDeclaration&&offer.mode==='PREPAYMENT'&&<label className={`zipco-${px}-dchk`}><input type="checkbox" checked={issueReceived} onChange={e=>setIssueReceived(e.target.checked)} disabled={operation.busy}/>Declaro que recibí ${offer.requiredAmountClp.toLocaleString('es-CL')}, aunque no pueda confirmar el apartado.</label>}
         {operation.error&&<p role="alert" className={`zipco-${px}-derr`}>{operation.error}</p>}
         <div className={`zipco-${px}-dyn`}><button type="button" className={`zipco-${px}-dy`} data-tone={dangerDialog?'danger':undefined} disabled={blocked} onClick={()=>void submit()}>{operation.busy?'Guardando…':dialogYes}</button><button type="button" className={`zipco-${px}-dn`} disabled={operation.busy} onClick={()=>setDialog(null)}>Volver</button></div>
-      </Dialog.Content>:      <Dialog.Content className={`zipco-action-dialog fixed left-1/2 top-1/2 z-[1101] max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-5 text-slate-950 dark:bg-slate-900 dark:text-white`}>
+      </Dialog.Content>:      <Dialog.Content onCloseAutoFocus={confirmedPickup?event=>{const target=openerRef.current;if(target?.isConnected){event.preventDefault();target.focus({preventScroll:true});}}:undefined} className={`zipco-action-dialog fixed left-1/2 top-1/2 z-[1101] max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-white p-5 text-slate-950 dark:bg-slate-900 dark:text-white`}>
         <Dialog.Title className="text-lg font-bold">{dialog==='CONFIRM_PICKUP_RESERVATION'?'Confirmar el apartado':dialog==='FINISH_OWN_RESERVATION_FOLLOW_UP'?'¿Finalizar tu seguimiento?':dialog==='AUTHORIZE_RESERVATION_CONTACT'?'Autorizar tu propio teléfono':dialog==='REVOKE_RESERVATION_CONTACT'?'Retirar tu permiso':dialog==='CONTINUE_WITHOUT_RESERVATION'?'¿Ir sin reserva?':'Registrar decisión de reserva'}</Dialog.Title>
         <Dialog.Description className="mt-2 text-sm">{dialog==='FINISH_OWN_RESERVATION_FOLLOW_UP'?'Cerrarás solo tu indicador. No cancela el pedido, no confirma devolución ni cierra el seguimiento del otro. El detalle se conserva.':dialog==='AUTHORIZE_RESERVATION_CONTACT'?CONTACT_COPY:dialog==='REVOKE_RESERVATION_CONTACT'?'Se retira solo tu permiso para próximas entregas de contacto. No puede retirar números ya vistos.':dialog==='CONTINUE_WITHOUT_RESERVATION'?'El pedido seguirá activo, sujeto a disponibilidad al llegar. No se renueva la reserva.':'Confirma únicamente hechos reales de este pedido. ZIPCO no procesa ni verifica pagos.'}</Dialog.Description>
         {dialog==='CONFIRM_PICKUP_RESERVATION'&&<div className="mt-3 space-y-3 text-sm"><label className="flex gap-2"><input type="checkbox" checked={held} onChange={e=>setHeld(e.target.checked)} disabled={operation.busy}/>{advisory?'Confirmo que aparté todo el pedido.':`Confirmo que aparté todo el pedido hasta ${reservationWhen(r.timing?.pickupBy??(!isSimpleOffer(offer)?offer.pickupBy:offer.simplified.closesAt))}.`}</label>{paid&&offer.mode==='PREPAYMENT'&&<label className="flex gap-2"><input type="checkbox" checked={received} onChange={e=>setReceived(e.target.checked)} disabled={operation.busy}/>Declaro que recibí ${offer.requiredAmountClp.toLocaleString('es-CL')} requeridos para esta reserva.</label>}</div>}
@@ -133,7 +170,23 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
     const row=(key:string,icon:React.ReactNode,label:string,hint:string|null,onClick:(opener:HTMLElement)=>void,tone?:'danger')=><button key={key} type="button" className={`zipco-${px}-op`} data-tone={tone} disabled={operation.busy} onClick={event=>onClick(event.currentTarget)}>
       <span className={`zipco-${px}-opi`} aria-hidden="true">{icon}</span><span className={`zipco-${px}-opt`}><b>{label}</b>{hint&&<small>{hint}</small>}</span></button>;
     const waRun=(purpose:'RECEIPT'|'CLARIFICATION')=>void operation.run('OPEN_RESERVATION_WHATSAPP',{purpose});
-    const options:React.ReactNode[]=customerVariant?[
+    const pk=(key:string,icon:React.ReactNode,label:string,hint:string|null,onClick:(opener:HTMLElement)=>void,tone?:'danger')=><button key={key} type="button" className="zipco-pk-op" data-tone={tone} disabled={operation.busy} onClick={event=>onClick(event.currentTarget)}>
+      <span className="zipco-pk-opi" aria-hidden="true">{icon}</span><span className="zipco-pk-opt"><b>{label}</b>{hint&&<small>{hint}</small>}</span></button>;
+    // Detalle «Retiro con reserva confirmada»: mismas acciones y permisos de siempre (`allowed`), solo otra presentación.
+    const pickupOptions:React.ReactNode[]=[
+      allowed('CONFIRM_PICKUP_RESERVATION')?pk('confirm',<Check size={16}/>,paid?simple?'Recibí el pago y aparté el pedido':'Confirmar pago recibido y apartado':'Confirmar que aparté todo el pedido',null,el=>open('CONFIRM_PICKUP_RESERVATION',el)):null,
+      allowed('REPORT_RESERVATION_ISSUE')?pk('report',<Flag size={16}/>,'Registrar una aclaración',null,el=>open('REPORT_RESERVATION_ISSUE',el)):null,
+      allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')?pk('finish',<Check size={16}/>,'Finalizar mi seguimiento','Solo cierra tu propio indicador. No finaliza el pedido.',el=>open('FINISH_OWN_RESERVATION_FOLLOW_UP',el)):null,
+      allowed('REVOKE_RESERVATION_CONTACT')&&p?.state!=='READY'?pk('revoke',<UserX size={16}/>,'Retirar mi permiso para esta reserva','Solo retira tu permiso. No cancela el pedido.',el=>open('REVOKE_RESERVATION_CONTACT',el)):null,
+      allowed('AUTHORIZE_RESERVATION_CONTACT')?pk('authorize',<User size={16}/>,'Permitir contacto para esta reserva',null,el=>open('AUTHORIZE_RESERVATION_CONTACT',el)):null,
+      allowed('CONTINUE_WITHOUT_RESERVATION')?pk('continue',<Check size={16}/>,'Continuar sin reserva',null,el=>open('CONTINUE_WITHOUT_RESERVATION',el)):null,
+      allowed('DECLINE_PICKUP_RESERVATION')?pk('decline',<UserX size={16}/>,'No puedo reservar el pedido',null,el=>open('DECLINE_PICKUP_RESERVATION',el)):null,
+      allowed('CANCEL_PICKUP_RESERVATION')?pk('cancel',<X size={16}/>,'Cancelar solo la reserva',null,el=>open('CANCEL_PICKUP_RESERVATION',el),'danger'):null,
+    ].filter((node):node is React.ReactElement=>node!==null);
+    const ex=confirmedPickup?'pk':px;
+    const pickupScheduled=isSimpleOffer(offer)?offer.simplified.scheduledFor:null;
+    const pickupWhen=pickupScheduled??(advisory?undefined:(r.timing?.pickupBy??(!isSimpleOffer(offer)?offer.pickupBy:offer.simplified.closesAt)));
+    const options:React.ReactNode[]=confirmedPickup?pickupOptions:customerVariant?[
       // Cliente (Aurora Pro): solo Aclarar por WhatsApp, Finalizar mi seguimiento y, si el servidor lo exige, permitir contacto. «Cancelar retiro» llega como pieza real.
       allowed('OPEN_RESERVATION_WHATSAPP')?row('wa',<WhatsAppMark className="h-4 w-4"/>,'Aclarar la reserva por WhatsApp',null,()=>waRun('CLARIFICATION')):null,
       allowed('AUTHORIZE_RESERVATION_CONTACT')?row('authorize',<User size={16}/>,'Permitir contacto para esta reserva',null,el=>open('AUTHORIZE_RESERVATION_CONTACT',el)):null,
@@ -151,13 +204,26 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
     return <>{render({
       confirm:allowed('CONFIRM_PICKUP_RESERVATION')?{label:'Confirmo recepción del pago',busy:operation.busy,onClick:()=>open('CONFIRM_PICKUP_RESERVATION')}:null,
       notices:<>{lines}{waNotice}</>,options,
+      ...(confirmedPickup?{pickup:{
+        title:'Reserva confirmada',subtitle:'Pendiente de retiro',
+        reservedAmountClp:offer.mode==='PREPAYMENT'?offer.requiredAmountClp:null,
+        pickupBy:pickupWhen?reservationWhen(pickupWhen):null,
+        pickupLabel:pickupScheduled?'Retiro solicitado':'Retirar hasta',
+        confirmedAt:r.confirmedAt?reservationWhen(r.confirmedAt):null,confirmedAutomatically:r.confirmationSource==='AUTO_BUSINESS_OFFER',
+        declaredAmountClp:r.paymentReceiptDeclaration?r.paymentReceiptDeclaration.amountClp:null,
+        note:p?.reservationChoice?.note??null,
+        offer:<ReservationOfferSummary offer={offer}/>,
+        whatsapp:allowed('OPEN_RESERVATION_WHATSAPP')?{label:waLabel,busy:operation.busy,onClick:()=>waRun('CLARIFICATION')}:null,
+        refresh:{busy:operation.busy,onClick:()=>void operation.update()},
+        waNotice,
+      }}:{}),
       ...(customerVariant?{
         whatsapp:allowed('OPEN_RESERVATION_WHATSAPP')?{label:'Abrir WhatsApp',busy:operation.busy,onClick:()=>waRun('RECEIPT')}:null,
         refreshNow:{busy:operation.busy,onClick:()=>void operation.update()},
         waNotice,
         receipt:proofOperation.canDeclare&&(!proofOperation.pending||proofOperation.busy)?{busy:proofOperation.busy||operation.busy,error:proofOperation.error,confirm:proofOperation.confirm}:null,
       }:{}),
-      error:<>{proofOperation.pending||proofOperation.error?<div role="alert" className={`zipco-${px}-err`}><p>{proofOperation.error||'Hay una declaración pendiente de comprobar.'}</p><button type="button" className={`zipco-${px}-recover`} disabled={proofOperation.busy||operation.busy} onClick={()=>void proofOperation.check()}>Comprobar envío</button>{proofOperation.canDeclare&&<button type="button" className={`zipco-${px}-recover`} disabled={proofOperation.busy||operation.busy} onClick={()=>void proofOperation.confirm()}>Reintentar el mismo envío</button>}</div>:null}{operation.error?<div role="alert" className={`zipco-${px}-err`}><p>{operation.error}</p><button type="button" className={`zipco-${px}-recover`} disabled={operation.busy} onClick={()=>void operation.update()}>Comprobar estado de la reserva</button></div>:null}</>,busy:operation.busy||proofOperation.busy,
+      error:<>{proofOperation.pending||proofOperation.error?<div role="alert" className={`zipco-${ex}-err`}><p>{proofOperation.error||'Hay una declaración pendiente de comprobar.'}</p><button type="button" className={`zipco-${ex}-recover`} disabled={proofOperation.busy||operation.busy} onClick={()=>void proofOperation.check()}>Comprobar envío</button>{proofOperation.canDeclare&&<button type="button" className={`zipco-${ex}-recover`} disabled={proofOperation.busy||operation.busy} onClick={()=>void proofOperation.confirm()}>Reintentar el mismo envío</button>}</div>:null}{operation.error?<div role="alert" className={`zipco-${ex}-err`}><p>{operation.error}</p><button type="button" className={`zipco-${ex}-recover`} disabled={operation.busy} onClick={()=>void operation.update()}>Comprobar estado de la reserva</button></div>:null}</>,busy:operation.busy||proofOperation.busy,
     })}{dialogs}</>;
   }
   return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">

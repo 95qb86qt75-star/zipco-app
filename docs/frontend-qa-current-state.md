@@ -7,6 +7,13 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-21: NegW10 integra el detalle del negocio En curso / LOCAL_PICKUP:
+  A, reserva PREPAYMENT confirmada; B, sin registro de reserva. El nivel principal
+  conserva preparación y condiciones; «Ver detalle de solicitud» abre la hoja
+  sobre la tarjeta, con instrucciones y acciones reales. Los errores se mantienen
+  fuera de la hoja. Se conservan swipe, skeleton y las otras variantes.
+  [Verificación y límites](frontend-business-pickup-negw10-qa.md).
+
 - 2026-11-21: En curso del negocio presenta un skeleton claro mientras se carga
   el acuerdo y su horario. `loading` es un estado local de presentación, distinto
   de `unverified`: no mostrar COMPROBAR/SIN HORA durante una lectura pendiente.
