@@ -260,3 +260,82 @@
 :is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) :not(.zipco-bf-conv, .zipco-bf-conv *)::after{animation-play-state:paused!important}
 :is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) .zipco-bf-conv .zipco-glass-blob,
 :is(.zipco-bf[data-request-motion="idle"], [data-request-list-hidden="true"] .zipco-bf) .zipco-bf-conv .zipco-glass-btn::after{animation-play-state:paused!important}
+
+/* ===== Negocio · «Esperando al cliente» (AWAITING_CUSTOMER_DECISION) · Aurora Pro claro · tablero NegW17 =====
+   Todo bajo .zipco-wx, clase que solo recibe esta tarjeta (ProposalWaitingCard, negocio y estado no final).
+   No toca .zipco-wait-* (cliente y estados compartidos), .zipco-pw*, .zipco-bf* ni el markup de otros estados.
+   Animaciones: solo transform/opacity, finitas (2 ciclos), «reducir movimiento» las apaga y la lista en scroll las pausa. */
+@keyframes zipco-wx-fl{0%,35%{transform:rotate(0)}70%,100%{transform:rotate(180deg)}}
+@keyframes zipco-wx-sheen{0%,35%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(520%) skewX(-18deg)}}
+@keyframes zipco-wx-spin{to{transform:rotate(360deg)}}
+.zipco-wx{position:relative;overflow:hidden;padding:0 0 2px;border-radius:22px;background:linear-gradient(180deg,#fff,#f7fffd);color:#0f172a;font-size:13px;box-shadow:inset 0 0 0 1.5px #99f6e4,0 10px 26px rgba(13,148,136,.14)}
+.zipco-wx::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#10b981,#14b8a6 50%,#22d3ee)}
+.zipco-wx :focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
+.zipco-wx-h{display:flex;align-items:center;gap:11px;padding:15px 14px 10px}
+.zipco-wx-th{flex:none;display:grid;place-items:center;min-width:44px;min-height:44px}
+.zipco-wx-av{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;color:#fff;background:linear-gradient(135deg,#34d399,#06b6d4);box-shadow:0 0 0 2px #fff,0 4px 10px rgba(13,148,136,.25)}
+.zipco-wx-id{min-width:0;flex:1}
+.zipco-wx-id p{margin:0;font-size:9.5px;font-weight:800;letter-spacing:.13em;color:#0f766e}
+.zipco-wx-id h3{margin:1px 0 0;font-size:17px;line-height:1.15;font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.zipco-wx-pr{flex:none;text-align:right}
+.zipco-wx-pr strong{display:block;font-size:17px;line-height:1;font-weight:800;color:#0f766e;font-variant-numeric:tabular-nums;white-space:nowrap}
+.zipco-wx-pr small{display:block;margin-top:3px;font-size:9px;font-weight:800;letter-spacing:.13em;color:#64748b}
+/* Banner de la propuesta */
+.zipco-wx-bn{position:relative;overflow:clip;isolation:isolate;display:grid;gap:8px;margin:0 12px;padding:10px 11px 11px;border-radius:20px;color:#fff;background:linear-gradient(125deg,#0f766e,#0891b2 55%,#06b6d4);box-shadow:0 8px 18px rgba(8,145,178,.28)}
+.zipco-wx-bn::after{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:0;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);transform:translateX(-140%) skewX(-18deg);animation:zipco-wx-sheen 3s ease-in-out .5s 2 both;pointer-events:none}
+.zipco-wx-new{justify-self:start;display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:3px 11px 3px 4px;border-radius:99px;font-size:11px;line-height:18px;font-weight:900;letter-spacing:.08em;background:linear-gradient(105deg,#f59e0b,#ea580c);text-shadow:0 1px 2px rgba(124,45,18,.35);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 6px 14px rgba(234,88,12,.4)}
+.zipco-wx-new i{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:#ea580c}
+.zipco-wx-new i svg{animation:zipco-wx-fl 2.4s ease-in-out 2 both}
+.zipco-wx-ar{display:flex;align-items:center;gap:12px}
+.zipco-wx-cal{flex:none;width:54px;overflow:hidden;border-radius:13px;text-align:center;background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 8px 16px rgba(7,89,133,.35)}
+.zipco-wx-cal small{display:block;padding:2px 0;background:linear-gradient(110deg,#f97316,#ea580c);color:#fff;font-size:9.5px;line-height:12px;font-weight:900;letter-spacing:.14em}
+.zipco-wx-cal b{display:block;font-size:25px;line-height:27px;font-weight:900;color:#0f766e}
+.zipco-wx-cal i{display:block;padding-bottom:3px;font-size:9.5px;line-height:11px;font-style:normal;font-weight:900;letter-spacing:.1em;color:#0e7490}
+.zipco-wx-cal--ic{display:grid;place-items:center;height:56px;color:#0e7490}
+.zipco-wx-at{min-width:0;display:grid}
+.zipco-wx-hl{font-size:11.5px;line-height:14px;font-weight:700;color:#cffafe}
+.zipco-wx-at strong{font-size:38px;line-height:40px;font-weight:900;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-shadow:0 2px 8px rgba(7,89,133,.4)}
+.zipco-wx-sn{font-size:11px;line-height:14px;font-weight:600;color:#cffafe;overflow-wrap:anywhere}
+.zipco-wx-was{margin:0;padding-top:7px;border-top:1px solid rgba(255,255,255,.25);font-size:11.5px;line-height:1.3;color:#e0f2fe;overflow-wrap:anywhere}
+.zipco-wx-was s{color:#bae6fd;text-decoration-thickness:1px}
+.zipco-wx-nx,.zipco-wx-help{display:flex;align-items:flex-start;gap:7px;margin:9px 14px 0;font-size:12px;line-height:1.35;color:#475569}
+.zipco-wx-nx svg,.zipco-wx-help svg{flex:none;margin-top:1px;color:#0d9488}
+/* Detalle plegable (cerrado: inerte y sin foco) */
+.zipco-wx-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
+.zipco-wx-fold[data-open="true"]{grid-template-rows:1fr}
+.zipco-wx-body{min-height:0;overflow:hidden;padding:0 12px;visibility:hidden;transition:visibility 0s .3s}
+.zipco-wx-fold[data-open="true"]>.zipco-wx-body{visibility:visible;transition-delay:0s}
+.zipco-wx-body>:first-child{margin-top:10px}
+.zipco-wx-help{margin-left:2px;margin-right:2px}
+.zipco-wx-ok{display:flex;align-items:center;gap:8px;margin:0;padding:6px 10px;border-radius:10px;font-size:12px;font-weight:800;color:#047857;background:#ecfdf5;box-shadow:inset 0 0 0 1px #a7f3d0}
+.zipco-wx-sec{margin-top:10px;padding:10px 11px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px #e2e8f0}
+.zipco-wx-orig{background:#f8fafc}
+.zipco-wx-lb{display:block;margin:0 0 5px;font-size:9.5px;font-weight:800;letter-spacing:.13em;color:#475569}
+.zipco-wx-pl{display:flex;align-items:baseline;gap:8px;margin:0;padding:5px 0;font-size:13.5px}
+.zipco-wx-pl+.zipco-wx-pl{border-top:1px solid #e2e8f0}
+.zipco-wx-pl b{flex:none;font-size:11px;font-weight:900;color:#0f766e;background:#ccfbf1;border-radius:7px;padding:1px 6px}
+.zipco-wx-pl span{min-width:0;flex:1;overflow-wrap:anywhere}
+.zipco-wx-pl em{flex:none;font-style:normal;font-weight:700;color:#475569;font-variant-numeric:tabular-nums}
+.zipco-wx-q{margin:8px 0 0;padding:1px 0 1px 9px;border-left:3px solid #99f6e4;font-size:12.5px;line-height:1.35;color:#334155;white-space:pre-wrap;overflow-wrap:anywhere}
+.zipco-wx-q small{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;color:#64748b}
+.zipco-wx-ph{margin-top:8px}
+.zipco-wx-cg{display:grid;grid-template-columns:max-content minmax(0,1fr);border-radius:12px;background:#f0fdfa;box-shadow:inset 0 0 0 1px #99f6e4;overflow:hidden}
+.zipco-wx-cg .k{padding:7px 10px;align-self:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0f766e}
+.zipco-wx-cg .v{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px 7px;padding:7px 10px 7px 0;font-variant-numeric:tabular-nums}
+.zipco-wx-cg s{font-size:12px;color:#94a3b8;text-decoration-thickness:1px;overflow-wrap:anywhere}
+.zipco-wx-cg i{font-style:normal;color:#047857}
+.zipco-wx-cg b{font-size:13.5px;font-weight:800;color:#047857;overflow-wrap:anywhere}
+/* Botón «Ver conversación del pedido» (lo pinta ProposalNegotiation con businessWaitingDesign) y error de carga */
+.zipco-wx-go{position:relative;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:50px;margin:0;padding:0 14px;border:0;border-radius:999px;color:#fff;font-size:14.5px;font-weight:800;text-shadow:0 1px 2px rgba(49,10,120,.35);background:radial-gradient(110% 160% at 12% 0%,rgba(255,255,255,.4),transparent 48%),linear-gradient(100deg,#a855f7,#6d28d9 55%,#4f46e5);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),0 8px 18px rgba(109,40,217,.3)}
+.zipco-wx-go svg{flex:none;width:18px;height:18px}
+.zipco-wx-go:disabled{opacity:.75}
+.zipco-wx-sp{flex:none;display:inline-block;width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:zipco-wx-spin .8s linear infinite}
+.zipco-wx-err{margin:10px 0 0;padding:9px 11px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;font-size:12.5px;line-height:1.38;color:#9f1239;overflow-wrap:anywhere}
+/* «Ver detalle» / «Ocultar detalle»: pastilla pequeña (36 px visibles, 44 px de área táctil) */
+.zipco-wx-tg{display:flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:150px;height:44px;margin:4px auto 6px;padding:0 16px;border:4px solid transparent;border-radius:99px;background:#fff;background-clip:padding-box;box-shadow:inset 0 0 0 1.5px #99f6e4;color:#0f766e;font-size:12.5px;font-weight:800}
+@media (max-width:350px){.zipco-wx-h{gap:9px;padding-left:11px;padding-right:11px}.zipco-wx-pr strong{font-size:16px}.zipco-wx-bn{margin:0 9px;padding:9px}.zipco-wx-at strong{font-size:33px}.zipco-wx-new{font-size:10px;letter-spacing:.05em}.zipco-wx-body{padding:0 9px}}
+:is([data-request-motion="idle"],[data-request-list-hidden]) .zipco-wx :is(.zipco-wx-new i svg,.zipco-wx-bn::after){animation-play-state:paused!important}
+@media (prefers-reduced-motion:reduce){
+  .zipco-wx *,.zipco-wx *::before,.zipco-wx *::after{animation:none!important;transition:none!important}
+  .zipco-wx-sp{animation:zipco-wx-spin 1.6s linear infinite!important}
+}

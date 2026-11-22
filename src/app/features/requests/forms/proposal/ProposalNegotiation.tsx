@@ -140,10 +140,13 @@ function calendarParts(value: string | { date: string; time: string }) {
   return { weekday, day, month: MONTHS[month - 1], time: value.time };
 }
 
-export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel, customerEntryActions = false }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string; customerEntryActions?:boolean }) {
+// `businessWaitingDesign` (solo negocio · AWAITING_CUSTOMER_DECISION, desde ProposalWaitingCard): presentación «Esperando al cliente» (tablero NegW17).
+// Solo cambia el aspecto del botón de entrada, del error de carga y de la conversación; no cambia carga, acciones, permisos ni recuperación.
+export default function ProposalNegotiation({ order, business = false, refresh, variant = 'default', initialLabel = 'Proponer alternativa', reviewLabel, customerEntryActions = false, businessWaitingDesign = false }: { order: BusinessRequest | MyOrder; business?: boolean; refresh: () => void; variant?: 'default' | 'aurora'; initialLabel?:string; reviewLabel?:string; customerEntryActions?:boolean; businessWaitingDesign?:boolean }) {
   const [open, setOpen] = useState(false);
   const rejectBackRef = useRef<HTMLButtonElement>(null);
   const rejectTriggerRef = useRef<HTMLButtonElement>(null);
+  const waitingTriggerRef = useRef<HTMLButtonElement>(null);
   const [read, setRead] = useState<ProposalRead | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -261,6 +264,8 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
   const rejectPopup = business && decision !== null && decision.startsWith('REJECT_');
   // Cliente que ya envió su contrapropuesta y espera al negocio: solo cambia la presentación (botón «Ver conversación» y conversación); no hay acciones nuevas.
   const waiting = client && process.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE';
+  // Negocio que espera la decisión del cliente (tarjeta «Esperando al cliente»): solo presentación.
+  const bw = business && businessWaitingDesign;
 
   const execute = async (action: ProposalAction, review?: AlternativeReview, file: File | null = null, past = false, authorize = false) => {
     if (!active() || lock.current || !read || !choices.includes(action)) throw new ProposalError('Actualiza las condiciones antes de confirmar.', 0);
@@ -376,7 +381,12 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
     {(() => {
       const label = busy && !open && !draftAction ? initial ? 'Cargando formulario…' : 'Cargando propuesta…' : initial ? initialLabel : isProposalRejected(process) ? 'Ver propuestas e historial' : reviewLabel ?? 'Revisar propuesta y responder';
       const openProposals = async () => { await load(initial); };
-      const reviewButton = variant === 'aurora'
+      const entryLoading = busy && !open && !draftAction;
+      const reviewButton = bw
+        ? <button ref={waitingTriggerRef} type="button" className="zipco-wx-go" disabled={busy} aria-busy={busy} onClick={openProposals}>
+            {entryLoading && <i className="zipco-wx-sp" aria-hidden="true" />}<span>{label}</span>{!entryLoading && <ArrowRight aria-hidden="true" />}
+          </button>
+        : variant === 'aurora'
         ? <ProposalDraftButton label={label} busy={busy} onClick={openProposals} icon={waiting ? 'chat' : 'arrow'} />
         : <button type="button" className={`${button} w-full`} disabled={busy} aria-busy={busy} onClick={openProposals}>{label}</button>;
       return customerEntryActions && !business ? <div className="zipco-proposal-entry-actions">
@@ -384,10 +394,10 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
         {reviewButton}
       </div> : reviewButton;
     })()}
-    {error && !open && !draftAction && <p role="alert" className={`mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
+    {error && !open && !draftAction && <p role="alert" className={bw ? 'zipco-wx-err' : `mt-2 text-sm ${variant === 'aurora' ? 'text-rose-200' : 'text-red-700 dark:text-red-300'}`}>{error}</p>}
     {open && !draftAction && <Dialog.Root open onOpenChange={value => { if (!lock.current) { setOpen(value); setDecision(null); setExpired(false); setAuthCard(false); setScheduleReview(null); setChoosing(false); lastSchedule.current = null; } }}>
       <Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-[1000] bg-black/40" />
-        <Dialog.Content aria-busy={busy} data-accept-overlay={authCard || undefined} className={`zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0${client ? ' zipco-pz' : ' zipco-bz'}${pendingSchedule ? ' zipco-pz-pending' : ''}`}>
+        <Dialog.Content onCloseAutoFocus={bw ? event => { if (waitingTriggerRef.current?.isConnected) { event.preventDefault(); waitingTriggerRef.current.focus(); } } : undefined} aria-busy={busy} data-accept-overlay={authCard || undefined} className={`zipco-chat-panel zipco-action-dialog fixed bottom-4 left-1/2 z-[1001] flex max-h-[88dvh] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 flex-col overflow-hidden rounded-[26px] p-0${client ? ' zipco-pz' : ' zipco-bz'}${bw ? ' zipco-bw' : ''}${pendingSchedule ? ' zipco-pz-pending' : ''}`}>
           {busy && <div className="zipco-pz-prog" aria-hidden="true"><i /></div>}
           <div className="absolute right-2 top-2 z-10 flex gap-1">
             <button type="button" disabled={busy} aria-label="Actualizar propuestas" title="Actualizar propuestas" onClick={reload} className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"><RefreshCw className="h-[17px] w-[17px]" /></button>
@@ -500,7 +510,7 @@ export default function ProposalNegotiation({ order, business = false, refresh, 
                 </>;
               })()}
             </div> : <>
-              {read && <ProposalChat read={read} business={business} businessDesign={business} waitingDesign={client && read.process.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE'}
+              {read && <ProposalChat read={read} business={business} businessDesign={business} businessWaiting={bw} waitingDesign={client && read.process.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE'}
                 turn={isProposalRejected(read.process) ? 'closed' : choices.length ? 'mine' : 'wait'}
                 closedText={read.process.closure?.actor === 'CUSTOMER' ? 'El cliente rechazó la propuesta · Historial' : 'El negocio rechazó la contrapropuesta · Historial'}
                 canCounter={!business && choices.includes('COUNTER_PROPOSAL')} canFinal={business && choices.includes('PROPOSE_FINAL')}

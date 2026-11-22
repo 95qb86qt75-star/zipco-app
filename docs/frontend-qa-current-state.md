@@ -7,6 +7,16 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-22: NegW17 aplicado en los cinco archivos entregados por Claude:
+  negocio AWAITING_CUSTOMER_DECISION, tarjeta plegada/desplegada `.zipco-wx` y
+  conversación explícita `.zipco-bw`. Conservadas las ramas cliente y final del
+  negocio, los CSS anteriores, lecturas, permisos y acciones. Ajuste de integración:
+  cierre de conversación devuelve foco al botón de entrada. 64 pruebas focalizadas
+  aprobadas; matriz con componentes reales y HTTP simulado a 320/360/390/430,
+  errores/reintento, detalle compartido, foco y movimiento reducido comprobados.
+  Build QA/PWA aprobado; sin cambios de backend. Validación física Android/iPhone
+  pendiente tras publicación QA. [Evidencia](frontend-proposal-waiting-business-ui-qa.md).
+
 - 2026-11-22: formulario negocio E221 «Revisar fecha y condiciones» rediseñado
   en los dos archivos AvailabilityScheduleCard/availability-schedule.css. Tres
   secciones resumibles, TimePicker real, monto agrupado con coma y requisitos

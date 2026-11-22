@@ -223,7 +223,7 @@ function WaitingChanges({ rows, orderType }: { rows: DiffRow[]; orderType: strin
 // Solo cliente: nodo de la línea de tiempo (pedido, propuesta, contrapropuesta, propuesta final).
 const NODE_ICONS = [<ShoppingBag aria-hidden="true" />, <Store aria-hidden="true" />, <MessageCircle aria-hidden="true" />, <Check aria-hidden="true" strokeWidth={3} />];
 
-function Bubble({ proposal, previous, business, last = false, bz = false, wt = false }: { proposal: Proposal; previous?: Proposal; business: boolean; last?: boolean; bz?: boolean; wt?: boolean }) {
+function Bubble({ proposal, previous, business, last = false, bz = false, wt = false, bw = false }: { proposal: Proposal; previous?: Proposal; business: boolean; last?: boolean; bz?: boolean; wt?: boolean; bw?: boolean }) {
   const [open, setOpen] = useState(false);
   const s = proposal.subjectSnapshot;
   const mine = (proposal.authorActor === 'BUSINESS') === business;
@@ -248,9 +248,18 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
     <button type="button" className="zipco-bz-ncd" aria-haspopup="dialog" aria-label={`Ver ${btnLabel}`} title="Ver detalle"><span><Maximize2 strokeWidth={2.8} aria-hidden="true" /></span></button>
   </Dialog.Trigger>;
   const ncHead = <div className="zipco-bz-nch"><span className="w">{label}</span><time dateTime={proposal.createdAt}>{at}</time>{ncDetail}</div>;
+  const BW_PRICE = ['PEDIDO', 'PROPUESTO', 'CONTRAPROPUESTO', 'PROPUESTA FINAL'];
   const ncRow = (price: ReactNode) => <div className="zipco-bz-npr">{product && <span className="zipco-bz-th">{product}</span>}
     <b className="t">{title}</b>{photo && <span className="ph" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}{price}</div>;
   const pic = photo && <PhotoBox src={photo} proposal={proposal} own={own} business={business} />;
+  // Negocio que espera la decisión del cliente (`bw`, solo desde ProposalWaitingCard → ProposalNegotiation): datos propios de ESTA propuesta (subjectSnapshot), nunca los del pedido original en otra tarjeta.
+  const bwAsap = s.needNow || !proposal.scheduledFor;
+  const bwWhen = bw && <p className="zipco-bw-when"><Calendar aria-hidden="true" /><span>{isOrder ? 'Pidió para: ' : mine ? 'Propones: ' : 'Propone: '}<b>{bwAsap ? 'Lo antes posible' : whenShort(proposal, true)}</b></span></p>;
+  const bwLines = bw && s.items.length > 1 && <ul className="zipco-bw-pl" aria-label="Productos de esta tarjeta">
+    {s.items.map((it, i) => <li key={i}><b>{s.orderType === 'service' ? '•' : `${it.quantity}×`}</b><span>{it.nameSnapshot}</span><em>{money(it.subtotalClp)}</em></li>)}
+  </ul>;
+  const bwPhoto = bw && pic;
+  const bwQuote = (text: string, who: string) => <p className="zipco-bz-nq">{bw && <small>{who}</small>}“{text}”</p>;
   // Cliente: `zipco-pz-*` (aprobado). Negocio con el rediseño (`bz`, solo desde ProposalNegotiation): `zipco-bz-*`. Cualquier otro uso del negocio queda como antes.
   const evClass = bz ? ` zipco-bz-ev${last ? ' is-last' : ''}` : business ? '' : ` zipco-pz-ev${wt ? ' zipco-wt-ev' : ''}${last ? ' is-last' : ''}`;
   const node = business && !bz ? null : bz
@@ -263,7 +272,7 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
 
   if (mine) {
     const rows = detailRows(proposal, isOrder ? 'Tu nota' : 'Tu mensaje');
-    const mineDiff = !wt && (!business || bz) && previous ? comparisonRows(proposal, previous, bz).filter(r => r.changed && MINI_KEYS.test(r.key)).slice(0, 4) : [];
+    const mineDiff = !wt && (!business || bz) && previous ? comparisonRows(proposal, previous, bz).filter(r => r.changed && (bw || MINI_KEYS.test(r.key))).slice(0, bw ? 12 : 4) : [];
     const sentChanges = wtSent && previous ? comparisonRows(proposal, previous).filter(r => r.changed) : [];
     return <div data-proposal-sequence={proposal.sequence} className={`flex flex-col items-end${evClass}`}>
       {node}
@@ -271,9 +280,13 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
         <div className={bz ? 'zipco-bz-nc mine' : `zipco-chat-mine${wtSent ? ' is-sent' : ''}`}>
           {bz ? <>
             {ncHead}
-            {ncRow(<b className="p">{money(proposal.totalPriceClp)}</b>)}
+            {ncRow(bw ? <span className="p zipco-bw-p">{money(proposal.totalPriceClp)}<small>{BW_PRICE[proposal.sequence]}</small></span> : <b className="p">{money(proposal.totalPriceClp)}</b>)}
+            {bwWhen}{bwLines}
+            {bw && mineDiff.length > 0 && <p className="zipco-bw-pill"><Sparkles aria-hidden="true" />{mineDiff.length} {mineDiff.length === 1 ? 'cambio propuesto' : 'cambios propuestos'}</p>}
             <NcList rows={mineDiff} label="Cambios respecto a la propuesta anterior" orderType={s.orderType} />
-            {message && <p className="zipco-bz-nq">“{message}”</p>}
+            {bw && previous && mineDiff.length === 0 && <p className="zipco-bw-same"><Info aria-hidden="true" /><span>Mantiene productos, monto y fecha de la solicitud.</span></p>}
+            {message && bwQuote(message, 'Tu mensaje')}
+            {bwPhoto}
           </> : <>
           {who}
           {wt ? <>
@@ -318,10 +331,12 @@ function Bubble({ proposal, previous, business, last = false, bz = false, wt = f
       <div className={bz ? `zipco-bz-nc theirs${isOrder ? ' ord' : ''}` : `zipco-chat-theirs${proposal.sequence === 3 && !business ? ' is-final' : ''}`}>
         {bz ? <>
           {ncHead}
-          {ncRow(<b className="p">{money(proposal.totalPriceClp)}</b>)}
+          {ncRow(bw ? <span className="p zipco-bw-p">{money(proposal.totalPriceClp)}<small>{BW_PRICE[proposal.sequence]}</small></span> : <b className="p">{money(proposal.totalPriceClp)}</b>)}
+          {bwWhen}{bwLines}
           {changes.length > 0 && <p className="zipco-bz-npill"><Sparkles aria-hidden="true" />{changes.length} {changes.length === 1 ? 'cambio solicitado' : 'cambios solicitados'}</p>}
           <NcList rows={changes} label={changes.length === 1 ? 'Cambio solicitado' : 'Cambios solicitados'} orderType={s.orderType} />
-          {message && <p className="zipco-bz-nq">“{message}”</p>}
+          {message && bwQuote(message, isOrder ? 'Nota del cliente' : 'Mensaje')}
+          {bwPhoto}
         </> : <>
         {who}
         {wt ? <>
@@ -393,8 +408,9 @@ function AvailabilityConfirmation({ read }: { read: ProposalRead }) {
 
 /** `plan` (solo cliente): resumen del camino de la propuesta; se ubica entre «Te toca responder» y el aviso de contrapropuesta.
  *  `canFinal` (solo negocio rediseñado): avisa que la alternativa final es la última propuesta. */
-export default function ProposalChat({ read, business, turn, closedText, canCounter, canFinal = false, plan, businessDesign = false, waitingDesign = false }: { read: ProposalRead; business: boolean; turn: ChatTurn; closedText?: string; canCounter?: boolean; canFinal?: boolean; plan?: ReactNode; businessDesign?: boolean; waitingDesign?: boolean }) {
+export default function ProposalChat({ read, business, turn, closedText, canCounter, canFinal = false, plan, businessDesign = false, waitingDesign = false, businessWaiting = false }: { read: ProposalRead; business: boolean; turn: ChatTurn; closedText?: string; canCounter?: boolean; canFinal?: boolean; plan?: ReactNode; businessDesign?: boolean; waitingDesign?: boolean; businessWaiting?: boolean }) {
   const bz = business && businessDesign; // rediseño del negocio: solo lo activa ProposalNegotiation
+  const bw = bz && businessWaiting; // negocio que espera la decisión del cliente (AWAITING_CUSTOMER_DECISION): solo lo activa ProposalWaitingCard vía ProposalNegotiation
   const wt = !business && waitingDesign && turn === 'wait'; // cliente que ya envió su contrapropuesta y espera al negocio: solo lo activa ProposalNegotiation
   const list = read.proposals;
   const root = React.useRef<HTMLDivElement>(null);
@@ -404,11 +420,18 @@ export default function ProposalChat({ read, business, turn, closedText, canCoun
     const scroller = root.current?.closest<HTMLElement>('.zipco-chat-scroll');
     if (scroller) scroller.scrollTop = scroller.scrollHeight;
   }, [bz, wt, list.length]);
-  return <div ref={root} data-proposal-comparison className={`zipco-chat${bz ? ' zipco-bz-chat' : ''}${wt ? ' zipco-wt-chat' : ''}`}>
+  return <div ref={root} data-proposal-comparison className={`zipco-chat${bz ? ' zipco-bz-chat' : ''}${wt ? ' zipco-wt-chat' : ''}${bw ? ' zipco-bw-chat' : ''}`}>
     <p className="text-center"><span className="zipco-chat-date">{day(list[0].createdAt)}</span></p>
-    {list.map((proposal, index) => <Bubble key={proposal.id} proposal={proposal} previous={index > 0 ? list[index - 1] : undefined} business={business} bz={bz} wt={wt} last={index === list.length - 1} />)}
+    {list.map((proposal, index) => <React.Fragment key={proposal.id}>
+      {bw && index > 0 && day(list[index - 1].createdAt) !== day(proposal.createdAt) && <p className="text-center"><span className="zipco-chat-date">{day(proposal.createdAt)}</span></p>}
+      <Bubble proposal={proposal} previous={index > 0 ? list[index - 1] : undefined} business={business} bz={bz} wt={wt} bw={bw} last={index === list.length - 1} />
+    </React.Fragment>)}
     {bz && read.process.state === 'AWAITING_CUSTOMER_CONTINUATION' && read.process.availability && <AvailabilityConfirmation read={read}/>}
-    {!wt && <div className="zipco-chat-turn" role="status">
+    {bw && turn === 'wait' && <div className="zipco-bw-turn" role="status">
+      <span><i aria-hidden="true" />Esperando al cliente</span>
+      <p>El cliente responde ahora. Tu propuesta no confirma reserva, apartado ni entrega.</p>
+    </div>}
+    {!wt && !(bw && turn === 'wait') && <div className="zipco-chat-turn" role="status">
       <i /><span data-turn={turn}>{turn === 'mine' ? <><b className="zipco-chat-dot" aria-hidden="true" />Te toca responder</>
         : turn === 'closed' ? (closedText ?? 'La negociación finalizó')
         : <>Esperando la respuesta de la otra parte<ArrowRight className="ml-1 inline h-3 w-3" aria-hidden="true" /></>}</span><i />

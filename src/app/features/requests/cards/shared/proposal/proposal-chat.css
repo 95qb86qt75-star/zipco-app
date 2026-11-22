@@ -831,3 +831,54 @@
 .zipco-bz-final-notice>svg{flex:none;width:15px;height:15px;margin-top:1px}
 .zipco-bz .zipco-chat-foot .zipco-glass-btn{flex-wrap:nowrap}
 .zipco-bz .zipco-chat-foot .zipco-glass-btn>span{white-space:normal}
+
+/* ===== Negocio · «Conversación del pedido» con el cliente en espera (AWAITING_CUSTOMER_DECISION) · Aurora Pro claro · tablero NegW17 =====
+   Solo aplica con .zipco-bw (ProposalNegotiation businessWaitingDesign → clase en el diálogo; ProposalChat businessWaiting → .zipco-bw-chat).
+   Se suma a .zipco-bz sin cambiarlo: cualquier otra conversación del negocio queda igual. La fuente es la de la app (no se fuerza Outfit).
+   Animaciones: solo transform/opacity y finitas; «reducir movimiento» ya las apaga con la regla de .zipco-bz. */
+@keyframes zipco-bw-dot{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.5)}50%{box-shadow:0 0 0 6px rgba(245,158,11,0)}}
+.zipco-bz.zipco-bw{font-family:inherit;background:linear-gradient(#fff 0,#f7fffd 90px,#ecfdf5 100%);box-shadow:0 24px 60px rgba(15,23,42,.4),0 0 0 1px #a7f3d0}
+.zipco-bw .zipco-pz-prog{background:#ccfbf1}
+.zipco-bw .zipco-pz-prog i{background:linear-gradient(90deg,#10b981,#22d3ee)}
+.zipco-bz.zipco-bw .zipco-pz-hd [class*="text-[22px]"]{font-size:18px;letter-spacing:-.02em}
+.zipco-bw .zipco-pz-hd [class*="text-slate-500"]{color:#0f766e;font-weight:600}
+.zipco-bz.zipco-bw > .absolute button{width:44px;height:44px;padding:0;border:4px solid transparent;background:#d1fae5;background-clip:padding-box;color:#0f766e}
+.zipco-bz.zipco-bw > .absolute button:disabled{opacity:.45}
+.zipco-bw .zipco-chat-foot:empty{padding:0}
+.zipco-bw .zipco-chat-date{background:#d1fae5;color:#047857}
+.zipco-bw .zipco-bz-ev::before{background:linear-gradient(#99f6e4,#a7f3d0)}
+.zipco-bw .zipco-bz-nd{box-shadow:0 0 0 3px #f4fffc}
+.zipco-bw .zipco-bz-nd:not(.c):not(.t):not(.f){background:linear-gradient(145deg,#14b8a6,#0891b2)}
+.zipco-bz.zipco-bw .zipco-bz-nc.mine{background:linear-gradient(170deg,#fff,#f0fdfa);box-shadow:inset 0 0 0 1.5px #5eead4,0 6px 16px rgba(20,184,166,.13)}
+.zipco-bw .zipco-bz-nc.mine .zipco-bz-nch .w,.zipco-bw .zipco-bz-nc.mine .zipco-bz-npr .p{color:#0f766e}
+.zipco-bw .zipco-bz-ncd{color:#0f766e}
+.zipco-bw .zipco-bz-nc.mine .zipco-bz-ncl{background:#f0fdfa;box-shadow:inset 0 0 0 1px #99f6e4}
+.zipco-bw .zipco-bz-nc.mine .zipco-bz-ncl .k{color:#0f766e}
+.zipco-bw .zipco-bz-nc.mine .zipco-bz-ncl li+li>*{border-color:#ccfbf1}
+.zipco-bw .zipco-bz-nc.mine .zipco-bz-nq{border-left-color:#5eead4}
+.zipco-bw .zipco-bz-nq small{display:block;margin-bottom:1px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#64748b}
+.zipco-bw .zipco-bz-nq{display:block;-webkit-line-clamp:unset}
+.zipco-bw-p{text-align:right}
+.zipco-bw-p small{display:block;margin-top:3px;font-size:8.5px;font-weight:800;letter-spacing:.13em;color:#64748b}
+.zipco-bw-when{display:flex;align-items:center;gap:7px;margin:8px 0 0;font-size:12.5px;color:#334155}
+.zipco-bw-when svg{flex:none;width:14px;height:14px;color:#0d9488}
+.zipco-bw-pl{margin:8px 0 0;padding:0 10px;list-style:none;border-radius:12px;background:#f8fafc;box-shadow:inset 0 0 0 1px #e2e8f0}
+.zipco-bz-nc.mine .zipco-bw-pl{background:#f0fdfa;box-shadow:inset 0 0 0 1px #99f6e4}
+.zipco-bw-pl li{display:flex;align-items:baseline;gap:8px;padding:5px 0;font-size:13px}
+.zipco-bw-pl li+li{border-top:1px solid #e2e8f0}
+.zipco-bw-pl b{flex:none;font-size:11px;font-weight:900;color:#0f766e;background:#ccfbf1;border-radius:7px;padding:1px 6px}
+.zipco-bw-pl span{min-width:0;flex:1;overflow-wrap:anywhere}
+.zipco-bw-pl em{flex:none;font-style:normal;font-weight:700;color:#475569;font-variant-numeric:tabular-nums}
+.zipco-bw-pill{display:inline-flex;align-items:center;gap:5px;margin:9px 0 6px;padding:3px 10px 3px 8px;border-radius:99px;background:#ccfbf1;color:#0f766e;font-size:11px;font-weight:800}
+.zipco-bw-pill svg{width:11px;height:11px}
+.zipco-bw-same{display:flex;align-items:flex-start;gap:7px;margin:8px 0 0;font-size:12.5px;line-height:1.35;color:#334155}
+.zipco-bw-same svg{flex:none;width:14px;height:14px;margin-top:1px;color:#0d9488}
+.zipco-bw-turn{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:2px}
+.zipco-bw-turn span{display:inline-flex;align-items:center;gap:8px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1.5px #fcd34d;padding:6px 14px;font-size:12px;font-weight:800;color:#b45309}
+.zipco-bw-turn i{width:8px;height:8px;border-radius:50%;background:#f59e0b;animation:zipco-bw-dot 2s ease 2}
+.zipco-bw-turn p{margin:0;max-width:300px;text-align:center;font-size:11.5px;line-height:1.4;color:#475569}
+@media (max-width:360px){.zipco-bz.zipco-bw .zipco-pz-hd [class*="text-[22px]"]{font-size:17px}.zipco-bw .zipco-bz-npr .p{font-size:17px}}
+/* La lista «campo · antes → ahora» debe poder envolver en 320 px (nombres largos y horas) */
+.zipco-bw .zipco-bz-ncl{grid-template-columns:minmax(0,max-content) minmax(0,1fr)}
+.zipco-bw .zipco-bz-ncl .n{white-space:normal;flex-wrap:wrap}
+.zipco-bw .zipco-bz-ncl .k{overflow-wrap:anywhere}
