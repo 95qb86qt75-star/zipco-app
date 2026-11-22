@@ -399,3 +399,160 @@
   .zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]))[data-leaving=true]{opacity:0;max-height:0;padding:0;margin:0}
   .zipco-asx-photo.is-hl>button{outline:3px solid #0d9488}
 }
+
+/* ============================================================
+   Negocio · «Revisar fecha y condiciones» (Dialog.Content.zipco-asf-dlg)
+   Solo presentación. El diálogo del cliente sigue usando .zipco-as-dialog.
+   ============================================================ */
+.zipco-asf-dlg,.zipco-asf-dlg *{box-sizing:border-box}
+.zipco-asf-dlg{position:fixed;z-index:1101;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden;border-radius:24px;background:#fff;color:#0f172a;font-size:13px;font-family:inherit;box-shadow:0 24px 60px rgba(15,23,42,.4),0 0 0 1px #d1fae5;animation:zipco-asf-rise .4s both}
+@keyframes zipco-asf-rise{from{opacity:0;transform:translate(-50%,calc(-50% + 14px)) scale(.98)}to{opacity:1;transform:translate(-50%,-50%)}}
+.zipco-asf-dlg :where(button){font:inherit;cursor:pointer}
+.zipco-asf-dlg button:disabled,.zipco-asf-dlg input:disabled,.zipco-asf-dlg textarea:disabled{cursor:not-allowed}
+.zipco-asf-dlg :focus-visible{outline:3px solid #0d9488;outline-offset:2px}
+.zipco-asf-dlg svg{flex:none}
+/* encabezado */
+.zipco-asf-h{position:relative;flex:none;display:flex;align-items:flex-start;gap:10px;padding:14px 12px 12px 14px;background:linear-gradient(120deg,#d1fae5,#cffafe 70%,#ecfeff)}
+.zipco-asf-hi{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;color:#fff;background:linear-gradient(145deg,#14b8a6,#0891b2);box-shadow:0 0 0 3px #fff,0 6px 14px rgba(8,145,178,.3)}.zipco-asf-hi svg{width:22px;height:22px}
+.zipco-asf-h>div{flex:1;min-width:0}
+.zipco-asf-h h2{margin:1px 0 3px;font-size:19px;line-height:22px;font-weight:800;letter-spacing:-.03em;color:#0f172a}
+.zipco-asf-h p{margin:0;font-size:12px;line-height:16px;font-weight:600;color:#0f766e}
+.zipco-asf-x{flex:none;width:44px;height:44px;margin:-4px -2px 0 0;display:grid;place-items:center;padding:0;border:1.5px solid #c4b5fd;border-radius:50%;background:#fff;color:#4c1d95}.zipco-asf-x svg{width:20px;height:20px}
+/* cuerpo */
+.zipco-asf-body{flex:1;min-height:0;display:grid;grid-auto-rows:max-content;align-content:start;gap:10px;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px 14px}
+/* resumen de lo solicitado */
+.zipco-asf-ask{position:relative;overflow:clip;isolation:isolate;display:grid;gap:7px;padding:10px 11px 11px;border-radius:20px;color:#fff;background:linear-gradient(125deg,#0f766e,#0891b2 55%,#06b6d4);box-shadow:0 0 0 2px #fff,0 0 0 4px #22d3ee,0 12px 26px rgba(8,145,178,.4);animation:zipco-asf-glow 2s ease-in-out 3}
+@keyframes zipco-asf-glow{0%,100%{box-shadow:0 0 0 2px #fff,0 0 0 4px #22d3ee,0 12px 26px rgba(8,145,178,.4)}50%{box-shadow:0 0 0 2px #fff,0 0 0 7px rgba(34,211,238,.55),0 14px 30px rgba(8,145,178,.5)}}
+.zipco-asf-ask::after{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:0;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);animation:zipco-asf-sheen 3s ease-in-out .5s 3}
+@keyframes zipco-asf-sheen{0%,35%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(520%) skewX(-18deg)}}
+.zipco-asf-ag{position:absolute;z-index:-1;border-radius:50%;pointer-events:none}.zipco-asf-ag1{right:-40px;top:-50px;width:150px;height:150px;background:radial-gradient(closest-side,rgba(255,255,255,.3),transparent)}.zipco-asf-ag2{left:-30px;bottom:-60px;width:140px;height:140px;background:radial-gradient(closest-side,rgba(251,191,36,.35),transparent)}
+.zipco-asf-new{justify-self:start;display:inline-flex;align-items:center;gap:6px;padding:3px 11px 3px 4px;border-radius:99px;font-size:11px;line-height:18px;font-weight:900;letter-spacing:.08em;background:linear-gradient(105deg,#f59e0b,#ea580c);text-shadow:0 1px 2px rgba(124,45,18,.35);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 6px 14px rgba(234,88,12,.45);animation:zipco-asf-pulse 1.8s ease-out 5}
+@keyframes zipco-asf-pulse{0%,100%{box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 6px 14px rgba(234,88,12,.45),0 0 0 0 rgba(249,115,22,.55)}50%{box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 6px 14px rgba(234,88,12,.45),0 0 0 7px rgba(249,115,22,0)}}
+.zipco-asf-new>i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:#ea580c}.zipco-asf-new>i svg{width:12px;height:12px;stroke-width:2.6;transform-origin:50% 0;animation:zipco-asf-ring 2.4s ease-in-out 4}
+@keyframes zipco-asf-ring{0%,60%,100%{transform:rotate(0)}66%{transform:rotate(-16deg)}74%{transform:rotate(14deg)}82%{transform:rotate(-8deg)}90%{transform:rotate(4deg)}}
+.zipco-asf-ar{display:flex;align-items:center;gap:12px}
+.zipco-asf-cal{flex:none;width:54px;overflow:hidden;border-radius:13px;text-align:center;background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 8px 16px rgba(7,89,133,.35)}
+.zipco-asf-cal small{display:block;padding:2px 0;background:linear-gradient(110deg,#f97316,#ea580c);color:#fff;font-size:9.5px;line-height:12px;font-weight:900;letter-spacing:.14em}
+.zipco-asf-cal b{display:block;font-size:25px;line-height:27px;font-weight:900;color:#0f766e}.zipco-asf-cal i{display:block;padding-bottom:3px;font-size:9.5px;line-height:11px;font-style:normal;font-weight:900;letter-spacing:.1em;color:#0e7490}
+.zipco-asf-at{min-width:0;display:grid}
+.zipco-asf-hl{font-size:11.5px;line-height:14px;font-weight:700;color:#cffafe}
+.zipco-asf-at strong{font-size:38px;line-height:40px;font-weight:900;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-shadow:0 2px 8px rgba(7,89,133,.4)}
+.zipco-asf-sn{font-size:11px;line-height:14px;font-weight:600;color:#cffafe}
+.zipco-asf-stamp{position:absolute;right:10px;top:9px;padding:2px 9px;border:2.5px solid #fecaca;border-radius:8px;background:rgba(127,29,29,.55);color:#fff;font-size:13px;line-height:15px;font-weight:900;letter-spacing:.14em;transform:rotate(-9deg)}
+.zipco-asf-ask.is-past{background:linear-gradient(125deg,#64748b,#78716c);animation:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #fca5a5}.zipco-asf-ask.is-past .zipco-asf-new{background:linear-gradient(105deg,#a8a29e,#78716c);animation:none;box-shadow:none}.zipco-asf-ask.is-past::after{display:none}
+.zipco-asf-past{display:flex;align-items:flex-start;gap:7px;margin:0;padding:7px 9px;border-radius:12px;background:#fffbeb;box-shadow:inset 0 0 0 1.5px #fcd34d;font-size:12px;line-height:1.35;color:#78350f}.zipco-asf-past svg{width:15px;height:15px;margin-top:1px;color:#b45309}.zipco-asf-past b{color:#78350f}
+/* secciones */
+.zipco-asf-fs{margin:0;min-width:0;padding:10px 10px 11px;border:0;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0;display:grid;gap:8px}
+.zipco-asf-fs>legend{float:left;width:100%;padding:0;margin:0 0 8px}
+.zipco-asf-fs>legend+*{clear:both}
+.zipco-asf-fs>legend,.zipco-asf-lb{display:flex;align-items:center;gap:7px;font-size:13.5px;line-height:18px;font-weight:800;color:#0f172a}
+.zipco-asf-fs>legend i,.zipco-asf-lb i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(145deg,#10b981,#0891b2);color:#fff;font-size:11px;font-style:normal;font-weight:900}
+.zipco-asf-tag{margin-left:auto;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border-radius:99px;font-size:9px;line-height:12px;font-style:normal;font-weight:900;letter-spacing:.1em;white-space:nowrap}
+.zipco-asf-tag svg{width:10px;height:10px;stroke-width:3.4}
+.zipco-asf-tag.req{background:#fef3c7;color:#92400e;box-shadow:inset 0 0 0 1px #fcd34d}.zipco-asf-tag.ok{background:#d1fae5;color:#047857;box-shadow:inset 0 0 0 1px #6ee7b7}.zipco-asf-tag.opt{background:#f1f5f9;color:#64748b;box-shadow:inset 0 0 0 1px #e2e8f0}
+.zipco-asf-fs.is-hl{animation:zipco-asf-hl 1.4s ease-out 1}
+@keyframes zipco-asf-hl{0%{box-shadow:inset 0 0 0 1.5px #e2e8f0,0 0 0 0 rgba(20,184,166,.7)}40%{box-shadow:inset 0 0 0 2px #14b8a6,0 0 0 7px rgba(20,184,166,.18)}100%{box-shadow:inset 0 0 0 1.5px #e2e8f0,0 0 0 0 rgba(20,184,166,0)}}
+.zipco-asf-fs:disabled{opacity:.6}
+.zipco-asf-hint{margin:0;font-size:12px;line-height:1.35;font-weight:600;color:#475569}
+/* opciones (radio) */
+.zipco-asf-opt{position:relative;display:flex;align-items:center;gap:10px;min-height:52px;padding:7px 10px;border-radius:15px;background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0;cursor:pointer;transition:box-shadow .18s,background .18s}
+.zipco-asf-opt input,.zipco-asf-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.zipco-asf-ck{flex:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px #cbd5e1;display:grid;place-items:center}
+.zipco-asf-opt.on{background:linear-gradient(150deg,#f0fdfa,#fff 80%);box-shadow:inset 0 0 0 2px #14b8a6,0 6px 16px rgba(20,184,166,.16)}
+.zipco-asf-opt.on .zipco-asf-ck{background:linear-gradient(145deg,#10b981,#0891b2);box-shadow:none}.zipco-asf-opt.on .zipco-asf-ck::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+.zipco-asf-opt:has(input:focus-visible),.zipco-asf-sw:has(input:focus-visible){outline:3px solid #0d9488;outline-offset:2px}
+.zipco-asf-oi{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#ecfeff;color:#0e7490;box-shadow:inset 0 0 0 1px #a5f3fc}.zipco-asf-oi svg{width:17px;height:17px}
+.zipco-asf-ot{min-width:0;display:grid;gap:1px}.zipco-asf-ot b{font-size:13.5px;line-height:17px;font-weight:800;color:#0f172a}.zipco-asf-ot small{font-size:11.5px;line-height:14px;font-weight:600;color:#64748b}
+/* plegados (fecha alternativa y monto) */
+.zipco-asf-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .38s cubic-bezier(.25,.8,.25,1),opacity .2s ease,visibility 0s .38s}
+.zipco-asf-fold[data-ex="true"]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .38s cubic-bezier(.25,.8,.25,1),opacity .2s ease,visibility 0s}
+.zipco-asf-fi{min-height:0;overflow:hidden;padding:2px}
+/* campos */
+.zipco-asf-sec{padding:10px 10px 11px}
+.zipco-asf-lb2{margin-top:6px;font-size:12.5px}
+.zipco-asf-dt{display:grid;gap:10px;padding-top:2px}
+.zipco-asf-dt label{display:grid;gap:4px;font-size:12px;font-weight:800;color:#334155}
+.zipco-asf-dt input,.zipco-asf-money input,.zipco-asf-tx textarea{display:block;width:100%;min-width:0;min-height:48px;padding:10px;border:0;border-radius:14px;background:#f8fafc;box-shadow:inset 0 0 0 1.5px #cbd5e1;color:#0f172a;font:inherit;font-size:15px;font-weight:600;outline:0;transition:box-shadow .15s,background .15s}
+.zipco-asf-dt input:focus,.zipco-asf-money input:focus,.zipco-asf-tx textarea:focus{background:#fff;box-shadow:inset 0 0 0 2px #14b8a6,0 0 0 4px rgba(20,184,166,.18)}
+.zipco-asf-dt input:disabled,.zipco-asf-money input:disabled,.zipco-asf-tx textarea:disabled{opacity:.6}
+.zipco-asf-tx{display:block;min-width:0;max-width:100%}
+.zipco-asf-tx textarea{padding:13px 12px;line-height:22px;resize:none;overflow:hidden;overflow-wrap:anywhere}
+.zipco-asf-tx textarea::placeholder{color:#94a3b8;font-weight:500}
+.zipco-asf-txf{display:none;margin-top:6px}
+.zipco-asf-tx[data-h="1"] .zipco-asf-txf,.zipco-asf-tx:focus-within .zipco-asf-txf{display:flex}
+.zipco-asf-cnt{margin-left:2px;font-size:10.5px;font-weight:800;color:#94a3b8;font-variant-numeric:tabular-nums}
+.zipco-asf-inw{position:relative;display:block}
+.zipco-asf-money b{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:900;color:#0f766e;pointer-events:none}.zipco-asf-money input{padding-left:28px;padding-right:12px;font-size:17px;font-weight:800}
+.zipco-asf-am{display:grid;gap:5px;padding:2px}.zipco-asf-am>small{font-size:11.5px;line-height:14px;font-weight:600;color:#64748b}.zipco-asf-am .zipco-asf-lb{font-size:12.5px}
+.zipco-asf-er{margin:0;padding:7px 9px;border-radius:11px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fecdd3;font-size:12px;line-height:1.35;font-weight:600;color:#be123c}
+/* selector de hora compartido (TimePicker) con la paleta del negocio */
+.zipco-asf-dlg .zipco-tp-l{font-size:12px;font-weight:800;color:#334155}
+.zipco-asf-dlg .zipco-tp-c{color:#5eead4}
+.zipco-asf-dlg .zipco-tp-s{background:#f8fafc;box-shadow:inset 0 0 0 1.5px #cbd5e1}
+.zipco-asf-dlg .zipco-tp-b{background:#ccfbf1;color:#0f766e}
+.zipco-asf-dlg .zipco-tp-b.zipco-tp-pl{background:linear-gradient(115deg,#14b8a6,#0891b2);color:#fff;box-shadow:0 4px 10px rgba(8,145,178,.3)}
+.zipco-asf-dlg .zipco-tp-v b{color:#0f172a}
+.zipco-asf-dlg .zipco-tp-v:focus-visible,.zipco-asf-dlg .zipco-tp-b:focus-visible{outline:3px solid #0d9488;outline-offset:1px}
+/* Guardar y resumen compacto */
+.zipco-asf-sv-row{margin-top:2px}
+.zipco-asf-sv{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:46px;padding:0 14px;border:0;border-radius:14px;background:#ecfdf5;box-shadow:inset 0 0 0 1.5px #34d399;color:#047857;font-size:14px;font-weight:800}
+.zipco-asf-sv svg{width:15px;height:15px;stroke-width:3}
+.zipco-asf-sv:hover:not(:disabled){background:#d1fae5}.zipco-asf-sv:active:not(:disabled){transform:scale(.98)}
+.zipco-asf-sv:disabled{background:#f1f5f9;box-shadow:inset 0 0 0 1.5px #e2e8f0;color:#94a3b8}
+.zipco-asf-fs.is-done{padding:3px 4px;gap:0;background:#f0fdfa;box-shadow:inset 0 0 0 1.5px #99f6e4}
+.zipco-asf-sum{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0;padding:6px 8px;border:0;border-radius:14px;background:transparent;color:#0f172a;text-align:left}
+.zipco-asf-sum:focus-visible{outline-offset:-2px}
+.zipco-asf-sum>svg:first-child{width:18px;height:18px;padding:3px;border-radius:99px;background:#10b981;color:#fff;stroke-width:3.6}
+.zipco-asf-sum>svg:last-child{width:16px;height:16px;margin-left:auto;color:#0f766e}
+.zipco-asf-sum>span{flex:1;min-width:0;display:grid;gap:1px}
+.zipco-asf-sum b{font-size:14px;line-height:18px;font-weight:800;color:#0f766e}
+.zipco-asf-sum small{font-size:12px;line-height:15px;font-weight:700;color:#0f766e;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zipco-asf-sum:disabled{opacity:.6}
+/* WhatsApp */
+.zipco-asf-wa{padding:8px 10px}
+.zipco-asf-sw{position:relative;display:flex;align-items:center;gap:11px;min-height:52px;cursor:pointer;border-radius:14px}
+.zipco-asf-tgl{flex:none;width:44px;height:26px;border-radius:99px;background:#cbd5e1;position:relative;transition:background .2s}.zipco-asf-tgl i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(15,23,42,.3);transition:transform .2s}
+.zipco-asf-sw.on .zipco-asf-tgl{background:linear-gradient(105deg,#10b981,#0891b2)}.zipco-asf-sw.on .zipco-asf-tgl i{transform:translateX(18px)}
+.zipco-asf-need{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;background:#fef3c7;color:#92400e;font-size:9.5px;line-height:14px;font-style:normal;font-weight:800;vertical-align:1px}
+/* aviso de horario (BusinessResponseHoursNotice, componente compartido: solo se reestiliza desde aquí) */
+.zipco-asf-body aside[data-response-hours]{margin:0;padding:9px 11px;border:0;border-radius:15px;background:#fffbeb;box-shadow:inset 0 0 0 1.5px #fde68a;font-size:12px;line-height:1.4;color:#78350f}
+.zipco-asf-body aside[data-response-hours]::before{content:"INFORMATIVO · NO BLOQUEA EL ENVÍO";display:block;margin-bottom:2px;font-size:9px;line-height:12px;font-weight:900;letter-spacing:.1em;color:#b45309}
+.zipco-asf-body aside[data-response-hours] p{margin:0}.zipco-asf-body aside[data-response-hours] p+p{margin-top:3px;font-weight:700;color:#92400e}
+.zipco-asf-body aside[data-response-hours] button{min-height:44px;margin:0 0 -8px -4px;padding:0 4px;border:0;background:none;font-size:12.5px;font-weight:800;color:#b45309;text-decoration:underline}
+.zipco-asf-keep{display:flex;align-items:flex-start;gap:8px;margin:0;padding:9px 11px;border-radius:14px;background:#ecfdf5;box-shadow:inset 0 0 0 1px #a7f3d0;font-size:12px;line-height:1.4;font-weight:600;color:#065f46}.zipco-asf-keep svg{width:16px;height:16px;margin-top:1px;color:#059669}
+/* error y recuperación (reutiliza los elementos existentes del formulario) */
+.zipco-asf-body .zipco-as-error{margin:0;padding:10px 12px;border:0;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fecdd3;font-size:12px;line-height:1.4;color:#be123c}
+.zipco-asf-body .zipco-as-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.zipco-asf-body .zipco-as-actions>button{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 14px;border:1.5px solid #fecdd3;border-radius:999px;background:#fff;color:#be123c;font-size:12.5px;font-weight:800}
+.zipco-asf-body .zipco-as-actions>button:disabled{opacity:.55}
+/* pie */
+.zipco-asf-ft{flex:none;display:grid;gap:8px;padding:9px 14px 12px;background:#fff;box-shadow:0 -8px 18px rgba(15,23,42,.07);border-top:1px solid #e2e8f0}
+.zipco-asf-st{display:flex;align-items:center;gap:8px;min-height:30px;font-size:12px;line-height:15px;color:#475569}
+.zipco-asf-st>i{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%}.zipco-asf-st>i svg{width:14px;height:14px;stroke-width:2.8}
+.zipco-asf-st b{font-weight:800}
+.zipco-asf-st.miss{align-items:flex-start;flex-wrap:wrap}
+.zipco-asf-ml{flex:none;padding-top:7px;font-size:11px;font-weight:900;letter-spacing:.04em;color:#92400e}
+.zipco-asf-chips{display:flex;flex-wrap:wrap;gap:0 5px;min-width:0}
+.zipco-asf-chip{position:relative;min-height:44px;margin:-6px 0;padding:0;border:0;background:none;display:inline-flex;align-items:center}
+.zipco-asf-chip>span{display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 8px;border-radius:99px;background:#fef3c7;box-shadow:inset 0 0 0 1.5px #fcd34d;color:#92400e;font-size:11.5px;line-height:14px;font-weight:800;white-space:nowrap}
+.zipco-asf-chip>span::before{content:"";width:6px;height:6px;border-radius:50%;background:#f59e0b}
+.zipco-asf-chip:active>span{transform:scale(.96)}
+.zipco-asf-st.ready{color:#065f46}.zipco-asf-st.ready>i{background:linear-gradient(145deg,#10b981,#0891b2);color:#fff}
+.zipco-asf-st.warn{color:#78350f}.zipco-asf-st.warn>i{background:#fef3c7;color:#b45309}
+.zipco-asf-st.busy{color:#0f766e}.zipco-asf-sp{flex:none;width:18px;height:18px;border-radius:50%;border:3px solid #14b8a6;border-right-color:transparent;animation:zipco-asf-spin .8s linear infinite}
+@keyframes zipco-asf-spin{to{transform:rotate(360deg)}}
+.zipco-asf-bt{display:flex;gap:8px}
+.zipco-asf-vol,.zipco-asf-go{flex:1;min-width:0;min-height:48px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:800;line-height:1.2;display:flex;align-items:center;justify-content:center}
+.zipco-asf-vol{border:1.5px solid #c4b5fd;background:#fff;color:#4c1d95}
+.zipco-asf-go{flex:1.35;position:relative;overflow:hidden;border:0;color:#fff;text-shadow:0 1px 3px rgba(30,27,75,.5);background:linear-gradient(105deg,#a855f7,#6d28d9 48%,#4f46e5);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.45),0 8px 18px rgba(124,58,237,.38)}
+.zipco-asf-go:not(:disabled){animation:zipco-asf-halo 1.9s ease-out 4}
+@keyframes zipco-asf-halo{0%,100%{box-shadow:inset 0 1.5px 0 rgba(255,255,255,.45),0 8px 18px rgba(124,58,237,.38),0 0 0 0 rgba(139,92,246,.55)}50%{box-shadow:inset 0 1.5px 0 rgba(255,255,255,.45),0 8px 18px rgba(124,58,237,.38),0 0 0 8px rgba(139,92,246,0)}}
+.zipco-asf-go:disabled{background:linear-gradient(105deg,#cbd5e1,#94a3b8);box-shadow:none;text-shadow:none;opacity:.75}
+.zipco-asf-go:active:not(:disabled),.zipco-asf-vol:active:not(:disabled){transform:scale(.97)}
+/* anchos estrechos */
+@media(max-width:380px){.zipco-asf-h h2{font-size:17.5px;line-height:21px}}
+@media(max-width:350px){.zipco-asf-body{padding:10px 10px 12px}.zipco-asf-ft{padding:8px 10px 10px}.zipco-asf-vol,.zipco-asf-go{font-size:13px;padding:0 8px}.zipco-asf-at strong{font-size:32px;line-height:34px}.zipco-asf-cal{width:48px}.zipco-asf-new{font-size:10px;letter-spacing:.05em}}
+@media(prefers-reduced-motion:reduce){
+  .zipco-asf-dlg,.zipco-asf-dlg *,.zipco-asf-dlg *::before,.zipco-asf-dlg *::after{animation:none!important;transition:none!important}
+  .zipco-asf-sp{animation:zipco-asf-spin .8s linear infinite!important}
+}

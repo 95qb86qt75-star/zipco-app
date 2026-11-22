@@ -7,6 +7,15 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-22: formulario negocio E221 «Revisar fecha y condiciones» rediseñado
+  en los dos archivos AvailabilityScheduleCard/availability-schedule.css. Tres
+  secciones resumibles, TimePicker real, monto agrupado con coma y requisitos
+  visibles de envío. Compatibilidad confirmada por backend en contrato §4.1:
+  interruptor único con BUSINESS_CONTACT_COPY exacto visible, inicialmente apagado,
+  sin restaurar autorización del borrador. Nueva apertura/versión o necesidad de
+  actualizar reinician el control; recuperación conserva cuerpo/UUID originales.
+  Sin cambios de API/Railway. [Evidencia](frontend-availability-schedule-review-e221-qa.md).
+
 - 2026-11-22: negocio Pendientes/AWAITING_BUSINESS recibe el diseño compacto
   de nueva fecha en AvailabilityScheduleCard y availability-schedule.css.
   CTA abre el formulario E221 existente; Detalle separa nota de la nueva fecha,

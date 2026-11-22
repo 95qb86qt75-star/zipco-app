@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {useEffect,useId,useRef,useState} from 'react';
+import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import {CalendarClock,Check,ChevronDown,ChevronRight,Clock,Hourglass,Image as ImageIcon,Info,List,Quote,RefreshCw,Store,X} from 'lucide-react';
+import {AlertTriangle,Bell,CalendarClock,Check,ChevronDown,ChevronRight,Clock,CreditCard,Gift,Hourglass,Image as ImageIcon,Info,List,Lock,Pencil,Quote,RefreshCw,ShieldCheck,Store,X} from 'lucide-react';
 import type {BusinessRequest,MyOrder,Product} from '../../../domain/types';
 import type {AvailabilityScheduleReview,RequestedSchedule} from '../../../domain/availabilityScheduleReview';
 import type useAvailabilitySchedule from '../../../application/useAvailabilitySchedule';
@@ -28,6 +28,16 @@ const santiagoParts=(iso:string|null)=>{
   const clean=(value:string)=>value.replace('.','').toUpperCase();
   return {weekday:clean(get('weekday')),day:get('day'),month:clean(get('month')),year:get('year'),time:`${get('hour')}:${get('minute')}`};
 };
+// Monto con separador de miles solo en pantalla; el estado y la validación usan los dígitos sin separador.
+const AMOUNT_SEP=',';
+const groupDigits=(digits:string)=>digits.replace(/\B(?=(\d{3})+(?!\d))/g,AMOUNT_SEP);
+// «lun 23 nov · 11:20» en hora de Chile.
+const shortWhen=(ms:number)=>{
+  const parts=new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms));
+  const get=(type:string)=>parts.find(part=>part.type===type)?.value??'';
+  return `${get('weekday')} ${get('day')} ${get('month')} · ${get('hour')}:${get('minute')}`.replace(/\./g,'').toLowerCase();
+};
+const fitText=(el:HTMLTextAreaElement|null)=>{if(!el)return;el.style.height='auto';el.style.height=`${el.scrollHeight}px`;};
 // Iconos «expandir/contraer» propios (sin depender de la versión de lucide-react).
 const ToggleIcon=({folded}:{folded:boolean})=><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
   <path d="M12 22v-6M12 8V2M4 12H2M10 12H8M16 12h-2M22 12h-2"/><path className="zipco-asx-tg-a" d={folded?'M15 19l-3-3-3 3':'M15 19l-3 3-3-3'}/><path className="zipco-asx-tg-b" d={folded?'M15 5l-3 3-3-3':'M15 5l-3-3-3 3'}/></svg>;
@@ -50,7 +60,14 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   const [date,setDate]=useState(initial.date??''),[time,setTime]=useState(initial.time??''),[note,setNote]=useState(initial.note??'');
   const [decision,setDecision]=useState<'CONFIRM_REQUESTED_SCHEDULE'|'PROPOSE_OTHER_SCHEDULE'>(initial.decision??'CONFIRM_REQUESTED_SCHEDULE');
   const [mode,setMode]=useState<''|'FREE'|'PREPAYMENT'>(initial.mode??''),[amount,setAmount]=useState(initial.amount??'');
-  const [message,setMessage]=useState(initial.message??''),[address,setAddress]=useState(initial.address??''),[contact,setContact]=useState(initial.contact??false),[consent,setConsent]=useState(false);
+  const [message,setMessage]=useState(initial.message??''),[address,setAddress]=useState(initial.address??''),[contact,setContact]=useState(false);
+  // Each new opening requires a deliberate authorization; uncertain retries use
+  // their separately persisted original body/UUID, not these current form values.
+  useEffect(()=>{if(open&&business)setContact(false);},[open,business,order.requestProcess?.version,operation.needsRefresh]);
+  // Permitir WhatsApp es la decisión del negocio y autoriza el contacto; por eso nunca se restaura desde el borrador.
+  // Estado solo visual del formulario del negocio: qué secciones están guardadas (resumidas) y a dónde llevar el foco.
+  const [done,setDone]=useState({date:false,msg:false,mode:false}),[focusTick,setFocusTick]=useState(0);
+  const formId=useId(),bodyRef=useRef<HTMLDivElement>(null),msgRef=useRef<HTMLTextAreaElement>(null),adrRef=useRef<HTMLTextAreaElement>(null),amountRef=useRef<HTMLInputElement>(null),amountCaret=useRef<number|null>(null),pendingFocus=useRef('');
   const [clock,setClock]=useState(Date.now());const anchor=useRef({serverNow:order.requestProcess?.serverNow,local:Date.now()});
   if(anchor.current.serverNow!==order.requestProcess?.serverNow)anchor.current={serverNow:order.requestProcess?.serverNow,local:Date.now()};
   useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),15000);return()=>clearInterval(timer);},[]);
@@ -73,6 +90,27 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   },[business,review.phase,expanded,open,operation.busy,operation.error]);
   const process=order.requestProcess!,plan=process.availability!,offer=plan.reservationOffer!;
   useEffect(()=>{saveScheduleDraft(draftSlot,process,{date,time,note,decision,mode,amount,message,address,contact});},[date,time,note,decision,mode,amount,message,address,contact]);
+  // Los campos de texto del negocio crecen con lo escrito para que se vea todo sin desplazarse hacia el lado.
+  useLayoutEffect(()=>{fitText(msgRef.current);fitText(adrRef.current);},[message,address,open,done.msg]);
+  // El monto se muestra agrupado; el cursor se mantiene junto al mismo dígito.
+  useLayoutEffect(()=>{
+    const el=amountRef.current,digits=amountCaret.current;if(!el||digits===null)return;
+    amountCaret.current=null;let seen=0,at=0;
+    while(at<el.value.length&&seen<digits){if(/\d/.test(el.value[at]))seen++;at++;}
+    el.setSelectionRange(at,at);
+  },[amount]);
+  // Foco y resaltado al tocar un requisito faltante o al reabrir una sección guardada.
+  useEffect(()=>{
+    const target=pendingFocus.current;if(!target)return;pendingFocus.current='';
+    const timer=window.setTimeout(()=>{
+      const el=bodyRef.current?.querySelector<HTMLElement>(`[data-zf="${target}"]`);if(!el)return;
+      const box=el.closest<HTMLElement>('[data-zs]')??el,summary=target.startsWith('sum-');
+      box.scrollIntoView({block:summary?'nearest':'center',behavior:reducedMotion()?'auto':'smooth'});
+      el.focus({preventScroll:true});
+      if(!summary){box.classList.remove('is-hl');void box.offsetWidth;box.classList.add('is-hl');window.setTimeout(()=>box.classList.remove('is-hl'),1500);}
+    },60);
+    return()=>window.clearTimeout(timer);
+  },[focusTick]);
   const busy=operation.busy||otherBusy,pending=review.phase==='AWAITING_BUSINESS';
   const permitted=business?review.canRenew:review.canRequest;
   const name=('customerName'in order?order.customerName:order.businessName)|| (business?'Cliente':'Negocio');
@@ -82,7 +120,7 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   const now=process.serverNow?Date.parse(process.serverNow)+Math.max(0,clock-anchor.current.local):clock;
   const future=selectedTime!==null&&selectedTime>now;
   const paid=mode==='PREPAYMENT',validAmount=/^[1-9]\d*$/.test(amount)&&Number(amount)<=Math.min(order.total??0,50000000);
-  const validBusiness=!!mode&&message.trim().length>0&&(!paid||validAmount&&contact)&&(!contact||consent);
+  const validBusiness=!!mode&&message.trim().length>0&&(!paid||validAmount&&contact);
   const canSend=permitted&&future&&!busy&&!operation.pending&&!operation.needsRefresh&&(!business||validBusiness);
   const expiredDate=isSimpleOffer(offer)?offer.simplified.scheduledFor:null;
   const send=async()=>{
@@ -91,6 +129,7 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
     const ok=business?await operation.submit({...origin,scheduleRequestId:review.request!.scheduleRequestId,decision,
       ...(decision==='PROPOSE_OTHER_SCHEDULE'?{schedule:selected}:{}),fulfillment:{path:'LOCAL_PICKUP',customerMessage:message.trim(),
         ...(address.trim()?{scheduleOrAddress:address.trim()}:{}),allowCustomerWhatsapp:contact,
+        // Activar WhatsApp es la autorización del negocio; el contrato del API exige este objeto cuando se permite el contacto.
         ...(contact?{businessContactConsent:{accepted:true,textVersion:BUSINESS_CONTACT_VERSION}}:{}),
         reservationOffer:paid?{mode:'PREPAYMENT',requiredAmountClp:Number(amount),...(isAdvisoryOffer(offer)?{hoursPolicy:'ADVISORY_ONLY' as const}:{})}:
           {mode:'FREE',...(isAdvisoryOffer(offer)?{hoursPolicy:'ADVISORY_ONLY' as const}:{})}}}):
@@ -102,38 +141,119 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
       <button type="button" disabled={busy} onClick={()=>void operation.check()}><RefreshCw size={16}/>{busy?'Comprobando…':'Comprobar estado'}</button>
       {operation.pending&&operation.retryAllowed&&<button type="button" disabled={busy} onClick={()=>void operation.retry()}>Reintentar envío original</button>}
     </div>}</>;
+  const locked=busy||operation.pending||!permitted;
+  const requestedMs=business&&review.request?santiagoDraftTime(review.request.requestedSchedule.date,review.request.requestedSchedule.time):null;
+  const requestedPast=requestedMs!==null&&requestedMs<=now;
+  const proposing=decision==='PROPOSE_OTHER_SCHEDULE';
+  const modeReady=!!mode&&(!paid||validAmount);
+  const dateDone=done.date&&future,msgDone=done.msg&&message.trim().length>0,modeDone=done.mode&&modeReady;
+  // Requisitos para enviar (misma regla que canSend). Cada uno lleva al campo que falta.
+  const missing=!business?[]:[
+    ...(!future?[{key:'date',label:!proposing&&requestedPast?'Proponer otra fecha':'Fecha futura',target:proposing?'date':'dec-o'}]:[]),
+    ...(message.trim()?[]:[{key:'msg',label:'Mensaje al cliente',target:'msg'}]),
+    ...(mode?[]:[{key:'mode',label:'Modalidad de reserva',target:'mode'}]),
+    ...(paid&&!validAmount?[{key:'amt',label:'Monto',target:'amt'}]:[]),
+    ...(paid&&!contact?[{key:'wa',label:'Permitir WhatsApp',target:'wa'}]:[])];
+  const goTo=(target:string)=>{
+    if(target==='dec-o'){setDecision('PROPOSE_OTHER_SCHEDULE');target='date';}
+    if(target==='date'||target==='decision')setDone(value=>({...value,date:false}));
+    if(target==='msg')setDone(value=>({...value,msg:false}));
+    if(target==='mode'||target==='amt')setDone(value=>({...value,mode:false}));
+    pendingFocus.current=target;setFocusTick(value=>value+1);
+  };
+  const save=(key:'date'|'msg'|'mode')=>{setDone(value=>({...value,[key]:true}));pendingFocus.current=`sum-${key}`;setFocusTick(value=>value+1);};
+  const onAmount=(event:React.ChangeEvent<HTMLInputElement>)=>{
+    const el=event.target,digitsBefore=el.value.slice(0,el.selectionStart??el.value.length).replace(/\D/g,'').length;
+    amountCaret.current=digitsBefore;setAmount(el.value.replace(/\D/g,'').replace(/^0+/,'').slice(0,12));
+  };
+  const onText=(setter:(value:string)=>void,max:number)=>(event:React.ChangeEvent<HTMLTextAreaElement>)=>setter(event.target.value.replace(/\s*\n\s*/g,' ').slice(0,max));
+  const tag=(ok:boolean)=><em className={`zipco-asf-tag ${ok?'ok':'req'}`}>{ok?<><Check aria-hidden="true"/>LISTO</>:'OBLIGATORIO'}</em>;
+  const request=business?review.request:null,requestParts=request?santiagoParts(request.requestedFor):null;
+  const customerDialog=<Dialog.Content onCloseAutoFocus={e=>{if(trigger.current?.isConnected){e.preventDefault();trigger.current.focus({preventScroll:true});}}} className="zipco-as-dialog" aria-busy={busy||undefined} onEscapeKeyDown={e=>{if(busy)e.preventDefault();}}>
+    <header><div><Dialog.Title>Solicitar nueva fecha</Dialog.Title><Dialog.Description>Conservamos tu solicitud. Pedir otra fecha no reserva ni confirma un pago.</Dialog.Description></div><button type="button" aria-label="Cerrar" disabled={busy} onClick={()=>setOpen(false)}><X/></button></header>
+    <div className="zipco-as-body">
+      <div className="zipco-as-customer-schedule">
+        <label>Fecha<input type="date" value={date} disabled={busy||operation.pending} onChange={e=>setDate(e.target.value)}/></label>
+        <TimePicker value={time} onChange={setTime} disabled={busy||operation.pending}/>
+      </div>
+      {selected?.date&&selected.time&&!future&&<p role="alert" className="zipco-as-error">La fecha y hora deben ser futuras y válidas en Chile. Elige otra.</p>}
+      <label>Nota (opcional)<textarea maxLength={300} value={note} disabled={busy||operation.pending} onChange={e=>setNote(e.target.value)}/></label>
+      {errors}
+    </div>
+    <footer><button type="button" disabled={busy} onClick={()=>setOpen(false)}>Volver</button><button type="button" className="zipco-as-primary" disabled={!canSend} onClick={()=>void send()}>{busy?'Enviando…':'Enviar nueva fecha'}</button></footer>
+  </Dialog.Content>;
+  // Negocio · «Revisar fecha y condiciones». Mismos campos, validaciones, borrador y envío; cambia la presentación.
+  const businessDialog=<Dialog.Content onCloseAutoFocus={e=>{if(trigger.current?.isConnected){e.preventDefault();trigger.current.focus({preventScroll:true});}}} className="zipco-asf-dlg" aria-busy={busy||undefined} onEscapeKeyDown={e=>{if(busy)e.preventDefault();}}>
+    <header className="zipco-asf-h"><span className="zipco-asf-hi" aria-hidden="true"><CalendarClock/></span>
+      <div><Dialog.Title>Revisar fecha y condiciones</Dialog.Title><Dialog.Description>Enviarás una oferta nueva. El cliente debe aceptarla antes de reservar.</Dialog.Description></div>
+      <button type="button" className="zipco-asf-x" aria-label="Cerrar" disabled={busy} onClick={()=>setOpen(false)}><X/></button></header>
+    <div className="zipco-asf-body" ref={bodyRef}>
+      {request&&requestParts&&<div className={`zipco-asf-ask${requestedPast?' is-past':''}`} role="group" aria-label={`Nueva fecha solicitada: ${when(request.requestedFor)}`}>
+        <i className="zipco-asf-ag zipco-asf-ag1" aria-hidden="true"/><i className="zipco-asf-ag zipco-asf-ag2" aria-hidden="true"/>
+        <span className="zipco-asf-new"><i aria-hidden="true"><Bell/></i>NUEVA FECHA SOLICITADA</span>
+        <div className="zipco-asf-ar">
+          <span className="zipco-asf-cal" aria-hidden="true"><small>{requestParts.weekday}</small><b>{requestParts.day}</b><i>{requestParts.month}</i></span>
+          <div className="zipco-asf-at"><span className="zipco-asf-hl">El cliente pide el retiro a las</span><strong>{requestParts.time}</strong><span className="zipco-asf-sn">Hora de Chile · enviada el {shortWhen(Date.parse(request.requestedAt))}</span></div>
+          {requestedPast&&<span className="zipco-asf-stamp">YA PASÓ</span>}
+        </div></div>}
+      {requestedPast&&<p className="zipco-asf-past" role="note"><AlertTriangle aria-hidden="true"/><span><b>La fecha solicitada ya pasó.</b> Propón otra fecha para poder enviar la oferta.</span></p>}
+      {/* 1 · Fecha */}
+      {dateDone?<div className="zipco-asf-fs is-done" data-zs="date"><button type="button" className="zipco-asf-sum" data-zf="sum-date" disabled={locked} aria-label="Editar fecha" onClick={()=>goTo('decision')}><Check aria-hidden="true"/><span><b>Fecha definida</b><small>{selectedTime!==null&&shortWhen(selectedTime)}</small></span><Pencil aria-hidden="true"/></button></div>:
+      <fieldset className="zipco-asf-fs" data-zs="date" disabled={locked}><legend><i>1</i>¿Qué fecha propones?{tag(future)}</legend>
+        <label className={`zipco-asf-opt${!proposing?' on':''}`}><input type="radio" name="schedule-decision" data-zf={!proposing?'decision':undefined} checked={!proposing} onChange={()=>setDecision('CONFIRM_REQUESTED_SCHEDULE')}/><span className="zipco-asf-ck" aria-hidden="true"/><span className="zipco-asf-ot"><b>Confirmar la fecha solicitada</b><small>{requestedMs!==null&&shortWhen(requestedMs)}</small></span></label>
+        <label className={`zipco-asf-opt${proposing?' on':''}`}><input type="radio" name="schedule-decision" data-zf={proposing?'decision':undefined} checked={proposing} onChange={()=>setDecision('PROPOSE_OTHER_SCHEDULE')}/><span className="zipco-asf-ck" aria-hidden="true"/><span className="zipco-asf-ot"><b>Proponer otra fecha</b><small>Elige fecha y hora de Chile</small></span></label>
+        <div className="zipco-asf-fold" data-ex={proposing} {...(proposing?{}:{inert:''})}><div className="zipco-asf-fi"><div className="zipco-asf-dt">
+          <label>Fecha<input type="date" data-zf="date" value={date} disabled={locked} onChange={e=>setDate(e.target.value)}/></label>
+          <TimePicker value={time} onChange={setTime} disabled={locked}/></div></div></div>
+        {selected?.date&&selected.time&&!future&&<p role="alert" className="zipco-asf-er">La fecha y hora deben ser futuras y válidas en Chile. Elige otra.</p>}
+        <div className="zipco-asf-sv-row"><button type="button" className="zipco-asf-sv" disabled={!future||locked} onClick={()=>save('date')}><Check aria-hidden="true"/>Guardar</button></div>
+      </fieldset>}
+      {/* 2 · Mensaje + horario/dirección (un solo Guardar) */}
+      {msgDone?<div className="zipco-asf-fs is-done" data-zs="msg"><button type="button" className="zipco-asf-sum" data-zf="sum-msg" disabled={locked} aria-label="Editar mensaje" onClick={()=>goTo('msg')}><Check aria-hidden="true"/><span><b>Mensaje listo</b><small>{address.trim()?'Con horario o dirección de retiro':'Sin horario o dirección de retiro'}</small></span><Pencil aria-hidden="true"/></button></div>:
+      <div className="zipco-asf-fs zipco-asf-sec" data-zs="msg">
+        <label className="zipco-asf-lb" htmlFor={`${formId}-msg`}><i>2</i>Mensaje al cliente{tag(message.trim().length>0)}</label>
+        <div className="zipco-asf-tx" data-h={message?'1':'0'}><textarea id={`${formId}-msg`} ref={msgRef} data-zf="msg" rows={1} maxLength={120} autoComplete="off" enterKeyHint="next" placeholder="Ej.: Tu pedido estará listo a esa hora." value={message} disabled={locked}
+          onChange={onText(setMessage,120)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();adrRef.current?.focus();}}}/><div className="zipco-asf-txf"><span className="zipco-asf-cnt">{message.length}/120</span></div></div>
+        <label className="zipco-asf-lb zipco-asf-lb2" htmlFor={`${formId}-adr`}>Horario o dirección de retiro<em className="zipco-asf-tag opt">OPCIONAL</em></label>
+        <div className="zipco-asf-tx" data-h={address?'1':'0'}><textarea id={`${formId}-adr`} ref={adrRef} rows={1} maxLength={80} autoComplete="off" enterKeyHint="done" placeholder="Ej.: Local 12, Av. Principal 123" value={address} disabled={locked}
+          onChange={onText(setAddress,80)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();if(message.trim())save('msg');}}}/><div className="zipco-asf-txf"><span className="zipco-asf-cnt">{address.length}/80</span></div></div>
+        <div className="zipco-asf-sv-row"><button type="button" className="zipco-asf-sv" disabled={!message.trim()||locked} onClick={()=>save('msg')}><Check aria-hidden="true"/>Guardar</button></div>
+      </div>}
+      {/* 3 · Condiciones de reserva */}
+      {modeDone?<div className="zipco-asf-fs is-done" data-zs="mode"><button type="button" className="zipco-asf-sum" data-zf="sum-mode" disabled={locked} aria-label="Editar condiciones de reserva" onClick={()=>goTo('mode')}><Check aria-hidden="true"/><span><b>Reserva definida</b><small>{paid?`Con pago previo · $${groupDigits(amount)}`:'Sin pago previo'}</small></span><Pencil aria-hidden="true"/></button></div>:
+      <fieldset className="zipco-asf-fs" data-zs="mode" disabled={locked}><legend><i>3</i>Condiciones nuevas de reserva{tag(!!mode)}</legend>
+        <p className="zipco-asf-hint">El monto anterior no se aplica automáticamente. Elige la modalidad vigente.</p>
+        <label className={`zipco-asf-opt${mode==='FREE'?' on':''}`}><input type="radio" name="schedule-offer" data-zf={!paid?'mode':undefined} checked={mode==='FREE'} onChange={()=>setMode('FREE')}/><span className="zipco-asf-ck" aria-hidden="true"/><span className="zipco-asf-oi" aria-hidden="true"><Gift/></span><span className="zipco-asf-ot"><b>Reserva sin pago previo</b><small>El cliente reserva sin pagar antes</small></span></label>
+        <label className={`zipco-asf-opt${paid?' on':''}`}><input type="radio" name="schedule-offer" data-zf={paid?'mode':undefined} checked={paid} onChange={()=>setMode('PREPAYMENT')}/><span className="zipco-asf-ck" aria-hidden="true"/><span className="zipco-asf-oi" aria-hidden="true"><CreditCard/></span><span className="zipco-asf-ot"><b>Reserva con pago previo</b><small>Indicas el monto y coordinas por WhatsApp</small></span></label>
+        <div className="zipco-asf-fold" data-ex={paid} {...(paid?{}:{inert:''})}><div className="zipco-asf-fi"><div className="zipco-asf-am">
+          <label className="zipco-asf-lb" htmlFor={`${formId}-amt`}>Monto para reservar{tag(validAmount)}</label>
+          <span className="zipco-asf-inw zipco-asf-money"><b aria-hidden="true">$</b><input id={`${formId}-amt`} ref={amountRef} data-zf="amt" inputMode="numeric" autoComplete="off" placeholder="0" value={groupDigits(amount)} disabled={locked} onChange={onAmount}/></span>
+          <small>Entre $1 y el total del pedido ({clp(Math.min(order.total??0,50000000))}).</small>
+          {amount&&!validAmount&&<span role="alert" className="zipco-asf-er">Indica un monto entero entre $1 y el total del pedido.</span>}</div></div></div>
+        <div className="zipco-asf-sv-row"><button type="button" className="zipco-asf-sv" disabled={!modeReady||locked} onClick={()=>save('mode')}><Check aria-hidden="true"/>Guardar</button></div>
+      </fieldset>}
+      {/* WhatsApp: activar el interruptor es la decisión (y autoriza el contacto); no hay casilla adicional. */}
+      <div className="zipco-asf-fs zipco-asf-wa" data-zs="wa"><label className={`zipco-asf-sw${contact?' on':''}`}><input type="checkbox" role="switch" data-zf="wa" checked={contact} disabled={locked} onChange={e=>setContact(e.target.checked)}/><span className="zipco-asf-tgl" aria-hidden="true"><i/></span>
+        <span className="zipco-asf-ot"><b>Permitir coordinación por WhatsApp{paid&&<em className="zipco-asf-need">necesario para pago previo</em>}</b><small>{BUSINESS_CONTACT_COPY}</small></span></label></div>
+      <BusinessResponseHoursNotice businessId={Number(localStorage.getItem('zipco-business-id'))} date={selected?.date} time={selected?.time} active={future}/>
+      <p className="zipco-asf-keep"><ShieldCheck aria-hidden="true"/><span>Se conserva el producto, la cantidad y el total. Esto no declara pago recibido ni pedido apartado.</span></p>
+      {errors}
+    </div>
+    <footer className="zipco-asf-ft">
+      <div className={`zipco-asf-st ${!permitted||operation.needsRefresh?'warn':busy?'busy':operation.pending?'warn':missing.length===0?'ready':'miss'}`} role="status" aria-live="polite">
+        {!permitted||operation.needsRefresh?<><i><Lock aria-hidden="true"/></i><span><b>No puedes responder esta solicitud ahora.</b> Actualiza el pedido para ver si cambió.</span></>:
+         busy?<><i className="zipco-asf-sp" aria-hidden="true"/><span><b>Enviando la oferta…</b> No cierres esta ventana.</span></>:
+         operation.pending?<><i><Lock aria-hidden="true"/></i><span><b>Hay un envío por comprobar.</b> No enviaremos otra oferta hasta comprobarlo.</span></>:
+         missing.length===0?<><i><Check aria-hidden="true"/></i><span><b>Todo listo.</b> El cliente deberá aceptar la oferta antes de reservar.</span></>:
+         <><span className="zipco-asf-ml">Para enviar falta</span><span className="zipco-asf-chips">{missing.map(item=><button key={item.key} type="button" className="zipco-asf-chip" onClick={()=>goTo(item.target)}><span>{item.label}</span></button>)}</span></>}
+      </div>
+      <div className="zipco-asf-bt"><button type="button" className="zipco-asf-vol" disabled={busy} onClick={()=>setOpen(false)}>Volver</button><button type="button" className="zipco-asf-go" disabled={!canSend} onClick={()=>void send()}>{busy?'Enviando…':'Enviar nueva oferta'}</button></div>
+    </footer>
+  </Dialog.Content>;
   const dialog=<>
     <Dialog.Root open={open} onOpenChange={v=>{if(!busy)setOpen(v);}}><Dialog.Portal><Dialog.Overlay className="zipco-as-overlay"/>
-      <Dialog.Content onCloseAutoFocus={e=>{if(trigger.current?.isConnected){e.preventDefault();trigger.current.focus({preventScroll:true});}}} className="zipco-as-dialog" aria-busy={busy||undefined} onEscapeKeyDown={e=>{if(busy)e.preventDefault();}}>
-        <header><div><Dialog.Title>{business?'Revisar fecha y condiciones':'Solicitar nueva fecha'}</Dialog.Title><Dialog.Description>{business?'Enviarás una oferta nueva. El cliente debe aceptarla antes de reservar.':'Conservamos tu solicitud. Pedir otra fecha no reserva ni confirma un pago.'}</Dialog.Description></div><button type="button" aria-label="Cerrar" disabled={busy} onClick={()=>setOpen(false)}><X/></button></header>
-        <div className="zipco-as-body">
-          {business&&<><p>El cliente pidió: <b>{review.request&&when(review.request.requestedFor)}</b></p>
-            <fieldset disabled={busy||operation.pending}><legend>¿Qué fecha propones?</legend>
-              <label><input type="radio" name="schedule-decision" checked={decision==='CONFIRM_REQUESTED_SCHEDULE'} onChange={()=>setDecision('CONFIRM_REQUESTED_SCHEDULE')}/>Confirmar la fecha solicitada</label>
-              <label><input type="radio" name="schedule-decision" checked={decision==='PROPOSE_OTHER_SCHEDULE'} onChange={()=>setDecision('PROPOSE_OTHER_SCHEDULE')}/>Proponer otra fecha</label></fieldset></>}
-          {(!business||decision==='PROPOSE_OTHER_SCHEDULE')&&(!business?
-            <div className="zipco-as-customer-schedule">
-              <label>Fecha<input type="date" value={date} disabled={busy||operation.pending} onChange={e=>setDate(e.target.value)}/></label>
-              <TimePicker value={time} onChange={setTime} disabled={busy||operation.pending}/>
-            </div>:
-            <div className="zipco-as-date"><label>Fecha<input type="date" value={date} disabled={busy||operation.pending} onChange={e=>setDate(e.target.value)}/></label><label>Hora de Chile<input type="time" value={time} disabled={busy||operation.pending} onChange={e=>setTime(e.target.value)}/></label></div>)}
-          {selected?.date&&selected.time&&!future&&<p role="alert" className="zipco-as-error">La fecha y hora deben ser futuras y válidas en Chile. Elige otra.</p>}
-          {!business?<label>Nota (opcional)<textarea maxLength={300} value={note} disabled={busy||operation.pending} onChange={e=>setNote(e.target.value)}/></label>:<>
-            <label>Mensaje al cliente<input maxLength={120} value={message} disabled={busy||operation.pending} onChange={e=>setMessage(e.target.value)}/></label>
-            <label>Horario o dirección de retiro (opcional)<input maxLength={80} value={address} disabled={busy||operation.pending} onChange={e=>setAddress(e.target.value)}/></label>
-            <fieldset disabled={busy||operation.pending}><legend>Condiciones nuevas de reserva</legend><p>El monto anterior no se aplica automáticamente. Elige la modalidad vigente.</p>
-              <label><input type="radio" name="schedule-offer" checked={mode==='FREE'} onChange={()=>setMode('FREE')}/>Reserva sin pago previo</label>
-              <label><input type="radio" name="schedule-offer" checked={paid} onChange={()=>setMode('PREPAYMENT')}/>Reserva con pago previo</label>
-              {paid&&<label>Monto para reservar<input inputMode="numeric" value={amount} onChange={e=>setAmount(e.target.value)}/>{amount&&!validAmount&&<span role="alert">Indica un monto entero entre $1 y el total del pedido.</span>}</label>}</fieldset>
-            <label><input type="checkbox" checked={contact} disabled={busy||operation.pending} onChange={e=>{setContact(e.target.checked);setConsent(false);}}/>Permitir coordinación por WhatsApp{paid?' (necesario para pago previo)':''}</label>
-            {contact&&<label><input type="checkbox" checked={consent} disabled={busy||operation.pending} onChange={e=>setConsent(e.target.checked)}/>{BUSINESS_CONTACT_COPY}</label>}
-            <BusinessResponseHoursNotice businessId={Number(localStorage.getItem('zipco-business-id'))} date={selected?.date} time={selected?.time} active={future}/>
-            <p className="zipco-as-warning">Se conserva el producto, la cantidad y el total. Esto no declara pago recibido ni pedido apartado.</p>
-          </>}
-          {errors}
-        </div>
-        <footer><button type="button" disabled={busy} onClick={()=>setOpen(false)}>Volver</button><button type="button" className="zipco-as-primary" disabled={!canSend} onClick={()=>void send()}>{busy?'Enviando…':business?'Enviar nueva oferta':'Enviar nueva fecha'}</button></footer>
-      </Dialog.Content></Dialog.Portal></Dialog.Root>
+      {business?businessDialog:customerDialog}
+    </Dialog.Portal></Dialog.Root>
   </>;
   // Negocio · fecha de retiro vencida (EXPIRED_OFFER): el cliente aún no pidió otra fecha; el negocio solo espera o retira la disponibilidad.
   // Cerrada = resumen; abierta = detalle + «Retirar disponibilidad». El cliente y las demás fases del negocio conservan su tarjeta.

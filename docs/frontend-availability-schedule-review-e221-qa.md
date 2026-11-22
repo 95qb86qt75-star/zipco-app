@@ -436,3 +436,81 @@ imágenes remotas bloqueadas con fallback real; no acredita API autenticada ni
 revisión física en iPhone/Android, ambas pendientes. Análisis, implementación,
 preparación de pruebas, documentación y publicación no cronometrados por separado;
 build y navegador solapados no se suman. Main y producción intactos.
+
+### 2026-11-22 — Formulario de nueva oferta y autorización por interruptor
+
+Clasificación final: solo frontend, con compatibilidad de consentimiento confirmada
+por backend antes de implementar (contrato definitivo, sección 4.1/E223). Se había
+detenido la integración al detectar que el adjunto eliminaba la casilla y su texto
+pero enviaba accepted:true. Backend confirmó que el control único es compatible
+sin nueva API, migración ni publicación, si muestra el texto vigente y exige una
+acción nueva del negocio. No se afirmó compatibilidad solo porque el DTO aceptara
+el payload.
+
+Reemplazados completos AvailabilityScheduleCard.tsx y availability-schedule.css.
+businessDialog usa zipco-asf-dlg: encabezado/fecha pedida, secciones Fecha/Mensaje/
+Reserva con Guardar local y resúmenes editables, textarea autoajustable, TimePicker
+compartido real, monto agrupado con coma solo en pantalla y requisitos tocables.
+Guardar sección no envía una acción ni añade requisitos al canSend. Cliente usa
+customerDialog con su marcado anterior; tarjetas existentes conservadas. Fuente
+heredada, sin paquetes ni fuentes nuevas.
+
+Ajustes necesarios al adjunto, dentro del mismo TSX: BUSINESS_CONTACT_COPY exacto
+visible junto al interruptor; autorización comienza apagada sin leer initial.contact.
+Se reinicia en cada apertura, cambio de versión y cambio de needsRefresh para que
+una nueva intención no herede aceptación. El payload existente solo incluye
+businessContactConsent:{accepted:true,textVersion:'availability-business-whatsapp-v1'}
+cuando contact=true; apagado omite el objeto. PREPAYMENT conserva monto válido y
+WhatsApp obligatorio. No se cambia availabilityScheduleApi, useAvailabilitySchedule
+ni la recuperación persistida: los reintentos usan su cuerpo/UUID original.
+
+Endpoints/campos existentes E221: POST actions/renew-availability-schedule con
+decision/scheduleRequestId/fulfillment y condiciones explícitas; GET
+availability-schedule-result y lecturas de pedido para comprobar. Ningún cambio
+de estados, permisos, contrato o Railway. No hubo mutaciones QA reales.
+
+Pruebas seleccionadas por formulario, autorización y recuperación:
+
+- 30 pruebas E221 (normalizador, API, borrador) aprobadas en 821 ms; 37 pruebas de
+  availabilityContract/availabilityRecovery aprobadas en 834 ms. 67 en total.
+  No existe availabilityApi.test.ts: se utilizó availabilityContract.test.ts,
+  que cubre el transporte/contrato de disponibilidad real.
+- Chromium, RequestsScreen y componentes reales con HTTP simulado: 320/360/390/430,
+  guardar/reabrir las tres secciones, chips/foco, monto 21900→21,900 inválido si
+  supera el total, 2500→2,500 válido, requisito WhatsApp PREPAYMENT, texto exacto,
+  reinicio al reabrir, cero POST por edición local, retorno de foco y sin desborde.
+- Borrador restaura mensaje/dirección/modalidad/monto, no autorización. FREE con
+  interruptor apagado envía false y omite businessContactConsent. PREPAYMENT solo
+  se envía tras activación deliberada, accepted:true y versión vigente.
+- Estado enviando bloquea controles/cierre y explica el envío. Pérdida simulada:
+  cerrar formulario mantiene CTA bloqueado y recuperación visible incluso con la
+  hoja original abierta. Comprobar no reenvía; reintento conserva cuerpo y UUID
+  idénticos, incluidos monto/consentimiento original. Rechazo definitivo y lectura
+  posterior requieren activar de nuevo el interruptor para otra intención.
+- Fecha pedida pasada identificada; chip propone otra fecha y enfoca el campo.
+  Diálogo cliente original con nota/selector real, NegW14 y cliente En espera
+  conservados. Movimiento reducido apaga adornos; spinner operativo conservado.
+- Edición real con Input.insertText/Backspace a mitad del monto conserva posición
+  junto al mismo dígito. Nueva línea se convierte en espacio; Enter pasa de mensaje
+  a dirección y Enter en dirección guarda localmente/focaliza el resumen, sin POST.
+- Primer fallo del arnés: selector aria-label mal escapado, corregido. Otro caso
+  intentaba reabrir un formulario con operación incierta aunque el CTA está bloqueado
+  por contrato: se usó la recuperación exterior real. Se corrigió duplicación del
+  generador de pruebas. Ninguno implicó relajar permisos o cambiar recuperación.
+  Se repitieron los casos de autorización tras ampliar el reinicio a cambios de
+  versión/needsRefresh, no toda la matriz responsive ya aprobada.
+- Build QA final aprobado: Vite 13,86 s, PWA correcta; anterior 9,24 s aprobado,
+  repetido por el ajuste de reinicio. Aviso preexistente de tamaño de bundles.
+  No hay tsc/typecheck ni lint configurados/disponibles; no se afirman aprobados.
+
+Se conserva la unidad actual en los dos archivos autorizados aunque el formulario
+y CSS superan 500 líneas; no se comprimió ni fragmentó el flujo. Una extracción
+posterior por responsabilidad requiere definir su alcance; no se abrieron archivos
+nuevos de app en este rediseño. Doble punto del aviso horario identificado, pendiente
+de ajuste separado en componentes de referencia fuera del alcance autorizado.
+
+Evidencia ignorada: node_modules/.cache/e221-business-form/, formulario inicial320,
+resúmenes listos en cuatro anchos y recuperación. Imágenes remotas bloqueadas y
+API simulada: no sustituye revisión autenticada ni pruebas en iPhone/Android.
+Análisis, implementación, preparación, documentación y publicación sin medición
+individual; build/navegador solapados no se suman. Main y producción intactos.
