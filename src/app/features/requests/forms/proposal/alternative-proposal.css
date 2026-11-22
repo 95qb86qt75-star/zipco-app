@@ -155,24 +155,6 @@
 
 /* ===== Hora de la disponibilidad: selector propio y confirmación «¿Proponer esta hora?» (AlternativeChangeEditor, presentación Glow) =====
    El valor sigue siendo «HH:MM» en 24 h. Los estilos son propios (zipco-tp*, zipco-tpop*) y no tocan el resto del archivo. */
-.zipco-tp { margin-top: 2px }
-.zipco-tp-l { display: block; font-size: 11.5px; font-weight: 800; color: #334155 }
-.zipco-tp-r { display: flex; align-items: center; gap: 6px; margin-top: 6px }
-.zipco-tp-c { flex: none; font-size: 24px; font-weight: 800; color: #a5b4fc }
-.zipco-tp-s { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 2px; padding: 4px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px #c7d2fe }
-.zipco-tp-b { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #e0e7ff; color: #3730a3; font-size: 19px; font-weight: 800; line-height: 1; transition: transform .15s }
-.zipco-tp-b.zipco-tp-pl { color: #fff; background: linear-gradient(115deg,#7c3aed,#4f46e5 55%,#0e9f98); box-shadow: 0 4px 10px rgba(91,79,240,.28) }
-.zipco-tp-b:active:not(:disabled) { transform: scale(.92) }
-.zipco-tp-v { min-width: 0; min-height: 44px; flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; border-radius: 10px; line-height: 1 }
-.zipco-tp-v b { display: block; font-size: 26px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: #1e1b4b }
-.zipco-tp-v em { display: block; margin-top: 2px; font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8 }
-.zipco-tp-v[data-empty] b { color: #cbd5e1 }
-.zipco-tp-v:focus-visible, .zipco-tp-b:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px }
-.dark .zipco-tp-l { color: #cbd5e1 }
-.dark .zipco-tp-s { background: #0f172a; box-shadow: inset 0 0 0 1px #4338ca }
-.dark .zipco-tp-b:not(.zipco-tp-pl) { background: #1e1b4b; color: #c7d2fe }
-.dark .zipco-tp-v b { color: #f1f5f9 }
-
 @keyframes zipco-tpop-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes zipco-tpop-rise { from { opacity: 0; transform: translateY(10px) scale(.97) } to { opacity: 1; transform: none } }
 .zipco-tpop-ov { position: fixed; inset: 0; z-index: 1100; background: rgba(12,8,38,.52); animation: zipco-tpop-fade .2s both }
@@ -201,15 +183,8 @@
 .dark .zipco-tpop-t, .dark .zipco-tpop-h { color: #f1f5f9 }
 .dark .zipco-tpop-sum { background: rgba(124,58,237,.16); box-shadow: inset 0 0 0 1px #5b21b6 }
 .dark .zipco-tpop-back { background: #0f172a; color: #ddd6fe }
-@media (prefers-reduced-motion: reduce) { .zipco-tpop-ov, .zipco-tpop-in { animation: none } .zipco-tp-b { transition: none } }
+@media (prefers-reduced-motion: reduce) { .zipco-tpop-ov, .zipco-tpop-in { animation: none } }
 @media (max-width: 340px) { .zipco-tpop-in { padding: 16px 12px 12px } .zipco-tpop-h { font-size: 38px } }
-/* Keep the four 44 px controls inside the inline editor on narrow phones. */
-@media (max-width: 380px) {
-  .zipco-tp-s { display: grid; grid-template-columns: 44px 44px; justify-content: center; gap: 3px }
-  .zipco-tp-v { grid-column: 1 / -1; grid-row: 1 }
-  .zipco-tp-b { grid-row: 2 }
-}
-
 /* NegW5 reference: text-only current proposal, with the total at the right. */
 .zipco-final-prepare .zipco-la-orig{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid #e5ddff;border-radius:20px;background:linear-gradient(110deg,#fff,#faf8ff);box-shadow:none}
 .zipco-final-prepare .zipco-la-orig-label{font-size:9px;letter-spacing:.1em}

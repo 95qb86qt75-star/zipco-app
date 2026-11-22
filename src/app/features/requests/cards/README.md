@@ -20,6 +20,11 @@ agrupación única por categorías del participante. Tras renovar se reutilizan 
 tarjeta y aceptación ordinarias de propuesta. No es otra implementación de la
 reserva, del pago o de la contrapropuesta E205.
 
+El selector horario de la solicitud del cliente y de Proponer alternativa tiene
+una única implementación en `shared/time/TimePicker.tsx` y `time-picker.css`.
+El formulario E221 conserva su nota y envío; la confirmación de hora propia de
+las alternativas permanece en AlternativeChangeEditor.
+
 E209 reserva con pago pendiente: `shared/reservations/PickupPrepaymentCard.tsx`
 es la composición funcional de espera para ambos roles. Usa ReservationPanel
 real, sin slider de preparación ni cierre por swipe de En curso. Selección por

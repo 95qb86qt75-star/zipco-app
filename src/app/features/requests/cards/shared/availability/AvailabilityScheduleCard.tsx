@@ -10,6 +10,7 @@ import {BUSINESS_CONTACT_COPY,BUSINESS_CONTACT_VERSION} from '../../../domain/av
 import {isAdvisoryOffer,isSimpleOffer} from '../../../domain/simplifiedReservationContract';
 import BusinessResponseHoursNotice from '../../../shared/hours/BusinessResponseHoursNotice';
 import ProductPreviewControl from '../../../shared/product-preview/ProductPreviewControl';
+import TimePicker from '../../../shared/time/TimePicker';
 import OrderReferencePhoto from '../../../shared/photos/OrderReferencePhoto';
 import {safePhoto} from '../../../domain/agreement';
 import {formatDeliverySchedule} from '../../../domain/utils';
@@ -105,7 +106,12 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
             <fieldset disabled={busy||operation.pending}><legend>¿Qué fecha propones?</legend>
               <label><input type="radio" name="schedule-decision" checked={decision==='CONFIRM_REQUESTED_SCHEDULE'} onChange={()=>setDecision('CONFIRM_REQUESTED_SCHEDULE')}/>Confirmar la fecha solicitada</label>
               <label><input type="radio" name="schedule-decision" checked={decision==='PROPOSE_OTHER_SCHEDULE'} onChange={()=>setDecision('PROPOSE_OTHER_SCHEDULE')}/>Proponer otra fecha</label></fieldset></>}
-          {(!business||decision==='PROPOSE_OTHER_SCHEDULE')&&<div className="zipco-as-date"><label>Fecha<input type="date" value={date} disabled={busy||operation.pending} onChange={e=>setDate(e.target.value)}/></label><label>Hora de Chile<input type="time" value={time} disabled={busy||operation.pending} onChange={e=>setTime(e.target.value)}/></label></div>}
+          {(!business||decision==='PROPOSE_OTHER_SCHEDULE')&&(!business?
+            <div className="zipco-as-customer-schedule">
+              <label>Fecha<input type="date" value={date} disabled={busy||operation.pending} onChange={e=>setDate(e.target.value)}/></label>
+              <TimePicker value={time} onChange={setTime} disabled={busy||operation.pending}/>
+            </div>:
+            <div className="zipco-as-date"><label>Fecha<input type="date" value={date} disabled={busy||operation.pending} onChange={e=>setDate(e.target.value)}/></label><label>Hora de Chile<input type="time" value={time} disabled={busy||operation.pending} onChange={e=>setTime(e.target.value)}/></label></div>)}
           {selected?.date&&selected.time&&!future&&<p role="alert" className="zipco-as-error">La fecha y hora deben ser futuras y válidas en Chile. Elige otra.</p>}
           {!business?<label>Nota (opcional)<textarea maxLength={300} value={note} disabled={busy||operation.pending} onChange={e=>setNote(e.target.value)}/></label>:<>
             <label>Mensaje al cliente<input maxLength={120} value={message} disabled={busy||operation.pending} onChange={e=>setMessage(e.target.value)}/></label>

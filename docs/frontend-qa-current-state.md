@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-22: «Solicitar nueva fecha» del cliente reutiliza el selector horario
+  de Proponer alternativa, extraído a shared/time/TimePicker.tsx y su CSS.
+  Horas ±1, minutos ±5 y teclado; valor HH:MM, nota, validación y envío E221
+  conservados. Fecha nativa arriba a ancho completo para evitar el desborde del
+  iPhone. No se añade el pop-up de propuesta al cliente ni se rediseña la ventana.
+  El negocio mantiene su formulario. Selector/confirmación originales comprobados.
+  [Evidencia](frontend-availability-schedule-review-e221-qa.md).
+
 - 2026-11-22: rediseño entregado por Claude de cliente EXPIRED_OFFER aplicado en
   AvailabilityScheduleCard, availability-schedule.css y AvailabilityFlowCard.
   Producto/cantidad/total solicitado visibles, miniatura real cuadrada, foto y

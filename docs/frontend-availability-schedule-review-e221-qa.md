@@ -220,3 +220,48 @@ Se utilizan los campos/endpoints E221 y DECLINE_REQUEST ya publicados, sin datos
 nuevos ni cambios de contrato. Railway no necesario en este ajuste. Queda pendiente
 validación visual/táctil física del diseño con las cuentas reales Android/iPhone.
 Main y producción intactos.
+
+### 2026-11-22 — Selector horario compartido solicitado por el usuario
+
+Clasificación: solo frontend, presentación e interacción local. Se extrajo el
+TimePicker existente de AlternativeChangeEditor a shared/time/TimePicker.tsx,
+con sus estilos en time-picker.css. Se mantiene una sola implementación; no se
+copió el resto de Proponer alternativa. Su confirmación TimeConfirm permanece
+en el editor original. Props value/onChange conservan HH:MM y se agregó disabled
+para bloquear botones/teclado durante el envío de E221.
+
+En AvailabilityScheduleCard solo el formulario del cliente utiliza el selector;
+fecha nativa a ancho completo arriba, hora debajo y nota existente intacta.
+CSS acotado a zipco-as-customer-schedule evita que las reglas genéricas del
+diálogo aplasten los botones de 44 px. Formulario del negocio, borrador, payload,
+permisos, envío y recuperación no cambian. Los mismos campos E221 siguen usando
+actions/request-availability-schedule; no requiere backend ni cambios Railway.
+
+Archivos de aplicación: AvailabilityScheduleCard.tsx, availability-schedule.css,
+AlternativeChangeEditor.tsx, alternative-proposal.css, shared/time/TimePicker.tsx
+y time-picker.css. No se modifica index.css ni la tipografía compartida.
+
+Verificación seleccionada por extracción compartida:
+
+- 46 pruebas aprobadas en 4 archivos: AlternativeChangeEditor, contrato E221,
+  transporte/recuperación y borrador. Duración 986 ms.
+- Chromium con RequestsScreen/componentes reales y HTTP sintético: cliente
+  320/360/390/430, botones ±, flechas del teclado, nota conservada, fecha pasada
+  bloqueada/futura válida, cuatro controles de 44 px y sin desborde horizontal.
+  Seleccionar hora no envía ni abre un pop-up de propuesta.
+- Envío explícito con nota conserva schedule.time=09:05 y el texto de la nota;
+  el selector se bloquea mientras guarda. Sin escrituras QA reales.
+- Proponer alternativa original a 320/390: mismo selector, Guardar abre su
+  confirmación existente y Cambiar hora vuelve sin POST.
+- La primera comprobación del diálogo original usaba scrollWidth. Sus halos
+  preexistentes right:-50/left:-60 suman ancho de scroll aunque ningún control
+  sobresalga. Se midieron los controles dentro del diálogo y se continuó solo
+  esa regresión; no se cambió el diseño original por el halo ni se repitieron
+  los cuatro casos del cliente ya aprobados.
+- Build QA aprobado, Vite 12,25 s y PWA correcta. Sin tsc/lint disponibles.
+  Análisis, implementación, preparación de navegador, documentación y publicación
+  no medidos por separado. Build/navegador solapados no se suman.
+
+Evidencia local ignorada: node_modules/.cache/e221-time-picker/, capturas cliente
+320/390 y alternativa original. Falta verificación física en iPhone del campo
+nativo de fecha y revisión Android. Main y producción intactos.
