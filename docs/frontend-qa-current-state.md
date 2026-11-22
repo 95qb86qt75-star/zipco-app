@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-22: NegW14 integrado para negocio EXPIRED_OFFER: tarjeta Aurora con
+  resumen de cliente/producto/total solicitado y retiro vencido, detalle plegable
+  y hoja de solicitud original. Retirar disponibilidad queda dentro del detalle
+  y usa la confirmación WITHDRAW_AVAILABILITY existente. Solo dos archivos de
+  aplicación modificados; otras fases y cliente conservados. Salida propia
+  sincronizada a los 500 ms del contenedor real del negocio, sin tocarlo.
+  [Pruebas y límites](frontend-availability-schedule-review-e221-qa.md).
+
 - 2026-11-22: cliente E221 AWAITING_BUSINESS usa la misma composición Aurora de
   EXPIRED_OFFER: producto/cantidad/total solicitado, fecha pedida y nota de fecha
   separadas del pedido original. Cancelar solicitud conserva DECLINE_REQUEST y

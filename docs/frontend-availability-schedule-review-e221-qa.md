@@ -319,3 +319,63 @@ descarga de fotos en QA. Pendiente comprobar físicamente en iPhone y Android.
 Análisis, implementación, preparación del arnés, documentación y publicación no
 medidos individualmente. Build y navegador solapados no se suman. Main y producción
 intactos.
+
+### 2026-11-22 — NegW14, negocio con oferta de retiro vencida
+
+Clasificación: solo frontend, presentación/interacción local. Adjuntos completos
+AvailabilityScheduleCard.tsx y availability-schedule.css integrados. Activación
+limitada expresamente a business + AWAITING_CUSTOMER_CONTINUATION + EXPIRED_OFFER.
+Se añadió la comprobación explícita de estado al if entregado; el padre ya la
+aplicaba. Sin cambios en AvailabilityFlowCard ni componentes de referencia.
+
+Resumen de cliente, productos/cantidad y total SOLICITADO; retiro ofrecido vencido
+o fecha no disponible; detalle local con chips y Retirar disponibilidad dentro.
+Hoja original con fecha/nota/foto del pedido y oferta anterior identificada como
+vencida. formatDeliverySchedule no agrega prefijo, por lo que no se duplicó
+«Fecha original». Los datos provienen del pedido y de la oferta simplificada:
+scheduledFor y requiredAmountClp. No se registra pago ni reserva.
+
+Retirar abre el DesignConfirmation real, variante withdraw; confirmar usa el POST
+/request-processes/:id/actions/withdraw-availability existente con expectedVersion,
+proposalId, availabilityConfirmationId e Idempotency-Key. Volver no envía nada.
+Contrato E221, capacidad, UUID, permisos y recuperación intactos. Railway no fue
+necesario; ninguna mutación real QA en las pruebas.
+
+Compatibilidad de salida: StatusChangeFlow sí emite exiting y la tarjeta recibe
+data-leaving. Para el negocio se conserva el feedback/colapso compartido de 500 ms,
+sin data-design-exit (es del recorrido del cliente). El CSS adjunto pedía 900 ms:
+solo se ajustó animation-duration a .5s para esta raíz del negocio, para que no
+quedara cortado. No se modificó el motor compartido ni la salida de 900 ms del
+cliente. Movimiento reducido conserva el comportamiento del sistema.
+
+Verificaciones seleccionadas por los cambios de capas, controles y estilos:
+
+- 51 pruebas aprobadas en 5 archivos: contrato/normalizador E221, API y recuperación,
+  borrador, presentación de cambios y ReservationChoiceFields. Duración 1,31 s.
+- RequestsScreen/componentes reales en Chromium, HTTP sintético: 12 casos, anchos
+  320/360/390/430, uno/tres productos, texto largo, foto, sin nota, FREE y sin fecha.
+  Tarjeta cerrada, abierta y hoja sin desborde; inert, Escape, foco, toggle de 44 px,
+  total etiquetado y cero POST al abrir/cerrar comprobados.
+- Confirmación real: Volver sin POST, retirar envía una vez y llega a Historial.
+  Ambas fases del cliente conservan su raíz; negocio AWAITING_BUSINESS y su diálogo
+  siguen operativos. Movimiento reducido sin animaciones propias.
+- Tras ajustar la duración se repitió solo salida: animación calculada de .5s.
+  También visor real de foto (Escape no cierra la hoja), error sintético de retiro
+  visible con hoja abierta y Comprobar pedido sin reenvío. Sin errores de consola.
+- El arnés inicialmente intentó pulsar el botón de fondo porque confirmación y
+  tarjeta usan «Retirar disponibilidad». Se corrigió para priorizar alertdialog;
+  se repitió solo el recorrido restante, no los doce casos visuales ya aprobados.
+  Después del límite de uso se corrigió un paréntesis del generador de pruebas;
+  sin cambios de app asociados ni repetición de la matriz visual.
+- Build QA final aprobado: Vite 8,19 s, PWA correcta. Build anterior 11,71 s aprobado,
+  repetido por el ajuste de CSS. Aviso preexistente de tamaño de bundles.
+- No hay typecheck/tsc ni lint configurados/disponibles; no se afirman aprobados.
+
+Evidencia local ignorada en node_modules/.cache/e221-business-expired/, capturas
+cerradas/abiertas de los cuatro anchos, original y error. Imágenes remotas bloqueadas:
+se usaron componentes reales con fallback, sin validar descarga de fotos de QA.
+Pendiente revisión física iPhone/Android. Análisis, implementación, preparación,
+documentación y publicación no medidos por separado; build y navegador solapados
+no se suman. La revisión automática no pudo ejecutar una prueba por límite de uso;
+se retomó tras la indicación del usuario, sin eludir el control. Main y producción
+intactos.

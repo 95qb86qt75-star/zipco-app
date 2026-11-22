@@ -46,8 +46,8 @@
 @keyframes zipco-asx-spin{to{transform:rotate(360deg)}}
 @keyframes zipco-asx-leave{0%{max-height:1400px;opacity:1;transform:none}55%{max-height:1400px;opacity:0;transform:translateX(90px) scale(.95)}100%{max-height:0;opacity:0;transform:translateX(90px) scale(.95);padding:0;margin:0}}
 
-.zipco-asx[data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]){position:relative;display:grid;overflow:clip;isolation:isolate;padding:11px;border-radius:24px;background:#fff;color:#0f172a;font-size:13px;box-shadow:0 0 0 1px #d1fae5,0 16px 34px #0f172a17,0 4px 12px #10b9811a;animation:zipco-asx-rise .4s both}
-.zipco-asx[data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"])[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-asx-leave .9s ease-in forwards}
+.zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"][data-phase="EXPIRED_OFFER"]){position:relative;display:grid;overflow:clip;isolation:isolate;padding:11px;border-radius:24px;background:#fff;color:#0f172a;font-size:13px;box-shadow:0 0 0 1px #d1fae5,0 16px 34px #0f172a17,0 4px 12px #10b9811a;animation:zipco-asx-rise .4s both}
+.zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"][data-phase="EXPIRED_OFFER"])[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-asx-leave .9s ease-in forwards}
 .zipco-asx :focus-visible{outline:3px solid #0d9488;outline-offset:2px}
 .zipco-asx-glow{position:absolute;z-index:0;border-radius:50%;pointer-events:none}
 .zipco-asx-glow-a{top:-72px;right:-62px;width:230px;height:230px;background:radial-gradient(closest-side,#d1fae5,#d1fae500);animation:zipco-asx-drift 9s ease-in-out 2}
@@ -219,6 +219,73 @@
   .zipco-asx[data-role="customer"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time>strong{font-size:22px}
   .zipco-asx[data-role="customer"][data-phase="AWAITING_BUSINESS"] .zipco-asx-hg{display:none}
 }
+/* ===== Negocio · fecha de retiro vencida (role=business, phase=EXPIRED_OFFER) =====
+   Cerrada = resumen · abierta = detalle. Todo lo propio vive bajo .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"]; comparte base, hoja y chips con las tarjetas del cliente. */
+/* El contenedor real del negocio conserva su salida compartida de 500 ms. */
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"][data-leaving=true]{animation-duration:.5s}
+@keyframes zipco-asx-oring{0%{box-shadow:0 0 0 0 #10b9818c}70%,100%{box-shadow:0 0 0 8px #10b98100}}
+@keyframes zipco-asx-oup{0%,55%,100%{transform:translateY(0)}70%{transform:translateY(2px)}}
+@keyframes zipco-asx-odn{0%,55%,100%{transform:translateY(0)}70%{transform:translateY(-2px)}}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-who-tag{display:inline-block;margin-right:6px;padding:0 6px;border-radius:99px;background:#0f766e24;color:#0f766e;font-size:8.5px;font-style:normal;font-weight:900;letter-spacing:.12em;vertical-align:1px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-title h3{margin-top:3px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-pill{background:linear-gradient(105deg,#14b8a6,#0891b2);text-shadow:0 1px 2px #134e4a59;animation:zipco-asx-wpulse 2s ease-out 5,zipco-asx-bob 2.6s ease-in-out 3}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-pill>i{color:#0d9488}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-pill>i svg{animation:none;width:12px;height:12px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-modeline{display:flex;align-items:center;gap:5px;margin-top:3px;font-size:11px;font-weight:800;color:#0f766e}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-modeline svg{width:13px;height:13px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-total{display:flex;flex-direction:column;align-items:flex-end}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-ind{display:flex;justify-content:flex-end;gap:5px;margin-top:6px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-ind i{display:grid;place-items:center;width:24px;height:24px;border-radius:8px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-ind svg{width:13px;height:13px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-ind .is-note{background:#faf5ff;color:#7c3aed;box-shadow:inset 0 0 0 1px #ddd6fe}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-ind .is-photo{background:#ecfeff;color:#0e7490;box-shadow:inset 0 0 0 1px #a5f3fc}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-brief{flex:0 0 100%;display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;margin-top:2px;font-size:11.5px;font-weight:600;color:#57534e}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-brief svg{flex:none;width:13px;height:13px;color:#b45309}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-brief b{font-weight:800;color:#0f172a}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-brief u{padding:1px 7px;border-radius:99px;background:#fee2e2;color:#b91c1c;font-size:9px;font-weight:900;letter-spacing:.1em;text-decoration:none}
+/* cerrada ↔ abierta: el pliegue anima el alto sin bucles; cerrado queda fuera del teclado (inert) */
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s .42s}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-fold[data-more="true"]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-fold-in{min-height:0;overflow:hidden}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-fold .zipco-asx-chips{margin-top:8px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-offer{padding:7px 8px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-date{gap:9px;padding:5px 9px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-cal{width:38px;border-radius:9px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-cal small{font-size:7.5px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-cal b{font-size:16px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-cal i{padding-bottom:1px;font-size:7.5px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-time>strong{font-size:20px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-time>span{font-size:9px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-nodate-ic{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:#f5f5f4;color:#78716c;box-shadow:inset 0 0 0 1.5px #d6d3d1}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-nodate-ic svg{width:22px;height:22px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-nodate .zipco-asx-time{filter:none;opacity:1}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-nodate .zipco-asx-time>strong{font-size:19px;color:#57534e}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-wait{display:flex;align-items:flex-start;gap:9px;margin:6px 0 0;padding:8px 10px;border-radius:13px;background:#f0fdfa;box-shadow:inset 0 0 0 1.5px #99f6e4;font-size:12px;line-height:1.35;color:#475569}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-wait>i{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:9px;color:#fff;background:linear-gradient(145deg,#2dd4bf,#0891b2)}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-wait>i svg{width:15px;height:15px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-wait p{margin:0}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-wait b{display:block;font-size:12.5px;color:#0f172a}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-hint{margin:8px 4px 0;font-size:11px;font-weight:700;text-align:center;color:#78716c}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-rw{margin-top:4px}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-rw>button{flex:1 1 100%;min-height:48px;font-size:13.5px;border-color:#fecdd3;background:#fff1f2;color:#be123c}
+/* botón compacto «Ver detalle»: píldora de 32 px visible, zona táctil de 44 px */
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle{position:relative;display:flex;align-items:center;justify-content:center;gap:7px;width:max-content;min-height:44px;margin:-4px auto -6px;padding:0 14px 0 6px;border:0;background:none;color:#047857;font-size:12px;font-weight:800}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle::before{content:"";position:absolute;left:0;right:0;top:50%;height:32px;margin-top:-16px;border-radius:99px;background:linear-gradient(160deg,#ecfdf5,#ecfeff);box-shadow:inset 0 0 0 1.5px #6ee7b7,0 4px 10px #10b98126}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle>*{position:relative}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle>i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#10b981,#0891b2);animation:zipco-asx-oring 2.2s ease-out 1s 4}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle>i svg{width:15px;height:15px;stroke-width:2.6}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-tg-a{animation:zipco-asx-oup 2.2s ease-in-out 1s 4;transform-box:fill-box}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-tg-b{animation:zipco-asx-odn 2.2s ease-in-out 1s 4;transform-box:fill-box}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle[aria-expanded="true"]{margin-top:-2px;color:#475569}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle[aria-expanded="true"]::before{background:#fff;box-shadow:inset 0 0 0 1.5px #e2e8f0}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle[aria-expanded="true"]>i{background:#94a3b8;animation:none}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle[aria-expanded="true"] .zipco-asx-tg-a,.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle[aria-expanded="true"] .zipco-asx-tg-b{animation:none}
+.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-toggle:active{transform:scale(.97)}
+@media(max-width:350px){
+  .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-stamp{top:3px;right:4px;font-size:11px;padding:1px 7px;letter-spacing:.1em;animation:none;transform:rotate(-8deg)}
+  .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-date{padding-bottom:12px}
+  .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-rw>button{flex-basis:100%}
+}
 /* Conservar la política vigente: pausar fuera de pantalla/segundo plano, no al deslizar. */
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-asx *,
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-asx *::before,
@@ -227,6 +294,6 @@
 .zipco-asx-status>i{animation-play-state:running!important}
 @media(prefers-reduced-motion:reduce){
   .zipco-asx,.zipco-asx *,.zipco-asx *::before,.zipco-asx *::after{animation:none!important;transition:none!important}
-  .zipco-asx[data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"])[data-leaving=true]{opacity:0;max-height:0;padding:0;margin:0}
+  .zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"][data-phase="EXPIRED_OFFER"])[data-leaving=true]{opacity:0;max-height:0;padding:0;margin:0}
   .zipco-asx-photo.is-hl>button{outline:3px solid #0d9488}
 }

@@ -28,6 +28,9 @@ const santiagoParts=(iso:string|null)=>{
   const clean=(value:string)=>value.replace('.','').toUpperCase();
   return {weekday:clean(get('weekday')),day:get('day'),month:clean(get('month')),year:get('year'),time:`${get('hour')}:${get('minute')}`};
 };
+// Iconos «expandir/contraer» propios (sin depender de la versión de lucide-react).
+const ToggleIcon=({folded}:{folded:boolean})=><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <path d="M12 22v-6M12 8V2M4 12H2M10 12H8M16 12h-2M22 12h-2"/><path className="zipco-asx-tg-a" d={folded?'M15 19l-3-3-3 3':'M15 19l-3 3-3-3'}/><path className="zipco-asx-tg-b" d={folded?'M15 5l-3 3-3-3':'M15 5l-3-3-3 3'}/></svg>;
 const reducedMotion=()=>typeof window!=='undefined'&&!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 export default function AvailabilityScheduleCard({order,business,review,operation,detail,closeAction,continueWithout,leaving=false,busy:otherBusy,error:otherError}:{
   order:BusinessRequest|MyOrder;business:boolean;review:AvailabilityScheduleReview;operation:Operation;
@@ -36,8 +39,10 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   const draftSlot=useRef(scheduleDraftSlot(localStorage.getItem('zipco-user-id')??'',order.requestProcess!,business)).current;
   const initial=useRef(readScheduleDraft(draftSlot,order.requestProcess!)).current;
   const trigger=useRef<HTMLButtonElement>(null);
-  const detailsId=useId();
+  const detailsId=useId(),foldId=useId();
   const [open,setOpen]=useState(false),[expanded,setExpanded]=useState(false);
+  // Negocio · EXPIRED_OFFER: tarjeta cerrada (resumen) o abierta (detalle). Solo estado visual local.
+  const [more,setMore]=useState(false);
   // Cliente · EXPIRED_OFFER: hoja «Solicitud original», chips y resaltado de la foto.
   const sheetRef=useRef<HTMLElement>(null),photoRef=useRef<HTMLDivElement>(null),opener=useRef<HTMLElement|null>(null),highlightTimer=useRef<number>();
   const firstRender=useRef(true);
@@ -63,7 +68,7 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   useEffect(()=>{
     // Updating recovery disables/replaces its controls. Keep keyboard navigation
     // in the open sheet if the browser dropped focus to the document body.
-    if(!business&&(review.phase==='EXPIRED_OFFER'||review.phase==='AWAITING_BUSINESS')&&expanded&&!open&&!operation.busy&&document.activeElement===document.body)
+    if((business?review.phase==='EXPIRED_OFFER':(review.phase==='EXPIRED_OFFER'||review.phase==='AWAITING_BUSINESS'))&&expanded&&!open&&!operation.busy&&document.activeElement===document.body)
       sheetRef.current?.focus({preventScroll:true});
   },[business,review.phase,expanded,open,operation.busy,operation.error]);
   const process=order.requestProcess!,plan=process.availability!,offer=plan.reservationOffer!;
@@ -130,6 +135,83 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
         <footer><button type="button" disabled={busy} onClick={()=>setOpen(false)}>Volver</button><button type="button" className="zipco-as-primary" disabled={!canSend} onClick={()=>void send()}>{busy?'Enviando…':business?'Enviar nueva oferta':'Enviar nueva fecha'}</button></footer>
       </Dialog.Content></Dialog.Portal></Dialog.Root>
   </>;
+  // Negocio · fecha de retiro vencida (EXPIRED_OFFER): el cliente aún no pidió otra fecha; el negocio solo espera o retira la disponibilidad.
+  // Cerrada = resumen; abierta = detalle + «Retirar disponibilidad». El cliente y las demás fases del negocio conservan su tarjeta.
+  if(business&&process.state==='AWAITING_CUSTOMER_CONTINUATION'&&review.phase==='EXPIRED_OFFER'){
+    const items:Product[]=order.products.items,many=items.length>1,units=items.reduce((sum,item)=>sum+item.quantity,0),first=items[0];
+    const photo=order.referencePhoto&&safePhoto(order.referencePhoto)?order.referencePhoto:null;
+    const expired=santiagoParts(expiredDate),previous=isSimpleOffer(offer)&&offer.mode==='PREPAYMENT'?offer.requiredAmountClp:null;
+    const offered=expired?`${expired.weekday.toLowerCase()} ${expired.day} ${expired.month.toLowerCase()} · ${expired.time}`:null;
+    const originalSchedule=formatDeliverySchedule(order,'business')??'Sin horario solicitado';
+    const indicators=[order.note?'Con nota del cliente':'',photo?'Con foto adjunta':''].filter(Boolean);
+    const openOriginal=(from:HTMLElement,focusPhoto:boolean)=>{
+      opener.current=from;setExpanded(true);window.clearTimeout(highlightTimer.current);
+      if(focusPhoto){
+        setHighlight(0);
+        highlightTimer.current=window.setTimeout(()=>{
+          // A real photo/product dialog may already be open. Do not steal its focus.
+          if(sheetRef.current?.contains(document.activeElement))setHighlight(n=>n+1);
+        },reducedMotion()?0:900);
+      }
+    };
+    const closeOriginal=()=>{window.clearTimeout(highlightTimer.current);setHighlight(0);setExpanded(false);};
+    return <article className="zipco-asx zipco-asx-own" data-role="business" data-phase={review.phase} data-schedule-review={review.phase} data-open={expanded} data-more={more} data-leaving={leaving?'true':undefined}
+      aria-label={`${name}: la fecha de retiro ya pasó, esperando al cliente`} aria-busy={operation.busy||undefined} {...(leaving?{inert:''}:{})}
+      onKeyDown={event=>{if(event.key==='Escape'&&expanded&&!open&&event.currentTarget.contains(event.target as Node)){event.stopPropagation();closeOriginal();}}}>
+      <i className="zipco-asx-glow zipco-asx-glow-a" aria-hidden="true"/><i className="zipco-asx-glow zipco-asx-glow-b" aria-hidden="true"/>
+      <div className="zipco-asx-main" {...(expanded?{inert:'','aria-hidden':true}:{})}>
+        <div className="zipco-asx-banner">
+          <div className="zipco-asx-title"><small className="zipco-asx-biz"><i className="zipco-asx-who-tag">CLIENTE</i>{name}</small><h3>La fecha de retiro ya pasó</h3>
+            <span className="zipco-asx-pill"><i aria-hidden="true"><Hourglass/></i>ESPERANDO AL CLIENTE</span></div>
+          <span className="zipco-asx-thumbs" data-many={many||undefined}><ProductPreviewControl thumbnailLoading="eager"/>{many&&<b className="zipco-asx-more" aria-hidden="true">+{items.length-1}</b>}</span>
+        </div>
+        <div className="zipco-asx-product">
+          <span className="zipco-asx-name"><b>{first?.name}</b>{many?`+ ${items.length-1} ${items.length-1===1?'producto más':'productos más'} · ${units} ${units===1?'unidad':'unidades'}`:`Cantidad: ${first?.quantity}×`}
+            <span className="zipco-asx-modeline"><Store aria-hidden="true"/>Retiro en el local</span></span>
+          {order.total!==null&&<span className="zipco-asx-total"><b>{clp(order.total)}</b><small>SOLICITADO</small>
+            {indicators.length>0&&<span className="zipco-asx-ind" role="img" aria-label={indicators.join(' y ')}>{order.note&&<i className="is-note"><Quote aria-hidden="true"/></i>}{photo&&<i className="is-photo"><ImageIcon aria-hidden="true"/></i>}</span>}</span>}
+          {!more&&<span className="zipco-asx-brief"><Clock aria-hidden="true"/>{offered?<><span><b>Retiro ofrecido:</b> {offered}</span><u>VENCIDA</u></>:<span>Fecha de la oferta no disponible</span>}</span>}
+        </div>
+        <div id={foldId} className="zipco-asx-fold" data-more={more} {...(!more?{inert:'','aria-hidden':true}:{})}><div className="zipco-asx-fold-in">
+          <span className="zipco-asx-chips">
+            {photo&&<button type="button" className="zipco-asx-chip" data-delay="0" aria-controls={detailsId} aria-expanded={expanded} aria-label="Ver imagen adjunta en la solicitud original" onClick={event=>openOriginal(event.currentTarget,true)}>
+              <span><ImageIcon aria-hidden="true"/>Imagen adjunta<em>Ver</em></span></button>}
+            <button type="button" className="zipco-asx-chip" data-delay="1" aria-controls={detailsId} aria-expanded={expanded} aria-label="Ver solicitud original" onClick={event=>openOriginal(event.currentTarget,false)}>
+              <span><List aria-hidden="true"/>Solicitud original<em>Ver</em></span></button>
+          </span>
+          <section className="zipco-asx-offer" aria-label="Fecha de retiro vencida">
+            {expired?<div className="zipco-asx-date"><span className="zipco-asx-cal" aria-hidden="true"><small>{expired.weekday}</small><b>{expired.day}</b><i>{expired.month}</i></span>
+              <div className="zipco-asx-time"><span>RETIRO OFRECIDO</span><strong>{expired.time}</strong><small>{expired.year} · hora de Chile</small></div>
+              <span className="zipco-asx-stamp">VENCIDA</span></div>
+              :<div className="zipco-asx-date zipco-asx-nodate"><span className="zipco-asx-nodate-ic" aria-hidden="true"><CalendarClock/></span>
+                <div className="zipco-asx-time"><span>FECHA DE LA OFERTA</span><strong>No disponible</strong><small>La oferta anterior ya no está vigente.</small></div></div>}
+            <div className="zipco-asx-wait"><i aria-hidden="true"><Hourglass/></i><p><b>Por ahora no tienes que hacer nada.</b> El cliente puede pedir otra fecha; si lo hace, te llegará a Pendientes para responder.</p></div>
+          </section>
+          {closeAction&&<p className="zipco-asx-hint">¿Ya no quieres esperar?</p>}
+          <div className="zipco-asx-rw">{closeAction}</div>
+        </div></div>
+        {operation.busy&&!operation.error&&!operation.pending&&<p role="status" className="zipco-asx-status"><i aria-hidden="true"/>Comprobando estado…</p>}
+        <button type="button" className="zipco-asx-toggle" aria-expanded={more} aria-controls={foldId} onClick={()=>setMore(value=>!value)}>
+          <i aria-hidden="true"><ToggleIcon folded={!more}/></i><span>{more?'Ocultar detalle':'Ver detalle'}</span></button>
+      </div>
+      <i className="zipco-asx-line" aria-hidden="true"/>
+      <aside id={detailsId} ref={sheetRef} tabIndex={-1} className="zipco-asx-sheet" aria-label="Solicitud original" {...(!expanded?{inert:'','aria-hidden':true}:{})}>
+        <div className="zipco-asx-sh"><b>Solicitud original</b><small>{order.total!==null&&`${clp(order.total)} solicitado · `}{units} {units===1?'unidad':'unidades'}</small></div>
+        <div className="zipco-asx-body">
+          <section className="zipco-asx-items" aria-label="Productos de la solicitud original"><small><List aria-hidden="true"/>SOLICITUD ORIGINAL</small>
+            <ul>{items.map((item,index)=><li key={index}><i>{item.quantity}×</i><span>{item.name}</span><em>{clp(item.quantity*item.price)}</em></li>)}</ul>
+            {order.total!==null&&<div className="zipco-asx-sum"><span>Total solicitado · no es un pago</span><b>{clp(order.total)}</b></div>}
+            <p className="zipco-asx-when"><Clock aria-hidden="true"/><span><b>Fecha original del pedido:</b> {originalSchedule}</span></p>
+            {previous!==null&&<p className="zipco-asx-when zipco-asx-prev"><Info aria-hidden="true"/><span><b>Reserva anterior:</b> pago previo {clp(previous)}, ya no vigente</span></p>}
+            <p className="zipco-asx-when zipco-asx-prev"><Clock aria-hidden="true"/>{expiredDate?<><span><b>Oferta vencida:</b> {when(expiredDate)}</span><u>VENCIDA</u></>:<span><b>Fecha de la oferta:</b> no disponible</span>}</p></section>
+          {order.note&&<div className="zipco-asx-note"><Quote aria-hidden="true"/><span><small>NOTA DEL CLIENTE</small>{order.note}</span></div>}
+          {photo&&<div ref={photoRef} tabIndex={-1} className={`zipco-asx-photo${highlight?' is-hl':''}`}><OrderReferencePhoto src={photo} business/></div>}
+        </div>
+        <button type="button" className="zipco-asx-close" onClick={closeOriginal}><ChevronDown aria-hidden="true"/>Ocultar solicitud original</button>
+      </aside>
+      {(!open&&(operation.error||operation.pending)||otherError)&&<div className="zipco-asx-feedback">{!open&&errors}{otherError}</div>}
+    </article>;
+  }
   // Cliente · fecha de retiro vencida (EXPIRED_OFFER) y solicitud enviada, esperando al negocio (AWAITING_BUSINESS):
   // misma familia visual y misma hoja «Solicitud original». El negocio y las demás fases conservan su tarjeta.
   if(!business&&(review.phase==='EXPIRED_OFFER'||review.phase==='AWAITING_BUSINESS')){
