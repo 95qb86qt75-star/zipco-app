@@ -11,6 +11,15 @@ la única vista correspondiente.
 
 ## Retiro con pago previo pendiente (contrato E209)
 
+E221, antes de existir una reserva/acuerdo: disponibilidad V3 LOCAL_PICKUP vencida
+usa `shared/availability/AvailabilityScheduleCard.tsx` y `availability-schedule.css`,
+conectados por AvailabilityFlowCard. Cliente solicita fecha; negocio renueva con
+condiciones explícitas. Controlador `application/useAvailabilitySchedule.ts` y
+API/normalizador dedicados. Activación solo por capacidad y resumen servidor;
+agrupación única por categorías del participante. Tras renovar se reutilizan la
+tarjeta y aceptación ordinarias de propuesta. No es otra implementación de la
+reserva, del pago o de la contrapropuesta E205.
+
 E209 reserva con pago pendiente: `shared/reservations/PickupPrepaymentCard.tsx`
 es la composición funcional de espera para ambos roles. Usa ReservationPanel
 real, sin slider de preparación ni cierre por swipe de En curso. Selección por

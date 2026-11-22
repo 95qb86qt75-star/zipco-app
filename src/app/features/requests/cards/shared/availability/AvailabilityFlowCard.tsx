@@ -1,3 +1,6 @@
+import AvailabilityScheduleCard from './AvailabilityScheduleCard';
+import useAvailabilitySchedule from '../../../application/useAvailabilitySchedule';
+import {scheduleReviewFor} from '../../../domain/availabilityScheduleReview';
 import * as React from 'react';
 import {useState} from 'react';
 import {LockKeyhole,RefreshCw} from 'lucide-react';
@@ -23,10 +26,12 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
   order:BusinessRequest|MyOrder;business:boolean;expanded:boolean;onToggle:()=>void;refresh:()=>void;isUnread?:boolean;
 }){
   const operation=useAvailability(order,business,refresh);
+  const scheduleOperation=useAvailabilitySchedule(order,business,refresh);
   const statusChange=useCardStatusChange(order,business);
   const [sheet,setSheet]=useState(false),[decline,setDecline]=useState(false),[past,setPast]=useState(false);
   const [contact,setContact]=useState(true);
   const [reservationDecision,setReservationDecision]=useState(false);
+  const [withoutDecision,setWithoutDecision]=useState(false);
   const [reservationNote,setReservationNote]=useState(''),[selectedReserve,setSelectedReserve]=useState(false),[choiceError,setChoiceError]=useState('');
   const process=order.requestProcess,plan=process?.availability;
   const name=business?'customerName'in order?order.customerName:'Cliente':'businessName'in order?order.businessName:'Negocio';
@@ -54,7 +59,10 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
   const closeRequest=async()=>{if(plan&&await operation.run(business?'WITHDRAW_AVAILABILITY':'DECLINE_REQUEST',{
     proposalId:process.currentProposalId,availabilityConfirmationId:plan.availabilityConfirmationId}))setDecline(false);};
   return <div id={`order-${order.id}`} tabIndex={-1} data-aurora-state={process.state} data-unread={isUnread} className="scroll-mb-36 zipco-availability-real">
-    {business&&process.state==='AWAITING_BUSINESS_RESPONSE'?<>
+    {scheduleReviewFor(process)&&process.state==='AWAITING_CUSTOMER_CONTINUATION'?<AvailabilityScheduleCard order={order} business={business} review={scheduleReviewFor(process)!} operation={scheduleOperation} detail={originalDetail} busy={operation.busy} error={error}
+      continueWithout={!business&&availabilityAllowed(process,false,'CONTINUE_REQUEST')?<button type="button" disabled={operation.busy||scheduleOperation.busy||scheduleOperation.pending} onClick={()=>{setWithoutDecision(true);setReservationDecision(true);}}>Ir al local sin reserva</button>:null}
+      closeAction={availabilityAllowed(process,business,business?'WITHDRAW_AVAILABILITY':'DECLINE_REQUEST')?<button type="button" disabled={operation.busy||scheduleOperation.busy||scheduleOperation.pending} onClick={()=>setDecline(true)}>{business?'Retirar disponibilidad':'No, gracias'}</button>:null}/>:
+    business&&process.state==='AWAITING_BUSINESS_RESPONSE'?<>
       <PendingRequestDesign data={data} expanded={expanded} onToggle={onToggle} business detail={originalDetail}
         contactIntent={process.customerContactPreference?.requiresReconfirmation?undefined:process.customerContactPreference?.allowed} actions={<div className="zipco-av-business-actions">
           {availabilityAllowed(process,true,'CONFIRM_AVAILABILITY')&&<AcceptGlassButton label={operation.checking?'Comprobando…':operation.busy?'Guardando…':'Confirmar disponibilidad'} price={data.total} disabled={operation.busy} onClick={()=>setSheet(true)}/>}
@@ -77,7 +85,7 @@ export default function AvailabilityFlowCard({order,business,expanded,onToggle,r
       busy={operation.busy} canRetire={availabilityAllowed(process,true,'WITHDRAW_AVAILABILITY')} onRetire={()=>setDecline(true)} error={error}
       conversation={expanded?<ProposalNegotiation order={order} business refresh={refresh} variant="aurora" reviewLabel="Ver conversación del pedido"/>:undefined}/>
       :<article className="zipco-aurora-card rounded-[24px] p-4"><p>No pudimos comprobar las condiciones de disponibilidad.</p><button type="button" onClick={refresh}>Actualizar pedido</button></article>}
-    {simplifiedReservationFlow(process)&&plan?.path==='LOCAL_PICKUP'&&<ReservationDecisionDialog open={reservationDecision} onClose={()=>setReservationDecision(false)} process={process} name={name} onRefresh={()=>void operation.update()} contact={contact} onContact={setContact} busy={operation.busy} error={choiceError||operation.error||undefined} onConfirm={(reserve,note)=>{setReservationNote(note);void continueRequest(false,reserve,note);}}/>}
+    {simplifiedReservationFlow(process)&&plan?.path==='LOCAL_PICKUP'&&<ReservationDecisionDialog open={reservationDecision} startWithout={withoutDecision} onClose={()=>{setReservationDecision(false);setWithoutDecision(false);}} process={process} name={name} onRefresh={()=>void operation.update()} contact={contact} onContact={setContact} busy={operation.busy} error={choiceError||operation.error||undefined} onConfirm={(reserve,note)=>{setReservationNote(note);void continueRequest(false,reserve,note);}}/>}
     <DesignConfirmation open={decline} onOpenChange={setDecline} variant={business?'withdraw':plan?'decline':undefined} title={business?'¿Retirar la disponibilidad?':plan?.path==='WHATSAPP'?'¿Cerrar esta solicitud?':'¿No quieres continuar con la compra?'} description={!business&&plan?.path==='WHATSAPP'?'Si no continúas, el negocio no seguirá con este pedido. Quedará guardada en Historial.':'La solicitud se conservará en Historial.'}
       confirmLabel={business?'Retirar disponibilidad':plan?.path==='WHATSAPP'?'Sí, cerrar solicitud':'No, gracias'} onConfirm={()=>void closeRequest()}/>
     <DesignConfirmation open={past&&operation.expired} onOpenChange={setPast} title="La fecha y hora solicitadas ya pasaron" description="Las condiciones conservarán la fecha original. ¿Quieres continuar igualmente?"

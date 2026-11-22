@@ -7,6 +7,16 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-21: E221 integrado: disponibilidad V3 LOCAL_PICKUP vencida permite pedir
+  fecha; cliente En espera y negocio Pendientes según resumen servidor. Negocio
+  renueva con modalidad/monto explícitos; cliente acepta la propuesta nueva con
+  oferta y hash nuevos. No se declara pago/apartado. Backend QA 0e0df6c success
+  verificado; sin modificaciones Railway desde frontend. Capacidad por sesión,
+  UUID persistido, recuperación GET y borradores sin consentimientos restaurados.
+  [Contrato integrado, pruebas y límites](frontend-availability-schedule-review-e221-qa.md).
+  Falta validación autenticada/física en ambos teléfonos; no declarar el flujo
+  completo validado por las pruebas sintéticas.
+
 - 2026-11-21: NegW10 integra el detalle del negocio En curso / LOCAL_PICKUP:
   A, reserva PREPAYMENT confirmada; B, sin registro de reserva. El nivel principal
   conserva preparación y condiciones; «Ver detalle de solicitud» abre la hoja

@@ -38,6 +38,13 @@ export function processApiError(status: number, body: unknown, agreement = false
   if (status === 404) return new RequestProcessError(agreement ? 'El acuerdo ya no está disponible. Actualiza el pedido.' : 'El pedido ya no está disponible. Actualiza la pantalla.', status, !agreement);
   if (status === 409) {
     const code = isRecord(body) && typeof body.code === 'string' ? body.code : '';
+    const scheduleMessages:Record<string,string>={
+      AVAILABILITY_SCHEDULE_NOT_ALLOWED:'Esta solicitud ya no permite revisar la fecha. Comprueba el estado actual.',
+      AVAILABILITY_SCHEDULE_REVIEW_PENDING:'Ya hay una fecha solicitada. El negocio debe revisarla antes de continuar.',
+      AVAILABILITY_SCHEDULE_REQUEST_MISMATCH:'La revisión de fecha cambió o ya fue resuelta. Actualiza el pedido.',
+      CATALOG_CHANGED:'El producto o su precio cambiaron. Actualiza el pedido antes de ofrecer condiciones nuevas.',
+    };
+    if(scheduleMessages[code])return new RequestProcessError(scheduleMessages[code],status,true);
     if(code==='PRODUCT_RECEIPT_REQUIRED')return new RequestProcessError('Confirma que recibiste el producto antes de finalizar la solicitud.',status,true);
     if(code==='PRODUCT_RECEIPT_ALREADY_DECLARED')return new RequestProcessError('La recepción de este producto ya fue declarada. Actualiza el pedido antes de continuar.',status,true);
     const lateMessages:Record<string,string>={

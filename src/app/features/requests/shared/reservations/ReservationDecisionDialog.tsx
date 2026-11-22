@@ -12,7 +12,7 @@ import "./reservation-decision.css";
 export const NO_RESERVATION_WARNING='Sin reserva, el negocio atiende por orden de llegada. Cuando llegues, el producto podría haberse agotado.';
 const BookmarkIcon=({size=18}:{size?:number})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>;
 const WarningIcon=()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>;
-export default function ReservationDecisionDialog({open,onClose,process,name,contact,onContact,busy,error,onConfirm,onRefresh}:{open:boolean;onClose:()=>void;process:RequestProcessSummary;name:string;contact:boolean;onContact:(v:boolean)=>void;busy:boolean;error?:string;onConfirm:(reserve:boolean,note:string)=>void;onRefresh:()=>void}){
+export default function ReservationDecisionDialog({open,onClose,process,name,contact,onContact,busy,error,onConfirm,onRefresh,startWithout=false}:{open:boolean;onClose:()=>void;process:RequestProcessSummary;name:string;contact:boolean;onContact:(v:boolean)=>void;busy:boolean;error?:string;onConfirm:(reserve:boolean,note:string)=>void;onRefresh:()=>void;startWithout?:boolean}){
   const [options,setOptions]=useState<ReservationOptions|null>(null),[failure,setFailure]=useState(''),[note,setNote]=useState(''),[without,setWithout]=useState(false);
   const [withoutPreview,setWithoutPreview]=useState(false);
   // Solo presentación: nota plegada y botón tocado (para mostrar «Guardando…» en él). No viajan en ningún payload.
@@ -21,7 +21,7 @@ export default function ReservationDecisionDialog({open,onClose,process,name,con
   const plan=process.availability,offer=plan?.reservationOffer,session=readCoordinationSession();
   useEffect(()=>{
     if(!open||!session||!plan)return;
-    const controller=new AbortController();setOptions(null);setFailure('');setWithout(false);setWithoutPreview(false);
+    const controller=new AbortController();setOptions(null);setFailure('');setWithout(startWithout);setWithoutPreview(false);
     readReservationOptions(process.id,process.version,session.token,false,plan.availabilityConfirmationId,controller.signal).then(value=>{
       if(controller.signal.aborted||readCoordinationSession()!==session)return;
       const current=offer&&isSimpleOffer(offer)?offer.simplified.termsVersion:null,latest=isSimpleOffer(value.reservationOffer)?value.reservationOffer.simplified.termsVersion:null;
@@ -29,7 +29,7 @@ export default function ReservationDecisionDialog({open,onClose,process,name,con
       setOptions(value);
     }).catch(e=>{if(!controller.signal.aborted){setFailure(e instanceof Error?e.message:'No se pudo verificar la reserva.');setWithoutPreview(canChooseWithoutPreview(e));}});
     return()=>controller.abort();
-  },[open,process.id,process.version,plan?.availabilityConfirmationId,session]);
+  },[open,process.id,process.version,plan?.availabilityConfirmationId,session,startWithout]);
   useEffect(()=>{if(!busy)setPick(null);},[busy]);
   if(!offer)return null;
   const none=offer.mode==='NONE'||without,paid=offer.mode==='PREPAYMENT';

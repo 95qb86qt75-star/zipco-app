@@ -1,3 +1,4 @@
+import {knownParticipantHeaders} from './participantContractHeaders';
 import { SERVICE_HOURS_HEADERS } from "../domain/serviceHoursPolicy";
 import { API_BASE_URL } from "../../../api/apiConfig";
 import { isRecord, parseIsoDate } from "../domain/orderValueParsers";
@@ -11,7 +12,7 @@ export class ReservationOptionsError extends Error{
 }
 export const canChooseWithoutPreview=(error:unknown)=>error instanceof ReservationOptionsError&&error.status===409&&['OFFER_EXPIRED','RESERVATION_PAYMENT_WINDOW_UNAVAILABLE','RESERVATION_SCHEDULE_EXPIRED','RESERVATION_HOURS_UNAVAILABLE','RESERVATION_OUTSIDE_SERVICE_WINDOW','RESERVATION_AMBIGUOUS_SERVICE_WINDOW'].includes(error.code);
 export async function readReservationOptions(processId:number,version:number,token:string,business:boolean,offerId?:number,signal?:AbortSignal):Promise<ReservationOptions>{
-  const response=await fetch(`${API_BASE_URL}/request-processes/${processId}/reservation-options?processContract=availability-v3`,{headers:{Authorization:`Bearer ${token}`,...SERVICE_HOURS_HEADERS},cache:'no-store',signal});
+  const response=await fetch(`${API_BASE_URL}/request-processes/${processId}/reservation-options?processContract=availability-v3`,{headers:{Authorization:`Bearer ${token}`,...SERVICE_HOURS_HEADERS,...knownParticipantHeaders(token)},cache:'no-store',signal});
   const raw:unknown=await response.json().catch(()=>null);
   if(!response.ok)throw new ReservationOptionsError(processApiError(response.status,raw).message,isRecord(raw)&&typeof raw.code==='string'?raw.code:'',response.status);
   const offer=isRecord(raw)?normalizeReservationOffer(raw.reservationOffer):null;

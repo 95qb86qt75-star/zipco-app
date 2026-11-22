@@ -1,3 +1,4 @@
+import {scheduleReviewFor} from './availabilityScheduleReview';
 import {paymentProofFor} from './customerPaymentProof';
 import {informationView} from "./localPickupInformation";
 import {pickupPrepaymentFor} from './pickupPrepayment';
@@ -22,6 +23,8 @@ export function statusViewFor(
     if(closure)return (business?closure.businessCategory:closure.customerCategory)==='HISTORY'?'history':'active';
     const information=informationView(requestProcess,business);if(information)return information;
     if(requestProcess?.state==='AWAITING_BUSINESS_RESPONSE'&&requestProcess.lateInitialResponse?.status==='AWAITING_CUSTOMER')return business?'pending':'waiting';
+    const review=scheduleReviewFor(requestProcess);
+    if(review){const c=review.categories[business?'business':'customer'];return c==='PENDING'?'pending':c==='AWAITING_BUSINESS'?'awaiting-business':'waiting';}
     if (requestProcess?.state === 'AWAITING_BUSINESS_COUNTER_RESPONSE') return business ? 'waiting' : 'awaiting-business';
     if (['AWAITING_CUSTOMER_CONTINUATION', 'AWAITING_CUSTOMER_DECISION', 'AWAITING_CUSTOMER_FINAL_DECISION'].includes(requestProcess?.state ?? '')) return 'waiting';
     if (requestProcess?.state === 'CLOSED') return (status === 'cancelled' && (isPendingRequestCancelled(requestProcess) || isAvailabilityClosed(requestProcess))) ||
