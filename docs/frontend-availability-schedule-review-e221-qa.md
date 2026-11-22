@@ -135,3 +135,88 @@ Pendiente: comprobar la capacidad y el pedido real autenticados desde la app QA,
 y completar el recorrido físico en Android/iPhone. Las pruebas sintéticas no
 acreditan pagos, WhatsApp, push ni acciones reales en Railway. No se crearon
 pedidos ni se enviaron mutaciones QA para probarlo. Main y producción intactos.
+
+## 2026-11-22 — Presentación cliente EXPIRED_OFFER entregada por Claude
+
+Clasificación: solo frontend; presentación e interacción local. Tres adjuntos
+completos aplicados: AvailabilityScheduleCard.tsx, availability-schedule.css y
+AvailabilityFlowCard.tsx. Este último conserva exactamente las tres conexiones
+recibidas: compuerta expiredReview, leaving y textos de la confirmación de cierre.
+No se modifican hooks, API, borradores, tipos, ProductPreviewControl ni su CSS,
+OrderReferencePhoto, AvailabilityDesign o sus consumidores compartidos.
+
+La tarjeta muestra negocio, miniatura real, producto/cantidad, total SOLICITADO,
+modalidad, fecha vencida canónica de la oferta y aviso del monto anterior cuando
+es PREPAYMENT. No presenta la oferta vencida como reservable. Los chips abren
+la solicitud original en una hoja que contiene todos los productos, total, fecha
+original del pedido, nota y el visor real de referencia. Ambas fechas pueden
+ser diferentes. formatDeliverySchedule no trae el prefijo «Fecha original»;
+no se duplica. Otros productos siguen accesibles desde el selector del visor real.
+
+Comparación textual: JSX de Dialog.Root y función send idénticos a la base;
+marcado original del negocio/espera y las 13 líneas CSS originales idénticos.
+RENEWED_OFFER sigue usando la tarjeta de propuesta ordinaria ya integrada.
+
+Ajustes necesarios sobre los adjuntos, dentro de los archivos autorizados:
+
+- La pausa nueva por data-request-list-scrolling se sustituyó por
+  data-request-list-hidden, conservando pausas fuera de pantalla y reduced motion.
+  No se restaura la congelación al deslizar que el usuario pidió eliminar.
+- La foto se mantiene montada: se quitó key=highlight. El resaltado diferido no
+  roba foco si ya se abrió un visor real. Escape del visor conserva la hoja abierta.
+- Errores/recuperación se sitúan en host visible fuera del main inerte y la hoja.
+  Tras comprobar estado, si el navegador pierde foco al deshabilitar/reemplazar
+  controles, se devuelve a la hoja abierta; no se altera el controlador.
+- Escape desde controles de recuperación también cierra la hoja; los portales de
+  los visores y el diálogo de fecha conservan su propio Escape.
+- El único bucle nuevo no finito es el spinner operativo, montado mientras se
+  comprueba estado, para que no se pare a los 9,6 s. Reduced motion conserva
+  el texto estático. Los adornos mantienen sus ciclos finitos recibidos.
+
+StatusChangeFlow y statusChangePresentation ya cubren cliente CONTINUATION:
+usesAvailableDesignExit devuelve true y la CSS compartida evita el colapso doble.
+No fue necesario editarlos. Chromium confirmó data-design-exit=true, wrapper con
+opacity 1, leaving=true y zipco-asx-leave en la tarjeta después del guardado real
+simulado. Cancelar «No, gracias» no envía; confirmar DECLINE_REQUEST lo envía una
+vez y el pedido aparece en Historial. No se simula la burbuja +1 del tablero.
+
+Verificación por dependencias/riesgo:
+
+- 51 pruebas focalizadas aprobadas (contrato E221, transporte/UUID, borrador,
+  transición de estado y elección de reserva), 5 archivos, duración 1,13 s.
+  No se repitió la suite global ni pruebas comerciales no afectadas.
+- Chromium local, RequestsScreen y componentes reales, HTTP sintético:
+  320/360/390/430, uno/tres productos, nombres y nota largos, con/sin foto,
+  nota, pago previo, hora o permiso CONTINUE. Sin desborde. Miniaturas cuadradas
+  de 46/52 px con padding cero; detalles completos y foco/retorno al chip correctos.
+- Selector del visor real permite abrir los tres productos pese a ocultar las
+  miniaturas adicionales. Foto real, apertura rápida antes del resaltado, Escape
+  anidado y formulario de fecha original comprobados. Sin POST al navegar.
+- Error tras envío incierto y GET de recuperación accesibles con hoja abierta;
+  comprobar no reenvía. Confirmación/cancelación y salida a Historial comprobadas.
+  Negocio y cliente AWAITING_BUSINESS siguen usando .zipco-as y su diálogo real.
+- Animaciones siguen running al establecer scrolling=true, se pausan en segundo
+  plano y no hay animaciones activas con movimiento reducido.
+- La primera matriz completó 320/360 y avanzó por 390 antes de fallar una igualdad
+  exacta de decimales del rectángulo animado. Se midieron CSS y dimensiones reales
+  en los cuatro anchos: 46/52 px cuadrados. Se corrigió solo la tolerancia subpíxel
+  del arnés y se continuó con 390/430; no se modificó CSS por esa comprobación.
+- Un selector mal escapado detuvo los visores, ya completada la matriz. Se corrigió
+  el arnés y se repitieron solo esas interacciones. La prueba de recuperación
+  detectó foco en body; se corrigió localmente y se repitió el caso antes de
+  continuar con cierre/Historial y las variantes compartidas.
+
+Evidencias locales ignoradas: node_modules/.cache/e221-design/. matrix.json contiene
+la continuación 390/430; el primer recorrido 320/360 y sus capturas/guion conservan
+la evidencia previa. operations-evidence.json registra la salida confirmada.
+Sin tsc/lint configurados/instalados; el build no se presenta como un typecheck.
+Análisis, implementación, preparación de navegador, documentación y publicación
+no se cronometraron por separado. Las esperas/build/navegador solapados no se suman.
+Build QA final aprobado: Vite 7,77 s y generación PWA correcta (sin medición
+independiente). Se conserva el aviso de tamaño de chunk existente. El estado
+Vercel del SHA exacto se reporta al usuario tras verificarlo.
+
+Se utilizan los campos/endpoints E221 y DECLINE_REQUEST ya publicados, sin datos
+nuevos ni cambios de contrato. Railway no necesario en este ajuste. Queda pendiente
+validación visual/táctil física del diseño con las cuentas reales Android/iPhone.
+Main y producción intactos.

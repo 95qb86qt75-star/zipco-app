@@ -1,11 +1,21 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-21, America/Santiago.
+Actualizado: 2026-11-22, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- 2026-11-22: rediseño entregado por Claude de cliente EXPIRED_OFFER aplicado en
+  AvailabilityScheduleCard, availability-schedule.css y AvailabilityFlowCard.
+  Producto/cantidad/total solicitado visibles, miniatura real cuadrada, foto y
+  solicitud original en hoja superpuesta. Dialog/submit originales conservados;
+  negocio y AWAITING_BUSINESS conservan marcado y CSS base. Ajustes locales para
+  visores/foco, recuperación visible con hoja abierta, movimiento durante scroll
+  y spinner operativo. Salida real a Historial de 900 ms comprobada sin modificar
+  StatusChangeFlow. [Evidencia y límites](frontend-availability-schedule-review-e221-qa.md).
+  Pendiente validación física del nuevo diseño en ambos teléfonos.
 
 - 2026-11-21: E221 integrado: disponibilidad V3 LOCAL_PICKUP vencida permite pedir
   fecha; cliente En espera y negocio Pendientes según resumen servidor. Negocio
