@@ -265,3 +265,57 @@ Verificación seleccionada por extracción compartida:
 Evidencia local ignorada: node_modules/.cache/e221-time-picker/, capturas cliente
 320/390 y alternativa original. Falta verificación física en iPhone del campo
 nativo de fecha y revisión Android. Main y producción intactos.
+
+### 2026-11-22 — Cliente En espera, diseño entregado por Claude
+
+Clasificación: solo frontend, presentación e interacción local. Reemplazados
+AvailabilityScheduleCard.tsx, availability-schedule.css y AvailabilityFlowCard.tsx
+por los adjuntos completos. Una sola tarjeta/hoja atiende EXPIRED_OFFER y
+AWAITING_BUSINESS; negocio y las demás fases conservan su composición.
+
+La nueva fecha y nota proceden de availabilityScheduleReview.request.requestedFor
+y request.note; la hoja distingue fecha/nota originales y retiro anterior vencido.
+Importe siempre SOLICITADO, no pago. Se conserva el selector compartido TimePicker,
+formulario, borrador, validación, UUID, errores y recuperación E221. Cancelar abre
+DesignConfirmation y usa el POST actions/decline-request existente, sin nuevos
+campos/endpoints ni cambios Railway. Volver no ejecuta nada.
+
+La prueba de cancelación de la última tarjeta detectó que el controlador ocultaba
+En espera al recibir contador cero antes de terminar StatusChangeFlow. El usuario
+autorizó expresamente modificar useRequestsScreenController.tsx y su prueba
+RequestsScreen.notificationNavigation.test.ts. El contador visual de En espera
+usa la proyección existente mientras dura la presentación; los demás contadores
+siguen leyendo datos reales. No se altera StatusChangeFlow, acciones ni tiempos.
+
+Verificación seleccionada por reutilización de tarjeta, controles y capas:
+
+- 51 pruebas aprobadas en cinco archivos E221, recuperación, borrador,
+  statusChangePresentation y ReservationChoiceFields; 1,09 s.
+- Tras el cambio autorizado de controlador, 63 pruebas aprobadas en dos archivos:
+  navegación/notificaciones y presentación de cambios; 4,28 s. Incluye mantener
+  la última tarjeta/pestaña hasta liberarla. Repetición de presentación justificada
+  por la nueva dependencia de sus registros visuales; no sumar como casos únicos.
+- Chromium con RequestsScreen y componentes reales, HTTP sintético: doce casos
+  320/360/390/430, uno/tres productos, textos largos, foto, notas presentes/ausentes,
+  sin desborde, hoja original, Escape/foco y ningún POST al abrir/cerrar.
+- Se corrigió una nota sintética superior al máximo contractual de 300 caracteres;
+  la API se rechazaba correctamente. También se ampliaron esperas de carga del
+  arnés y se esperó el cierre de 600 ms antes de capturar. No son fallos de la app.
+- No hay tsc ni lint configurados/disponibles en este checkout; no se afirman
+  aprobados ni se instalaron herramientas nuevas.
+- Recorrido restante aprobado en Chromium: Cancelar abre la confirmación real,
+  Volver sin POST, confirmar envía una vez, salida con data-design-exit y
+  data-leaving, solicitud visible en Historial. Regresión de EXPIRED_OFFER con
+  TimePicker compartido, formulario del negocio y movimiento reducido aprobados.
+  No se repitieron los doce casos visuales tras corregir el controlador; se
+  repitió únicamente cancelación y comprobaciones restantes.
+- Build QA final aprobado: Vite 10,39 s y generación PWA correctos. El primer
+  build previo al ajuste del controlador también pasó (9,50 s); repetido por
+  dicho cambio. Se conserva el aviso de tamaño de bundles preexistente.
+
+Evidencia ignorada: node_modules/.cache/e221-waiting/. Imágenes remotas bloqueadas
+en el navegador de prueba: visor/miniaturas reales con fallback, sin acreditar
+descarga de fotos en QA. Pendiente comprobar físicamente en iPhone y Android.
+Análisis, implementación, preparación del arnés, documentación y publicación no
+medidos individualmente. Build y navegador solapados no se suman. Main y producción
+intactos.

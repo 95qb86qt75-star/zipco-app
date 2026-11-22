@@ -126,6 +126,7 @@ export function useRequestsScreenController({
   // «Por atender» solo existe en la agenda de En curso; en cualquier otra vista se muestra como «Recientes».
   const sortDirection: AgendaSort = storedSort === "attention" && !agendaActive ? "newest" : (storedSort ?? (agendaActive ? "attention" : "newest"));
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
+  const visualMyOrders=useStatusChangeRecords(myOrders,false),visualBusinessOrders=useStatusChangeRecords(requests,true);
   const customerReadyArrival = useReadyTransitions(myOrders, id => {
     if (!myOrders.some(order => order.id === id && order.requestProcess?.state === 'READY')) return;
     setAttentionFilter('browse');
@@ -155,6 +156,10 @@ export function useRequestsScreenController({
     requestType,
     subTab==='my-business',
   );
+  // Keep the last En espera card/tab until its server-confirmed exit finishes.
+  // Other category counts continue to use the real updated records.
+  if (subTab === 'my-orders' && requestType === 'orders')
+    statusCounts['awaiting-business'] = countStatusViews(visualMyOrders, 'orders', false)['awaiting-business'];
   const statusCountState = (requestType === 'orders' ? isLoading : quotes.loading)
     ? 'loading' : (requestType === 'orders' ? loadError : quotes.error) ? 'unavailable' : undefined;
   useEffect(() => {
@@ -263,7 +268,6 @@ export function useRequestsScreenController({
         ? leftTime - rightTime
         : rightTime - leftTime;
     });
-  const visualMyOrders=useStatusChangeRecords(myOrders,false),visualBusinessOrders=useStatusChangeRecords(requests,true);
   let filteredMyOrders = sortRecords(
     filterByStatusView(visualMyOrders, "orders", statusView, historyFilter),
   );

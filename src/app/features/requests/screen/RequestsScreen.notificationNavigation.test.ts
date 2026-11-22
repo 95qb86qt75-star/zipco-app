@@ -52,12 +52,32 @@ import { announceProposalSent } from "../shared/feedback/proposalSentFeedback";
 import { proposalsFixture } from "../fixtures/proposalFixtures";
 import { lateProcess } from "../fixtures/lateInitialFixtures";
 import { availabilityWaiting } from "../fixtures/availabilityFixtures";
+import {beginStatusChange,failStatusChange,registerStatusPage} from '../shared/feedback/statusChangePresentation';
 type Node = React.ReactElement<Record<string, any>>;
 function nodes(root: React.ReactNode): Node[] {
   return React.Children.toArray(expandPresentationTree(root)).flatMap((child) => React.isValidElement(child)
     ? [child as Node, ...nodes((child as Node).props.children)] : []);
 }
 const noop = () => {};
+it('keeps the last En espera card and tab until its presentation releases it', () => {
+  hooks.loading = false; session = true; window.location.search = '?open=requests-customer&view=awaiting-business';
+  hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(2, false).process }]);
+  render();
+  const off = registerStatusPage({}, false, 'awaiting-business', true);
+  try {
+    const change = beginStatusChange(hooks.orders[0], false);
+    expect(change).not.toBeNull();
+    hooks.orders = [];
+    const held = render();
+    expect(nodes(held).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item).toMatchObject({key:'awaiting-business',count:1});
+    expect(nodes(held).find(node => node.type === MyOrdersTab)?.props.myOrders.map((order:any)=>order.id)).toEqual([rawOrder.id]);
+    failStatusChange(change);
+    const released = render();
+    expect(nodes(released).some(node => node.type === RequestStatusTab && node.props.item.key === 'awaiting-business')).toBe(false);
+    expect(nodes(released).find(node => node.type === RequestStatusTab && node.props.selected)?.props.item.key).toBe('waiting');
+    expect(hooks.action).not.toHaveBeenCalled();
+  } finally { off(); }
+});
 it('shows En espera only for customer counters and moves the final back to Por responder', () => {
   hooks.loading = false; session = true; window.location.search = '?open=requests-customer';
   hooks.orders = normalizeMyOrdersPayload([{ ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(2, false).process }]);

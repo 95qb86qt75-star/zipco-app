@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-22: cliente E221 AWAITING_BUSINESS usa la misma composición Aurora de
+  EXPIRED_OFFER: producto/cantidad/total solicitado, fecha pedida y nota de fecha
+  separadas del pedido original. Cancelar solicitud conserva DECLINE_REQUEST y
+  la confirmación real. Usuario autorizó además ajustar el controlador y su
+  prueba: el último elemento de En espera permanece durante su salida antes
+  de ocultar la pestaña vacía. No cambia categorías de servidor ni otras cuentas.
+  [Validación y límites](frontend-availability-schedule-review-e221-qa.md).
+
 - 2026-11-22: «Solicitar nueva fecha» del cliente reutiliza el selector horario
   de Proponer alternativa, extraído a shared/time/TimePicker.tsx y su CSS.
   Horas ±1, minutos ±5 y teclado; valor HH:MM, nota, validación y envío E221
