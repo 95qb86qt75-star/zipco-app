@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useEffect,useId,useRef,useState} from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import {CalendarClock,Check,ChevronDown,Clock,Hourglass,Image as ImageIcon,Info,List,Quote,RefreshCw,Store,X} from 'lucide-react';
+import {CalendarClock,Check,ChevronDown,ChevronRight,Clock,Hourglass,Image as ImageIcon,Info,List,Quote,RefreshCw,Store,X} from 'lucide-react';
 import type {BusinessRequest,MyOrder,Product} from '../../../domain/types';
 import type {AvailabilityScheduleReview,RequestedSchedule} from '../../../domain/availabilityScheduleReview';
 import type useAvailabilitySchedule from '../../../application/useAvailabilitySchedule';
@@ -41,7 +41,7 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   const trigger=useRef<HTMLButtonElement>(null);
   const detailsId=useId(),foldId=useId();
   const [open,setOpen]=useState(false),[expanded,setExpanded]=useState(false);
-  // Negocio · EXPIRED_OFFER: tarjeta cerrada (resumen) o abierta (detalle). Solo estado visual local.
+  // Negocio · EXPIRED_OFFER y AWAITING_BUSINESS: tarjeta cerrada (resumen) o abierta (detalle). Solo estado visual local.
   const [more,setMore]=useState(false);
   // Cliente · EXPIRED_OFFER: hoja «Solicitud original», chips y resaltado de la foto.
   const sheetRef=useRef<HTMLElement>(null),photoRef=useRef<HTMLDivElement>(null),opener=useRef<HTMLElement|null>(null),highlightTimer=useRef<number>();
@@ -68,7 +68,7 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
   useEffect(()=>{
     // Updating recovery disables/replaces its controls. Keep keyboard navigation
     // in the open sheet if the browser dropped focus to the document body.
-    if((business?review.phase==='EXPIRED_OFFER':(review.phase==='EXPIRED_OFFER'||review.phase==='AWAITING_BUSINESS'))&&expanded&&!open&&!operation.busy&&document.activeElement===document.body)
+    if((review.phase==='EXPIRED_OFFER'||review.phase==='AWAITING_BUSINESS')&&expanded&&!open&&!operation.busy&&document.activeElement===document.body)
       sheetRef.current?.focus({preventScroll:true});
   },[business,review.phase,expanded,open,operation.busy,operation.error]);
   const process=order.requestProcess!,plan=process.availability!,offer=plan.reservationOffer!;
@@ -210,6 +210,101 @@ export default function AvailabilityScheduleCard({order,business,review,operatio
         <button type="button" className="zipco-asx-close" onClick={closeOriginal}><ChevronDown aria-hidden="true"/>Ocultar solicitud original</button>
       </aside>
       {(!open&&(operation.error||operation.pending)||otherError)&&<div className="zipco-asx-feedback">{!open&&errors}{otherError}</div>}
+    </article>;
+  }
+  // Negocio · el cliente pidió una nueva fecha (AWAITING_CUSTOMER_CONTINUATION + AWAITING_BUSINESS): el negocio debe responder.
+  // «Revisar fecha y condiciones» abre el formulario existente ({dialog}); «Detalle» pliega/despliega; la hoja «Solicitud original» es la misma de las otras tarjetas.
+  if(business&&process.state==='AWAITING_CUSTOMER_CONTINUATION'&&review.phase==='AWAITING_BUSINESS'&&review.request){
+    const request=review.request;
+    const items:Product[]=order.products.items,many=items.length>1,units=items.reduce((sum,item)=>sum+item.quantity,0),first=items[0];
+    const photo=order.referencePhoto&&safePhoto(order.referencePhoto)?order.referencePhoto:null;
+    const requested=santiagoParts(request.requestedFor),sent=santiagoParts(request.requestedAt);
+    const sentLabel=sent?`${sent.weekday.toLowerCase()} ${sent.day} ${sent.month.toLowerCase()} · ${sent.time}`:null;
+    const expired=santiagoParts(expiredDate),previous=isSimpleOffer(offer)&&offer.mode==='PREPAYMENT'?offer.requiredAmountClp:null;
+    const offered=expired?`${expired.weekday.toLowerCase()} ${expired.day} ${expired.month.toLowerCase()} · ${expired.time}`:null;
+    const requestNote=request.note&&request.note.trim()?request.note:null;
+    const pastRequested=Date.parse(request.requestedFor)<=now;
+    const originalSchedule=formatDeliverySchedule(order,'business')??'Sin horario solicitado';
+    const foldBId=`${foldId}-b`;
+    const openOriginal=(from:HTMLElement,focusPhoto:boolean)=>{
+      opener.current=from;setExpanded(true);window.clearTimeout(highlightTimer.current);
+      if(focusPhoto){
+        setHighlight(0);
+        highlightTimer.current=window.setTimeout(()=>{
+          // A real photo/product dialog may already be open. Do not steal its focus.
+          if(sheetRef.current?.contains(document.activeElement))setHighlight(n=>n+1);
+        },reducedMotion()?0:900);
+      }
+    };
+    const closeOriginal=()=>{window.clearTimeout(highlightTimer.current);setHighlight(0);setExpanded(false);};
+    return <article className="zipco-asx" data-role="business" data-phase={review.phase} data-schedule-review={review.phase} data-open={expanded} data-more={more} data-leaving={leaving?'true':undefined}
+      aria-label={`${name}: solicita una nueva fecha`} aria-busy={operation.busy||undefined} {...(leaving?{inert:''}:{})}
+      onKeyDown={event=>{if(event.key==='Escape'&&expanded&&!open&&event.currentTarget.contains(event.target as Node)){event.stopPropagation();closeOriginal();}}}>
+      <i className="zipco-asx-glow zipco-asx-glow-a" aria-hidden="true"/><i className="zipco-asx-glow zipco-asx-glow-b" aria-hidden="true"/>
+      <div className="zipco-asx-main" {...(expanded?{inert:'','aria-hidden':true}:{})}>
+        <div className="zipco-asx-banner">
+          <div className="zipco-asx-title"><small className="zipco-asx-biz"><i className="zipco-asx-who-tag">CLIENTE</i>{name}</small><h3>El cliente solicita una nueva fecha</h3>
+            <span className="zipco-asx-pill"><i aria-hidden="true"><CalendarClock/></i>TE TOCA RESPONDER</span></div>
+          <span className="zipco-asx-thumbs" data-many={many||undefined}><ProductPreviewControl thumbnailLoading="eager"/>{many&&<b className="zipco-asx-more" aria-hidden="true">+{items.length-1}</b>}</span>
+        </div>
+        <div className="zipco-asx-pr">
+          <span className="zipco-asx-pn">{many?<><b>{first?.name}</b>{`+ ${items.length-1} ${items.length-1===1?'producto más':'productos más'} · ${units} ${units===1?'unidad':'unidades'}`}</>
+            :<><b className="zipco-asx-pi">{first?.name}</b><span className="zipco-asx-pq"> · {first?.quantity}×</span></>}</span>
+          <span className="zipco-asx-md"><Store aria-hidden="true"/><span>Retiro en el local</span></span>
+          {order.total!==null&&<span className="zipco-asx-total"><b>{clp(order.total)}</b><small>SOLICITADO</small></span>}
+        </div>
+        <section className="zipco-asx-offer" aria-label="Fecha solicitada por el cliente">
+          <div className="zipco-asx-date">
+            {requested&&<><span className="zipco-asx-cal" aria-hidden="true"><small>{requested.weekday}</small><b>{requested.day}</b><i>{requested.month}</i></span>
+              <div className="zipco-asx-time"><span>FECHA SOLICITADA</span><strong>{requested.time}</strong></div></>}
+            <span className="zipco-asx-sn">{sentLabel&&<><span>Enviada el</span><b>{sentLabel}</b></>}
+              {!more&&requestNote&&<em className="zipco-asx-nb"><Quote aria-hidden="true"/>Con nota</em>}</span>
+            <span className="zipco-asx-hg" aria-hidden="true"><CalendarClock/></span>
+          </div>
+          {pastRequested&&<p className="zipco-asx-past" role="note"><Info aria-hidden="true"/><span><b>La fecha solicitada ya pasó.</b> Al revisar, propón otra fecha.</span></p>}
+          <div id={foldId} className="zipco-asx-fold" data-more={more} {...(!more?{inert:'','aria-hidden':true}:{})}><div className="zipco-asx-fold-in">
+            {requestNote&&<div className="zipco-asx-dnote"><small><Quote aria-hidden="true"/>NOTA DEL CLIENTE SOBRE ESTA FECHA</small><span>{requestNote}</span></div>}
+            {(offered||previous!==null)&&<div className="zipco-asx-prior">
+              {offered&&<p className="zipco-asx-was"><Clock aria-hidden="true"/><span><b>Antes ofrecido:</b> {offered}</span><u>VENCIDO</u></p>}
+              {previous!==null&&<p className="zipco-asx-was"><Info aria-hidden="true"/><span><b>Reserva anterior:</b> pago previo {clp(previous)} · ya no vigente</span></p>}
+            </div>}
+            <p className="zipco-asx-ex"><Info aria-hidden="true"/><span><b>Aún no hay reserva. ZIPCO no verifica pagos.</b> Revisa la fecha y envía una oferta nueva: el cliente debe aceptarla.</span></p>
+          </div></div>
+        </section>
+        <div className="zipco-asx-bar">
+          {permitted&&<button type="button" className="zipco-asx-cta" ref={trigger} disabled={busy||operation.pending} onClick={()=>setOpen(true)}>
+            <CalendarClock aria-hidden="true"/><span className="zipco-asx-long">Revisar fecha y condiciones</span><span className="zipco-asx-short">Revisar nueva fecha</span><ChevronRight aria-hidden="true"/></button>}
+          <button type="button" className="zipco-asx-tg" aria-expanded={more} aria-controls={`${foldId} ${foldBId}`} aria-label="Detalle de la solicitud" onClick={()=>setMore(value=>!value)}>
+            <i aria-hidden="true"><ToggleIcon folded={!more}/></i><span className="zipco-asx-tgt">Detalle</span></button>
+        </div>
+        <div id={foldBId} className="zipco-asx-fold" data-more={more} {...(!more?{inert:'','aria-hidden':true}:{})}><div className="zipco-asx-fold-in">
+          <span className="zipco-asx-chips">
+            {photo&&<button type="button" className="zipco-asx-chip" data-delay="0" aria-controls={detailsId} aria-expanded={expanded} aria-label="Ver imagen adjunta en la solicitud original" onClick={event=>openOriginal(event.currentTarget,true)}>
+              <span><ImageIcon aria-hidden="true"/>Imagen adjunta<em>Ver</em></span></button>}
+            <button type="button" className="zipco-asx-chip" data-delay="1" aria-controls={detailsId} aria-expanded={expanded} aria-label="Ver solicitud original" onClick={event=>openOriginal(event.currentTarget,false)}>
+              <span><List aria-hidden="true"/>Solicitud original<em>Ver</em></span></button>
+          </span>
+          {closeAction&&<div className="zipco-asx-rw">{closeAction}</div>}
+        </div></div>
+        {operation.busy&&!open&&!operation.error&&!operation.pending&&<p role="status" className="zipco-asx-status"><i aria-hidden="true"/>Comprobando estado…</p>}
+      </div>
+      <i className="zipco-asx-line" aria-hidden="true"/>
+      <aside id={detailsId} ref={sheetRef} tabIndex={-1} className="zipco-asx-sheet" aria-label="Solicitud original" {...(!expanded?{inert:'','aria-hidden':true}:{})}>
+        <div className="zipco-asx-sh"><b>Solicitud original</b><small>{order.total!==null&&`${clp(order.total)} solicitado · `}{units} {units===1?'unidad':'unidades'}</small></div>
+        <div className="zipco-asx-body">
+          <section className="zipco-asx-items" aria-label="Productos de la solicitud original"><small><List aria-hidden="true"/>SOLICITUD ORIGINAL</small>
+            <ul>{items.map((item,index)=><li key={index}><i>{item.quantity}×</i><span>{item.name}</span><em>{clp(item.quantity*item.price)}</em></li>)}</ul>
+            {order.total!==null&&<div className="zipco-asx-sum"><span>Total solicitado · no es un pago</span><b>{clp(order.total)}</b></div>}
+            <p className="zipco-asx-when"><Clock aria-hidden="true"/><span><b>Fecha original del pedido:</b> {originalSchedule}</span></p>
+            <p className="zipco-asx-when zipco-asx-prev"><Clock aria-hidden="true"/>{expiredDate?<><span><b>Oferta vencida:</b> {when(expiredDate)}</span><u>VENCIDA</u></>:<span><b>Fecha de la oferta:</b> no disponible</span>}</p>
+            {previous!==null&&<p className="zipco-asx-when zipco-asx-prev"><Info aria-hidden="true"/><span><b>Reserva anterior:</b> pago previo {clp(previous)}, ya no vigente</span></p>}</section>
+          {order.note&&<div className="zipco-asx-note"><Quote aria-hidden="true"/><span><small>NOTA DEL PEDIDO ORIGINAL</small>{order.note}</span></div>}
+          {photo&&<div ref={photoRef} tabIndex={-1} className={`zipco-asx-photo${highlight?' is-hl':''}`}><OrderReferencePhoto src={photo} business/></div>}
+        </div>
+        <button type="button" className="zipco-asx-close" onClick={closeOriginal}><ChevronDown aria-hidden="true"/>Ocultar solicitud original</button>
+      </aside>
+      {(!open&&(operation.error||operation.pending)||otherError)&&<div className="zipco-asx-feedback">{!open&&errors}{otherError}</div>}
+      {dialog}
     </article>;
   }
   // Cliente · fecha de retiro vencida (EXPIRED_OFFER) y solicitud enviada, esperando al negocio (AWAITING_BUSINESS):

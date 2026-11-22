@@ -379,3 +379,60 @@ documentación y publicación no medidos por separado; build y navegador solapad
 no se suman. La revisión automática no pudo ejecutar una prueba por límite de uso;
 se retomó tras la indicación del usuario, sin eludir el control. Main y producción
 intactos.
+
+### 2026-11-22 — Negocio Pendientes, cliente solicita otra fecha
+
+Clasificación: solo frontend, presentación e interacción local. Reemplazados
+completos AvailabilityScheduleCard.tsx y availability-schedule.css por los adjuntos
+actuales. Rama exclusiva business + AWAITING_CUSTOMER_CONTINUATION +
+AWAITING_BUSINESS + request no nulo. NegW14, cliente, formulario y restantes
+consumidores conservan su composición. No se modificó ningún otro archivo de app.
+
+Tarjeta compacta con cliente, producto/cantidad/total SOLICITADO, requestedFor y
+requestedAt formateados en Santiago, aviso de fecha pedida pasada, CTA y detalle.
+Nota de fecha request.note y nota original order.note separadas. La hoja conserva
+visores reales, foco, inert y datos originales. Permisos, borrador, UUID, envío,
+errores y recuperación intactos. La fecha pasada solo agrega feedback; no altera
+las validaciones ya existentes del formulario.
+
+Tras advertir que el contrato no acredita transferencias externas, el usuario
+aprobó cambiar «Aún no hay reserva ni pago» por «Aún no hay reserva. ZIPCO no
+verifica pagos». Es el único ajuste al TSX adjunto. Se conserva la fuente heredada
+de la app mediante --zipco-asx-font/inherit; no se instala ni carga Nunito.
+
+Campos/endpoints existentes: availabilityScheduleReview.request (requestedFor,
+requestedSchedule, requestedAt y note), canRenew, oferta anterior scheduledFor /
+requiredAmountClp y pedido original. POST actions/renew-availability-schedule,
+GET availability-schedule-result para recuperar UUID, POST actions/withdraw-availability
+y lecturas actuales. No cambios de contrato, estados, permisos o Railway.
+
+Verificación proporcional, con los escenarios previos reutilizados:
+
+- 51 pruebas seleccionadas aprobadas, cinco archivos: contrato E221, transporte,
+  recuperación, borrador, presentación y ReservationChoiceFields; 1,16 s.
+- Chromium con RequestsScreen y componentes reales, HTTP sintético: 15 casos en
+  320/360/375/390/430, uno/tres productos, nombres/notas largos, foto, sin notas,
+  FREE y fecha solicitada pasada. Tarjeta, detalle y hoja sin desborde, CTA/Detalle
+  de 44 px sin solape, apertura del formulario existente, Escape y retorno de foco,
+  cero POST al abrir/cerrar. A 390 de viewport la tarjeta mide 358 px y 255,30 px
+  de altura en el caso básico; conserva la fuente heredada del navegador/app.
+- El fixture original sobrescribía serverNow al emitir respuestas, por lo que el
+  caso de fecha pasada no simulaba lo previsto. Se corrigió el reloj del fixture
+  y se retomó ese caso y los restantes; no se repitieron los dos casos ya aprobados.
+- Permiso ausente oculta el CTA; guardando lo deshabilita. Envío explícito FREE
+  usa CONFIRM_REQUESTED_SCHEDULE y un único POST, sin heredar monto PREPAYMENT.
+  Resultado incierto conserva recuperación con hoja abierta; Comprobar estado no
+  reenvía. Retirar: Volver sin POST, confirmar lleva a Historial y activa .5s.
+- Cliente EXPIRED_OFFER/AWAITING_BUSINESS y negocio NegW14 conservados; movimiento
+  reducido sin animaciones propias. Sin errores de consola.
+- Renovar mantiene la navegación existente de useAvailabilitySchedule a la oferta
+  nueva; ese hook no usa StatusChangeFlow. No se añadió una salida nueva al renovar.
+  El data-leaving/500 ms comprobado corresponde a Retirar disponibilidad.
+- Build QA aprobado: Vite 8,06 s y PWA correcta. Aviso preexistente de bundles
+  grandes. Sin typecheck/tsc ni lint configurados/disponibles en este checkout.
+
+Evidencia ignorada: node_modules/.cache/e221-business-requested/. API simulada e
+imágenes remotas bloqueadas con fallback real; no acredita API autenticada ni
+revisión física en iPhone/Android, ambas pendientes. Análisis, implementación,
+preparación de pruebas, documentación y publicación no cronometrados por separado;
+build y navegador solapados no se suman. Main y producción intactos.

@@ -7,6 +7,14 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-22: negocio Pendientes/AWAITING_BUSINESS recibe el diseño compacto
+  de nueva fecha en AvailabilityScheduleCard y availability-schedule.css.
+  CTA abre el formulario E221 existente; Detalle separa nota de la nueva fecha,
+  oferta vencida y pedido original. Usuario aprobó «Aún no hay reserva. ZIPCO no
+  verifica pagos». Fuente heredada conservada, sin Nunito/dependencias nuevas.
+  Envío, recuperación y retiro comprobados con HTTP sintético; salida al retirar
+  de 500 ms conservada. [Evidencia](frontend-availability-schedule-review-e221-qa.md).
+
 - 2026-11-22: NegW14 integrado para negocio EXPIRED_OFFER: tarjeta Aurora con
   resumen de cliente/producto/total solicitado y retiro vencido, detalle plegable
   y hoja de solicitud original. Retirar disponibilidad queda dentro del detalle

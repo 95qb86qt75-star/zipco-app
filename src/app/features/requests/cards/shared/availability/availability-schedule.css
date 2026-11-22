@@ -46,8 +46,8 @@
 @keyframes zipco-asx-spin{to{transform:rotate(360deg)}}
 @keyframes zipco-asx-leave{0%{max-height:1400px;opacity:1;transform:none}55%{max-height:1400px;opacity:0;transform:translateX(90px) scale(.95)}100%{max-height:0;opacity:0;transform:translateX(90px) scale(.95);padding:0;margin:0}}
 
-.zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"][data-phase="EXPIRED_OFFER"]){position:relative;display:grid;overflow:clip;isolation:isolate;padding:11px;border-radius:24px;background:#fff;color:#0f172a;font-size:13px;box-shadow:0 0 0 1px #d1fae5,0 16px 34px #0f172a17,0 4px 12px #10b9811a;animation:zipco-asx-rise .4s both}
-.zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"][data-phase="EXPIRED_OFFER"])[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-asx-leave .9s ease-in forwards}
+.zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"])){position:relative;display:grid;overflow:clip;isolation:isolate;padding:11px;border-radius:24px;background:#fff;color:#0f172a;font-size:13px;box-shadow:0 0 0 1px #d1fae5,0 16px 34px #0f172a17,0 4px 12px #10b9811a;animation:zipco-asx-rise .4s both}
+.zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]))[data-leaving=true]{overflow:hidden;pointer-events:none;animation:zipco-asx-leave .9s ease-in forwards}
 .zipco-asx :focus-visible{outline:3px solid #0d9488;outline-offset:2px}
 .zipco-asx-glow{position:absolute;z-index:0;border-radius:50%;pointer-events:none}
 .zipco-asx-glow-a{top:-72px;right:-62px;width:230px;height:230px;background:radial-gradient(closest-side,#d1fae5,#d1fae500);animation:zipco-asx-drift 9s ease-in-out 2}
@@ -222,7 +222,7 @@
 /* ===== Negocio · fecha de retiro vencida (role=business, phase=EXPIRED_OFFER) =====
    Cerrada = resumen · abierta = detalle. Todo lo propio vive bajo .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"]; comparte base, hoja y chips con las tarjetas del cliente. */
 /* El contenedor real del negocio conserva su salida compartida de 500 ms. */
-.zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"][data-leaving=true]{animation-duration:.5s}
+.zipco-asx[data-role="business"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"])[data-leaving=true]{animation-duration:.5s}
 @keyframes zipco-asx-oring{0%{box-shadow:0 0 0 0 #10b9818c}70%,100%{box-shadow:0 0 0 8px #10b98100}}
 @keyframes zipco-asx-oup{0%,55%,100%{transform:translateY(0)}70%{transform:translateY(2px)}}
 @keyframes zipco-asx-odn{0%,55%,100%{transform:translateY(0)}70%{transform:translateY(-2px)}}
@@ -286,6 +286,108 @@
   .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-date{padding-bottom:12px}
   .zipco-asx[data-role="business"][data-phase="EXPIRED_OFFER"] .zipco-asx-rw>button{flex-basis:100%}
 }
+
+/* ===== Negocio · el cliente solicita una nueva fecha (role=business, phase=AWAITING_BUSINESS) =====
+   Tarjeta compacta (≈261 px a 390): encabezado, producto, fecha solicitada, [Revisar fecha y condiciones][Detalle].
+   «Detalle» pliega nota, fecha anterior, aviso, chips y «Retirar disponibilidad». Todo lo propio vive bajo .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"]; comparte base, hoja y chips con las demás tarjetas.
+   Tipografía: hereda la del app; si se define --zipco-asx-font (p. ej. Nunito) solo esta tarjeta la usa. */
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"]{font-family:var(--zipco-asx-font,inherit)}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] button{font-family:inherit}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-who-tag{display:inline-block;margin-right:6px;padding:0 6px;border-radius:99px;background:#0f766e24;color:#0f766e;font-size:8.5px;font-style:normal;font-weight:900;letter-spacing:.12em;line-height:10px;vertical-align:1px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-banner{padding:10px 12px 9px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-biz{line-height:15px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-title h3{margin-top:3px;font-size:16.5px;line-height:18px;letter-spacing:-.035em}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pill{margin-top:5px;padding:3px 11px 3px 4px;line-height:20px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pill>i{width:20px;height:20px;background:transparent;color:#fff}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pill>i svg{width:16px;height:16px;stroke-width:2.4}
+/* producto en una fila: nombre · «Retiro en el local» · total */
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pr{display:flex;align-items:center;margin:6px 2px 0}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pn{flex:1;min-width:0;font-size:12px;font-weight:600;line-height:17px;color:#334155;overflow-wrap:anywhere}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pn>b{display:block;font-size:13.5px;font-weight:800;line-height:17px;color:#0f172a}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pn>b.zipco-asx-pi{display:inline;font-size:14px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-pq{font-size:13px;font-weight:700;line-height:17px;color:#64748b}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-md{flex:none;display:flex;align-items:center;gap:5px;max-width:112px;margin:0 9px;padding:2px 8px;border-left:1px solid #dbe4ee;border-right:1px solid #dbe4ee;font-size:11px;font-weight:800;line-height:13px;color:#0f766e}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-md svg{flex:none;width:15px;height:15px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-total>b{font-size:19px;line-height:19px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-total>small{display:inline-block;margin-top:3px;padding:1px 8px;border-radius:99px;background:#fef3c7;color:#92400e;font-size:9px;line-height:11px}
+/* fecha solicitada: calendario + hora + «Enviada el …» en una fila */
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-offer{margin-top:6px;padding:5px 6px;background:linear-gradient(150deg,#ecfeff,#fff 72%);box-shadow:inset 0 0 0 1.5px #a5f3fc,0 6px 18px #06b6d41f}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-date{display:flex;align-items:center;gap:9px;padding:5px 8px;background:#fff;box-shadow:inset 0 0 0 1.5px #67e8f9}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cal,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time{filter:none;opacity:1}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cal{width:38px;border-radius:10px;box-shadow:0 0 0 1.5px #5eead4,0 6px 14px #14b8a638}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cal small{background:linear-gradient(110deg,#14b8a6,#0891b2)}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cal b{font-size:16px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cal i{color:#0e7490}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time{flex:none}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time>span{font-size:9.5px;line-height:11px;color:#0f766e}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time>strong{font-size:23px;line-height:24px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn{flex:1;min-width:0;display:flex;flex-direction:column;padding-left:9px;border-left:1px solid #cfe9ee;font-size:11px;font-weight:600;line-height:13px;color:#64748b}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn>span,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn>b{display:block}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn>b{font-weight:800;color:#0f766e;white-space:nowrap}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-nb{display:inline-flex;align-items:center;gap:4px;width:max-content;margin-top:1px;padding:1px 7px;border-radius:99px;background:#faf5ff;box-shadow:inset 0 0 0 1px #ddd6fe;font-size:10px;font-style:normal;font-weight:800;line-height:12px;color:#6d28d9}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-nb svg{width:11px;height:11px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-hg{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#ccfbf1;color:#0f766e;animation:zipco-asx-wring 2.4s ease-out 3}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-hg svg{width:18px;height:18px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-past{display:flex;align-items:flex-start;gap:7px;margin:8px 0 0;padding:7px 9px;border-radius:12px;background:#fffbeb;box-shadow:inset 0 0 0 1.5px #fcd34d;font-size:12px;line-height:1.35;color:#78350f}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-past svg{flex:none;width:15px;height:15px;margin-top:1px;color:#b45309}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-past b{color:#78350f}
+/* «Detalle»: pliegue de alto animado, sin bucles; cerrado queda fuera del teclado (inert) */
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s .42s}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-fold[data-more="true"]{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .42s cubic-bezier(.25,.8,.25,1),opacity .22s ease,visibility 0s}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-fold-in{min-height:0;overflow:hidden}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-dnote{display:grid;gap:2px;margin-top:8px;padding:7px 10px;border-radius:12px;background:#faf5ff;box-shadow:inset 0 0 0 1.5px #ddd6fe;overflow-wrap:anywhere}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-dnote small{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:900;letter-spacing:.12em;color:#6d28d9}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-dnote small svg{width:13px;height:13px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-dnote>span{font-size:12.5px;font-weight:600;line-height:1.35;color:#3b0764}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-prior{margin-top:8px;padding-top:2px;border-top:1px dashed #a5f3fc}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-was{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 2px 0;font-size:11.5px;font-weight:600;color:#78716c}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-was svg{flex:none;width:13px;height:13px;color:#a8a29e}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-was span{flex:1;min-width:0}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-was b{font-weight:800;color:#57534e}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-was u{padding:1px 7px;border-radius:99px;background:#fee2e2;color:#b91c1c;font-size:9px;font-weight:900;letter-spacing:.1em;text-decoration:none}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-ex{display:flex;align-items:flex-start;gap:7px;margin:8px 1px 2px;font-size:12px;font-weight:700;line-height:1.35;color:#475569}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-ex svg{flex:none;width:14px;height:14px;margin-top:1px;color:#0d9488}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-ex b{color:#0f766e}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-fold .zipco-asx-chips{margin-top:8px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-rw{margin-top:4px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-rw>button{flex:1 1 100%;min-height:44px;font-size:13px;border-color:#fecdd3;background:#fff1f2;color:#be123c}
+/* botones: se ven de 38 px; la zona táctil es de 44 px (borde transparente de 3 px + margen negativo) */
+@keyframes zipco-asx-nhalo{0%,100%{box-shadow:inset 0 1.5px 0 #ffffff73,0 8px 18px #7c3aed61,0 0 0 0 #8b5cf68c}50%{box-shadow:inset 0 1.5px 0 #ffffff73,0 8px 18px #7c3aed61,0 0 0 8px #8b5cf600}}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-bar{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:6px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg{position:relative;flex:none;display:flex;align-items:center;justify-content:center;box-sizing:border-box;height:44px;margin:-3px 0;border:3px solid transparent;background-clip:padding-box;white-space:nowrap}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta{gap:4px;padding:0 7px 0 9px;overflow:hidden;border-radius:999px;color:#fff;font-size:13px;font-weight:700;line-height:18px;text-shadow:0 1px 3px #1e1b4b80;background-image:linear-gradient(105deg,#a855f7,#6d28d9 48%,#4f46e5);box-shadow:inset 0 1.5px 0 #ffffff73,0 8px 18px #7c3aed61;animation:zipco-asx-nhalo 1.9s ease-out 6}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta::after{content:"";position:absolute;top:0;bottom:0;left:0;width:28%;background:linear-gradient(90deg,transparent,#fff6,transparent);animation:zipco-asx-sheen 2.2s ease-in-out .4s 5}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta svg{flex:none;width:17px;height:17px;stroke-width:2.4}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta svg:last-child{width:14px;height:14px}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta>span{white-space:nowrap}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-short{display:none}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta:active,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg:active{transform:scale(.97)}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta:disabled{animation:none;box-shadow:none;filter:grayscale(.4);opacity:.55;cursor:not-allowed}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta:disabled::after{display:none}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg{gap:5px;padding:0 11px 0 3px;border-radius:999px;color:#047857;font-size:12.5px;font-weight:700;line-height:16px;background-image:linear-gradient(160deg,#ecfdf5,#ecfeff);box-shadow:inset 0 0 0 1.5px #6ee7b7,0 4px 10px #10b98129}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg>i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;color:#fff;background:linear-gradient(145deg,#10b981,#0891b2);animation:zipco-asx-oring 2.2s ease-out 1s 4}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg>i svg{width:15px;height:15px;stroke-width:2.6}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg .zipco-asx-tg-a{animation:zipco-asx-oup 2.2s ease-in-out 1s 4;transform-box:fill-box}
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg .zipco-asx-tg-b{animation:zipco-asx-odn 2.2s ease-in-out 1s 4;transform-box:fill-box}
+/* abierto conserva el color mint y la animación (solo cambia el icono a «contraer») */
+.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg[aria-expanded="true"]>i,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg[aria-expanded="true"] .zipco-asx-tg-a,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg[aria-expanded="true"] .zipco-asx-tg-b{animation-delay:.3s}
+@media(max-width:374px){
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-title h3{font-size:15.5px;line-height:17px}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-md{max-width:96px}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-cta{flex:1 1 auto;padding:0 5px 0 7px}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-long{display:none}.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-short{display:inline}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tg{width:50px;padding:0}.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-tgt{display:none}
+}
+@media(max-width:419px){.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-hg{display:none}}
+@media(max-width:350px){
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-md{max-width:84px;margin:0 6px;padding:2px 6px}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time>strong{font-size:21px}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-time>span{letter-spacing:.06em}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-date{flex-wrap:wrap;row-gap:4px}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn{flex:0 0 100%;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0 5px;padding:4px 0 0;border-left:0;border-top:1px solid #cfe9ee}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn>span,.zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-sn>b{display:inline}
+  .zipco-asx[data-role="business"][data-phase="AWAITING_BUSINESS"] .zipco-asx-nb{margin:0 0 0 auto}
+}
 /* Conservar la política vigente: pausar fuera de pantalla/segundo plano, no al deslizar. */
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-asx *,
 :is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-asx *::before,
@@ -294,6 +396,6 @@
 .zipco-asx-status>i{animation-play-state:running!important}
 @media(prefers-reduced-motion:reduce){
   .zipco-asx,.zipco-asx *,.zipco-asx *::before,.zipco-asx *::after{animation:none!important;transition:none!important}
-  .zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"][data-phase="EXPIRED_OFFER"])[data-leaving=true]{opacity:0;max-height:0;padding:0;margin:0}
+  .zipco-asx:is([data-role="customer"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]),[data-role="business"]:is([data-phase="EXPIRED_OFFER"],[data-phase="AWAITING_BUSINESS"]))[data-leaving=true]{opacity:0;max-height:0;padding:0;margin:0}
   .zipco-asx-photo.is-hl>button{outline:3px solid #0d9488}
 }
