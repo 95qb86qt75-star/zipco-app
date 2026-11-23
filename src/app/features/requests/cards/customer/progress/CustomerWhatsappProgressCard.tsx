@@ -10,6 +10,7 @@ import WhatsAppMark from "../../../shared/icons/WhatsAppMark";
 import { CustomerCoordinationDisclosure } from "../whatsapp/customerCoordinationDisclosure";
 import StatusRail from "../../../shared/feedback/StatusRail";
 import ReadyPanel from "../../../shared/feedback/ReadyPanel";
+import {NvCardFrame} from "../local-pickup/CustomerPickupCard";
 
 /** Textos NUEVOS del carril y de la línea de estado (modo ownPending, diseño CliU15). Reemplazar por el texto ya definido en el código si existe uno equivalente.
  *  «En curso · esperando al negocio» (texto existente) se conserva como texto solo para lector de pantalla mientras se espera. */
@@ -42,6 +43,19 @@ const HAND=<svg width="24" height="28" viewBox="0 -5 24 29" fill="none" stroke="
  *  Listo, recibido y finalización conservan su composición. */
 export default function CustomerWhatsappProgressCard({model:viewModel}:{model:Pick<CustomerCoordinationCardModel,"OWN_RAIL"|"OWN_SR_WAITING"|"OWN_STATE"|"busy"|"card"|"chevron"|"children"|"description"|"finishLeave"|"id"|"isReady"|"itemsText"|"leaving"|"mode"|"model"|"name"|"preparing"|"product"|"quantity"|"railStage"|"readyModel"|"reveal"|"toggle"|"total">}){const {OWN_RAIL,OWN_SR_WAITING,OWN_STATE,busy,card,chevron,children,description,finishLeave,id,isReady,itemsText,leaving,mode,model,name,preparing,product,quantity,railStage,readyModel,reveal,toggle,total}=viewModel;
 const progressDesign=!readyModel;
+// Diseño «Nuevo · Lista» (D = el negocio prepara · E = falta la respuesta del negocio). Sin readyModel; «listo / recibido / finalización» conservan su composición.
+if(progressDesign){
+  const e=!preparing;
+  const alertOrRecovery=(model.error||model.recovery)?<>{model.error&&<p role="alert" className="zipco-nv-x-rc-e">{model.error}</p>}{model.recovery}</>:null;
+  return <NvCardFrame id={id} detailId={'coordination-detail-'+id} tone="wait" pill={e?'Falta la respuesta del negocio':'Esperando aviso'} modality={{kind:'wa',label:e?'Coordinación por WhatsApp':'Coordinado por WhatsApp'}}
+    name={name} itemsText={itemsText} quantity={quantity} price={String(total).startsWith('$')?Number(String(total).replace(/\D/g,'')):null}
+    steps={[e?'Avisaste':'Coordinado',e?'Esperando':'Preparando','Pedido listo']} subs={[e?'Coordinación por WhatsApp':'Por WhatsApp',e?'Falta su respuesta':'En proceso','Pendiente']}
+    message={e?{closed:'Falta la respuesta del negocio',open:'Indicaste que ya coordinaron. Falta la respuesta del negocio.'}:{closed:'Coordinado por WhatsApp. El negocio te avisará cuando esté listo.',open:'Coordinado por WhatsApp. El negocio te avisará cuando esté listo.'}}
+    expanded={model.expanded} onToggle={toggle} busy={busy} recovery={alertOrRecovery} articleRef={card as React.Ref<HTMLElement>}
+    articleProps={{'data-mode':mode,'data-expanded':model.expanded,'data-busy':busy,'data-attention':model.attention,'data-ready':isReady,'data-leaving':leaving}}>
+    <CustomerCoordinationDisclosure.Provider value={null}><React.Fragment key="receipt-controls">{children}</React.Fragment></CustomerCoordinationDisclosure.Provider>
+  </NvCardFrame>;
+}
 /** Cabecera de la espera: tocar cualquier zona que no sea un control propio ejecuta el MISMO toggle de siempre. */
 const onHeader=(e:React.MouseEvent<HTMLElement>)=>{
   const own=(e.target as HTMLElement).closest(OWN_CLICK);

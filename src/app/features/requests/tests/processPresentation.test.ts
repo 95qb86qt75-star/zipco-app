@@ -20,11 +20,14 @@ const render = (element: React.ReactElement) => renderToStaticMarkup(element);
 const callbacks = { isUpdating: false, onRetry: () => undefined, onAction: () => undefined };
 
 describe('2A presentation and legacy compatibility', () => {
-  it.each([true, false])('represents a valid negotiated list card without the fallback or original total (business=%s)', business => {
+  it.each([true, false])('represents a negotiated amount distinctly from the original comparison (business=%s)', business => {
     const raw = { ...rawOrder, status: 'alternative_proposed', requestProcess: proposalsFixture(1, business).process };
     const html = business ? render(React.createElement(BusinessOrderCard, { request: normalizeBusinessOrdersPayload([raw])[0], ...callbacks }))
       : render(React.createElement(MyOrderCard, { order: normalizeMyOrdersPayload([raw])[0], ...callbacks }));
-    expect(html).toContain('$3.000'); expect(html).not.toContain('$2.000');
+    // NegW17 keeps the labelled original comparison mounted in the inert detail;
+    // only the proposed amount belongs in the identity header.
+    const amount=business?html.match(/<div class="zipco-wx-pr">([\s\S]*?)<\/div>/)?.[1]:html;
+    expect(amount).toContain('$3.000'); expect(amount).not.toContain('$2.000');
     expect(html).toContain(business ? 'ESPERANDO AL CLIENTE' : 'Revisar historial y responder');
     if (business) { expect(html).toContain('Ver detalle'); expect(html).not.toContain('Revisar propuesta y responder'); }
     expect(html).not.toContain('Estado del proceso no disponible');

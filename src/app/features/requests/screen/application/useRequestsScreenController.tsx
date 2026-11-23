@@ -128,7 +128,8 @@ export function useRequestsScreenController({
   const orderRecords = subTab === "my-orders" ? myOrders : requests;
   const visualMyOrders=useStatusChangeRecords(myOrders,false),visualBusinessOrders=useStatusChangeRecords(requests,true);
   const customerReadyArrival = useReadyTransitions(myOrders, id => {
-    if (!myOrders.some(order => order.id === id && order.requestProcess?.state === 'READY')) return;
+    const order=myOrders.find(order=>order.id===id);
+    if(!order||statusViewFor('orders',order.status,order.requestProcess,order.requestProcessInvalid,false)!=='ready')return;
     setAttentionFilter('browse');
     setStatusViews(current => ({ ...current, 'my-orders-orders': 'ready' }));
   }, { active: subTab === 'my-orders' && requestType === 'orders', loaded: !isLoading && !loadError,

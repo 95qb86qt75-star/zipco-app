@@ -1,3 +1,5 @@
+import useCustomerPickupClosure from '../../../../application/useCustomerPickupClosure';
+import {statusViewFor} from '../../../../domain/requestStatusGrouping';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -37,10 +39,11 @@ export function useCustomerReceiptFlowCardController(props:CustomerAcceptedProgr
   setFinishing(true);
   await new Promise(resolve=>setTimeout(resolve,window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:950));
  });
+ const closure=useCustomerPickupClosure(order,refresh);
  const process=order.requestProcess,received=process?.customerReceipt?.status==='RECEIVED_PENDING_FINALIZATION',ready=process?.state==='READY';
  const pickup=process?.availability?.path==='LOCAL_PICKUP',pending=operation.pending(),recovery=operation.needsUpdate||operation.restored()||!!operation.storageWarning();
  const motion=useCoordinationMotion(sheet!==null);
- const toast=(view:'active'|'history'|'ready')=>showStatusToast({tone:'green',title:view==='ready'?'Aviso confirmado':view==='active'?'Producto recibido':'Solicitud finalizada',line:view==='ready'?'Pendiente de recepción.':view==='active'?'Pendiente de finalizar. El pedido sigue en En curso.':'Ya la encuentras en Historial.',actionLabel:'Ver',onAction:()=>{window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business:false,view,explicit:true}}));markStatusArrival(order.id,false);}});
+ const toast=(view:'active'|'history'|'ready')=>showStatusToast({tone:'green',title:view==='ready'?'Aviso confirmado':view==='active'?'Producto recibido':'Solicitud finalizada',line:view==='ready'?'Pendiente de recepción.':view==='active'?'Pendiente de finalizar. El pedido sigue en En curso.':'Ya la encuentras en Historial.',actionLabel:'Ver',onAction:()=>{window.dispatchEvent(new CustomEvent('zipco-availability-view',{detail:{business:false,view:statusViewFor('orders',operation.currentOrder()?.status??order.status,operation.currentOrder()?.requestProcess??process,false,false)??view,explicit:true}}));markStatusArrival(order.id,false);}});
  const submit=async(action:'DECLARE_PRODUCT_RECEIVED'|'FINALIZE_REQUEST'|'ACK_READY_NOTICE'|'CONFIRM_RECEIPT',retry=false)=>{
   if(lock.current||operation.busy||recovery||!retry&&pending)return;
   lock.current=true;
@@ -59,6 +62,6 @@ export function useCustomerReceiptFlowCardController(props:CustomerAcceptedProgr
  const receive=()=>{if(v2)void submit('DECLARE_PRODUCT_RECEIVED');else setLegacyConfirm(receiveAction as 'ACK_READY_NOTICE'|'CONFIRM_RECEIPT');};
  const model:ReadyModel|undefined=ready?{deliveryDeclared:process?.businessClosure?.status==='DELIVERY_DECLARED',stage:finishing?'finishing':received?'received':'ready',busy:operation.busy,disabled:blocked||!coordinationAllowed(process,false,received?'FINALIZE_REQUEST':receiveAction),error:operation.message,...(process?.businessClosure?.status==='DELIVERY_DECLARED'&&!received?{title:'El negocio indicó que entregó tu pedido',subtitle:'Confirma recepción solo si ya lo recibiste.'}:{}),...(!v2?{title:process?.readyNoticeAcknowledged?'Aviso confirmado':'Tu pedido se encuentra listo',subtitle:process?.readyNoticeAcknowledged?'Confirma la recepción solo cuando ya tengas el producto.':'Confirma que viste el aviso; esto no confirma la recepción.',confirmLabel:process?.readyNoticeAcknowledged?'Confirmar recepción':'Confirmar aviso'}:{}),onConfirmReceipt:receive,onFinish:()=>void submit('FINALIZE_REQUEST')}:undefined;
 
-return {accepted,acceptedAt,blocked,businessName,conditionsSubtitle,conditionsSummary,conditionsTitle,conditionsWhen,coordinationPending,expanded,explanation,legacyConfirm,model,motion,negotiated,onInspect,operation,order,pending,pickup,price,process,ready,received,recovery,refresh,setExpanded,setLegacyConfirm,setSheet,sheet,submit,update};
+return {closure,accepted,acceptedAt,blocked,businessName,conditionsSubtitle,conditionsSummary,conditionsTitle,conditionsWhen,coordinationPending,expanded,explanation,legacyConfirm,model,motion,negotiated,onInspect,operation,order,pending,pickup,price,process,ready,received,recovery,refresh,setExpanded,setLegacyConfirm,setSheet,sheet,submit,update};
 }
 export type CustomerReceiptFlowCardModel=ReturnType<typeof useCustomerReceiptFlowCardController>;

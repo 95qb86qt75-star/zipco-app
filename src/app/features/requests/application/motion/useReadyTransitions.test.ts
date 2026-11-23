@@ -63,3 +63,9 @@ it('uses service wording without suggesting product acknowledgment',()=>{
  render(records('IN_PROGRESS',5,'agreement-test',20,'service'));render(records('READY',6,'agreement-test',20,'service'));
  expect(h.announce).toHaveBeenCalledWith('clientReady',expect.objectContaining({title:'¡Tu servicio está listo!'}));
 });
+it('keeps a later ready notice for closed pickup follow-up without navigating to Listos',async()=>{
+ const closed=(state:string,version:number)=>records(state,version).map(order=>({...order,requestProcess:{...order.requestProcess!,customerPickupClosure:{contract:'customer-pickup-closure-v1' as const,choice:'ACKNOWLEDGED' as const,scope:'CUSTOMER_FOLLOW_UP' as const,eventId:501,closedAt:'2026-11-23T15:00:00Z',customerCategory:'HISTORY' as const}}}));
+ render(closed('IN_PROGRESS',5));render(closed('READY',6));
+ expect(h.announce).toHaveBeenCalledWith('clientReady',expect.objectContaining({description:expect.stringContaining('Historial')}));
+ await vi.advanceTimersByTimeAsync(8000);expect(onReady).not.toHaveBeenCalled();
+});

@@ -1,3 +1,4 @@
+import {normalizePickupClosure,normalizePickupClosureOptions,type CustomerPickupClosure,type CustomerPickupClosureOptions} from './customerPickupClosure';
 import {normalizeAvailabilityScheduleReview,type AvailabilityScheduleReview} from './availabilityScheduleReview';
 import {normalizeCustomerPaymentProof,type CustomerPaymentProof} from './customerPaymentProof';
 import { normalizeBusinessClosure, normalizeClosureOptions, type BusinessClosure, type BusinessClosureOptions } from './businessClosure';
@@ -13,7 +14,7 @@ import { simplifiedReservationFlow, isSimpleOffer, isAdvisoryOffer } from "./sim
 import { LATE_INITIAL_PATHS, normalizeLateInitial, type LateInitialView } from "./lateInitialContract";
 import { RESERVATION_PATHS, reservationFlow, normalizeReservationChoice, normalizeReservation, normalizeReservationFollowUp, type Reservation, type ReservationChoice, type ReservationFollowUp } from "./reservationContract";
 
-export const PROCESS_ACTIONS = ['REQUEST_AVAILABILITY_SCHEDULE','RENEW_AVAILABILITY_SCHEDULE','DECLARE_PAYMENT_PROOF_SENT','BUSINESS_DECLARE_DELIVERY','BUSINESS_CLOSE_WITHOUT_DELIVERY','ACK_LOCAL_PICKUP_INFORMATION','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
+export const PROCESS_ACTIONS = ['FINISH_CUSTOMER_PICKUP','REQUEST_AVAILABILITY_SCHEDULE','RENEW_AVAILABILITY_SCHEDULE','DECLARE_PAYMENT_PROOF_SENT','BUSINESS_DECLARE_DELIVERY','BUSINESS_CLOSE_WITHOUT_DELIVERY','ACK_LOCAL_PICKUP_INFORMATION','DECLARE_PRODUCT_RECEIVED','FINALIZE_REQUEST','DECLINE_WHATSAPP_COORDINATION','ACCEPT_FIXED_ORDER', 'AUTHORIZE_CONTACT', 'OPEN_WHATSAPP', 'START_WORK', 'MARK_READY', 'ACK_READY_NOTICE', 'CONFIRM_RECEIPT', 'ANNUL_COORDINATION', 'CANCEL_PENDING_REQUEST', 'REJECT_PENDING_REQUEST', 'PROPOSE_ALTERNATIVE', 'COUNTER_PROPOSAL', 'PROPOSE_FINAL', 'ACCEPT_PROPOSAL', 'REJECT_PROPOSAL', 'ACCEPT_COUNTER_PROPOSAL', 'REJECT_COUNTER_PROPOSAL', 'CONFIRM_AVAILABILITY', 'CONTINUE_REQUEST', 'DECLINE_REQUEST', 'WITHDRAW_AVAILABILITY', 'CANCEL_PICKUP', 'REVOKE_CONTACT_CONSENT'] as const;
 export type ProcessAction = typeof PROCESS_ACTIONS[number]|keyof typeof RESERVATION_PATHS|keyof typeof LATE_INITIAL_PATHS|'CONFIRM_WHATSAPP_COORDINATION'|'RESPOND_WHATSAPP_COORDINATION';
 
 export const PENDING_REJECTION_REASONS = {
@@ -30,6 +31,8 @@ export function validPendingRejectionDetail(code: PendingRejectionReason, detail
 }
 
 export type RequestProcessSummary = {
+  customerPickupClosure?:CustomerPickupClosure;
+  customerPickupClosureOptions?:CustomerPickupClosureOptions;
   availabilityScheduleReview?:AvailabilityScheduleReview;
   businessClosure?:BusinessClosure;
   pickupPrepayment?:PickupPrepayment;
@@ -196,7 +199,15 @@ export function normalizeRequestProcess(value: unknown): RequestProcessSummary |
    const visual=normalizeProductPreview(value.productPreview,value.currentProposalId);
    const productPreview=visual&&(!proposalSummary||visual.items.reduce((sum,item)=>sum+item.subtotalClp,0)===proposalSummary.totalPriceClp)?visual:undefined;
    const requestedProductPreview=normalizeProductPreview(value.requestedProductPreview);
+   const customerPickupClosure=value.customerPickupClosure===undefined?undefined:normalizePickupClosure(value.customerPickupClosure,value.state);
+   const customerPickupClosureOptions=value.customerPickupClosureOptions===undefined?undefined:normalizePickupClosureOptions(value.customerPickupClosureOptions);
+   if(customerPickupClosure===null||customerPickupClosureOptions===null||
+     (customerPickupClosure||customerPickupClosureOptions)&&(!value.agreementPublicId||availability?.path!=='LOCAL_PICKUP'||information)||
+     customerPickupClosureOptions&&(customerPickupClosure||!['IN_PROGRESS','READY'].includes(value.state))||
+     value.allowedActions.includes('FINISH_CUSTOMER_PICKUP')&&!customerPickupClosureOptions||
+     customerPickupClosure?.scope==='REQUEST'&&customerReceipt?.status!=='FINALIZED')return null;
    const normalized:RequestProcessSummary = {
+    ...(customerPickupClosure?{customerPickupClosure}:{}),...(customerPickupClosureOptions?{customerPickupClosureOptions}:{}),
     id: value.id, state: value.state, version: value.version,
     ...(businessClosure?{businessClosure}:{}),...(businessClosureOptions?{businessClosureOptions}:{}),
     ...(pickupPrepayment?{pickupPrepayment}:{}),

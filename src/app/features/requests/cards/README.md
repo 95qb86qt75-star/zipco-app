@@ -66,6 +66,21 @@ sus propietarios actuales.
 
 ## Cliente
 
+- **NegW18, preparación y espera de coordinación:** `NvCardFrame` en
+  `customer/local-pickup/CustomerPickupCard.tsx` es el marco compartido de A/B/C
+  (retiro con reserva gratuita confirmada, pago previo confirmado, sin reserva)
+  y D/E (WhatsApp preparando/esperando respuesta). Estilos nuevos exclusivamente
+  `.zipco-nv-*` en `customer-pickup.css`; detalle `CustomerNvDetails` en
+  CustomerReceiptDetails. FlowCardView selecciona con datos reales; conserva
+  lineDesign pendiente, listo/recibido y servicios. ReservationPanel expone
+  sus gestiones a ese detalle con customerDetails opcional, sin duplicar hooks.
+  E225 se implementa en domain/customerPickupClosure, api/customerPickupClosureApi
+  y application/useCustomerPickupClosure, conectado desde el controlador de
+  progreso. Solo LOCAL_PICKUP: RECEIVED finaliza para ambos, WILL_COLLECT y
+  ACKNOWLEDGED cierran seguimiento cliente. Agrupación por requestStatusGrouping;
+  ProcessHistoryCard conserva el detalle real y avisos posteriores. No se añade
+  E225 a WhatsApp ni se reinterpreta FINALIZE_REQUEST.
+
 - **Propuesta por responder y conversación:** ProposalWaitingCard.tsx / .zipco-pw,
   ProposalChat.tsx y ProposalNegotiation.tsx / .zipco-pz; CSS en shared/proposal.
   Negocio conserva su rama. CustomerProposal es solo presentación de oferta,

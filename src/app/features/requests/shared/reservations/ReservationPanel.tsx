@@ -74,7 +74,7 @@ export function pickupDetailVariant(p:BusinessRequest['requestProcess']|MyOrder[
   if(confirmedPrepaymentPickup(p))return 'A';
   return !p.reservation?'B':null;
 }
-export default function ReservationPanel({order,business,refresh,render}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void;render?:(parts:ReservationPanelParts)=>React.ReactNode}){
+export default function ReservationPanel({order,business,refresh,render,customerDetails=false}:{order:BusinessRequest|MyOrder;business:boolean;refresh:()=>void;render?:(parts:ReservationPanelParts)=>React.ReactNode;customerDetails?:boolean}){
   const proofOperation=useCustomerPaymentProof(order,business,refresh);
   const operation=useReservation(order,business,refresh),p=order.requestProcess,r=p?.reservation,offer=p?.availability?.reservationOffer;
   const stage=pickupPrepaymentFor(p),waitingStage=!!stage&&stage.phase!=='READY_FOR_PREPARATION';
@@ -105,7 +105,7 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
   const blocked=operation.busy||dialog==='CONFIRM_PICKUP_RESERVATION'&&(!held||paid&&!received)||['DECLINE_PICKUP_RESERVATION','REPORT_RESERVATION_ISSUE','CANCEL_PICKUP_RESERVATION'].includes(dialog??'')&&(Array.from(reason.trim()).length<3||Array.from(reason.trim()).length>1000);
   const statusText=r.continuedWithoutReservationAt?'Continuarás sin reserva, sujeto a disponibilidad al llegar.':status==='CONFIRMED'?'Reserva confirmada · Pendiente de retiro':status==='REQUESTED'?'Reserva solicitada · Esperando confirmación del negocio':status==='AWAITING_BUSINESS_CONFIRMATION'?'Reserva pendiente de confirmación del negocio':status==='NEEDS_CLARIFICATION'?'Pendiente de aclaración entre cliente y negocio':status==='FULFILLED'?'Pedido recibido':status==='EXPIRED'?'La reserva venció':status==='DECLINED'?'El negocio no pudo apartar el pedido':'Reserva cancelada';
   const compactCustomer=simple&&!business&&!waitingStage&&['IN_PROGRESS','READY'].includes(p.state)&&!r.pickupCancellation&&!['EXPIRED','DECLINED','CANCELLED','FULFILLED'].includes(status);
-  if(compactCustomer)return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
+  if(compactCustomer&&!(customerDetails&&render))return <section data-reservation-details tabIndex={-1} data-reservation-panel className="mt-3 space-y-2 rounded-2xl border border-teal-300/50 p-3 text-xs">
     <p className="font-bold">{statusText}</p>
     <p>{offer.mode==='PREPAYMENT'?`Reserva con pago previo de $${offer.requiredAmountClp.toLocaleString('es-CL')}`:'Reserva sin pago previo'}</p>
     {advisory?<ReservationOfferSummary offer={offer}/>:r.timing&&<>
@@ -190,7 +190,9 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
       // Cliente (Aurora Pro): solo Aclarar por WhatsApp, Finalizar mi seguimiento y, si el servidor lo exige, permitir contacto. «Cancelar retiro» llega como pieza real.
       allowed('OPEN_RESERVATION_WHATSAPP')?row('wa',<WhatsAppMark className="h-4 w-4"/>,'Aclarar la reserva por WhatsApp',null,()=>waRun('CLARIFICATION')):null,
       allowed('AUTHORIZE_RESERVATION_CONTACT')?row('authorize',<User size={16}/>,'Permitir contacto para esta reserva',null,el=>open('AUTHORIZE_RESERVATION_CONTACT',el)):null,
-      allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')?row('finish',<Check size={16}/>,'Finalizar mi seguimiento','Solo cierra tu propio indicador. No finaliza el pedido.',el=>open('FINISH_OWN_RESERVATION_FOLLOW_UP',el)):null,
+      customerDetails&&allowed('REPORT_RESERVATION_ISSUE')?row('report',<Flag size={16}/>,'Registrar una aclaración',null,el=>open('REPORT_RESERVATION_ISSUE',el)):null,
+      customerDetails&&allowed('REVOKE_RESERVATION_CONTACT')?row('revoke',<UserX size={16}/>,'Retirar mi permiso para esta reserva',null,el=>open('REVOKE_RESERVATION_CONTACT',el)):null,
+      allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')?row('finish',<Check size={16}/>,customerDetails?'Cerrar seguimiento de la reserva':'Finalizar mi seguimiento','Solo cierra tu propio indicador. No finaliza el pedido.',el=>open('FINISH_OWN_RESERVATION_FOLLOW_UP',el)):null,
       allowed('REPORT_RESERVATION_ISSUE')?row('report',<Check size={16}/>,'Registrar una aclaraci?n',null,el=>open('REPORT_RESERVATION_ISSUE',el)):null,
       allowed('REVOKE_RESERVATION_CONTACT')?row('revoke',<UserX size={16}/>,'Retirar mi permiso para esta reserva',null,el=>open('REVOKE_RESERVATION_CONTACT',el)):null,
     ].filter((node):node is React.ReactElement=>node!==null):[
@@ -203,7 +205,7 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
 
     return <>{render({
       confirm:allowed('CONFIRM_PICKUP_RESERVATION')?{label:'Confirmo recepción del pago',busy:operation.busy,onClick:()=>open('CONFIRM_PICKUP_RESERVATION')}:null,
-      notices:<>{lines}{waNotice}</>,options,
+      notices:<>{lines}{!customerDetails&&waNotice}</>,options,
       ...(confirmedPickup?{pickup:{
         title:'Reserva confirmada',subtitle:'Pendiente de retiro',
         reservedAmountClp:offer.mode==='PREPAYMENT'?offer.requiredAmountClp:null,
@@ -217,8 +219,8 @@ export default function ReservationPanel({order,business,refresh,render}:{order:
         refresh:{busy:operation.busy,onClick:()=>void operation.update()},
         waNotice,
       }}:{}),
-      ...(customerVariant?{
-        whatsapp:allowed('OPEN_RESERVATION_WHATSAPP')?{label:'Abrir WhatsApp',busy:operation.busy,onClick:()=>waRun('RECEIPT')}:null,
+      ...((customerVariant||customerDetails&&!business)?{
+        whatsapp:allowed('OPEN_RESERVATION_WHATSAPP')?{label:'Abrir WhatsApp',busy:operation.busy,onClick:()=>waRun(customerVariant?'RECEIPT':'CLARIFICATION')}:null,
         refreshNow:{busy:operation.busy,onClick:()=>void operation.update()},
         waNotice,
         receipt:proofOperation.canDeclare&&(!proofOperation.pending||proofOperation.busy)?{busy:proofOperation.busy||operation.busy,error:proofOperation.error,confirm:proofOperation.confirm}:null,

@@ -19,6 +19,7 @@ export function statusViewFor(
   business = false,
 ): StatusView | null {
   if (kind === "orders") {
+    if(!business&&requestProcess?.customerPickupClosure?.customerCategory==='HISTORY')return 'history';
     const closure=requestProcess?.businessClosure;
     if(closure)return (business?closure.businessCategory:closure.customerCategory)==='HISTORY'?'history':'active';
     const information=informationView(requestProcess,business);if(information)return information;

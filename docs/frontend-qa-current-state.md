@@ -1,11 +1,37 @@
 # Estado actual y memoria de continuidad — frontend QA
 
-Actualizado: 2026-11-22, America/Santiago.
+Actualizado: 2026-11-23, America/Santiago.
 Workspace C:/dev/zipco-app-qa, rama qa. Entrada de lectura junto con AGENTS.md.
 Este documento consolida avances e identifica evidencias; no cambia contratos
 ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
+
+- 2026-11-23: NegW18 + E225 integrados en frontend, tras contrato backend
+  customer-pickup-closure-v1 publicado en Railway QA `f019560`. Tres opciones
+  reales mediante FINISH_CUSTOMER_PICKUP, UUID/cuerpo/contratos persistidos y GET
+  de recuperación; nunca se reutiliza FINALIZE_REQUEST para IN_PROGRESS.
+  Historial propio solo cliente, instrucciones/gestiones conservadas y negocio
+  sin cambio de categoría. Marco visual común A/B/C retiro local y D/E WhatsApp;
+  E225 excluye WhatsApp. Usuario autorizó ampliar API/lecturas/Historial y adaptar
+  ReservationPanel: contacto, WhatsApp específico, aclaraciones y errores reales
+  conservados. Aviso posterior de Listo permanece y abre detalle histórico sin
+  seleccionar Listos por temporizador. Tests focalizados y navegador con HTTP
+  simulado; publicación por rama qa y comprobación de SHA Vercel en cierre.
+  Sin nueva publicación backend ni migración. Falta validación autenticada del
+  flujo en ambos teléfonos. [Evidencia](frontend-pickup-cliu17-qa.md).
+
+- 2026-11-23: entrega cliente NegW18 recibida (cinco adjuntos de Downloads),
+  inicialmente **no integrada**; diagnóstico superado por E225 descrito arriba.
+  Diagnóstico inicial: FINALIZE_REQUEST
+  solo admite READY + RECEIVED_PENDING_FINALIZATION; sus opciones RETIRED/GOING
+  no forman parte del payload actual. Contacto oculto por constante y omisión de
+  parts.reservation eliminan accesos/errores reales, incluido WhatsApp específico
+  de PREPAYMENT (OPEN_WHATSAPP genérico está bloqueado para ese caso). No ampliar
+  estados ni sustituir finalizar por cancelar. Esperar contrato/decisión de cierre
+  y corregir preservación funcional antes de reemplazar archivos. 55 pruebas
+  existentes de coordinación/recepción aprobadas; sin build, commit/push ni
+  despliegue nuevos. [Diagnóstico](frontend-pickup-cliu17-qa.md).
 
 - 2026-11-22: NegW17 aplicado en los cinco archivos entregados por Claude:
   negocio AWAITING_CUSTOMER_DECISION, tarjeta plegada/desplegada `.zipco-wx` y

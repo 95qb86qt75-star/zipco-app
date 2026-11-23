@@ -4,7 +4,7 @@ import { clearReadyArrival, markJustReady } from "../readyArrival";
 import { readCoordinationSession, subscribeCoordinationSession } from "../intents/coordinationSession";
 import type { MyOrder } from "../../domain/types";
 
-type Seen = { id: number; agreement: string; state: string; version: number; orderType?: MyOrder['orderType'] };
+type Seen = { id: number; agreement: string; state: string; version: number; orderType?: MyOrder['orderType']; customerHistory?:boolean };
 export type ReadyArrival = { chipBump: boolean; tip: boolean };
 export default function useReadyTransitions(orders: readonly MyOrder[], onReady: (orderId: number) => void,
   options: { active: boolean; loaded: boolean; navigationKey: string }): ReadyArrival {
@@ -40,7 +40,7 @@ export default function useReadyTransitions(orders: readonly MyOrder[], onReady:
     orders.forEach(order => {
       const p = order.requestProcess;
       if (order.recordState === 'available' && p?.agreementPublicId)
-        next.set(order.id + ':' + p.id + ':' + p.agreementPublicId, { id:order.id, agreement:p.agreementPublicId, state:p.state, version:p.version, orderType:order.orderType });
+        next.set(order.id + ':' + p.id + ':' + p.agreementPublicId, { id:order.id, agreement:p.agreementPublicId, state:p.state, version:p.version, orderType:order.orderType,customerHistory:p.customerPickupClosure?.customerCategory==='HISTORY' });
     });
     const before = previous.current; previous.current = next;
     if (!options.active || !session) { cancel(); setArrival({chipBump:false,tip:false}); return; }
@@ -59,14 +59,14 @@ export default function useReadyTransitions(orders: readonly MyOrder[], onReady:
     const serviceOnly = changed.every(order => order.orderType === 'service');
     noticeId.current = announceAction('clientReady', {
       key:'customer-ready:' + changed.map(order=>order.id+':'+order.agreement+':'+order.version).join(','),
-      ...(serviceOnly ? { title:'¡Tu servicio está listo!', description:'El negocio marcó tu servicio como listo. Revisa sus condiciones en Listos.' }
+      ...(changed.every(order=>order.customerHistory)?{description:'El negocio marcó tu pedido como listo. Revisa las instrucciones en tu Historial.'}:serviceOnly ? { title:'¡Tu servicio está listo!', description:'El negocio marcó tu servicio como listo. Revisa sus condiciones en Listos.' }
         : changed.some(order => order.orderType !== 'product') ? { description:'El negocio marcó tu solicitud como lista. Revisa las condiciones y los pasos disponibles en Listos.' } : {}),
     });
     const valid = () => readCoordinationSession() === session && context.current.active && context.current.loaded;
     timers.current = [
       setTimeout(() => {
         if (!valid()) return;
-        const target = current.targets.find(order => [...(previous.current?.values() ?? [])].some(now => now.id===order.id && now.agreement===order.agreement && now.state==='READY'));
+        const target = current.targets.find(order => [...(previous.current?.values() ?? [])].some(now => now.id===order.id && now.agreement===order.agreement && now.state==='READY'&&!now.customerHistory));
         if (!target) return;
         if (context.current.navigationKey === current.navigation) onReadyRef.current(target.id);
         setArrival({chipBump:true,tip:true});

@@ -11,7 +11,7 @@ function compose({pickup=true,state='IN_PROGRESS',mode='FREE',status='CONFIRMED'
   order:{id:20},model:ready?{stage:'ready'}:undefined,setSheet:noop,setExpanded:noop,
  } as unknown as CustomerReceiptFlowCardModel;
  const root=CustomerReceiptFlowCardView({model});
- return root.props.children[0];
+ return root.props.children.props.children.props.children[0];
 }
 describe('confirmed free pickup composition',()=>{
  it('connects the same server-derived variant to the card and its detail',()=>{

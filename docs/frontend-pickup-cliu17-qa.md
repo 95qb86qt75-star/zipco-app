@@ -1,5 +1,187 @@
 # Retiro local del cliente — integración CliU17
 
+## Integración 2026-11-23 · NegW18 + E225
+
+Clasificación: **frontend + backend coordinados**. Backend ya publicado por su
+propio chat: `f019560`, contrato definitivo
+`C:/dev/zipco-backend-qa/docs/testing/customer-pickup-closure-contract-qa.md`,
+sección 8 y fuentes DTO leídas. No se modificó backend ni Railway. El usuario
+autorizó ampliar API, lecturas, agrupación, Historial y ReservationPanel para
+preservar sus controles. Sustituye el bloqueo del diagnóstico inicial de abajo.
+
+### Archivos y presentación
+
+Reemplazados íntegros los cinco adjuntos antes de aplicar las conexiones reales:
+CustomerPickupCard.tsx, CustomerReceiptDetails.tsx, CustomerReceiptFlowCardView.tsx,
+CustomerWhatsappProgressCard.tsx y customer-pickup.css. Marco común NvCardFrame
+para A/B/C retiro y D/E WhatsApp; el detalle mantiene datos de condiciones
+aceptadas, productos/cantidades, nota, instrucciones y total separado de reserva.
+CustomerReceiptFlowCardView selecciona, y su controlador posee el comando nuevo.
+Sin modificar los dos CSS de progress excluidos, Side negocio, ReadyPanel,
+StatusRail, DetailReveal, CustomerCoordinationCard o localPickupInformation.
+
+Adaptaciones necesarias sobre la entrega de Claude:
+
+- Tres choices reales del servidor; excluidas de WhatsApp. No se conecta el
+  diálogo a FINALIZE_REQUEST. READY/recibido conservan el recorrido vigente;
+  la nueva ventana se ofrece en las variantes de preparación incluidas.
+- Reserva confirmada no dice «Esperando confirmación». Sin reserva no afirma
+  que ya esté listo ni ordena ir de inmediato. Éxito distingue «Solicitud
+  finalizada» de «Seguimiento cerrado» según scope verificado.
+- Contacto/consentimiento no se ocultan. ReservationPanel, con customerDetails
+  opcional, entrega sus gestiones, error y WhatsApp CLARIFICATION real; mismo
+  elemento montado, sin hooks duplicados. Aclaración, revocación, actualizar y
+  seguimiento de reserva permanecen bajo su sección propia con permisos reales.
+  El WhatsApp genérico no sustituye OPEN_RESERVATION_WHATSAPP en PREPAYMENT.
+- Cancelar retiro permanece en Otras opciones; nunca se renombra como finalizar.
+  Condiciones y AgreementSheet siguen reales. Controles mínimos de 44 px,
+  miniatura/visor reales sin insignia duplicada y foco/teclado comprobados.
+- Decoración finita; pausa fuera de pantalla/segundo plano, sin pausa por scroll.
+  Movimiento reducido estático, salvo spinner operativo. Regularización enfoca
+  y abre los controles de reserva, sin ejecutar acciones al abrirlos.
+
+### Contrato, persistencia y recuperación
+
+Capacidad `customerPickupClosure`, cabecera
+`X-Customer-Pickup-Closure-Contract: customer-pickup-closure-v1` añadida a la
+negociación por sesión en participantContractHeaders. Ausente/false no habilita
+el comando. requestProcess normaliza acción, opciones, receiptBlock y resumen;
+no altera estados ni rellena campos ausentes.
+
+POST `/request-processes/:id/actions/finish-customer-pickup` con
+`{expectedVersion,confirmationAccepted:true,choice}`. Choices exactos RECEIVED,
+WILL_COLLECT, ACKNOWLEDGED. UUID y cuerpo/endpoint/contratos se guardan en
+sessionStorage antes de enviar, sin token. Una intención por usuario/proceso,
+bloqueo entre instancias y protección de sesión/desmontaje. Sin POST en mount,
+foco, apertura, cierre o vuelta de WhatsApp.
+
+GET `/request-processes/:id/customer-pickup-result` conserva clave original;
+distingue recibo histórico `result` y resumen autoritativo `current`. No asume
+incremento fijo de versión. recorded:false sigue pendiente, sin reemplazar clave
+o cuerpo. Reintento solo explícito. Elección sobrevive cerrar/reabrir y recargar.
+Un rechazo explícito del POST inicial se archiva conservando UUID/cuerpo y pide
+relectura; otra decisión requiere nueva confirmación del usuario. Fallo de GET,
+timeout, respuesta malformada o reintento incierto no descartan la intención.
+
+No éxito simulado: franja y salida solo tras recibo válido. El comando no cambia
+pestaña automáticamente; aviso ofrece Ver Historial. Publicación conserva una
+versión más reciente si llegó en paralelo y relee listas/detalle.
+
+requestStatusGrouping da Historial al cliente con customerCategory HISTORY,
+incluso si sigue IN_PROGRESS/READY. El negocio conserva su agrupación anterior;
+RECEIVED/COMPLETED finaliza para ambos. ProcessHistoryCard conserva condiciones
+y reutiliza el detalle/acciones reales, sin duplicar ReservationPanel.
+El badge histórico vigente sigue contando no leídos; no se confunde con el total
+statusCounts.history. No se cambió ese significado por esta integración.
+
+Una notificación posterior puede abrir el detalle histórico. useReadyTransitions
+mantiene el aviso y ajusta su texto para Historial, sin seleccionar Listos para
+seguimientos cerrados. El callback de pantalla y el enlace Ver del toast respetan
+el agrupador canónico. No se suprimen push ni se modifican sus contratos.
+
+### Archivos funcionales adicionales autorizados
+
+- Nuevos: domain/customerPickupClosure.ts y su test,
+  api/customerPickupClosureApi.ts, application/useCustomerPickupClosure.ts.
+- Modificados: api/participantContractHeaders.ts, domain/requestProcess.ts,
+  domain/requestStatusGrouping.ts, shared/reservations/ReservationPanel.tsx,
+  cards/customer/progress/application/useCustomerReceiptFlowCardController.tsx,
+  cards/shared/history/ProcessHistoryCard.tsx, screen/application/
+  useRequestsScreenController.tsx y application/motion/useReadyTransitions.ts.
+- Pruebas existentes ajustadas: CustomerReceiptFlowCardView.test.ts,
+  processPresentation.test.ts, RequestsScreen.readySelection.test.ts y
+  useReadyTransitions.test.ts. Mapa de tarjetas y memoria actual actualizados.
+
+### Evidencia y límites
+
+Pruebas focalizadas de normalización, API, reservas, agrupación, composición y
+navegación: 282 pruebas aprobadas en 14 archivos únicos, ejecutadas por grupos
+de dependencias y con repeticiones solo tras correcciones. No representan la
+suite completa. Última regresión de navegación: 27 pruebas, 4,62 s. El build QA
+final terminó con exit 0: Vite 16,38 s y generación PWA correcta. Se conserva
+el aviso de tamaño de chunks; no implica un fallo de compilación.
+La expectativa anterior de processPresentation prohibía el total original en
+todo el HTML, incompatible con el detalle inerte aprobado en NegW17: se acotó
+al importe propuesto de cabecera, sin cambiar la tarjeta del negocio.
+
+Chrome con RequestsScreen/componentes/diálogos reales, HTTP sintético y llamadas
+externas bloqueadas: matriz de 16 casos A/B/C/D a 320/360/390/430, productos
+múltiples y largos, plegado y detalle interno. E probada con controlador y
+capacidad reales de coordinación. Consentimiento genérico y de reserva, visor,
+condiciones, error real de reserva, alerta plegada y actualización GET probados.
+Tres decisiones, doble toque, Historial propio/ambos, negocio aún activo,
+respuesta perdida antes/después de commit, UUID/cuerpo originales, recarga sin
+POST automático, bloqueo de RECEIVED y alternativa de cierre propio comprobados.
+Sin migrar las acciones antiguas de recepción ni enviar mensajes reales.
+
+Arnés/respaldos/logs/capturas ignorados en node_modules/.cache/negw18. Se corrigieron
+fixtures inválidas (confirmationSource, actorUserId, nota opcional null, orderType
+y capacidad WhatsApp ausentes); no se aflojó el contrato. Un assert confundía el
+badge de no leídos con el total histórico. La comprobación posterior también
+detectó el temporizador que podía seleccionar Listos, y se corrigió con regresión.
+
+No se recibió tablero navegable, solo código/referencias. No se probaron teléfonos
+físicos, transferencia, envío WhatsApp, push real ni operaciones autenticadas
+Railway desde frontend. Pendiente ese recorrido tras publicación Vercel QA.
+No hay typecheck/lint independientes configurados ni compilador tsc instalado;
+no se presentan como ejecutados. Fuente de producción conservada, sin paquetes.
+Vercel se publica por rama qa y el cierre verifica success del SHA exacto.
+Main y producción no se modifican.
+
+Análisis, implementación, preparación visual, documentación y publicación sin
+cronómetro de fase; no se estiman. Unidades/build y navegador se ejecutaron en
+parte concurrentemente: no sumar sus duraciones como total ni atribuir esperas
+de herramientas a gráficos. Repeticiones motivadas por cambios/fallos concretos,
+no por rutina.
+
+---
+
+## Diagnóstico 2026-11-23 · entrega NegW18 pendiente
+
+Clasificación: requiere diagnóstico; la finalización propuesta necesita
+coordinación frontend + backend si se mantiene ese comportamiento. Se revisaron
+los cinco adjuntos completos de Downloads. No se reemplazaron fuentes de app.
+
+1. **Finalización no disponible en este estado.**
+   `api/coordinationApi.ts:90` exige `receiptPending` para FINALIZE_REQUEST;
+   `domain/customerReceiptContract.ts:16` exige READY y
+   RECEIVED_PENDING_FINALIZATION. Las variantes nuevas se activan sin readyModel,
+   antes de esa fase. Incluso añadir allowedActions en servidor no bastaría:
+   cliente y normalizador validan también estado y recibo.
+   Endpoint actual POST `/request-processes/:id/actions/finalize-request`,
+   cuerpo `{expectedVersion, confirmationAccepted:true}`, Idempotency-Key y
+   cabeceras de contrato existentes. No recibe RETIRED/GOING ni motivo. Valida
+   COMPLETED + recibo FINALIZED. No se hizo petición a QA: no hay respuesta de
+   servidor real obtenida para esta auditoría. Las opciones del adjunto no viajan
+   al servidor y no deben confundirse con recepción, cancelación o cierre propio.
+   Backend debe diagnosticar el significado y contrato de cada opción, permisos,
+   categorías de ambos, pagos/reservas, concurrencia y recuperación antes de
+   acordar una acción. No se propone habilitar FINALIZE_REQUEST indiscriminadamente.
+
+2. **Contacto y reserva no preservados.**
+   Adjunto CustomerReceiptDetails: SHOW_CONTACT_PERMISSION_IN_NV=false y omisión
+   de parts.reservation/instructions/contact. Parts.alerts de la View conserva
+   avisos de disponibilidad/contacto, no todos los errores/avisos de ReservationPanel.
+   `coordinationApi.ts:85` bloquea OPEN_WHATSAPP genérico para PREPAYMENT;
+   `shared/reservations/ReservationPanel.ts:236` ofrece el WhatsApp específico
+   OPEN_RESERVATION_WHATSAPP y su aviso de permisos. Reemplazarlo solo por
+   onContact genérico deja esa variante sin ese acceso. Necesita corrección de
+   composición preservando acciones, permisos, errores y recuperación reales.
+
+3. **Presentación pendiente de aclarar.**
+   A/B confirmadas dicen «Esperando confirmación»; C afirma «Puedes ir a retirar»
+   aunque mantiene el carril Preparando/Retiro. No usar esos textos como nuevas
+   reglas de negocio. El estado de reserva y el aviso listo son conceptos distintos.
+
+Controles: 55 pruebas existentes aprobadas en coordinationApi.test.ts y
+customerReceiptContract.test.ts, Vitest 0,896 s. Verifican el contrato vigente,
+no la integración del nuevo diseño. Sin build ni pruebas visuales de esta entrega.
+Análisis/documentación sin cronómetro separado; no se estiman tiempos ausentes.
+Sin código funcional, commit/push, Vercel ni Railway nuevos. Main/producción
+intactos. Pendiente contrato/decisión backend y corrección funcional del adjunto.
+
+---
+
 Fecha: 2026-10-31, America/Santiago. Clasificación: **solo frontend**, presentación
 y navegación local por pestañas. Sustituye el detalle pendiente señalado en el
 diagnóstico anterior; no modifica contratos ni transiciones.

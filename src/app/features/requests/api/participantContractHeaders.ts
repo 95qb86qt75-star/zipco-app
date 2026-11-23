@@ -1,3 +1,4 @@
+import {rememberPickupClosureCapability,knownPickupClosureHeaders} from '../domain/customerPickupClosure';
 import {rememberScheduleReviewCapability,knownScheduleReviewHeaders} from '../domain/availabilityScheduleReview';
 import {rememberPaymentProofCapability,knownPaymentProofHeaders} from '../domain/customerPaymentProof';
 import {businessClosureHeaders,knownBusinessClosureHeaders} from './businessClosureCapabilities';
@@ -7,7 +8,7 @@ import {isRecord} from '../domain/orderValueParsers';
 import {customerReceiptHeaders,knownCustomerReceiptHeaders} from '../domain/customerReceiptContract';
 import {LOCAL_PICKUP_INFORMATION_CONTRACT,LOCAL_PICKUP_INFORMATION_HEADERS} from '../domain/localPickupInformation';
 let cache:{token:string;request:Promise<boolean>;supported?:boolean}|undefined;
-export const knownParticipantHeaders=(token:string):Record<string,string>=>({...knownScheduleReviewHeaders(token),...knownPaymentProofHeaders(token),...knownBusinessClosureHeaders(token),...knownCustomerReceiptHeaders(token),...(cache?.token===token&&cache.supported?LOCAL_PICKUP_INFORMATION_HEADERS:{})});
+export const knownParticipantHeaders=(token:string):Record<string,string>=>({...knownPickupClosureHeaders(token),...knownScheduleReviewHeaders(token),...knownPaymentProofHeaders(token),...knownBusinessClosureHeaders(token),...knownCustomerReceiptHeaders(token),...(cache?.token===token&&cache.supported?LOCAL_PICKUP_INFORMATION_HEADERS:{})});
 async function informationHeaders(token:string,probe:boolean){
  if(!probe&&cache?.token!==token)return {};
  if(cache?.token!==token){
@@ -15,6 +16,7 @@ async function informationHeaders(token:string,probe:boolean){
    if(!r.ok)throw Error('Capability unavailable');const body:unknown=await r.json();
    if(cache?.token!==token||cache.request!==request)return false;
    rememberPickupPrepaymentCapability(token,body);
+   rememberPickupClosureCapability(token,body);
    rememberPaymentProofCapability(token,body);
    rememberScheduleReviewCapability(token,body);
    const cap=isRecord(body)?body.localPickupInformation:null;
@@ -27,5 +29,5 @@ async function informationHeaders(token:string,probe:boolean){
 /** Negotiation only: creationEnabled is never written, and false does not hide already admitted requests. */
 export async function participantHeaders(token:string,probe=false):Promise<Record<string,string>>{
  const [receipt,information,closure]=await Promise.all([customerReceiptHeaders(token,probe),informationHeaders(token,probe),businessClosureHeaders(token,probe)]);
- return {...knownScheduleReviewHeaders(token),...receipt,...information,...closure,...knownPaymentProofHeaders(token)};
+ return {...knownPickupClosureHeaders(token),...knownScheduleReviewHeaders(token),...receipt,...information,...closure,...knownPaymentProofHeaders(token)};
 }

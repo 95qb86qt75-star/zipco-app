@@ -1,10 +1,10 @@
 import {expandPresentationTree} from "../../../testing/renderPresentation";
 vi.mock('./application/useAgreedScheduleResolver', () => ({ default: () => () => ({ kind: 'unverified' }) }));
-vi.mock("../application/motion/useReadyTransitions", () => ({ default: () => ({ chipBump:false, tip:false }) }));
+vi.mock("../application/motion/useReadyTransitions", () => ({ default: (_orders:unknown,onReady:(id:number)=>void) => {hooks.readyArrival=onReady;return {chipBump:false,tip:false};} }));
 import * as React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const hooks = vi.hoisted(() => ({ slots: [] as unknown[], cursor: 0, orders: [] as unknown[], action: vi.fn(), load: vi.fn(),
-  unread: new Set<string>(), loading: false, error: '', businessOrders: [] as unknown[], hasBusiness: false }));
+  unread: new Set<string>(), loading: false, error: '', businessOrders: [] as unknown[], hasBusiness: false,readyArrival:undefined as undefined|((id:number)=>void) }));
 vi.mock('react', async (original) => ({ ...await original<typeof import('react')>(),
   useEffect: () => undefined,
   useState: (initial: unknown) => {
@@ -31,6 +31,7 @@ import BusinessOrdersTab from "./components/BusinessOrdersTab";
 import RequestStatusTab from "./components/RequestStatusTab";
 import { normalizeMyOrdersPayload, normalizeBusinessOrdersPayload } from "../domain/orderNormalization";
 import { coordinationProcess, rawOrder } from "../fixtures/requestProcessFixtures";
+import {pickupPlan} from '../fixtures/availabilityFixtures';
 import AcceptedProposalHost from "../shared/feedback/AcceptedProposalHost";
 
 type Node = React.ReactElement<Record<string, unknown> & { children?: React.ReactNode }>;
@@ -51,6 +52,14 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('visible customer ready summary in RequestsScreen', () => {
+  it('keeps an explicitly closed customer follow-up in history after the ready announcement timer',()=>{
+    hooks.orders=normalizeMyOrdersPayload([{...rawOrder,status:'ready',requestProcess:{...coordinationProcess,flowContract:'AVAILABILITY_V1',availability:pickupPlan,state:'READY',allowedActions:[],customerPickupClosure:{contract:'customer-pickup-closure-v1',choice:'ACKNOWLEDGED',scope:'CUSTOMER_FOLLOW_UP',eventId:501,closedAt:'2026-11-23T15:00:00Z',customerCategory:'HISTORY'}}}]);
+    expect(hooks.orders[0]).toHaveProperty('requestProcess.customerPickupClosure.choice','ACKNOWLEDGED');
+    const history=nodes(render()).find(n=>n.type===RequestStatusTab&&(n.props.item as {key:string}).key==='history')!;
+    (history.props.onSelect as ()=>void)();render();hooks.readyArrival!(20);
+    expect(nodes(render()).find(n=>n.type===RequestStatusTab&&(n.props.item as {key:string}).key==='history')!.props.selected).toBe(true);
+    expect(hooks.action).not.toHaveBeenCalled();
+  });
   it('shows pending business counts during load and updates them without selecting a bell', () => {
     hooks.hasBusiness = true; hooks.orders = []; hooks.loading = true;
     const businessButton = nodes(render()).find(node => node.type === 'button' && nodes(node.props.children).length > 0 &&
