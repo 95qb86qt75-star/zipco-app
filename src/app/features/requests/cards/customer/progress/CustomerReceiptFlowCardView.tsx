@@ -4,7 +4,7 @@ import * as React from 'react';
 import CustomerPickupCard,{NvDoneContext,type NvVariant} from "../local-pickup/CustomerPickupCard";
 import CustomerReceiptDetails,{CustomerPickupDetails,NvClosureContext,type NvDetailData} from "./CustomerReceiptDetails";
 import {confirmedPrepaymentPickup} from "../../../shared/reservations/ReservationPanel";
-import {reservationWhen} from "../../../shared/reservations/ReservationOfferSummary";
+import ReservationOfferSummary,{reservationWhen} from "../../../shared/reservations/ReservationOfferSummary";
 import CustomerReceiptDialog from "./CustomerReceiptDialog";
 import CustomerCoordinationCard from "../whatsapp/CustomerCoordinationCard";
 
@@ -39,17 +39,23 @@ const recoveryControls=(pending||recovery)&&!operation.busy?<div className="zipc
  // Nunca con `model` (pedido listo / recibido). lineDesign (pago previo pendiente) conserva su diseño.
  const confirmedPrepaymentDesign=pickup&&!lineDesign&&!model&&confirmedPrepaymentPickup(process);
  const nvPickup:NvVariant|null=!pickup||model||lineDesign?null:confirmedFreeDesign?'A':confirmedPrepaymentDesign?'B':arrivalDesign?'C':null;
+ // «Producto recibido» (NegW19): cliente + retiro local + READY + recepción ya declarada (RECEIVED_PENDING_FINALIZATION). Mismo contenedor visual para A/B/C.
+ // A reserva sin pago confirmada · B reserva con pago previo confirmada · C sin reserva. Cualquier otra combinación conserva la composición anterior.
+ const rv=process?.reservation,recOffer=process?.availability?.reservationOffer;
+ const recConfirmed=!!rv&&(['CONFIRMED','FULFILLED'] as string[]).includes(rv.effectiveStatus)&&!rv.continuedWithoutReservationAt&&!rv.pickupCancellation;
+ const nvRecVariant:NvVariant|null=pickup&&!!model&&ready&&received&&process?(rv?(recConfirmed?(rv.mode==='FREE'?'A':rv.mode==='PREPAYMENT'?'B':null):null):(process.reservationChoice?.choice==='NONE'||recOffer?.mode==='NONE'?'C':null)):null;
  const nvWhatsapp:'D'|'E'|null=!pickup&&!model?(coordinationPending?'E':'D'):null;
  const nvItems=subject.items.map(item=>({name:item.nameSnapshot,description:item.descriptionSnapshot??'',quantity:item.quantity}));
  const itemsText=nvItems.length===1?`${nvItems[0].quantity}× ${nvItems[0].name}`:`${nvItems.length} productos`;
  const offer=process?.availability?.reservationOffer;
- const nvVariant=nvPickup??nvWhatsapp;
+ const nvVariant=nvPickup??nvWhatsapp??nvRecVariant;
  const nvData:NvDetailData|undefined=nvVariant?{
   variant:nvVariant,items:nvItems,itemsText,
   note:(pickup?process?.reservationChoice?.note:null)||(negotiated?null:(explanation?String(explanation):null)),
   totalClp:price,reservedClp:offer?.mode==='PREPAYMENT'?offer.requiredAmountClp:null,declaredClp:process?.reservation?.paymentReceiptDeclaration?.amountClp??null,
   pickupWhen:pickup&&offer&&isSimpleOffer(offer)&&offer.simplified.scheduledFor?reservationWhen(offer.simplified.scheduledFor):null,
   message:pickup?process?.availability?.customerMessage??null:null,scheduleOrAddress:pickup?process?.availability?.scheduleOrAddress??null:null,
+  ...(nvRecVariant?{note:process?.reservationChoice?.note||null,confirmedAutomatically:rv?.confirmationSource==='AUTO_BUSINESS_OFFER',confirmedAtLabel:rv?.confirmedAt?reservationWhen(rv.confirmedAt):null,originalOffer:recOffer&&recOffer.mode!=='NONE'&&nvRecVariant!=='C'?<ReservationOfferSummary offer={recOffer}/>:null}:{}),
  }:undefined;
  const closure=controller.closure??{canFinish:false,done:null,busy:false,pending:false,pendingChoice:null,error:'',finish:async()=>false,check:async()=>false,retry:async()=>false};
  const finalizeAllowed=!!nvPickup&&closure.canFinish;
@@ -58,13 +64,13 @@ const recoveryControls=(pending||recovery)&&!operation.busy?<div className="zipc
  const nvBusy=operation.busy||closure.busy;
  const nvBlocked=blocked||closure.busy||closure.pending;
  const details=pickup
-  ?<AvailabilityPostActions order={order} business={false} refresh={refresh} render={parts=><CustomerPickupDetails nv={nvPickup?nvData:undefined} busy={nvBusy} onFinalize={onFinalize} lineDesign={lineDesign} confirmedFreeDesign={confirmedFreeDesign} arrivalDesign={arrivalDesign} summary={conditionsSummary} onConditions={()=>setSheet('cond')} blocked={nvBlocked} onContact={onContact} parts={parts}/>}/>
+  ?<AvailabilityPostActions order={order} business={false} refresh={refresh} render={parts=><CustomerPickupDetails nv={nvPickup?nvData:undefined} received={nvRecVariant?nvData:undefined} onAgreement={()=>setSheet('agree')} busy={nvBusy} onFinalize={onFinalize} lineDesign={lineDesign} confirmedFreeDesign={confirmedFreeDesign} arrivalDesign={arrivalDesign} summary={conditionsSummary} onConditions={()=>setSheet('cond')} blocked={nvBlocked} onContact={onContact} parts={parts}/>}/>
   :nvWhatsapp
    ?<AvailabilityPostActions order={order} business={false} refresh={refresh} render={parts=><CustomerReceiptDetails nv={nvData} nvParts={parts} busy={nvBusy} onFinalize={onFinalize} summary={conditionsSummary} onConditions={()=>setSheet('cond')} blocked={blocked} onContact={onContact}/>}/>
    :<CustomerReceiptDetails waitingDesign={!model} summary={conditionsSummary} onConditions={()=>setSheet('cond')} blocked={blocked} onContact={onContact}><AvailabilityPostActions order={order} business={false} refresh={refresh}/></CustomerReceiptDetails>;
  const dialogs=<><ConditionsSheet fullAgreement open={sheet==='cond'} onOpenChange={value=>setSheet(value?'cond':null)} accepted={accepted} title={conditionsTitle} subtitle={conditionsSubtitle} when={conditionsWhen} explanation={explanation} explanationLabel={negotiated?'Explicación de la propuesta aceptada':'Tu nota'} onOpenAgreement={()=>setSheet('agree')}/><AgreementSheet open={sheet==='agree'} onOpenChange={value=>setSheet(value?'agree':null)} processId={process?.id} client={businessName} perspective="customer" accepted={accepted} acceptedAt={acceptedAt}/></>;
  return <NvClosureContext.Provider value={{options:process?.customerPickupClosureOptions??null,error:closure.error,pending:closure.pending,pendingChoice:closure.pendingChoice,check:()=>void closure.check(),retry:()=>void closure.retry()}}><NvDoneContext.Provider value={finDone}><div ref={motion as React.RefObject<HTMLDivElement>}>
-  {pickup?<CustomerPickupCard nv={nvPickup?{variant:nvPickup,quantity,itemsText}:null} lineDesign={lineDesign} confirmedFreeDesign={confirmedFreeDesign} arrivalDesign={arrivalDesign} id={order.id} name={businessName} product={conditionsTitle} price={price} expanded={expanded} onToggle={()=>{onInspect?.();setExpanded(v=>!v);}} ready={model} busy={nvBusy} recovery={recoveryControls}>{details}</CustomerPickupCard>:<CustomerCoordinationCard id={order.id} name={businessName} price={price} quantity={quantity} items={items} ready={model} preparing={!coordinationPending} description={description} model={{mode:'ownPending',expanded,busy:operation.busy,attention:false,canYes:false,canNo:false,error:ready?'':operation.message,recovery:recoveryControls,onToggle:()=>{onInspect?.();setExpanded(v=>!v);},onYes:()=>{},onNo:()=>{},onReturn:()=>{},onCancel:()=>{}}}>{details}</CustomerCoordinationCard>}
+  {pickup?<CustomerPickupCard nv={nvPickup?{variant:nvPickup,quantity,itemsText}:null} nvReceived={nvRecVariant?{variant:nvRecVariant,quantity,itemsText}:null} lineDesign={lineDesign} confirmedFreeDesign={confirmedFreeDesign} arrivalDesign={arrivalDesign} id={order.id} name={businessName} product={conditionsTitle} price={price} expanded={expanded} onToggle={()=>{onInspect?.();setExpanded(v=>!v);}} ready={model} busy={nvBusy} recovery={recoveryControls}>{details}</CustomerPickupCard>:<CustomerCoordinationCard id={order.id} name={businessName} price={price} quantity={quantity} items={items} ready={model} preparing={!coordinationPending} description={description} model={{mode:'ownPending',expanded,busy:operation.busy,attention:false,canYes:false,canNo:false,error:ready?'':operation.message,recovery:recoveryControls,onToggle:()=>{onInspect?.();setExpanded(v=>!v);},onYes:()=>{},onNo:()=>{},onReturn:()=>{},onCancel:()=>{}}}>{details}</CustomerCoordinationCard>}
   {dialogs}
   {legacyConfirm&&<CustomerReceiptDialog action={legacyConfirm} busy={operation.busy} message={operation.message} onClose={()=>{if(!operation.busy)setLegacyConfirm(null);}} onConfirm={()=>void submit(legacyConfirm)}/>}
  </div></NvDoneContext.Provider></NvClosureContext.Provider>;

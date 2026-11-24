@@ -199,6 +199,7 @@ export default function ReservationPanel({order,business,refresh,render,customer
       allowed('OPEN_RESERVATION_WHATSAPP')?row('wa',<WhatsAppMark className="h-4 w-4"/>,waLabel,null,()=>void operation.run('OPEN_RESERVATION_WHATSAPP',{purpose:!business&&p?.state==='IN_PROGRESS'&&!r.confirmedAt?'RECEIPT':'CLARIFICATION'})):null,
       allowed('AUTHORIZE_RESERVATION_CONTACT')?row('authorize',<User size={16}/>,'Permitir contacto para esta reserva',null,el=>open('AUTHORIZE_RESERVATION_CONTACT',el)):null,
       allowed('FINISH_OWN_RESERVATION_FOLLOW_UP')?row('finish',<Check size={16}/>,'Finalizar mi seguimiento','Solo cierra tu propio indicador. No finaliza el pedido.',el=>open('FINISH_OWN_RESERVATION_FOLLOW_UP',el)):null,
+      customerDetails&&!business&&allowed('REPORT_RESERVATION_ISSUE')?row('report',<Flag size={16}/>,'Registrar una aclaración',null,el=>open('REPORT_RESERVATION_ISSUE',el)):null,
       allowed('DECLINE_PICKUP_RESERVATION')?row('decline',<UserX size={16}/>,'No puedo reservar el pedido',null,el=>open('DECLINE_PICKUP_RESERVATION',el)):null,
       allowed('CANCEL_PICKUP_RESERVATION')?row('cancel',<X size={16}/>,'Cancelar solo la reserva',null,el=>open('CANCEL_PICKUP_RESERVATION',el),'danger'):null,
     ].filter((node):node is React.ReactElement=>node!==null);

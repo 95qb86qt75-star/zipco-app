@@ -85,12 +85,82 @@ export function NvCardFrame({id,detailId,tone,pill,modality,name,itemsText,quant
  </article>;
 }
 
-export default function CustomerPickupCard({id,name,product,price,expanded,onToggle,ready,busy=false,recovery,children,lineDesign=false,confirmedFreeDesign=false,arrivalDesign=false,nv=null}:{id:number;name:string;product:string;price:number|null;expanded:boolean;onToggle:()=>void;ready?:ReadyModel;busy?:boolean;recovery?:ReactNode;children:ReactNode;lineDesign?:boolean;confirmedFreeDesign?:boolean;arrivalDesign?:boolean;
+/* ============================================================================================================
+   «Producto recibido» (tablero NegW19) · tarjeta del CLIENTE con retiro local: A reserva sin pago · B reserva con pago previo · C sin reserva.
+   Solo cuando el cliente YA declaró la recepción (customerReceipt.status==='RECEIVED_PENDING_FINALIZATION') y falta finalizar.
+   - El botón «Finalizar esta solicitud» es el ReadyPanel REAL (model.onFinish → FINALIZE_REQUEST): no hay ventana nueva ni cierre local.
+   - StatusRail es el real (Aceptaste → Listo → Recibido). Solo se le aplican estilos acotados en customer-pickup.css.
+   - El pliegue es CSS y el contenido plegado queda `inert`; un role="alert" dentro del detalle nunca queda oculto (franja de aviso).
+   - Mientras la acción viaja, ReadyPanel bloquea el botón y muestra «Guardando…». El aviso «Solicitud finalizada» solo aparece con stage==='finishing',
+     que el controlador activa DESPUÉS de la respuesta verificada del servidor (el toast «Solicitud finalizada» sigue siendo el del controlador).
+   ============================================================================================================ */
+export type NvReceivedProps={variant:NvVariant;quantity:number;itemsText:string};
+const RECEIVED_SUBTITLE='Solo falta finalizar la solicitud.';
+function NvReceivedCard({id,name,price,expanded,onToggle,ready,busy=false,recovery,children,nvr}:{id:number;name:string;price:number|null;expanded:boolean;onToggle:()=>void;ready:ReadyModel;busy?:boolean;recovery?:ReactNode;children:ReactNode;nvr:NvReceivedProps}){
+ const foldRef=useRef<HTMLDivElement>(null),[hasAlert,setHasAlert]=useState(false);
+ const detailId=`receipt-detail-${id}`;
+ useEffect(()=>{const el=foldRef.current;if(el)el.inert=!expanded||busy;},[expanded,busy]);
+ useEffect(()=>{
+  const el=foldRef.current;if(!el)return;
+  const sync=()=>setHasAlert(!!el.querySelector('[role="alert"]'));
+  sync();const mo=new MutationObserver(sync);mo.observe(el,{childList:true,characterData:true,subtree:true});return()=>mo.disconnect();
+ },[]);
+ const fromHeader=(e:React.MouseEvent<HTMLElement>)=>{
+  if((e.target as HTMLElement).closest(OWN_CLICK))return;
+  if(typeof window!=='undefined'&&window.getSelection?.()?.toString())return;
+  onToggle();
+ };
+ // Éxito ya verificado por el servidor (el controlador pone stage='finishing' después de la respuesta): confirmación breve; luego la lista la regrupa en Historial.
+ if(ready.stage==='finishing')return <article id={`order-${id}`} tabIndex={-1} className="zipco-nv-wrap scroll-mb-36">
+  <div className="zipco-nv-h-ok" role="status"><span className="zipco-nv-h-ic"><Check size={20} strokeWidth={3} aria-hidden="true"/></span><div><b>Solicitud finalizada</b><p>Pasó a Historial.</p></div></div>
+ </article>;
+ const unknown=price===null,v=nvr.variant;
+ const model:ReadyModel={...ready,subtitle:ready.subtitle??RECEIVED_SUBTITLE};
+ return <article id={`order-${id}`} tabIndex={-1} className="zipco-nv-x-c zipco-nv-rc scroll-mb-36" data-ver="l" data-open={expanded} data-tone="ok" data-pickup-design="nv-received" data-variant={v} aria-busy={busy||!!ready.busy}>
+  <div className="zipco-nv-x-hd" onClick={fromHeader}>
+   <div className="zipco-nv-x-top">
+    <span className="zipco-nv-x-pill"><i aria-hidden="true"><Check size={13} strokeWidth={3}/></i><b>Producto recibido</b></span>
+    <button type="button" className="zipco-nv-x-tg" aria-expanded={expanded} aria-controls={detailId} onClick={e=>{e.stopPropagation();onToggle();}}><span className="zipco-nv-x-hand">{HAND_NV}</span><span>{expanded?'Ocultar':'Ver detalle'}</span><span className="zipco-nv-x-chv" aria-hidden="true"><ChevronDown size={14}/></span></button>
+   </div>
+   <div className="zipco-nv-x-id">
+    <span className="zipco-nv-x-th"><ProductPreviewControl thumbnailLoading="eager" fallback={<ShoppingBag size={22} aria-hidden="true"/>}/><b>{nvr.quantity}×</b></span>
+    <div className="zipco-nv-x-who"><small>NEGOCIO</small><h3>{name}</h3><span className="zipco-nv-x-pc">{nvr.itemsText}</span></div>
+    <div className="zipco-nv-x-tot"><b data-u={unknown}>{unknown?'Total por comprobar':'$'+price.toLocaleString('es-CL')}</b><small>ACORDADO</small></div>
+   </div>
+   <div className="zipco-nv-rc-chips">
+    <span className="zipco-nv-rc-chip"><MapPin size={12} aria-hidden="true"/>Retiro en el local</span>
+    {v==='A'&&<span className="zipco-nv-rc-chip" data-k="ok"><Check size={12} strokeWidth={3} aria-hidden="true"/>Reserva sin pago previo</span>}
+    {v==='B'&&<span className="zipco-nv-rc-chip" data-k="cy"><Check size={12} strokeWidth={3} aria-hidden="true"/>Reserva con pago previo</span>}
+    {v==='C'&&<span className="zipco-nv-rc-chip"><Info size={12} aria-hidden="true"/>Retiro sin reserva</span>}
+   </div>
+  </div>
+  <div className="zipco-nv-rc-now"><ReadyPanel model={model} tone="light" kind="pickup"/>{recovery}</div>
+  {busy&&!ready.busy&&<p className="zipco-nv-x-bzs" role="status"><i className="zipco-nv-x-sp" aria-hidden="true"/>Guardando…</p>}
+  {hasAlert&&!expanded&&<div className="zipco-nv-x-at" role="alert"><AlertTriangle size={18} aria-hidden="true"/><p>Hay un aviso que requiere tu atención.</p><button type="button" onClick={onToggle}>Ver detalle</button></div>}
+  <div className="zipco-nv-x-fold" data-open={expanded} data-fold ref={foldRef} aria-hidden={!expanded}><div className="zipco-nv-x-fi"><div className="zipco-nv-x-det" id={detailId}>
+   <StatusRail theme="light" stage="received" copy={{you:{label:'TÚ',text:'Aceptaste'},business:{label:'NEGOCIO',waiting:'Preparando',ready:ready.deliveryDeclared?'Entregado':'Listo'},third:{label:'RETIRO',waiting:'Pendiente',ready:'¡Listo!',received:'Recibido'}}}/>
+   {children}
+  </div></div></div>
+ </article>;
+}
+
+export default function CustomerPickupCard({id,name,product,price,expanded,onToggle,ready,busy=false,recovery,children,lineDesign=false,confirmedFreeDesign=false,arrivalDesign=false,nv=null,nvReceived=null}:{id:number;name:string;product:string;price:number|null;expanded:boolean;onToggle:()=>void;ready?:ReadyModel;busy?:boolean;recovery?:ReactNode;children:ReactNode;lineDesign?:boolean;confirmedFreeDesign?:boolean;arrivalDesign?:boolean;
  /** Diseño «Nuevo · Lista» para A (reserva sin pago confirmada), B (reserva con pago confirmada) y C (sin reserva). Lo decide CustomerReceiptFlowCardView; con `ready` (pedido listo/recibido) NUNCA se usa. */
- nv?:null|{variant:NvVariant;quantity:number;itemsText:string;done?:{label:string;out:boolean;requestFinished?:boolean}|null}}){
+ nv?:null|{variant:NvVariant;quantity:number;itemsText:string;done?:{label:string;out:boolean;requestFinished?:boolean}|null};
+ /** «Producto recibido» (tablero NegW19) para A/B/C. Lo decide CustomerReceiptFlowCardView; exige `ready` en etapa received/finishing. Otras combinaciones conservan la composición anterior. */
+ nvReceived?:NvReceivedProps|null}){
+ const previousStage=useRef(ready?.stage);
+ useEffect(()=>{
+  // ReadyPanel changes owner when this variant first receives the product.
+  // Preserve its existing focus transfer to the finalization control.
+  if(nvReceived&&ready?.stage==='received'&&previousStage.current==='ready')document.getElementById(`order-${id}`)?.querySelector<HTMLButtonElement>('.zipco-own-cta')?.focus({preventScroll:true});
+  previousStage.current=ready?.stage;
+ },[ready?.stage,nvReceived,id]);
  const received=ready?.stage==='received'||ready?.stage==='finishing';
  const total=<span className="zipco-pickup-c-total"><b data-unknown={price===null}>{price===null?'Total por comprobar':'$'+price.toLocaleString('es-CL')}</b><small>ACORDADO</small></span>;
 
+ // «Producto recibido»: nuevo diseño para A/B/C (ver NvReceivedCard).
+ if(nvReceived&&ready&&received)return <NvReceivedCard id={id} name={name} price={price} expanded={expanded} onToggle={onToggle} ready={ready} busy={busy} recovery={recovery} nvr={nvReceived}>{children}</NvReceivedCard>;
  // Diseño «Nuevo · Lista»: A/B/C. `ready` (listo/recibido) conserva siempre la composición anterior.
  if(nv&&!ready){
   const c=nv.variant==='C';

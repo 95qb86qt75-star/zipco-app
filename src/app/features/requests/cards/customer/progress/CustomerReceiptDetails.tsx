@@ -2,7 +2,7 @@ import * as React from 'react';
 import ReservationPanel from '../../../shared/reservations/ReservationPanel';
 import {PICKUP_CHOICE_LABELS,type PickupClosureChoice,type CustomerPickupClosureOptions} from '../../../domain/customerPickupClosure';
 import {useEffect,useId,useRef,useState} from 'react';
-import {Calendar,Check,ChevronDown,ChevronRight,ChevronUp,CircleCheck,Hourglass,Info,MapPin,MessageCircle,ShieldCheck,Ticket,X} from 'lucide-react';
+import {Calendar,Check,ChevronDown,ChevronRight,ChevronUp,CircleCheck,FileText,Hourglass,Info,MapPin,MessageCircle,RefreshCw,ShieldCheck,Ticket,X} from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import type {ReactNode} from 'react';
 import WhatsAppMark from "../../../shared/icons/WhatsAppMark";
@@ -26,6 +26,10 @@ export type NvDetailData={
  pickupWhen:string|null;
  /** Texto libre del negocio (availability.customerMessage / scheduleOrAddress). No se reescribe ni se convierte en hora. */
  message:string|null;scheduleOrAddress:string|null;
+ /** Solo «Producto recibido» (A/B): datos REALES de la reserva ya resuelta. Sin valor, la línea no se muestra. */
+ confirmedAutomatically?:boolean;confirmedAtLabel?:string|null;
+ /** Resumen original de la oferta (ReservationOfferSummary real). Describe condiciones ya acordadas, no tareas pendientes. */
+ originalOffer?:ReactNode;
 };
 export type NvFinalizeOption=PickupClosureChoice;
 export const NV_FINALIZE_LABEL=PICKUP_CHOICE_LABELS;
@@ -117,6 +121,77 @@ export function CustomerNvDetails({data,parts,summary,onConditions,onContact,blo
    ?<><button type="button" className="zipco-nv-m-cx2 zipco-nv-m-fz" aria-haspopup="dialog" disabled={busy||(blocked&&!closure?.pending)} onClick={e=>{opener.current=e.currentTarget;setFin(true);}}><Check size={16} aria-hidden="true"/>Finalizar solicitud</button>
      <NvFinalizeDialog open={fin} onOpenChange={setFin} busy={busy} openerRef={opener} onConfirm={onFinalize} onRegularize={()=>{const el=reservationRef.current;const details=el?.querySelector("details");if(details)details.open=true;el?.focus();el?.scrollIntoView({block:"center",behavior:"instant"});}}/></>
    :null}
+  {parts?.has.cancel&&<details className="zipco-nv-cancel-options"><summary>Otras opciones</summary><div className="zipco-nv-cxw">{parts.cancel}</div></details>}
+  <button type="button" className="zipco-nv-x-hide" onClick={collapse}>Ocultar detalle<ChevronUp size={14} aria-hidden="true"/></button>
+  <p className="zipco-nv-x-pay">ZIPCO no procesa ni verifica pagos.</p>
+ </>;
+}
+
+/* ============================================================================================================
+   «Producto recibido» (tablero NegW19) · detalle desplegado. Variantes A reserva sin pago · B reserva con pago previo · C sin reserva.
+   El cliente YA declaró la recepción: la reserva y las condiciones son ANTECEDENTES (no tareas). Solo se muestra lo que el servidor entrega.
+   - «Gestiones de la reserva» = ReservationPanel REAL (cloneElement con customerDetails + render). Sus acciones y permisos no cambian;
+     «Finalizar mi seguimiento» (key 'finish') queda separado y con otro aspecto: NO finaliza el pedido.
+   - El error de la reserva (`r.error`) vive FUERA del pliegue: siempre visible.
+   - El botón «Finalizar esta solicitud» NO está aquí: es el ReadyPanel de la tarjeta (CustomerPickupCard → NvReceivedCard).
+   ============================================================================================================ */
+export function CustomerNvReceivedDetails({data,parts,summary,onConditions,onAgreement,onContact,blocked=false}:{data:NvDetailData;parts:AvailabilityPostActionParts|null;summary:string;onConditions:()=>void;onAgreement?:()=>void;onContact?:()=>void;blocked?:boolean}){
+ const id=useId(),[gopen,setGopen]=useState(false);
+ const {variant:v,items,note,reservedClp,declaredClp,pickupWhen,message,scheduleOrAddress,confirmedAutomatically,confirmedAtLabel,originalOffer}=data;
+ const ab=v!=='C',b=v==='B',many=items.length>1;
+ const peso=(n:number)=>'$'+n.toLocaleString('es-CL');
+ const collapse=(e:React.MouseEvent<HTMLButtonElement>)=>{const t=e.currentTarget.closest('.zipco-nv-x-c')?.querySelector<HTMLButtonElement>('.zipco-nv-x-tg');t?.click();t?.focus({preventScroll:true});};
+ const head=(icon:ReactNode,title:string,tag:string)=><div className="zipco-nv-rc-sh"><span className="zipco-nv-rc-ic">{icon}</span><h5>{title}</h5><span className="zipco-nv-rc-tag">{tag}</span></div>;
+ const condRow=<><button type="button" className="zipco-nv-rc-cd" aria-haspopup="dialog" onClick={onConditions}><span className="zipco-nv-rc-ic"><CircleCheck size={15} aria-hidden="true"/></span><span><b>Condiciones aceptadas</b><small>{summary}</small></span><ChevronRight size={16} aria-hidden="true"/></button>
+  {onAgreement&&<button type="button" className="zipco-nv-rc-lk" aria-haspopup="dialog" onClick={onAgreement}><FileText size={14} aria-hidden="true"/>Ver acuerdo completo</button>}</>;
+ const hasRetiro=many||!!pickupWhen||!!message||!!scheduleOrAddress;
+ const reservation=parts?.has.reservation?(React.isValidElement<React.ComponentProps<typeof ReservationPanel>>(parts.reservation)?React.cloneElement(parts.reservation,{customerDetails:true,render:r=>{
+  const opts=r.options.filter((o):o is React.ReactElement=>React.isValidElement(o));
+  // WhatsApp ya llega como `r.whatsapp`; «Finalizar mi seguimiento» (key 'finish') se separa del resto: solo cierra el seguimiento de la reserva.
+  const rest=opts.filter(o=>o.key!=='finish'&&o.key!=='wa'),fin=opts.filter(o=>o.key==='finish');
+  const has=!!(r.whatsapp||r.refreshNow||r.waNotice||rest.length||fin.length);
+  const foldId=id+'-g';
+  return <section data-nv-reservation tabIndex={-1} className="zipco-nv-rc-g" aria-label="Gestiones de la reserva">
+   {r.error}
+   {has&&<>
+    <button type="button" className="zipco-nv-rc-gt" aria-expanded={gopen} aria-controls={foldId} onClick={()=>setGopen(x=>!x)}><span className="zipco-nv-rc-ic"><MessageCircle size={15} aria-hidden="true"/></span><span><b>Gestiones de la reserva</b><small>No finalizan el pedido</small></span><span className="zipco-nv-x-chv" aria-hidden="true"><ChevronDown size={14}/></span></button>
+    <div className="zipco-nv-rc-gf" id={foldId} data-open={gopen}><div className="zipco-nv-rc-gfi" ref={el=>{if(el)el.inert=!gopen;}}>
+     {r.waNotice}
+     <details className="zipco-nv-rc-orig"><summary>Avisos de la reserva</summary>{r.notices}</details>
+     {r.whatsapp&&<button type="button" className="zipco-nv-l-wa" disabled={blocked||r.busy} onClick={r.whatsapp.onClick}><span className="zipco-nv-j-pi"><WhatsAppMark className="h-4 w-4"/></span><span><b>Aclarar la reserva por WhatsApp</b><small>Opcional · no confirma pago, retiro ni entrega</small></span><ChevronRight size={16} aria-hidden="true"/></button>}
+     <div className="zipco-nv-res-actions">
+      {r.refreshNow&&<button type="button" disabled={r.busy} onClick={r.refreshNow.onClick}><RefreshCw size={16} aria-hidden="true"/>Actualizar reserva</button>}
+      {rest}
+     </div>
+     {fin.length>0&&<div className="zipco-nv-rc-gx zipco-nv-res-actions">{fin}</div>}
+    </div></div>
+   </>}
+  </section>;
+ }}):parts.reservation):null;
+ return <>
+  {parts?.has.alerts&&<div className="zipco-nv-x-al">{parts.alerts}</div>}
+  {ab&&<section className="zipco-nv-rc-sec" aria-label="Reserva">
+   {head(<Check size={15} strokeWidth={3} aria-hidden="true"/>,'Reserva','YA RESUELTA')}
+   <p><span className="zipco-nv-rc-chip" data-k={b?'cy':'ok'}>{b?'Con pago previo':'Sin pago previo'}</span></p>
+   {b&&<p className="zipco-nv-rc-ln"><CircleCheck size={14} aria-hidden="true"/><span>Reserva con pago previo de {peso(reservedClp??0)}.</span></p>}
+   {confirmedAutomatically?<p className="zipco-nv-rc-ln"><Info size={14} aria-hidden="true"/><span>Reserva registrada automáticamente según las condiciones ofrecidas por el negocio.</span></p>
+    :confirmedAtLabel?<p className="zipco-nv-rc-ln"><Info size={14} aria-hidden="true"/><span>El negocio confirmó el apartado el {confirmedAtLabel}</span></p>:null}
+   {b&&declaredClp!==null&&<p className="zipco-nv-rc-ln" data-w="true"><Info size={14} aria-hidden="true"/><span>El negocio declaró recibido {peso(declaredClp)}. ZIPCO no verificó la transferencia.</span></p>}
+   {note&&<div className="zipco-nv-rc-q"><small>NOTA DE RESERVA</small>{note}</div>}
+   {condRow}
+   {originalOffer&&<details className="zipco-nv-rc-orig"><summary>Condiciones originales de la reserva</summary>{originalOffer}</details>}
+  </section>}
+  {hasRetiro&&<section className="zipco-nv-rc-sec" aria-label="Retiro en el local">
+   {head(<MapPin size={15} aria-hidden="true"/>,'Retiro en el local','RECIBIDO')}
+   {many&&<ul className="zipco-nv-rc-pl">{items.map((x,i)=><li key={i}><b>{x.quantity}×</b><span>{x.name}</span></li>)}</ul>}
+   {pickupWhen&&<dl className="zipco-nv-rc-kv"><dt>RETIRO SOLICITADO</dt><dd>{pickupWhen}</dd></dl>}
+   {message&&<div className="zipco-nv-rc-q" data-biz="true"><small>NOTA DEL NEGOCIO</small>{message}</div>}
+   {scheduleOrAddress&&<span className="zipco-nv-rc-addr"><MapPin size={12} aria-hidden="true"/>{scheduleOrAddress}</span>}
+  </section>}
+  {!ab&&<div className="zipco-nv-rc-solo">{condRow}</div>}
+  {onContact&&<button type="button" className="zipco-nv-l-wa" disabled={blocked} onClick={onContact}><span className="zipco-nv-j-pi"><WhatsAppMark className="h-4 w-4"/></span><span><b>Escribir al negocio</b><small>Opcional · no confirma pago, retiro ni entrega</small></span><ChevronRight size={16} aria-hidden="true"/></button>}
+  {parts?.has.contact&&<div className="zipco-nv-x-perm">{parts.contact}</div>}
+  {reservation}
   {parts?.has.cancel&&<details className="zipco-nv-cancel-options"><summary>Otras opciones</summary><div className="zipco-nv-cxw">{parts.cancel}</div></details>}
   <button type="button" className="zipco-nv-x-hide" onClick={collapse}>Ocultar detalle<ChevronUp size={14} aria-hidden="true"/></button>
   <p className="zipco-nv-x-pay">ZIPCO no procesa ni verifica pagos.</p>
@@ -383,7 +458,11 @@ function StandardPickupDetails({summary,onConditions,onContact,blocked=false,par
  </div>;
 }
 
-export function CustomerPickupDetails({lineDesign=false,confirmedFreeDesign=false,arrivalDesign=false,nv,busy=false,onFinalize,...props}:React.ComponentProps<typeof StandardPickupDetails>&{lineDesign?:boolean;confirmedFreeDesign?:boolean;arrivalDesign?:boolean;nv?:NvDetailData;busy?:boolean;onFinalize?:(option:NvFinalizeOption)=>void}){
+export function CustomerPickupDetails({lineDesign=false,confirmedFreeDesign=false,arrivalDesign=false,nv,received,onAgreement,busy=false,onFinalize,...props}:React.ComponentProps<typeof StandardPickupDetails>&{lineDesign?:boolean;confirmedFreeDesign?:boolean;arrivalDesign?:boolean;nv?:NvDetailData;busy?:boolean;onFinalize?:(option:NvFinalizeOption)=>void;
+ /** «Producto recibido» (NegW19): detalle propio de A/B/C. Tiene prioridad sobre el resto; el cierre lo hace el ReadyPanel de la tarjeta. */
+ received?:NvDetailData;onAgreement?:()=>void}){
+ // «Producto recibido» (cliente ya declaró recepción): antecedentes + gestiones de la reserva; sin botón de finalizar aquí.
+ if(received)return <CustomerNvReceivedDetails data={received} parts={props.parts} summary={props.summary} onConditions={props.onConditions} onAgreement={onAgreement} onContact={props.onContact} blocked={props.blocked}/>;
  // «Nuevo · Lista» (A/B/C) tiene prioridad; lineDesign (pago previo pendiente) y la presentación estándar se conservan.
  if(nv)return <CustomerNvDetails data={nv} parts={props.parts} summary={props.summary} onConditions={props.onConditions} onContact={props.onContact} blocked={props.blocked} busy={busy} onFinalize={onFinalize}/>;
  return lineDesign?<CustomerPickupLineDetails {...props}/>:confirmedFreeDesign||arrivalDesign?<CustomerPickupConfirmedDetails {...props} arrivalDesign={arrivalDesign}/>:<StandardPickupDetails {...props}/>;
