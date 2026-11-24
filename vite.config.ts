@@ -34,6 +34,9 @@ export default defineConfig(({ mode }) => {
     }
   }
   return {
+  // scripts/dev-env.mjs already injected the chosen env files; skip Vite's own
+  // .env/.env.local loading so .env.local cannot override them.
+  ...(process.env.ZIPCO_ENV_FILES_ONLY === '1' ? { envDir: false as const } : {}),
   define: {
     'import.meta.env.QA_LOAD_DIAGNOSTICS': JSON.stringify(diagnostics),
     'import.meta.env.QA_LOAD_DIAGNOSTICS_VERSION': JSON.stringify(diagnosticVersion),
@@ -80,6 +83,19 @@ export default defineConfig(({ mode }) => {
     host: '127.0.0.1',
     port: 5173,
     strictPort: true,
+    // Local dev only: with VITE_API_URL=/local-api and LOCAL_API_PROXY_TARGET set,
+    // the browser calls the API on its own origin and Vite forwards it, so a
+    // backend that only allows HTTPS origins (NODE_ENV=production) still works.
+    ...(process.env.LOCAL_API_PROXY_TARGET ? {
+      proxy: {
+        '/local-api': {
+          target: process.env.LOCAL_API_PROXY_TARGET,
+          changeOrigin: true,
+          rewrite: (p: string) => p.replace(/^\/local-api/, '') || '/',
+          configure: (proxy) => proxy.on('proxyReq', req => req.removeHeader('origin')),
+        },
+      },
+    } : {}),
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
