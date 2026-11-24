@@ -7,6 +7,16 @@ ni convierte pruebas sintéticas en aprobación física.
 
 ## Decisiones vigentes
 
+- 2026-11-24: negocio «Nuevo pedido» (AWAITING_BUSINESS_RESPONSE, `.zipco-nv`
+  en AvailabilityDesign/availability-design.css) adopta la estructura de
+  «Esperando al cliente» `.zipco-wx`: cabecera blanca, panel de estado con
+  cuándo lo necesita y productos, aviso y pie centrado. Solo presentación; mismos
+  datos, botones, diálogos y detalle real. Horario duplicado oculto en el detalle.
+  Fixture con HTTP simulado 320/390: plegar/desplegar por toque y hit testing OK.
+  `check-availability-flow.mjs` ya estaba desfasado (texto «NUEVO PEDIDO»,
+  tarjeta forzada abierta). 5 pruebas ajenas ya fallaban antes (BusinessOrdersTab
+  y progreso). Build QA aprobado; commit local en main, sin push ni despliegue.
+
 - 2026-11-23: NegW18 + E225 integrados en frontend, tras contrato backend
   customer-pickup-closure-v1 publicado en Railway QA `f019560`. Tres opciones
   reales mediante FINISH_CUSTOMER_PICKUP, UUID/cuerpo/contratos persistidos y GET

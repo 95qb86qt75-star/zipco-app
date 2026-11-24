@@ -3,7 +3,7 @@ import BusinessResponseHoursNotice from "../hours/BusinessResponseHoursNotice";
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { ArrowLeft, Bell, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, Image as ImageIcon, LockKeyhole, MapPin, Pencil, Phone, Plus, Quote, Send, ShieldCheck, ShoppingBag, Store, Undo2, UserRound, X, Zap } from 'lucide-react';
+import { ArrowLeft, Bell, BookmarkCheck, ArrowLeftRight, CalendarDays, Check, ChevronDown, ChevronRight, ChevronUp, CircleCheck, Clock, Eye, Hourglass, Image as ImageIcon, Info, LockKeyhole, MapPin, Pencil, Phone, Plus, Quote, Send, ShieldCheck, ShoppingBag, Store, Undo2, UserRound, X, Zap } from 'lucide-react';
 import AcceptGlassButton from "../../cards/shared/coordination/AcceptGlassButton";
 import WhatsAppMark from "../icons/WhatsAppMark";
 import "./availability-design.css";
@@ -88,30 +88,33 @@ function BusinessNewRequestCard({ data, expanded, onToggle, contactIntent, actio
 }) {
   const first = data.items[0];
   const summary = first ? `${first.quantity}× ${first.name}${data.items.length > 1 ? ` · +${data.items.length - 1} más` : ''}` : '';
+  // Misma estructura que «Esperando al cliente» (.zipco-wx): cabecera blanca, panel de estado y pie centrado.
   return <article className="zipco-av-ticket zipco-av-business zipco-nv" data-open={expanded} aria-label={`${data.counterpart}: Nuevo pedido`}>
-    <header className="zipco-nv-hero">
-      <i className="zipco-nv-glow zipco-nv-glow-a" aria-hidden="true" /><i className="zipco-nv-glow zipco-nv-glow-b" aria-hidden="true" />
-      <i className="zipco-nv-spark zipco-nv-spark-a" aria-hidden="true" /><i className="zipco-nv-spark zipco-nv-spark-b" aria-hidden="true" /><i className="zipco-nv-spark zipco-nv-spark-c" aria-hidden="true" />
-      <div className="zipco-nv-top">
-        <ProductPreviewControl fallback={<span className="zipco-av-ticket-icon"><UserRound aria-hidden="true" /></span>} />
-        <div className="zipco-nv-id"><small>SOLICITUD DE CLIENTE</small><b>{data.counterpart}</b></div>
-        <div className="zipco-nv-price"><b>{money(data.total)}</b><small>SOLICITADO</small></div>
-      </div>
+    <header className="zipco-nv-h">
+      <span className="zipco-nv-th"><ProductPreviewControl fallback={<span className="zipco-av-ticket-icon"><UserRound aria-hidden="true" /></span>} /></span>
+      <div className="zipco-nv-id"><small>SOLICITUD DE CLIENTE</small><b>{data.counterpart}</b></div>
+      <div className="zipco-nv-price"><b>{money(data.total)}</b><small>SOLICITADO</small></div>
+    </header>
+    <div className="zipco-nv-bn">
       <div className="zipco-nv-tt">
-        <span className="zipco-nv-pill"><i aria-hidden="true"><Bell /></i>
-          <h2 aria-label="Nuevo pedido">{Array.from('Nuevo pedido').map((letter, index) => <span key={index} aria-hidden="true">{letter}</span>)}</h2>
-        </span>
+        <h2 className="zipco-nv-new"><i aria-hidden="true"><Bell /></i>NUEVO PEDIDO</h2>
         <span className="zipco-nv-wait"><i aria-hidden="true" />Esperando tu respuesta</span>
       </div>
-      <p className="zipco-nv-sub">Revisa la solicitud y responde al cliente.</p>
-    </header>
-    <div className="zipco-nv-body">
-      <div className="zipco-nv-sum">
-        {summary && <span className="zipco-nv-chip zipco-nv-chip-p"><ShoppingBag aria-hidden="true" />{summary}</span>}
-        <span className={`zipco-nv-chip ${data.immediate ? 'zipco-nv-chip-n' : 'zipco-nv-chip-t'}`}>{data.immediate ? <Zap aria-hidden="true" /> : <CalendarDays aria-hidden="true" />}{data.schedule}</span>
-        {data.note && <span className="zipco-nv-chip zipco-nv-chip-x"><Quote aria-hidden="true" />Con nota</span>}
-        {data.referencePhoto && <span className="zipco-nv-chip zipco-nv-chip-x"><ImageIcon aria-hidden="true" />Con foto</span>}
+      <div className="zipco-nv-ar">
+        <span className={`zipco-nv-ic${data.immediate ? ' zipco-nv-ic--now' : ''}`} aria-hidden="true">{data.immediate ? <Zap /> : <CalendarDays />}</span>
+        <div className="zipco-nv-at">
+          <span className="zipco-nv-hl">Cuándo lo necesita</span>
+          <strong>{data.schedule}</strong>
+          {summary && <span className="zipco-nv-sn"><ShoppingBag aria-hidden="true" />{summary}</span>}
+        </div>
       </div>
+      {(data.note || data.referencePhoto) && <div className="zipco-nv-ex">
+        {data.note && <span><Quote aria-hidden="true" />Con nota</span>}
+        {data.referencePhoto && <span><ImageIcon aria-hidden="true" />Con foto</span>}
+      </div>}
+    </div>
+    <p className="zipco-nv-nx"><Info aria-hidden="true" /><span>Revisa la solicitud y responde al cliente.</span></p>
+    <div className="zipco-nv-body">
       <div id={detailsId} hidden={!expanded} className="zipco-nv-fold">
         <div className="zipco-nv-detail" data-immediate={data.immediate}>
           <div className="zipco-nv-total"><span>Total solicitado<small>Aún sin confirmar ni pagar</small></span><b>{money(data.total)}</b></div>
