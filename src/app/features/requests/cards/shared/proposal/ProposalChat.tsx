@@ -1,0 +1,443 @@
+import * as React from 'react';
+import { useState, type ReactNode } from 'react';
+
+import * as Dialog from '@radix-ui/react-dialog';
+import { ArrowRight, Calendar, Check, Clock, DollarSign, FileText, Hash, Image as ImageIcon, Info, Maximize2, MessageCircle, Package, ShoppingBag, Sparkles, Store, StickyNote, X } from 'lucide-react';
+import type { Proposal, ProposalRead } from "../../../domain/proposalContract";
+import OrderReferencePhoto from "../../../shared/photos/OrderReferencePhoto";
+import ProductPreviewControl from "../../../shared/product-preview/ProductPreviewControl";
+import AvailabilityPlanSummary from "../availability/AvailabilityPlanSummary";
+
+const money = (value: number) => `$${value.toLocaleString('es-CL')}`;
+const TZ = 'America/Santiago';
+const time = (iso: string, h24 = false) => new Date(iso).toLocaleTimeString('es-CL', h24 ? { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } : { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
+const day = (iso: string) => new Date(iso).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'long' });
+// Disponibilidad corta para la tabla ("Ahora" / "22 oct · 12:00") y larga para el detalle.
+// `h24` (solo negocio rediseñado): hora en 24 h con el día de la semana, para que «6:00» no se confunda con «18:00».
+export const whenShort = (p: Proposal, h24 = false) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Ahora'
+  : h24 ? `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')} · ${time(p.scheduledFor, true)}`
+  : `${new Date(p.scheduledFor).toLocaleDateString('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' }).replace('.', '')} · ${time(p.scheduledFor)}`;
+export const whenLong = (p: Proposal) => p.subjectSnapshot.needNow || !p.scheduledFor ? 'Lo antes posible'
+  : new Intl.DateTimeFormat('es-CL', { timeZone: TZ, dateStyle: 'medium', timeStyle: 'short' }).format(new Date(p.scheduledFor));
+
+/** Título corto de una propuesta: "2× Producto QA", "Servicio X" o "3 productos". */
+export const proposalTitle = (p: Proposal) => {
+  const s = p.subjectSnapshot;
+  return s.items.length === 1 ? `${s.orderType === 'service' ? '' : `${s.items[0].quantity}× `}${s.items[0].nameSnapshot}` : `${s.items.length} productos`;
+};
+
+type Row = { key: string; label: string; value: string; basis?: 'unit' | 'line'; signature?: string };
+// Filas comparables. Un solo producto: cantidad, precio, disponibilidad, producto, descripción. Varios: total, disponibilidad, productos.
+function rowsOf(p: Proposal, h24 = false): Row[] {
+  const s = p.subjectSnapshot;
+  return [...s.items.flatMap((it, index): Row[] => {
+    const prefix = s.items.length > 1 ? `${index + 1}. ` : '';
+    return [
+      ...(s.orderType === 'product' ? [{ key: `qty:${index}`, label: `${prefix}Cant.`, value: String(it.quantity) }] : []),
+      { key: `price:${index}`, label: `${prefix}${it.source === 'CUSTOM' ? 'Precio total' : 'Precio u.'}`, value: money(it.source === 'CUSTOM' ? it.subtotalClp : it.unitPriceClpSnapshot!), basis: it.source === 'CUSTOM' ? 'line' : 'unit' },
+      { key: `name:${index}`, label: `${prefix}${s.orderType === 'service' ? 'Servicio' : 'Producto'}`, value: it.nameSnapshot },
+      { key: `desc:${index}`, label: `${prefix}Descripción`, value: it.descriptionSnapshot || 'Sin descripción' },
+      ...(s.items.length > 1 ? [{ key: `total:${index}`, label: `${prefix}Total línea`, value: money(it.subtotalClp) }] : []),
+    ];
+  }), { key: 'when', label: 'Cuándo', value: whenShort(p, h24), signature: p.subjectSnapshot.needNow ? 'IMMEDIATE' : p.scheduledFor! }];
+}
+
+export function comparisonRows(current: Proposal, previous: Proposal, h24 = false) {
+  const before = rowsOf(previous, h24);
+  return rowsOf(current, h24).map(row => {
+    const old = before.find(r => r.key === row.key);
+    return { ...row, old: old?.value ?? '—', oldBasis: old?.basis,
+      changed: !old || old.value !== row.value || old.basis !== row.basis || old.signature !== row.signature };
+  });
+}
+const ICONS: Record<string, ReactNode> = {
+  qty: <Hash />, price: <DollarSign />, total: <DollarSign />, when: <Calendar />, name: <Package />, desc: <FileText />,
+};
+
+const MINE = ['Tú pediste', 'Tú propusiste', 'Tú contrapropusiste', 'Tu propuesta final'];
+const THEIRS = ['El cliente pidió', 'El negocio responde', 'El cliente contrapone', 'Propuesta final del negocio'];
+const CURRENT_HEAD = ['Pedido', 'Propuesta', 'Contrapropuesta', 'Propuesta final'];
+
+/** Botón de vidrio líquido que abre el detalle flotante. Azul para el pedido (.gp) y turquesa para propuestas (.gt). */
+function DetailButton({ kind, label, compact = false }: { kind: 'gp' | 'gt'; label: string; compact?: boolean }) {
+  return <Dialog.Trigger asChild>
+    <button type="button" className={`zipco-glassbtn ${kind}`} data-open="false" aria-haspopup="dialog">
+      <span className="zipco-glassbtn-label">{compact ? <>Ver detalle<span className="sr-only"> {label.replace(/^detalle\s*/, '')}</span></> : `Ver ${label}`}</span>
+      <span className="zipco-glassbtn-arrow"><Maximize2 className="zipco-glassbtn-chev" strokeWidth={3} aria-hidden="true" /></span>
+    </button>
+  </Dialog.Trigger>;
+}
+
+/** Botón "Cerrar detalle" al pie de la tarjeta flotante. */
+const CloseButton = ({ kind }: { kind: 'gp' | 'gt' }) => <Dialog.Close asChild>
+  <button type="button" className={`zipco-glassbtn ${kind}`} data-open="true" style={{ marginTop: 12 }}>
+    <span className="zipco-glassbtn-label">Cerrar detalle</span>
+    <span className="zipco-glassbtn-arrow"><X className="zipco-glassbtn-chev" strokeWidth={3} aria-hidden="true" /></span>
+  </button>
+</Dialog.Close>;
+
+/** Tarjeta flotante sobre la pantalla: fondo difuminado y entrada 3D. */
+function Sheet({ tone, label, time: at, children, dismiss }: { tone: 'mine' | 'theirs'; label: string; time: string; children: ReactNode; dismiss: () => void }) {
+  return <Dialog.Portal>
+    <Dialog.Overlay className="zipco-sheet-ov" onPointerDown={event => { if (event.target === event.currentTarget) { event.preventDefault(); event.stopPropagation(); dismiss(); } }} />
+    <Dialog.Content data-proposal-sheet className={`zipco-sheet ${tone}`} aria-describedby={undefined}>
+      {tone === 'theirs' && <div className="zipco-sheet-lights" aria-hidden="true"><i className="zipco-sheet-blob b1" /><i className="zipco-sheet-blob b2" /></div>}
+      <div className="zipco-sheet-in">
+        <div className="zipco-sheet-top">
+          <Dialog.Title className="zipco-chat-who"><span>{label}</span><time>{at}</time></Dialog.Title>
+          <Dialog.Close asChild><button type="button" className="zipco-sheet-x" aria-label="Cerrar detalle"><X aria-hidden="true" strokeWidth={3} /></button></Dialog.Close>
+        </div>
+        {children}
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>;
+}
+
+const PhotoBox = ({ src, proposal, own, business }: { src: string; proposal: Proposal; own: string; business: boolean }) => <div className="mt-2">
+  <OrderReferencePhoto compact nestedDialog viewerZIndex={1201} business={business} src={src}
+    title={`Foto del ${own}`} caption={proposal.sequence === 0 ? 'Adjuntada con la solicitud original.' : 'Adjuntada con esta propuesta.'} />
+</div>;
+
+// Filas de texto del detalle de una burbuja (pedido o mensaje), sin comparación.
+function detailRows(p: Proposal, noteLabel: string): { label: string; value: string }[] {
+  const s = p.subjectSnapshot;
+  const message = p.sequence === 0 ? s.note : s.proposalMessage;
+  return [
+    ...rowsOf(p).filter(row => row.key !== 'when').map(({ label, value }) => ({ label, value })),
+    { label: 'Disponibilidad', value: whenLong(p) },
+    ...(message ? [{ label: noteLabel, value: message }] : []),
+  ];
+}
+
+// Tabla "antes → propuesta": las filas que cambiaron dentro de un recuadro verde, y lo que se mantuvo en chips.
+function CompareTable({ current, previous, mineBefore }: { current: Proposal; previous: Proposal; mineBefore: boolean }) {
+  const rows = comparisonRows(current, previous);
+  const changed = rows.filter(r => r.changed), kept = rows.filter(r => !r.changed);
+  const prevHead = previous.sequence === 0 ? (mineBefore ? 'Pediste' : 'Pidió') : (mineBefore ? 'Tu propuesta' : 'Propuesta anterior');
+  return <>
+    {changed.length > 0 && <div className="zipco-chat-table" role="table" aria-label="Cambios respecto a la propuesta anterior">
+      <span className="zipco-chat-box" aria-hidden="true" style={{ gridRow: `1 / span ${changed.length + 1}` }} />
+      <div role="row" className="contents"><span role="columnheader"><span className="sr-only">Aspecto</span></span>
+      <span role="columnheader" className="zipco-chat-th">{prevHead}</span>
+      <span role="columnheader" className="zipco-chat-th-new"><span className="zipco-chat-pill"><Sparkles aria-hidden="true" />{CURRENT_HEAD[current.sequence]}</span></span></div>
+      {changed.map((row, i) => <div key={row.key} role="row" className="contents" style={{ ['--d' as string]: `${i * 90}ms` }}>
+        <span className="zipco-chat-cell-l" role="rowheader">{ICONS[row.key.split(':')[0]]}{row.oldBasis && row.oldBasis !== row.basis ? 'Precio' : row.label}</span>
+        <span className="zipco-chat-cell-old" role="cell"><span>{row.old}{row.oldBasis && row.oldBasis !== row.basis && <small className="zipco-chat-sub">{row.oldBasis === 'unit' ? 'Unitario' : 'Total línea'}</small>}</span></span>
+        <span className="zipco-chat-cell-new" role="cell"><span className="zipco-chat-okdot"><Check strokeWidth={3} aria-hidden="true" /></span><span>{row.key === 'when' && row.value.includes(' · ') ? <>{row.value.split(' · ')[0]}<small className="zipco-chat-sub">{row.value.split(' · ').slice(1).join(' · ')}</small></> : row.value}{row.basis && row.oldBasis !== row.basis && <small className="zipco-chat-sub">{row.basis === 'unit' ? 'Unitario' : 'Total línea'}</small>}</span></span>
+      </div>)}
+    </div>}
+    {kept.length > 0 && <div className="zipco-chat-kept">
+      <span className="zipco-chat-kept-l">Se mantuvo</span>
+      {kept.map(row => <span key={row.key} className="zipco-chat-keep"><Check strokeWidth={3} aria-hidden="true" /><span>{row.label === 'Cant.' ? 'Cantidad' : row.label === 'Cuándo' ? 'Disponibilidad' : row.label}: <b>{row.value}</b></span></span>)}
+    </div>}
+  </>;
+}
+
+/** "Tú pediste": tarjeta holograma clara (héroe con precio, baldosas de datos y foto). Solo para el pedido original propio. */
+function PedidoSheet({ proposal, label, at, title, pic, dismiss }: { proposal: Proposal; label: string; at: string; title: string; pic: ReactNode; dismiss: () => void }) {
+  const s = proposal.subjectSnapshot;
+  const sub = s.items.length === 1 ? s.items[0].descriptionSnapshot : s.items.map(it => `${it.quantity}× ${it.nameSnapshot}`).join(' · ');
+  return <Dialog.Portal>
+    <Dialog.Overlay className="zipco-sheet-ov" onPointerDown={event => { if (event.target === event.currentTarget) { event.preventDefault(); event.stopPropagation(); dismiss(); } }} />
+    <Dialog.Content data-proposal-sheet className="zipco-sheet holo" aria-describedby={undefined}>
+      <div className="zipco-d-holo-in zipco-d-ped">
+        <span className="zipco-d-holo-grid" aria-hidden="true" /><span className="zipco-d-holo-sheen" aria-hidden="true" />
+        <div className="zipco-sheet-in">
+          <div className="zipco-d-top">
+            <Dialog.Title className="zipco-d-who"><span>{label}</span><time>{at}</time></Dialog.Title>
+            <Dialog.Close asChild><button type="button" className="zipco-d-x" aria-label="Cerrar detalle"><X aria-hidden="true" strokeWidth={3} /></button></Dialog.Close>
+          </div>
+          <div className="zipco-d-ped-hero">
+            <span className="zipco-d-ped-orb"><ShoppingBag aria-hidden="true" /></span>
+            <div className="zipco-d-ped-ttl"><b>{title}</b>{sub && <span>{sub}</span>}</div>
+            <b className="zipco-d-ped-price">{money(proposal.totalPriceClp)}</b>
+          </div>
+           {s.orderType==='product'&&<ProductPreviewControl preview={proposal.productPreview??null} caption={proposal.sequence===0?'PRODUCTO SOLICITADO':'PRODUCTO DE ESTA PROPUESTA'}/>}
+          <div className="zipco-d-ped-tiles">
+            {s.items.map((item, index) => <div key={index} className="zipco-d-tile" data-original-order-line>
+              <span className="zipco-d-tile-ic"><Package aria-hidden="true" /></span>
+              <div className="min-w-0 flex-1">
+                <div className="zipco-d-tile-v">{s.orderType === 'service' ? '' : `${item.quantity}× `}{item.nameSnapshot}</div>
+                {s.items.length > 1 && item.descriptionSnapshot && <p className="whitespace-pre-wrap break-words text-xs text-slate-600">{item.descriptionSnapshot}</p>}
+                <p className="text-xs text-slate-600">{typeof item.unitPriceClpSnapshot === 'number' ? `${money(item.unitPriceClpSnapshot)} por unidad · ` : 'Precio total de esta línea · '}{money(item.subtotalClp)}</p>
+              </div>
+            </div>)}
+            <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><Calendar aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Disponibilidad</div><div className="zipco-d-tile-v">{whenLong(proposal)}</div></div></div>
+            {s.note && <div className="zipco-d-tile"><span className="zipco-d-tile-ic"><StickyNote aria-hidden="true" /></span><div><div className="zipco-d-tile-l">Tu nota</div><div className="zipco-d-tile-v">{s.note}</div></div></div>}
+          </div>
+          {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
+          <CloseButton kind="gp" />
+        </div>
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>;
+}
+
+// Solo cliente: filas «antes → ahora» (precio, cantidad, cuándo) con los mismos datos de comparisonRows.
+const MINI_KEYS = /^(price|total|qty|when)/;
+type DiffRow = ReturnType<typeof comparisonRows>[number];
+const miniLabel = (label: string) => label.replace('Precio u.', 'Precio').replace('Cant.', 'Cantidad');
+function MiniDiff({ rows }: { rows: DiffRow[] }) {
+  return rows.length === 0 ? null : <div className="zipco-pz-dt" role="table" aria-label="Cambios respecto a la propuesta anterior">
+    {rows.map(r => <div key={r.key} role="row">
+      <span role="rowheader">{miniLabel(r.label)}</span><s role="cell">{r.old}</s><i aria-hidden="true">→</i><b role="cell">{r.value}</b>
+    </div>)}
+  </div>;
+}
+// Solo negocio (businessDesign): lista «Cambio solicitado». Usa las mismas filas que comparisonRows detecta; no interpreta texto libre.
+const CHANGE_LABELS: Record<string, string> = { qty: 'Cantidad', price: 'Precio', total: 'Total', when: 'Fecha', desc: 'Descripción' };
+const changeLabel = (row: DiffRow, orderType: string) => {
+  const kind = row.key.split(':')[0];
+  const prefix = row.label.match(/^\d+\.\s/)?.[0] ?? '';
+  return prefix + (kind === 'name' ? (orderType === 'service' ? 'Servicio' : 'Producto') : CHANGE_LABELS[kind] ?? row.label);
+};
+const basisText = (basis?: 'unit' | 'line') => basis === 'unit' ? 'unitario' : 'total línea';
+// Solo negocio (businessDesign): lista compacta «campo · antes → ahora» de la tarjeta nueva. Mismas filas que comparisonRows; no interpreta texto libre.
+function NcList({ rows, label, orderType }: { rows: DiffRow[]; label: string; orderType: string }) {
+  if (rows.length === 0) return null;
+  return <ul className="zipco-bz-ncl" aria-label={label}>
+    {rows.map(row => {
+      const moved = Boolean(row.basis && row.oldBasis !== row.basis);
+      return <li key={row.key}><span className="k">{changeLabel(row, orderType)}</span>
+        <span className="v"><span className="sr-only">Antes: </span><s>{row.old}{moved && row.oldBasis ? ` · ${basisText(row.oldBasis)}` : ''}</s><span className="n"><i aria-hidden="true">→</i><span className="sr-only">Ahora: </span><b>{row.value}{moved ? ` · ${basisText(row.basis)}` : ''}</b></span></span></li>;
+    })}
+  </ul>;
+}
+// Solo cliente que espera al negocio (waitingDesign): lista «Cambio(s) que pediste» con las mismas filas de comparisonRows; no interpreta texto libre.
+function WaitingChanges({ rows, orderType }: { rows: DiffRow[]; orderType: string }) {
+  if (rows.length === 0) return null;
+  const heading = rows.length === 1 ? 'Cambio que pediste' : 'Cambios que pediste';
+  return <div className="zipco-wt-chg" role="group" aria-label={heading}>
+    <p className="zipco-wt-chg-h" aria-hidden="true">{heading}</p>
+    {rows.map(row => {
+      const moved = Boolean(row.basis && row.oldBasis !== row.basis);
+      return <div key={row.key} className="zipco-wt-chg-r">
+        <span className="ic" aria-hidden="true">{ICONS[row.key.split(':')[0]]}</span>
+        <div className="tx"><small>{changeLabel(row, orderType)}</small>
+          <p><span className="sr-only">Antes: </span><s>{row.old}{moved && row.oldBasis ? ` · ${basisText(row.oldBasis)}` : ''}</s><i aria-hidden="true">→</i><span className="sr-only">Ahora: </span><b>{row.value}{moved ? ` · ${basisText(row.basis)}` : ''}</b></p>
+        </div>
+      </div>;
+    })}
+  </div>;
+}
+// Solo cliente: nodo de la línea de tiempo (pedido, propuesta, contrapropuesta, propuesta final).
+const NODE_ICONS = [<ShoppingBag aria-hidden="true" />, <Store aria-hidden="true" />, <MessageCircle aria-hidden="true" />, <Check aria-hidden="true" strokeWidth={3} />];
+
+function Bubble({ proposal, previous, business, last = false, bz = false, wt = false, bw = false }: { proposal: Proposal; previous?: Proposal; business: boolean; last?: boolean; bz?: boolean; wt?: boolean; bw?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const s = proposal.subjectSnapshot;
+  const mine = (proposal.authorActor === 'BUSINESS') === business;
+  const label = mine ? MINE[proposal.sequence] : THEIRS[proposal.sequence];
+  const title = proposalTitle(proposal);
+  const photo = proposal.sequence === 0 ? s.referencePhoto : s.proposalPhoto;
+  const own = proposal.sequence % 2 === 0 ? 'cliente' : 'negocio';
+  const isOrder = proposal.sequence === 0;
+  const btnLabel = isOrder ? 'detalle del pedido' : 'detalle de la propuesta';
+  const kind = isOrder ? 'gp' : 'gt';
+  const message = isOrder ? s.note : s.proposalMessage;
+  const at = time(proposal.createdAt, bz);
+  const detailButton = <DetailButton kind={kind} label={btnLabel} compact={wt} />;
+  // Cliente que espera al negocio: la última tarjeta propia es la contrapropuesta ya enviada.
+  const wtSent = wt && mine && last;
+  // Negocio y cliente en espera: «Ver detalle» va en la cabecera de la tarjeta. Cliente y demás usos: al pie, como antes.
+  const who = <p className="zipco-chat-who"><span>{label}</span><time dateTime={proposal.createdAt}>{at}</time>
+    {wtSent && <><i className="zipco-wt-br" aria-hidden="true" /><span className="zipco-wt-sent"><Check strokeWidth={3} aria-hidden="true" />Enviada</span></>}
+    {wt && detailButton}</p>;
+  // Negocio rediseñado: cabecera de la tarjeta nueva con «Ver detalle» como botón de icono (44 px de área táctil).
+  const ncDetail = <Dialog.Trigger asChild>
+    <button type="button" className="zipco-bz-ncd" aria-haspopup="dialog" aria-label={`Ver ${btnLabel}`} title="Ver detalle"><span><Maximize2 strokeWidth={2.8} aria-hidden="true" /></span></button>
+  </Dialog.Trigger>;
+  const ncHead = <div className="zipco-bz-nch"><span className="w">{label}</span><time dateTime={proposal.createdAt}>{at}</time>{ncDetail}</div>;
+  const BW_PRICE = ['PEDIDO', 'PROPUESTO', 'CONTRAPROPUESTO', 'PROPUESTA FINAL'];
+  const ncRow = (price: ReactNode) => <div className="zipco-bz-npr">{product && <span className="zipco-bz-th">{product}</span>}
+    <b className="t">{title}</b>{photo && <span className="ph" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}{price}</div>;
+  const pic = photo && <PhotoBox src={photo} proposal={proposal} own={own} business={business} />;
+  // Negocio que espera la decisión del cliente (`bw`, solo desde ProposalWaitingCard → ProposalNegotiation): datos propios de ESTA propuesta (subjectSnapshot), nunca los del pedido original en otra tarjeta.
+  const bwAsap = s.needNow || !proposal.scheduledFor;
+  const bwWhen = bw && <p className="zipco-bw-when"><Calendar aria-hidden="true" /><span>{isOrder ? 'Pidió para: ' : mine ? 'Propones: ' : 'Propone: '}<b>{bwAsap ? 'Lo antes posible' : whenShort(proposal, true)}</b></span></p>;
+  const bwLines = bw && s.items.length > 1 && <ul className="zipco-bw-pl" aria-label="Productos de esta tarjeta">
+    {s.items.map((it, i) => <li key={i}><b>{s.orderType === 'service' ? '•' : `${it.quantity}×`}</b><span>{it.nameSnapshot}</span><em>{money(it.subtotalClp)}</em></li>)}
+  </ul>;
+  const bwPhoto = bw && pic;
+  const bwQuote = (text: string, who: string) => <p className="zipco-bz-nq">{bw && <small>{who}</small>}“{text}”</p>;
+  // Cliente: `zipco-pz-*` (aprobado). Negocio con el rediseño (`bz`, solo desde ProposalNegotiation): `zipco-bz-*`. Cualquier otro uso del negocio queda como antes.
+  const evClass = bz ? ` zipco-bz-ev${last ? ' is-last' : ''}` : business ? '' : ` zipco-pz-ev${wt ? ' zipco-wt-ev' : ''}${last ? ' is-last' : ''}`;
+  const node = business && !bz ? null : bz
+    ? <span className={`zipco-bz-nd${isOrder ? ' c' : proposal.sequence === 3 ? ' f' : mine ? '' : ' t'}`} aria-hidden="true">{NODE_ICONS[proposal.sequence]}</span>
+    : <span className={`zipco-pz-nd${proposal.sequence === 3 ? ' f' : mine ? wtSent ? ' sent' : '' : ' t'}`} aria-hidden="true">{NODE_ICONS[proposal.sequence]}</span>;
+  const product=s.orderType==='product'&&<ProductPreviewControl preview={proposal.productPreview??null} caption={proposal.sequence===0?'PRODUCTO SOLICITADO':'PRODUCTO DE ESTA PROPUESTA'}/>;
+  // Cliente en espera: fila compacta «producto · título · total».
+  const wtRow = (price: ReactNode) => <div className="zipco-wt-prow">{product && <span className="zipco-wt-th">{product}</span>}
+    <b className="zipco-chat-title">{title}</b>{price}{photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}</div>;
+
+  if (mine) {
+    const rows = detailRows(proposal, isOrder ? 'Tu nota' : 'Tu mensaje');
+    const mineDiff = !wt && (!business || bz) && previous ? comparisonRows(proposal, previous, bz).filter(r => r.changed && (bw || MINI_KEYS.test(r.key))).slice(0, bw ? 12 : 4) : [];
+    const sentChanges = wtSent && previous ? comparisonRows(proposal, previous).filter(r => r.changed) : [];
+    return <div data-proposal-sequence={proposal.sequence} className={`flex flex-col items-end${evClass}`}>
+      {node}
+      <Dialog.Root open={open} onOpenChange={setOpen}>
+        <div className={bz ? 'zipco-bz-nc mine' : `zipco-chat-mine${wtSent ? ' is-sent' : ''}`}>
+          {bz ? <>
+            {ncHead}
+            {ncRow(bw ? <span className="p zipco-bw-p">{money(proposal.totalPriceClp)}<small>{BW_PRICE[proposal.sequence]}</small></span> : <b className="p">{money(proposal.totalPriceClp)}</b>)}
+            {bwWhen}{bwLines}
+            {bw && mineDiff.length > 0 && <p className="zipco-bw-pill"><Sparkles aria-hidden="true" />{mineDiff.length} {mineDiff.length === 1 ? 'cambio propuesto' : 'cambios propuestos'}</p>}
+            <NcList rows={mineDiff} label="Cambios respecto a la propuesta anterior" orderType={s.orderType} />
+            {bw && previous && mineDiff.length === 0 && <p className="zipco-bw-same"><Info aria-hidden="true" /><span>Mantiene productos, monto y fecha de la solicitud.</span></p>}
+            {message && bwQuote(message, 'Tu mensaje')}
+            {bwPhoto}
+          </> : <>
+          {who}
+          {wt ? <>
+            <WaitingChanges rows={sentChanges} orderType={s.orderType} />
+            {message && <p className="zipco-chat-quote">“{message}”</p>}
+            {wtRow(<b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>)}
+            {wtSent && <p className="zipco-wt-ws" role="status"><Clock aria-hidden="true" />Esperando respuesta del negocio</p>}
+          </> : <>
+            {product}
+            <div className="zipco-chat-headrow">
+              <b className="zipco-chat-title">{title}</b><b className="zipco-chat-money">{money(proposal.totalPriceClp)}</b>
+              {photo && <span className="zipco-chat-thumb" aria-label="Incluye foto"><ImageIcon aria-hidden="true" /></span>}
+            </div>
+          </>}
+          <MiniDiff rows={mineDiff} />
+          {!wt && detailButton}
+          </>}
+        </div>
+        {isOrder
+          ? <PedidoSheet proposal={proposal} label={label} at={at} title={title} pic={pic} dismiss={() => setOpen(false)} />
+          : <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
+          <div className="zipco-sheet-head"><b>{title}</b><b className="money">{money(proposal.totalPriceClp)}</b></div>
+          {product}
+          <div className="zipco-sheet-rows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>
+          {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
+          <CloseButton kind={kind} />
+        </Sheet>}
+      </Dialog.Root>
+    </div>;
+  }
+
+  const rows = detailRows(proposal, isOrder ? 'Nota del cliente' : 'Mensaje');
+  const diff = previous && comparisonRows(proposal, previous, bz).filter(r => r.changed);
+  // Cliente: precio/cantidad/cuándo van en la mini tabla; el resto de cambios sigue como etiquetas.
+  const tableRows = (!business || bz) && diff ? diff.filter(r => MINI_KEYS.test(r.key)).slice(0, 4) : [];
+  const chipRows = diff ? diff.filter(r => !tableRows.includes(r)) : [];
+  // Negocio: todos los cambios detectados, en una sola lista bajo «El cliente está solicitando N cambios».
+  const changes = bz && !isOrder && diff ? diff : [];
+  return <div data-proposal-sequence={proposal.sequence} className={`flex flex-col items-start${evClass}`}>
+    {node}
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <div className={bz ? `zipco-bz-nc theirs${isOrder ? ' ord' : ''}` : `zipco-chat-theirs${proposal.sequence === 3 && !business ? ' is-final' : ''}`}>
+        {bz ? <>
+          {ncHead}
+          {ncRow(bw ? <span className="p zipco-bw-p">{money(proposal.totalPriceClp)}<small>{BW_PRICE[proposal.sequence]}</small></span> : <b className="p">{money(proposal.totalPriceClp)}</b>)}
+          {bwWhen}{bwLines}
+          {changes.length > 0 && <p className="zipco-bz-npill"><Sparkles aria-hidden="true" />{changes.length} {changes.length === 1 ? 'cambio solicitado' : 'cambios solicitados'}</p>}
+          <NcList rows={changes} label={changes.length === 1 ? 'Cambio solicitado' : 'Cambios solicitados'} orderType={s.orderType} />
+          {message && bwQuote(message, isOrder ? 'Nota del cliente' : 'Mensaje')}
+          {bwPhoto}
+        </> : <>
+        {who}
+        {wt ? <>
+          {message && <p className="zipco-chat-quote">“{message}”</p>}
+          {wtRow(<span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span>)}
+          <MiniDiff rows={tableRows} />
+          {chipRows.length > 0 && <div className="zipco-chat-sum">{chipRows.map(r => <span key={r.key} className="zipco-chat-sumchip">{r.label === 'Cant.' ? 'Cantidad' : r.label === 'Precio u.' ? 'Precio' : r.label}</span>)}</div>}
+        </> : <>
+          {product}
+          {message && <p className="zipco-chat-quote">“{message}”</p>}
+          <div className="zipco-chat-offer">
+            <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
+            {diff && diff.length > 0
+              ? <div className="zipco-chat-sum"><span className="zipco-chat-pill static"><Sparkles aria-hidden="true" />{diff.length} {diff.length === 1 ? 'cambio' : 'cambios'}</span>
+                {chipRows.map(r => <span key={r.key} className="zipco-chat-sumchip">{r.label === 'Cant.' ? 'Cantidad' : r.label === 'Precio u.' ? 'Precio' : r.label}</span>)}</div>
+              : !previous && <p className="zipco-chat-when">{whenLong(proposal)}</p>}
+            <MiniDiff rows={tableRows} />
+          </div>
+        </>}
+        {!wt && detailButton}
+        </>}
+      </div>
+      <Sheet tone="theirs" label={label} time={at} dismiss={() => setOpen(false)}>
+        {product}
+        {message && <p className="zipco-chat-quote big">“{message}”</p>}
+        <div className="zipco-chat-offer big">
+          <div className="zipco-chat-offer-top"><b className="zipco-chat-title">{title}</b><span className="zipco-chat-price">{money(proposal.totalPriceClp)}</span></div>
+          {previous
+            ? <CompareTable current={proposal} previous={previous} mineBefore={(previous.authorActor === 'BUSINESS') === business} />
+            : <div className="zipco-chat-drows">{rows.map(r => <div key={r.label} className="zipco-chat-drow"><span>{r.label}</span><b>{r.value}</b></div>)}</div>}
+        </div>
+        {proposal.availability&&<AvailabilityPlanSummary plan={proposal.availability}/>}{pic}
+        <CloseButton kind={kind} />
+      </Sheet>
+    </Dialog.Root>
+  </div>;
+}
+
+export type ChatTurn = 'mine' | 'wait' | 'closed';
+
+/** Availability is a confirmed response, not a negotiated proposal or an agreement. */
+function AvailabilityConfirmation({ read }: { read: ProposalRead }) {
+  const [open, setOpen] = useState(false);
+  const plan = read.process.availability!;
+  const original = read.proposals[0];
+  const label = 'Confirmaste disponibilidad';
+  const at = time(plan.confirmedAt, true);
+  return <div className="zipco-bz-ev is-last flex flex-col items-end" data-availability-confirmation>
+    <span className="zipco-bz-nd" aria-hidden="true"><Store /></span>
+    {day(plan.confirmedAt) !== day(original.createdAt) && <p className="text-center"><span className="zipco-chat-date">{day(plan.confirmedAt)}</span></p>}
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <div className="zipco-bz-nc mine">
+        <div className="zipco-bz-nch"><span className="w">{label}</span><time dateTime={plan.confirmedAt}>{at}</time>
+          <Dialog.Trigger asChild><button type="button" className="zipco-bz-ncd" aria-label="Ver detalle de la disponibilidad" title="Ver detalle"><span><Maximize2 strokeWidth={2.8} aria-hidden="true" /></span></button></Dialog.Trigger>
+        </div>
+        <div className="zipco-bz-npr">
+          {original.subjectSnapshot.orderType === 'product' && <span className="zipco-bz-th"><ProductPreviewControl preview={original.productPreview ?? null} caption="PRODUCTO SOLICITADO" /></span>}
+          <b className="t">{proposalTitle(original)}</b><b className="p">{money(original.totalPriceClp)}</b>
+        </div>
+        <p className="zipco-bz-confirmation-caption">Total solicitado · Aún sin acuerdo</p>
+        <div className="zipco-bz-confirmation-plan"><AvailabilityPlanSummary plan={plan}/></div>
+      </div>
+      <Sheet tone="mine" label={label} time={at} dismiss={() => setOpen(false)}>
+        <AvailabilityPlanSummary plan={plan}/><CloseButton kind="gt" />
+      </Sheet>
+    </Dialog.Root>
+  </div>;
+}
+
+/** `plan` (solo cliente): resumen del camino de la propuesta; se ubica entre «Te toca responder» y el aviso de contrapropuesta.
+ *  `canFinal` (solo negocio rediseñado): avisa que la alternativa final es la última propuesta. */
+export default function ProposalChat({ read, business, turn, closedText, canCounter, canFinal = false, plan, businessDesign = false, waitingDesign = false, businessWaiting = false }: { read: ProposalRead; business: boolean; turn: ChatTurn; closedText?: string; canCounter?: boolean; canFinal?: boolean; plan?: ReactNode; businessDesign?: boolean; waitingDesign?: boolean; businessWaiting?: boolean }) {
+  const bz = business && businessDesign; // rediseño del negocio: solo lo activa ProposalNegotiation
+  const bw = bz && businessWaiting; // negocio que espera la decisión del cliente (AWAITING_CUSTOMER_DECISION): solo lo activa ProposalWaitingCard vía ProposalNegotiation
+  const wt = !business && waitingDesign && turn === 'wait'; // cliente que ya envió su contrapropuesta y espera al negocio: solo lo activa ProposalNegotiation
+  const list = read.proposals;
+  const root = React.useRef<HTMLDivElement>(null);
+  // Negocio y cliente en espera: al abrir, baja hasta el final para que la última tarjeta y el aviso se vean completos. Solo al montar o cambiar la cantidad de propuestas.
+  React.useEffect(() => {
+    if (!bz && !wt) return;
+    const scroller = root.current?.closest<HTMLElement>('.zipco-chat-scroll');
+    if (scroller) scroller.scrollTop = scroller.scrollHeight;
+  }, [bz, wt, list.length]);
+  return <div ref={root} data-proposal-comparison className={`zipco-chat${bz ? ' zipco-bz-chat' : ''}${wt ? ' zipco-wt-chat' : ''}${bw ? ' zipco-bw-chat' : ''}`}>
+    <p className="text-center"><span className="zipco-chat-date">{day(list[0].createdAt)}</span></p>
+    {list.map((proposal, index) => <React.Fragment key={proposal.id}>
+      {bw && index > 0 && day(list[index - 1].createdAt) !== day(proposal.createdAt) && <p className="text-center"><span className="zipco-chat-date">{day(proposal.createdAt)}</span></p>}
+      <Bubble proposal={proposal} previous={index > 0 ? list[index - 1] : undefined} business={business} bz={bz} wt={wt} bw={bw} last={index === list.length - 1} />
+    </React.Fragment>)}
+    {bz && read.process.state === 'AWAITING_CUSTOMER_CONTINUATION' && read.process.availability && <AvailabilityConfirmation read={read}/>}
+    {bw && turn === 'wait' && <div className="zipco-bw-turn" role="status">
+      <span><i aria-hidden="true" />Esperando al cliente</span>
+      <p>El cliente responde ahora. Tu propuesta no confirma reserva, apartado ni entrega.</p>
+    </div>}
+    {!wt && !(bw && turn === 'wait') && <div className="zipco-chat-turn" role="status">
+      <i /><span data-turn={turn}>{turn === 'mine' ? <><b className="zipco-chat-dot" aria-hidden="true" />Te toca responder</>
+        : turn === 'closed' ? (closedText ?? 'La negociación finalizó')
+        : <>Esperando la respuesta de la otra parte<ArrowRight className="ml-1 inline h-3 w-3" aria-hidden="true" /></>}</span><i />
+    </div>}
+    {plan}
+    {turn === 'mine' && bz && canFinal && <p className="zipco-chat-ghost zipco-bz-final-notice"><Info aria-hidden="true" /><span>Si propones una <b>alternativa final</b>, será tu última propuesta: el cliente la acepta o la rechaza.</span></p>}
+    {turn === 'mine' && !business && canCounter && <p className="zipco-chat-ghost">Si haces una contrapropuesta, el negocio podrá hacer <b>1 propuesta final</b>.</p>}
+  </div>;
+}

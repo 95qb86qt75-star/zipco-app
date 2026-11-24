@@ -4,9 +4,14 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "node scripts/build-app.mjs",
+    "build:prod": "node scripts/build-app.mjs --mode prod",
     "build:production:verify": "vite build --mode production && node scripts/verify-production-build.mjs",
-    "dev": "vite",
+    "dev": "node scripts/dev-env.mjs .env --",
+    "dev:local": "node scripts/dev-env.mjs .env -- local",
+    "dev:prod": "node scripts/dev-env.mjs .env .env.prod -- --mode prod",
+    "preview": "vite preview",
+    "preview:prod": "node scripts/build-app.mjs --mode prod && vite preview --mode prod",
     "test": "vitest run"
   },
   "dependencies": {

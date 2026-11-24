@@ -3,6 +3,10 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { qaLoadDiagnosticsEnabled } from './scripts/qa-load-diagnostics-config.mjs'
+import { qaAvailabilityDesignEnabled } from './scripts/qa-availability-design-config.mjs'
 
 
 function figmaAssetResolver() {
@@ -17,8 +21,40 @@ function figmaAssetResolver() {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const diagnostics = qaLoadDiagnosticsEnabled(mode, process.env);
+  const clickTrace = diagnostics && process.env.ZIPCO_QA_NOTIFICATION_TRACE === '1';
+  let diagnosticVersion = 'unknown';
+  if (diagnostics) {
+    const sha = process.env.VERCEL_GIT_COMMIT_SHA;
+    if (sha && /^[a-f0-9]{40}$/.test(sha)) diagnosticVersion = sha;
+    else {
+      try { diagnosticVersion = `${execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()}-local`; }
+      catch { /* No invented version when Git metadata is unavailable. */ }
+    }
+  }
+  return {
+  // scripts/dev-env.mjs already injected the chosen env files; skip Vite's own
+  // .env/.env.local loading so .env.local cannot override them.
+  ...(process.env.ZIPCO_ENV_FILES_ONLY === '1' ? { envDir: false as const } : {}),
+  define: {
+    'import.meta.env.QA_LOAD_DIAGNOSTICS': JSON.stringify(diagnostics),
+    'import.meta.env.QA_LOAD_DIAGNOSTICS_VERSION': JSON.stringify(diagnosticVersion),
+    'import.meta.env.QA_NOTIFICATION_TRACE': JSON.stringify(clickTrace),
+    'import.meta.env.QA_AVAILABILITY_DESIGN': JSON.stringify(qaAvailabilityDesignEnabled(mode, process.env)),
+  },
   plugins: [
+    ...(clickTrace ? [{
+      name: 'qa-only-notification-click-trace',
+      generateBundle() {
+        const shared = readFileSync(path.resolve(__dirname, 'src/app/notifications/qaNotificationClickTraceStore.js'), 'utf8').replace(/^export /gm, '');
+        this.emitFile({ type: 'asset', fileName: 'qa-notification-click-trace.js', source:
+          `(() => {\n${shared}\nself.zipcoQaClickTrace = createClickTraceStore('worker', ${JSON.stringify(diagnosticVersion)}, self.location.origin, caches);\n})();` });
+        const observation = readFileSync(path.resolve(__dirname, 'src/app/notifications/qaPushObservationWorker.js'), 'utf8').replace(/^export /gm, '');
+        this.emitFile({ type: 'asset', fileName: 'qa-push-observation.js', source:
+          `(() => {\n${observation}\nself.zipcoQaPushObservation = createQaPushObservationWorker({ workerBuild: ${JSON.stringify(diagnosticVersion)}, workerRevision: 'notification-click-attempt-v11', fetch: (...args) => self.fetch(...args), crypto: self.crypto });\n})();` });
+      },
+    }] : []),
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
@@ -33,7 +69,7 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,png,svg}'],
-        importScripts: ['push-sw.js'],
+        importScripts: [...(clickTrace ? ['qa-notification-click-trace.js', 'qa-push-observation.js'] : []), 'push-sw.js'],
       },
     }),
   ],
@@ -47,8 +83,22 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 5173,
     strictPort: true,
+    // Local dev only: with VITE_API_URL=/local-api and LOCAL_API_PROXY_TARGET set,
+    // the browser calls the API on its own origin and Vite forwards it, so a
+    // backend that only allows HTTPS origins (NODE_ENV=production) still works.
+    ...(process.env.LOCAL_API_PROXY_TARGET ? {
+      proxy: {
+        '/local-api': {
+          target: process.env.LOCAL_API_PROXY_TARGET,
+          changeOrigin: true,
+          rewrite: (p: string) => p.replace(/^\/local-api/, '') || '/',
+          configure: (proxy) => proxy.on('proxyReq', req => req.removeHeader('origin')),
+        },
+      },
+    } : {}),
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+  };
 })

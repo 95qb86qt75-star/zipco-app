@@ -1,0 +1,4 @@
+/* ---------- Salida de la tarjeta hacia Historial (la dispara data-leaving=true; al terminar llama onLeaveEnd) ---------- */
+.zipco-avw[data-leaving=true]{overflow:hidden;animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}
+/* Rebote del contador de la pestaña «Historial»: aplicar la clase zipco-tab-bump 700 ms cuando el contador sube. */
+.zipco-tab-bump{animation:zipco-tab-bump .7s ease;border-color:#34d399!important;color:#047857!important;background:#d1fae5!important}

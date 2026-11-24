@@ -1,0 +1,827 @@
+/* ---------- Tarjeta «Retiro en el local» · tema claro (estructura JSX en INSTRUCCIONES_CODEX.md) ---------- */
+.zipco-pickup-c{position:relative;overflow:hidden;border-radius:24px;color:#0f172a;background:radial-gradient(110% 100% at 0% 0%,#d3faee,transparent 55%),linear-gradient(160deg,#f8faff,#e8f8f2);box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #fbbf2499,inset 0 1px 0 #fff;transition:box-shadow .5s ease}
+.zipco-pickup-c[data-ready=true]{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #059669b3,0 0 24px #34d3994d,inset 0 1px 0 #fff}
+.zipco-pickup-c-head{display:flex;align-items:center;gap:11px;width:100%;padding:13px 12px 0 13px;box-sizing:border-box;background:none;border:0;color:inherit;text-align:left;cursor:pointer}
+.zipco-pickup-c-head:focus-visible{outline:2px solid #0f766e;outline-offset:-3px}
+.zipco-pickup-c-tile{position:relative;width:50px;height:50px;flex:none;border-radius:16px;display:grid;place-items:center;overflow:hidden;color:#fff;background:linear-gradient(140deg,#34d3b0,#0e8aa5);box-shadow:0 6px 14px #0e8aa557}
+.zipco-pickup-c-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff55,transparent 65%);animation:zipco-own-sheen 3.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c-name{display:block;font-size:15.5px;font-weight:900;line-height:1.2;overflow-wrap:anywhere}
+.zipco-pickup-c-meta{display:flex;flex-wrap:wrap;align-items:center;gap:3px 7px;margin-top:4px}
+.zipco-pickup-c-prod{font-size:11.5px;font-weight:700;color:#475569;overflow-wrap:anywhere}
+.zipco-pickup-c-pill{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:800;color:#92400e;background:#fef3c7;box-shadow:inset 0 0 0 1px #f59e0b73}
+.zipco-pickup-c[data-ready=true] .zipco-pickup-c-pill{color:#047857;background:#d1fae5;box-shadow:inset 0 0 0 1px #05966966}
+.zipco-pickup-c-total{text-align:right;flex:none}
+.zipco-pickup-c-total b{display:block;font-size:19px;line-height:1;font-weight:900;color:#2f7a5a;font-variant-numeric:tabular-nums}
+.zipco-pickup-c-total small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#64748b}
+.zipco-pickup-c[data-leaving=true]{animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}
+
+/* ---------- Carril de la tarjeta: pasos apilados (círculo arriba, texto abajo) para que no se corte en pantallas angostas ---------- */
+.zipco-pickup-c .zipco-own-rail{height:auto;align-items:flex-start;padding:10px 6px 9px;margin:12px 12px}
+.zipco-pickup-c .zipco-own-rail .zipco-own-step{flex:1;min-width:0;flex-direction:column;align-items:center;text-align:center;gap:5px}
+.zipco-pickup-c .zipco-own-rail .zipco-own-steptx{text-align:center}
+.zipco-pickup-c .zipco-own-rail .zipco-own-steptx b{margin-top:-1px;white-space:normal;overflow-wrap:anywhere;font-size:12px}
+.zipco-pickup-c .zipco-own-rail .zipco-own-line{flex:0 0 14%;max-width:56px;min-width:8px;margin:12px -6px 0}
+/* brillos sutiles: ticket verde (halo + destello + trazo) y reloj de arena «Preparando» (anillo + chispa) */
+.zipco-pickup-c .zipco-own-node[data-kind=done]:not([data-pop=true]){overflow:hidden;animation:zipco-pickup-halo 2.8s ease-in-out infinite}
+.zipco-pickup-c .zipco-own-node[data-kind=done]::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#ffffffd9 50%,transparent 70%);transform:translateX(-130%);animation:zipco-pickup-shine 3.8s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c .zipco-own-step:nth-of-type(2) .zipco-own-node[data-kind=done]::after{animation-delay:.9s}
+.zipco-pickup-c .zipco-own-step:nth-of-type(3) .zipco-own-node[data-kind=done]::after{animation-delay:1.8s}
+.zipco-pickup-c .zipco-own-node[data-kind=done] svg path{stroke-dasharray:24;animation:zipco-pickup-draw .7s ease-out both}
+.zipco-pickup-c .zipco-own-node[data-kind=wait]::before,.zipco-pickup-c .zipco-own-node[data-kind=bell]::before{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid #fbbf24;animation:zipco-pickup-ring 2s ease-out infinite;pointer-events:none}
+.zipco-pickup-c .zipco-own-node[data-kind=wait]::after{content:'';position:absolute;right:-5px;top:-4px;width:6px;height:6px;border-radius:50%;background:#fff7ed;box-shadow:0 0 6px 2px #fbbf24f2;animation:zipco-pickup-twinkle 2.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c .zipco-own-node[data-kind=wait] svg{filter:drop-shadow(0 0 3px #fff7edE6)}
+@keyframes zipco-pickup-halo{0%,100%{box-shadow:0 0 0 3px #34d3992e,0 0 0 #34d39900}50%{box-shadow:0 0 0 5px #34d3990f,0 0 14px 3px #34d39999}}
+@keyframes zipco-pickup-shine{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+@keyframes zipco-pickup-draw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes zipco-pickup-ring{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+@keyframes zipco-pickup-twinkle{0%,100%{opacity:0;transform:scale(.4)}45%,55%{opacity:1;transform:scale(1)}}
+
+/* ---------- Detalle: pestañas «Cómo retirar» / «Contacto y opciones» ---------- */
+.zipco-pickup-c .zipco-receipt-local-detail{padding:2px 13px 15px;font-size:12.5px;line-height:1.45;color:#334155}
+.zipco-pickup-c .zipco-pickup-det [hidden]{display:none!important}
+.zipco-pickup-c .zipco-pickup-tabs{display:grid;grid-template-columns:1fr 1.3fr;gap:4px;padding:4px;margin-bottom:10px;border-radius:14px;background:#0f766e1a}
+.zipco-pickup-c .zipco-pickup-tab{min-height:44px;padding:0 6px;border:0;border-radius:11px;font-size:12.5px;font-weight:800;line-height:1.15;font-family:inherit;color:#475569;background:transparent;cursor:pointer}
+.zipco-pickup-c .zipco-pickup-tab[aria-selected=true]{color:#0f766e;background:#fff;box-shadow:0 2px 8px #0f766e33}
+.zipco-pickup-c .zipco-pickup-det button:focus-visible{outline:2px solid #0f766e;outline-offset:3px}
+.zipco-pickup-c .zipco-pickup-how{padding:2px 2px 0}
+.zipco-pickup-c .zipco-pickup-how-t{display:flex;align-items:center;gap:7px;margin:0;color:#0f766e}
+.zipco-pickup-c .zipco-pickup-how-t b{font-size:14.5px;font-weight:900;color:#0f172a}
+.zipco-pickup-c .zipco-pickup-how-m{margin:6px 0 0;font-size:14px;line-height:1.35;font-weight:600;color:#0f172a;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-pickup-c .zipco-pickup-how-w{display:inline-flex;align-items:center;max-width:100%;margin:6px 0 0;padding:4px 10px;border-radius:999px;background:#ecfdf5;color:#065f46;font-weight:800;box-shadow:inset 0 0 0 1px #05966940;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-pickup-c .zipco-pickup-how-n{display:flex;align-items:flex-start;gap:6px;margin:7px 0 0;font-size:11.5px;line-height:1.35;color:#64748b}
+.zipco-pickup-c .zipco-pickup-how-n svg{flex:none;margin-top:1px}
+.zipco-pickup-c .zipco-pickup-det .zipco-co-strip2{margin-top:9px}
+.zipco-pickup-c .zipco-pickup-pay{margin:9px 2px 0;font-size:11.5px;color:#475569}
+.zipco-pickup-c .zipco-pickup-alerts{margin-bottom:10px;padding:10px 12px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-size:12px;line-height:1.4}
+.zipco-pickup-c .zipco-pickup-alerts>*+*{margin-top:8px}
+.zipco-pickup-c .zipco-pickup-alerts p{margin:0}
+.zipco-pickup-c .zipco-pickup-alerts button{min-height:44px;padding:0 12px;border:0;border-radius:12px;font-weight:800;color:#9f1239;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af;cursor:pointer}
+.zipco-pickup-c .zipco-pickup-k{margin:2px 2px 0;font-size:9.5px;font-weight:900;letter-spacing:.14em;color:#64748b}
+.zipco-pickup-c .zipco-pickup-det .zipco-co-go2.zipco-pickup-wa{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:48px;margin-top:7px;border:0;border-radius:15px;font-size:14px;font-weight:850;color:#047857;background:#fff;box-shadow:inset 0 0 0 1.5px #10b981,0 4px 12px #10b9812a}
+.zipco-pickup-c .zipco-pickup-det .zipco-co-go2.zipco-pickup-wa:disabled{opacity:.6;cursor:default}
+.zipco-pickup-c .zipco-pickup-consent{margin:9px 2px 0;font-size:11.5px;line-height:1.4;color:#475569}
+.zipco-pickup-c .zipco-pickup-act{display:block;width:100%;margin-top:8px;min-height:48px;border-radius:15px;border-color:#0f766e59;background:#ffffffcc;color:#0f172a;font-weight:800;font-size:13px}
+.zipco-pickup-c .zipco-pickup-revoke{display:block;min-height:44px;margin-top:2px;border:0;background:none;font-size:12.5px;font-weight:800;color:#0f766e;text-decoration:underline}
+.zipco-pickup-c .zipco-pickup-cancel{width:100%;display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:10px;border:0;border-radius:15px;font-size:13.5px;font-weight:850;color:#be123c;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-pickup-c button:disabled{opacity:.6}
+.zipco-pickup-c [data-reservation-panel] [role=alert],.zipco-pickup-c [data-reservation-panel] [role=alert] p{color:#9f1239}
+@media(max-width:350px){.zipco-pickup-c-name{font-size:14.5px}.zipco-pickup-c-total b{font-size:17px}.zipco-pickup-c .zipco-own-rail .zipco-own-steptx b{font-size:11px}.zipco-pickup-c .zipco-own-rail .zipco-own-steptx small{font-size:9px;letter-spacing:.13em}.zipco-pickup-c .zipco-own-rail .zipco-own-node{width:26px;height:26px}}
+[data-request-motion=idle] .zipco-pickup-c .zipco-own-node,[data-request-motion=idle] .zipco-pickup-c .zipco-own-node::before,[data-request-motion=idle] .zipco-pickup-c .zipco-own-node::after,
+[data-request-list-hidden=true] .zipco-pickup-c .zipco-own-node,[data-request-list-hidden=true] .zipco-pickup-c .zipco-own-node::before,[data-request-list-hidden=true] .zipco-pickup-c .zipco-own-node::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.zipco-pickup-c .zipco-own-node,.zipco-pickup-c .zipco-own-node::before,.zipco-pickup-c .zipco-own-node::after,.zipco-pickup-c .zipco-own-node svg path{animation:none!important}.zipco-pickup-c .zipco-own-node[data-kind=wait]::before,.zipco-pickup-c .zipco-own-node[data-kind=wait]::after,.zipco-pickup-c .zipco-own-node[data-kind=bell]::before{display:none}}
+
+/* Reuse the real card visibility gate as well as the list's motion gates. */
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c) .zipco-own-node,
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c) .zipco-own-node::before,
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c) .zipco-own-node::after,
+:is([data-coordination-motion=idle] .zipco-pickup-c,[data-request-motion=idle] .zipco-pickup-c,.zipco-pickup-c[data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c) .zipco-own-node svg path{animation-play-state:paused!important}
+
+/* B · Línea: only the pending prepayment reservation. */
+/* ---------- Tarjeta «Retiro en el local» · tema claro (estructura JSX en INSTRUCCIONES_CODEX.md) ---------- */
+.zipco-pickup-c[data-pickup-design=line]{position:relative;overflow:hidden;border-radius:24px;color:#0f172a;background:radial-gradient(110% 100% at 0% 0%,#d3faee,transparent 55%),linear-gradient(160deg,#f8faff,#e8f8f2);box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #fbbf2499,inset 0 1px 0 #fff;transition:box-shadow .5s ease}
+.zipco-pickup-c[data-pickup-design=line][data-ready=true]{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #059669b3,0 0 24px #34d3994d,inset 0 1px 0 #fff}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-head{display:flex;align-items:center;gap:11px;width:100%;padding:13px 12px 0 13px;box-sizing:border-box;background:none;border:0;color:inherit;text-align:left;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-head:focus-visible{outline:2px solid #0f766e;outline-offset:-3px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-tile{position:relative;width:50px;height:50px;flex:none;border-radius:16px;display:grid;place-items:center;overflow:hidden;color:#fff;background:linear-gradient(140deg,#34d3b0,#0e8aa5);box-shadow:0 6px 14px #0e8aa557}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffff55,transparent 65%);animation:zipco-own-sheen 3.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-name{display:block;font-size:15.5px;font-weight:900;line-height:1.2;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-meta{display:flex;flex-wrap:wrap;align-items:center;gap:3px 7px;margin-top:4px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-prod{font-size:11.5px;font-weight:700;color:#475569;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-pill{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:800;color:#92400e;background:#fef3c7;box-shadow:inset 0 0 0 1px #f59e0b73}
+.zipco-pickup-c[data-pickup-design=line][data-ready=true] .zipco-pickup-c-pill{color:#047857;background:#d1fae5;box-shadow:inset 0 0 0 1px #05966966}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-total{text-align:right;flex:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-total b{display:block;font-size:19px;line-height:1;font-weight:900;color:#2f7a5a;font-variant-numeric:tabular-nums}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-total small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line][data-leaving=true]{animation:zipco-ready-leave .9s ease-in forwards;pointer-events:none}
+
+/* ---------- Carril de la tarjeta: pasos apilados (círculo arriba, texto abajo) para que no se corte en pantallas angostas ---------- */
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail{height:auto;align-items:flex-start;padding:10px 6px 9px;margin:12px 12px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-step{flex:1;min-width:0;flex-direction:column;align-items:center;text-align:center;gap:5px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-steptx{text-align:center}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-steptx b{margin-top:-1px;white-space:normal;overflow-wrap:anywhere;font-size:12px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-line{flex:0 0 14%;max-width:56px;min-width:8px;margin:12px -6px 0}
+/* brillos sutiles: ticket verde (halo + destello + trazo) y reloj de arena «Preparando» (anillo + chispa) */
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=done]:not([data-pop=true]){overflow:hidden;animation:zipco-pickup-halo 2.8s ease-in-out infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=done]::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#ffffffd9 50%,transparent 70%);transform:translateX(-130%);animation:zipco-pickup-shine 3.8s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-step:nth-of-type(2) .zipco-own-node[data-kind=done]::after{animation-delay:.9s}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-step:nth-of-type(3) .zipco-own-node[data-kind=done]::after{animation-delay:1.8s}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=done] svg path{stroke-dasharray:24;animation:zipco-pickup-draw .7s ease-out both}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=wait]::before,.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=bell]::before{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid #fbbf24;animation:zipco-pickup-ring 2s ease-out infinite;pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=wait]::after{content:'';position:absolute;right:-5px;top:-4px;width:6px;height:6px;border-radius:50%;background:#fff7ed;box-shadow:0 0 6px 2px #fbbf24f2;animation:zipco-pickup-twinkle 2.4s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=wait] svg{filter:drop-shadow(0 0 3px #fff7edE6)}
+@keyframes zipco-pickup-halo{0%,100%{box-shadow:0 0 0 3px #34d3992e,0 0 0 #34d39900}50%{box-shadow:0 0 0 5px #34d3990f,0 0 14px 3px #34d39999}}
+@keyframes zipco-pickup-shine{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+@keyframes zipco-pickup-draw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes zipco-pickup-ring{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+@keyframes zipco-pickup-twinkle{0%,100%{opacity:0;transform:scale(.4)}45%,55%{opacity:1;transform:scale(1)}}
+
+/* ---------- Cabecera «Esperando al negocio» (data-stage=wait): pastilla de estado + «Ver detalle», identidad y carril ---------- */
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-hd{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-top{display:flex;align-items:center;gap:8px;padding:9px 8px 0 12px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-state{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 5px;border-radius:99px;background:#fef3c7;box-shadow:inset 0 0 0 1.5px #f59e0b88;max-width:max-content}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-state i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#451a03;background:#fbbf24;animation:zipco-pk-halo 2.8s ease-in-out infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-state i svg{animation:zipco-pk-flip 3.6s ease-in-out infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-state b{font-size:10.5px;font-weight:900;letter-spacing:.11em;color:#92400e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-toggle{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-left:auto;padding:0 8px 0 2px;border:0;background:none;color:#0f766e;font-weight:800;font-size:13px;line-height:1;font-family:inherit;font-family:inherit;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-chv{display:inline-flex;transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-chv[data-open=true]{transform:rotate(180deg)}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-hand{display:inline-flex;margin:0 -2px 0 -4px;color:#0f766e;filter:drop-shadow(0 0 5px #f59e0b88);animation:zipco-pk-tap 1.8s ease-in-out infinite;pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-w1,.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-w2{animation:zipco-pk-wave 1.8s ease-out infinite}.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-w2{animation-delay:.18s}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-id{display:flex;align-items:center;gap:11px;padding:2px 13px 0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-id .zipco-pickup-c-tile{width:48px;height:48px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-who{flex:1;min-width:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-who small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.15em;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-who .zipco-pickup-c-name{display:block}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-chip{display:inline-block;margin-top:3px;padding:1px 8px;border-radius:9px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e33;font-size:11px;font-weight:700;color:#475569}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-total b[data-unknown=true]{font-size:12px;line-height:1.15;max-width:76px;color:#92400e}
+
+/* ---------- Detalle: pestañas + línea de pasos ---------- */
+.zipco-pickup-c[data-pickup-design=line] .zipco-receipt-local-detail{padding:2px 12px 12px;font-size:12.5px;line-height:1.45;color:#334155}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-det [hidden]{display:none!important}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-det button:focus-visible{outline:2px solid #0f766e;outline-offset:3px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-tabs{display:flex;gap:6px;margin:0 0 8px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-tab{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 9px;border:0;border-radius:99px;font-weight:800;font-size:12px;line-height:1.15;font-family:inherit;font-family:inherit;color:#64748b;background:transparent;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-tab[aria-selected=true]{color:#fff;background:linear-gradient(180deg,#14b8a6,#0f766e);box-shadow:inset 0 1.5px 0 #ffffff80,inset 0 -2px 0 #064e3b55,0 8px 18px #0f766e55}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-tab[aria-selected=true]::before{content:'';position:absolute;left:8%;right:8%;top:1px;height:46%;border-radius:99px;background:linear-gradient(180deg,#ffffffd9,#fff0);pointer-events:none;z-index:-1}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-tab[aria-selected=true]::after{content:'';position:absolute;inset:0 auto 0 0;width:26%;background:linear-gradient(90deg,transparent,#ffffffaa,transparent);animation:zipco-pk-glint 4.2s ease-in-out infinite;pointer-events:none;z-index:-1}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-panel{animation:zipco-pk-in .24s ease-out}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-line{position:relative}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-line::before{content:'';position:absolute;left:15px;top:18px;bottom:30px;width:2px;border-radius:2px;background:linear-gradient(180deg,#34d3b0,#f59e0b,#34d3b0,#f59e0b);background-size:100% 200%;animation:zipco-pk-flow 3.6s linear infinite;opacity:.75;pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-row{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr);column-gap:11px;align-items:start;width:100%;box-sizing:border-box;margin:0;padding:0 0 11px;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;font:inherit;color:inherit;animation:zipco-pk-rise .4s cubic-bezier(.22,1,.36,1) both}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-line>.zipco-pk-row:nth-child(2){animation-delay:.07s}.zipco-pickup-c[data-pickup-design=line] .zipco-pk-line>.zipco-pk-row:nth-child(3){animation-delay:.14s}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-cd{grid-template-columns:32px minmax(0,1fr) auto;align-items:center;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-bd{min-width:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#f1fbf8 70%);color:#0f766e;box-shadow:inset 0 0 0 2px #34d3b0,0 4px 12px #34d3b033;animation:zipco-pk-pulse 2.8s ease-out infinite;--pk-g:#34d3b066}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico::after{content:'';position:absolute;left:6px;top:4px;width:12px;height:6px;border-radius:50%;background:linear-gradient(180deg,#ffffffcc,#fff0);pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico[data-kind=reserva]{color:#475569;box-shadow:inset 0 0 0 2px #cbd5e1,0 4px 12px #64748b22;animation:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-res[data-tone=pending] .zipco-pk-ico{color:#b45309;box-shadow:inset 0 0 0 2px #f59e0b,0 4px 12px #f59e0b33;--pk-g:#f59e0b66;animation:zipco-pk-pulse 2.8s ease-out infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-res[data-tone=pending] .zipco-pk-ico svg{animation:zipco-pk-flip 3.6s ease-in-out infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico[data-kind=nota] svg{animation:zipco-pk-pin 3.2s ease-in-out infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico[data-kind=wa]{color:#059669;box-shadow:inset 0 0 0 2px #34d399,0 4px 12px #34d39933}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico[data-kind=wa] svg{animation:zipco-pk-wig 3s ease-in-out 1s infinite}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico[data-kind=perm]{color:#64748b;box-shadow:inset 0 0 0 2px #cbd5e1;animation:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ico[data-kind=cancel]{color:#e11d48;box-shadow:inset 0 0 0 2px #fda4af;animation:none}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-ey{display:block;margin:0;font-size:8.5px;font-weight:900;letter-spacing:.2em;color:#0f766e;text-transform:uppercase}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-res .zipco-pk-ey{color:#b45309}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-cd b{display:block;margin-top:2px;font-size:13px;font-weight:800;color:#0f172a;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-go{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#0f766e;background:linear-gradient(180deg,#ffffffd9,#d7f5ee99);box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px #0f766e40,0 3px 8px #0f766e26;animation:zipco-pk-nudge 1.6s ease-in-out infinite}
+/* Nota del negocio (PickupInstructions variant=customer) */
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how{padding:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-t{margin:0;font-size:8.5px;font-weight:900;letter-spacing:.2em;color:#0f766e}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-m{margin:3px 0 0;font-size:13px;line-height:1.35;font-weight:700;color:#0f172a;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-w{display:block;margin-top:6px;padding:3px 10px 3px 8px;border-radius:12px;background:#ecfeff;box-shadow:inset 0 0 0 1px #0891b233;font-size:11.5px;color:#0e7490}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-n{display:flex;align-items:flex-start;gap:6px;margin:7px 0 0;font-size:11.5px;line-height:1.35;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-how-n svg{flex:none;margin-top:1px}
+/* Reserva (bloque real de ReservationPanel; solo presentación) */
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold{position:relative;overflow:hidden}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold[data-measured=true]{max-height:var(--pk-cut);transition:max-height .42s cubic-bezier(.22,1,.36,1)}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold[data-measured=true][data-open=true]{max-height:var(--pk-full)}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [inert]{visibility:hidden}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]{margin:0;padding:0;border:0;border-radius:0;background:none;font-size:12px;line-height:1.4;color:#334155}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>*+*{margin-top:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>p{margin:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>p:first-child{display:inline-flex;align-items:center;gap:7px;margin-top:2px;padding:2px 9px 2px 7px;border-radius:99px;background:#fef3c7;box-shadow:inset 0 0 0 1px #f59e0b66;font-size:10.5px;line-height:1.3;font-weight:900;color:#92400e}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-res:not([data-tone=pending]) [data-reservation-panel]>p:first-child{background:#eef2f6;box-shadow:inset 0 0 0 1px #cbd5e1;color:#334155}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>p:first-child::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px #f59e0b33}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-res:not([data-tone=pending]) [data-reservation-panel]>p:first-child::before{background:#94a3b8;box-shadow:0 0 0 3px #94a3b833}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>p:nth-child(2){padding:5px 0 0;font-size:14px;font-weight:800;line-height:1.25;color:#0f766e}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>section{margin:0;padding:0 0 4px;border:0;border-radius:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>section>*+*{margin-top:6px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>section p{margin:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>p:nth-child(2)~section>p:first-child{font-size:11px;font-weight:700;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>section>p:first-child:not(:nth-child(2)~*){font-size:14px;font-weight:800;color:#0f766e}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>section>p:nth-child(3){font-weight:800;color:#0f172a}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>section>p:nth-child(4){font-size:11.5px;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel]>p.whitespace-pre-wrap{margin:4px 0 6px;padding:0 0 0 10px;box-shadow:inset 2px 0 0 #cbd5e1;color:#475569}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel] [role=alert]{margin:6px 0;padding:9px 11px;border-radius:12px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel] [role=alert] p{margin:0;color:#9f1239}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold [data-reservation-panel] [role=alert] button{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:8px;border:0;border-radius:11px;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-weight:800;font-size:12.5px;font-family:inherit;font-family:inherit;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;gap:8px;min-height:44px;margin:4px 0 0;padding:0 8px 0 14px;border:0;border-radius:99px;background:linear-gradient(180deg,#ffffffd9,#d7f5ee99);-webkit-backdrop-filter:blur(8px) saturate(1.4);backdrop-filter:blur(8px) saturate(1.4);box-shadow:inset 0 1.5px 0 #fff,inset 0 -1.5px 0 #0f766e33,inset 0 0 0 1px #0f766e55,0 8px 18px #0f766e33;color:#0f766e;font-weight:850;font-size:12.5px;font-family:inherit;font-family:inherit;cursor:pointer;transition:transform .12s}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more:active{transform:scale(.97)}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more::before{content:'';position:absolute;left:8%;right:8%;top:1px;height:46%;border-radius:99px;background:linear-gradient(180deg,#ffffffd9,#fff0);pointer-events:none;z-index:-1}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more::after{content:'';position:absolute;inset:0 auto 0 0;width:26%;background:linear-gradient(90deg,transparent,#ffffffaa,transparent);animation:zipco-pk-glint 4.2s ease-in-out infinite;pointer-events:none;z-index:-1}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more-chv{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:linear-gradient(160deg,#2dd4bf,#0f766e);color:#fff;box-shadow:inset 0 1px 0 #ffffff99,0 3px 8px #0f766e66;transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more-chv[data-open=true]{transform:rotate(180deg)}
+/* Contacto y opciones: piezas reales (consentimiento, permisos, cancelar) */
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-wa{background:none;box-shadow:none;min-height:0;margin:0;font-size:13.5px;color:#047857}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-wa b{color:#047857;font-size:13.5px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-wa:disabled{opacity:.6;cursor:default}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-consent{margin:0;font-size:11px;line-height:1.35;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-act{display:block;width:100%;margin-top:8px;min-height:44px;border-radius:14px;border-color:#0f766e59;background:#ffffffcc;color:#0f172a;font-weight:800;font-size:13px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-revoke{display:inline-flex;align-items:center;justify-content:flex-start;width:auto;min-height:44px;margin:0;padding:0;border:0;background:none;font-size:12.5px;font-weight:800;color:#0f766e;text-decoration:underline}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-cancel{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:44px;margin:0;padding:0;border:0;background:none;box-shadow:none;font-size:13px;font-weight:850;color:#be123c}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-cx{align-items:center}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-pay{margin:2px 4px 0;font-size:11.5px;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-alerts{margin-bottom:10px;padding:10px 12px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-size:12px;line-height:1.4}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-alerts>*+*{margin-top:8px}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-alerts p{margin:0}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-alerts button{min-height:44px;padding:0 12px;border:0;border-radius:12px;font-weight:800;color:#9f1239;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line] .zipco-pk-hide{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;justify-content:center;gap:6px;width:auto;min-height:44px;margin:2px auto 0;padding:0 16px;border:0;border-radius:99px;background:linear-gradient(180deg,#ffffffcc,#ffffff55);box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px #0f766e26,0 4px 10px #0f766e1a;color:#0f766e;font-weight:800;font-size:12px;font-family:inherit;font-family:inherit;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line] button:disabled{opacity:.6}
+@keyframes zipco-pk-halo{0%,100%{box-shadow:0 0 0 3px #f59e0b38,0 0 0 #f59e0b00}50%{box-shadow:0 0 0 5px #f59e0b14,0 0 14px 3px #f59e0b99}}
+@keyframes zipco-pk-flip{0%,72%{transform:rotate(0)}86%,100%{transform:rotate(180deg)}}
+@keyframes zipco-pk-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.14)}85%{transform:translateY(1px) scale(.92)}}
+@keyframes zipco-pk-wave{0%,45%{opacity:0}60%{opacity:1}100%{opacity:0}}
+@keyframes zipco-pk-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes zipco-pk-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes zipco-pk-pulse{0%,100%{box-shadow:0 0 0 0 var(--pk-g,#34d3b055)}60%{box-shadow:0 0 0 9px #0000}}
+@keyframes zipco-pk-pin{0%,60%,100%{transform:translateY(0)}70%{transform:translateY(-4px)}80%{transform:translateY(0)}88%{transform:translateY(-2px)}}
+@keyframes zipco-pk-wig{0%,60%,100%{transform:rotate(0)}68%{transform:rotate(-14deg)}76%{transform:rotate(12deg)}84%{transform:rotate(-6deg)}}
+@keyframes zipco-pk-nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+@keyframes zipco-pk-flow{0%{background-position:0 0}100%{background-position:0 200%}}
+@keyframes zipco-pk-glint{0%,55%{transform:translateX(-160%) skewX(-20deg)}100%{transform:translateX(420%) skewX(-20deg)}}
+/* Pausas de la lista y movimiento reducido para los adornos nuevos (los operativos no cambian) */
+[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line][data-stage=wait] *,[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line][data-stage=wait] *::before,[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line][data-stage=wait] *::after,[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line][data-stage=wait] *,[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line][data-stage=wait] *::before,[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line][data-stage=wait] *::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.zipco-pickup-c[data-pickup-design=line][data-stage=wait] *,.zipco-pickup-c[data-pickup-design=line][data-stage=wait] *::before,.zipco-pickup-c[data-pickup-design=line][data-stage=wait] *::after{animation:none!important}.zipco-pickup-c[data-pickup-design=line] .zipco-pk-fold,.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-chv,.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more-chv,.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-tab,.zipco-pickup-c[data-pickup-design=line] .zipco-pk-more{transition:none!important}.zipco-pickup-c[data-pickup-design=line] .zipco-pk-line::before{opacity:.4}}
+@media(max-width:350px){.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-state b{font-size:9.5px;letter-spacing:.06em}.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-toggle{padding-right:4px;font-size:12px}.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-hand{display:none}.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-name{font-size:14.5px}.zipco-pickup-c[data-pickup-design=line] .zipco-pickup-c-total b{font-size:17px}.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-steptx b{font-size:11px}.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-steptx small{font-size:9px;letter-spacing:.13em}.zipco-pickup-c[data-pickup-design=line] .zipco-own-rail .zipco-own-node{width:26px;height:26px}}
+[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line] .zipco-own-node,[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line] .zipco-own-node::before,[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line] .zipco-own-node::after,[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line] .zipco-own-node,[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line] .zipco-own-node::before,[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line] .zipco-own-node::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.zipco-pickup-c[data-pickup-design=line] .zipco-own-node,.zipco-pickup-c[data-pickup-design=line] .zipco-own-node::before,.zipco-pickup-c[data-pickup-design=line] .zipco-own-node::after,.zipco-pickup-c[data-pickup-design=line] .zipco-own-node svg path{animation:none!important}.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=wait]::before,.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=wait]::after,.zipco-pickup-c[data-pickup-design=line] .zipco-own-node[data-kind=bell]::before{display:none}}
+
+/* Reuse the real card visibility gate as well as the list's motion gates. */
+:is([data-coordination-motion=idle] .zipco-pickup-c[data-pickup-design=line],[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line],.zipco-pickup-c[data-pickup-design=line][data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line]) .zipco-own-node,:is([data-coordination-motion=idle] .zipco-pickup-c[data-pickup-design=line],[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line],.zipco-pickup-c[data-pickup-design=line][data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line]) .zipco-own-node::before,:is([data-coordination-motion=idle] .zipco-pickup-c[data-pickup-design=line],[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line],.zipco-pickup-c[data-pickup-design=line][data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line]) .zipco-own-node::after,:is([data-coordination-motion=idle] .zipco-pickup-c[data-pickup-design=line],[data-request-motion=idle] .zipco-pickup-c[data-pickup-design=line],.zipco-pickup-c[data-pickup-design=line][data-request-motion=idle],[data-request-list-hidden=true] .zipco-pickup-c[data-pickup-design=line]) .zipco-own-node svg path{animation-play-state:paused!important}
+
+/* ---------- Reserva SIN pago previo CONFIRMADA · retiro pendiente (solo data-pickup-tone=confirmed) ----------
+   Reutiliza la cabecera, el carril y las pestañas de la variante «línea»; no toca pago previo, sin reserva, pedido listo, recibido ni WhatsApp. */
+@keyframes zipco-pk-ok-halo{0%,100%{box-shadow:0 0 0 3px #10b98133,0 0 0 #10b98100}50%{box-shadow:0 0 0 5px #10b98112,0 0 14px 3px #10b98188}}
+@keyframes zipco-pk-ok-pop{0%{transform:scale(1)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes zipco-pk-ok-ring{0%{box-shadow:0 0 0 0 #10b98155}70%,100%{box-shadow:0 0 0 9px #10b98100}}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed]{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #34d399aa,inset 0 1px 0 #fff}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state{background:#d1fae5;box-shadow:inset 0 0 0 1.5px #10b98188}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state i{color:#fff;background:linear-gradient(140deg,#34d399,#059669);animation:zipco-pk-ok-halo 2.8s ease-in-out infinite}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state i svg{animation:zipco-pk-ok-pop .55s cubic-bezier(.3,1.4,.5,1) both}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state b{color:#047857}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-sh{display:grid;gap:8px}
+/* DetailReveal controla la entrada. Las pausas decorativas no ocultan información. */
+/* boleto = ReservationPanel real */
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk{position:relative;overflow:hidden;padding:11px 12px 10px;border-radius:20px;background:linear-gradient(165deg,#fff 30%,#ecfdf5);box-shadow:inset 0 0 0 1.5px #6ee7b7,0 8px 20px #05966926}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#34d399,#059669);pointer-events:none}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-stamp{position:absolute;right:10px;top:10px;z-index:1;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#fff;background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 5px 12px #05966955;pointer-events:none;animation:zipco-pk-ok-pop .55s cubic-bezier(.3,1.4,.5,1) both,zipco-pk-ok-ring 2.8s ease-out 1s infinite}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]{display:block;margin:0;padding:0;border:0;border-radius:0;background:none;font-size:12px;line-height:1.4;color:#334155}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>*{margin-top:0}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>p:first-child{display:flex;align-items:center;gap:7px;max-width:calc(100% - 42px);margin:0 0 4px;padding:0;background:none;box-shadow:none;font-size:11.5px;line-height:1.3;font-weight:900;color:#047857}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>p:first-child::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px #10b98133}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>p:nth-child(2){display:none}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section{display:grid;gap:4px;margin:0;padding:0;border:0;border-radius:0;background:none;font-size:11.5px;line-height:1.4;color:#475569}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section p{margin:0;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:first-child{position:relative;margin-bottom:3px;padding-bottom:8px;border-bottom:2px dashed #a7f3d0;font-size:15px;line-height:1.25;font-weight:900;color:#0f172a}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:first-child::before,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:first-child::after{content:'';position:absolute;bottom:-8px;width:14px;height:14px;border-radius:50%;background:#eaf8f3;box-shadow:inset 0 0 0 1.5px #6ee7b7}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:first-child::before{left:-19px}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:first-child::after{right:-19px}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:not(:first-child){position:relative;padding-left:21px}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:not(:first-child)::before{content:'';position:absolute;left:0;top:1px;width:14px;height:14px;background:no-repeat center/contain}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:nth-child(2)::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E")}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:nth-child(3):not(:last-child){padding:5px 10px 5px 30px;border-radius:12px;background:#d1fae5;box-shadow:inset 0 0 0 1px #05966933;font-size:12.5px;font-weight:900;color:#065f46}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:nth-child(3):not(:last-child)::before{left:10px;top:6px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v3'/%3E%3Cpath d='M16 2v3'/%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M3 9h18'/%3E%3C/svg%3E")}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:last-child:not(:nth-child(2)){font-size:10.5px;line-height:1.35;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>section>p:last-child:not(:nth-child(2))::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 6v6l4 2'/%3E%3C/svg%3E")}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>p.whitespace-pre-wrap{margin:8px 0 0;padding:0 0 0 10px;box-shadow:inset 2px 0 0 #6ee7b7;font-size:12px;color:#475569;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel] [role=alert]{margin:8px 0 0;padding:9px 11px;border-radius:12px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel] [role=alert] p{margin:0;color:#9f1239}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel] [role=alert] button{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:8px;border:0;border-radius:11px;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer}
+/* nota del negocio = PickupInstructions real (customer-line) */
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-bub{margin:0 0 0 6px;padding:8px 11px 9px;border-radius:5px 18px 18px 18px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e22,0 3px 10px #0f766e14}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-bub .zipco-pickup-how-t{font-size:9px;letter-spacing:.16em}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-bub .zipco-pickup-how-m{margin-top:3px;font-size:13.5px}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-bub .zipco-pickup-how-w{display:inline-block;max-width:100%;margin-top:5px;padding:2px 9px;font-size:11px;white-space:pre-wrap}
+/* Condiciones aceptadas (abre la ventana real) */
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cond{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:44px;margin:0;padding:5px 8px;border:0;border-radius:15px;background:#ffffffb3;box-shadow:inset 0 0 0 1px #0f766e22;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condi{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;color:#0f766e;background:#d1fae5}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condt{min-width:0}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condt small,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wat small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:#64748b}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condt b{display:block;margin-top:1px;font-size:12.5px;font-weight:800;color:#0f172a;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-condg{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#0f766e;background:#fff;box-shadow:inset 0 0 0 1px #0f766e33}
+/* Contacto y opciones: una tarjeta + cancelar aparte */
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-title{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#065f46}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-title>b{font-size:13px}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-title>span{border:1px solid #6ee7b7;border-radius:99px;padding:3px 8px;background:#d1fae5;font-size:11px;font-weight:800}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival-copy{margin:7px 0 10px;color:#475569;font-size:12px;line-height:1.4}
+.zipco-pickup-c[data-pickup-tone=confirmed] .zipco-pk-arrival .zipco-pickup-how-t{display:none}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-ct{gap:10px}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cc{overflow:hidden;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e22,0 3px 12px #0f766e14}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:11px;width:100%;min-height:60px;margin:0;padding:11px 12px;border:0;border-radius:0;background:linear-gradient(90deg,#ecfdf5,#fff);text-align:left;font:inherit;color:#0f172a;cursor:pointer;transition:background .2s}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa:active{background:#d1fae5}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa:disabled{opacity:.6;cursor:default}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wai{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;color:#fff;background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 5px 12px #05966940}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wat{min-width:0}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wat small{color:#047857}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wat b{display:block;margin-top:1px;font-size:15px;font-weight:900;color:#064e3b;overflow-wrap:anywhere}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa .zipco-pk-condg{background:#d1fae5;color:#047857;box-shadow:none}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-perm{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start;padding:11px 12px 8px}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa+.zipco-pk-perm{border-top:1px solid #e8edf3}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-permi{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#0f766e;background:#d1fae5}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-permb{min-width:0}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-permb .zipco-pickup-consent{margin:0;font-size:11.5px;line-height:1.4;color:#475569}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-permb .zipco-pickup-revoke{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:2px;padding:0 14px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1.5px #0f766e55;color:#0f766e;font-size:12.5px;text-decoration:none}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cxw{display:flex;justify-content:center}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cxw .zipco-pickup-cancel{display:inline-flex;align-items:center;justify-content:center;width:auto;min-height:44px;margin:2px 0 0;padding:0 18px;border:0;border-radius:99px;background:none;box-shadow:inset 0 0 0 1.5px #fda4af99;font-size:13px;font-weight:850;color:#be123c;cursor:pointer}
+.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-cxw .zipco-pickup-cancel:disabled{opacity:.6;cursor:default}
+@media(max-width:350px){.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-stamp{width:26px;height:26px;right:8px;top:9px}.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-tk [data-reservation-panel]>p:first-child{max-width:calc(100% - 36px)}.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wat b{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state i,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pickup-c-state i svg,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-stamp,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-sh>*,.zipco-pickup-c[data-pickup-design=line][data-pickup-tone=confirmed] .zipco-pk-wa{animation:none!important;transition:none!important}}
+
+/* PERF-PICKUP-DECORATION-01: static glass, bounded accents, no continuous paints.
+   Keep action spinners, ready feedback and the actual disclosure transitions. */
+.zipco-pickup-c :is(.zipco-own-node:not([data-pop=true]),.zipco-pickup-c-state i,.zipco-pk-ico,.zipco-pk-go){animation:none!important}
+.zipco-pickup-c .zipco-own-node::before,.zipco-pickup-c .zipco-own-node::after,
+.zipco-pickup-c .zipco-pk-line::before{animation:none!important}
+.zipco-pickup-c .zipco-pickup-c-tile::after,
+.zipco-pickup-c .zipco-pickup-tab[aria-selected=true]::after,
+.zipco-pickup-c .zipco-pk-more::after{animation:none!important;opacity:0}
+.zipco-pickup-c :is(.zipco-pickup-c-hand,.zipco-pickup-c-w1,.zipco-pickup-c-w2,.zipco-pickup-c-state i svg,.zipco-own-node svg,.zipco-pk-ico svg){animation-iteration-count:2!important}
+.zipco-pickup-c .zipco-pk-stamp{animation:zipco-pk-ok-pop .55s ease-out both!important}
+.zipco-pickup-c :is(.zipco-pk-more,.zipco-pickup-c-hand,.zipco-own-node[data-kind=wait] svg){-webkit-backdrop-filter:none;backdrop-filter:none;filter:none}
+
+/* ===== Tarjeta de retiro del cliente · diseño «Nuevo · Lista» (family .zipco-nv-*) ===== */
+@keyframes zipco-nv-xrise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes zipco-nv-xflip{0%,35%{transform:rotate(0)}70%,100%{transform:rotate(180deg)}}
+@keyframes zipco-nv-xtap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.14)}85%{transform:translateY(1px) scale(.92)}}
+@keyframes zipco-nv-xpop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes zipco-nv-xspin{to{transform:rotate(360deg)}}
+@keyframes zipco-nv-xhalo{0%,100%{box-shadow:0 0 0 3px #f59e0b38}50%{box-shadow:0 0 0 6px #f59e0b12}}
+.zipco-nv-x-c{position:relative;overflow:hidden;border-radius:24px;color:#0f172a;background:radial-gradient(110% 100% at 0% 0%,#d3faee,transparent 55%),linear-gradient(160deg,#f8faff,#e8f8f2);box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #fbbf2499,inset 0 1px 0 #fff;animation:zipco-nv-xrise .35s both}
+.zipco-nv-x-c[data-tone=ok]{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #34d399aa,inset 0 1px 0 #fff}
+.zipco-nv-x-c[data-tone=cy]{box-shadow:0 12px 24px #0e749029,0 0 0 1.5px #22d3eeaa,inset 0 1px 0 #fff}
+.zipco-nv-x-hd{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.zipco-nv-x-top{display:flex;align-items:center;gap:8px;padding:9px 8px 0 12px}
+.zipco-nv-x-pill{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 5px;border-radius:99px;background:#fef3c7;box-shadow:inset 0 0 0 1.5px #f59e0b88}
+.zipco-nv-x-pill i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#451a03;background:#fbbf24;animation:zipco-nv-xhalo 2.8s ease-in-out 2}
+.zipco-nv-x-pill i svg{width:13px;height:13px;animation:zipco-nv-xflip 3.6s ease-in-out 2}
+.zipco-nv-x-pill b{font-size:10.5px;font-weight:900;letter-spacing:.11em;color:#92400e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zipco-nv-x-tg{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-left:auto;padding:0 8px 0 2px;border:0;background:none;color:#0f766e;font-weight:800;font-size:13px;font-family:inherit}
+.zipco-nv-x-tg:focus-visible,.zipco-nv-x-row:focus-visible,.zipco-nv-x-btn:focus-visible,.zipco-nv-x-more:focus-visible,.zipco-nv-x-hide:focus-visible,.zipco-nv-x-lk:focus-visible,.zipco-nv-x-cx:focus-visible,.zipco-nv-x-rc button:focus-visible,.zipco-nv-x-al button:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-x-hand{display:inline-flex;margin:0 -2px 0 -4px;color:#0f766e;animation:zipco-nv-xtap 1.8s ease-in-out 2;pointer-events:none}
+.zipco-nv-x-hand svg{width:22px;height:22px}
+.zipco-nv-x-chv{display:inline-flex;transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.zipco-nv-x-chv svg{width:14px;height:14px}
+.zipco-nv-x-tg[aria-expanded=true] .zipco-nv-x-chv{transform:rotate(180deg)}
+.zipco-nv-x-id{display:flex;align-items:center;gap:11px;padding:2px 13px 0}
+.zipco-nv-x-th{position:relative;flex:none;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#34d3b0,#0e8aa5);box-shadow:0 6px 14px #0e8aa557}
+.zipco-nv-x-th svg{width:22px;height:22px}
+.zipco-nv-x-th b{position:absolute;right:-5px;bottom:-5px;padding:0 5px;border-radius:99px;background:#0f172a;color:#fff;font-size:10px;font-weight:900;line-height:16px}
+.zipco-nv-x-who{flex:1;min-width:0}
+.zipco-nv-x-who small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.15em;color:#64748b}
+.zipco-nv-x-who h3{margin:0;font-size:15.5px;line-height:1.2;font-weight:900;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.zipco-nv-x-pc{display:inline-block;max-width:100%;margin-top:3px;padding:1px 8px;border-radius:9px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e33;font-size:11px;font-weight:700;color:#475569;overflow-wrap:anywhere}
+.zipco-nv-x-tot{flex:none;max-width:36%;text-align:right}
+.zipco-nv-x-tot b{display:block;font-size:19px;line-height:1;font-weight:900;color:#2f7a5a;font-variant-numeric:tabular-nums;white-space:nowrap}
+.zipco-nv-x-tot b[data-u=true]{font-size:12px;line-height:1.15;color:#92400e;white-space:normal;margin-left:auto;max-width:76px}
+.zipco-nv-x-tot small{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#64748b}
+.zipco-nv-x-rail{display:flex;align-items:flex-start;padding:10px 6px 9px;margin:10px 12px 12px;border-radius:16px;background:#ffffffb8;box-shadow:inset 0 0 0 1px #0f766e22}
+.zipco-nv-x-step{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.zipco-nv-x-step small{display:block;font-size:9px;font-weight:800;letter-spacing:.13em;color:#64748b}
+.zipco-nv-x-step b{display:block;margin-top:-1px;font-size:12px;font-weight:900;overflow-wrap:anywhere;line-height:1.15}
+.zipco-nv-x-nd{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.zipco-nv-x-nd svg{width:14px;height:14px}
+.zipco-nv-x-nd[data-k=done]{background:linear-gradient(140deg,#34d399,#059669);animation:zipco-nv-xpop .55s both}
+.zipco-nv-x-nd[data-k=wait]{background:#fbbf24;color:#451a03;box-shadow:0 0 0 3px #fbbf2455}
+.zipco-nv-x-nd[data-k=lock]{background:#e2e8f0;color:#64748b}
+.zipco-nv-x-ln{flex:0 0 14%;max-width:56px;min-width:8px;height:3px;margin:12px -6px 0;border-radius:3px;background:#cbd5e1}
+.zipco-nv-x-ln.on{background:linear-gradient(90deg,#34d399,#059669)}
+.zipco-nv-x-rc,.zipco-nv-x-at,.zipco-nv-x-bzs{margin:0 12px 12px;padding:10px 12px;border-radius:14px;font-size:12px;line-height:1.4}
+.zipco-nv-x-rc{background:#fff7ed;box-shadow:inset 0 0 0 1.5px #fdba74;color:#7c2d12}
+.zipco-nv-x-at{background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;display:flex;align-items:center;gap:8px}
+.zipco-nv-x-bzs{display:flex;align-items:center;gap:8px;background:#ecfeff;box-shadow:inset 0 0 0 1.5px #67e8f9;color:#0e7490;font-weight:800}
+.zipco-nv-x-rc p,.zipco-nv-x-at p{margin:0}
+.zipco-nv-x-rc button,.zipco-nv-x-al button,.zipco-nv-x-at button{min-height:44px;margin:6px 6px 0 0;padding:0 14px;border:0;border-radius:12px;font-weight:800;font-size:12.5px;color:#7c2d12;background:#fff;box-shadow:inset 0 0 0 1.5px #fdba74}
+.zipco-nv-x-at button{margin:0 0 0 auto;color:#9f1239;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-nv-x-sp{flex:none;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:zipco-nv-xspin .8s linear infinite}
+.zipco-nv-x-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.22,1,.36,1)}
+.zipco-nv-x-fold[data-open=true]{grid-template-rows:1fr}
+.zipco-nv-x-fi{min-height:0;overflow:hidden}
+.zipco-nv-x-det{display:grid;gap:8px;padding:2px 12px 14px;font-size:12.5px;line-height:1.45;color:#334155}
+.zipco-nv-x-det>*{animation:zipco-nv-xrise .4s both}
+.zipco-nv-x-fold[data-open=false] .zipco-nv-x-det>*{animation:none}
+.zipco-nv-x-det>*:nth-child(2){animation-delay:.05s}
+.zipco-nv-x-det>*:nth-child(3){animation-delay:.1s}
+.zipco-nv-x-det>*:nth-child(4){animation-delay:.15s}
+.zipco-nv-x-sec{display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 11px;align-items:start;padding:11px 12px;border-radius:18px;background:#ffffffcc;box-shadow:inset 0 0 0 1px #0f766e1f,0 3px 10px #0f766e12;text-align:left;font:inherit;color:inherit;width:100%;border:0}
+.zipco-nv-x-ic{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#f1fbf8 70%);color:#0f766e;box-shadow:inset 0 0 0 2px #34d3b0}
+.zipco-nv-x-ic svg{width:16px;height:16px}
+.zipco-nv-x-ic.am{color:#b45309;box-shadow:inset 0 0 0 2px #f59e0b}
+.zipco-nv-x-ic.ok{color:#fff;background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 4px 10px #05966944}
+.zipco-nv-x-ic.wa{color:#fff;background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 4px 10px #05966944}
+.zipco-nv-x-ic.sl{color:#64748b;box-shadow:inset 0 0 0 2px #cbd5e1}
+.zipco-nv-x-ic.cy{color:#0e7490;box-shadow:inset 0 0 0 2px #22d3ee}
+.zipco-nv-x-bd{min-width:0}
+.zipco-nv-x-full{grid-column:1/-1}
+.zipco-nv-x-ey{display:block;margin:0;font-size:8.5px;font-weight:900;letter-spacing:.2em;color:#0f766e}
+.zipco-nv-x-ey.am{color:#b45309}
+.zipco-nv-x-ey.sl{color:#64748b}
+.zipco-nv-x-m{margin:2px 0 0;font-size:13.5px;line-height:1.35;font-weight:800;color:#0f172a;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-nv-x-s{margin:3px 0 0;font-size:12px;line-height:1.4;color:#475569;overflow-wrap:anywhere}
+.zipco-nv-x-w{display:inline-block;max-width:100%;margin:6px 0 0;padding:3px 10px;border-radius:12px;background:#ecfeff;box-shadow:inset 0 0 0 1px #0891b233;font-size:11.5px;font-weight:700;color:#0e7490;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-nv-x-n{display:flex;gap:6px;margin:7px 0 0;font-size:11.5px;line-height:1.35;color:#64748b}
+.zipco-nv-x-n svg{flex:none;width:13px;height:13px;margin-top:1px}
+.zipco-nv-x-st{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:2px 0 0}
+.zipco-nv-x-st b{font-size:15px;font-weight:900;color:#065f46}
+.zipco-nv-x-tag{display:inline-flex;align-items:center;min-height:20px;padding:0 9px;border-radius:99px;font-size:11px;font-weight:800;text-decoration:none;background:#f1f5f9;color:#334155;box-shadow:inset 0 0 0 1px #cbd5e1}
+.zipco-nv-x-tag.pp{background:#ecfdf5;color:#065f46;box-shadow:inset 0 0 0 1px #6ee7b7}
+.zipco-nv-x-facts{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:5px}
+.zipco-nv-x-facts li{display:flex;gap:7px;font-size:12px;line-height:1.4;color:#334155;overflow-wrap:anywhere}
+.zipco-nv-x-facts li svg{flex:none;width:14px;height:14px;margin-top:2px;color:#059669}
+.zipco-nv-x-facts li.dc svg{color:#64748b}
+.zipco-nv-x-facts li.dc{color:#475569}
+.zipco-nv-x-money{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zipco-nv-x-mc{padding:9px 11px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e26;min-width:0}
+.zipco-nv-x-mc.r{background:linear-gradient(165deg,#fff 30%,#ecfdf5);box-shadow:inset 0 0 0 1.5px #6ee7b7}
+.zipco-nv-x-mc small{display:block;font-size:8.5px;font-weight:900;letter-spacing:.12em;color:#64748b}
+.zipco-nv-x-mc.r small{color:#047857}
+.zipco-nv-x-mc b{display:block;margin-top:3px;font-size:19px;line-height:1.05;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.zipco-nv-x-mc b[data-u=true]{font-size:12px;color:#92400e}
+.zipco-nv-x-mc em{display:block;margin-top:2px;font-style:normal;font-size:11px;color:#64748b}
+.zipco-nv-x-mn{margin:8px 0 0;font-size:11.5px;line-height:1.35;color:#64748b}
+.zipco-nv-x-note{margin:8px 0 0;padding:2px 0 2px 10px;box-shadow:inset 2px 0 0 #6ee7b7;font-size:12px;color:#475569;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-nv-x-note small{display:block;font-size:8.5px;font-weight:900;letter-spacing:.16em;color:#047857;margin-bottom:1px}
+.zipco-nv-x-more{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin:2px 0 0;padding:0;border:0;background:none;color:#0f766e;font-weight:800;font-size:12.5px;font-family:inherit;text-decoration:underline;text-underline-offset:3px}
+.zipco-nv-x-more .zipco-nv-x-chv svg{width:14px;height:14px}
+.zipco-nv-x-more[aria-expanded=true] .zipco-nv-x-chv{transform:rotate(180deg)}
+.zipco-nv-x-of{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.22,1,.36,1)}
+.zipco-nv-x-of[data-open=true]{grid-template-rows:1fr}
+.zipco-nv-x-ofi{min-height:0;overflow:hidden}
+.zipco-nv-x-orig{padding:9px 11px;border-radius:12px;background:#f1f5f9;box-shadow:inset 0 0 0 1px #e2e8f0;color:#475569;font-size:11.5px;line-height:1.4}
+.zipco-nv-x-orig small{display:block;margin-bottom:4px;font-size:8.5px;font-weight:900;letter-spacing:.14em;color:#64748b}
+.zipco-nv-x-orig p{margin:0 0 3px;overflow-wrap:anywhere}
+.zipco-nv-x-orig p:first-of-type{font-weight:800;color:#334155}
+.zipco-nv-x-row{display:grid;grid-template-columns:34px minmax(0,1fr) 28px;gap:11px;align-items:center;min-height:56px;cursor:pointer}
+.zipco-nv-x-row b{display:block;margin-top:1px;font-size:13px;font-weight:800;color:#0f172a;overflow-wrap:anywhere}
+.zipco-nv-x-go{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#0f766e;background:#fff;box-shadow:inset 0 0 0 1px #0f766e33}
+.zipco-nv-x-go svg{width:15px;height:15px}
+.zipco-nv-x-row:disabled{opacity:.6;cursor:default}
+.zipco-nv-x-gl{margin:4px 2px -2px;font-size:8.5px;font-weight:900;letter-spacing:.2em;color:#64748b}
+.zipco-nv-x-grp{overflow:hidden;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e22,0 3px 12px #0f766e14}
+.zipco-nv-x-grp .zipco-nv-x-row{border-radius:0;box-shadow:none;background:linear-gradient(90deg,#ecfdf5,#fff)}
+.zipco-nv-x-grp .zipco-nv-x-row b{font-size:14.5px;color:#064e3b}
+.zipco-nv-x-grp .zipco-nv-x-go{background:#d1fae5;color:#047857;box-shadow:none}
+.zipco-nv-x-perm{display:grid;grid-template-columns:34px minmax(0,1fr);gap:11px;padding:11px 12px 8px}
+.zipco-nv-x-grp .zipco-nv-x-row+.zipco-nv-x-perm{border-top:1px solid #e8edf3}
+.zipco-nv-x-perm p{margin:0;font-size:11.5px;line-height:1.4;color:#475569}
+.zipco-nv-x-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:8px;padding:0 12px;border:0;border-radius:15px;background:#ffffffcc;box-shadow:inset 0 0 0 1.5px #0f766e66;color:#0f172a;font-weight:800;font-size:13px;font-family:inherit;text-align:center}
+.zipco-nv-x-lk{display:inline-flex;align-items:center;min-height:44px;margin-top:2px;padding:0;border:0;background:none;color:#0f766e;font-weight:800;font-size:12.5px;font-family:inherit;text-decoration:underline}
+.zipco-nv-x-btn:disabled,.zipco-nv-x-lk:disabled,.zipco-nv-x-cx:disabled{opacity:.6;cursor:default}
+.zipco-nv-x-cxw{display:flex;justify-content:center}
+.zipco-nv-x-cx{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 18px;border:0;border-radius:99px;background:none;box-shadow:inset 0 0 0 1.5px #fda4af99;color:#be123c;font-weight:850;font-size:13px;font-family:inherit}
+.zipco-nv-x-cx svg{width:16px;height:16px}
+.zipco-nv-x-al{padding:10px 12px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-size:12px;line-height:1.4}
+.zipco-nv-x-al p{margin:0}
+.zipco-nv-x-al button{color:#9f1239;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-nv-x-bz{display:flex;align-items:center;gap:8px;margin:0;padding:8px 12px;border-radius:12px;background:#ecfeff;box-shadow:inset 0 0 0 1px #67e8f9;color:#0e7490;font-weight:800}
+.zipco-nv-x-pay{margin:2px 4px 0;font-size:11.5px;color:#64748b;text-align:center}
+.zipco-nv-x-hide{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0 auto;padding:0 16px;border:0;border-radius:99px;background:linear-gradient(180deg,#ffffffcc,#ffffff55);box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px #0f766e26,0 4px 10px #0f766e1a;color:#0f766e;font-weight:800;font-size:12px;font-family:inherit}
+.zipco-nv-x-hide svg{width:14px;height:14px}
+@media (prefers-reduced-motion:reduce){.zipco-nv-x-c,.zipco-nv-x-c *{animation:none!important;transition:none!important}}
+.zipco-nv-x-tot b[data-u=true]{font-size:11px;max-width:70px;overflow-wrap:anywhere}
+.zipco-nv-x-pill{flex:1 1 auto;min-width:0;align-items:center;padding:5px 12px 5px 5px;border-radius:16px}
+.zipco-nv-x-pill b{font-size:12.5px;letter-spacing:0;text-transform:none;font-weight:850;color:#7c2d12;white-space:normal;line-height:1.2;overflow:visible}
+.zipco-nv-x-tot b{font-size:22px}
+.zipco-nv-x-tot b[data-u=true]{font-size:11.5px}
+.zipco-nv-x-soft{align-self:center;font-size:11.5px;font-weight:700;color:#64748b}
+.zipco-nv-x-ey{font-size:10px;letter-spacing:.14em;color:#0b5f58}
+.zipco-nv-x-ey.am{color:#92400e}
+.zipco-nv-x-ey.sl{color:#475569}
+.zipco-nv-x-ey.cy{color:#0e7490}
+.zipco-nv-x-m{font-size:14px}
+.zipco-nv-x-s{font-size:12.5px}
+.zipco-nv-x-step small,.zipco-nv-x-mc small,.zipco-nv-x-orig small,.zipco-nv-x-note small,.zipco-nv-x-row .zipco-nv-x-ey{font-size:9.5px}
+.zipco-nv-x-gl{font-size:10px;letter-spacing:.14em;color:#475569}
+.zipco-nv-x-next{display:flex;gap:8px;align-items:flex-start;margin:0;padding:2px 4px 0;font-size:12.5px;line-height:1.4;color:#475569}
+.zipco-nv-x-next svg{flex:none;width:15px;height:15px;margin-top:2px;color:#d97706}
+.zipco-nv-x-when{display:flex;gap:8px;align-items:flex-start;margin:7px 0 0;padding:7px 10px;border-radius:12px;background:#ecfeff;box-shadow:inset 0 0 0 1px #67e8f966}
+.zipco-nv-x-when svg{flex:none;width:16px;height:16px;margin-top:2px;color:#0e7490}
+.zipco-nv-x-when small{display:block;font-size:9.5px;font-weight:900;letter-spacing:.14em;color:#0e7490}
+.zipco-nv-x-when b{display:block;font-size:14px;color:#0f172a}
+.zipco-nv-x-cxs{display:grid;gap:4px;margin-top:2px}
+.zipco-nv-x-cx{min-height:44px;padding:0 14px;font-size:12.5px;font-weight:800}
+@keyframes zipco-nv-jring{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+@keyframes zipco-nv-jglow{0%,100%{box-shadow:0 0 0 4px #fbbf2447,0 8px 20px #f59e0b40}50%{box-shadow:0 0 0 8px #fbbf2418,0 8px 24px #f59e0b55}}
+@keyframes zipco-nv-jflow{from{background-position:0 0}to{background-position:0 24px}}
+.zipco-nv-j-pi{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#ffffff2e}
+.zipco-nv-j-pi svg{width:22px;height:22px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l])[data-open=true] .zipco-nv-x-rail{display:none}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l])[data-open=true] .zipco-nv-x-id{padding-bottom:10px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-det{gap:6px;padding:0 10px 12px}
+.zipco-nv-j-pi{width:36px;height:36px}
+.zipco-nv-j-pi svg{width:19px;height:19px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-pay{margin:0}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-rail{margin-bottom:8px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-step b{font-size:13px}
+.zipco-nv-x-info{display:flex;gap:8px;align-items:flex-start;margin:0 12px 8px;padding:10px 12px;border-radius:14px;background:#d1fae5aa;box-shadow:inset 0 0 0 1px #34d3b055;font-size:13px;line-height:1.4;font-weight:700;color:#065f46}
+.zipco-nv-x-info svg{flex:none;width:18px;height:18px;margin-top:1px}
+.zipco-nv-x-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 24px);min-height:52px;margin:0 12px 12px;padding:0 16px;border:0;border-radius:16px;background:linear-gradient(135deg,#10b981,#047857);color:#fff;font-size:15.5px;font-weight:900;box-shadow:0 10px 20px #04785544,inset 0 1px 0 #ffffff55}
+.zipco-nv-x-cta svg{width:18px;height:18px}
+.zipco-nv-x-cta:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l])[data-open=true] :is(.zipco-nv-x-info,.zipco-nv-x-cta){display:none}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-md{display:inline-flex;align-items:center;gap:4px;margin-left:3px}
+.zipco-nv-x-md svg{width:11px;height:11px;flex:none}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-top{padding-top:7px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-rail{margin:8px 12px 6px;padding:7px 4px 6px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-nd{width:26px;height:26px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-ln{margin-top:11px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-step b{font-size:12.5px}
+.zipco-nv-x-info{margin:0 12px 6px;padding:7px 10px;font-size:12.5px;line-height:1.35;gap:7px}
+.zipco-nv-x-info svg{width:16px;height:16px}
+.zipco-nv-x-cta{min-height:46px;margin:0 12px 10px;font-size:15px;border-radius:14px}
+.zipco-nv-x-c:is([data-ver=n],[data-ver=l]) .zipco-nv-x-tot b{font-size:21px}
+.zipco-nv-x-info{margin:0 12px 6px;padding:5px 10px;font-size:12px;line-height:1.3;gap:6px;border-radius:11px}
+.zipco-nv-x-info svg{width:14px;height:14px;margin-top:1px}
+.zipco-nv-x-cta{min-height:40px;margin:0 12px 9px;font-size:13.5px;font-weight:850;border-radius:12px;gap:6px;box-shadow:0 6px 12px #04785540,inset 0 1px 0 #ffffff55}
+.zipco-nv-x-cta svg{width:15px;height:15px}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-rail{display:flex}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-info{display:flex}
+.zipco-nv-x-sub{display:none;font-style:normal;font-size:11px;line-height:1.2;color:#64748b;font-weight:600;margin-top:1px}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-sub{display:block}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-sub[data-k=wait]{display:inline-block;margin-top:3px;padding:1px 9px;border-radius:99px;background:#fef3c7;color:#92400e;font-weight:800}
+.zipco-nv-x-c[data-ver=l] .zipco-nv-x-step{text-align:center}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-rail{margin-bottom:6px}
+.zipco-nv-x-c[data-ver=l] .zipco-nv-x-det{gap:6px;padding:0 12px 12px}
+.zipco-nv-l-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;min-height:48px;padding:7px 10px;border:0;border-radius:14px;background:#ffffffe6;box-shadow:inset 0 0 0 1px #0f766e26;text-align:left;font:inherit;color:#0f172a}
+button.zipco-nv-l-row{cursor:pointer}
+.zipco-nv-l-row:disabled{opacity:.6;cursor:default}
+.zipco-nv-l-row:focus-visible,.zipco-nv-l-wa:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-l-row.zipco-nv-l-st{align-items:start;grid-template-columns:30px minmax(0,1fr)}
+.zipco-nv-l-i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#0f766e;background:#ecfdf5;box-shadow:inset 0 0 0 1.5px #34d3b0}
+.zipco-nv-l-i svg{width:15px;height:15px}
+.zipco-nv-l-i.ok{color:#fff;background:linear-gradient(140deg,#34d399,#059669);box-shadow:none}
+.zipco-nv-l-i.sl{color:#64748b;background:#f1f5f9;box-shadow:inset 0 0 0 1.5px #cbd5e1}
+.zipco-nv-l-t b{display:block;font-size:13.5px;font-weight:850;line-height:1.2}
+.zipco-nv-l-t small{display:block;margin-top:1px;font-size:12px;line-height:1.35;color:#475569;overflow-wrap:anywhere}
+.zipco-nv-l-w{display:inline-block;margin-top:3px;font-weight:700;color:#0e7490}
+.zipco-nv-l-row>svg{width:16px;height:16px;color:#0f766e}
+.zipco-nv-l-fold{border-radius:14px;overflow:hidden;background:#ffffffe6;box-shadow:inset 0 0 0 1px #0f766e26}
+.zipco-nv-l-fold .zipco-nv-l-row{background:none;box-shadow:none}
+.zipco-nv-l-cv svg{width:16px;height:16px;color:#0f766e}
+.zipco-nv-l-row[aria-expanded=true] .zipco-nv-l-cv{transform:rotate(180deg)}
+.zipco-nv-l-fb{display:grid;gap:6px;padding:0 12px 10px}
+.zipco-nv-l-fb .zipco-nv-x-facts{margin:0}
+.zipco-nv-l-fb .zipco-nv-x-note{margin:0}
+.zipco-nv-l-fb .zipco-nv-x-more{min-height:40px}
+.zipco-nv-l-wa{display:grid;grid-template-columns:36px minmax(0,1fr) 20px;gap:10px;align-items:center;width:100%;min-height:50px;margin-top:2px;padding:6px 12px 6px 8px;border:0;border-radius:14px;color:#fff;text-align:left;font:inherit;background:linear-gradient(135deg,#10b981,#047857);box-shadow:0 6px 12px #04785540,inset 0 1px 0 #ffffff55}
+.zipco-nv-l-wa .zipco-nv-j-pi{width:36px;height:36px}
+.zipco-nv-l-wa b{display:block;font-size:14.5px;font-weight:900}
+.zipco-nv-l-wa small{display:block;font-size:11px;line-height:1.25;color:#d1fae5}
+.zipco-nv-l-wa>svg{width:16px;height:16px}
+.zipco-nv-l-wa:disabled{opacity:.6;cursor:default}
+.zipco-nv-x-info .zipco-nv-i-o{display:none}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-info .zipco-nv-i-c{display:none}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-info .zipco-nv-i-o{display:inline}
+.zipco-nv-x-c[data-ver=l][data-open=true] .zipco-nv-x-info{padding:7px 10px;font-size:12.5px}
+.zipco-nv-l-nb{color:#0f172a;font-weight:850}
+.zipco-nv-l-cd{display:grid;grid-template-columns:20px minmax(0,1fr) 16px;gap:8px;align-items:center;width:100%;min-height:44px;padding:4px 10px;border:0;border-radius:12px;background:#f1f5f9;box-shadow:inset 0 0 0 1px #0f766e26;font:inherit;font-weight:800;font-size:13px;color:#0f766e;text-align:left}
+.zipco-nv-l-cd svg{width:16px;height:16px}
+.zipco-nv-l-cd:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-l-cd:disabled{opacity:.6}
+.zipco-nv-x-c[data-ver=l] .zipco-nv-x-det{gap:5px}
+.zipco-nv-l-row{min-height:44px;padding:6px 10px}
+.zipco-nv-l-t small b{display:inline}
+.zipco-nv-l-kvs{display:grid;gap:0;border-radius:12px;background:#f8fafc;box-shadow:inset 0 0 0 1px #e2e8f0;overflow:hidden}
+.zipco-nv-l-kv{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;padding:7px 10px;font-size:12.5px;line-height:1.35;color:#0f172a}
+.zipco-nv-l-kv+.zipco-nv-l-kv{border-top:1px solid #e8edf3}
+.zipco-nv-l-kv small{font-size:9.5px;font-weight:900;letter-spacing:.1em;color:#64748b;padding-top:2px}
+.zipco-nv-l-kv span{font-weight:700;overflow-wrap:anywhere}
+.zipco-nv-l-fb .zipco-nv-x-orig{font-size:11.5px}
+.zipco-nv-l-fb .zipco-nv-x-orig p:nth-of-type(n+3){display:none}
+.zipco-nv-l-res{align-items:start}
+.zipco-nv-l-res>svg{margin-top:6px}
+.zipco-nv-l-res .zipco-nv-l-t small{display:block}
+.zipco-nv-l-m{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.zipco-nv-l-m>span{padding:5px 9px;border-radius:11px;background:#f1f5f9;min-width:0}
+.zipco-nv-l-m>span.r{background:#ecfdf5;box-shadow:inset 0 0 0 1px #6ee7b7}
+.zipco-nv-l-m small{display:block;margin:0;font-size:9px;font-weight:900;letter-spacing:.12em;color:#64748b}
+.zipco-nv-l-m .r small{color:#047857}
+.zipco-nv-l-m b{display:block;font-size:16px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.zipco-nv-l-m b[data-u=true]{font-size:11.5px;color:#92400e}
+.zipco-nv-l-dc{display:flex;gap:6px;margin-top:6px;font-size:11.5px;line-height:1.35;color:#475569}
+.zipco-nv-l-dc svg{flex:none;width:13px;height:13px;margin-top:2px;color:#64748b}
+.zipco-nv-l-q{display:block;margin-top:6px;padding:1px 0 1px 9px;box-shadow:inset 2px 0 0 #6ee7b7;font-size:12px;line-height:1.35;color:#475569;overflow-wrap:anywhere}
+.zipco-nv-l-q small{display:block;margin:0 0 1px;font-size:9px;font-weight:900;letter-spacing:.14em;color:#047857}
+.zipco-nv-l-hint{display:block;margin-top:6px;font-size:12px;font-weight:800;color:#0f766e}
+.zipco-nv-l-fb{grid-template-columns:minmax(0,1fr)}
+.zipco-nv-m-cx2{display:flex;align-items:center;justify-content:center;gap:6px;width:max-content;max-width:100%;min-height:40px;margin:2px auto 0;padding:0 16px;border:0;border-radius:99px;background:none;box-shadow:inset 0 0 0 1.5px #fda4af99;color:#be123c;font:inherit;font-weight:800;font-size:12.5px}
+.zipco-nv-m-cx2 svg{width:15px;height:15px}
+.zipco-nv-m-cx2:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-m-cx2:disabled{opacity:.6}
+.zipco-nv-m-cx2{width:100%;margin:2px 0 0}
+.zipco-nv-m-cx2{background:linear-gradient(180deg,#fff1f2,#ffe4e6);box-shadow:inset 0 0 0 1.5px #fb7185aa,0 4px 10px #e11d4826;color:#be123c;font-weight:850}
+.zipco-nv-l-pn{display:block;font-size:13px;font-weight:850}
+.zipco-nv-l-pd{display:block;font-size:11.5px;font-weight:600;color:#64748b}
+.zipco-nv-l-sp{display:block;height:5px}
+@keyframes zipco-nv-xnode{0%,100%{box-shadow:0 0 0 3px #fbbf2455}50%{box-shadow:0 0 0 10px #fbbf2412}}
+@keyframes zipco-nv-xdraw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes zipco-nv-xshine{0%{transform:translateX(-130%)}55%,100%{transform:translateX(330%)}}
+@keyframes zipco-nv-xnudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-nd[data-k=wait]{animation:zipco-nv-xnode 2.2s ease-in-out .3s 5}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-nd[data-k=wait] svg{animation:zipco-nv-xflip 3.2s ease-in-out .3s 4}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-ln.on{transform-origin:left center;animation:zipco-nv-xdraw .9s .15s both}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-nd[data-k=done]{animation:zipco-nv-xpop .6s .05s both}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-pill i{animation-iteration-count:5}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-pill i svg{animation-iteration-count:5}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-hand{animation-iteration-count:5}
+.zipco-nv-x-info{animation:zipco-nv-xrise .5s .1s both}
+.zipco-nv-x-cta{position:relative;overflow:hidden}
+.zipco-nv-x-cta::after{content:"";position:absolute;top:0;bottom:0;left:0;width:35%;background:linear-gradient(100deg,transparent,#ffffff66,transparent);animation:zipco-nv-xshine 2.4s ease-in-out 1s 4;pointer-events:none}
+.zipco-nv-x-cta svg{animation:zipco-nv-xnudge 1.3s ease-in-out 1.2s 5}
+.zipco-nv-l-wa>svg{animation:zipco-nv-xnudge 1.3s ease-in-out 1s 4}
+.zipco-nv-l-fold:has([data-act=r1]){background:linear-gradient(90deg,#ecfdf5,#fff);box-shadow:inset 0 0 0 1.5px #34d3b0aa}
+.zipco-nv-l-row[data-act=r1] .zipco-nv-l-cv{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#d1fae5;box-shadow:inset 0 0 0 1.5px #34d399}
+.zipco-nv-l-row[data-act=r1] .zipco-nv-l-cv svg{width:17px;height:17px;color:#047857;stroke-width:2.8}
+.zipco-nv-l-row[data-act=r1]:hover .zipco-nv-l-cv{background:#a7f3d0}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-md.zipco-nv-x-wa{background:#dcfce7;box-shadow:inset 0 0 0 1px #16a34a66;color:#166534;font-weight:800}
+.zipco-nv-x-c:not([data-ver=a]) .zipco-nv-x-md.zipco-nv-x-wa svg{color:#16a34a}
+.zipco-nv-f-opts{display:grid;gap:6px}
+.zipco-nv-f-o{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:6px 12px;border:0;border-radius:13px;background:#fff;box-shadow:inset 0 0 0 1.5px #cbd5e1;text-align:left;font:inherit;color:#0f172a}
+.zipco-nv-f-o b{font-size:13.5px;font-weight:850}
+.zipco-nv-f-r{flex:none;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px #94a3b8;background:#fff}
+.zipco-nv-f-o[aria-checked=true]{background:#ecfdf5;box-shadow:inset 0 0 0 2px #10b981}
+.zipco-nv-f-o[aria-checked=true] .zipco-nv-f-r{box-shadow:inset 0 0 0 2px #059669;background:radial-gradient(circle,#059669 0 5px,#fff 6px)}
+.zipco-nv-f-o:focus-visible,.zipco-nv-f-ok:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-f-o:disabled{opacity:.6}
+.zipco-nv-f-ok{display:flex;align-items:center;justify-content:center;width:100%;min-height:46px;margin-top:8px;border:0;border-radius:13px;font:inherit;font-weight:900;font-size:14.5px;color:#fff;background:linear-gradient(135deg,#0e8aa5,#0f766e);box-shadow:0 6px 12px #0f766e33}
+.zipco-nv-f-ok:disabled{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:default}
+.zipco-nv-m-fz{color:#0e7490;background:linear-gradient(180deg,#ecfeff,#cffafe);box-shadow:inset 0 0 0 1.5px #22d3eeaa,0 4px 10px #0891b226}
+.fsh .zipco-nv-f-opts{margin:2px 0 4px}
+.zipco-nv-f-bk{display:block;width:100%;min-height:44px;margin-top:6px;border:0;border-radius:13px;background:none;font:inherit;font-weight:800;font-size:13px;color:#0f766e;box-shadow:inset 0 0 0 1.5px #0f766e55}
+.zipco-nv-f-bk:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-h-ok{display:flex;gap:12px;align-items:center;padding:14px;border-radius:20px;background:linear-gradient(150deg,#ecfdf5,#d1fae5);box-shadow:inset 0 0 0 1.5px #34d399,0 8px 18px #05966922;animation:zipco-nv-xrise .4s both}
+.zipco-nv-h-ic{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:50%;color:#fff;background:linear-gradient(140deg,#34d399,#059669)}
+.zipco-nv-h-ic svg{width:20px;height:20px}
+.zipco-nv-h-ok b{display:block;font-size:15px;font-weight:900;color:#065f46}
+.zipco-nv-h-ok p{margin:2px 0 0;font-size:12.5px;color:#047857}
+.zipco-nv-h-ok{transition:transform .6s cubic-bezier(.5,0,.75,0),opacity .6s ease,max-height .6s ease;max-height:140px}
+.zipco-nv-h-ok.out{transform:translate(70%,-40px) scale(.6);opacity:0;max-height:0;padding-top:0;padding-bottom:0}
+@keyframes zipco-nv-hbump{0%{transform:scale(1)}35%{transform:scale(1.18);background:#d1fae5}100%{transform:scale(1)}}
+@media (max-width:380px){
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill b{font-size:9.5px;letter-spacing:.05em}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-hand{display:none}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill b{font-size:12px;letter-spacing:0}
+}
+@media (max-width:350px){
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill b{font-size:9.5px;letter-spacing:.05em}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-tot{max-width:74px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-tot b[data-u=true]{font-size:11px;max-width:72px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill b{font-size:9px;letter-spacing:.02em}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill{padding-right:9px;gap:6px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill b{font-size:12px;letter-spacing:0}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-pill b{font-size:11.5px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-tot b{font-size:19px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-hand{display:none}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-cta{font-size:14.5px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-cta{font-size:13px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-l-wa b{font-size:13.5px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-l-kv{grid-template-columns:1fr;gap:1px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-l-m b{font-size:14px}
+}
+
+/* ---- Complementos de producción (no existen en el tablero) ---- */
+.zipco-nv-wrap{display:block}
+/* Recuperación real (controlador): misma franja ámbar del tablero */
+.zipco-nv-x-c .zipco-receipt-recovery{margin:0 12px 12px;padding:10px 12px;border-radius:14px;background:#fff7ed;box-shadow:inset 0 0 0 1.5px #fdba74;color:#7c2d12;font-size:12px;line-height:1.4}
+.zipco-nv-x-c .zipco-receipt-recovery p{margin:0}
+.zipco-nv-x-c .zipco-receipt-recovery button{min-height:44px;margin:6px 6px 0 0;padding:0 14px;border:0;border-radius:12px;font-weight:800;font-size:12.5px;color:#7c2d12;background:#fff;box-shadow:inset 0 0 0 1.5px #fdba74}
+.zipco-nv-x-c .zipco-receipt-recovery button:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+.zipco-nv-x-rc-e{margin:0 12px 8px;padding:8px 12px;border-radius:12px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-size:12px;font-weight:700}
+/* Avisos reales de AvailabilityPostActions dentro del detalle */
+.zipco-nv-x-al>*{margin:0}
+.zipco-nv-x-al [role=alert]{display:block}
+.zipco-nv-x-al p{margin:0 0 4px}
+.zipco-nv-x-al button{min-height:44px;margin:4px 6px 0 0;padding:0 14px;border:0;border-radius:12px;font-weight:800;font-size:12.5px;color:#9f1239;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af;font-family:inherit}
+.zipco-nv-x-al button:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+/* Botón real de cancelar (solo cuando FINALIZE_REQUEST no está permitido): mismo aspecto que «Finalizar solicitud» */
+.zipco-nv-cxw>button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:40px;margin-top:2px;padding:0 14px;border:0;border-radius:12px;font:inherit;font-weight:850;font-size:13.5px;color:#9f1239;background:#ffe4e6;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-nv-cxw>button:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+/* Modal «Finalizar solicitud» (Radix Dialog) */
+.zipco-nv-ov{position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.55);backdrop-filter:blur(3px)}
+.zipco-nv-fsh{position:fixed;left:50%;top:50%;z-index:1001;width:calc(100% - 2rem);max-width:340px;transform:translate(-50%,-50%);padding:16px;border-radius:22px;background:linear-gradient(165deg,#fff,#f3fffb 60%,#f6f2ff);box-shadow:0 20px 50px rgba(15,23,42,.35);font-size:13px;color:#334155}
+.zipco-nv-fsh-k{margin:0 0 4px;font-size:9px;font-weight:900;letter-spacing:.16em;color:#6366f1}
+.zipco-nv-fsh-t{margin:0 0 10px;font-size:16px;line-height:1.25;color:#0f172a;font-weight:800}
+.zipco-nv-fsh .zipco-nv-f-opts{margin:2px 0 4px}
+.zipco-nv-fsh .zipco-nv-f-bk{display:flex;align-items:center;justify-content:center}
+/* Ajustes de ancho 320px del tablero (bloque @media del tablero que no se había trasladado) */
+@media (max-width:350px){
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-tg{padding-right:4px;font-size:12px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-who h3{font-size:14.5px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-step b{font-size:11px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-step small,.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-sub{font-size:10px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-nd{width:26px;height:26px}
+.zipco-nv-x-c[data-ver=l][data-tone] .zipco-nv-x-mc b{font-size:17px}
+}
+/* E225: shared real reservation controls and three-choice confirmation. */
+.zipco-nv-x-c [data-nv-reservation]{min-width:0;outline-offset:4px}
+.zipco-nv-x-c [data-nv-reservation] details{border:1px solid #99f6e4;border-radius:16px;padding:8px 12px;background:#f0fdfa;font-size:12px;overflow-wrap:anywhere}
+.zipco-nv-x-c [data-nv-reservation] summary,.zipco-nv-cancel-options>summary{min-height:44px;align-content:center;cursor:pointer;font-weight:800;color:#0f766e}
+.zipco-nv-x-c .zipco-nv-res-actions{display:grid;gap:8px;margin-top:10px}
+.zipco-nv-x-c .zipco-nv-res-actions>button{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;border:1px solid #99f6e4;border-radius:12px;padding:10px;background:#fff;text-align:left;color:#0f172a}
+.zipco-nv-x-c .zipco-nv-res-actions>button svg{flex:none;width:18px;height:18px}
+.zipco-nv-x-c [data-nv-reservation] [role=alert],.zipco-nv-fsh [role=alert]{padding:10px;border:1px solid #fecdd3;border-radius:12px;background:#fff1f2;color:#9f1239;overflow-wrap:anywhere}
+.zipco-nv-x-c [role=alert] button,.zipco-nv-fsh [role=alert] button,.zipco-nv-fsh [role=alert]+div>button{min-height:44px;padding:8px 12px;border:1px solid #99f6e4;border-radius:12px;background:#fff;color:#115e59}
+.zipco-nv-x-c .zipco-nv-m-fz{min-height:44px}
+.zipco-nv-fsh{max-height:85dvh;overflow:auto;overscroll-behavior:contain}
+.zipco-nv-fsh>p,.zipco-nv-fsh [id]{overflow-wrap:anywhere}
+:is([data-coordination-motion=idle],[data-request-motion=idle],[data-request-list-hidden=true]) .zipco-nv-x-c *,.zipco-nv-x-c[data-request-motion=idle] *{animation-play-state:paused!important}
+.zipco-nv-x-c [role=status] .zipco-nv-x-sp{animation:zipco-nv-xspin .8s linear infinite!important;animation-play-state:running!important}
+@media(prefers-reduced-motion:reduce){.zipco-nv-fsh,.zipco-nv-ov,.zipco-nv-h-ok{animation:none!important;transition:none!important}.zipco-nv-x-c [role=status] .zipco-nv-x-sp{animation:zipco-nv-xspin .8s linear infinite!important}}
+.zipco-nv-x-c .zipco-nv-x-cta{min-height:44px}
+.zipco-nv-x-c .zipco-nv-x-th .zipco-product-quantity{display:none}
+.zipco-nv-x-c [data-nv-reservation]:focus{outline:3px solid #0f766e;outline-offset:4px}
+
+/* ============================================================================================================
+   «Producto recibido» (tablero NegW19) · cliente · retiro local A/B/C. Todo bajo .zipco-nv-rc.
+   Estilos acotados para ReadyPanel y StatusRail REALES (no se modifican sus archivos). Animaciones finitas, solo transform/opacity.
+   ============================================================================================================ */
+@keyframes zipco-nv-rc-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes zipco-nv-rc-shine{0%{transform:translateX(-120%)}60%,100%{transform:translateX(480%)}}
+.zipco-nv-x-c.zipco-nv-rc{box-shadow:0 12px 24px #0f766e29,0 0 0 1.5px #34d399aa,inset 0 1px 0 #fff}
+.zipco-nv-x-c[data-ver=l][data-tone].zipco-nv-rc .zipco-nv-x-pill{background:#d1fae5;box-shadow:inset 0 0 0 1.5px #34d399aa}
+.zipco-nv-x-c[data-ver=l][data-tone].zipco-nv-rc .zipco-nv-x-pill i{background:#10b981;color:#fff;animation:zipco-nv-rc-pop .5s both}
+.zipco-nv-x-c[data-ver=l][data-tone].zipco-nv-rc .zipco-nv-x-pill i svg{animation:none}
+.zipco-nv-x-c[data-ver=l][data-tone].zipco-nv-rc .zipco-nv-x-pill b{color:#065f46}
+.zipco-nv-rc-chips{display:flex;flex-wrap:wrap;gap:4px;padding:7px 12px 0}
+.zipco-nv-rc-chip{display:inline-flex;align-items:center;gap:5px;min-height:22px;max-width:100%;padding:0 8px 0 6px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1px #0f766e33;font-size:10.5px;font-weight:800;color:#334155;overflow-wrap:anywhere}
+.zipco-nv-rc-chip svg{flex:none}
+.zipco-nv-rc-chip[data-k=ok]{background:#d1fae5;box-shadow:inset 0 0 0 1px #05966955;color:#065f46}
+.zipco-nv-rc-chip[data-k=cy]{background:#ecfeff;box-shadow:inset 0 0 0 1px #0891b255;color:#0e7490}
+/* Bloque «Recibiste tu pedido» = ReadyPanel real, sin círculo (el estado ya lo dice la pastilla) */
+.zipco-nv-rc-now{margin:8px 12px 12px;padding:10px 12px 12px;border-radius:20px;background:linear-gradient(155deg,#ecfdf5,#d1fae5);box-shadow:inset 0 0 0 1.5px #34d399,0 8px 18px #05966922}
+.zipco-nv-rc-now .zipco-own-ac{padding:0}
+.zipco-nv-rc-now .zipco-own-msg{margin-bottom:0}
+.zipco-nv-rc-now .zipco-own-tile{display:none}
+.zipco-nv-rc-now .zipco-own-msg b{font-size:15.5px;color:#064e3b}
+.zipco-nv-rc-now .zipco-own-msg small{margin-top:1px;font-size:12px;color:#047857}
+.zipco-nv-rc-now .zipco-own-cta{min-height:46px;margin-top:9px;padding:4px 14px;border-radius:14px;text-shadow:none;background:linear-gradient(135deg,#10b981,#047857);box-shadow:0 10px 20px #04785544,inset 0 1px 0 #ffffff55}
+.zipco-nv-rc-now .zipco-own-cta[data-final=true] span:first-child{font-size:15px;font-weight:900}
+.zipco-nv-rc-now .zipco-own-cta small{font-size:10.5px}
+.zipco-nv-rc-now .zipco-own-cta::after{animation:zipco-nv-rc-shine 2.4s ease-in-out 1s 3}
+.zipco-nv-rc-now .zipco-own-cta:focus-visible{outline:3px solid #0f766e;outline-offset:3px}
+.zipco-nv-rc-now .zipco-own-cta:disabled{opacity:.8}
+.zipco-nv-rc-now .zipco-own-error{margin:10px 0 0;padding:10px 12px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fda4af;color:#9f1239;font-size:12px;font-weight:700}
+.zipco-nv-x-c .zipco-nv-rc-now .zipco-receipt-recovery{margin:10px 0 0}
+/* Carril real (StatusRail) dentro del detalle */
+.zipco-nv-rc .zipco-own-rail{margin:0;padding:6px 10px;height:auto;min-height:48px}
+.zipco-nv-rc .zipco-own-steptx b{white-space:normal;overflow-wrap:anywhere}
+/* Secciones del detalle */
+.zipco-nv-rc-sec{padding:11px 12px;border-radius:18px;background:#ffffffcc;box-shadow:inset 0 0 0 1px #0f766e1f,0 3px 10px #0f766e12;overflow-wrap:anywhere}
+.zipco-nv-rc-sec p{margin:0 0 5px}
+.zipco-nv-rc-sh{display:flex;align-items:center;gap:8px;margin:0 0 7px}
+.zipco-nv-rc-sh h5{flex:1;min-width:0;margin:0;font-size:13.5px;font-weight:900;color:#0f172a}
+.zipco-nv-rc-ic{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;color:#fff;background:linear-gradient(140deg,#34d399,#059669);box-shadow:0 4px 10px #05966944}
+.zipco-nv-rc-tag{flex:none;padding:2px 8px;border-radius:99px;background:#d1fae5;color:#065f46;font-size:9.5px;font-weight:900;letter-spacing:.09em}
+.zipco-nv-rc-ln{display:flex;gap:7px;align-items:flex-start;font-size:12.5px;line-height:1.4;color:#334155}
+.zipco-nv-rc-ln svg{flex:none;width:14px;height:14px;margin-top:2px;color:#64748b}
+.zipco-nv-rc-ln[data-w=true]{padding:8px 10px;border-radius:12px;background:#fffbeb;box-shadow:inset 0 0 0 1px #fcd34d88;color:#78350f}
+.zipco-nv-rc-ln[data-w=true] svg{color:#b45309}
+.zipco-nv-rc-q{margin:4px 0 6px;padding:2px 0 2px 10px;border-left:3px solid #34d3b0;font-size:12.5px;line-height:1.4;color:#334155;white-space:pre-wrap;overflow-wrap:anywhere}
+.zipco-nv-rc-q small{display:block;margin-bottom:1px;font-size:9px;font-weight:900;letter-spacing:.13em;color:#0f766e}
+.zipco-nv-rc-q[data-biz=true]{border-left-color:#a5b4fc}
+.zipco-nv-rc-q[data-biz=true] small{color:#4f46e5}
+.zipco-nv-rc-kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;margin:0 0 6px;font-size:12.5px}
+.zipco-nv-rc-kv dt{align-self:center;font-size:9px;font-weight:900;letter-spacing:.13em;color:#64748b}
+.zipco-nv-rc-kv dd{margin:0;font-weight:800;color:#0f172a}
+.zipco-nv-rc-pl{display:grid;gap:3px;margin:2px 0 6px;padding:0;list-style:none}
+.zipco-nv-rc-pl li{display:flex;gap:8px;font-size:12.5px;font-weight:700;color:#334155}
+.zipco-nv-rc-pl li b{flex:none;color:#0f766e}
+.zipco-nv-rc-addr{display:inline-flex;align-items:flex-start;gap:5px;max-width:100%;padding:2px 9px 2px 7px;border-radius:12px;background:#e0f2fe;box-shadow:inset 0 0 0 1px #0284c755;font-size:11px;font-weight:800;color:#075985;overflow-wrap:anywhere}
+.zipco-nv-rc-addr svg{flex:none;margin-top:2px}
+.zipco-nv-rc-cd{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;margin-top:6px;padding:8px 10px;border:0;border-radius:14px;background:#f0fdfa;box-shadow:inset 0 0 0 1px #99f6e4;text-align:left;font:inherit;color:#0f172a}
+.zipco-nv-rc-cd .zipco-nv-rc-ic{width:30px;height:30px}
+.zipco-nv-rc-cd>span:nth-child(2){flex:1;min-width:0;font-size:13px}
+.zipco-nv-rc-cd b{display:block;font-weight:800}
+.zipco-nv-rc-cd small{display:block;font-size:11px;font-weight:700;color:#64748b;overflow-wrap:anywhere}
+.zipco-nv-rc-cd>svg{flex:none;color:#0f766e}
+.zipco-nv-rc-lk{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;border:0;background:none;font:inherit;font-weight:800;font-size:12.5px;color:#0f766e;text-decoration:underline;text-underline-offset:3px}
+.zipco-nv-rc-orig{margin-top:4px;font-size:12px}
+.zipco-nv-rc-orig>summary{min-height:44px;align-content:center;cursor:pointer;font-weight:800;color:#0f766e}
+.zipco-nv-rc-cd:focus-visible,.zipco-nv-rc-lk:focus-visible,.zipco-nv-rc-gt:focus-visible,.zipco-nv-rc-orig>summary:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+/* Gestiones de la reserva (pliegue; separadas del cierre del pedido) */
+.zipco-nv-rc-g{padding:6px 12px 10px;border-radius:18px;background:#f8fafc;box-shadow:inset 0 0 0 1px #cbd5e1}
+.zipco-nv-rc-g:focus{outline:3px solid #0f766e;outline-offset:3px}
+.zipco-nv-rc-gt{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:0;border:0;background:none;text-align:left;font:inherit;color:#0f172a}
+.zipco-nv-rc-gt .zipco-nv-rc-ic{color:#475569;background:#fff;box-shadow:inset 0 0 0 2px #cbd5e1}
+.zipco-nv-rc-gt>span:nth-child(2){flex:1;min-width:0}
+.zipco-nv-rc-gt b{display:block;font-size:13.5px;font-weight:900}
+.zipco-nv-rc-gt small{display:block;font-size:11px;font-weight:700;color:#64748b}
+.zipco-nv-rc-gt[aria-expanded=true] .zipco-nv-x-chv{transform:rotate(180deg)}
+.zipco-nv-rc-gf{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.22,1,.36,1)}
+.zipco-nv-rc-gf[data-open=true]{grid-template-rows:1fr}
+.zipco-nv-rc-gfi{min-height:0;overflow:hidden;display:grid;gap:7px;align-content:start}
+.zipco-nv-rc-gf[data-open=true] .zipco-nv-rc-gfi{padding-top:4px}
+.zipco-nv-rc-g [role=alert]{margin:4px 0 6px}
+.zipco-nv-rc-gx{margin-top:2px;padding-top:9px;border-top:1.5px dashed #cbd5e1}
+.zipco-nv-rc-gx>button{background:transparent;border-style:dashed;color:#475569}
+.zipco-nv-rc-solo{display:grid;gap:2px}
+/* Un solo botón verde sólido: «Finalizar esta solicitud». El contacto (WhatsApp) pasa a versión clara dentro de este diseño. */
+.zipco-nv-rc .zipco-nv-l-wa{color:#0f172a;background:#f0fdf4;box-shadow:inset 0 0 0 1.5px #86efac}
+.zipco-nv-rc .zipco-nv-l-wa .zipco-nv-j-pi{color:#fff;background:linear-gradient(140deg,#34d399,#059669)}
+.zipco-nv-rc .zipco-nv-l-wa b{font-size:13.5px}
+.zipco-nv-rc .zipco-nv-l-wa small{color:#475569}
+.zipco-nv-rc .zipco-nv-l-wa>svg{color:#0f766e;animation:none}
+.zipco-nv-rc .zipco-nv-x-c [data-nv-reservation]{outline-offset:4px}
+.zipco-nv-rc .zipco-nv-x-hide{margin-top:2px}
+@media (max-width:350px){
+.zipco-nv-rc-now .zipco-own-msg b{font-size:14.5px}
+.zipco-nv-rc-now .zipco-own-cta[data-final=true] span:first-child{font-size:14px}
+.zipco-nv-rc .zipco-own-steptx small{display:none}
+.zipco-nv-rc .zipco-own-rail{padding:6px 6px}
+.zipco-nv-rc .zipco-own-step{flex:1 1 auto;gap:4px;justify-content:center}
+.zipco-nv-rc .zipco-own-node{width:22px;height:22px}
+.zipco-nv-rc .zipco-own-steptx b{font-size:11px}
+.zipco-nv-rc .zipco-own-line{margin:0 3px;min-width:6px}
+.zipco-nv-rc-kv{grid-template-columns:1fr;gap:0}
+}
+@media (prefers-reduced-motion:reduce){.zipco-nv-rc *,.zipco-nv-rc *::before,.zipco-nv-rc *::after,.zipco-nv-rc-gf{animation:none!important;transition:none!important}.zipco-nv-rc [role=status] .zipco-own-spin,.zipco-nv-rc .zipco-nv-x-sp{animation:zipco-own-spin .8s linear infinite!important}}

@@ -1,0 +1,86 @@
+[
+  {
+    "width": 320,
+    "kind": "pickup",
+    "grid": "288px",
+    "rowWidth": 288,
+    "cardWidth": 288,
+    "height": 201.734375,
+    "previewWidth": 38,
+    "nameOverflow": true
+  },
+  {
+    "width": 320,
+    "kind": "whatsapp",
+    "grid": "288px",
+    "rowWidth": 288,
+    "cardWidth": 288,
+    "height": 228.34375,
+    "previewWidth": 38,
+    "nameOverflow": false,
+    "toggleHeight": 44
+  },
+  {
+    "width": 360,
+    "kind": "pickup",
+    "grid": "46px 282px",
+    "rowWidth": 328,
+    "cardWidth": 282,
+    "height": 151.03125,
+    "previewWidth": 38,
+    "nameOverflow": false
+  },
+  {
+    "width": 360,
+    "kind": "whatsapp",
+    "grid": "46px 282px",
+    "rowWidth": 328,
+    "cardWidth": 282,
+    "height": 193.46875,
+    "previewWidth": 38,
+    "nameOverflow": false,
+    "toggleHeight": 44
+  },
+  {
+    "width": 390,
+    "kind": "pickup",
+    "grid": "46px 312px",
+    "rowWidth": 358,
+    "cardWidth": 312,
+    "height": 151.03125,
+    "previewWidth": 38,
+    "nameOverflow": false
+  },
+  {
+    "width": 390,
+    "kind": "whatsapp",
+    "grid": "46px 312px",
+    "rowWidth": 358,
+    "cardWidth": 312,
+    "height": 170.671875,
+    "previewWidth": 38,
+    "nameOverflow": false,
+    "toggleHeight": 44
+  },
+  {
+    "width": 430,
+    "kind": "pickup",
+    "grid": "46px 352px",
+    "rowWidth": 398,
+    "cardWidth": 352,
+    "height": 125,
+    "previewWidth": 38,
+    "nameOverflow": false
+  },
+  {
+    "width": 430,
+    "kind": "whatsapp",
+    "grid": "46px 352px",
+    "rowWidth": 398,
+    "cardWidth": 352,
+    "height": 163,
+    "previewWidth": 38,
+    "nameOverflow": false,
+    "toggleHeight": 44
+  }
+]

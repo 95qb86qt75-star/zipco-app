@@ -1,0 +1,515 @@
+import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../../../api/apiConfig";
+import { showAppToast } from "../../../shared/notifications/Toast";
+
+export function useBusinessProfile() {
+  const [providerType, setProviderType] = useState<"Negocio" | "Servicio">(
+    () =>
+      localStorage.getItem("zipco-provider-type") === "Servicio"
+        ? "Servicio"
+        : "Negocio",
+  );
+  const [businessRegistrationForm, setBusinessRegistrationForm] = useState({
+    name: "",
+    type: "Negocio",
+  });
+  const [businessConfig, setBusinessConfig] = useState({
+    category: "",
+    hashtags: [] as string[],
+    showFullAddress: false,
+    fullAddress: "",
+    schedule: {},
+    offersOnSite: null as boolean | null,
+    offersAtCustomerLocation: null as boolean | null,
+  });
+  const [businessInfo, setBusinessInfo] = useState({
+    name: "",
+    description: "",
+    address: "",
+    phone: "",
+    instagram: "",
+    facebook: "",
+    image: "",
+  });
+  const [businessId, setBusinessId] = useState<string | number | null>(() =>
+    localStorage.getItem("zipco-business-id"),
+  );
+  const [hasRegisteredBusiness, setHasRegisteredBusiness] = useState(() =>
+    Boolean(localStorage.getItem("zipco-business-id")),
+  );
+  const [businessStatus, setBusinessStatus] = useState("");
+  const [isEditingBusinessInfo, setIsEditingBusinessInfo] = useState(false);
+  const [showBusinessRegistrationForm, setShowBusinessRegistrationForm] =
+    useState(false);
+  const [businessSocialForm, setBusinessSocialForm] = useState({
+    name: "",
+    description: "",
+    instagram: "",
+    facebook: "",
+  });
+  const [isUploadingBusinessPhoto, setIsUploadingBusinessPhoto] =
+    useState(false);
+  const [isSavingBusinessInfo, setIsSavingBusinessInfo] = useState(false);
+  const [businessInfoSaveSucceeded, setBusinessInfoSaveSucceeded] =
+    useState(false);
+
+  const parseKeywords = (value: any): string[] => {
+    if (Array.isArray(value)) {
+      return value.map((keyword) => String(keyword).trim()).filter(Boolean);
+    }
+
+    return String(value ?? "")
+      .split(",")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean);
+  };
+
+  const parseSchedule = (value: any) => {
+    if (!value) return {};
+
+    try {
+      const parsedSchedule =
+        typeof value === "string" ? JSON.parse(value) : value;
+      return parsedSchedule && typeof parsedSchedule === "object"
+        ? parsedSchedule
+        : {};
+    } catch (error) {
+      return {};
+    }
+  };
+
+  useEffect(() => {
+    const userId = localStorage.getItem("zipco-user-id");
+    const token = localStorage.getItem("zipco-token");
+
+    if (!userId || !token) return;
+
+    const loadUserBusiness = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/businesses/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const businesses = Array.isArray(data)
+          ? data
+          : (data.businesses ?? data.results ?? []);
+        const currentUserBusiness = businesses.find((business: any) => {
+          const ownerId =
+            business.userId ??
+            business.user_id ??
+            business.ownerId ??
+            business.owner_id ??
+            business.user?.id ??
+            business.user?._id ??
+            business.user ??
+            business.owner?.id ??
+            business.owner?._id ??
+            business.owner;
+          return String(ownerId) === String(userId);
+        });
+
+        if (!currentUserBusiness) {
+          setHasRegisteredBusiness(false);
+          setBusinessId(null);
+          localStorage.removeItem("zipco-business-id");
+          return;
+        }
+
+        const currentBusinessId =
+          currentUserBusiness.id ?? currentUserBusiness._id;
+        const fullBusiness = currentUserBusiness;
+
+        setBusinessId(currentBusinessId);
+        if (currentBusinessId) {
+          localStorage.setItem("zipco-business-id", String(currentBusinessId));
+        }
+        setHasRegisteredBusiness(true);
+        setBusinessStatus(String(fullBusiness.status ?? ""));
+        const loadedType =
+          fullBusiness.type === "Servicio" ? "Servicio" : "Negocio";
+        setProviderType(loadedType);
+        localStorage.setItem("zipco-provider-type", loadedType);
+        setBusinessInfo((currentBusinessInfo) => ({
+          ...currentBusinessInfo,
+          name: fullBusiness.name ?? "",
+          description: fullBusiness.description ?? "",
+          address: fullBusiness.address ?? fullBusiness.location ?? "",
+          instagram: fullBusiness.instagram ?? "",
+          facebook: fullBusiness.facebook ?? "",
+          image:
+            fullBusiness.photo ||
+            fullBusiness.image ||
+            fullBusiness.imageUrl ||
+            localStorage.getItem(`zipco-business-${currentBusinessId}-photo`) ||
+            "",
+        }));
+        setBusinessConfig({
+          category: fullBusiness.category ?? fullBusiness.categoryName ?? "",
+          hashtags: parseKeywords(
+            fullBusiness.keywords ?? fullBusiness.hashtags,
+          ),
+          showFullAddress:
+            fullBusiness.showFullAddress ??
+            fullBusiness.show_full_address ??
+            fullBusiness.showOnlyDistance === false,
+          fullAddress: fullBusiness.address ?? fullBusiness.location ?? "",
+          schedule: parseSchedule(fullBusiness.schedule),
+          offersOnSite:
+            typeof fullBusiness.offersOnSite === "boolean"
+              ? fullBusiness.offersOnSite
+              : null,
+          offersAtCustomerLocation:
+            typeof fullBusiness.offersAtCustomerLocation === "boolean"
+              ? fullBusiness.offersAtCustomerLocation
+              : null,
+        });
+      } catch (error) {
+        setHasRegisteredBusiness(false);
+      }
+    };
+
+    loadUserBusiness();
+  }, []);
+
+  const missingBusinessFields = [
+    !businessInfo.name?.trim() ? "Nombre del negocio" : "",
+    !businessConfig.category?.trim() ? "Categoría" : "",
+    !businessInfo.description?.trim() ? "Descripción" : "",
+    !businessInfo.address?.trim() ? "Dirección" : "",
+    !businessConfig.schedule ||
+    Object.keys(businessConfig.schedule).length === 0
+      ? "Horarios de atención"
+      : "",
+    !businessConfig.hashtags || businessConfig.hashtags.length === 0
+      ? "Palabras clave"
+      : "",
+    providerType === "Servicio" && businessConfig.offersOnSite === null
+      ? "Atención presencial"
+      : "",
+    providerType === "Servicio" &&
+    businessConfig.offersAtCustomerLocation === null
+      ? "Servicio a domicilio"
+      : "",
+    providerType === "Servicio" &&
+    businessConfig.offersOnSite === false &&
+    businessConfig.offersAtCustomerLocation === false
+      ? "Modalidad de atención"
+      : "",
+  ].filter(Boolean);
+
+  const isBusinessFieldMissing = (field: string) =>
+    missingBusinessFields.includes(field);
+  const isBusinessReadyToPublish = missingBusinessFields.length === 0;
+
+  const handlePublishBusiness = async () => {
+    if (businessStatus === "approved") {
+      showAppToast(
+        `Tu ${providerType.toLowerCase()} ya está publicado.`,
+        "success",
+      );
+      return;
+    }
+    if (!isBusinessReadyToPublish) {
+      setBusinessStatus("pending");
+      showAppToast(
+        `Faltan completar estos campos:\n${missingBusinessFields.join("\n")}`,
+        "error",
+      );
+      return;
+    }
+
+    const token = localStorage.getItem("zipco-token");
+    if (!businessId || !token) {
+      showAppToast("No se pudo enviar el perfil a revisión", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/businesses/${businessId}/submit-review`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        const message = Array.isArray(body?.message)
+          ? body.message[0]
+          : body?.message;
+        showAppToast(
+          typeof message === "string"
+            ? message
+            : "No se pudo enviar el perfil a revisión",
+          "error",
+        );
+        return;
+      }
+
+      showAppToast(
+        `Tu ${providerType.toLowerCase()} fue enviado a revisión. Te avisaremos cuando sea aprobado.`,
+        "success",
+      );
+    } catch {
+      showAppToast("No se pudo enviar el perfil a revisión", "error");
+    }
+  };
+
+  const handleStartEditingBusinessInfo = () => {
+    setBusinessInfoSaveSucceeded(false);
+    setBusinessSocialForm({
+      name: businessInfo.name,
+      description: businessInfo.description,
+      instagram: businessInfo.instagram,
+      facebook: businessInfo.facebook,
+    });
+    setIsEditingBusinessInfo(true);
+  };
+
+  const handleCancelEditingBusinessInfo = () => {
+    setBusinessSocialForm({
+      name: businessInfo.name,
+      description: businessInfo.description,
+      instagram: businessInfo.instagram,
+      facebook: businessInfo.facebook,
+    });
+    setBusinessInfoSaveSucceeded(false);
+    setIsEditingBusinessInfo(false);
+  };
+
+  const handleSaveBusinessInfo = async () => {
+    const token = localStorage.getItem("zipco-token");
+
+    if (!businessId || !token) {
+      showAppToast("No se pudo guardar el negocio", "error");
+      return;
+    }
+
+    setIsSavingBusinessInfo(true);
+    setBusinessInfoSaveSucceeded(false);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/businesses/${businessId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: businessSocialForm.name,
+          description: businessSocialForm.description,
+          instagram: businessSocialForm.instagram,
+          facebook: businessSocialForm.facebook,
+        }),
+      });
+
+      if (!response.ok) {
+        showAppToast("No se pudo guardar el negocio", "error");
+        return;
+      }
+
+      setBusinessInfo((currentBusinessInfo) => ({
+        ...currentBusinessInfo,
+        name: businessSocialForm.name,
+        description: businessSocialForm.description,
+        instagram: businessSocialForm.instagram,
+        facebook: businessSocialForm.facebook,
+      }));
+      setBusinessInfoSaveSucceeded(true);
+      showAppToast("Datos del negocio actualizados correctamente", "success");
+      window.setTimeout(() => {
+        setIsEditingBusinessInfo(false);
+        setBusinessInfoSaveSucceeded(false);
+      }, 900);
+    } catch (error) {
+      showAppToast("No se pudo guardar el negocio", "error");
+    } finally {
+      setIsSavingBusinessInfo(false);
+    }
+  };
+
+  const uploadBusinessPhoto = async (file: File) => {
+    const token = localStorage.getItem("zipco-token");
+
+    if (!businessId || !token) return;
+
+    setIsUploadingBusinessPhoto(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "zipco_products");
+
+      const uploadResponse = await fetch(
+        "https://api.cloudinary.com/v1_1/dr6xu5xr9/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      if (!uploadResponse.ok) {
+        showAppToast("No se pudo subir la foto del negocio", "error");
+        return;
+      }
+
+      const uploadData = await uploadResponse.json();
+      const imageUrl = uploadData.secure_url ?? uploadData.url ?? "";
+
+      const imagePayloads = [
+        { photo: imageUrl },
+        { image: imageUrl },
+        { imageUrl },
+      ];
+      let wasSaved = false;
+
+      for (const payload of imagePayloads) {
+        const saveResponse = await fetch(
+          `${API_BASE_URL}/businesses/${businessId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          },
+        );
+
+        if (saveResponse.ok) {
+          wasSaved = true;
+          break;
+        }
+      }
+
+      localStorage.setItem(`zipco-business-${businessId}-photo`, imageUrl);
+      setBusinessInfo((currentBusinessInfo) => ({
+        ...currentBusinessInfo,
+        image: imageUrl,
+      }));
+      showAppToast(
+        wasSaved
+          ? "Foto del negocio actualizada"
+          : "Foto del negocio actualizada en este dispositivo",
+        "success",
+      );
+    } catch (error) {
+      showAppToast("No se pudo subir la foto del negocio", "error");
+    } finally {
+      setIsUploadingBusinessPhoto(false);
+    }
+  };
+
+  const handleRegisterBusiness = async () => {
+    const token = localStorage.getItem("zipco-token");
+    const businessName = businessRegistrationForm.name.trim();
+
+    if (!token || !businessName) {
+      showAppToast("No se pudo registrar el negocio", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/businesses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: businessName,
+          type: businessRegistrationForm.type,
+          status: "pending",
+          categoryId: 1,
+          address: "",
+          latitude: null,
+          longitude: null,
+        }),
+      });
+
+      if (!response.ok) {
+        showAppToast("No se pudo registrar el negocio", "error");
+        return;
+      }
+
+      const data = await response.json();
+      const newBusiness = data.business ?? data;
+      const newBusinessId =
+        newBusiness.id ?? newBusiness._id ?? data.businessId;
+
+      if (newBusinessId) {
+        localStorage.setItem("zipco-business-id", String(newBusinessId));
+      }
+
+      setBusinessId(newBusinessId ?? null);
+      setBusinessInfo((currentBusinessInfo) => ({
+        ...currentBusinessInfo,
+        name: businessName,
+        description: newBusiness.description ?? "",
+        address: newBusiness.address ?? "",
+        instagram: newBusiness.instagram ?? "",
+        facebook: newBusiness.facebook ?? "",
+        image:
+          newBusiness.photo || newBusiness.image || newBusiness.imageUrl || "",
+      }));
+      setHasRegisteredBusiness(true);
+      setBusinessStatus(String(newBusiness.status ?? "pending"));
+      setProviderType(
+        businessRegistrationForm.type === "Servicio" ? "Servicio" : "Negocio",
+      );
+      localStorage.setItem(
+        "zipco-provider-type",
+        businessRegistrationForm.type === "Servicio" ? "Servicio" : "Negocio",
+      );
+      setShowBusinessRegistrationForm(false);
+      setBusinessRegistrationForm({ name: "", type: "Negocio" });
+      showAppToast(
+        "¡Tu negocio fue registrado! Completa tu información en la sección de negocio",
+        "success",
+      );
+    } catch (error) {
+      showAppToast("No se pudo registrar el negocio", "error");
+    }
+  };
+
+  return {
+    businessConfig,
+    setBusinessConfig: (config: any) => {
+      setBusinessConfig(config);
+      if (typeof config?.fullAddress === "string") {
+        setBusinessInfo((currentBusinessInfo) => ({
+          ...currentBusinessInfo,
+          address: config.fullAddress,
+        }));
+      }
+    },
+    businessInfo,
+    providerType,
+    hasRegisteredBusiness,
+    businessStatus,
+    isEditingBusinessInfo,
+    businessSocialForm,
+    setBusinessSocialForm,
+    isUploadingBusinessPhoto,
+    isSavingBusinessInfo,
+    businessInfoSaveSucceeded,
+    uploadBusinessPhoto,
+    isBusinessFieldMissing,
+    isBusinessReadyToPublish,
+    handlePublishBusiness,
+    handleStartEditingBusinessInfo,
+    handleCancelEditingBusinessInfo,
+    handleSaveBusinessInfo,
+    businessRegistrationForm,
+    setBusinessRegistrationForm,
+    showBusinessRegistrationForm,
+    setShowBusinessRegistrationForm,
+    handleRegisterBusiness,
+  };
+}

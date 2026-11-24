@@ -1,0 +1,40 @@
+/* ===== Review photo styles, imported by src/styles/index.css. =====
+   Requiere que ya existan .zipco-review-rise / .zipco-review-fill (paso anterior) y .zipco-aurora-card / .zipco-aurora-price (tarjeta Aurora). */
+@keyframes zipco-review-barfill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes zipco-review-hide { from { opacity: 1; } to { opacity: 0; } }
+@keyframes zipco-review-show { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zipco-review-checkpop { 0% { transform: scale(0); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.zipco-review-bar { transform-origin: left; animation: zipco-review-barfill .9s cubic-bezier(.4, 0, .2, 1) .35s both; }
+.zipco-review-up { animation: zipco-review-hide .25s ease 1.3s both; }
+.zipco-review-done { animation: zipco-review-show .3s ease 1.3s both; }
+.zipco-review-check { animation: zipco-review-checkpop .45s cubic-bezier(.3, 1.4, .5, 1) 1.3s both; }
+@media (prefers-reduced-motion: reduce) {
+  .zipco-review-bar, .zipco-review-check, .zipco-review-done { animation: none; }
+  .zipco-review-up { animation: none; opacity: 0; }
+}
+.zipco-review-photo-head { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+@media (max-width: 380px) {
+  .zipco-review-photo-head { grid-template-columns: 40px minmax(0, 1fr); }
+  .zipco-review-photo-head > button { grid-column: 2; justify-self: start; }
+}
+
+/* Revisión final (ticket): fila de «Imagen adjunta» compacta dentro de la tarjeta, sin marco propio. Mismo marcado y animaciones de arriba. */
+.zipco-tk-photo{padding:8px 14px;background:#f0fdf8;border-top:1px solid #d1fae5}
+.zipco-tk-photo .zipco-review-photo-head{grid-template-columns:32px minmax(0,1fr) auto;gap:10px}
+.zipco-tk-photo .zipco-review-photo-head>span:first-child{width:32px;height:32px}
+.zipco-tk-photo .zipco-review-check{width:16px;height:16px}
+.zipco-tk-photo .zipco-review-photo-head>div>p:first-child{font-size:12px;line-height:1.3}
+.zipco-tk-photo .zipco-review-photo-head>div>p:nth-child(2){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.zipco-tk-photo .zipco-review-done{font-size:10px;line-height:1.3}
+.zipco-tk-photo img{border-radius:10px}
+
+/* Alternativa INICIAL (AlternativeReviewPanel con `initial`): fila de «Imagen adjunta» compacta. Mismo marcado y animaciones de arriba. */
+.zipco-ar-photo{margin-top:10px;padding:8px 8px 8px 10px;overflow:hidden;border-radius:16px;background:#ecfdf5;box-shadow:inset 0 0 0 1.5px #6ee7b7;animation:zipco-ar-rise .42s .2s cubic-bezier(.2,.8,.2,1) both}
+.zipco-ar-photo .zipco-review-photo-head{grid-template-columns:36px minmax(0,1fr) auto;gap:10px}
+.zipco-ar-photo .zipco-review-photo-head>span:first-child{width:36px;height:36px}
+.zipco-ar-photo .zipco-review-check{width:18px;height:18px}
+.zipco-ar-photo .zipco-review-photo-head>div>p:first-child{font-size:13px;line-height:1.3}
+.zipco-ar-photo .zipco-review-done{font-size:11px;line-height:1.3}
+.zipco-ar-photo img{border-radius:12px}
+.dark .zipco-ar-photo{background:rgba(16,185,129,.14);box-shadow:inset 0 0 0 1.5px #047857}
+@media (prefers-reduced-motion:reduce){.zipco-ar-photo{animation:none}}

@@ -1,0 +1,33 @@
+.zipco-product-preview,.zipco-product-neutral{display:inline-flex;flex-shrink:0;vertical-align:middle;isolation:isolate}
+.zipco-product-neutral{align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #6e9ba966;border-radius:11px;color:#9ac5d3;background:#163745}
+.zipco-product-thumbs{display:flex;gap:5px;max-width:88px;overflow-x:auto;padding:2px 1px 5px;scrollbar-width:thin}
+.zipco-product-thumb{position:relative;display:block;flex:none;width:38px;height:38px;padding:0;border:1px solid #f4c968;border-radius:11px;background:#163745;color:#d9edf1;box-shadow:0 0 8px #ffce6b45;cursor:pointer}
+.zipco-product-thumb>img,.zipco-product-thumb>.zipco-product-image-fallback{width:100%;height:100%;border-radius:10px;object-fit:cover}
+.zipco-product-image-fallback{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;background:linear-gradient(140deg,#243f50,#102332);color:#c9e0e7}
+.zipco-product-image-fallback svg{width:22px;height:22px}
+.zipco-product-image-fallback small{font-size:12px;font-weight:600}
+.zipco-product-quantity{position:absolute;right:-2px;bottom:-5px;z-index:1;padding:1px 4px;max-width:40px;border-radius:6px;background:#f1f8fc;color:#0b2633;font-size:9px;font-weight:900;line-height:1.2;pointer-events:none}
+.zipco-product-thumb:focus-visible,.zipco-product-line-picker button:focus-visible,.zipco-product-close:focus-visible,.zipco-product-done:focus-visible{outline:2px solid #6ee7b7;outline-offset:3px}
+.zipco-product-overlay{position:fixed;inset:0;z-index:1600;background:#020b17b8;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.zipco-product-sheet{position:fixed;bottom:max(8px,env(safe-area-inset-bottom));left:50%;z-index:1601;transform:translateX(-50%);width:calc(100% - 16px);max-width:420px;max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;border:1px solid #7acbdc;border-radius:26px;padding:10px 16px 16px;color:#e7faff;background:linear-gradient(155deg,#102c3c,#071722);box-shadow:0 18px 70px #0009;font-size:13px}
+.zipco-product-grab{width:36px;height:4px;margin:0 auto 10px;border-radius:99px;background:#c5e9f344}
+.zipco-product-hero{position:relative;height:clamp(150px,28dvh,280px);overflow:hidden;border:1px solid #8bb9c85e;border-radius:17px;background:#122b39}
+.zipco-product-hero>img{display:block;width:100%;height:100%;object-fit:contain}
+.zipco-product-hero>.zipco-product-image-fallback{width:100%;height:100%}
+.zipco-product-hero .zipco-product-image-fallback svg{width:70px;height:70px}
+.zipco-product-close{position:absolute;top:9px;right:9px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#06121fe6;color:#fff}
+.zipco-product-close svg{width:18px;height:18px}
+.zipco-product-caption{margin-top:12px;color:#87d9ee;font-size:9px;letter-spacing:.13em;font-weight:900}
+.zipco-product-title{margin-top:3px;font-size:20px;font-weight:900;line-height:1.2;overflow-wrap:anywhere}
+.zipco-product-description{margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;color:#c0d8e2}
+.zipco-product-prices{margin-top:12px;padding:0 10px;border:1px solid #587c8f80;border-radius:13px;background:#183747}
+.zipco-product-prices>div{display:flex;justify-content:space-between;gap:12px;padding:9px 0}
+.zipco-product-prices>div+div{border-top:1px dashed #7394a15c}
+.zipco-product-prices dt{color:#b4cbd5;font-size:12px}
+.zipco-product-prices dd{font-weight:850;text-align:right;font-variant-numeric:tabular-nums}
+.zipco-product-prices>div:last-child dd{color:#6ee7b7}
+.zipco-product-line-picker{display:flex;gap:6px;overflow-x:auto;margin-top:12px;padding:3px}
+.zipco-product-line-picker button{flex-shrink:0;max-width:240px;overflow-wrap:anywhere;min-height:36px;padding:5px 9px;border:1px solid #7dabb566;border-radius:9px;font-size:12px}
+.zipco-product-line-picker button[aria-pressed=true]{border-color:#6ee7b7;background:#34d39922}
+.zipco-product-done{display:block;width:100%;min-height:44px;margin-top:12px;padding:9px;border:1px solid #62d6e8;border-radius:11px;background:#0c3544;color:#effcff;font-weight:850}
+@media(max-width:350px){.zipco-product-thumbs{max-width:44px}.zipco-product-sheet{padding-left:12px;padding-right:12px}}

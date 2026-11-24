@@ -1,0 +1,932 @@
+{
+  "frontendVersion": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+  "copiedAt": 1793299550219,
+  "pageFlushCompleted": true,
+  "controllingWorker": {
+    "revision": "notification-click-attempt-v11",
+    "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+    "traceEnabled": true
+  },
+  "activeWorker": {
+    "revision": "notification-click-attempt-v11",
+    "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+    "traceEnabled": true
+  },
+  "pageContext": {
+    "standalone": true,
+    "expectedQaAlias": true
+  },
+  "registrationEnumerationAvailable": true,
+  "registrationCount": 1,
+  "registrationReports": [
+    {
+      "registrationIndex": 1,
+      "sameOrigin": true,
+      "rootScope": true,
+      "activeIsController": true,
+      "expectedActiveScript": true,
+      "notificationsAvailable": true,
+      "notificationCount": 8,
+      "notifications": [
+        {
+          "correlationId": "4dda13e2-07bf-45ee-b4d3-7c9ac560091f",
+          "bannerCode": "4dda13e2",
+          "presentedBuild": "42e2bd335058236d1b8632b47c930a4e7dd28302",
+          "presentedRevision": "notification-click-attempt-v11",
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": false
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        },
+        {
+          "correlationId": null,
+          "bannerCode": null,
+          "presentedBuild": null,
+          "presentedRevision": null,
+          "hasTarget": true,
+          "hasEvent": true
+        }
+      ],
+      "worker": {
+        "revision": "notification-click-attempt-v11",
+        "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+        "traceEnabled": true
+      },
+      "traceReadFromController": true,
+      "additionalWorkerEntries": []
+    }
+  ],
+  "pageStorageAvailable": true,
+  "workerTraceAvailable": true,
+  "workerStorageAvailable": true,
+  "entries": [
+    {
+      "at": 1793296559452,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296559452,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296589066,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296589073,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296593634,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296593634,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296593634,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793296593635,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793296601064,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296601066,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296619070,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296619071,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296637354,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296637355,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296643407,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296643408,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793296643408,
+      "source": "worker",
+      "stage": "ack-received",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296643409,
+      "source": "worker",
+      "stage": "ack-mismatch",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793296649353,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296649354,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296667353,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793296667354,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296667354,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793296667354,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298190255,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298190259,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298190294,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298190304,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298190304,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298190309,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298202242,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298202242,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298202243,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298202243,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298207984,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298209398,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298209400,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298212393,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298212394,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298212395,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298212395,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298229385,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298229385,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298229386,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298229386,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298240383,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298240385,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298243640,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298243688,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298248520,
+      "source": "app",
+      "stage": "app-route",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasSession": true,
+      "requestsVisible": false,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298249987,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298284421,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298284423,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298284424,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298284429,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298284435,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298284436,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298284793,
+      "source": "app",
+      "stage": "notice-delivered",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "correlationId": "4a07c053-751b-41aa-965e-d9be68ce665a",
+      "hasEvent": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298291680,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298296421,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298296421,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298296422,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298296422,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298314408,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298314408,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298314412,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298314421,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298540256,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298540267,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298540269,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298540269,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298540273,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298540274,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298542031,
+      "source": "app",
+      "stage": "screen-mounted",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298542031,
+      "source": "app",
+      "stage": "app-route",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasSession": true,
+      "requestsVisible": true,
+      "sessionReady": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793298552256,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298552257,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298552257,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298552258,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298570257,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298570257,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298570258,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298570259,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298586585,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793298586586,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793298595675,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": false,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793299518139,
+      "source": "app",
+      "stage": "app-resume",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "hasSession": true,
+      "visible": true,
+      "hasController": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793299518152,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793299518152,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299518155,
+      "source": "app",
+      "stage": "worker-probe",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasController": true,
+      "revisionMatches": true,
+      "buildMatches": true,
+      "currentContext": true
+    },
+    {
+      "at": 1793299518160,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299518163,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299530129,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793299530130,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299530130,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299530131,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299548129,
+      "source": "app",
+      "stage": "app-cache-start",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "currentContext": true
+    },
+    {
+      "at": 1793299548129,
+      "source": "app",
+      "stage": "app-cache-read",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299548849,
+      "source": "worker",
+      "stage": "worker-target-request",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    },
+    {
+      "at": 1793299548853,
+      "source": "worker",
+      "stage": "worker-target-sent",
+      "build": "f9775db79253e5ec7bfb3f88e8b2842ae9d06fab",
+      "hasTarget": false,
+      "currentContext": true
+    }
+  ]
+}

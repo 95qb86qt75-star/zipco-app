@@ -1,0 +1,261 @@
+/* «Aurora Pro» · tarjeta del CLIENTE «Pendiente de confirmación del pago y apartado por el negocio» (Por responder, retiro local con reserva y pago previo).
+ * Todas las reglas viven bajo `.zipco-customer-prepayment` (prefijo propio zipco-cpp-): no afectan a ninguna otra tarjeta ni a la del negocio.
+ * Solo se activa en la variante autorizada: cliente + proyección válida + AWAITING_PAYMENT_AND_HOLD.
+ * Receta Aurora Pro: fondo blanco con resplandores verde/turquesa, título con degradado peso 800, chips translúcidos,
+ * botón principal con brillo y secundario celeste. Animaciones finitas (solo transform/opacity) y con «reducir movimiento». */
+
+.zipco-customer-prepayment.zipco-cpp-card{
+  --cpp-fg:#0f172a;--cpp-mut:#64748b;--cpp-soft:#f8fafc;--cpp-line:#e2e8f0;--cpp-line2:#cbd5e1;--cpp-chip:#eef2f7;--cpp-chipfg:#475569;
+  --cpp-go:linear-gradient(100deg,#10b981,#059669 55%,#0d9488);
+  position:relative;overflow:hidden;overflow:clip;overflow-anchor:none;box-sizing:border-box;display:block;border-radius:22px;padding:12px;color:var(--cpp-fg);background:#fff;
+  box-shadow:0 0 0 1px var(--cpp-line),0 10px 26px rgba(15,23,42,.08);
+  transition:height .32s cubic-bezier(.2,.8,.2,1),margin-top .32s cubic-bezier(.2,.8,.2,1);
+}
+.zipco-customer-prepayment.zipco-cpp-card[data-open]{z-index:5;box-shadow:0 0 0 1px var(--cpp-line),0 -14px 34px rgba(15,23,42,.16)}
+.zipco-customer-prepayment.zipco-cpp-card *{box-sizing:border-box}
+.zipco-customer-prepayment.zipco-cpp-card button{font-family:inherit;cursor:pointer}
+.zipco-customer-prepayment.zipco-cpp-card button:focus-visible,
+.zipco-customer-prepayment.zipco-cpp-card:focus-visible{outline:3px solid #059669;outline-offset:2px}
+
+/* aurora suave (2 pasadas y se detiene) */
+.zipco-customer-prepayment .zipco-cpp-au1,.zipco-customer-prepayment .zipco-cpp-au2{position:absolute;border-radius:50%;pointer-events:none;animation:zipco-cpp-drift 9s ease-in-out 2}
+.zipco-customer-prepayment .zipco-cpp-au1{right:-70px;top:-60px;width:230px;height:190px;background:radial-gradient(ellipse,rgba(16,185,129,.16),transparent 70%)}
+.zipco-customer-prepayment .zipco-cpp-au2{left:-80px;bottom:-70px;width:230px;height:170px;background:radial-gradient(ellipse,rgba(6,182,212,.12),transparent 70%);animation-delay:1s}
+
+/* cabecera */
+.zipco-customer-prepayment .zipco-cpp-hd{position:relative;z-index:1;display:flex;align-items:center;gap:11px}
+.zipco-customer-prepayment .zipco-cpp-th{position:relative;flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#ef4444,#f59e0b);box-shadow:0 0 0 2px #fff,0 0 0 3px var(--cpp-line),0 4px 10px rgba(15,23,42,.14)}
+.zipco-customer-prepayment .zipco-cpp-th>*{border-radius:13px;overflow:hidden}
+.zipco-customer-prepayment .zipco-cpp-th em{position:absolute;right:-5px;bottom:-6px;padding:1px 5px;border-radius:7px;background:#0f172a;color:#fff;font-size:10px;font-weight:700;font-style:normal;line-height:1.2;box-shadow:0 0 0 2px #fff}
+.zipco-customer-prepayment .zipco-cpp-th .zipco-product-quantity{display:none}
+.zipco-customer-prepayment .zipco-cpp-fb{display:grid;place-items:center;width:100%;height:100%;color:#fff}
+.zipco-customer-prepayment .zipco-cpp-id{flex:1;min-width:0}
+.zipco-customer-prepayment .zipco-cpp-id small{display:block;font-size:8.5px;font-weight:600;letter-spacing:.16em;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-id small em{margin-left:6px;font-style:normal;color:#059669}
+.zipco-customer-prepayment .zipco-cpp-id b{display:block;font-size:16px;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.zipco-customer-prepayment .zipco-cpp-pill{display:inline-flex;align-items:center;gap:6px;margin-top:5px;padding:2px 9px 2px 7px;border-radius:99px;background:#f1f5f9;color:#334155;font-size:11px;font-weight:600;line-height:1.25}
+.zipco-customer-prepayment .zipco-cpp-pill i{flex:none;width:7px;height:7px;border-radius:50%;background:#f59e0b;animation:zipco-cpp-dot 1.6s ease-in-out 3}
+
+/* héroe: anillo + pregunta */
+.zipco-customer-prepayment .zipco-cpp-rg{position:relative;z-index:1;display:flex;align-items:center;gap:14px;margin-top:12px}
+.zipco-customer-prepayment .zipco-cpp-ring{position:relative;flex:none;width:96px;height:96px}
+.zipco-customer-prepayment .zipco-cpp-ring svg{width:96px;height:96px;transform:rotate(-90deg)}
+.zipco-customer-prepayment .zipco-cpp-trk{stroke:#e8eef5}
+.zipco-customer-prepayment .zipco-cpp-arc{stroke-linecap:round;stroke-dasharray:213.6;animation:zipco-cpp-ring 1.1s cubic-bezier(.3,.8,.2,1) .15s both}
+.zipco-customer-prepayment .zipco-cpp-rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;font-variant-numeric:tabular-nums}
+.zipco-customer-prepayment .zipco-cpp-rc small{font-size:8.5px;font-weight:600;letter-spacing:.14em;color:#059669}
+.zipco-customer-prepayment .zipco-cpp-rc b{font-size:20px;font-weight:700;background:linear-gradient(100deg,#059669,#0891b2);-webkit-background-clip:text;background-clip:text;color:transparent}
+.zipco-customer-prepayment .zipco-cpp-rq{min-width:0}
+.zipco-customer-prepayment .zipco-cpp-rq h3{margin:0;font-size:22px;line-height:1.1;font-weight:600;letter-spacing:-.01em;color:#0f172a}
+.zipco-customer-prepayment .zipco-cpp-bar{display:block;width:48px;height:3px;margin-top:7px;border-radius:3px;background:linear-gradient(90deg,#10b981,#06b6d4);transform-origin:left;animation:zipco-cpp-grow .7s cubic-bezier(.2,.8,.2,1) .35s both}
+.zipco-customer-prepayment .zipco-cpp-rq p{margin:7px 0 0;font-size:12.5px;line-height:1.35;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-rq p b{color:#0f172a;font-weight:600}
+
+/* chips */
+.zipco-customer-prepayment .zipco-cpp-ch{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.zipco-customer-prepayment .zipco-cpp-c1{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:99px;background:var(--cpp-chip);color:var(--cpp-chipfg);font-size:12px;font-weight:600;line-height:1.2}
+.zipco-customer-prepayment .zipco-cpp-c1 svg{flex:none}
+
+/* acción principal + «Aún no» */
+.zipco-customer-prepayment .zipco-cpp-yn{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:8px;margin-top:10px}
+.zipco-customer-prepayment .zipco-cpp-go{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:6px 10px;border:0;border-radius:999px;color:#fff;font-size:14px;font-weight:700;line-height:1.2;text-align:center;background:var(--cpp-go);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 16px rgba(5,150,105,.3);transition:transform .12s}
+.zipco-customer-prepayment .zipco-cpp-go svg{flex:none;width:22px;height:22px;padding:3px;border-radius:50%;background:rgba(255,255,255,.25)}
+.zipco-customer-prepayment .zipco-cpp-go::after{content:"";position:absolute;inset:0 auto 0 0;width:30%;z-index:-1;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-140%) skewX(-20deg);animation:zipco-cpp-sheen 1.4s ease-in-out .9s 1 both}
+.zipco-customer-prepayment .zipco-cpp-go[disabled]{opacity:.6}
+.zipco-customer-prepayment .zipco-cpp-no{min-height:46px;padding:6px 8px;border:0;border-radius:999px;background:linear-gradient(135deg,#f0fdfa,#ecfeff);box-shadow:inset 0 0 0 1.5px #5eead4,0 6px 14px rgba(20,184,166,.14);color:#0f766e;font-size:14px;font-weight:700;transition:transform .12s}
+.zipco-customer-prepayment .zipco-cpp-go:active,.zipco-customer-prepayment .zipco-cpp-no:active,.zipco-customer-prepayment .zipco-cpp-fold:active{transform:scale(.97)}
+
+/* avisos y error: siempre visibles, aunque la tarjeta esté plegada o con un panel abierto */
+.zipco-customer-prepayment .zipco-cpp-foot{position:relative;z-index:1}
+.zipco-customer-prepayment[data-open] .zipco-cpp-foot{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:8px 12px 12px;background:#fff;border-radius:0 0 22px 22px}
+.zipco-customer-prepayment .zipco-cpp-alerts{margin-top:8px;padding:9px 11px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1px #fda4af;font-size:12.5px;line-height:1.4;color:#9f1239}
+.zipco-customer-prepayment .zipco-cpp-alerts p{margin:0}
+.zipco-customer-prepayment .zipco-cpp-alerts button{min-height:44px;margin-top:6px;padding:0 12px;border:0;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px #fda4af;color:#9f1239;font-weight:700;font-size:13px}
+.zipco-customer-prepayment .zipco-cpp-err{margin:8px 0 0;padding:9px 11px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1px #fda4af;font-size:12.5px;line-height:1.4;color:#9f1239}
+.zipco-customer-prepayment .zipco-cpp-recover{display:block;min-height:44px;margin-top:6px;padding:7px 10px;border:1px solid #fda4af;border-radius:10px;background:white;font:inherit;font-weight:700;color:#9f1239}
+
+/* botones plegables */
+.zipco-customer-prepayment .zipco-cpp-fr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.zipco-customer-prepayment .zipco-cpp-fold{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;padding:6px 8px 6px 11px;border:0;border-radius:16px;text-align:left;color:var(--cpp-fg);font-size:12.5px;font-weight:600;line-height:1.15;background:var(--cpp-soft);box-shadow:inset 0 0 0 1px var(--cpp-line);transition:transform .12s}
+.zipco-customer-prepayment .zipco-cpp-fold .t{flex:1;min-width:0}
+.zipco-customer-prepayment .zipco-cpp-fold .n{min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:var(--cpp-chip);font-size:11px;line-height:20px;text-align:center}
+.zipco-customer-prepayment .zipco-cpp-fold .c{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--cpp-chip);transition:transform .3s}
+.zipco-customer-prepayment .zipco-cpp-fold[aria-expanded=true] .c{transform:rotate(180deg)}
+
+/* paneles que suben sobre la tarjeta */
+.zipco-customer-prepayment .zipco-cpp-pn{position:absolute;z-index:3;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;overflow-y:auto;border-radius:22px 22px 0 0;background:#fff;opacity:0;visibility:hidden;transform:translateY(16px);transition:opacity .22s,transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s .32s}
+.zipco-customer-prepayment .zipco-cpp-pn[data-on=true]{opacity:1;visibility:visible;transform:none;transition:opacity .22s .05s,transform .32s cubic-bezier(.2,.8,.2,1)}
+.zipco-customer-prepayment .zipco-cpp-pi{flex:none;margin-top:auto;padding:12px 12px calc(var(--cpp-foot,56px) + 28px)}
+.zipco-customer-prepayment .zipco-cpp-in{padding:10px 12px;border-radius:14px;background:var(--cpp-soft);box-shadow:inset 0 0 0 1px var(--cpp-line);font-size:12.5px;line-height:1.45;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-in p{margin:0 0 7px}
+.zipco-customer-prepayment .zipco-cpp-in p:last-child{margin-bottom:0}
+.zipco-customer-prepayment .zipco-cpp-note{margin:0 0 8px;padding:7px 10px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--cpp-line);font-size:12px;line-height:1.35;color:var(--cpp-fg);overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-customer-prepayment .zipco-cpp-note small{display:inline;margin-right:6px;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--cpp-mut)}
+
+/* condiciones aceptadas, visibles al abrir «Detalle» */
+.zipco-customer-prepayment .zipco-cpp-cond{padding:10px 12px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--cpp-line)}
+.zipco-customer-prepayment .zipco-cpp-ch2{display:flex;align-items:center;gap:10px}
+.zipco-customer-prepayment .zipco-cpp-ck{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#10b981,#059669)}
+.zipco-customer-prepayment .zipco-cpp-tx{flex:1;min-width:0}
+.zipco-customer-prepayment .zipco-cpp-tx small{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-tx b{display:block;font-size:14px;font-weight:600;color:var(--cpp-fg);overflow-wrap:anywhere}
+.zipco-customer-prepayment .zipco-cpp-pr{flex:none;text-align:right;line-height:1.1}
+.zipco-customer-prepayment .zipco-cpp-pr small{display:block;font-size:9px;font-weight:600;letter-spacing:.06em;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-pr b{display:block;margin-top:2px;font-size:17px;font-weight:700;color:#047857;font-variant-numeric:tabular-nums}
+.zipco-customer-prepayment .zipco-cpp-items{margin:8px 0 0;padding:8px 0 0;list-style:none;border-top:1px dashed var(--cpp-line2);font-size:12.5px;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-items li+li{margin-top:5px}
+.zipco-customer-prepayment .zipco-cpp-items strong{display:block;color:var(--cpp-fg);font-weight:600}
+.zipco-customer-prepayment .zipco-cpp-tile{display:flex;align-items:center;gap:9px;margin-top:8px;padding:7px 9px;border-radius:12px;background:var(--cpp-soft)}
+.zipco-customer-prepayment .zipco-cpp-tile>span{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--cpp-chip);color:#059669}
+.zipco-customer-prepayment .zipco-cpp-tile small{display:block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-tile b{display:block;font-size:13px;font-weight:600;color:var(--cpp-fg);overflow-wrap:anywhere}
+.zipco-customer-prepayment .zipco-cpp-all{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin-top:2px;padding:0 2px;border:0;background:none;font-size:12.5px;font-weight:700;color:#059669}
+
+/* botoncito «Retiro en el local» que despliega las indicaciones */
+.zipco-customer-prepayment .zipco-cpp-mini{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-top:2px;padding:0 6px 0 10px;border:0;border-radius:999px;background:none;color:var(--cpp-fg);font-size:12.5px;font-weight:600}
+.zipco-customer-prepayment .zipco-cpp-mini .mt{display:inline-flex;align-items:center;gap:6px;color:inherit}
+.zipco-customer-prepayment .zipco-cpp-mini .mt svg{color:#059669}
+.zipco-customer-prepayment .zipco-cpp-mini .cc{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--cpp-chip);transition:transform .3s}
+.zipco-customer-prepayment .zipco-cpp-mini[aria-expanded=true] .cc{transform:rotate(180deg)}
+.zipco-customer-prepayment .zipco-cpp-ac{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s cubic-bezier(.2,.8,.2,1)}
+.zipco-customer-prepayment .zipco-cpp-ac[data-on=true]{grid-template-rows:1fr}
+.zipco-customer-prepayment .zipco-cpp-aci{min-height:0;overflow:hidden}
+.zipco-customer-prepayment .zipco-cpp-aci>*+*{margin-top:8px}
+
+/* filas de «Más opciones» (incluye las piezas reales «Cancelar retiro» y contacto) */
+.zipco-customer-prepayment .zipco-cpp-ops{display:grid;gap:6px}
+.zipco-customer-prepayment .zipco-cpp-op{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:7px 11px;border:0;border-radius:14px;text-align:left;color:var(--cpp-fg);font-size:13.5px;font-weight:600;background:var(--cpp-soft);box-shadow:inset 0 0 0 1px var(--cpp-line)}
+.zipco-customer-prepayment .zipco-cpp-op[disabled]{opacity:.55}
+.zipco-customer-prepayment .zipco-cpp-opi{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#059669;background:var(--cpp-chip)}
+.zipco-customer-prepayment .zipco-cpp-opt b{display:block;font-weight:600}
+.zipco-customer-prepayment .zipco-cpp-opt small{display:block;font-size:11px;font-weight:500;color:var(--cpp-mut);line-height:1.25}
+.zipco-customer-prepayment .zipco-cpp-op[data-tone=danger]{color:#be123c;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-customer-prepayment .zipco-cpp-op[data-tone=danger] .zipco-cpp-opi{color:#be123c;background:rgba(251,113,133,.18)}
+/* «Cancelar retiro» y contacto vienen de AvailabilityPostActionsView con sus clases existentes: solo se reestilizan aquí */
+.zipco-customer-prepayment .zipco-cpp-ops .zipco-pickup-cancel{display:flex;align-items:center;min-height:46px;padding:7px 11px;border:0;border-radius:14px;text-align:left;color:#be123c;font-size:13.5px;font-weight:600;background:#fff;box-shadow:inset 0 0 0 1.5px #fda4af}
+.zipco-customer-prepayment .zipco-cpp-ops .zipco-pickup-act,.zipco-customer-prepayment .zipco-cpp-ops .zipco-pickup-revoke{min-height:46px;padding:7px 11px;border:0;border-radius:14px;text-align:left;font-size:13.5px;font-weight:600;color:var(--cpp-fg);background:var(--cpp-soft);box-shadow:inset 0 0 0 1px var(--cpp-line)}
+.zipco-customer-prepayment .zipco-cpp-aci .zipco-pickup-how{margin:0;padding:0;border:0;background:none;box-shadow:none;color:var(--cpp-mut);font-size:12.5px;line-height:1.45}
+.zipco-customer-prepayment .zipco-cpp-aci .zipco-pickup-how p{margin:0 0 6px;color:inherit}
+.zipco-customer-prepayment .zipco-cpp-aci .zipco-pickup-how-t{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--cpp-fg)}
+
+/* motivos seleccionables (ventana «Cancelar solo la reserva» / «No puedo reservar», dentro del diálogo en portal) */
+.zipco-customer-prepayment .zipco-cpp-rl{margin:12px 0 0;font-size:12px;font-weight:700;color:#334155}
+.zipco-customer-prepayment .zipco-cpp-reasons{display:grid;gap:7px;margin-top:6px}
+.zipco-customer-prepayment .zipco-cpp-reason{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:8px 12px;border:0;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1.5px #dbe3ec;text-align:left;font-family:inherit;font-size:13.5px;font-weight:600;color:#1e293b;cursor:pointer;transition:box-shadow .18s,background .18s,transform .12s}
+.zipco-customer-prepayment .zipco-cpp-reason-input{position:absolute;width:1px;height:1px;min-height:0;padding:0;margin:0;opacity:0;clip-path:inset(50%)}
+.zipco-customer-prepayment .zipco-cpp-reason:focus-within{outline:3px solid #059669;outline-offset:2px}
+.zipco-customer-prepayment .zipco-cpp-reason:active{transform:scale(.98)}
+.zipco-customer-prepayment .zipco-cpp-reason:focus-visible{outline:3px solid #059669;outline-offset:2px}
+.zipco-customer-prepayment .zipco-cpp-dot{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 2px #cbd5e1;color:transparent;transition:background .18s,box-shadow .18s,color .18s}
+.zipco-customer-prepayment .zipco-cpp-reason[data-selected=true]{background:#fff1f2;box-shadow:inset 0 0 0 2px #e11d48}
+.zipco-customer-prepayment .zipco-cpp-reason[data-selected=true] .zipco-cpp-dot{background:#e11d48;box-shadow:none;color:#fff;animation:zipco-cpp-pop .28s both}
+
+/* Ventanas de acción del negocio (Finalizar mi seguimiento, Cancelar retiro, Cancelar solo la reserva, No puedo reservar, contacto).
+ * Radix las monta en un portal, fuera de la tarjeta: el propio Dialog.Content lleva la clase raíz. Solo opacity animada (no se toca el
+ * transform que centra el diálogo). */
+.zipco-customer-prepayment.zipco-cpp-dialog{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:18px 16px 16px;border-radius:28px;background:radial-gradient(120% 70% at 92% 0%,rgba(167,243,208,.8),transparent 60%),linear-gradient(165deg,#fff,#f3fffb 60%,#f6f2ff);color:#0f172a;box-shadow:0 20px 60px rgba(2,6,23,.5);font-family:inherit;animation:zipco-cpp-fade .22s both}
+.zipco-customer-prepayment.zipco-cpp-dialog *{box-sizing:border-box}
+.zipco-customer-prepayment .zipco-cpp-dtop{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;color:#047857;letter-spacing:.06em;text-transform:uppercase}
+.zipco-customer-prepayment .zipco-cpp-dx{display:grid;place-items:center;width:44px;height:44px;margin:-8px -8px 0 0;border:0;border-radius:50%;background:none;color:#334155;cursor:pointer}
+.zipco-customer-prepayment .zipco-cpp-orb{display:grid;place-items:center;width:44px;height:44px;margin:6px auto 0;border-radius:50%;color:#fff;background:linear-gradient(145deg,#10b981,#0f766e);box-shadow:0 6px 16px rgba(13,148,136,.5),0 0 0 5px rgba(52,211,153,.13)}
+.zipco-customer-prepayment .zipco-cpp-orb[data-tone=danger]{background:linear-gradient(145deg,#fb7185,#be123c);box-shadow:0 6px 16px rgba(190,18,60,.4),0 0 0 5px rgba(251,113,133,.15)}
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dt{margin:12px 0 0;text-align:center;font-size:22px;line-height:1.1;font-weight:800;letter-spacing:0;color:#0f172a}
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dd{margin:8px auto 0;max-width:290px;text-align:center;font-size:12.5px;line-height:1.4;color:#64748b}
+.zipco-customer-prepayment .zipco-cpp-dchks{display:grid;gap:10px;margin-top:12px}
+.zipco-customer-prepayment .zipco-cpp-dchk{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.35;color:#1e293b}
+.zipco-customer-prepayment .zipco-cpp-derr{margin:10px 0 0;font-size:13px;line-height:1.35;text-align:center;color:#be123c}
+.zipco-customer-prepayment .zipco-cpp-dyn{position:sticky;bottom:-16px;display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin:16px -4px -4px;padding:8px 4px 4px;background:linear-gradient(180deg,rgba(247,245,255,0),#f7f5ff 28%)}
+.zipco-customer-prepayment .zipco-cpp-dy,.zipco-customer-prepayment .zipco-cpp-dn{min-height:48px;padding:0 12px;border-radius:999px;font-family:inherit;font-size:13.5px;font-weight:800;line-height:1.15;cursor:pointer}
+.zipco-customer-prepayment .zipco-cpp-dy{border:0;color:#fff;background:linear-gradient(100deg,#10b981,#0d9488 52%,#06b6d4)}
+.zipco-customer-prepayment .zipco-cpp-dy[data-tone=danger]{background:linear-gradient(100deg,#e11d48,#be123c)}
+.zipco-customer-prepayment .zipco-cpp-dn{border:1.5px solid #cbd5e1;background:#fff;color:#334155}
+.zipco-customer-prepayment.zipco-cpp-dialog button:focus-visible{outline:3px solid #059669;outline-offset:3px}
+.zipco-customer-prepayment.zipco-cpp-dialog button:disabled{opacity:.5;cursor:not-allowed}
+.zipco-customer-prepayment.zipco-cpp-dialog fieldset{min-width:0;margin:12px 0 0;padding:0;border:0}
+.zipco-customer-prepayment.zipco-cpp-dialog fieldset .zipco-cpp-rl{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.zipco-customer-prepayment .zipco-cpp-reasonset[data-tone=ok] .zipco-cpp-reason[data-selected=true]{background:#ecfdf5;box-shadow:inset 0 0 0 2px #10b981}
+.zipco-customer-prepayment .zipco-cpp-reasonset[data-tone=ok] .zipco-cpp-reason[data-selected=true] .zipco-cpp-dot{background:#10b981}
+@keyframes zipco-cpp-fade{from{opacity:0}to{opacity:1}}
+
+/* entrada escalonada: solo transform/opacity, una sola vez */
+@media (prefers-reduced-motion:no-preference){
+  .zipco-customer-prepayment .zipco-cpp-hd{animation:zipco-cpp-rise .45s both}
+  .zipco-customer-prepayment .zipco-cpp-rq{animation:zipco-cpp-rise .5s .1s both}
+  .zipco-customer-prepayment .zipco-cpp-ch{animation:zipco-cpp-rise .5s .16s both}
+  .zipco-customer-prepayment .zipco-cpp-yn{animation:zipco-cpp-rise .5s .22s both}
+}
+@keyframes zipco-cpp-rise{from{opacity:1;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes zipco-cpp-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes zipco-cpp-ring{from{stroke-dashoffset:213.6}}
+@keyframes zipco-cpp-drift{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(-14px,10px,0)}100%{transform:translate3d(0,0,0)}}
+@keyframes zipco-cpp-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.6}}
+@keyframes zipco-cpp-sheen{to{transform:translateX(480%) skewX(-20deg)}}
+@keyframes zipco-cpp-pop{0%{opacity:0;transform:scale(.85)}60%{transform:scale(1.04)}100%{opacity:1;transform:none}}
+
+/* Reuse the list motion budget; paused entrance content must remain readable. */
+.zipco-customer-prepayment[data-request-motion="idle"] *,
+.zipco-customer-prepayment[data-request-motion="idle"] *::before,
+.zipco-customer-prepayment[data-request-motion="idle"] *::after,
+[data-request-list-hidden="true"] .zipco-customer-prepayment *,
+[data-request-list-hidden="true"] .zipco-customer-prepayment *::before,
+[data-request-list-hidden="true"] .zipco-customer-prepayment *::after{animation-play-state:paused!important}
+
+@media (prefers-reduced-motion:reduce){
+  .zipco-customer-prepayment.zipco-cpp-dialog{animation:none!important}
+  .zipco-customer-prepayment .zipco-cpp-reason[data-selected=true] .zipco-cpp-dot{animation:none!important}
+  .zipco-customer-prepayment.zipco-cpp-card,.zipco-customer-prepayment .zipco-cpp-pn,.zipco-customer-prepayment .zipco-cpp-ac,
+  .zipco-customer-prepayment .zipco-cpp-fold .c,.zipco-customer-prepayment .zipco-cpp-mini .cc{transition:none!important}
+  .zipco-customer-prepayment .zipco-cpp-au1,.zipco-customer-prepayment .zipco-cpp-au2,.zipco-customer-prepayment .zipco-cpp-pill i,
+  .zipco-customer-prepayment .zipco-cpp-go::after,.zipco-customer-prepayment .zipco-cpp-arc,.zipco-customer-prepayment .zipco-cpp-bar{animation:none!important}
+}
+
+/* ================= Aurora Pro (cliente) ================= */
+.zipco-customer-prepayment.zipco-cpp-card{
+  background:radial-gradient(120% 70% at 100% 0,#d1fae5 0,rgba(209,250,229,0) 55%),radial-gradient(90% 60% at 0 100%,#cffafe 0,rgba(207,250,254,0) 60%),#fff;
+  box-shadow:0 0 0 1px #d6efe6,0 12px 28px -12px rgba(13,148,136,.28);
+}
+.zipco-customer-prepayment.zipco-cpp-card[data-open]{box-shadow:0 0 0 1px #d6efe6,0 -14px 34px rgba(15,23,42,.16)}
+.zipco-customer-prepayment .zipco-cpp-pn,.zipco-customer-prepayment .zipco-cpp-foot[data-x]{background:#fff}
+.zipco-customer-prepayment[data-open] .zipco-cpp-foot{background:#fff}
+.zipco-customer-prepayment .zipco-cpp-rq h3{font-size:22px;font-weight:800;letter-spacing:-.025em;background:linear-gradient(100deg,#0f172a 20%,#047857 70%,#0d9488);-webkit-background-clip:text;background-clip:text;color:transparent}
+.zipco-customer-prepayment .zipco-cpp-rq p{color:#5b6b80;font-weight:500}
+.zipco-customer-prepayment .zipco-cpp-ring svg{filter:drop-shadow(0 4px 10px rgba(16,185,129,.35))}
+.zipco-customer-prepayment .zipco-cpp-c1{background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 1px #d1fae5;color:#334155}
+.zipco-customer-prepayment .zipco-cpp-c1 b{font-weight:700;color:#0f172a}
+.zipco-customer-prepayment .zipco-cpp-go{box-shadow:0 10px 22px -6px rgba(5,150,105,.55),inset 0 1px 0 rgba(255,255,255,.35)}
+.zipco-customer-prepayment .zipco-cpp-no{background:linear-gradient(135deg,#f0fdfa,#ecfeff);box-shadow:inset 0 0 0 1.5px #5eead4,0 6px 14px rgba(20,184,166,.14);color:#0f766e}
+.zipco-customer-prepayment .zipco-cpp-yn[data-solo]{grid-template-columns:1fr}
+.zipco-customer-prepayment .zipco-cpp-yn .zipco-cpp-go svg{width:18px;height:18px;padding:0;background:none}
+.zipco-customer-prepayment .zipco-cpp-yn button{transition:transform .15s,box-shadow .2s}
+.zipco-customer-prepayment .zipco-cpp-wan{position:relative;z-index:1;margin-top:10px;padding:9px 11px;border-radius:14px;background:var(--cpp-soft);box-shadow:inset 0 0 0 1px var(--cpp-line);font-size:12.5px;line-height:1.4;color:#475569}
+.zipco-customer-prepayment .zipco-cpp-wan p{margin:0}
+/* instrucciones reales del negocio (PickupInstructions variant="customer"), reestilizadas aquí */
+.zipco-customer-prepayment .zipco-cpp-biz{margin:0 0 8px;padding:10px 12px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--cpp-line)}
+.zipco-customer-prepayment .zipco-cpp-biz .zipco-pickup-how{margin:0;padding:0;border:0;background:none;box-shadow:none;color:var(--cpp-fg);font-size:12.5px;line-height:1.4}
+.zipco-customer-prepayment .zipco-cpp-biz .zipco-pickup-how p{margin:0}
+.zipco-customer-prepayment .zipco-cpp-biz .zipco-pickup-how>*+*{margin-top:5px}
+.zipco-customer-prepayment .zipco-cpp-biz .zipco-pickup-how-t{display:flex;align-items:center;gap:7px;color:#0f172a}
+.zipco-customer-prepayment .zipco-cpp-biz .zipco-pickup-how-t svg{color:#059669}
+.zipco-customer-prepayment .zipco-cpp-biz .zipco-pickup-how-n{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--cpp-mut)}
+.zipco-customer-prepayment .zipco-cpp-aci .zipco-pickup-consent{margin:0;font-size:12px;color:var(--cpp-mut)}
+/* «Cancelar retiro» y contacto reales (AvailabilityPostActionsView) dentro de Más opciones */
+.zipco-customer-prepayment .zipco-cpp-op{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:7px 11px;border:0;border-radius:14px;text-align:left;color:var(--cpp-fg);font-size:13.5px;font-weight:600;background:var(--cpp-soft);box-shadow:inset 0 0 0 1px var(--cpp-line)}
+.zipco-customer-prepayment .zipco-cpp-op[disabled]{opacity:.55}
+.zipco-customer-prepayment .zipco-cpp-opi{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#059669;background:var(--cpp-chip)}
+.zipco-customer-prepayment .zipco-cpp-opt b{display:block;font-weight:600}
+.zipco-customer-prepayment .zipco-cpp-opt small{display:block;font-size:11px;font-weight:500;color:var(--cpp-mut);line-height:1.25}
+.zipco-customer-prepayment .zipco-cpp-ops .zipco-pickup-cancel .zipco-cpp-opi{color:#be123c;background:rgba(251,113,133,.18)}
+/* Ventana Aurora Pro (Radix en portal) */
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dt{font-weight:800;letter-spacing:-.025em}
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dd b{color:#0f172a}
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dy{box-shadow:0 10px 22px -6px rgba(5,150,105,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dy[data-tone=danger]{box-shadow:0 10px 22px -6px rgba(190,18,60,.45)}
+.zipco-customer-prepayment.zipco-cpp-dialog .zipco-cpp-dn{background:linear-gradient(135deg,#f0fdfa,#ecfeff);border:0;box-shadow:inset 0 0 0 1.5px #5eead4;color:#0f766e}
+.zipco-customer-prepayment .zipco-cpp-reasonset[data-tone=ok] .zipco-cpp-reason[data-selected=true]{background:#ecfdf5;box-shadow:inset 0 0 0 2px #10b981}
+/* salida suave al pasar a «En espera» (la lista la repinta el servidor) */
+.zipco-customer-prepayment.zipco-cpp-card[data-leaving]{animation:zipco-cpp-leave .42s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
+@keyframes zipco-cpp-leave{to{opacity:0;transform:translateY(-8px) scale(.97)}}
+@media (prefers-reduced-motion:reduce){
+  .zipco-customer-prepayment.zipco-cpp-card[data-leaving]{animation:none;opacity:0}
+}
+.zipco-customer-prepayment .zipco-cpp-ops .zipco-pickup-cancel{gap:10px}

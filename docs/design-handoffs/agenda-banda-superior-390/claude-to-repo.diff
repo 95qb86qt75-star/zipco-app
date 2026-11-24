@@ -1,0 +1,117 @@
+diff --git a/C:/Users/Basti/Downloads/businessAgenda.ts b/src/app/features/requests/domain/businessAgenda.ts
+index b168d95..2ea0f24 100644
+--- a/C:/Users/Basti/Downloads/businessAgenda.ts
++++ b/src/app/features/requests/domain/businessAgenda.ts
+@@ -82,7 +82,9 @@ export function modalityOf(order: AvailableOrder): AgendaModality {
+   if (!process || process.localPickupInformation) return 'other';
+   if (process.availability?.path === 'WHATSAPP') return 'whatsapp';
+   if (process.availability?.path === 'LOCAL_PICKUP') {
+-    return process.reservationChoice?.choice === 'REQUEST_RESERVATION' ? 'reserved' : 'pickup';
++    if (process.reservationChoice?.choice === 'REQUEST_RESERVATION') return 'reserved';
++    if (process.reservationChoice?.choice === 'NONE') return 'pickup';
++    return 'other';
+   }
+   return 'other';
+ }
+
+diff --git a/C:/Users/Basti/Downloads/BusinessAgendaToolbar.tsx b/src/app/features/requests/screen/components/BusinessAgendaToolbar.tsx
+index f4cbaef..871af66 100644
+--- a/C:/Users/Basti/Downloads/BusinessAgendaToolbar.tsx
++++ b/src/app/features/requests/screen/components/BusinessAgendaToolbar.tsx
+@@ -32,7 +32,7 @@ const TYPE_OPTIONS: Array<{ key: AgendaTypeFilter; label: string; short: string;
+ ];
+ const SORT_OPTIONS: Array<{ key: AgendaSort; label: string; hint: string; Icon: typeof List }> = [
+   { key: 'attention', label: 'Por atender', hint: 'Según el horario acordado', Icon: ListChecks },
+-  { key: 'newest', label: 'Recientes', hint: 'Por fecha de solicitud', Icon: ArrowDown },
++  { key: 'newest', label: 'Recientes', hint: 'Por última actividad', Icon: ArrowDown },
+   { key: 'oldest', label: 'Antiguas', hint: 'Las más antiguas primero', Icon: ArrowUp },
+ ];
+ 
+
+diff --git a/C:/Users/Basti/Downloads/business-agenda.css b/src/app/features/requests/screen/components/business-agenda.css
+index 2021806..1460d04 100644
+--- a/C:/Users/Basti/Downloads/business-agenda.css
++++ b/src/app/features/requests/screen/components/business-agenda.css
+@@ -96,3 +96,12 @@
+ @media (prefers-reduced-motion:reduce){
+   .zipco-agenda-tray,.zipco-agenda-opt-check,.zipco-agenda-field-icon{animation:none!important;transition:none!important}
+ }
++
++@media (max-width:350px){
++  .zipco-agenda-field{gap:6px;padding:0 7px}
++  .zipco-agenda-field-icon{width:26px;height:30px;border-radius:9px}
++  .zipco-agenda-field-icon svg{width:15px;height:15px}
++  .zipco-agenda-field-text b{font-size:12px}
++  .zipco-agenda-field-text small{font-size:9px}
++  .zipco-agenda-sortbtn{width:48px}
++}
+
+diff --git a/C:/Users/Basti/Downloads/BusinessOrdersTab.tsx b/src/app/features/requests/screen/components/BusinessOrdersTab.tsx
+index a71ac50..01a21cb 100644
+--- a/C:/Users/Basti/Downloads/BusinessOrdersTab.tsx
++++ b/src/app/features/requests/screen/components/BusinessOrdersTab.tsx
+@@ -80,7 +80,9 @@ export default function BusinessOrdersTab({
+     return agenda.sort === "attention" ? sortByAttention(filtered) : filtered;
+   }, [agenda?.sort, agendaEntries, agendaFilters]);
+   const agendaCounts = useMemo(() => countAgendaOptions(agendaEntries, agendaFilters), [agendaEntries, agendaFilters]);
+-  const listRef = useRequestListMotion(agenda ? agendaShown.map((entry) => entry.order) : requests);
++  const motionItems = useMemo(() => agenda ? agendaShown.map((entry) => entry.order) : requests,
++    [Boolean(agenda), agendaShown, requests]);
++  const listRef = useRequestListMotion(motionItems);
+   const { unread, markRead } = useUnreadInteractions();
+   const [selection, setSelection] = useState<{
+     order: BusinessRequest;
+
+diff --git a/C:/Users/Basti/Downloads/RequestResults.tsx b/src/app/features/requests/screen/components/RequestResults.tsx
+index 45d9419..174e553 100644
+--- a/C:/Users/Basti/Downloads/RequestResults.tsx
++++ b/src/app/features/requests/screen/components/RequestResults.tsx
+@@ -276,7 +276,7 @@ return (<div data-request-results>
+                   agenda={agendaActive && agreedScheduleOf ? {
+                     resolve: agreedScheduleOf,
+                     sort: sortDirection,
+-                    onSort: (next) => setSortDirections((current) => ({ ...current, [viewKey]: next })),
++                    onSort: (next) => setSortDirections((current) => ({ ...current, [`${viewKey}:active`]: next })),
+                   } : undefined}
+                   onAction={async (order, action, reason, detail) => {
+                     if (order.requestProcess !== undefined) {
+
+diff --git a/C:/Users/Basti/Downloads/useRequestsScreenController.tsx b/src/app/features/requests/screen/application/useRequestsScreenController.tsx
+index 4d5db88..e1ce0e7 100644
+--- a/C:/Users/Basti/Downloads/useRequestsScreenController.tsx
++++ b/src/app/features/requests/screen/application/useRequestsScreenController.tsx
+@@ -30,18 +30,8 @@ import { waitForNotificationCard } from "../../../../notifications/notificationN
+ import { traceNotificationClick } from "../../../../notifications/notificationClickTrace";
+ import { scrollToRequestResults } from "../../application/motion/requestSummaryScroll";
+ import { isPendingRequestCancelled, isPendingRequestRejected, normalizeRequestProcess } from "../../domain/requestProcess";
+-import type { AgendaSort, AgreedScheduleResolver } from "../../domain/businessAgenda";
+-
+-/**
+- * PENDIENTE (Codex): conectar aquí el horario ACORDADO de cada pedido de Mi Negocio → En curso.
+- * Debe devolver, por pedido, { kind: 'scheduled', at: <ISO de AgreementReadDto.scheduledFor> },
+- * { kind: 'asap' } (solo si el acuerdo dice needNow === true) o { kind: 'unverified' }.
+- * Mientras devuelva undefined la lista y su orden actuales no cambian. Nunca usar createdAt, updatedAt,
+- * order.date ni texto libre como horario acordado.
+- */
+-function useAgreedScheduleResolver(): AgreedScheduleResolver | undefined {
+-  return undefined;
+-}
++import type { AgendaSort } from "../../domain/businessAgenda";
++import useAgreedScheduleResolver from './useAgreedScheduleResolver';
+ 
+ export function useRequestsScreenController({
+   onBack,
+@@ -130,9 +120,9 @@ export function useRequestsScreenController({
+   const viewKey = `${subTab}-${requestType}`;
+   const statusView = statusViews[viewKey] ?? "pending";
+   const historyFilter = historyFilters[viewKey] ?? "all";
+-  const agreedScheduleOf = useAgreedScheduleResolver();
+-  const agendaActive = subTab === "my-business" && requestType === "orders" && statusView === "active" && agreedScheduleOf !== undefined;
+-  const storedSort = sortDirections[viewKey];
++  const agendaActive = subTab === "my-business" && requestType === "orders" && statusView === "active";
++  const agreedScheduleOf = useAgreedScheduleResolver(requests, agendaActive);
++  const storedSort = sortDirections[agendaActive ? `${viewKey}:active` : viewKey];
+   // «Por atender» solo existe en la agenda de En curso; en cualquier otra vista se muestra como «Recientes».
+   const sortDirection: AgendaSort = storedSort === "attention" && !agendaActive ? "newest" : (storedSort ?? (agendaActive ? "attention" : "newest"));
+   const orderRecords = subTab === "my-orders" ? myOrders : requests;
+

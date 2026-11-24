@@ -1,0 +1,109 @@
+# Negocio: disponibilidad confirmada, esperando al cliente
+
+Fecha: 2026-11-03, America/Santiago. Clasificación: solo frontend, presentación
+e interacción local. No cambia comportamiento de negocio ni contratos.
+
+## Alcance y fuentes
+
+Se integraron completos los dos archivos entregados por Claude: la composición
+canónica `AvailabilityWaitingCard.tsx` y el bloque `UI-AVAILABILITY-WAITING-01`
+de `availability-card-foundation.css`. El prefijo CSS anterior se conservó
+íntegro. Todo lo nuevo queda bajo `.zipco-aw*`.
+
+Franja de modalidad, estado, cliente, cantidad e importe; explicación y productos
+con subtotales; instrucciones libres únicamente en retiro local; nota y foto;
+retirar y ocultar. El error queda fuera del plegado. Se mantienen
+`ProductPreviewControl`, `OrderReferencePhoto`, `DetailReveal` y el diálogo real.
+
+Adaptaciones de integración: foco al control de cabecera al ocultar; chevron
+sin la animación de la mano; raíz con `overflow:clip` y `flow-root` para evitar
+scroll interno; decoraciones pausadas al plegar. No se modificaron controladores,
+tiempos de envío, permisos, otras tarjetas ni ventanas compartidas.
+
+Campos existentes: items (nombre, cantidad, precio unitario), total, schedule,
+note, referencePhoto, availability.path/customerMessage/scheduleOrAddress y
+allowedActions. Lecturas y `WITHDRAW_AVAILABILITY` siguen por el transporte
+existente `/orders/...` y `/request-process/.../actions/withdraw-availability`;
+no se agregaron rutas, payloads ni cabeceras. Retirar requiere el permiso real,
+respeta busy y conserva la confirmación y recuperación.
+
+## Verificación proporcional
+
+- 59 pruebas existentes de `processCardVisualFlow.test.ts` aprobadas por afectar
+  presentación compartida; 3 pruebas nuevas de permisos, busy y modalidad aprobadas.
+- 8 escenarios de `check-availability-waiting-design.mjs` aprobados: WhatsApp y
+  retiro a 320/390/430, recuperación y movimiento reducido/pausa en scroll.
+  Transporte sintético, componentes y visores reales; toques por coordenadas.
+  Foto/miniatura no pliegan; retirada cancelada no envía; error visible plegada;
+  comprobar estado no repite el POST fallido; foco e inert verificados.
+- Dos regresiones reutilizadas: disponible WhatsApp y retiro del cliente a 393.
+- Se repitieron solo escenarios fallidos: selector de foto mal escapado, cierre
+  real del diálogo tras error y atributo de scroll colocado en el contenedor
+  incorrecto del fixture. No se repitieron los seis responsive ya aprobados.
+- La prueba nueva se renombró de `.test.tsx` a `.test.ts` por la selección actual
+  de Vitest; no cambió la configuración ni las herramientas.
+- Build QA/PWA aprobado: 2403 módulos, precache 13 entradas. Advertencia existente
+  de chunks grandes. No hay configuración/compiler TypeScript en el proyecto:
+  build/transpilación aprobados, no se afirma un tsc completo.
+- Diff revisado. Los cambios posteriores al build son pruebas/documentación.
+
+No acredita Safari físico ni backend real. Pendiente iPhone/Android: aspecto,
+fluidez, ventanas y retorno de foco. La prueba de movimiento reducido acredita
+decoraciones propias; no certifica ausencia de animación JS en la foto compartida.
+
+## Tiempos y entrega
+
+Medidos por reloj de pared, sin sumas de procesos solapados. Inicio cronometrado
+02:26:43 UTC; lectura inicial previa no medida. Análisis 290 s; implementación
+57 s; preparación inicial de escenarios 68 s; ejecución/reparación/revisión de
+pruebas 238 s. El último bloque incluye ajustes del escenario y lectura de
+resultados, no solo ejecución del navegador.
+
+Build efectivo QA/PWA: 11 s; ventana de orquestación/espera del build: 60 s
+(contiene esos 11 s, no se suman). Documentación incluye además preparar y
+ejecutar las tres pruebas de permisos; no hubo cronómetro independiente para
+esa porción y no se inventa su duración. Publicación se registra al verificar.
+
+Documentación inicial y controles finales: 112 s, con la porción de pruebas
+adicionales indicada arriba. Publicación/verificación: 78 s de pared (incluye
+espera de Vercel y revisión visual abierta mientras se esperaba, sin sumar ese
+paralelismo). Envío Git: 3,6 s incluidos. Cronómetro hasta verificación: 15 min
+3 s; lectura inicial anterior no medida. No son tiempos de rendimiento de app.
+
+Publicado en `qa`: `1e4d49026ecc698c653ddb774a293585043acbdf`.
+[Vercel success verificado para ese SHA](https://vercel.com/zipco-s-projects/zipco-app/3Dj6uqKnEo5seQg7pyCoRkHUXxi3).
+Cierre documental posterior conservado local, sin otro push que genere build.
+Railway innecesario. `main` conserva `8295ab8c6024ab20851ebd371308d2f299b4668f`;
+producción intacta. Las preguntas sobre otras
+tarjetas, brillos y etiqueta del retiro cliente siguen pendientes, sin cambios.
+
+## Corrección posterior: adornos estáticos con la tarjeta cerrada
+
+Reporte físico del usuario después de `1e4d490`: las animaciones no se movían.
+Causa confirmada en CSS: la adaptación de integración
+`.zipco-aw[data-expanded=false] * {animation-play-state:paused!important}`
+detenía también el punto, la mano y el reloj visibles. Se eliminó únicamente
+esa regla productiva. Se conserva la pausa existente por scroll, fuera de vista
+y movimiento reducido. El diseño, los envíos y las acciones no cambian.
+
+La prueba anterior comprobaba que se pausara, pero no que avanzara estando
+visible/cerrada. Se amplió el escenario reutilizable para medir `currentTime`
+de las animaciones reales en el navegador. Dos casos aprobados (WhatsApp y
+retiro): punto/mano/reloj avanzan cerrada, reloj del detalle avanza abierta,
+scroll e idle pausan y al volver a active avanzan; reduced-motion desactiva.
+Se conservan los controles táctiles, visores reales, foco y cancelación del
+diálogo incluidos en esos escenarios. HTTP simulado, sin pedidos reales.
+
+Build QA/PWA aprobado de nuevo porque cambió CSS productivo (2403 módulos,
+advertencia previa de chunks). No se repitieron las 62 unitarias ni responsive
+restantes: no cambió JSX, layout, permisos ni contrato. Pendiente celular físico.
+
+Medición de este ajuste: análisis, edición de una regla y preparación inicial
+no cronometrados; no se estiman. Pruebas: 54 s de pared con ejecución/revisión;
+build efectivo 10,3 s (ventana de orquestación 42 s); documentación inicial
+26,8 s; publicación/verificación 93 s (incluye espera, push 3,5 s dentro de ella).
+Publicado `7821c3871e575613c22381a79b97bb8e6bda0cd2` en rama `qa`,
+[Vercel success](https://vercel.com/zipco-s-projects/zipco-app/6Y7Trz7t3zHPT8Y98E3JVygbyiLP).
+Cierre documental local sin otro push. La ventana del build
+incluye espera y orquestación; no se suma al tiempo efectivo. Solo frontend;
+Railway innecesario, `main` y producción intactos.

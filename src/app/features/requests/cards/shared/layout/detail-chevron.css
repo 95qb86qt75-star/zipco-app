@@ -1,0 +1,5 @@
+/* Chevron de detalle (30 px visibles, 44 px de zona táctil). También lo usa «Retiro en el local» como adorno (span aria-hidden). */
+.zipco-own-chv{position:relative;flex:none;width:30px;height:30px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:inherit;background:#94a3b833;transition:transform .35s ease}
+.zipco-own-chv::after{content:'';position:absolute;inset:-7px}
+.zipco-own-chv[aria-expanded=true],.zipco-own-chv[data-open=true]{transform:rotate(180deg)}
+.zipco-own-chv:focus-visible,.zipco-own-cta:focus-visible{outline:2px solid #5eead4;outline-offset:3px}

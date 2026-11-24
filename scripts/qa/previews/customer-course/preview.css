@@ -1,0 +1,22 @@
+html,body{margin:0;min-width:280px;background:#f1f6fa}
+.course-preview{max-width:430px;margin:0 auto;padding:16px 12px 100px;--zipco-page-bg:#f1f6fa}
+.course-preview h1{font-size:23px;font-weight:800;margin:20px 0}
+.course-preview-notice{padding:12px;border:1px solid #fbbf24;border-radius:14px;background:#fffbeb;color:#78350f;font-size:12px}
+.course-preview-notice p{margin:4px 0 0}
+.course-preview-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;font-size:12px}
+.course-preview-controls button,.course-preview-controls label{min-height:44px;padding:8px;border:1px solid #cbd5e1;border-radius:12px;background:white;display:flex;align-items:center;gap:6px}
+.course-preview-controls button:disabled{opacity:.45}
+.course-preview-tabs{display:flex;gap:12px;margin:16px 0 24px}
+.course-preview-tabs span{padding:8px 14px;border-radius:14px;background:white;border:1px solid #cbd5e1}
+.course-preview-tabs b{margin-left:6px}
+.course-preview-toast{position:fixed;bottom:24px;left:12px;right:12px;max-width:406px;margin:auto;padding:12px;display:flex;align-items:center;gap:8px;justify-content:space-between;border-radius:18px;background:#19143e;color:white;font-size:12px;z-index:10}
+.course-preview-toast button{min-width:44px;min-height:44px;padding:8px;background:#a7f3d0;color:#064e3b;border-radius:22px}
+.course-preview-history{padding:20px;background:#d1fae5;border-radius:18px}
+.course-preview-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#475569;margin:24px 0 12px}
+.course-preview-pickup-identity{flex:1;min-width:0}
+.course-preview .zipco-pickup-c{min-height:118px}
+.course-preview .zipco-pickup-c-total b{white-space:nowrap}
+.course-preview-pickup-detail{padding:0 14px 14px;font-size:12px}
+[data-pickup-preview] .course-preview-controls{margin-top:14px}
+
+.course-preview-label{font-size:11px;font-weight:800;margin:24px 0 12px;color:#475569}.course-preview-pickup-identity{flex:1;min-width:0}.course-preview-pickup-detail{padding:14px;font-size:12px}

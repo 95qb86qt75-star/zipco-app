@@ -1,0 +1,16 @@
+/* S: static glows, visible-only accents and usable narrow layouts. */
+.zipco-cp{background:radial-gradient(ellipse at 100% 0,rgba(139,92,246,.14),transparent 45%),linear-gradient(165deg,#fff,#f0fdfa 55%,#f5f3ff)}
+.zipco-cp::before{display:none}
+.zipco-cp *,.zipco-cp *::before,.zipco-cp *::after{animation-play-state:paused}
+.zipco-cp[data-coordination-motion="active"] *,.zipco-cp[data-coordination-motion="active"] *::before,.zipco-cp[data-coordination-motion="active"] *::after{animation-play-state:running}
+.zipco-cp-help{margin-top:6px;font-size:12px;text-align:center;color:#475569}
+.zipco-cp-strip .v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zipco-cp .zipco-co-co2-p{color:#334155}
+.zipco-cp button:disabled{cursor:default}
+.zipco-status-tab{position:relative;overflow:visible}
+.zipco-status-tab:has(.zipco-cp-tip){z-index:5}
+.zipco-chip-bump{border-radius:18px}
+.zipco-cp-tip::before{left:calc(50% - 5px - var(--tip-shift,0px))}
+.zipco-status-tabs{overflow:visible}
+@media(max-width:360px){.zipco-cp-rec{font-size:13px;min-height:46px;height:auto;padding:9px}.zipco-cp-cd .h{flex-wrap:wrap}.zipco-cp-cd .h span{margin-left:0}.zipco-cp-tip{font-size:11px!important;max-width:220px}}
+@media(prefers-reduced-motion:reduce){.zipco-cp *,.zipco-cp *::before,.zipco-cp *::after{animation:none!important;transition:none!important}}

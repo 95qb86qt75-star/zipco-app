@@ -1,0 +1,29 @@
+.zipco-av-preview{min-height:100dvh;padding-top:28px;font-family:Outfit,system-ui,sans-serif;background:#e8ecf4;color:#0f172a}
+.zipco-av-preview-warning{position:fixed;top:0;left:0;right:0;z-index:1100;padding:7px 10px;text-align:center;background:#fffbeb;color:#92400e;font-size:10px;font-weight:600;line-height:1.4}
+.zipco-av-preview-phone{box-sizing:border-box;position:relative;max-width:390px;margin:auto;padding:25px 15px 100px;min-height:calc(100dvh - 28px);background:#f1f3fa}
+.zipco-av-preview-heading{display:flex;align-items:center;gap:15px;padding:0 6px}
+.zipco-av-preview-heading>svg{width:20px;height:20px}
+.zipco-av-preview-heading h1{font-size:22px;font-weight:700;line-height:1.2;margin:0}
+.zipco-av-preview-account{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 12px;border:1.5px solid #5eead4;border-radius:18px;background:linear-gradient(110deg,#ccfbf1,#d1fae5);margin-top:17px;box-shadow:0 6px 15px #14b8a61a}
+.zipco-av-preview-account>svg{padding:6px;box-sizing:content-box;background:#fff9;border-radius:10px;width:20px;height:20px;color:#0f766e}
+.zipco-av-preview-account b{font-size:16px;font-weight:700}
+.zipco-av-preview-account small{display:block;font-size:11px;font-weight:600;color:#0f766e}
+.zipco-av-preview-tabs{display:flex;gap:5px;margin-top:11px}
+.zipco-av-preview-tabs>span{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;border:1px solid #d8deeb;border-radius:12px;padding:6px 5px;background:#fff;font-size:10px;font-weight:700;line-height:1.2;color:#475569;text-align:center}
+.zipco-av-preview-tabs b{display:grid;place-items:center;width:18px;height:18px;flex:none;border-radius:50%;background:#e8ecf4;color:#475569;font-size:10px}
+.zipco-av-preview-tabs [aria-current]{background:linear-gradient(135deg,#fb923c,#f97316);color:#fff;border-color:#fdba74;box-shadow:0 5px 10px #f9731633}
+.zipco-av-preview-date{display:flex;align-items:center;gap:8px;margin:40px 5px 17px;color:#64748b;font-size:11px;font-weight:700}
+.zipco-av-preview-date svg{width:14px;height:14px}
+.zipco-av-preview-date>span{flex:1;height:1px;background:#d8deeb}
+.zipco-av-preview-bottom{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:17px 10px max(20px,env(safe-area-inset-bottom));background:#fff}
+.zipco-av-preview-bottom>span{display:flex;flex-direction:column;align-items:center;gap:5px;color:#94a3b8}
+.zipco-av-preview-bottom>span:last-child{color:#059669}
+.zipco-av-preview-bottom svg{width:22px;height:22px}
+.zipco-av-preview-bottom small{font-size:11px}
+.zipco-av-preview-checkout{margin-top:25px;font-size:13px}
+.zipco-av-preview-checkout h2,.zipco-av-preview-checkout h3{font-weight:700;margin:16px 0}
+.zipco-av-preview-product{display:flex;align-items:center;gap:15px;background:#fff;padding:15px;border-radius:15px}
+.zipco-av-preview-product>svg{width:48px;height:48px;padding:10px;background:#7c3aed;color:#fff;border-radius:15px}
+.zipco-av-preview-checkout>p{display:flex;justify-content:space-between;padding:15px;background:#fff}
+.zipco-av-preview-checkout>.zipco-av-primary{width:100%;margin-top:30px}
+.zipco-av-preview-notice{margin-top:18px;border:1px solid #fbbf24;border-radius:12px;padding:12px;background:#fffbeb;color:#92400e;font-size:12px;line-height:1.5}

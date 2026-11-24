@@ -1,12 +1,20 @@
+import * as React from 'react';
 
   import { createRoot } from "react-dom/client";
   import { registerSW } from "virtual:pwa-register";
   import App from "./app/App.tsx";
+  import AgreementRoute from "./app/features/requests/shared/conditions/AgreementRoute";
   import "./styles/index.css";
 
-  createRoot(document.getElementById("root")!).render(<App />);
+  const availabilityDesign = import.meta.env.QA_AVAILABILITY_DESIGN &&
+    new URLSearchParams(window.location.search).get('design') === 'availability';
+  if (availabilityDesign) {
+    void import('./design-preview/AvailabilityDesignPreview').then(({ mountAvailabilityDesign }) => mountAvailabilityDesign());
+  } else {
+    createRoot(document.getElementById("root")!).render(<AgreementRoute><App /></AgreementRoute>);
+  }
 
-  if ("serviceWorker" in navigator) {
+  if (!availabilityDesign && "serviceWorker" in navigator) {
     const hadControllerAtStartup = Boolean(navigator.serviceWorker.controller);
     let isReloadingForUpdate = false;
 

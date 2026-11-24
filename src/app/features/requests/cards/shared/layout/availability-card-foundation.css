@@ -1,0 +1,198 @@
+/* Tarjeta «Esperando al cliente» (negocio, disponibilidad confirmada). Prefijo zipco-avw-. Misma paleta Aurora que .zipco-aurora-card. */
+.zipco-avw{position:relative;isolation:isolate;overflow:hidden;border-radius:24px;color:#fff;
+  background:transparent;
+  box-shadow:0 14px 30px rgba(30,27,75,.35),inset 0 1px 0 rgba(255,255,255,.18),0 0 0 1px rgba(255,255,255,.1)}
+.zipco-avw-top{position:relative;isolation:isolate;overflow:hidden;padding:12px 12px 11px;background:radial-gradient(ellipse at 100% 0,rgba(139,92,246,.6),transparent 75%),radial-gradient(ellipse at 0 100%,rgba(20,184,166,.3),transparent 65%),linear-gradient(160deg,#1c1650,#101434)}
+.zipco-avw-toggle{position:absolute;inset:0;z-index:0;width:100%;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.zipco-avw-toggle:focus-visible{outline:2px solid #c4b5fd;outline-offset:-3px;border-radius:24px}
+.zipco-avw-body{position:relative;z-index:1;pointer-events:none}
+.zipco-aw .zipco-aw-conversation{pointer-events:auto;margin-top:12px}
+.zipco-aw .zipco-aw-conversation [role=alert]{padding:8px 10px;border-radius:12px;background:#fff1f2;color:#9f1239}
+.zipco-aw .zipco-aw-conversation .zipco-glass-btn{-webkit-backdrop-filter:none;backdrop-filter:none;filter:none}
+.zipco-aw .zipco-aw-conversation .zipco-glass-blob{filter:none;animation-iteration-count:2;animation-duration:1.5s}
+.zipco-aw .zipco-aw-conversation .zipco-glass-btn::after{animation-iteration-count:2;animation-duration:1.5s}
+.zipco-avw-head{display:flex;align-items:center;gap:11px;min-height:88px}
+.zipco-avw-ring{position:relative;flex:none;width:62px;height:62px;margin-right:3px;display:grid;place-items:center;border-radius:50%;pointer-events:auto;
+  background:conic-gradient(from 0deg,#6ee7b7,#a78bfa,#f9a8d4,#a78bfa,#6ee7b7);box-shadow:0 0 20px rgba(167,139,250,.55);animation:zipco-avw-spin 3.5s linear infinite}
+.zipco-avw-ring>*:first-child{animation:zipco-avw-spin 3.5s linear infinite reverse}
+.zipco-avw-ring .zipco-product-preview,.zipco-avw-ring .zipco-product-neutral{width:52px;height:52px;border-radius:50%}
+.zipco-avw-ring .zipco-product-thumbs{width:52px;max-width:52px;padding:0;overflow:visible}
+.zipco-avw-ring .zipco-product-thumb{width:52px;height:52px;border-radius:50%;border:0;box-shadow:0 0 0 3px #141846}
+.zipco-avw-ring .zipco-product-thumb>img,.zipco-avw-ring .zipco-product-image-fallback{border-radius:50%}
+.zipco-avw-ring .zipco-product-neutral,.zipco-avw-ring .zipco-product-image-fallback{background:radial-gradient(circle at 30% 25%,#fde68a,#f59e0b 55%,#c2410c);color:white;border:0;box-shadow:0 0 0 3px #141846}
+.zipco-avw-ring .zipco-product-thumb:not(:first-child),.zipco-avw-ring .zipco-product-quantity{display:none}
+.zipco-avw-quantity{position:absolute;left:38px;bottom:-5px;min-width:22px;padding:0 4px;border-radius:999px;background:white;color:#0f172a;font-size:10px;font-weight:900;font-style:normal;animation:zipco-avw-spin 3.5s linear infinite reverse;pointer-events:none}
+@keyframes zipco-avw-spin{to{transform:rotate(360deg)}}
+.zipco-avw-thumb{position:relative;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;color:#fff;
+  background:radial-gradient(circle at 30% 25%,#fde68a,#f59e0b 55%,#c2410c);box-shadow:0 0 0 3px #141846;overflow:visible}
+.zipco-avw-thumb>img{border-radius:50%}
+.zipco-avw-thumb svg{filter:drop-shadow(0 1px 2px rgba(120,53,15,.6))}
+.zipco-avw-thumb>i{position:absolute;right:-5px;bottom:-5px;min-width:19px;height:16px;padding:0 4px;border-radius:999px;display:grid;place-items:center;
+  font-size:10px;font-weight:900;line-height:1;font-style:normal;color:#0f172a;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.zipco-avw-check{position:absolute;left:-3px;top:0;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#052e22;
+  background:linear-gradient(145deg,#6ee7b7,#14b8a6);box-shadow:0 0 0 2px #141846;animation:zipco-avw-spin 3.5s linear infinite reverse}
+.zipco-avw-name{flex:1;min-width:0}
+.zipco-avw-name h4{font-size:15.5px;font-weight:900;line-height:1.1;letter-spacing:-.01em;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.zipco-avw-new{display:inline-block;margin-top:3px;border-radius:999px;background:#38bdf8;color:#020617;padding:1px 6px;font-size:9px;font-weight:900}
+.zipco-avw-chip{margin-top:5px;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:#ddd6fe}
+.zipco-avw-dot{width:7px;height:7px;border-radius:4px;background:#a78bfa;animation:zipco-avw-ping 1.9s ease-out infinite}
+@keyframes zipco-avw-ping{70%{box-shadow:0 0 0 7px rgba(167,139,250,0)}100%{box-shadow:0 0 0 0 rgba(167,139,250,0)}}
+.zipco-avw-price{flex:none;text-align:right}
+.zipco-avw-price b{display:block;font-size:20px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(167,139,250,.9)}
+.zipco-avw-price small{display:block;margin-top:4px;font-size:9px;font-weight:900;letter-spacing:.12em;color:#c4b5fd}
+/* Pista: manito en el espacio libre bajo el precio (no suma altura). */
+.zipco-avw-hint{position:absolute;right:10px;top:70px;display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;color:#ddd6fe;pointer-events:none}
+.zipco-avw-hint svg{color:#fff;filter:drop-shadow(0 0 7px rgba(167,139,250,.9));animation:zipco-avw-tap 1.8s ease-in-out infinite}
+.zipco-avw-wave1,.zipco-avw-wave2{opacity:0;animation:zipco-avw-wave 1.8s ease-out infinite}.zipco-avw-wave2{animation-delay:.18s}
+@keyframes zipco-avw-tap{0%,55%,100%{transform:translateY(0) scale(1)}70%{transform:translateY(-3px) scale(1.12)}85%{transform:translateY(1px) scale(.92)}}
+@keyframes zipco-avw-wave{0%,45%{opacity:0}60%{opacity:1}100%{opacity:0}}
+/* Detalle */
+.zipco-avw-reveal{display:grid;grid-template-rows:1fr;opacity:1;visibility:visible;overflow:hidden;pointer-events:none;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1),opacity .18s ease,visibility 0s}
+.zipco-avw-reveal[data-folded=true]{grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1),opacity .18s ease,visibility 0s .42s}
+.zipco-avw-reveal-inner{min-height:0;overflow:hidden}
+/* The expanded coordination detail receives real taps; folded/inert content stays blocked. */
+.zipco-avw-query>.zipco-avw-reveal[data-folded=false]>.zipco-avw-reveal-inner>.zipco-avw-query-body{pointer-events:auto}
+.zipco-avw-reveal[data-folded=true] *{animation-play-state:paused!important}
+.zipco-avw-detail{pointer-events:none}
+.zipco-avw-detail-top{display:flow-root;padding:0 12px 11px;background:#101434}
+.zipco-avw-summary{margin:10px 0 0;font-size:12.5px;line-height:1.35;color:#cbd5e1}
+.zipco-avw-chips{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.zipco-avw-chips span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:800;color:#e0e7ff;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.zipco-avw-chips .zipco-avw-hours{color:#99f6e4}
+.zipco-avw-line{margin-top:12px;display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;color:#e0e7ff}
+.zipco-avw-line .q{min-width:30px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:900;color:#67e8f9;background:rgba(34,211,238,.14)}
+.zipco-avw-line .n{flex:1;min-width:0;overflow-wrap:anywhere}
+/* Real transparent cutouts reveal the list's gradient/dark surface, with no guessed color. */
+.zipco-avw-detail-top{mask-image:radial-gradient(circle 11px at left bottom,transparent 98%,#000 100%),radial-gradient(circle 11px at right bottom,transparent 98%,#000 100%);mask-composite:intersect;-webkit-mask-composite:source-in}
+.zipco-avw-bottom{padding:14px 12px;background:linear-gradient(165deg,#101434,#0c1a2e);mask-image:radial-gradient(circle 11px at left top,transparent 98%,#000 100%),radial-gradient(circle 11px at right top,transparent 98%,#000 100%);mask-composite:intersect;-webkit-mask-composite:source-in}
+.zipco-avw-perf{position:relative;margin:0 11px;height:0;border-top:2px dashed rgba(255,255,255,.22);background:#101434}
+.zipco-avw-error,.zipco-avw-error button{pointer-events:auto}
+.zipco-avw-rows{margin:0;border-radius:14px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);overflow:hidden;color:#cbd5e1}
+.zipco-avw-rows>div{display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:13px}.zipco-avw-rows>div+div{border-top:1px solid rgba(255,255,255,.1)}
+.zipco-avw-rows svg{flex:none;color:#fbbf24}.zipco-avw-rows dt{flex:1;white-space:nowrap}.zipco-avw-rows dd{margin:0;color:#fff;font-weight:800;text-align:right;overflow-wrap:anywhere}
+.zipco-avw-note{margin:9px 2px 0;font-size:12px;line-height:1.35;color:#cbd5e1;overflow-wrap:anywhere}
+.zipco-avw-ref{margin-top:9px;pointer-events:auto}
+.zipco-avw-fine{margin:9px 2px 0;font-size:12px;line-height:1.35;color:#a5b4d4}
+.zipco-avw-withdraw{pointer-events:auto;margin-top:10px;width:100%;min-height:40px;border-radius:14px;border:1px solid rgba(253,164,175,.5);
+  background:linear-gradient(110deg,rgba(244,63,94,.16),rgba(139,92,246,.1));color:#fecdd3;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)}
+.zipco-avw-withdraw:disabled{opacity:.55;cursor:not-allowed}
+@media (max-width:350px){.zipco-avw-price b{font-size:18px}.zipco-avw-name h4{font-size:14.5px}.zipco-avw-rows>div{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){.zipco-avw-ring,.zipco-avw-ring>*:first-child,.zipco-avw-quantity,.zipco-avw-check,.zipco-avw-dot,.zipco-avw-hint svg{animation:none}.zipco-avw-wave1,.zipco-avw-wave2{animation:none;opacity:.9}}
+@media (prefers-reduced-motion:reduce){.zipco-avw-reveal,.zipco-avw-reveal[data-folded=true]{transition:none}}
+/* Reuse the list's existing motion gates; the diagnostic incident remains paused. */
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"]) .zipco-avw *{animation-play-state:paused!important}
+
+/* ===== UI-AVAILABILITY-WAITING-02 · Aurora Pro, variante A «Pulso» =====
+ * Tarjeta del negocio «Esperando al cliente» (Solicitudes → Mi Negocio → Esperando respuesta). Todo bajo `.zipco-aw`
+ * (clase propia añadida junto a `.zipco-avw` en AvailabilityWaitingCard). No cambia reglas globales de `.zipco-avw`.
+ * Movimiento: solo animaciones finitas (2–3 repeticiones), sin bucles infinitos de blur, sombras ni fondos; ningún contenido parte de opacidad 0. */
+@keyframes zipco-aw-dot{0%,100%{box-shadow:0 0 0 3px rgba(139,92,246,.25)}50%{box-shadow:0 0 0 8px rgba(139,92,246,0)}}
+@keyframes zipco-aw-flip{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(180deg)}}
+@keyframes zipco-aw-ring{0%{transform:scale(.8);opacity:.75}100%{transform:scale(1.55);opacity:0}}
+@keyframes zipco-aw-drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-14px,10px) scale(1.08)}}
+.zipco-avw.zipco-aw{padding:12px;color:#0f172a;font-family:'Zipco Proposal Outfit',Outfit,system-ui,sans-serif;background:#fff;
+  box-shadow:0 0 0 1px #ddd6fe,0 16px 34px rgba(15,23,42,.09),0 4px 12px rgba(99,102,241,.1)}
+.zipco-aw *{box-sizing:border-box}
+/* luces suaves de fondo (finitas): detrás del contenido, dentro del aislamiento de la tarjeta */
+.zipco-aw::before,.zipco-aw::after{content:'';position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
+.zipco-aw::before{top:-72px;right:-62px;width:230px;height:230px;background:radial-gradient(closest-side,#ede9fe,rgba(237,233,254,0));animation:zipco-aw-drift 9s ease-in-out 2}
+.zipco-aw::after{bottom:-84px;left:-72px;width:240px;height:240px;background:radial-gradient(closest-side,#cffafe,rgba(207,250,254,0));animation:zipco-aw-drift 11s ease-in-out 2 reverse}
+.zipco-aw .zipco-avw-toggle:focus-visible{outline:3px solid #0d9488;outline-offset:-3px;border-radius:24px}
+.zipco-aw button:focus-visible{outline:3px solid #0d9488;outline-offset:2px}
+/* fila plegada: radar + identidad + monto/chevron */
+.zipco-aw-pa{display:flex;align-items:center;gap:11px}
+.zipco-aw-radar{position:relative;flex:none;width:70px;height:70px;display:grid;place-items:center}
+.zipco-aw-radar::before{content:'';position:absolute;inset:2px;border-radius:24px;background:conic-gradient(from 20deg,#ede9fe,#a5f3fc,#ddd6fe,#ede9fe);box-shadow:0 8px 20px rgba(99,102,241,.22)}
+.zipco-aw-radar u{position:absolute;inset:4px;border-radius:24px;border:2px solid #a78bfa;opacity:0;text-decoration:none;pointer-events:none;animation:zipco-aw-ring 3s ease-out 3}
+.zipco-aw-radar u:nth-child(2){animation-delay:1s}.zipco-aw-radar u:nth-child(3){animation-delay:2s}
+/* miniatura real (ProductPreviewControl) cuadrada con esquinas redondeadas; el visor sigue siendo el real */
+.zipco-aw-th{position:relative;z-index:1;flex:none;display:flex;width:50px;height:50px;pointer-events:auto}
+.zipco-aw-th .zipco-product-preview,.zipco-aw-th .zipco-product-neutral{width:50px;height:50px;border-radius:16px;display:flex}
+.zipco-aw-th .zipco-product-thumbs{width:50px;max-width:50px;padding:0;overflow:visible}
+.zipco-aw-th .zipco-product-thumb{width:50px;height:50px;border-radius:16px;border:0;box-shadow:0 0 0 3px #fff,0 4px 10px rgba(99,102,241,.3);overflow:hidden}
+.zipco-aw-th .zipco-product-thumb>img,.zipco-aw-th .zipco-product-image-fallback{border-radius:16px}
+.zipco-aw-th .zipco-product-neutral,.zipco-aw-th .zipco-product-image-fallback{background:linear-gradient(145deg,#fb7185,#fbbf24);color:#fff;border:0}
+.zipco-aw-th .zipco-product-thumb:not(:first-child),.zipco-aw-th .zipco-product-quantity{display:none}
+.zipco-aw-fb{display:grid;place-items:center;width:50px;height:50px;border-radius:16px;color:#fff;background:linear-gradient(145deg,#fb7185,#fbbf24);box-shadow:0 0 0 3px #fff,0 4px 10px rgba(99,102,241,.3)}
+.zipco-aw-q{position:absolute;left:-6px;bottom:-4px;z-index:2;padding:1px 5px;border-radius:7px;background:#0f172a;color:#fff;font-size:9.5px;font-weight:800;font-style:normal;line-height:1.3;box-shadow:0 0 0 2px #fff;pointer-events:none}
+.zipco-aw-badge{position:absolute;z-index:2;right:-1px;bottom:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#a78bfa,#6366f1);box-shadow:0 0 0 2.5px #fff,0 4px 10px rgba(99,102,241,.4);pointer-events:none}
+.zipco-aw-badge svg{animation:zipco-aw-flip 2.8s ease-in-out 2}
+.zipco-aw-t{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+.zipco-aw-t small{display:flex;align-items:center;gap:6px;font-size:8.5px;font-weight:800;letter-spacing:.15em;color:#6d28d9}
+.zipco-aw-t small em{font-style:normal;padding:1px 6px;border-radius:99px;background:#0369a1;color:#fff;font-size:9px;letter-spacing:0;font-weight:900}
+.zipco-aw-t h4{margin:1px 0 0;font-size:16.5px;line-height:1.15;font-weight:800;letter-spacing:-.03em;background:linear-gradient(100deg,#0f172a,#4c1d95 55%,#6d28d9);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.zipco-aw-pill{display:inline-flex;align-items:center;gap:7px;margin-top:5px;padding:4px 10px 4px 8px;border-radius:99px;background:linear-gradient(135deg,#f5f3ff,#ecfeff);box-shadow:inset 0 0 0 1.5px #c4b5fd,0 4px 14px rgba(99,102,241,.16)}
+.zipco-aw-pill i{flex:none;width:9px;height:9px;border-radius:50%;background:#8b5cf6;animation:zipco-aw-dot 1.9s ease-in-out 3}
+.zipco-aw-pill b{font-size:10px;font-weight:900;letter-spacing:.08em;line-height:1.2;color:#6d28d9;text-transform:uppercase}
+/* qué se espera del cliente (con el ícono de la modalidad) */
+.zipco-aw-ask{display:flex;align-items:flex-start;gap:5px;margin:6px 0 0;font-size:11px;line-height:1.25;font-weight:600;color:#4338ca}
+.zipco-aw-ask svg{flex:none;margin-top:1px}
+.zipco-aw-pr{flex:none;max-width:38%;align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;text-align:right}
+.zipco-aw-amt b{display:block;font-size:20px;line-height:1;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.zipco-aw-amt small{display:block;margin-top:4px;font-size:8.5px;letter-spacing:.13em;font-weight:800;color:#5b6b80}
+/* chevron: indicador visual de 44 px; el toque lo recibe el botón que cubre la tarjeta */
+.zipco-aw-cb{margin-top:auto;margin-right:-6px;flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#f0fdfa;box-shadow:inset 0 0 0 1px #99f6e4;color:#0f766e;transition:background .2s}
+.zipco-aw-chv{transition:transform .42s cubic-bezier(.22,1,.36,1)}
+.zipco-aw[data-expanded="true"] .zipco-aw-chv{transform:rotate(180deg)}
+.zipco-aw[data-expanded="true"] .zipco-aw-cb{background:#ccfbf1}
+/* errores: siempre visibles */
+.zipco-aw-err{margin:10px 0 0}.zipco-aw-err:empty{display:none}
+.zipco-aw-err .zipco-av-error{margin:0;padding:10px 12px;border-radius:14px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fecdd3;border:0;color:#be123c;font-size:12px;line-height:1.4}
+.zipco-aw-err .zipco-av-error p{margin:0;color:#be123c}
+.zipco-aw-err .zipco-av-error button{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:44px;margin-top:8px;border:1.5px solid #fecdd3;border-radius:12px;background:#fff;color:#be123c;font:800 12.5px 'Outfit',sans-serif;cursor:pointer}
+.zipco-aw-err .zipco-av-error button svg{width:14px;height:14px}.zipco-aw-err .zipco-av-error button:disabled{opacity:.6;cursor:default}
+/* detalle */
+.zipco-aw-dt{display:grid;gap:8px;padding-top:9px}
+.zipco-aw-mdl{display:flex}
+.zipco-aw-mode{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:10.5px;font-weight:800;white-space:nowrap;color:#0369a1;background:#e0f2fe;box-shadow:inset 0 0 0 1px #7dd3fc}
+.zipco-aw[data-modality="whatsapp"] .zipco-aw-mode{color:#047857;background:#d1fae5;box-shadow:inset 0 0 0 1px #6ee7b7}
+.zipco-aw-one{padding:3px 11px;border-radius:17px;background:#f8fafc;box-shadow:inset 0 0 0 1px #e2e8f0}
+.zipco-aw-li{margin:0;display:flex;align-items:flex-start;gap:9px;padding:6px 0;font-size:13px;font-weight:700;color:#0f172a}
+.zipco-aw-li+.zipco-aw-li{border-top:1px solid #e2e8f0}
+.zipco-aw-li .q{flex:none;min-width:28px;height:24px;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#047857;background:#d1fae5}
+.zipco-aw-li .n{flex:1;min-width:0;overflow-wrap:anywhere;padding-top:2px;line-height:1.25}
+.zipco-aw-li b{flex:none;padding-top:2px;font-weight:800;font-variant-numeric:tabular-nums}
+.zipco-aw-rows{margin:0;padding:0;border-top:1px solid #e2e8f0}
+.zipco-aw-rows>div{display:flex;align-items:flex-start;gap:9px;padding:7px 0}
+.zipco-aw-rows .i{flex:none;width:22px;height:22px;margin-top:1px;border-radius:50%;display:grid;place-items:center;color:#0f766e;background:#ccfbf1}
+.zipco-aw-rows span:last-child{min-width:0}
+.zipco-aw-rows dt{font-size:8.5px;font-weight:800;letter-spacing:.12em;line-height:1.25;color:#5b6b80;text-transform:uppercase}
+.zipco-aw-rows dd{margin:1px 0 0;font-size:12.5px;line-height:1.3;font-weight:800;color:#0f172a;overflow-wrap:anywhere}
+.zipco-aw-note{margin:0;padding:8px 11px;border-radius:14px;font-size:12px;line-height:1.35;color:#5b6b80;overflow-wrap:anywhere;background:#f8fafc;box-shadow:inset 0 0 0 1px #e2e8f0}.zipco-aw-note b{color:#0f172a}
+.zipco-aw-ref{margin:0}.zipco-aw-ref>button{margin-top:0!important;min-height:48px}
+/* respuesta del negocio: WhatsApp */
+.zipco-aw-sum{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:15px;background:linear-gradient(135deg,#ecfdf5,#fff);box-shadow:inset 0 0 0 1.5px #a7f3d0}
+.zipco-aw-sumi{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#047857;background:#d1fae5}
+.zipco-aw-sum p{margin:0;font-size:12.5px;line-height:1.35;color:#475569;overflow-wrap:anywhere}.zipco-aw-sum p b{color:#0f172a;font-weight:800}
+/* respuesta del negocio: ticket de retiro en el local */
+.zipco-aw-pick{padding:9px 10px 10px;border-radius:17px;background:linear-gradient(180deg,#f7fffc,#f0fdfa);box-shadow:inset 0 0 0 1px #d1fae5}
+.zipco-aw-pkh{display:flex;align-items:center;gap:8px}
+.zipco-aw-pkh>span{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:9px;color:#fff;background:linear-gradient(140deg,#10b981,#06b6d4);box-shadow:0 4px 10px rgba(6,182,212,.35)}
+.zipco-aw-pkh h3{margin:0;font-size:13px;font-weight:800;letter-spacing:-.025em;color:#0f172a}
+.zipco-aw-tk{margin-top:8px;overflow:hidden;border-radius:14px;background:#fff;box-shadow:0 0 0 1px #d1fae5,0 6px 14px rgba(15,23,42,.07)}
+.zipco-aw-tk-m{padding:9px 11px 8px}
+.zipco-aw-tk-m small{display:flex;align-items:center;gap:5px;font-size:8.5px;font-weight:900;letter-spacing:.13em;color:#0f766e}
+.zipco-aw-tk-m p{margin:4px 0 0;font-size:12.5px;font-weight:700;line-height:1.35;color:#0f172a;overflow-wrap:anywhere;white-space:pre-wrap}
+.zipco-aw-perf{display:flex;align-items:center}
+.zipco-aw-perf i{flex:none;width:12px;height:12px;margin:0 -1px;border-radius:50%;background:#f4fefb}.zipco-aw-perf i:first-child{margin-left:-6px}.zipco-aw-perf i:last-child{margin-right:-6px}
+.zipco-aw-perf span{flex:1;border-top:2px dashed #a7f3d0}
+.zipco-aw-tk-s{display:flex;align-items:flex-start;gap:10px;padding:6px 11px 9px;background:linear-gradient(180deg,#f0fdfa,#ecfeff)}
+.zipco-aw-tk-s:only-child{padding-top:9px}
+.zipco-aw-tk-s .si{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#14b8a6,#0f766e);box-shadow:0 0 0 4px rgba(20,184,166,.18)}
+.zipco-aw-tk-s small{display:block;font-size:8.5px;font-weight:900;letter-spacing:.12em;color:#0f766e}
+.zipco-aw-tk-s b{display:block;margin-top:2px;font-size:12px;line-height:1.3;font-weight:800;color:#0f172a;overflow-wrap:anywhere;white-space:pre-wrap}
+/* retirar (solo con canRetire; abre la confirmación, no ejecuta nada) */
+.zipco-aw-foot{display:grid;justify-items:center}
+.zipco-aw .zipco-aw-wd{pointer-events:auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;width:auto;min-height:44px;margin:0;padding:0 16px;border:0;border-radius:99px;background:#fff1f2;box-shadow:inset 0 0 0 1.5px #fecdd3;color:#be123c;font:800 12.5px 'Outfit',sans-serif;cursor:pointer}
+.zipco-aw .zipco-aw-wd:disabled{opacity:.55;cursor:default}
+.zipco-aw-fine{margin:2px 4px 0;text-align:center;font-size:10.5px;line-height:1.3;color:#5b6b80}
+.zipco-aw .zipco-aw-wd,.zipco-aw-err .zipco-av-error button{font-family:'Zipco Proposal Outfit',Outfit,system-ui,sans-serif}
+@media (max-width:350px){.zipco-aw-radar{width:58px;height:58px}.zipco-aw-th,.zipco-aw-th .zipco-product-preview,.zipco-aw-th .zipco-product-neutral,.zipco-aw-th .zipco-product-thumbs,.zipco-aw-th .zipco-product-thumb,.zipco-aw-fb{width:40px;height:40px;max-width:40px}.zipco-aw-t h4{font-size:15px}.zipco-aw-amt b{font-size:18px}.zipco-aw-pill b{font-size:9.5px}}
+@media (forced-colors:active){.zipco-aw-t h4{background:none;color:CanvasText;-webkit-text-fill-color:currentColor}}
+/* movimiento: el contenido siempre es visible (solo los adornos parten de opacidad 0). Pausas heredadas de `.zipco-avw` arriba, incluidos los pseudo-elementos. */
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"],[data-request-list-hidden="true"]) .zipco-aw::before,
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"],[data-request-list-hidden="true"]) .zipco-aw::after,
+:is([data-request-motion="idle"],[data-request-list-hidden] [id^="order-"],[data-request-list-hidden="true"]) .zipco-aw *::before{animation-play-state:paused!important}
+@media (prefers-reduced-motion:reduce){.zipco-aw,.zipco-aw *,.zipco-aw::before,.zipco-aw::after,.zipco-aw *::before{animation:none!important}.zipco-aw-radar u{display:none}.zipco-aw-chv{transition:none}}
+/* Keep focus from scrolling the card itself. */
+.zipco-avw.zipco-aw{overflow:clip;display:flow-root}
