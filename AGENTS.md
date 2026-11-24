@@ -2,6 +2,17 @@
 
 Estas instrucciones aplican al workspace frontend QA `C:\dev\zipco-app-qa`.
 
+## Rama de trabajo — acuerdo del usuario, 2026-11-24
+
+- La carpeta de trabajo sigue siendo `C:\dev\zipco-app-qa`, pero la rama de
+  trabajo es `main`. Los cambios nuevos se hacen y se registran (commit) en `main`.
+- Todo lo que llegue a `qa` se fusiona en `main`. Antes de empezar, comprobar
+  que esta carpeta está en `main` y que `main` contiene a `qa`.
+- `main` no puede estar abierta en dos carpetas a la vez: `C:\dev\zipco-app`
+  queda sin rama (HEAD desacoplado) y no se usa para trabajar.
+- Un push a `main` puede desplegar producción. Hacer push a `main` o desplegar
+  producción solo con confirmación explícita del usuario en cada ocasión.
+
 ## Memoria documental y forma de trabajo vigente
 
 Al retomar trabajo, leer [estado actual](docs/frontend-qa-current-state.md) y
@@ -24,7 +35,7 @@ describen su versión; no sustituyen el contrato o el estado actual.
   fue aprobada como piloto acotado y sus [resultados](docs/frontend-qa-tools-pilot-2026-10-30.md)
   están registrados. Reutilizar esas herramientas según dependencias; ampliar
   el alcance exige definir el nuevo bloque. No equivale a autorización global.
-- Guardar memoria no autoriza despliegues. Un push a qa puede activar Vercel:
+- Guardar memoria no autoriza despliegues. Un push a qa o a main puede activar Vercel:
   los cierres exclusivamente documentales y el bloque propuesto no hacen push
   ni despliegue sin alcance aprobado.
 
@@ -160,13 +171,13 @@ Indicar siempre:
 - estado de Vercel QA;
 - si Railway QA fue necesario;
 - cambios pendientes;
-- confirmar que `main` y producción no fueron modificados.
+- indicar si se hizo push a `main` y confirmar si producción fue modificada o no.
 
 Si durante una tarea inicialmente visual aparece una dependencia de backend,
 detenerse y comunicarla antes de continuar.
 
-No modificar `C:\dev\zipco-app` (`main`) ni producción sin autorización
-explícita.
+No trabajar en la carpeta `C:\dev\zipco-app`. No hacer push a `main` ni
+modificar producción sin autorización explícita.
 
 Regla práctica:
 
