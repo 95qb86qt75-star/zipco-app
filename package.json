@@ -10,6 +10,7 @@
     "dev": "node scripts/dev-env.mjs .env --",
     "dev:local": "node scripts/dev-env.mjs .env -- local",
     "dev:lan": "node scripts/dev-env.mjs .env -- lan",
+    "dev:lan:pwa": "node scripts/dev-env.mjs .env -- lan-pwa",
     "dev:prod": "node scripts/dev-env.mjs .env .env.prod -- --mode prod",
     "preview": "vite preview",
     "preview:prod": "node scripts/build-app.mjs --mode prod && vite preview --mode prod",

@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { qaLoadDiagnosticsEnabled } from './scripts/qa-load-diagnostics-config.mjs'
 import { qaAvailabilityDesignEnabled } from './scripts/qa-availability-design-config.mjs'
-import { ensureDevHttpsCert } from './scripts/dev-https-cert.mjs'
+import { devCaDownloadPlugin, ensureDevHttpsCert } from './scripts/dev-https-cert.mjs'
 
 
 function figmaAssetResolver() {
@@ -23,10 +23,11 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig(({ mode, command }) => {
-  // Dev server only (npm run dev:lan): HTTPS so phones on the LAN get a secure
-  // context (crypto.randomUUID, crypto.subtle, geolocation).
-  const devHttps = command === 'serve' && process.env.ZIPCO_DEV_HTTPS === '1'
-    ? (({ key, cert }) => ({ key, cert }))(ensureDevHttpsCert(__dirname)) : undefined;
+  // Local dev/preview only (npm run dev:lan / dev:lan:pwa): HTTPS so phones on
+  // the LAN get a secure context (crypto, geolocation, service worker, push).
+  const devCert = command === 'serve' && process.env.ZIPCO_DEV_HTTPS === '1'
+    ? ensureDevHttpsCert(__dirname) : undefined;
+  const devHttps = devCert ? { key: devCert.key, cert: devCert.cert } : undefined;
   const diagnostics = qaLoadDiagnosticsEnabled(mode, process.env);
   const clickTrace = diagnostics && process.env.ZIPCO_QA_NOTIFICATION_TRACE === '1';
   let diagnosticVersion = 'unknown';
@@ -60,6 +61,7 @@ export default defineConfig(({ mode, command }) => {
           `(() => {\n${observation}\nself.zipcoQaPushObservation = createQaPushObservationWorker({ workerBuild: ${JSON.stringify(diagnosticVersion)}, workerRevision: 'notification-click-attempt-v11', fetch: (...args) => self.fetch(...args), crypto: self.crypto });\n})();` });
       },
     }] : []),
+    ...(devCert ? [devCaDownloadPlugin(devCert.caCertPem)] : []),
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
