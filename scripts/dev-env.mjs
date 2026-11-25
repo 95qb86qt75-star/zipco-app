@@ -23,6 +23,13 @@ if (viteArgs[0] === 'local') {
   console.log('[dev-env] Copied .env.local → .env');
 }
 
+// `lan` (npm run dev:lan): HTTPS dev server reachable from phones on the LAN.
+let lan = {};
+if (viteArgs[0] === 'lan') {
+  viteArgs.splice(0, 1, '--host', '0.0.0.0', '--port', '5175');
+  lan = { ZIPCO_DEV_HTTPS: '1' };
+}
+
 const fromFiles = {};
 for (const file of files) {
   if (!existsSync(file)) { console.error(`[dev-env] Missing env file: ${file}`); process.exit(1); }
@@ -31,7 +38,7 @@ for (const file of files) {
 const viteKeys = Object.keys(fromFiles).filter(key => key.startsWith('VITE_'));
 console.log(`[dev-env] Env files: ${files.join(', ') || '(none)'} → ${viteKeys.join(', ') || 'no VITE_ variables'}`);
 
-const env = { ...fromFiles, ...process.env, ZIPCO_ENV_FILES_ONLY: '1' };
+const env = { ...fromFiles, ...process.env, ...lan, ZIPCO_ENV_FILES_ONLY: '1' };
 const vite = fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.meta.url));
 const result = spawnSync(process.execPath, [vite, ...viteArgs], { env, stdio: 'inherit', windowsHide: true });
 if (result.error) { console.error(result.error.message); process.exit(1); }

@@ -9,6 +9,7 @@
     "build:production:verify": "vite build --mode production && node scripts/verify-production-build.mjs",
     "dev": "node scripts/dev-env.mjs .env --",
     "dev:local": "node scripts/dev-env.mjs .env -- local",
+    "dev:lan": "node scripts/dev-env.mjs .env -- lan",
     "dev:prod": "node scripts/dev-env.mjs .env .env.prod -- --mode prod",
     "preview": "vite preview",
     "preview:prod": "node scripts/build-app.mjs --mode prod && vite preview --mode prod",

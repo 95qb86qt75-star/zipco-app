@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { qaLoadDiagnosticsEnabled } from './scripts/qa-load-diagnostics-config.mjs'
 import { qaAvailabilityDesignEnabled } from './scripts/qa-availability-design-config.mjs'
+import { ensureDevHttpsCert } from './scripts/dev-https-cert.mjs'
 
 
 function figmaAssetResolver() {
@@ -21,7 +22,11 @@ function figmaAssetResolver() {
   }
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
+  // Dev server only (npm run dev:lan): HTTPS so phones on the LAN get a secure
+  // context (crypto.randomUUID, crypto.subtle, geolocation).
+  const devHttps = command === 'serve' && process.env.ZIPCO_DEV_HTTPS === '1'
+    ? (({ key, cert }) => ({ key, cert }))(ensureDevHttpsCert(__dirname)) : undefined;
   const diagnostics = qaLoadDiagnosticsEnabled(mode, process.env);
   const clickTrace = diagnostics && process.env.ZIPCO_QA_NOTIFICATION_TRACE === '1';
   let diagnosticVersion = 'unknown';
@@ -83,6 +88,7 @@ export default defineConfig(({ mode }) => {
     host: '127.0.0.1',
     port: 5173,
     strictPort: true,
+    ...(devHttps ? { https: devHttps } : {}),
     // Local dev only: with VITE_API_URL=/local-api and LOCAL_API_PROXY_TARGET set,
     // the browser calls the API on its own origin and Vite forwards it, so a
     // backend that only allows HTTPS origins (NODE_ENV=production) still works.
