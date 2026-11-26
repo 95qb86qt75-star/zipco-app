@@ -7,6 +7,7 @@ import RequestResults from './components/RequestResults';
 import HistoryTransferOverlay from './components/HistoryTransferOverlay';
 import HistoryFilterDialog from './components/HistoryFilterDialog';
 import ReadyOrdersSummary from "./components/ReadyOrdersSummary";
+import PullToRefreshScroll from "../../../shared/pull-to-refresh/PullToRefresh";
 
 import { StatusChangeHost } from "../shared/feedback/StatusChangeFlow";
 
@@ -53,7 +54,7 @@ return (
       }} />
       <RequestsHeader model={{businessRoleBadge,customerRoleBadge,hasBusiness,onBack,setAttentionFilter,setSelectedBusinessActivity,setSubTab,subTab}}/>
 
-      <div data-requests-scroll className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
+      <PullToRefreshScroll onRefresh={() => Promise.all([loadOrders(true, 'manual'), quotes.load(true)])} data-requests-scroll className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-4 pb-40">
         {import.meta.env.QA_LOAD_DIAGNOSTICS && <LoadOrdersDiagnostics refresh={() => loadOrders(true)} />}
         <NotificationPermissionCard />
         <div className="zipco-request-kind mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/70 p-1.5 shadow-sm">
@@ -277,7 +278,7 @@ return (
         )}
         <RequestResults model={{agendaActive,agreedScheduleOf,setSortDirections,sortDirection,attentionFilter,changeQuoteStatusAndFollow,completeCustomerOrder,confirmedCancellationInHistory,confirmedRejectionInHistory,deleteOrderPermanently,emptyCopy,filteredBusinessOrders,filteredMyOrders,filteredQuotes,hasBusiness,historyFilter,isLoading,loadError,loadOrders,performAction,prefersReducedMotion,proposeOrderAlternative,quotes,refreshError,requestType,selectStatusView,selectedRead,setActiveTransfer,setOrderArchived,setStatusViews,statusView,subTab,suppressAttentionResults,updatingOrderIds,viewKey}}/>
         <div data-summary-scroll-space aria-hidden="true" />
-      </div>
+      </PullToRefreshScroll>
       <AnimatePresence>
         {activeTransfer && ('kind' in activeTransfer && (activeTransfer.kind === 'alternative' || activeTransfer.kind === 'final') ?
           <ActionHologram kind={activeTransfer.kind} title={activeTransfer.title} description={activeTransfer.description} /> : (

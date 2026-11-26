@@ -38,10 +38,12 @@ import SplashScreen from "../features/onboarding/SplashScreen";
 import type {AppModel} from './application/useAppController';
 export default function AppView({model}:{model:AppModel}){
 const {activeTab,businessesScrollTopRef,businessesSearchDistance,businessesSearchFilter,businessesSearchQuery,categories,checkoutData,chileLocationBase,closeToast,completeNotificationTarget,currentLocation,currentScreen,favoriteItems,favoriteKey,getLocationSuggestionLabel,globalSearchDistance,globalSearchFilter,globalSearchQuery,handleLogout,hasLocationAutocompleteSearched,hasStoredSession,isChangingPush,isDarkMode,isLocationAutocompleteLoading,isRegistrationComplete,locationAutocompleteResults,locationSearch,locationSearchError,locationSuggestions,openNotificationTarget,pendingLocation,previousScreen,previousServiceScreen,pushEnabled,requestsNavigationKey,searchLocationByText,selectLocationResult,selectedBusiness,selectedService,selectedServiceItem,servicesScrollTopRef,servicesSearchDistance,servicesSearchFilter,servicesSearchQuery,setActiveTab,setBusinessesSearchDistance,setBusinessesSearchFilter,setBusinessesSearchQuery,setCheckoutData,setCurrentLocation,setCurrentScreen,setGlobalSearchDistance,setGlobalSearchFilter,setGlobalSearchQuery,setHasLocationAutocompleteSearched,setIsDarkMode,setIsRegistrationComplete,setLocationAutocompleteResults,setLocationSearch,setLocationSearchError,setPendingLocation,setPreviousScreen,setPreviousServiceScreen,setSelectedBusiness,setSelectedService,setSelectedServiceItem,setServicesSearchDistance,setServicesSearchFilter,setServicesSearchQuery,setShowLocationModal,setShowSplash,showLocationModal,showSplash,toast,toggleFavorite,togglePushNotifications,updateCurrentLocationFromGeolocation}=model;
-const renderWithToast=(content:React.ReactNode)=><AppShell model={{closeToast,handleLogout,hasStoredSession,openNotificationTarget,toast}}>{content}</AppShell>;
+const renderWithToast=(content:React.ReactNode,pullToRefresh=true)=><AppShell model={{closeToast,handleLogout,hasStoredSession,openNotificationTarget,toast,pullToRefresh}}>{content}</AppShell>;
+// Splash, registration and checkouts hold in-progress input: a pull must not remount them.
+const renderWithoutPullRefresh=(content:React.ReactNode)=>renderWithToast(content,false);
 
 if (showSplash) {
-    return renderWithToast(
+    return renderWithoutPullRefresh(
       <SplashScreen
         onComplete={() => {
           sessionStorage.setItem("zipco-splash-seen", "true");
@@ -52,7 +54,7 @@ if (showSplash) {
   }
 
   if (!isRegistrationComplete) {
-    return renderWithToast(
+    return renderWithoutPullRefresh(
       <RegistrationFlow onComplete={() => { notifyCoordinationSessionChange(); setIsRegistrationComplete(true); }} />,
     );
   }
@@ -120,7 +122,7 @@ if (showSplash) {
   }
 
   if (currentScreen === "checkout" && selectedBusiness && checkoutData) {
-    return renderWithToast(
+    return renderWithoutPullRefresh(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <CheckoutScreen
@@ -290,7 +292,7 @@ if (showSplash) {
   }
 
   if (currentScreen === "service-checkout") {
-    return renderWithToast(
+    return renderWithoutPullRefresh(
       <div className="size-full bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="w-full max-w-md h-full relative">
           <ServiceCheckoutScreen

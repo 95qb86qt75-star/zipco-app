@@ -15,6 +15,7 @@ import ScheduleEditorScreen from "../schedule/ScheduleEditorScreen";
 import ScheduleSummaryCard from "../schedule/ScheduleSummaryCard";
 import ServiceAttendanceCard from "../attendance/ServiceAttendanceCard";
 import UnsavedChangesModal from "../shared/UnsavedChangesModal";
+import PullToRefreshScroll from "../../../../shared/pull-to-refresh/PullToRefresh";
 import { businessCategories, businessDays } from "../domain/businessConfigData";
 
 
@@ -60,7 +61,9 @@ if (showScheduleEditor) {
         </div>
       </div>
 
-      <div
+      {/* Pull to refresh reloads only the catalog: unsaved settings stay untouched. */}
+      <PullToRefreshScroll
+        onRefresh={catalog.refresh}
         className={`min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pt-4 ${businessConfigContentPadding(hasUnsavedChanges)}`}
       >
         {providerType !== "Servicio" && hasPhysicalStore && (
@@ -135,7 +138,7 @@ if (showScheduleEditor) {
           catalog={catalog}
           providerType={providerType === "Servicio" ? "Servicio" : "Negocio"}
         />
-      </div>
+      </PullToRefreshScroll>
 
       {/* Modal cambios sin guardar */}
       {showUnsavedModal && (

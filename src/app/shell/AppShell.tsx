@@ -6,6 +6,7 @@ import ActionHologramHost from "../features/requests/shared/feedback/ActionHolog
 import StatusToast from "../features/requests/shared/feedback/StatusToast.tsx";
 
 import Toast from "../shared/notifications/Toast";
+import GlobalPullToRefresh from "../shared/pull-to-refresh/GlobalPullToRefresh";
 
 import BusinessNotificationMonitor from "../notifications/BusinessNotificationMonitor";
 import { parseNotificationTarget } from "../notifications/notificationNavigation";
@@ -17,7 +18,12 @@ import { noticeWasPresented } from "../notifications/notificationDelivery";
 
 import type {ReactNode} from 'react';
 import type {AppModel} from './application/useAppController';
-export default function AppShell({model,children:content}:{model:Pick<AppModel,"closeToast"|"handleLogout"|"hasStoredSession"|"openNotificationTarget"|"toast">;children:ReactNode}){const {closeToast,handleLogout,hasStoredSession,openNotificationTarget,toast}=model;return (<div className="zipco-theme-surface contents">
+export default function AppShell({model,children:content}:{model:Pick<AppModel,"closeToast"|"handleLogout"|"hasStoredSession"|"openNotificationTarget"|"toast">&{pullToRefresh?:boolean};children:ReactNode}){const {closeToast,handleLogout,hasStoredSession,openNotificationTarget,toast,pullToRefresh=false}=model;
+  // Pull to refresh on any screen: remounting the current screen makes it fetch its data
+  // again while the navigation (kept above this shell) stays where the user is.
+  const [screenRefreshKey,setScreenRefreshKey]=React.useState(0);
+  return (<div className="zipco-theme-surface contents">
+      <GlobalPullToRefresh disabled={!pullToRefresh} onRefresh={()=>setScreenRefreshKey((key)=>key+1)} />
       <ActionHologramHost />
       <StatusToast />
       <ReservationWhatsappNavigationHost />
@@ -39,5 +45,5 @@ export default function AppShell({model,children:content}:{model:Pick<AppModel,"
       {hasStoredSession() && (
         <BusinessNotificationMonitor onSessionExpired={handleLogout} />
       )}
-      {content}
+      <React.Fragment key={screenRefreshKey}>{content}</React.Fragment>
     </div>);}

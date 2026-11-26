@@ -12,13 +12,13 @@ export default function useCatalogManager(businessId: number | null, token: stri
   const [isReordering, setIsReordering] = useState(false);
   const operations = useRef(createCatalogOperationRunner());
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     if (businessId === null || !token) {
       setItems([]);
       setLoadError('No se pudo identificar el negocio o la sesion.');
       return false;
     }
-    setIsLoading(true);
+    if (!silent) setIsLoading(true);
     setLoadError('');
     try {
       const loaded = await getManagedCatalog(businessId, token);
@@ -28,11 +28,17 @@ export default function useCatalogManager(businessId: number | null, token: stri
       setLoadError(error instanceof Error ? error.message : 'No se pudo cargar el catalogo.');
       return false;
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [businessId, token]);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Pull-to-refresh: reload in place and never overwrite a save, status change or reorder in flight.
+  const refresh = useCallback(async () => {
+    if (['save', 'status', 'reorder'].some((kind) => operations.current.isActive(kind))) return false;
+    return load(true);
+  }, [load]);
 
   const create = useCallback(async (payload: CatalogItemWritePayload) => {
     if (businessId === null || !token) throw new Error('No se pudo identificar el negocio o la sesion.');
@@ -80,7 +86,7 @@ export default function useCatalogManager(businessId: number | null, token: stri
 
   return {
     items, isLoading, loadError, isSavingItem, changingStatusId, isReordering,
-    load, create, update, setActive, reorder
+    load, refresh, create, update, setActive, reorder
   };
 }
 
